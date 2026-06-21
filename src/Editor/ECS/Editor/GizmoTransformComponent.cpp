@@ -30,7 +30,8 @@ void GizmoTransformComponent::init()
 	GizmoRotateComponentPtr rotateComponent= owner->getComponentOfType<GizmoRotateComponent>();
 	GizmoScaleComponentPtr scaleComponent= owner->getComponentOfType<GizmoScaleComponent>();
 
-	translateComponent->OnTranslationRequested= MakeDelegate(this, &GizmoTransformComponent::onSelectionTranslationRequested);
+	translateComponent->OnTranslationRequested=
+		MakeDelegate(this, &GizmoTransformComponent::onSelectionTranslationRequested);
 	rotateComponent->OnRotateRequested= MakeDelegate(this, &GizmoTransformComponent::onSelectionRotationRequested);
 	scaleComponent->OnScaleRequested= MakeDelegate(this, &GizmoTransformComponent::onSelectionScaleRequested);
 
@@ -84,9 +85,7 @@ void GizmoTransformComponent::bindInput()
 		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
 }
 
-void GizmoTransformComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void GizmoTransformComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	GizmoTranslateComponentPtr translatePtr= m_translateComponent.lock();
 	GizmoRotateComponentPtr rotatePtr= m_rotateComponent.lock();
@@ -153,10 +152,7 @@ void GizmoTransformComponent::selectScaleMode()
 		setGizmoMode(eGizmoMode::scale);
 }
 
-SelectionComponentPtr GizmoTransformComponent::getSelectionTarget() const
-{
-	return m_selectionTarget.lock();
-}
+SelectionComponentPtr GizmoTransformComponent::getSelectionTarget() const { return m_selectionTarget.lock(); }
 
 void GizmoTransformComponent::onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation)
 {
@@ -289,11 +285,8 @@ void GizmoTransformComponent::applyTransformToGizmo()
 		const float xScale= glm::length(xAxis);
 		const float yScale= glm::length(yAxis);
 		const float zScale= glm::length(zAxis);
-		const glm::mat4 rtTransform= glm::mat4(
-			glm::vec4(xAxis / xScale, 0.f),
-			glm::vec4(yAxis / yScale, 0.f),
-			glm::vec4(zAxis / zScale, 0.f),
-			glm::vec4(position, 1.f));
+		const glm::mat4 rtTransform= glm::mat4(glm::vec4(xAxis / xScale, 0.f), glm::vec4(yAxis / yScale, 0.f),
+											   glm::vec4(zAxis / zScale, 0.f), glm::vec4(position, 1.f));
 
 		// Snap the gizmo to the target scene component
 		setWorldTransform(rtTransform);
@@ -315,11 +308,9 @@ void GizmoTransformComponent::applyTransformToTarget()
 		const glm::vec3 yAxis= glm_mat4_get_y_axis(rtTransform);
 		const glm::vec3 zAxis= glm_mat4_get_z_axis(rtTransform);
 		const glm::vec3 position= glm_mat4_get_position(rtTransform);
-		const glm::mat4 srtTransform= glm::mat4(
-			glm::vec4(xAxis * m_targetScale.x, 0.f),
-			glm::vec4(yAxis * m_targetScale.y, 0.f),
-			glm::vec4(zAxis * m_targetScale.z, 0.f),
-			glm::vec4(position, 1.f));
+		const glm::mat4 srtTransform=
+			glm::mat4(glm::vec4(xAxis * m_targetScale.x, 0.f), glm::vec4(yAxis * m_targetScale.y, 0.f),
+					  glm::vec4(zAxis * m_targetScale.z, 0.f), glm::vec4(position, 1.f));
 
 		m_bIsApplyingTransformToTarget= true;
 		transformComponentTarget->setWorldTransform(srtTransform);
@@ -327,14 +318,13 @@ void GizmoTransformComponent::applyTransformToTarget()
 	}
 }
 
-void GizmoTransformComponent::onTransformTargetConfigChange(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void GizmoTransformComponent::onTransformTargetConfigChange(CommonConfigPtr configPtr,
+															const ConfigPropertyChangeSet& changedPropertySet)
 {
 	// Did a transform property of the gizmo target change?
-	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId) ||
-		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeQuaternionPropertyId) ||
-		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId))
+	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId)
+		|| changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeQuaternionPropertyId)
+		|| changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId))
 	{
 		// Ignore if this gizmo was the one applying the change (in applyTransformToTarget)
 		// Otherwise this was a change committed by the UI

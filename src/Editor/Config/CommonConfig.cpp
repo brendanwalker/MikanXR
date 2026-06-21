@@ -38,20 +38,18 @@ CommonConfig::CommonConfig(const std::string& fnamebase)
 {
 }
 
-void CommonConfig::onChildConfigPropertyChanged(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void CommonConfig::onChildConfigPropertyChanged(CommonConfigPtr configPtr,
+												const ConfigPropertyChangeSet& changedPropertySet)
 {
 	// TODO: Ignore read-only property changes for autosave
-	if (m_autoSaveCooldownDuration >= 0.f &&
-		m_autoSaveCooldownTimer < 0.f &&
-		configPtr->wantsConfigSerialization() &&
-		configPtr->wantsSaveForPropertyChange(changedPropertySet))
+	if (m_autoSaveCooldownDuration >= 0.f && m_autoSaveCooldownTimer < 0.f && configPtr->wantsConfigSerialization()
+		&& configPtr->wantsSaveForPropertyChange(changedPropertySet))
 	{
 		for (const auto& propertyName : changedPropertySet.getSet())
 		{
-			MIKAN_LOG_INFO("CommonConfig::onChildConfigPropertyChanged") << "AutoSave Request: Child config '" << configPtr->m_configName
-																		 << "' changed property: " << propertyName;
+			MIKAN_LOG_INFO("CommonConfig::onChildConfigPropertyChanged")
+				<< "AutoSave Request: Child config '" << configPtr->m_configName
+				<< "' changed property: " << propertyName;
 		}
 
 		m_autoSaveCooldownTimer= m_autoSaveCooldownDuration;
@@ -90,9 +88,8 @@ void CommonConfig::removeChildConfig(std::shared_ptr<CommonConfig> childConfig)
 
 void CommonConfig::notifyPropertyChanged(const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (wantsSaveForPropertyChange(changedPropertySet) &&
-		m_autoSaveCooldownDuration >= 0.f &&
-		m_autoSaveCooldownTimer < 0.f)
+	if (wantsSaveForPropertyChange(changedPropertySet) && m_autoSaveCooldownDuration >= 0.f
+		&& m_autoSaveCooldownTimer < 0.f)
 	{
 		m_autoSaveCooldownTimer= m_autoSaveCooldownDuration;
 	}
@@ -120,10 +117,7 @@ const std::filesystem::path CommonConfig::getDefaultConfigPath() const
 	return config_filepath;
 }
 
-void CommonConfig::setAutoSaveCooldownDuration(float cooldownDuration)
-{
-	m_autoSaveCooldownDuration= cooldownDuration;
-}
+void CommonConfig::setAutoSaveCooldownDuration(float cooldownDuration) { m_autoSaveCooldownDuration= cooldownDuration; }
 
 void CommonConfig::updateAutoSave(float deltaSeconds)
 {
@@ -159,10 +153,7 @@ void CommonConfig::save(const std::filesystem::path& path)
 	configuru::dump_file(path.string(), writeToJSON(), configuru::JSON);
 }
 
-bool CommonConfig::load()
-{
-	return load(getDefaultConfigPath());
-}
+bool CommonConfig::load() { return load(getDefaultConfigPath()); }
 
 bool CommonConfig::load(const std::filesystem::path& path)
 {
@@ -187,18 +178,11 @@ bool CommonConfig::load(const std::filesystem::path& path)
 	return bLoadedOk;
 }
 
-configuru::Config CommonConfig::writeToJSON()
-{
-	return configuru::Config::object();
-}
+configuru::Config CommonConfig::writeToJSON() { return configuru::Config::object(); }
 
-void CommonConfig::readFromJSON(const configuru::Config& pt)
-{
-}
+void CommonConfig::readFromJSON(const configuru::Config& pt) {}
 
-void CommonConfig::writeMonoTrackerIntrinsics(
-	configuru::Config& pt,
-	const MikanMonoIntrinsics& tracker_intrinsics)
+void CommonConfig::writeMonoTrackerIntrinsics(configuru::Config& pt, const MikanMonoIntrinsics& tracker_intrinsics)
 {
 	pt["frame_width"]= tracker_intrinsics.pixel_width;
 	pt["frame_height"]= tracker_intrinsics.pixel_height;
@@ -213,9 +197,7 @@ void CommonConfig::writeMonoTrackerIntrinsics(
 	writeDistortionCoefficients(pt, "distortion", &tracker_intrinsics.distortion_coefficients);
 }
 
-void CommonConfig::readMonoTrackerIntrinsics(
-	const configuru::Config& pt,
-	MikanMonoIntrinsics& tracker_intrinsics)
+void CommonConfig::readMonoTrackerIntrinsics(const configuru::Config& pt, MikanMonoIntrinsics& tracker_intrinsics)
 {
 
 	tracker_intrinsics.pixel_width= pt.get_or<double>("frame_width", 640.0);
@@ -230,14 +212,11 @@ void CommonConfig::readMonoTrackerIntrinsics(
 
 	readMatrix3d(pt, "undistorted_camera_matrix", tracker_intrinsics.undistorted_camera_matrix);
 	readMatrix3d(pt, "distorted_camera_matrix", tracker_intrinsics.distorted_camera_matrix);
-	readDistortionCoefficients(pt, "distortion",
-							   &tracker_intrinsics.distortion_coefficients,
+	readDistortionCoefficients(pt, "distortion", &tracker_intrinsics.distortion_coefficients,
 							   &default_distortion_coefficients);
 }
 
-void CommonConfig::writeStereoTrackerIntrinsics(
-	configuru::Config& pt,
-	const MikanStereoIntrinsics& tracker_intrinsics)
+void CommonConfig::writeStereoTrackerIntrinsics(configuru::Config& pt, const MikanStereoIntrinsics& tracker_intrinsics)
 {
 	pt["frame_width"]= tracker_intrinsics.pixel_width;
 	pt["frame_height"]= tracker_intrinsics.pixel_height;
@@ -266,9 +245,7 @@ void CommonConfig::writeStereoTrackerIntrinsics(
 	writeMatrix4d(pt, "reprojection_matrix", tracker_intrinsics.reprojection_matrix);
 }
 
-void CommonConfig::readStereoTrackerIntrinsics(
-	const configuru::Config& pt,
-	MikanStereoIntrinsics& tracker_intrinsics)
+void CommonConfig::readStereoTrackerIntrinsics(const configuru::Config& pt, MikanStereoIntrinsics& tracker_intrinsics)
 {
 	tracker_intrinsics.pixel_width= pt.get_or<double>("frame_width", 640.0);
 	tracker_intrinsics.pixel_height= pt.get_or<double>("frame_height", 480.0);
@@ -283,11 +260,9 @@ void CommonConfig::readStereoTrackerIntrinsics(
 	readMatrix3d(pt, "left_camera_matrix", tracker_intrinsics.left_camera_matrix);
 	readMatrix3d(pt, "right_camera_matrix", tracker_intrinsics.right_camera_matrix);
 
-	readDistortionCoefficients(pt, "left_distortion_cofficients",
-							   &tracker_intrinsics.left_distortion_coefficients,
+	readDistortionCoefficients(pt, "left_distortion_cofficients", &tracker_intrinsics.left_distortion_coefficients,
 							   &default_distortion_coefficients);
-	readDistortionCoefficients(pt, "right_distortion_cofficients",
-							   &tracker_intrinsics.right_distortion_coefficients,
+	readDistortionCoefficients(pt, "right_distortion_cofficients", &tracker_intrinsics.right_distortion_coefficients,
 							   &default_distortion_coefficients);
 
 	readMatrix3d(pt, "left_rectification_rotation", tracker_intrinsics.left_rectification_rotation);
@@ -303,10 +278,8 @@ void CommonConfig::readStereoTrackerIntrinsics(
 	readMatrix4d(pt, "reprojection_matrix", tracker_intrinsics.reprojection_matrix);
 }
 
-void CommonConfig::writeDistortionCoefficients(
-	configuru::Config& pt,
-	const char* coefficients_name,
-	const MikanDistortionCoefficients* coefficients)
+void CommonConfig::writeDistortionCoefficients(configuru::Config& pt, const char* coefficients_name,
+											   const MikanDistortionCoefficients* coefficients)
 {
 	char full_property_name[256];
 
@@ -328,11 +301,9 @@ void CommonConfig::writeDistortionCoefficients(
 	pt[full_property_name]= coefficients->p2;
 }
 
-void CommonConfig::readDistortionCoefficients(
-	const configuru::Config& pt,
-	const char* coefficients_name,
-	MikanDistortionCoefficients* outCoefficients,
-	const MikanDistortionCoefficients* defaultCoefficients)
+void CommonConfig::readDistortionCoefficients(const configuru::Config& pt, const char* coefficients_name,
+											  MikanDistortionCoefficients* outCoefficients,
+											  const MikanDistortionCoefficients* defaultCoefficients)
 {
 	char full_property_name[256];
 
@@ -354,22 +325,15 @@ void CommonConfig::readDistortionCoefficients(
 	outCoefficients->p2= pt.get_or<double>(full_property_name, defaultCoefficients->p2);
 }
 
-void CommonConfig::writeMatrix3d(
-	configuru::Config& pt,
-	const char* matrix_name,
-	const MikanMatrix3d& mat)
+void CommonConfig::writeMatrix3d(configuru::Config& pt, const char* matrix_name, const MikanMatrix3d& mat)
 {
 	// Write out 3 columns (3 entries per column)
 	auto m= reinterpret_cast<const double(*)[3][3]>(&mat);
-	pt[matrix_name]= configuru::Config::array({(*m)[0][0], (*m)[0][1], (*m)[0][2],
-											   (*m)[1][0], (*m)[1][1], (*m)[1][2],
-											   (*m)[2][0], (*m)[2][1], (*m)[2][2]});
+	pt[matrix_name]= configuru::Config::array(
+		{(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[2][0], (*m)[2][1], (*m)[2][2]});
 }
 
-void CommonConfig::readMatrix3d(
-	const configuru::Config& pt,
-	const char* matrix_name,
-	MikanMatrix3d& outMatrix)
+void CommonConfig::readMatrix3d(const configuru::Config& pt, const char* matrix_name, MikanMatrix3d& outMatrix)
 {
 	if (pt.has_key(matrix_name) && pt[matrix_name].is_array())
 	{
@@ -392,24 +356,16 @@ void CommonConfig::readMatrix3d(
 	}
 }
 
-void CommonConfig::writeMatrix43d(
-	configuru::Config& pt,
-	const char* matrix_name,
-	const MikanMatrix4x3d& mat)
+void CommonConfig::writeMatrix43d(configuru::Config& pt, const char* matrix_name, const MikanMatrix4x3d& mat)
 {
 	auto m= reinterpret_cast<const double(*)[4][3]>(&mat);
 
 	// Write out 4 columns (3 entries per column)
-	pt[matrix_name]= configuru::Config::array({(*m)[0][0], (*m)[0][1], (*m)[0][2],
-											   (*m)[1][0], (*m)[1][1], (*m)[1][2],
-											   (*m)[2][0], (*m)[2][1], (*m)[2][2],
-											   (*m)[3][0], (*m)[3][1], (*m)[3][2]});
+	pt[matrix_name]= configuru::Config::array({(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[1][0], (*m)[1][1], (*m)[1][2],
+											   (*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[3][0], (*m)[3][1], (*m)[3][2]});
 }
 
-void CommonConfig::readMatrix43d(
-	const configuru::Config& pt,
-	const char* matrix_name,
-	MikanMatrix4x3d& outMatrix)
+void CommonConfig::readMatrix43d(const configuru::Config& pt, const char* matrix_name, MikanMatrix4x3d& outMatrix)
 {
 	if (pt.has_key(matrix_name) && pt[matrix_name].is_array())
 	{
@@ -433,23 +389,16 @@ void CommonConfig::readMatrix43d(
 	}
 }
 
-void CommonConfig::writeMatrix4d(
-	configuru::Config& pt,
-	const char* matrix_name,
-	const MikanMatrix4d& mat)
+void CommonConfig::writeMatrix4d(configuru::Config& pt, const char* matrix_name, const MikanMatrix4d& mat)
 {
 	auto m= reinterpret_cast<const double(*)[4][4]>(&mat);
 
-	pt[matrix_name]= configuru::Config::array({(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3],
-											   (*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[1][3],
-											   (*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3],
+	pt[matrix_name]= configuru::Config::array({(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3], (*m)[1][0], (*m)[1][1],
+											   (*m)[1][2], (*m)[1][3], (*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3],
 											   (*m)[3][0], (*m)[3][1], (*m)[3][2], (*m)[3][3]});
 }
 
-void CommonConfig::readMatrix4d(
-	const configuru::Config& pt,
-	const char* matrix_name,
-	MikanMatrix4d& outMatrix)
+void CommonConfig::readMatrix4d(const configuru::Config& pt, const char* matrix_name, MikanMatrix4d& outMatrix)
 {
 	if (pt.has_key(matrix_name) && pt[matrix_name].is_array())
 	{
@@ -472,23 +421,16 @@ void CommonConfig::readMatrix4d(
 	}
 }
 
-void CommonConfig::writeMatrix4f(
-	configuru::Config& pt,
-	const char* matrix_name,
-	const MikanMatrix4f& mat)
+void CommonConfig::writeMatrix4f(configuru::Config& pt, const char* matrix_name, const MikanMatrix4f& mat)
 {
 	auto m= reinterpret_cast<const float(*)[4][4]>(&mat);
 
-	pt[matrix_name]= configuru::Config::array({(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3],
-											   (*m)[1][0], (*m)[1][1], (*m)[1][2], (*m)[1][3],
-											   (*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3],
+	pt[matrix_name]= configuru::Config::array({(*m)[0][0], (*m)[0][1], (*m)[0][2], (*m)[0][3], (*m)[1][0], (*m)[1][1],
+											   (*m)[1][2], (*m)[1][3], (*m)[2][0], (*m)[2][1], (*m)[2][2], (*m)[2][3],
 											   (*m)[3][0], (*m)[3][1], (*m)[3][2], (*m)[3][3]});
 }
 
-void CommonConfig::readMatrix4f(
-	const configuru::Config& pt,
-	const char* matrix_name,
-	MikanMatrix4f& outMatrix)
+void CommonConfig::readMatrix4f(const configuru::Config& pt, const char* matrix_name, MikanMatrix4f& outMatrix)
 {
 	auto m= reinterpret_cast<float(*)[4][4]>(&outMatrix);
 
@@ -512,18 +454,12 @@ void CommonConfig::readMatrix4f(
 	}
 }
 
-void CommonConfig::writeQuaderntiond(
-	configuru::Config& pt,
-	const char* quat_name,
-	const MikanQuatd& quat)
+void CommonConfig::writeQuaderntiond(configuru::Config& pt, const char* quat_name, const MikanQuatd& quat)
 {
 	pt[quat_name]= configuru::Config::array({quat.w, quat.x, quat.y, quat.z});
 }
 
-void CommonConfig::readQuaterniond(
-	const configuru::Config& pt,
-	const char* quat_name,
-	MikanQuatd& outQuat)
+void CommonConfig::readQuaterniond(const configuru::Config& pt, const char* quat_name, MikanQuatd& outQuat)
 {
 	if (pt.has_key(quat_name) && pt[quat_name].is_array())
 	{
@@ -541,18 +477,12 @@ void CommonConfig::readQuaterniond(
 	}
 }
 
-void CommonConfig::writeVector3d(
-	configuru::Config& pt,
-	const char* vector_name,
-	const MikanVector3d& v)
+void CommonConfig::writeVector3d(configuru::Config& pt, const char* vector_name, const MikanVector3d& v)
 {
 	pt[vector_name]= configuru::Config::array({v.x, v.y, v.z});
 }
 
-void CommonConfig::readVector3d(
-	const configuru::Config& pt,
-	const char* vector_name,
-	MikanVector3d& outVector)
+void CommonConfig::readVector3d(const configuru::Config& pt, const char* vector_name, MikanVector3d& outVector)
 {
 	if (pt.has_key(vector_name) && pt[vector_name].is_array())
 	{
@@ -568,18 +498,12 @@ void CommonConfig::readVector3d(
 	}
 }
 
-void CommonConfig::writeVector3f(
-	configuru::Config& pt,
-	const char* vector_name,
-	const MikanVector3f& v)
+void CommonConfig::writeVector3f(configuru::Config& pt, const char* vector_name, const MikanVector3f& v)
 {
 	pt[vector_name]= configuru::Config::array({v.x, v.y, v.z});
 }
 
-void CommonConfig::readVector3f(
-	const configuru::Config& pt,
-	const char* vector_name,
-	MikanVector3f& outVector)
+void CommonConfig::readVector3f(const configuru::Config& pt, const char* vector_name, MikanVector3f& outVector)
 {
 	if (pt.has_key(vector_name) && pt[vector_name].is_array())
 	{
@@ -595,18 +519,12 @@ void CommonConfig::readVector3f(
 	}
 }
 
-void CommonConfig::writeVector2f(
-	configuru::Config& pt,
-	const char* vector_name,
-	const MikanVector2f& v)
+void CommonConfig::writeVector2f(configuru::Config& pt, const char* vector_name, const MikanVector2f& v)
 {
 	pt[vector_name]= configuru::Config::array({v.x, v.y});
 }
 
-void CommonConfig::readVector2f(
-	const configuru::Config& pt,
-	const char* vector_name,
-	MikanVector2f& outVector)
+void CommonConfig::readVector2f(const configuru::Config& pt, const char* vector_name, MikanVector2f& outVector)
 {
 	if (pt.has_key(vector_name) && pt[vector_name].is_array())
 	{
@@ -620,18 +538,12 @@ void CommonConfig::readVector2f(
 	}
 }
 
-void CommonConfig::writeVector2i(
-	configuru::Config& pt,
-	const char* vector_name,
-	const MikanVector2i& v)
+void CommonConfig::writeVector2i(configuru::Config& pt, const char* vector_name, const MikanVector2i& v)
 {
 	pt[vector_name]= configuru::Config::array({v.x, v.y});
 }
 
-void CommonConfig::readVector2i(
-	const configuru::Config& pt,
-	const char* vector_name,
-	MikanVector2i& outVector)
+void CommonConfig::readVector2i(const configuru::Config& pt, const char* vector_name, MikanVector2i& outVector)
 {
 	if (pt.has_key(vector_name) && pt[vector_name].is_array())
 	{
@@ -645,18 +557,12 @@ void CommonConfig::readVector2i(
 	}
 }
 
-void CommonConfig::writeRotator3f(
-	configuru::Config& pt,
-	const char* rotator_name,
-	const MikanRotator3f& r)
+void CommonConfig::writeRotator3f(configuru::Config& pt, const char* rotator_name, const MikanRotator3f& r)
 {
 	pt[rotator_name]= configuru::Config::array({r.x_angle, r.y_angle, r.z_angle});
 }
 
-void CommonConfig::readRotator3f(
-	const configuru::Config& pt,
-	const char* rotator_name,
-	MikanRotator3f& outRotator)
+void CommonConfig::readRotator3f(const configuru::Config& pt, const char* rotator_name, MikanRotator3f& outRotator)
 {
 	if (pt.has_key(rotator_name) && pt[rotator_name].is_array())
 	{
@@ -672,18 +578,12 @@ void CommonConfig::readRotator3f(
 	}
 }
 
-void CommonConfig::writeQuatf(
-	configuru::Config& pt,
-	const char* quat_name,
-	const MikanQuatf& quat)
+void CommonConfig::writeQuatf(configuru::Config& pt, const char* quat_name, const MikanQuatf& quat)
 {
 	pt[quat_name]= configuru::Config::array({quat.w, quat.x, quat.y, quat.z});
 }
 
-void CommonConfig::readQuatf(
-	const configuru::Config& pt,
-	const char* quat_name,
-	MikanQuatf& outQuat)
+void CommonConfig::readQuatf(const configuru::Config& pt, const char* quat_name, MikanQuatf& outQuat)
 {
 	if (pt.has_key(quat_name) && pt[quat_name].is_array())
 	{

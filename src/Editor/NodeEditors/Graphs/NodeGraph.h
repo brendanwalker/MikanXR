@@ -71,7 +71,8 @@ public:
 	// -- Loading -----
 
 	virtual bool loadFromConfig(const NodeGraphConfig& config);
-	virtual GraphPropertyPtr loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig, const NodeGraphConfig& graphConfig);
+	virtual GraphPropertyPtr loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig,
+														 const NodeGraphConfig& graphConfig);
 	virtual bool loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
 	virtual bool allocateNodeFromConfig(NodeConfigPtr nodeConfig);
 	virtual bool loadNodeFromConfig(NodeConfigPtr nodeConfig);
@@ -93,7 +94,8 @@ public:
 
 	// -- Assets References -----
 
-	virtual std::vector<AssetReferenceFactoryPtr> editorGetValidAssetRefFactories(const class NodeEditorState& editorState) const;
+	virtual std::vector<AssetReferenceFactoryPtr> editorGetValidAssetRefFactories(
+		const class NodeEditorState& editorState) const;
 
 	template <class t_asset_factory>
 	void addAssetReferenceFactory()
@@ -123,15 +125,9 @@ public:
 		return (index >= 0 && index < (int)m_assetReferences.size()) ? m_assetReferences[index] : AssetReferencePtr();
 	}
 
-	inline const std::vector<AssetReferencePtr>& getAssetReferences() const
-	{
-		return m_assetReferences;
-	}
+	inline const std::vector<AssetReferencePtr>& getAssetReferences() const { return m_assetReferences; }
 
-	inline std::vector<AssetReferencePtr>& getAssetReferencesMutable()
-	{
-		return m_assetReferences;
-	}
+	inline std::vector<AssetReferencePtr>& getAssetReferencesMutable() { return m_assetReferences; }
 
 	// template <class t_asset_ref_type>
 	// std::shared_ptr<t_asset_ref_type> addTypedAssetReference()
@@ -153,7 +149,8 @@ public:
 
 	// -- Properties -----
 
-	virtual std::vector<GraphPropertyFactoryPtr> editorGetValidPropertyFactories(const class NodeEditorState& editorState) const;
+	virtual std::vector<GraphPropertyFactoryPtr> editorGetValidPropertyFactories(
+		const class NodeEditorState& editorState) const;
 
 	template <class t_property_factory>
 	void addPropertyFactory()
@@ -174,10 +171,7 @@ public:
 	GraphPropertyPtr getPropertyById(t_graph_property_id id) const;
 	GraphPropertyPtr getPropertyByName(const std::string& name) const;
 
-	inline const std::map<t_graph_property_id, GraphPropertyPtr>& getPropertyMap() const
-	{
-		return m_properties;
-	}
+	inline const std::map<t_graph_property_id, GraphPropertyPtr>& getPropertyMap() const { return m_properties; }
 
 	template <class t_property_type>
 	std::shared_ptr<t_property_type> getTypedPropertyById(t_graph_property_id id) const
@@ -378,8 +372,5 @@ class TypedNodeGraphFactory : public NodeGraphFactory
 public:
 	TypedNodeGraphFactory()= default;
 
-	virtual NodeGraphPtr allocateNodeGraph() const override
-	{
-		return std::make_shared<t_node_graph_class>();
-	}
+	virtual NodeGraphPtr allocateNodeGraph() const override { return std::make_shared<t_node_graph_class>(); }
 };

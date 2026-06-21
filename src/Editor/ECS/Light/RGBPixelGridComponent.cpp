@@ -51,9 +51,8 @@ void RGBPixelGridDefinition::readFromJSON(const configuru::Config& pt)
 	resizeGrid(cols, rows);
 }
 
-bool RGBPixelGridDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool RGBPixelGridDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!DMXFixtureComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -71,9 +70,8 @@ void RGBPixelGridDefinition::resizeGrid(int columns, int rows)
 	m_rows= std::max(1, rows);
 	setDMXChannelCount(static_cast<uint16_t>(getTotalChannels()));
 
-	notifyPropertyChanged(ConfigPropertyChangeSet()
-							  .addPropertyName(k_gridColumnsPropertyId)
-							  .addPropertyName(k_gridRowsPropertyId));
+	notifyPropertyChanged(
+		ConfigPropertyChangeSet().addPropertyName(k_gridColumnsPropertyId).addPropertyName(k_gridRowsPropertyId));
 }
 
 void RGBPixelGridDefinition::setColumns(int columns)
@@ -104,14 +102,13 @@ void RGBPixelGridComponent::init()
 	resizePixelDataBuffer();
 }
 
-void RGBPixelGridComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void RGBPixelGridComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+													const ConfigPropertyChangeSet& changedPropertySet)
 {
 	DMXFixtureComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
-	if (changedPropertySet.hasPropertyName(RGBPixelGridDefinition::k_gridColumnsPropertyId) ||
-		changedPropertySet.hasPropertyName(RGBPixelGridDefinition::k_gridRowsPropertyId))
+	if (changedPropertySet.hasPropertyName(RGBPixelGridDefinition::k_gridColumnsPropertyId)
+		|| changedPropertySet.hasPropertyName(RGBPixelGridDefinition::k_gridRowsPropertyId))
 	{
 		resizePixelDataBuffer();
 	}
@@ -186,11 +183,8 @@ void RGBPixelGridComponent::sendDMXData(IDMXManager* manager) const
 		const int slotsAvailableInUniverse= 512 - (slotInUniverse - 1);
 		const int chunkSize= std::min(channelsRemaining, slotsAvailableInUniverse);
 
-		manager->setChannels(
-			targetUniverse,
-			slotInUniverse,
-			pixelData.data() + pixelDataOffset,
-			static_cast<uint16_t>(chunkSize));
+		manager->setChannels(targetUniverse, slotInUniverse, pixelData.data() + pixelDataOffset,
+							 static_cast<uint16_t>(chunkSize));
 
 		pixelDataOffset+= chunkSize;
 		channelsRemaining-= chunkSize;
@@ -219,15 +213,13 @@ void RGBPixelGridComponent::getPropertyDescriptors(std::vector<PropertyDescripto
 {
 	DMXFixtureComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBPixelGridDefinition::k_gridColumnsPropertyId, MikanVariantType::INT));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBPixelGridDefinition::k_gridRowsPropertyId, MikanVariantType::INT));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(RGBPixelGridDefinition::k_gridColumnsPropertyId, MikanVariantType::INT));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(RGBPixelGridDefinition::k_gridRowsPropertyId, MikanVariantType::INT));
 }
 
-bool RGBPixelGridComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool RGBPixelGridComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	RGBPixelGridDefinitionPtr def= getRGBPixelGridDefinition();
 
@@ -245,9 +237,7 @@ bool RGBPixelGridComponent::getPropertyValue(
 	return DMXFixtureComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool RGBPixelGridComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool RGBPixelGridComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	RGBPixelGridDefinitionPtr def= getRGBPixelGridDefinition();
 
@@ -266,9 +256,7 @@ bool RGBPixelGridComponent::setPropertyValue(
 }
 
 // -- customRender --
-void RGBPixelGridComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void RGBPixelGridComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	RGBPixelGridDefinitionPtr def= getRGBPixelGridDefinition();
 	if (!def || def->getIsDisabled())
@@ -290,35 +278,25 @@ void RGBPixelGridComponent::customRender(
 	drawTransformedAxes(graphicsContext, xform, 0.05f, 0.05f, 0.05f);
 
 	TextStyle style= getDefaultTextStyle();
-	drawTextAtWorldPosition(graphicsContext, style, position,
-							L"PixelGrid %d [%dx%d]",
-							def->getComponentId(),
-							def->getColumns(),
-							def->getRows());
+	drawTextAtWorldPosition(graphicsContext, style, position, L"PixelGrid %d [%dx%d]", def->getComponentId(),
+							def->getColumns(), def->getRows());
 }
 
 // -- Lua Binding --
 void RGBPixelGridComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<RGBPixelGridComponent, DMXFixtureComponent>(
-			RGBPixelGridComponent::k_componentClassName.c_str())
-		.addProperty("columns", [](RGBPixelGridComponent* c) -> int
-					 { return c->getRGBPixelGridDefinition()->getColumns(); }, [](RGBPixelGridComponent* c, int v)
-					 { c->getRGBPixelGridDefinition()->setColumns(v); })
-		.addProperty("rows", [](RGBPixelGridComponent* c) -> int
-					 { return c->getRGBPixelGridDefinition()->getRows(); }, [](RGBPixelGridComponent* c, int v)
-					 { c->getRGBPixelGridDefinition()->setRows(v); })
-		.addFunction("setPixel", [](RGBPixelGridComponent* c, int col, int row, int r, int g, int b)
-					 { c->setPixel(
-						   col, row,
-						   static_cast<uint8_t>(r),
-						   static_cast<uint8_t>(g),
-						   static_cast<uint8_t>(b)); })
+		.deriveClass<RGBPixelGridComponent, DMXFixtureComponent>(RGBPixelGridComponent::k_componentClassName.c_str())
+		.addProperty(
+			"columns", [](RGBPixelGridComponent* c) -> int { return c->getRGBPixelGridDefinition()->getColumns(); },
+			[](RGBPixelGridComponent* c, int v) { c->getRGBPixelGridDefinition()->setColumns(v); })
+		.addProperty(
+			"rows", [](RGBPixelGridComponent* c) -> int { return c->getRGBPixelGridDefinition()->getRows(); },
+			[](RGBPixelGridComponent* c, int v) { c->getRGBPixelGridDefinition()->setRows(v); })
+		.addFunction(
+			"setPixel", [](RGBPixelGridComponent* c, int col, int row, int r, int g, int b)
+			{ c->setPixel(col, row, static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b)); })
 		.addFunction("fillPixels", [](RGBPixelGridComponent* c, int r, int g, int b)
-					 { c->fillPixels(
-						   static_cast<uint8_t>(r),
-						   static_cast<uint8_t>(g),
-						   static_cast<uint8_t>(b)); })
+					 { c->fillPixels(static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b)); })
 		.endClass();
 }

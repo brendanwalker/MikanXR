@@ -23,9 +23,8 @@ public:
 	void setPriority(int priority) { m_priority= priority; }
 
 	virtual bool getBoundingSphere(glm::vec3& outCenter, float& outRadius) const { return false; }
-	virtual bool computeRayIntersection(
-		const ColliderRaycastHitRequest& request,
-		ColliderRaycastHitResult& outResult) const;
+	virtual bool computeRayIntersection(const ColliderRaycastHitRequest& request,
+										ColliderRaycastHitResult& outResult) const;
 
 protected:
 	bool m_bEnabled= true;

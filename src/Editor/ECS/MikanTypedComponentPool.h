@@ -24,9 +24,7 @@ public:
 	using PoolDefinitionPtr= std::shared_ptr<MikanTypedComponentPoolDefinition<t_definition_class, t_id_type>>;
 	using FactoryFunction= std::function<ComponentPtr(ComponentDefinitionPtr)>;
 
-	MikanTypedComponentPool(
-		MikanObjectSystem* ownerSystem,
-		FactoryFunction factory)
+	MikanTypedComponentPool(MikanObjectSystem* ownerSystem, FactoryFunction factory)
 		: m_ownerSystem(ownerSystem)
 		, m_factory(factory)
 	{
@@ -46,23 +44,18 @@ public:
 
 	ComponentPtr getByName(const std::string& name) const
 	{
-		return findByPredicate(
-			[&name](ComponentConstPtr componentPtr)
-			{
-				return componentPtr->getName() == name;
-			});
+		return findByPredicate([&name](ComponentConstPtr componentPtr) { return componentPtr->getName() == name; });
 	}
 
 	using PredFunction= std::function<bool(ComponentConstPtr)>;
 	ComponentPtr findByPredicate(PredFunction pred) const
 	{
-		auto it= std::find_if(
-			m_components.begin(), m_components.end(),
-			[this, &pred](const auto& kvpair)
-			{
-				ComponentPtr componentPtr= kvpair.second.lock();
-				return componentPtr && pred(componentPtr);
-			});
+		auto it= std::find_if(m_components.begin(), m_components.end(),
+							  [this, &pred](const auto& kvpair)
+							  {
+								  ComponentPtr componentPtr= kvpair.second.lock();
+								  return componentPtr && pred(componentPtr);
+							  });
 		if (it != m_components.end())
 		{
 			return it->second.lock();

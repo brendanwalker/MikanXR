@@ -25,9 +25,8 @@ bool VideoSourceRequestHandler::startup(MainWindow* mainWindow)
 	messageServer->setRequestHandler(
 		GetVideoSourceIntrinsics::staticGetArchetype().getName(),
 		std::bind(&VideoSourceRequestHandler::getVideoSourceIntrinsicsHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		GetVideoSourceMode::staticGetArchetype().getName(),
-		std::bind(&VideoSourceRequestHandler::getVideoSourceModeHandler, this, _1, _2));
+	messageServer->setRequestHandler(GetVideoSourceMode::staticGetArchetype().getName(),
+									 std::bind(&VideoSourceRequestHandler::getVideoSourceModeHandler, this, _1, _2));
 	messageServer->setRequestHandler(
 		SetUSBVideoSourceDevice::staticGetArchetype().getName(),
 		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler, this, _1, _2));
@@ -67,9 +66,7 @@ void VideoSourceRequestHandler::publishVideoSourceModeChangedEvent()
 }
 
 // Video Source Requests
-void VideoSourceRequestHandler::getVideoSourceIntrinsicsHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void VideoSourceRequestHandler::getVideoSourceIntrinsicsHandler(const ClientRequest& request, ClientResponse& response)
 {
 	GetVideoSourceIntrinsics intrinsicsRequest;
 	if (!readTypedRequest(request.utf8RequestString, intrinsicsRequest))
@@ -79,9 +76,7 @@ void VideoSourceRequestHandler::getVideoSourceIntrinsicsHandler(
 	}
 
 	VideoSourceComponentPtr videoSourceComponent=
-		VideoSourceQueries::getVideoSourceById(
-			getProjectManager(),
-			intrinsicsRequest.video_source_id);
+		VideoSourceQueries::getVideoSourceById(getProjectManager(), intrinsicsRequest.video_source_id);
 	if (videoSourceComponent)
 	{
 		MikanVideoSourceIntrinsicsResponse intrinsicsResponse;
@@ -95,9 +90,7 @@ void VideoSourceRequestHandler::getVideoSourceIntrinsicsHandler(
 	}
 }
 
-void VideoSourceRequestHandler::getVideoSourceModeHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void VideoSourceRequestHandler::getVideoSourceModeHandler(const ClientRequest& request, ClientResponse& response)
 {
 	GetVideoSourceMode modeRequest;
 	if (!readTypedRequest(request.utf8RequestString, modeRequest))
@@ -107,9 +100,7 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 	}
 
 	VideoSourceComponentPtr videoSourceComponent=
-		VideoSourceQueries::getVideoSourceById(
-			getProjectManager(),
-			modeRequest.video_source_id);
+		VideoSourceQueries::getVideoSourceById(getProjectManager(), modeRequest.video_source_id);
 	if (videoSourceComponent)
 	{
 		const std::string devicePath= videoSourceComponent->getDevicePath();
@@ -118,9 +109,9 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 		std::string videoModeName;
 		int pixelWidth, pixelHeight;
 		float frameRate= 0.0f;
-		if (videoSourceComponent->getVideoModeName(videoModeName) &&
-			videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight) &&
-			videoSourceComponent->getFrameRate(frameRate))
+		if (videoSourceComponent->getVideoModeName(videoModeName)
+			&& videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight)
+			&& videoSourceComponent->getFrameRate(frameRate))
 		{
 			MikanVideoSourceModeResponse info;
 
@@ -146,9 +137,7 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 	}
 }
 
-void VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler(const ClientRequest& request, ClientResponse& response)
 {
 	SetUSBVideoSourceDevice deviceRequest;
 	if (!readTypedRequest(request.utf8RequestString, deviceRequest))
@@ -158,8 +147,7 @@ void VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler(
 	}
 
 	USBVideoSourceComponentPtr videoSourceComponent=
-		getObjectSystemOfType<USBVideoSourceSystem>()
-			->getTypedComponentById(deviceRequest.video_source_id);
+		getObjectSystemOfType<USBVideoSourceSystem>()->getTypedComponentById(deviceRequest.video_source_id);
 	if (videoSourceComponent)
 	{
 		if (videoSourceComponent->setDevicePath(deviceRequest.device_path.getValue()))
@@ -178,9 +166,8 @@ void VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler(
 	}
 }
 
-void VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler(const ClientRequest& request,
+																   ClientResponse& response)
 {
 	SetUSBVideoSourceResolution resolutionRequest;
 	if (!readTypedRequest(request.utf8RequestString, resolutionRequest))
@@ -190,8 +177,7 @@ void VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler(
 	}
 
 	USBVideoSourceComponentPtr videoSourceComponent=
-		getObjectSystemOfType<USBVideoSourceSystem>()
-			->getTypedComponentById(resolutionRequest.video_source_id);
+		getObjectSystemOfType<USBVideoSourceSystem>()->getTypedComponentById(resolutionRequest.video_source_id);
 	if (videoSourceComponent)
 	{
 		std::string frameRate;
@@ -200,10 +186,7 @@ void VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler(
 		videoSourceComponent->getVideoModeFrameRateName(frameRate);
 		videoSourceComponent->getVideoModeFormatName(format);
 
-		if (videoSourceComponent->setVideoModeToBestMatch(
-				resolutionRequest.resolution.getValue(),
-				frameRate,
-				format))
+		if (videoSourceComponent->setVideoModeToBestMatch(resolutionRequest.resolution.getValue(), frameRate, format))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 			publishVideoSourceModeChangedEvent();
@@ -219,9 +202,8 @@ void VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler(
 	}
 }
 
-void VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler(const ClientRequest& request,
+																  ClientResponse& response)
 {
 	SetUSBVideoSourceFrameRate frameRateRequest;
 	if (!readTypedRequest(request.utf8RequestString, frameRateRequest))
@@ -231,8 +213,7 @@ void VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler(
 	}
 
 	USBVideoSourceComponentPtr videoSourceComponent=
-		getObjectSystemOfType<USBVideoSourceSystem>()
-			->getTypedComponentById(frameRateRequest.video_source_id);
+		getObjectSystemOfType<USBVideoSourceSystem>()->getTypedComponentById(frameRateRequest.video_source_id);
 	if (videoSourceComponent)
 	{
 		std::string resolution;
@@ -241,10 +222,7 @@ void VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler(
 		videoSourceComponent->getVideoModeResolutionName(resolution);
 		videoSourceComponent->getVideoModeFormatName(format);
 
-		if (videoSourceComponent->setVideoModeToBestMatch(
-				resolution,
-				frameRateRequest.frame_rate.getValue(),
-				format))
+		if (videoSourceComponent->setVideoModeToBestMatch(resolution, frameRateRequest.frame_rate.getValue(), format))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 			publishVideoSourceModeChangedEvent();
@@ -260,9 +238,7 @@ void VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler(
 	}
 }
 
-void VideoSourceRequestHandler::setUSBVideoSourceFormatHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void VideoSourceRequestHandler::setUSBVideoSourceFormatHandler(const ClientRequest& request, ClientResponse& response)
 {
 	SetUSBVideoSourceFormat formatRequest;
 	if (!readTypedRequest(request.utf8RequestString, formatRequest))
@@ -272,18 +248,14 @@ void VideoSourceRequestHandler::setUSBVideoSourceFormatHandler(
 	}
 
 	USBVideoSourceComponentPtr videoSourceComponent=
-		getObjectSystemOfType<USBVideoSourceSystem>()
-			->getTypedComponentById(formatRequest.video_source_id);
+		getObjectSystemOfType<USBVideoSourceSystem>()->getTypedComponentById(formatRequest.video_source_id);
 	if (videoSourceComponent)
 	{
 		std::string resolution;
 		std::string frameRate;
 		videoSourceComponent->getVideoModeResolutionName(resolution);
 		videoSourceComponent->getVideoModeFrameRateName(frameRate);
-		if (videoSourceComponent->setVideoModeToBestMatch(
-				resolution,
-				frameRate,
-				formatRequest.format.getValue()))
+		if (videoSourceComponent->setVideoModeToBestMatch(resolution, frameRate, formatRequest.format.getValue()))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 			publishVideoSourceModeChangedEvent();

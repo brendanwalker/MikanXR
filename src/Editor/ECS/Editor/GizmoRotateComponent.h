@@ -27,10 +27,8 @@ public:
 
 protected:
 	glm::vec3 getColliderColor(DiskColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor) const;
-	bool getColliderRotationAxis(
-		ColliderComponentWeakPtr colliderWeakPtr,
-		glm::vec3& outWorldSpaceOrigin,
-		glm::vec3& outWorldSpaceAxis);
+	bool getColliderRotationAxis(ColliderComponentWeakPtr colliderWeakPtr, glm::vec3& outWorldSpaceOrigin,
+								 glm::vec3& outWorldSpaceAxis);
 
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);

@@ -42,10 +42,7 @@ public:
 	{
 	}
 
-	void bindWebSocket(WebSocketWeakPtr websocket)
-	{
-		m_websocket= websocket;
-	}
+	void bindWebSocket(WebSocketWeakPtr websocket) { m_websocket= websocket; }
 
 	bool disconnect()
 	{
@@ -62,9 +59,7 @@ public:
 	inline LockFreeMessageQueuePtr getSocketEventQueue() { return m_socketEventQueue; }
 	inline LockFreeMessageQueuePtr getRequestQueue() { return m_requestQueue; }
 
-	void handleClientMessage(
-		ConnectionStatePtr connectionState,
-		const ix::WebSocketMessagePtr& msg)
+	void handleClientMessage(ConnectionStatePtr connectionState, const ix::WebSocketMessagePtr& msg)
 	{
 		switch (msg->type)
 		{
@@ -72,27 +67,21 @@ public:
 		{
 			auto remoteIp= connectionState->getRemoteIp();
 
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "New connection";
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "remote ip: " << remoteIp;
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "id: " << connectionState->getId();
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "Uri: " << msg->openInfo.uri;
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "New connection";
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "remote ip: " << remoteIp;
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "id: " << connectionState->getId();
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "Uri: " << msg->openInfo.uri;
 
 			std::string protocol;
 			auto it= msg->openInfo.headers.find("Sec-WebSocket-Protocol");
 			if (it != msg->openInfo.headers.end())
 			{
 				protocol= it->second;
-				MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-					<< "Protocol: " << protocol;
+				MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "Protocol: " << protocol;
 			}
 			else
 			{
-				MIKAN_MT_LOG_WARNING("WebSocketClientConnection::handleClientMessage")
-					<< "No protocols specified";
+				MIKAN_MT_LOG_WARNING("WebSocketClientConnection::handleClientMessage") << "No protocols specified";
 			}
 
 			// Enqueue the client connect event
@@ -104,14 +93,10 @@ public:
 		break;
 		case ix::WebSocketMessageType::Close:
 		{
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "Close connection";
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "id: " << connectionState->getId();
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "reason: " << msg->closeInfo.reason;
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "code: " << msg->closeInfo.code;
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "Close connection";
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "id: " << connectionState->getId();
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "reason: " << msg->closeInfo.reason;
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "code: " << msg->closeInfo.code;
 
 			// Enqueue the client disconnect event
 			std::stringstream ss;
@@ -137,8 +122,7 @@ public:
 		break;
 		case ix::WebSocketMessageType::Error:
 		{
-			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage")
-				<< "Error: " << msg->errorInfo.reason;
+			MIKAN_MT_LOG_TRACE("WebSocketClientConnection::handleClientMessage") << "Error: " << msg->errorInfo.reason;
 
 			// Enqueue the client error event
 			std::stringstream ss;
@@ -217,10 +201,7 @@ WebsocketInterprocessMessageServer::WebsocketInterprocessMessageServer()
 {
 }
 
-WebsocketInterprocessMessageServer::~WebsocketInterprocessMessageServer()
-{
-	dispose();
-}
+WebsocketInterprocessMessageServer::~WebsocketInterprocessMessageServer() { dispose(); }
 
 bool WebsocketInterprocessMessageServer::initialize()
 {
@@ -228,8 +209,7 @@ bool WebsocketInterprocessMessageServer::initialize()
 
 	if (!ix::initNetSystem())
 	{
-		MIKAN_LOG_WARNING("WebsocketInterprocessMessageServer::initialize()")
-			<< "Failed to initialize net system";
+		MIKAN_LOG_WARNING("WebsocketInterprocessMessageServer::initialize()") << "Failed to initialize net system";
 		bSuccess= false;
 	}
 
@@ -240,13 +220,10 @@ bool WebsocketInterprocessMessageServer::initialize()
 		m_server= std::make_shared<ix::WebSocketServer>();
 
 		auto connectionStateFactory= [ownerMessageServer]() -> WebSocketClientConnectionPtr
-		{
-			return std::make_shared<WebSocketClientConnection>(ownerMessageServer);
-		};
+		{ return std::make_shared<WebSocketClientConnection>(ownerMessageServer); };
 
-		auto clientConnectCallback= [ownerMessageServer](
-										WebSocketWeakPtr webSocketWeakPtr,
-										ConnectionStatePtr connectionState)
+		auto clientConnectCallback=
+			[ownerMessageServer](WebSocketWeakPtr webSocketWeakPtr, ConnectionStatePtr connectionState)
 		{
 			WebSocketPtr webSocket= webSocketWeakPtr.lock();
 			if (!webSocket)
@@ -270,8 +247,9 @@ bool WebsocketInterprocessMessageServer::initialize()
 			}
 
 			// Bind the message handler to the connection
-			webSocket->setOnMessageCallback([clientConnectionState](const ix::WebSocketMessagePtr& msg)
-											{ clientConnectionState->handleClientMessage(clientConnectionState, msg); });
+			webSocket->setOnMessageCallback(
+				[clientConnectionState](const ix::WebSocketMessagePtr& msg)
+				{ clientConnectionState->handleClientMessage(clientConnectionState, msg); });
 
 			// Add the connection to the list of connections
 			{
@@ -292,8 +270,7 @@ bool WebsocketInterprocessMessageServer::initialize()
 		}
 		else
 		{
-			MIKAN_LOG_INFO("WebsocketInterprocessMessageServer::initialize()")
-				<< "Listen error: " << result.second;
+			MIKAN_LOG_INFO("WebsocketInterprocessMessageServer::initialize()") << "Listen error: " << result.second;
 			bSuccess= false;
 		}
 	}
@@ -330,16 +307,12 @@ void WebsocketInterprocessMessageServer::dispose()
 	ix::uninitNetSystem();
 }
 
-void WebsocketInterprocessMessageServer::setSocketEventHandler(
-	const std::string& eventType,
-	SocketEventHandler handler)
+void WebsocketInterprocessMessageServer::setSocketEventHandler(const std::string& eventType, SocketEventHandler handler)
 {
 	m_socketEventHandlers[eventType]= handler;
 }
 
-void WebsocketInterprocessMessageServer::setRequestHandler(
-	const std::string& requestTypeName,
-	RequestHandler handler)
+void WebsocketInterprocessMessageServer::setRequestHandler(const std::string& requestTypeName, RequestHandler handler)
 {
 	m_requestHandlers[requestTypeName]= handler;
 }
@@ -372,7 +345,8 @@ WebSocketClientConnectionPtr WebsocketInterprocessMessageServer::findConnection(
 	return nullptr;
 }
 
-void WebsocketInterprocessMessageServer::sendMessageToClient(const std::string& connectionId, const std::string& message)
+void WebsocketInterprocessMessageServer::sendMessageToClient(const std::string& connectionId,
+															 const std::string& message)
 {
 	WebSocketClientConnectionPtr connection= findConnection(connectionId);
 
@@ -447,7 +421,8 @@ void WebsocketInterprocessMessageServer::processRequests()
 			JsonSaxStringValueSearcher typeNameSearcher;
 			if (!typeNameSearcher.fetchKeyValuePair(inRequestString, "requestTypeName", requestTypeName))
 			{
-				MIKAN_LOG_WARNING("processRequests") << "Request missing/invalid requestTypeName field: " << inRequestString;
+				MIKAN_LOG_WARNING("processRequests")
+					<< "Request missing/invalid requestTypeName field: " << inRequestString;
 				continue;
 			}
 
@@ -481,8 +456,9 @@ void WebsocketInterprocessMessageServer::processRequests()
 				std::string errorMsg;
 				if (!Serialization::serializeToJsonString(outResult, outResponse.utf8String, errorMsg))
 				{
-					MIKAN_LOG_WARNING("processRequests") << "Failed to serialize response for unknown request type: " << requestTypeName
-														 << ", error: " << errorMsg;
+					MIKAN_LOG_WARNING("processRequests")
+						<< "Failed to serialize response for unknown request type: " << requestTypeName
+						<< ", error: " << errorMsg;
 					continue;
 				}
 			}
@@ -498,12 +474,10 @@ void WebsocketInterprocessMessageServer::processRequests()
 				connection->sendBinaryData(outResponse.binaryData);
 			}
 
-			if (requestId != INVALID_MIKAN_ID &&
-				outResponse.utf8String.empty() &&
-				outResponse.binaryData.empty())
+			if (requestId != INVALID_MIKAN_ID && outResponse.utf8String.empty() && outResponse.binaryData.empty())
 			{
-				MIKAN_LOG_WARNING("processRequests") << "Request handler for " << requestTypeName
-													 << " returned empty response, but response expected!";
+				MIKAN_LOG_WARNING("processRequests")
+					<< "Request handler for " << requestTypeName << " returned empty response, but response expected!";
 			}
 		}
 	}

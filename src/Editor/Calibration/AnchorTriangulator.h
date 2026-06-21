@@ -23,9 +23,7 @@ struct AnchorTriangulatorInfo
 class AnchorTriangulator
 {
 public:
-	AnchorTriangulator(
-		CameraComponentPtr cameraComponent,
-		class VideoFrameDistortionView* distortionView);
+	AnchorTriangulator(CameraComponentPtr cameraComponent, class VideoFrameDistortionView* distortionView);
 	virtual ~AnchorTriangulator();
 
 	bool hasFinishedInitialPointSampling() const;

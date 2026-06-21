@@ -26,11 +26,10 @@ GuiPanel_EntityAccessor::~GuiPanel_EntityAccessor()
 	assert(m_entityAccessor.lock() == nullptr);
 }
 
-bool GuiPanel_EntityAccessor::init(
-	const std::string& modelName,
-	const std::vector<PropertyDescriptorConstPtr>& propertyDescriptors,
-	const std::vector<FunctionDescriptorConstPtr>& functionDescriptors,
-	OnConstruct onConstructCallback)
+bool GuiPanel_EntityAccessor::init(const std::string& modelName,
+								   const std::vector<PropertyDescriptorConstPtr>& propertyDescriptors,
+								   const std::vector<FunctionDescriptorConstPtr>& functionDescriptors,
+								   OnConstruct onConstructCallback)
 {
 	clearEntityAccessor();
 
@@ -83,10 +82,8 @@ void GuiPanel_EntityAccessor::clearEntityAccessor()
 		CommonConfigPtr oldEntityConfig= oldEntityAccessor->getEntityConfig();
 		assert(m_bWasAccessorSet);
 
-		oldEntityAccessor->onDisposed-=
-			MakeDelegate(this, &GuiPanel_EntityAccessor::onEntityDisposed);
-		oldEntityConfig->OnPropertyChanged-=
-			MakeDelegate(this, &GuiPanel_EntityAccessor::onEntityConfigChanged);
+		oldEntityAccessor->onDisposed-= MakeDelegate(this, &GuiPanel_EntityAccessor::onEntityDisposed);
+		oldEntityConfig->OnPropertyChanged-= MakeDelegate(this, &GuiPanel_EntityAccessor::onEntityConfigChanged);
 
 		m_entityAccessor.reset();
 		m_bWasAccessorSet= false;
@@ -110,10 +107,8 @@ void GuiPanel_EntityAccessor::setEntityAccessor(IEntityAccessorPtr newEntityAcce
 		{
 			CommonConfigPtr newEntityConfig= newEntityAccessor->getEntityConfig();
 
-			newEntityAccessor->onDisposed+=
-				MakeDelegate(this, &GuiPanel_EntityAccessor::onEntityDisposed);
-			newEntityConfig->OnPropertyChanged+=
-				MakeDelegate(this, &GuiPanel_EntityAccessor::onEntityConfigChanged);
+			newEntityAccessor->onDisposed+= MakeDelegate(this, &GuiPanel_EntityAccessor::onEntityDisposed);
+			newEntityConfig->OnPropertyChanged+= MakeDelegate(this, &GuiPanel_EntityAccessor::onEntityConfigChanged);
 
 			m_bWasAccessorSet= true;
 		}
@@ -122,17 +117,12 @@ void GuiPanel_EntityAccessor::setEntityAccessor(IEntityAccessorPtr newEntityAcce
 	}
 }
 
-void GuiPanel_EntityAccessor::setPropertyRenderer(
-	const std::string& propName,
-	PropertyRendererCallback renderer)
+void GuiPanel_EntityAccessor::setPropertyRenderer(const std::string& propName, PropertyRendererCallback renderer)
 {
 	m_propertyRenderers[propName]= renderer;
 }
 
-void GuiPanel_EntityAccessor::drawPropertiesGui()
-{
-	drawPropertiesGui({});
-}
+void GuiPanel_EntityAccessor::drawPropertiesGui() { drawPropertiesGui({}); }
 
 void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& propertyNames)
 {
@@ -188,9 +178,11 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 			{
 				bool changed= false;
 				if (enumMeta->getDisplayStyle() == eEnumDisplayStyle::RadioButtons)
-					changed= MkGui::drawRadioButtonsProperty(m_defaultGuiStyle, uiFieldId, propName, enumMeta->getStrings(), v);
+					changed= MkGui::drawRadioButtonsProperty(m_defaultGuiStyle, uiFieldId, propName,
+															 enumMeta->getStrings(), v);
 				else
-					changed= MkGui::drawEnumComboBoxProperty(m_defaultGuiStyle, uiFieldId, propName, enumMeta->getStrings(), v);
+					changed= MkGui::drawEnumComboBoxProperty(m_defaultGuiStyle, uiFieldId, propName,
+															 enumMeta->getStrings(), v);
 				if (changed)
 				{
 					newValue= v;
@@ -243,12 +235,8 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 				{
 					const AssetReferenceFactory* factory= assetMeta->getFactory();
 					const char* picked= tinyfd_openFileDialog(
-						factory->getFileDialogTitle(),
-						factory->getDefaultPath(),
-						factory->getFilterPatternCount(),
-						factory->getFilterPatterns(),
-						factory->getFilterDescription(),
-						0);
+						factory->getFileDialogTitle(), factory->getDefaultPath(), factory->getFilterPatternCount(),
+						factory->getFilterPatterns(), factory->getFilterDescription(), 0);
 					if (picked && picked[0] != '\0')
 					{
 						newValue= picked;
@@ -321,10 +309,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 	}
 }
 
-void GuiPanel_EntityAccessor::drawFunctionsGui()
-{
-	drawFunctionsGui({});
-}
+void GuiPanel_EntityAccessor::drawFunctionsGui() { drawFunctionsGui({}); }
 
 void GuiPanel_EntityAccessor::drawFunctionsGui(const std::set<std::string>& functionNames)
 {
@@ -347,8 +332,7 @@ void GuiPanel_EntityAccessor::drawFunctionsGui(const std::set<std::string>& func
 			}
 
 			// If a function name filter is provided, skip functions that aren't in the filter set
-			if (!functionNames.empty() &&
-				functionNames.find(funcDesc->getFunctionName()) == functionNames.end())
+			if (!functionNames.empty() && functionNames.find(funcDesc->getFunctionName()) == functionNames.end())
 			{
 				continue;
 			}
@@ -356,12 +340,14 @@ void GuiPanel_EntityAccessor::drawFunctionsGui(const std::set<std::string>& func
 			if (ImGui::Button(funcDesc->getDisplayName().c_str()))
 			{
 				const std::string funcName= funcDesc->getFunctionName();
-				addDeferredGuiEvent([accessor, funcName]()
-									{
-					if (accessor)
+				addDeferredGuiEvent(
+					[accessor, funcName]()
 					{
-						accessor->invokeFunction(funcName);
-					} });
+						if (accessor)
+						{
+							accessor->invokeFunction(funcName);
+						}
+					});
 			}
 		}
 	}
@@ -373,14 +359,10 @@ void GuiPanel_EntityAccessor::onGui()
 	drawFunctionsGui();
 }
 
-void GuiPanel_EntityAccessor::onEntityDisposed(const IEntityAccessor* selfPtr)
-{
-	clearEntityAccessor();
-}
+void GuiPanel_EntityAccessor::onEntityDisposed(const IEntityAccessor* selfPtr) { clearEntityAccessor(); }
 
-void GuiPanel_EntityAccessor::onEntityConfigChanged(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void GuiPanel_EntityAccessor::onEntityConfigChanged(CommonConfigPtr configPtr,
+													const ConfigPropertyChangeSet& changedPropertySet)
 {
 	IEntityAccessorPtr entityAccessor= m_entityAccessor.lock();
 	assert(entityAccessor);

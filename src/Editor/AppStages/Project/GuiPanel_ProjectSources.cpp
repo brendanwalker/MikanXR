@@ -43,22 +43,24 @@ bool GuiPanel_ProjectSources::init(ProjectGuiPanelContext* context)
 	m_defaultGuiStyle= getGuiStyleManager()->getStyle("default_component_panel");
 
 	auto pm= ownerAppStage->getProjectManager();
-	m_videoSourceDataSource= std::make_unique<GuiDataSource_ComboBox>(pm,
-																	  std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-																		  {USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName},
-																		  {NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName}});
+	m_videoSourceDataSource= std::make_unique<GuiDataSource_ComboBox>(
+		pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName},
+			{NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName}});
 
-	m_textureSourceDataSource= std::make_unique<GuiDataSource_ComboBox>(pm,
-																		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-																			{ClientTextureSourceSystem::k_objectSystemClassName, ClientTextureSourceComponent::k_componentClassName},
-																			{SpoutTextureSourceSystem::k_objectSystemClassName, SpoutTextureSourceComponent::k_componentClassName},
-																			{CEFTextureSourceSystem::k_objectSystemClassName, CEFTextureSourceComponent::k_componentClassName}});
+	m_textureSourceDataSource= std::make_unique<GuiDataSource_ComboBox>(
+		pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ClientTextureSourceSystem::k_objectSystemClassName, ClientTextureSourceComponent::k_componentClassName},
+			{SpoutTextureSourceSystem::k_objectSystemClassName, SpoutTextureSourceComponent::k_componentClassName},
+			{CEFTextureSourceSystem::k_objectSystemClassName, CEFTextureSourceComponent::k_componentClassName}});
 
-	m_shapeDataSource= std::make_unique<GuiDataSource_ComboBox>(pm,
-																std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-																	{QuadShapeSystem::k_objectSystemClassName, QuadShapeComponent::k_componentClassName},
-																	{BoxShapeSystem::k_objectSystemClassName, BoxShapeComponent::k_componentClassName},
-																	{ModelShapeSystem::k_objectSystemClassName, ModelShapeComponent::k_componentClassName}});
+	m_shapeDataSource= std::make_unique<GuiDataSource_ComboBox>(
+		pm, std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+				{QuadShapeSystem::k_objectSystemClassName, QuadShapeComponent::k_componentClassName},
+				{BoxShapeSystem::k_objectSystemClassName, BoxShapeComponent::k_componentClassName},
+				{ModelShapeSystem::k_objectSystemClassName, ModelShapeComponent::k_componentClassName}});
 
 	// Auto-select first available video source
 	m_videoSourceDataSource->refreshEntries();
@@ -79,15 +81,11 @@ bool GuiPanel_ProjectSources::init(ProjectGuiPanelContext* context)
 	return true;
 }
 
-void GuiPanel_ProjectSources::dispose()
-{
-	GuiPanel::dispose();
-}
+void GuiPanel_ProjectSources::dispose() { GuiPanel::dispose(); }
 
 VideoSourceComponentPtr GuiPanel_ProjectSources::getSelectedVideoSource() const
 {
-	return VideoSourceQueries::getVideoSourceById(
-		m_projectManager.lock(), (MikanVideoSourceID)m_selectedVideoSourceId);
+	return VideoSourceQueries::getVideoSourceById(m_projectManager.lock(), (MikanVideoSourceID)m_selectedVideoSourceId);
 }
 
 USBVideoSourceComponentPtr GuiPanel_ProjectSources::getSelectedUSBVideoSource() const
@@ -106,8 +104,8 @@ NetworkVideoSourceComponentPtr GuiPanel_ProjectSources::getSelectedNetworkVideoS
 
 TextureSourceComponentPtr GuiPanel_ProjectSources::getSelectedTextureSource() const
 {
-	return TextureSourceQueries::getTextureSourceById(
-		m_projectManager.lock(), (MikanTextureSourceID)m_selectedTextureSourceId);
+	return TextureSourceQueries::getTextureSourceById(m_projectManager.lock(),
+													  (MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
 ClientTextureSourceComponentPtr GuiPanel_ProjectSources::getSelectedClientTextureSource() const
@@ -237,26 +235,30 @@ void GuiPanel_ProjectSources::onGui()
 	// Video Sources
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addUSBSource", "add_usb_source"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<USBVideoSourceSystem>();
-			sys->addNewUSBVideoSource(); });
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<USBVideoSourceSystem>();
+				sys->addNewUSBVideoSource();
+			});
 	}
 	ImGui::SameLine();
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addNetworkSource", "add_network_source"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<NetworkVideoSourceSystem>();
-			sys->addNewObjectByTypedDefinition(); });
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<NetworkVideoSourceSystem>();
+				sys->addNewObjectByTypedDefinition();
+			});
 	}
 
 	m_videoSourceDataSource->refreshEntries();
 
-	if (m_selectedVideoSourceId != INVALID_MIKAN_ID &&
-		m_videoSourceDataSource->getEntryIndexByComponentId(m_selectedVideoSourceId) == -1)
+	if (m_selectedVideoSourceId != INVALID_MIKAN_ID
+		&& m_videoSourceDataSource->getEntryIndexByComponentId(m_selectedVideoSourceId) == -1)
 	{
 		setSelectedVideoSourceId(INVALID_MIKAN_ID);
 	}
@@ -270,8 +272,7 @@ void GuiPanel_ProjectSources::onGui()
 			if (MikanComponentPtr sel= m_videoSourceDataSource->getEntryAtIndex(videoIndex))
 			{
 				int newId= sel->getComponentId();
-				addDeferredGuiEvent([this, newId]()
-									{ setSelectedVideoSourceId((MikanVideoSourceID)newId); });
+				addDeferredGuiEvent([this, newId]() { setSelectedVideoSourceId((MikanVideoSourceID)newId); });
 			}
 		}
 	}
@@ -281,10 +282,12 @@ void GuiPanel_ProjectSources::onGui()
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeVideoSource", "delete_component"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				auto pm = m_projectManager.lock();
-				VideoSourceQueries::removeVideoSource(pm, (MikanVideoSourceID)m_selectedVideoSourceId); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					auto pm= m_projectManager.lock();
+					VideoSourceQueries::removeVideoSource(pm, (MikanVideoSourceID)m_selectedVideoSourceId);
+				});
 		}
 
 		m_context->getUSBVideoSourcePanel()->drawCompactGui();
@@ -296,35 +299,41 @@ void GuiPanel_ProjectSources::onGui()
 	// Texture Sources
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addClientSource", "add_client_source"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<ClientTextureSourceSystem>();
-			sys->addNewObjectByTypedDefinition(); });
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<ClientTextureSourceSystem>();
+				sys->addNewObjectByTypedDefinition();
+			});
 	}
 	ImGui::SameLine();
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addSpoutSource", "add_spout_source"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<SpoutTextureSourceSystem>();
-			sys->addNewObjectByTypedDefinition(); });
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<SpoutTextureSourceSystem>();
+				sys->addNewObjectByTypedDefinition();
+			});
 	}
 	ImGui::SameLine();
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addCEFSource", "add_cef_source"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<CEFTextureSourceSystem>();
-			sys->addNewObjectByTypedDefinition(); });
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<CEFTextureSourceSystem>();
+				sys->addNewObjectByTypedDefinition();
+			});
 	}
 
 	m_textureSourceDataSource->refreshEntries();
 
-	if (m_selectedTextureSourceId != INVALID_MIKAN_ID &&
-		m_textureSourceDataSource->getEntryIndexByComponentId(m_selectedTextureSourceId) == -1)
+	if (m_selectedTextureSourceId != INVALID_MIKAN_ID
+		&& m_textureSourceDataSource->getEntryIndexByComponentId(m_selectedTextureSourceId) == -1)
 	{
 		setSelectedTextureSourceId(INVALID_MIKAN_ID);
 	}
@@ -338,8 +347,7 @@ void GuiPanel_ProjectSources::onGui()
 			if (MikanComponentPtr sel= m_textureSourceDataSource->getEntryAtIndex(textureIndex))
 			{
 				int newId= sel->getComponentId();
-				addDeferredGuiEvent([this, newId]()
-									{ setSelectedTextureSourceId((MikanTextureSourceID)newId); });
+				addDeferredGuiEvent([this, newId]() { setSelectedTextureSourceId((MikanTextureSourceID)newId); });
 			}
 		}
 	}
@@ -349,10 +357,12 @@ void GuiPanel_ProjectSources::onGui()
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeTextureSource", "delete_component"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				auto pm = m_projectManager.lock();
-				TextureSourceQueries::removeTextureSource(pm, (MikanTextureSourceID)m_selectedTextureSourceId); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					auto pm= m_projectManager.lock();
+					TextureSourceQueries::removeTextureSource(pm, (MikanTextureSourceID)m_selectedTextureSourceId);
+				});
 		}
 
 		m_context->getClientTextureSourcePanel()->onGui();
@@ -365,50 +375,53 @@ void GuiPanel_ProjectSources::onGui()
 	// Shapes
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addQuadShape", "add_quad_shape"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<QuadShapeSystem>();
-			sys->addNewObjectByTypedDefinition(); });
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<QuadShapeSystem>();
+				sys->addNewObjectByTypedDefinition();
+			});
 	}
 	ImGui::SameLine();
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addBoxShape", "add_box_shape"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<BoxShapeSystem>();
-			sys->addNewObjectByTypedDefinition(); });
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<BoxShapeSystem>();
+				sys->addNewObjectByTypedDefinition();
+			});
 	}
 	ImGui::SameLine();
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addModelShape", "add_model_shape"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<ModelShapeSystem>();
-			sys->addNewObjectByTypedDefinition(); });
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<ModelShapeSystem>();
+				sys->addNewObjectByTypedDefinition();
+			});
 	}
 
 	m_shapeDataSource->refreshEntries();
 
-	if (m_selectedShapeId != INVALID_MIKAN_ID &&
-		m_shapeDataSource->getEntryIndexByComponentId(m_selectedShapeId) == -1)
+	if (m_selectedShapeId != INVALID_MIKAN_ID && m_shapeDataSource->getEntryIndexByComponentId(m_selectedShapeId) == -1)
 	{
 		setSelectedShapeId(INVALID_MIKAN_ID);
 	}
 
 	int shapeIndex= m_shapeDataSource->getEntryIndexByComponentId(m_selectedShapeId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectShape", "Shape",
-									m_shapeDataSource.get(), shapeIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectShape", "Shape", m_shapeDataSource.get(), shapeIndex))
 	{
 		if (shapeIndex >= 0)
 		{
 			if (MikanComponentPtr sel= m_shapeDataSource->getEntryAtIndex(shapeIndex))
 			{
 				int newId= sel->getComponentId();
-				addDeferredGuiEvent([this, newId]()
-									{ setSelectedShapeId((MikanShapeID)newId); });
+				addDeferredGuiEvent([this, newId]() { setSelectedShapeId((MikanShapeID)newId); });
 			}
 		}
 	}
@@ -418,10 +431,12 @@ void GuiPanel_ProjectSources::onGui()
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeShape", "delete_component"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				auto pm = m_projectManager.lock();
-				ShapeUtils::removeShape(pm, (MikanShapeID)m_selectedShapeId); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					auto pm= m_projectManager.lock();
+					ShapeUtils::removeShape(pm, (MikanShapeID)m_selectedShapeId);
+				});
 		}
 
 		m_context->getQuadShapePanel()->onGui();

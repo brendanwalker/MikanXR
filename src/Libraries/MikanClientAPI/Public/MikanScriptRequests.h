@@ -9,17 +9,15 @@
 #include "MikanScriptRequests.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) InvokeComponentScriptTrigger : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) InvokeComponentScriptTrigger
+	: public MikanRequest
 {
 public:
-	InvokeComponentScriptTrigger(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(InvokeComponentScriptTrigger)}
+	InvokeComponentScriptTrigger(){MIKAN_REQUEST_TYPE_INFO_INIT(InvokeComponentScriptTrigger)}
 
-	FIELD()
-	Serialization::String ownerSystem;
+	FIELD() Serialization::String ownerSystem;
 	FIELD() int componentId= INVALID_MIKAN_ID;
-	FIELD()
-	Serialization::String trigger_name;
+	FIELD() Serialization::String trigger_name;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	InvokeComponentScriptTrigger_GENERATED
@@ -29,11 +27,9 @@ public:
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) SendScriptMessage : public MikanRequest
 {
 public:
-	SendScriptMessage(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(SendScriptMessage)}
+	SendScriptMessage(){MIKAN_REQUEST_TYPE_INFO_INIT(SendScriptMessage)}
 
-	FIELD()
-	MikanScriptMessageInfo message;
+	FIELD() MikanScriptMessageInfo message;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	SendScriptMessage_GENERATED

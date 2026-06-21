@@ -126,11 +126,12 @@ MIKAN_RENDERER_FUNC(void) mkStateSetDepthMask(IMkState* mkState, bool depth_mask
 MIKAN_RENDERER_FUNC(void) mkStateSetStencilBufferClearValue(IMkState* mkState, int value);
 MIKAN_RENDERER_FUNC(void) mkStateSetStencilMask(IMkState* mkState, uint32_t mask);
 MIKAN_RENDERER_FUNC(void) mkStateSetStencilFunc(IMkState* mkState, eMkStencilFunction func, int ref, uint32_t mask);
-MIKAN_RENDERER_FUNC(void) mkStateSetStencilOp(IMkState* mkState,
-											  eMkStencilOp stencil_fail, eMkStencilOp depth_fail, eMkStencilOp depth_stencil_pass);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilOp(IMkState* mkState, eMkStencilOp stencil_fail, eMkStencilOp depth_fail,
+											  eMkStencilOp depth_stencil_pass);
 
 MIKAN_RENDERER_FUNC(void) mkStateSetBlendEquation(IMkState* mkState, eMkBlendEquation mode);
-MIKAN_RENDERER_FUNC(void) mkStateSetBlendFunc(IMkState* mkState, eMkBlendFunction source_factor, eMkBlendFunction dest_factor);
+MIKAN_RENDERER_FUNC(void) mkStateSetBlendFunc(IMkState* mkState, eMkBlendFunction source_factor,
+											  eMkBlendFunction dest_factor);
 
 MIKAN_RENDERER_FUNC(void) mkStateSetDrawBuffer(IMkState* mkState, eMkFrameBuffer mode);
 MIKAN_RENDERER_FUNC(void) mkStateSetReadBuffer(IMkState* mkState, eMkFrameBuffer mode);

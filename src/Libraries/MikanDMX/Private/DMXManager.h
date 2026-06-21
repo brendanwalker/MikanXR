@@ -16,16 +16,9 @@ public:
 	virtual bool getIsRunning() const override;
 	virtual bool restart(const DMXManagerConfig& config) override;
 
-	virtual void setChannels(
-		uint16_t universe,
-		uint16_t startChannel,
-		const uint8_t* values,
-		uint16_t count) override;
+	virtual void setChannels(uint16_t universe, uint16_t startChannel, const uint8_t* values, uint16_t count) override;
 
-	virtual void setUniverseData(
-		uint16_t universe,
-		const uint8_t* slotData,
-		uint16_t slotCount) override;
+	virtual void setUniverseData(uint16_t universe, const uint8_t* slotData, uint16_t slotCount) override;
 
 private:
 	DMXSendThread m_sendThread;

@@ -39,8 +39,7 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_desiredDevicePathPropertyId),
-					"USB Device",
-					&m_devicePathDataSource, selectedIndex))
+					"USB Device", &m_devicePathDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -72,19 +71,19 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoResolutionPropertyId),
-					"Resolution",
-					&m_resolutionDataSource, selectedIndex))
+					"Resolution", &m_resolutionDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
-					const std::string newResolution=
-						m_resolutionDataSource.getEntryDisplayString(selectedIndex);
-					addDeferredGuiEvent([usbComp, newResolution]()
-										{
-						std::string frameRate, format;
-						usbComp->getVideoModeFrameRateName(frameRate);
-						usbComp->getVideoModeFormatName(format);
-						usbComp->setVideoModeToBestMatch(newResolution, frameRate, format); });
+					const std::string newResolution= m_resolutionDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent(
+						[usbComp, newResolution]()
+						{
+							std::string frameRate, format;
+							usbComp->getVideoModeFrameRateName(frameRate);
+							usbComp->getVideoModeFormatName(format);
+							usbComp->setVideoModeToBestMatch(newResolution, frameRate, format);
+						});
 				}
 			}
 			return true;
@@ -110,19 +109,19 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoFrameRatePropertyId),
-					"Frame Rate",
-					&m_frameRateDataSource, selectedIndex))
+					"Frame Rate", &m_frameRateDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
-					const std::string newFrameRate=
-						m_frameRateDataSource.getEntryDisplayString(selectedIndex);
-					addDeferredGuiEvent([usbComp, newFrameRate]()
-										{
-						std::string resolution, format;
-						usbComp->getVideoModeResolutionName(resolution);
-						usbComp->getVideoModeFormatName(format);
-						usbComp->setVideoModeToBestMatch(resolution, newFrameRate, format); });
+					const std::string newFrameRate= m_frameRateDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent(
+						[usbComp, newFrameRate]()
+						{
+							std::string resolution, format;
+							usbComp->getVideoModeResolutionName(resolution);
+							usbComp->getVideoModeFormatName(format);
+							usbComp->setVideoModeToBestMatch(resolution, newFrameRate, format);
+						});
 				}
 			}
 			return true;
@@ -147,20 +146,20 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
-					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoFormatPropertyId),
-					"Format",
+					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoFormatPropertyId), "Format",
 					&m_formatDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
-					const std::string newFormat=
-						m_formatDataSource.getEntryDisplayString(selectedIndex);
-					addDeferredGuiEvent([usbComp, newFormat]()
-										{
-						std::string resolution, frameRate;
-						usbComp->getVideoModeResolutionName(resolution);
-						usbComp->getVideoModeFrameRateName(frameRate);
-						usbComp->setVideoModeToBestMatch(resolution, frameRate, newFormat); });
+					const std::string newFormat= m_formatDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent(
+						[usbComp, newFormat]()
+						{
+							std::string resolution, frameRate;
+							usbComp->getVideoModeResolutionName(resolution);
+							usbComp->getVideoModeFrameRateName(frameRate);
+							usbComp->setVideoModeToBestMatch(resolution, frameRate, newFormat);
+						});
 				}
 			}
 			return true;
@@ -194,16 +193,14 @@ void GuiPanel_USBVideoSourceComponent::onGui()
 		}
 
 		// Build display label: capitalize first char, replace '_' with ' '
-		const std::string& prefix=
-			USBVideoSourceComponent::k_videoSettingPropertyPrefixes[settingIndex];
+		const std::string& prefix= USBVideoSourceComponent::k_videoSettingPropertyPrefixes[settingIndex];
 		std::string label= prefix;
 		if (!label.empty())
 			label[0]= (char)std::toupper((unsigned char)label[0]);
 		std::replace(label.begin(), label.end(), '_', ' ');
 
 		const std::string fieldName= prefix + "_slider";
-		if (MkGui::drawFloatSliderProperty(
-				m_defaultGuiStyle, fieldName, label, fraction, 0.0f, 1.0f, 0.0f, 100.0f))
+		if (MkGui::drawFloatSliderProperty(m_defaultGuiStyle, fieldName, label, fraction, 0.0f, 1.0f, 0.0f, 100.0f))
 		{
 			addDeferredGuiEvent([usbComp, settingType, fraction]()
 								{ usbComp->setVideoSettingAsFloatFraction(settingType, fraction); });
@@ -231,13 +228,10 @@ void GuiPanel_USBVideoSourceComponent::drawCompactGui()
 	GuiPanel_EntityAccessorPtr entityAccessor= getPropertyInterface();
 
 	static const std::set<std::string> compactProperties= {
-		MikanComponentDefinition::k_componentNamePropertyId,
-		USBVideoSourceComponent::k_currentFriendlyNamePropertyId,
-		USBVideoSourceDefinition::k_videoResolutionPropertyId,
-		USBVideoSourceDefinition::k_videoFrameRatePropertyId,
+		MikanComponentDefinition::k_componentNamePropertyId, USBVideoSourceComponent::k_currentFriendlyNamePropertyId,
+		USBVideoSourceDefinition::k_videoResolutionPropertyId, USBVideoSourceDefinition::k_videoFrameRatePropertyId,
 		USBVideoSourceDefinition::k_videoFormatPropertyId};
-	static const std::set<std::string> compactFunctions= {
-		USBVideoSourceComponent::k_showVideoSourceSettingsFunctionId};
+	static const std::set<std::string> compactFunctions= {USBVideoSourceComponent::k_showVideoSourceSettingsFunctionId};
 	entityAccessor->drawPropertiesGui(compactProperties);
 	entityAccessor->drawFunctionsGui(compactFunctions);
 }

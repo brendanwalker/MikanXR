@@ -3,8 +3,8 @@
 #include "IDMXManager.h"
 
 // -- RGBPixelGridSystemDefinition -----
-RGBPixelGridSystemDefinition::RGBPixelGridSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+RGBPixelGridSystemDefinition::RGBPixelGridSystemDefinition(const std::string& configName,
+														   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }

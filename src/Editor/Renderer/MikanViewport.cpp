@@ -12,9 +12,7 @@
 #include "InputManager.h"
 
 // -- GlViewport --
-MikanViewport::MikanViewport(
-	const class IEditorWindow* ownerWindow,
-	const glm::i32vec2& windowSize)
+MikanViewport::MikanViewport(const class IEditorWindow* ownerWindow, const glm::i32vec2& windowSize)
 	: m_ownerWindow(ownerWindow)
 	, m_windowSize(windowSize)
 	, m_backgroundColor(Colors::CornflowerBlue, 1.f)
@@ -33,15 +31,9 @@ void MikanViewport::setViewport(const glm::i32vec2& viewportOrigin, const glm::i
 	m_renderSize= glm::i32vec2();
 }
 
-void MikanViewport::setBackgroundColor(const glm::vec3& color)
-{
-	m_backgroundColor= glm::vec4(color, 1.f);
-}
+void MikanViewport::setBackgroundColor(const glm::vec3& color) { m_backgroundColor= glm::vec4(color, 1.f); }
 
-MikanViewport::~MikanViewport()
-{
-	unbindInput();
-}
+MikanViewport::~MikanViewport() { unbindInput(); }
 
 void MikanViewport::applyRenderingViewport(IMkState* glState)
 {
@@ -54,10 +46,8 @@ void MikanViewport::applyRenderingViewport(IMkState* glState)
 
 	// This calls onRenderingViewportApply from mkStateSetViewportImpl.
 	// onRenderingViewportRevert is called when the scoped state is popped.
-	mkStateSetViewport(
-		glState,
-		m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y),
-		m_viewportSize.x, m_viewportSize.y);
+	mkStateSetViewport(glState, m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y),
+					   m_viewportSize.x, m_viewportSize.y);
 }
 
 void MikanViewport::onRenderingViewportApply(int x, int y, int width, int height)
@@ -130,15 +120,9 @@ void MikanViewport::update(float deltaSeconds)
 	}
 }
 
-IMkCameraPtr MikanViewport::getCurrentCamera() const
-{
-	return m_cameraPool[m_currentCameraIndex];
-}
+IMkCameraPtr MikanViewport::getCurrentCamera() const { return m_cameraPool[m_currentCameraIndex]; }
 
-int MikanViewport::getCurrentCameraIndex() const
-{
-	return m_currentCameraIndex;
-}
+int MikanViewport::getCurrentCameraIndex() const { return m_currentCameraIndex; }
 
 IMkCameraPtr MikanViewport::addCamera()
 {
@@ -148,10 +132,7 @@ IMkCameraPtr MikanViewport::addCamera()
 	return newCamera;
 }
 
-int MikanViewport::getCameraCount() const
-{
-	return (int)m_cameraPool.size();
-}
+int MikanViewport::getCameraCount() const { return (int)m_cameraPool.size(); }
 
 IMkCameraPtr MikanViewport::getCameraByIndex(int cameraIndex)
 {
@@ -203,10 +184,7 @@ MikanCameraPtr MikanViewport::getCurrentMikanCamera() const
 	return std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 }
 
-MikanCameraPtr MikanViewport::addMikanCamera()
-{
-	return std::static_pointer_cast<MikanCamera>(addCamera());
-}
+MikanCameraPtr MikanViewport::addMikanCamera() { return std::static_pointer_cast<MikanCamera>(addCamera()); }
 
 MikanCameraPtr MikanViewport::getMikanCameraByIndex(int cameraIndex)
 {

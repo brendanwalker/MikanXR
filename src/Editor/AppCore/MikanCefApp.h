@@ -10,9 +10,8 @@ class MikanCefApp : public CefApp
 {
 public:
 	// CefApp interface
-	virtual void OnBeforeCommandLineProcessing(
-		const CefString& process_type,
-		CefRefPtr<CefCommandLine> command_line) override;
+	virtual void OnBeforeCommandLineProcessing(const CefString& process_type,
+											   CefRefPtr<CefCommandLine> command_line) override;
 
 private:
 	IMPLEMENT_REFCOUNTING(MikanCefApp);

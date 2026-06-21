@@ -143,10 +143,8 @@ void AppStage_Project::enter()
 	{
 		SceneObjectSystemPtr sceneSystem= getSystemOfType<SceneObjectSystem>();
 
-		sceneSystem->OnSceneActivated+=
-			MakeDelegate(this, &AppStage_Project::onSceneActivated);
-		sceneSystem->OnSceneDeactivated+=
-			MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
+		sceneSystem->OnSceneActivated+= MakeDelegate(this, &AppStage_Project::onSceneActivated);
+		sceneSystem->OnSceneDeactivated+= MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
 
 		// Rebuild compositor viewports for the active scene
 		SceneComponentPtr activeScene= sceneSystem->getCurrentScene();
@@ -224,10 +222,8 @@ void AppStage_Project::exit()
 			onSceneDeactivated(activeScene);
 		}
 
-		sceneSystem->OnSceneActivated-=
-			MakeDelegate(this, &AppStage_Project::onSceneActivated);
-		sceneSystem->OnSceneDeactivated-=
-			MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
+		sceneSystem->OnSceneActivated-= MakeDelegate(this, &AppStage_Project::onSceneActivated);
+		sceneSystem->OnSceneDeactivated-= MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
 	}
 
 	// Unregister all viewports from the editor
@@ -237,15 +233,9 @@ void AppStage_Project::exit()
 	AppStage::exit();
 }
 
-void AppStage_Project::pause()
-{
-	AppStage::pause();
-}
+void AppStage_Project::pause() { AppStage::pause(); }
 
-void AppStage_Project::resume()
-{
-	AppStage::resume();
-}
+void AppStage_Project::resume() { AppStage::resume(); }
 
 void AppStage_Project::update(float deltaSeconds)
 {
@@ -271,24 +261,17 @@ void AppStage_Project::onGui()
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 
 	constexpr ImGuiWindowFlags k_panelFlags=
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##ProjectPanel", nullptr, k_panelFlags);
 	if (!panel)
 		return;
 
-	static const char* k_tabLabels[(int)eProjectAppStageActivePanel::COUNT]= {
-		"Scenes", "Stages", "Sources", "Tracking", "Markers", "Settings"};
-	IGuiPanel* k_tabPanels[(int)eProjectAppStageActivePanel::COUNT]= {
-		m_projectScenesPanel,
-		m_projectStagesPanel,
-		m_projectSourcesPanel,
-		m_projectTrackingPanel,
-		m_projectMarkersPanel,
-		m_projectSettingsPanel};
+	static const char* k_tabLabels[(int)eProjectAppStageActivePanel::COUNT]= {"Scenes",   "Stages",  "Sources",
+																			  "Tracking", "Markers", "Settings"};
+	IGuiPanel* k_tabPanels[(int)eProjectAppStageActivePanel::COUNT]= {m_projectScenesPanel,  m_projectStagesPanel,
+																	  m_projectSourcesPanel, m_projectTrackingPanel,
+																	  m_projectMarkersPanel, m_projectSettingsPanel};
 	constexpr int k_tabCount= (int)(sizeof(k_tabLabels) / sizeof(k_tabLabels[0]));
 
 	MkGuiScopedTabBar tabBar("##ProjectTabs");
@@ -339,15 +322,9 @@ void AppStage_Project::onActivePanelChanged()
 }
 
 // Scene
-void AppStage_Project::onSceneDeactivated(SceneComponentPtr oldScene)
-{
-	disposeCompositorViewportCameras();
-}
+void AppStage_Project::onSceneDeactivated(SceneComponentPtr oldScene) { disposeCompositorViewportCameras(); }
 
-void AppStage_Project::onSceneActivated(SceneComponentPtr newScene)
-{
-	createCompositorViewportCameras();
-}
+void AppStage_Project::onSceneActivated(SceneComponentPtr newScene) { createCompositorViewportCameras(); }
 
 void AppStage_Project::createCompositorViewportCameras()
 {
@@ -434,10 +411,7 @@ void AppStage_Project::cycleNextCompositorCamera()
 }
 
 // Compositor Model UI Events
-void AppStage_Project::onReturnEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_Project::onReturnEvent() { m_ownerWindow->popAppState(); }
 
 void AppStage_Project::onMarkerSelected(int arucoId)
 {
@@ -652,9 +626,7 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 	}
 }
 
-void AppStage_Project::renderProjectTracking(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void AppStage_Project::renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	TrackingVolumeComponentConstPtr trackingVolume= getCurrentTrackingVolumeConst();
 	if (trackingVolume)
@@ -662,25 +634,19 @@ void AppStage_Project::renderProjectTracking(
 		switch (trackingVolume->getTrackingVolumeType())
 		{
 		case eTrackingVolumeType::vr:
-			renderVRTrackingVolume(
-				graphicsContext,
-				viewportCamera,
-				std::dynamic_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume));
+			renderVRTrackingVolume(graphicsContext, viewportCamera,
+								   std::dynamic_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume));
 			break;
 		case eTrackingVolumeType::marker:
-			renderMarkerTrackingVolume(
-				graphicsContext,
-				viewportCamera,
-				std::dynamic_pointer_cast<const MarkerTrackingVolumeComponent>(trackingVolume));
+			renderMarkerTrackingVolume(graphicsContext, viewportCamera,
+									   std::dynamic_pointer_cast<const MarkerTrackingVolumeComponent>(trackingVolume));
 			break;
 		}
 	}
 }
 
-void AppStage_Project::renderVRTrackingVolume(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera,
-	VRTrackingVolumeComponentConstPtr vrTrackingVolume) const
+void AppStage_Project::renderVRTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+											  VRTrackingVolumeComponentConstPtr vrTrackingVolume) const
 {
 	VRObjectSystemPtr vrObjectSystem= getObjectSystemOfType<VRObjectSystem>();
 
@@ -748,10 +714,8 @@ void AppStage_Project::renderVRTrackingVolume(
 	}
 }
 
-void AppStage_Project::renderMarkerTrackingVolume(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera,
-	MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const
+void AppStage_Project::renderMarkerTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+												  MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const
 {
 	const MikanMarkerID originMarkerId= markerTrackingVolume->getOriginMarkerId();
 	if (originMarkerId != INVALID_MIKAN_ID)
@@ -765,18 +729,12 @@ void AppStage_Project::renderMarkerTrackingVolume(
 	}
 }
 
-void AppStage_Project::renderCameraComponents(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera,
-	StageComponentConstPtr stageComponent) const
+void AppStage_Project::renderCameraComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+											  StageComponentConstPtr stageComponent) const
 {
 	getObjectSystemOfType<CameraObjectSystem>()->customRender(
-		graphicsContext,
-		viewportCamera,
-		[stageComponent](CameraComponentPtr camera)
-		{
-			return camera->getOwnerStageComponent() == stageComponent;
-		});
+		graphicsContext, viewportCamera,
+		[stageComponent](CameraComponentPtr camera) { return camera->getOwnerStageComponent() == stageComponent; });
 }
 
 void AppStage_Project::debugRenderOrigin() const
@@ -789,10 +747,9 @@ void AppStage_Project::debugRenderOrigin() const
 }
 
 // -- IRemoteControllable Interface -- //
-bool AppStage_Project::handleRemoteControlCommand(
-	const std::string& command,
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage_Project::handleRemoteControlCommand(const std::string& command,
+												  const std::vector<std::string>& parameters,
+												  std::vector<std::string>& outResults)
 {
 	if (command == "add_new_script")
 	{

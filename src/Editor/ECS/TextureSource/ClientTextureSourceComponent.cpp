@@ -18,8 +18,7 @@ ClientTextureSourceDefinition::ClientTextureSourceDefinition()
 {
 }
 
-ClientTextureSourceDefinition::ClientTextureSourceDefinition(
-	MikanTextureSourceID textureSourceId)
+ClientTextureSourceDefinition::ClientTextureSourceDefinition(MikanTextureSourceID textureSourceId)
 	: TextureSourceDefinition(textureSourceId)
 {
 }
@@ -40,9 +39,8 @@ void ClientTextureSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_clientSource= pt.get_or<std::string>("client_source", m_clientSource);
 }
 
-bool ClientTextureSourceDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool ClientTextureSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+													   const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TextureSourceDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -82,33 +80,31 @@ void ClientTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr def
 	MikanComponent::setDefinition(definition);
 }
 
-IMkTexturePtr ClientTextureSourceComponent::getClientColorSourceTexture(
-	MikanCameraID cameraId,
-	eTextureSourceColorType textureSourceColorType,
-	int64_t frameIndex) const
+IMkTexturePtr ClientTextureSourceComponent::getClientColorSourceTexture(MikanCameraID cameraId,
+																		eTextureSourceColorType textureSourceColorType,
+																		int64_t frameIndex) const
 {
 	auto* clientSourceManager= getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
-		return clientSourceManager->getClientColorSourceTexture(
-			getClientSourceName(), cameraId, textureSourceColorType, frameIndex);
+		return clientSourceManager->getClientColorSourceTexture(getClientSourceName(), cameraId, textureSourceColorType,
+																frameIndex);
 	}
 
 	return IMkTexturePtr();
 }
 
-IMkTexturePtr ClientTextureSourceComponent::getClientDepthSourceTexture(
-	MikanCameraID cameraId,
-	eTextureSourceDepthType depthTextureType,
-	int64_t frameIndex) const
+IMkTexturePtr ClientTextureSourceComponent::getClientDepthSourceTexture(MikanCameraID cameraId,
+																		eTextureSourceDepthType depthTextureType,
+																		int64_t frameIndex) const
 {
 	auto* clientSourceManager= getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
-		return clientSourceManager->getClientDepthSourceTexture(
-			getClientSourceName(), cameraId, depthTextureType, frameIndex);
+		return clientSourceManager->getClientDepthSourceTexture(getClientSourceName(), cameraId, depthTextureType,
+																frameIndex);
 	}
 
 	return IMkTexturePtr();
@@ -119,14 +115,11 @@ void ClientTextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDe
 {
 	TextureSourceComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			ClientTextureSourceDefinition::k_clientSourcePropertyId, MikanVariantType::STRING));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		ClientTextureSourceDefinition::k_clientSourcePropertyId, MikanVariantType::STRING));
 }
 
-bool ClientTextureSourceComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool ClientTextureSourceComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{
@@ -137,9 +130,7 @@ bool ClientTextureSourceComponent::getPropertyValue(
 	return TextureSourceComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool ClientTextureSourceComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool ClientTextureSourceComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{

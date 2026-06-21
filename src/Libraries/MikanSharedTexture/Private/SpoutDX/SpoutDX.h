@@ -73,9 +73,8 @@ public:
 	// Send a texture
 	bool SendTexture(ID3D11Texture2D* pTexture);
 	// Send part of a texture
-	bool SendTexture(ID3D11Texture2D* pTexture,
-					 unsigned int xoffset, unsigned int yoffset,
-					 unsigned int width, unsigned int height);
+	bool SendTexture(ID3D11Texture2D* pTexture, unsigned int xoffset, unsigned int yoffset, unsigned int width,
+					 unsigned int height);
 	// Send an image
 	bool SendImage(unsigned char* pData, unsigned int width, unsigned int height);
 	// Sender status
@@ -104,7 +103,8 @@ public:
 	// Receive a texture from a sender
 	bool ReceiveTexture(ID3D11Texture2D** ppTexture);
 	// Receive an image
-	bool ReceiveImage(unsigned char* pixels, unsigned int width, unsigned int height, bool bRGB= false, bool bInvert= false);
+	bool ReceiveImage(unsigned char* pixels, unsigned int width, unsigned int height, bool bRGB= false,
+					  bool bInvert= false);
 	// Open sender selection dialog
 	void SelectSender();
 	// Sender has changed
@@ -154,7 +154,8 @@ public:
 	// Get sender name for a given index
 	bool GetSender(int index, char* sendername, int MaxSize= 256);
 	// Get sender details
-	bool GetSenderInfo(const char* sendername, unsigned int& width, unsigned int& height, HANDLE& dxShareHandle, DWORD& dwFormat);
+	bool GetSenderInfo(const char* sendername, unsigned int& width, unsigned int& height, HANDLE& dxShareHandle,
+					   DWORD& dwFormat);
 	// Get active sender name
 	bool GetActiveSender(char* sendername);
 	// set active sender name
@@ -202,9 +203,8 @@ public:
 	//
 
 	void CheckSenderFormat(const char* sendername);
-	bool CreateDX11texture(ID3D11Device* pd3dDevice,
-						   unsigned int width, unsigned int height,
-						   DXGI_FORMAT format, ID3D11Texture2D** ppTexture);
+	bool CreateDX11texture(ID3D11Device* pd3dDevice, unsigned int width, unsigned int height, DXGI_FORMAT format,
+						   ID3D11Texture2D** ppTexture);
 
 	//
 	// Data sharing
@@ -275,12 +275,13 @@ protected:
 	void CreateReceiver(const char* sendername, unsigned int width, unsigned int height, DWORD dwFormat);
 
 	// Read pixels from a staging texture
-	bool ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* destpixels,
-					   unsigned int width, unsigned int height, bool bRGB, bool bInvert, bool bSwap);
+	bool ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* destpixels, unsigned int width,
+					   unsigned int height, bool bRGB, bool bInvert, bool bSwap);
 
 	// Create staging textures
 	bool CheckStagingTextures(unsigned int width, unsigned int height, DWORD dwFormat= DXGI_FORMAT_B8G8R8A8_UNORM);
-	bool CreateDX11StagingTexture(unsigned int width, unsigned int height, DXGI_FORMAT format, ID3D11Texture2D** pStagingTexture);
+	bool CreateDX11StagingTexture(unsigned int width, unsigned int height, DXGI_FORMAT format,
+								  ID3D11Texture2D** pStagingTexture);
 
 	// Create or update class texture
 	bool CheckTexture(unsigned int width, unsigned int height, DWORD dwFormat);

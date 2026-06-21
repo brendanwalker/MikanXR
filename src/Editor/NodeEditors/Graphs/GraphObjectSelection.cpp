@@ -1,8 +1,6 @@
 #include "GraphObjectSelection.h"
 
-GraphObjectSelection::GraphObjectSelection(
-	t_graph_object_id_type itemType,
-	int objectIdCount)
+GraphObjectSelection::GraphObjectSelection(t_graph_object_id_type itemType, int objectIdCount)
 	: m_objectIdType(itemType)
 {
 	for (int i= 0; i < objectIdCount; i++)

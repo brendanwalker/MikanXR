@@ -102,8 +102,8 @@ public:
 						glDisable(glFlag);
 					}
 
-					MkStateLog(this) << "Restore Flag: " << g_glFlagName[flagIndex] << " "
-									 << currentflagValue << " -> " << parentFlagValue;
+					MkStateLog(this) << "Restore Flag: " << g_glFlagName[flagIndex] << " " << currentflagValue << " -> "
+									 << parentFlagValue;
 				}
 			}
 		}
@@ -141,20 +141,11 @@ public:
 		MkStateLog(this) << "  ";
 	}
 
-	virtual MkStateStack& getOwnerStateStack() const override
-	{
-		return m_ownerStack;
-	}
+	virtual MkStateStack& getOwnerStateStack() const override { return m_ownerStack; }
 
-	virtual int getStackDepth() const override
-	{
-		return m_stackDepth;
-	}
+	virtual int getStackDepth() const override { return m_stackDepth; }
 
-	virtual const std::string& getDebugPrefix() const override
-	{
-		return m_debugPrefix;
-	}
+	virtual const std::string& getDebugPrefix() const override { return m_debugPrefix; }
 
 	virtual IMkState* enableFlag(eMkStateFlagType flagType) override
 	{
@@ -186,10 +177,7 @@ public:
 		return this;
 	}
 
-	virtual bool isFlagEnabled(eMkStateFlagType flagType) const override
-	{
-		return m_flags[(int)flagType];
-	}
+	virtual bool isFlagEnabled(eMkStateFlagType flagType) const override { return m_flags[(int)flagType]; }
 
 	virtual IMkStateModifierPtr findParentModifier(IMkStateModifierPtr modifier) const override
 	{
@@ -220,8 +208,7 @@ public:
 			if (existingModifierIt != m_modifiers.end())
 			{
 				MIKAN_LOG_WARNING("addModifier")
-					<< "Redundant modifier of ID: " << modifier->getModifierID()
-					<< " in same scope: " << m_scopeName;
+					<< "Redundant modifier of ID: " << modifier->getModifierID() << " in same scope: " << m_scopeName;
 
 				// TODO: Add an efficiency warning that we should really make a new GlStateScope
 				//  so that we aren't needlessly stomp on the existing modifier in the same scope
@@ -255,10 +242,7 @@ private:
 	std::map<std::string, IMkStateModifierPtr> m_modifiers;
 };
 
-IMkState* createMkState(
-	class MkStateStack& ownerStack,
-	const std::string& scopeName,
-	const int stackDepth)
+IMkState* createMkState(class MkStateStack& ownerStack, const std::string& scopeName, const int stackDepth)
 {
 	return new GlState(ownerStack, scopeName, stackDepth);
 }

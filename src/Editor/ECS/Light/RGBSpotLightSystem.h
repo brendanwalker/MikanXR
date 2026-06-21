@@ -12,7 +12,8 @@
 #include <string>
 
 // -- RGBSpotLightSystemDefinition -----
-class RGBSpotLightSystemDefinition : public MikanTypedObjectSystemDefinition<RGBSpotLightComponent, RGBSpotLightDefinition, MikanLightID>
+class RGBSpotLightSystemDefinition
+	: public MikanTypedObjectSystemDefinition<RGBSpotLightComponent, RGBSpotLightDefinition, MikanLightID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<RGBSpotLightComponent, RGBSpotLightDefinition, MikanLightID>;
@@ -21,16 +22,12 @@ public:
 };
 
 // -- RGBSpotLightSystem -----
-class RGBSpotLightSystem : public MikanTypedObjectSystem<
-							   RGBSpotLightComponent, RGBSpotLightDefinition,
-							   MikanLightID,
-							   RGBSpotLightSystem, RGBSpotLightSystemDefinition>
+class RGBSpotLightSystem : public MikanTypedObjectSystem<RGBSpotLightComponent, RGBSpotLightDefinition, MikanLightID,
+														 RGBSpotLightSystem, RGBSpotLightSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		RGBSpotLightComponent, RGBSpotLightDefinition,
-		MikanLightID,
-		RGBSpotLightSystem, RGBSpotLightSystemDefinition>;
+	using Super= MikanTypedObjectSystem<RGBSpotLightComponent, RGBSpotLightDefinition, MikanLightID, RGBSpotLightSystem,
+										RGBSpotLightSystemDefinition>;
 
 	RGBSpotLightSystem(ProjectManagerPtr ownerProjectManager);
 
@@ -49,7 +46,6 @@ public:
 	}
 
 protected:
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		ComponentDefinitionPtr componentDefinition) override;
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											ComponentDefinitionPtr componentDefinition) override;
 };

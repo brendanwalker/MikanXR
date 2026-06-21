@@ -18,116 +18,57 @@ EditorWindow::EditorWindow(App* ownerApp)
 {
 }
 
-EditorWindow::~EditorWindow()
-{
-}
+EditorWindow::~EditorWindow() {}
 
 // -- IEditorWindow ----
-IMkGraphicsContextPtr EditorWindow::getGraphicsContext() const
-{
-	return m_graphicsContext;
-}
+IMkGraphicsContextPtr EditorWindow::getGraphicsContext() const { return m_graphicsContext; }
 
-IMkWindowContextPtr EditorWindow::getMkWindowContext() const
-{
-	return m_mkWindowContext;
-}
+IMkWindowContextPtr EditorWindow::getMkWindowContext() const { return m_mkWindowContext; }
 
-const char* EditorWindow::getTitle() const
-{
-	return m_mkWindowContext->getTitle();
-}
+const char* EditorWindow::getTitle() const { return m_mkWindowContext->getTitle(); }
 
-float EditorWindow::getWidth() const
-{
-	return m_mkWindowContext->getWidth();
-}
+float EditorWindow::getWidth() const { return m_mkWindowContext->getWidth(); }
 
-float EditorWindow::getHeight() const
-{
-	return m_mkWindowContext->getHeight();
-}
+float EditorWindow::getHeight() const { return m_mkWindowContext->getHeight(); }
 
-float EditorWindow::getAspectRatio() const
-{
-	return m_mkWindowContext->getAspectRatio();
-}
+float EditorWindow::getAspectRatio() const { return m_mkWindowContext->getAspectRatio(); }
 
 void EditorWindow::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
 {
 	m_mkWindowContext->getMouseScreenPosition(outScreenX, outScreenY);
 }
 
-MikanModelResourceManager* EditorWindow::getModelResourceManager()
-{
-	return m_modelResourceManager.get();
-}
+MikanModelResourceManager* EditorWindow::getModelResourceManager() { return m_modelResourceManager.get(); }
 
-MikanTextureCache* EditorWindow::getTextureCache()
-{
-	return m_textureCache.get();
-}
+MikanTextureCache* EditorWindow::getTextureCache() { return m_textureCache.get(); }
 
-MkGuiStyleManager* EditorWindow::getMkGuiStyleManager() const
-{
-	return m_styleManager.get();
-}
+MkGuiStyleManager* EditorWindow::getMkGuiStyleManager() const { return m_styleManager.get(); }
 
-App* EditorWindow::getOwnerApp() const
-{
-	return m_ownerApp;
-}
+App* EditorWindow::getOwnerApp() const { return m_ownerApp; }
 
 // -- IMkWindowContext delegation ----
-eWindowAPI EditorWindow::getWindowAPI() const
-{
-	return m_mkWindowContext->getWindowAPI();
-}
+eWindowAPI EditorWindow::getWindowAPI() const { return m_mkWindowContext->getWindowAPI(); }
 
-void* EditorWindow::getNativeWindowHandle() const
-{
-	return m_mkWindowContext->getNativeWindowHandle();
-}
+void* EditorWindow::getNativeWindowHandle() const { return m_mkWindowContext->getNativeWindowHandle(); }
 
-void EditorWindow::makeContextCurrent()
-{
-	m_mkWindowContext->makeContextCurrent();
-}
+void EditorWindow::makeContextCurrent() { m_mkWindowContext->makeContextCurrent(); }
 
-bool EditorWindow::wantsDestroy() const
-{
-	return m_mkWindowContext->wantsDestroy();
-}
+bool EditorWindow::wantsDestroy() const { return m_mkWindowContext->wantsDestroy(); }
 
-void EditorWindow::present()
-{
-	m_mkWindowContext->present();
-}
+void EditorWindow::present() { m_mkWindowContext->present(); }
 
-void EditorWindow::setTitle(const std::string& title)
-{
-	m_mkWindowContext->setTitle(title);
-}
+void EditorWindow::setTitle(const std::string& title) { m_mkWindowContext->setTitle(title); }
 
-void EditorWindow::setSize(int width, int height)
-{
-	m_mkWindowContext->setSize(width, height);
-}
+void EditorWindow::setSize(int width, int height) { m_mkWindowContext->setSize(width, height); }
 
 void EditorWindow::handleEvents(IMkWindowEventListener* eventListener)
 {
 	m_mkWindowContext->handleEvents(eventListener);
 }
 
-bool EditorWindow::hasMouseFocus() const
-{
-	return m_mkWindowContext->hasMouseFocus();
-}
+bool EditorWindow::hasMouseFocus() const { return m_mkWindowContext->hasMouseFocus(); }
 
-bool EditorWindow::hasKeyboardFocus() const
-{
-	return m_mkWindowContext->hasKeyboardFocus();
-}
+bool EditorWindow::hasKeyboardFocus() const { return m_mkWindowContext->hasKeyboardFocus(); }
 
 // -- Protected startup/shutdown helpers ----
 

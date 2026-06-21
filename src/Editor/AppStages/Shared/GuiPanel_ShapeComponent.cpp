@@ -47,22 +47,22 @@ void GuiPanel_ShapeComponent::onConstruct()
 
 			const MikanTransformID parentTransformId=
 				shapeComponent->getShapeComponentDefinition()->getParentTransformId();
-			int selectedIndex=
-				m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
+			int selectedIndex= m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
 
-			if (MkGui::drawComboBoxProperty(
-					m_defaultGuiStyle,
-					shapeComponent->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
-					"Parent",
-					&m_parentTransformDataSource,
-					selectedIndex))
+			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
+											shapeComponent->makePropertyUIIdentifier(
+												TransformComponentDefinition::k_parentTransformIdPropertyId),
+											"Parent", &m_parentTransformDataSource, selectedIndex))
 			{
 				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
 				if (newParent)
 				{
-					addDeferredGuiEvent([shapeComponent, newParent]()
-										{ shapeComponent->getShapeComponentDefinition()->setParentTransformId(
-											  newParent->getComponentId()); });
+					addDeferredGuiEvent(
+						[shapeComponent, newParent]()
+						{
+							shapeComponent->getShapeComponentDefinition()->setParentTransformId(
+								newParent->getComponentId());
+						});
 				}
 			}
 			return true;
@@ -85,12 +85,10 @@ void GuiPanel_ShapeComponent::onConstruct()
 
 				if (MkGui::drawFilePathProperty(
 						m_defaultGuiStyle,
-						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId),
-						"Graph",
+						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId), "Graph",
 						graphPath))
 				{
-					addDeferredGuiEvent([shapeComponent]()
-										{ shapeComponent->selectShapeGraph(); });
+					addDeferredGuiEvent([shapeComponent]() { shapeComponent->selectShapeGraph(); });
 				}
 
 				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "", "");
@@ -100,8 +98,7 @@ void GuiPanel_ShapeComponent::onConstruct()
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_editShapeGraphFunctionId),
 						"edit_component"))
 				{
-					addDeferredGuiEvent([shapeComponent]()
-										{ shapeComponent->editShapeGraph(); });
+					addDeferredGuiEvent([shapeComponent]() { shapeComponent->editShapeGraph(); });
 				}
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
@@ -109,8 +106,7 @@ void GuiPanel_ShapeComponent::onConstruct()
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_removeShapeGraphFunctionId),
 						"delete_component"))
 				{
-					addDeferredGuiEvent([shapeComponent]()
-										{ shapeComponent->removeShapeGraph(); });
+					addDeferredGuiEvent([shapeComponent]() { shapeComponent->removeShapeGraph(); });
 				}
 			}
 			else
@@ -122,8 +118,7 @@ void GuiPanel_ShapeComponent::onConstruct()
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId),
 						"add_component"))
 				{
-					addDeferredGuiEvent([shapeComponent]()
-										{ shapeComponent->addNewShapeGraph(); });
+					addDeferredGuiEvent([shapeComponent]() { shapeComponent->addNewShapeGraph(); });
 				}
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
@@ -131,8 +126,7 @@ void GuiPanel_ShapeComponent::onConstruct()
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_selectShapeGraphFunctionId),
 						"select_component"))
 				{
-					addDeferredGuiEvent([shapeComponent]()
-										{ shapeComponent->selectShapeGraph(); });
+					addDeferredGuiEvent([shapeComponent]() { shapeComponent->selectShapeGraph(); });
 				}
 			}
 
@@ -150,17 +144,8 @@ ShapeComponentPtr GuiPanel_ShapeComponent::getShapeComponent() const
 	return nullptr;
 }
 
-bool GuiPanel_QuadShapeComponent::init()
-{
-	return initTypedPropertyInterface<QuadShapeComponent>();
-}
+bool GuiPanel_QuadShapeComponent::init() { return initTypedPropertyInterface<QuadShapeComponent>(); }
 
-bool GuiPanel_BoxShapeComponent::init()
-{
-	return initTypedPropertyInterface<BoxShapeComponent>();
-}
+bool GuiPanel_BoxShapeComponent::init() { return initTypedPropertyInterface<BoxShapeComponent>(); }
 
-bool GuiPanel_ModelShapeComponent::init()
-{
-	return initTypedPropertyInterface<ModelShapeComponent>();
-}
+bool GuiPanel_ModelShapeComponent::init() { return initTypedPropertyInterface<ModelShapeComponent>(); }

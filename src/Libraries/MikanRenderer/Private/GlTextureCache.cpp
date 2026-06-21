@@ -10,20 +10,11 @@ public:
 		: m_ownerContext(ownerContext)
 	{
 	}
-	virtual ~GlTextureCache()
-	{
-		shutdown();
-	}
+	virtual ~GlTextureCache() { shutdown(); }
 
-	virtual bool startup() override
-	{
-		return true;
-	}
+	virtual bool startup() override { return true; }
 
-	virtual void shutdown() override
-	{
-		m_textureCache.clear();
-	}
+	virtual void shutdown() override { m_textureCache.clear(); }
 
 	virtual IMkTexturePtr tryGetTextureByName(const std::string& textureName) override
 	{
@@ -36,9 +27,8 @@ public:
 		return IMkTexturePtr();
 	}
 
-	virtual IMkTexturePtr loadTexturePath(
-		const std::filesystem::path& texturePath,
-		const std::string& overrideName) override
+	virtual IMkTexturePtr loadTexturePath(const std::filesystem::path& texturePath,
+										  const std::string& overrideName) override
 	{
 		IMkTexturePtr texture;
 

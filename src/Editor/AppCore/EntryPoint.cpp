@@ -9,11 +9,7 @@
 
 //-- entry point -----
 #ifdef WIN32
-int __stdcall WinMain(
-	HINSTANCE hInstance,
-	HINSTANCE hPrevInstance,
-	LPSTR lpCmdLine,
-	int nShowCmd)
+int __stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	// Allow Mikan.exe to act as its own CEF subprocess handler.
 	// Subprocess invocations return >= 0 and must exit immediately.

@@ -9,24 +9,24 @@
 
 #include <string>
 
-class CEFTextureSourceSystemDefinition : public MikanTypedObjectSystemDefinition<CEFTextureSourceComponent, CEFTextureSourceDefinition, MikanTextureSourceID>
+class CEFTextureSourceSystemDefinition
+	: public MikanTypedObjectSystemDefinition<CEFTextureSourceComponent, CEFTextureSourceDefinition,
+											  MikanTextureSourceID>
 {
 public:
-	using Super= MikanTypedObjectSystemDefinition<CEFTextureSourceComponent, CEFTextureSourceDefinition, MikanTextureSourceID>;
+	using Super=
+		MikanTypedObjectSystemDefinition<CEFTextureSourceComponent, CEFTextureSourceDefinition, MikanTextureSourceID>;
 
 	CEFTextureSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class CEFTextureSourceSystem : public MikanTypedObjectSystem<
-								   CEFTextureSourceComponent, CEFTextureSourceDefinition,
-								   MikanTextureSourceID,
-								   CEFTextureSourceSystem, CEFTextureSourceSystemDefinition>
+class CEFTextureSourceSystem
+	: public MikanTypedObjectSystem<CEFTextureSourceComponent, CEFTextureSourceDefinition, MikanTextureSourceID,
+									CEFTextureSourceSystem, CEFTextureSourceSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		CEFTextureSourceComponent, CEFTextureSourceDefinition,
-		MikanTextureSourceID,
-		CEFTextureSourceSystem, CEFTextureSourceSystemDefinition>;
+	using Super= MikanTypedObjectSystem<CEFTextureSourceComponent, CEFTextureSourceDefinition, MikanTextureSourceID,
+										CEFTextureSourceSystem, CEFTextureSourceSystemDefinition>;
 
 	CEFTextureSourceSystem(ProjectManagerPtr ownerObjectSystem);
 

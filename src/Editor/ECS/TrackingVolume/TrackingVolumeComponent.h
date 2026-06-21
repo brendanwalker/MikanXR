@@ -22,9 +22,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;
 
@@ -57,10 +56,7 @@ public:
 	{
 		return getTrackingVolumeDefinition()->getTrackingVolumeType();
 	}
-	inline MikanMarkerID getOriginMarkerId() const
-	{
-		return getTrackingVolumeDefinition()->getOriginMarkerId();
-	}
+	inline MikanMarkerID getOriginMarkerId() const { return getTrackingVolumeDefinition()->getOriginMarkerId(); }
 
 	void deleteTrackingVolume();
 

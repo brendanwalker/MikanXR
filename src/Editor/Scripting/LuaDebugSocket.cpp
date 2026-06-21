@@ -55,16 +55,15 @@ LuaDebugSocket::LuaDebugSocket(uint16_t port)
 
 	// Allow rapid reuse of the port after restart
 	int optval= 1;
-	::setsockopt(listener, SOL_SOCKET, SO_REUSEADDR,
-				 reinterpret_cast<const char*>(&optval), sizeof(optval));
+	::setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&optval), sizeof(optval));
 
 	sockaddr_in addr{};
 	addr.sin_family= AF_INET;
 	addr.sin_addr.s_addr= INADDR_ANY;
 	addr.sin_port= htons(port);
 
-	if (::bind(listener, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR ||
-		::listen(listener, 1) == SOCKET_ERROR)
+	if (::bind(listener, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR
+		|| ::listen(listener, 1) == SOCKET_ERROR)
 	{
 		MIKAN_LOG_ERROR("LuaDebugSocket") << "Failed to bind/listen on port " << port;
 		closesocket(listener);
@@ -76,10 +75,7 @@ LuaDebugSocket::LuaDebugSocket(uint16_t port)
 	MIKAN_LOG_INFO("LuaDebugSocket") << "Listening for Lua debugger on port " << port;
 }
 
-LuaDebugSocket::~LuaDebugSocket()
-{
-	close();
-}
+LuaDebugSocket::~LuaDebugSocket() { close(); }
 
 void LuaDebugSocket::close()
 {
@@ -95,10 +91,7 @@ void LuaDebugSocket::close()
 	}
 }
 
-bool LuaDebugSocket::is_open() const
-{
-	return m_clientSocket != k_invalidSocket;
-}
+bool LuaDebugSocket::is_open() const { return m_clientSocket != k_invalidSocket; }
 
 // ---- Internal helpers ------------------------------------------------------
 
@@ -107,9 +100,7 @@ void LuaDebugSocket::tryAccept()
 	SOCKET listener= static_cast<SOCKET>(m_listenSocket);
 	sockaddr_in clientAddr{};
 	SockLen addrLen= sizeof(clientAddr);
-	SOCKET client= ::accept(listener,
-							reinterpret_cast<sockaddr*>(&clientAddr),
-							&addrLen);
+	SOCKET client= ::accept(listener, reinterpret_cast<sockaddr*>(&clientAddr), &addrLen);
 	if (client == INVALID_SOCKET)
 		return;
 
@@ -237,15 +228,9 @@ bool LuaDebugSocket::dispatchSelect(bool blocking)
 
 // ---- Public interface (lrdb::basic_server contract) ------------------------
 
-void LuaDebugSocket::poll()
-{
-	dispatchSelect(/*blocking=*/false);
-}
+void LuaDebugSocket::poll() { dispatchSelect(/*blocking=*/false); }
 
-void LuaDebugSocket::run_one()
-{
-	dispatchSelect(/*blocking=*/true);
-}
+void LuaDebugSocket::run_one() { dispatchSelect(/*blocking=*/true); }
 
 void LuaDebugSocket::wait_for_connection()
 {

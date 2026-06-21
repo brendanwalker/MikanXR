@@ -8,11 +8,11 @@
 #include "MikanMarkerRequests.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerRequests")) GetArucoMarkerImageRequest : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerRequests")) GetArucoMarkerImageRequest
+	: public MikanRequest
 {
 public:
-	GetArucoMarkerImageRequest(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetArucoMarkerImageRequest)}
+	GetArucoMarkerImageRequest(){MIKAN_REQUEST_TYPE_INFO_INIT(GetArucoMarkerImageRequest)}
 
 	FIELD() int markerId= 0;
 
@@ -23,14 +23,13 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerRequests")) ArucoMarkerImageResponse : public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerRequests")) ArucoMarkerImageResponse
+	: public MikanResponse
 {
 public:
-	ArucoMarkerImageResponse(){
-		MIKAN_RESPONSE_TYPE_INFO_INIT(ArucoMarkerImageResponse)}
+	ArucoMarkerImageResponse(){MIKAN_RESPONSE_TYPE_INFO_INIT(ArucoMarkerImageResponse)}
 
-	FIELD()
-	Serialization::String imageData; // base64-encoded PNG
+	FIELD() Serialization::String imageData; // base64-encoded PNG
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	ArucoMarkerImageResponse_GENERATED

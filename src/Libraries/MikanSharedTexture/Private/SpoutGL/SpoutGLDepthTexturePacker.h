@@ -7,10 +7,8 @@ typedef int GLsizei;
 class SpoutGLDepthTexturePacker
 {
 public:
-	SpoutGLDepthTexturePacker(
-		class SharedTextureLogger& logger,
-		struct SPOUTLIBRARY* spout,
-		const struct SharedTextureDescriptor* descriptor);
+	SpoutGLDepthTexturePacker(class SharedTextureLogger& logger, struct SPOUTLIBRARY* spout,
+							  const struct SharedTextureDescriptor* descriptor);
 	virtual ~SpoutGLDepthTexturePacker();
 
 	bool init();

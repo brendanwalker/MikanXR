@@ -13,9 +13,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	void setURL(const std::string& URL);
 
@@ -37,12 +36,8 @@ public:
 	inline int getPort() const { return m_port; }
 	void setPort(int port);
 
-	static bool parseUrl(
-		const std::string& url,
-		eNetworkVideoProtocol& outProtocol,
-		std::string& outAddress,
-		int& outPort,
-		std::string& outPath);
+	static bool parseUrl(const std::string& url, eNetworkVideoProtocol& outProtocol, std::string& outAddress,
+						 int& outPort, std::string& outPath);
 
 private:
 	eNetworkVideoProtocol m_protocol;

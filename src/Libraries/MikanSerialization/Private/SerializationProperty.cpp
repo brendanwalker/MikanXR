@@ -76,8 +76,5 @@ CodeGenModule::CodeGenModule(char const* moduleName) noexcept
 	m_moduleName[len]= '\0';
 }
 
-CodeGenModule::~CodeGenModule()
-{
-	delete[] m_moduleName;
-}
+CodeGenModule::~CodeGenModule() { delete[] m_moduleName; }
 } // namespace Serialization

@@ -2,12 +2,6 @@
 
 #include "imgui.h"
 
-MkGuiScopedFont::MkGuiScopedFont(ImFont* font)
-{
-	ImGui::PushFont(font);
-}
+MkGuiScopedFont::MkGuiScopedFont(ImFont* font) { ImGui::PushFont(font); }
 
-MkGuiScopedFont::~MkGuiScopedFont()
-{
-	ImGui::PopFont();
-}
+MkGuiScopedFont::~MkGuiScopedFont() { ImGui::PopFont(); }

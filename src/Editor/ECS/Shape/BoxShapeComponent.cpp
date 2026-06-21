@@ -143,8 +143,7 @@ void BoxShapeComponent::openShape()
 	if (!graphicsContext)
 		return;
 
-	MkMaterialConstPtr material=
-		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+	MkMaterialConstPtr material= graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 	if (!material)
 		return;
 
@@ -190,24 +189,19 @@ void BoxShapeComponent::openShape()
 	};
 	// 6 faces × 2 triangles × 3 indices = 36 indices
 	static const uint16_t indices[36]= {
-		0, 1, 2, 0, 2, 3,       // +X
-		4, 5, 6, 4, 6, 7,       // -X
-		8, 9, 10, 8, 10, 11,    // +Y
+		0,  1,  2,  0,  2,  3,  // +X
+		4,  5,  6,  4,  6,  7,  // -X
+		8,  9,  10, 8,  10, 11, // +Y
 		12, 13, 14, 12, 14, 15, // -Y
 		16, 17, 18, 16, 18, 19, // +Z
 		20, 21, 22, 20, 22, 23, // -Z
 	};
 
-	IMkTriangulatedMeshPtr boxMesh= createMkTriangulatedMesh(
-		graphicsContext.get(),
-		"box_shape",
-		reinterpret_cast<const uint8_t*>(vertices),
-		sizeof(PTVertex),
-		24,
-		reinterpret_cast<const uint8_t*>(indices),
-		sizeof(uint16_t),
-		12,     // triangle count (6 faces × 2)
-		false); // mesh owns a copy of the vertex/index data
+	IMkTriangulatedMeshPtr boxMesh=
+		createMkTriangulatedMesh(graphicsContext.get(), "box_shape", reinterpret_cast<const uint8_t*>(vertices),
+								 sizeof(PTVertex), 24, reinterpret_cast<const uint8_t*>(indices), sizeof(uint16_t),
+								 12,     // triangle count (6 faces × 2)
+								 false); // mesh owns a copy of the vertex/index data
 
 	if (!boxMesh)
 		return;
@@ -221,21 +215,16 @@ void BoxShapeComponent::openShape()
 	m_sceneRenderable= meshInstance;
 }
 
-void BoxShapeComponent::closeShape()
-{
-	m_sceneRenderable= nullptr;
-}
+void BoxShapeComponent::closeShape() { m_sceneRenderable= nullptr; }
 
-void BoxShapeComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void BoxShapeComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+												const ConfigPropertyChangeSet& changedPropertySet)
 {
 	ShapeComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
-	const bool sizeChanged=
-		changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxXSizePropertyId) ||
-		changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxYSizePropertyId) ||
-		changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxZSizePropertyId);
+	const bool sizeChanged= changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxXSizePropertyId)
+							|| changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxYSizePropertyId)
+							|| changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxZSizePropertyId);
 
 	if (sizeChanged)
 	{
@@ -264,22 +253,17 @@ void BoxShapeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCon
 	ShapeComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			BoxShapeDefinition::k_boxXSizePropertyId, MikanVariantType::FLOAT)
+		std::make_shared<PropertyDescriptor>(BoxShapeDefinition::k_boxXSizePropertyId, MikanVariantType::FLOAT)
 			->setDefaultValue(1.f));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			BoxShapeDefinition::k_boxYSizePropertyId, MikanVariantType::FLOAT)
+		std::make_shared<PropertyDescriptor>(BoxShapeDefinition::k_boxYSizePropertyId, MikanVariantType::FLOAT)
 			->setDefaultValue(1.f));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			BoxShapeDefinition::k_boxZSizePropertyId, MikanVariantType::FLOAT)
+		std::make_shared<PropertyDescriptor>(BoxShapeDefinition::k_boxZSizePropertyId, MikanVariantType::FLOAT)
 			->setDefaultValue(1.f));
 }
 
-bool BoxShapeComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool BoxShapeComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	const auto def= getBoxShapeDefinition();
 
@@ -302,9 +286,7 @@ bool BoxShapeComponent::getPropertyValue(
 	return ShapeComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool BoxShapeComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool BoxShapeComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	const auto def= getBoxShapeDefinition();
 
@@ -332,14 +314,17 @@ void BoxShapeComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<BoxShapeComponent, ShapeComponent>(BoxShapeComponent::k_componentClassName.c_str())
-		.addProperty("boxXSize", [](BoxShapeComponent* component) -> float
-					 { return component->getBoxShapeDefinition()->getBoxXSize(); }, [](BoxShapeComponent* component, float value)
-					 { component->getBoxShapeDefinition()->setBoxXSize(value); })
-		.addProperty("boxYSize", [](BoxShapeComponent* component) -> float
-					 { return component->getBoxShapeDefinition()->getBoxYSize(); }, [](BoxShapeComponent* component, float value)
-					 { component->getBoxShapeDefinition()->setBoxYSize(value); })
-		.addProperty("boxZSize", [](BoxShapeComponent* component) -> float
-					 { return component->getBoxShapeDefinition()->getBoxZSize(); }, [](BoxShapeComponent* component, float value)
-					 { component->getBoxShapeDefinition()->setBoxZSize(value); })
+		.addProperty(
+			"boxXSize",
+			[](BoxShapeComponent* component) -> float { return component->getBoxShapeDefinition()->getBoxXSize(); },
+			[](BoxShapeComponent* component, float value) { component->getBoxShapeDefinition()->setBoxXSize(value); })
+		.addProperty(
+			"boxYSize",
+			[](BoxShapeComponent* component) -> float { return component->getBoxShapeDefinition()->getBoxYSize(); },
+			[](BoxShapeComponent* component, float value) { component->getBoxShapeDefinition()->setBoxYSize(value); })
+		.addProperty(
+			"boxZSize",
+			[](BoxShapeComponent* component) -> float { return component->getBoxShapeDefinition()->getBoxZSize(); },
+			[](BoxShapeComponent* component, float value) { component->getBoxShapeDefinition()->setBoxZSize(value); })
 		.endClass();
 }

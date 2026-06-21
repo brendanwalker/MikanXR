@@ -29,9 +29,7 @@ void GraphModelPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphModelProperty -----
-bool GraphModelProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphModelProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
@@ -78,8 +76,7 @@ void GraphModelProperty::saveToConfig(GraphPropertyConfigPtr config) const
 		if (propConfig->assetRefIndex == -1)
 		{
 			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig")
-				<< "Model property has orphaned asset reference: "
-				<< m_modelAssetRef->getAssetPath();
+				<< "Model property has orphaned asset reference: " << m_modelAssetRef->getAssetPath();
 		}
 	}
 
@@ -100,15 +97,11 @@ void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& 
 	if (NodeEditorUI::DrawPropertySheetHeader("Model", editorState.styleManager))
 	{
 		// Name
-		NodeEditorUI::DrawStaticTextProperty(
-			"Name",
-			m_modelResource->getName(),
-			editorState.styleManager);
+		NodeEditorUI::DrawStaticTextProperty("Name", m_modelResource->getName(), editorState.styleManager);
 
 		// Drag-Drop Handling
 		auto modelAssetRef=
-			NodeEditorUI::receiveTypedDragDropPayload<ModelAssetReference>(
-				ModelAssetReference::k_assetClassName);
+			NodeEditorUI::receiveTypedDragDropPayload<ModelAssetReference>(ModelAssetReference::k_assetClassName);
 		if (modelAssetRef)
 		{
 			setModelAssetReference(modelAssetRef);

@@ -2,12 +2,6 @@
 
 #include "imnodes.h"
 
-MkNodesScopedNodeEditor::MkNodesScopedNodeEditor()
-{
-	ImNodes::BeginNodeEditor();
-}
+MkNodesScopedNodeEditor::MkNodesScopedNodeEditor() { ImNodes::BeginNodeEditor(); }
 
-MkNodesScopedNodeEditor::~MkNodesScopedNodeEditor()
-{
-	ImNodes::EndNodeEditor();
-}
+MkNodesScopedNodeEditor::~MkNodesScopedNodeEditor() { ImNodes::EndNodeEditor(); }

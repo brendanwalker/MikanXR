@@ -30,78 +30,46 @@ struct OpenGLCalibrationGeometry
 
 // -- interface -----
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform);
-bool computeOpenCVCameraExtrinsicMatrix(
-	CameraComponentPtr cameraComponent,
-	cv::Matx34f& out);
+bool computeOpenCVCameraExtrinsicMatrix(CameraComponentPtr cameraComponent, cv::Matx34f& out);
 
-bool computeMonoLensCameraCalibration(
-	const int frameWidth,
-	const int frameHeight,
-	const OpenCVCalibrationGeometry& opencvLensCalibrationGeometry,
-	const std::vector<t_opencv_point2d_list>& cvImagePointsList,
-	const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
-	struct MikanMonoIntrinsics& outIntrinsics,
-	double& outReprojectionError);
+bool computeMonoLensCameraCalibration(const int frameWidth, const int frameHeight,
+									  const OpenCVCalibrationGeometry& opencvLensCalibrationGeometry,
+									  const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+									  const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+									  struct MikanMonoIntrinsics& outIntrinsics, double& outReprojectionError);
 
-bool computeOpenCVCameraRelativePatternTransform(
-	const struct MikanMonoIntrinsics& intrinsics,
-	const t_opencv_point2d_list& imagePoints,
-	const t_opencv_point3d_list& objectPointsMM,
-	cv::Quatd& outOrientation,
-	cv::Vec3d& outPositionMM,
-	double* outMeanError= nullptr);
-void convertOpenCVCameraRelativePoseToGLMMat(
-	const cv::Quatd& orientation,
-	const cv::Vec3d& positionMM,
-	glm::dmat4& outXform);
+bool computeOpenCVCameraRelativePatternTransform(const struct MikanMonoIntrinsics& intrinsics,
+												 const t_opencv_point2d_list& imagePoints,
+												 const t_opencv_point3d_list& objectPointsMM, cv::Quatd& outOrientation,
+												 cv::Vec3d& outPositionMM, double* outMeanError= nullptr);
+void convertOpenCVCameraRelativePoseToGLMMat(const cv::Quatd& orientation, const cv::Vec3d& positionMM,
+											 glm::dmat4& outXform);
 
-void extractCameraIntrinsicMatrixParameters(
-	const struct MikanMatrix3d& intrinsic_matrix,
-	float& out_focal_length_x,
-	float& out_focal_length_y,
-	float& out_principal_point_x,
-	float& out_principal_point_y,
-	float& out_skew);
-void extractCameraIntrinsicMatrixParameters(
-	const cv::Matx33f& intrinsic_matrix,
-	float& out_focal_length_x,
-	float& out_focal_length_y,
-	float& out_principal_point_x,
-	float& out_principal_point_y,
-	float& out_skew);
-bool computeOpenCVCameraRectification(
-	VideoSourceComponentPtr videoSource,
-	VideoFrameSection section,
-	cv::Matx33d& rotationOut,
-	cv::Matx34d& projectionOut);
+void extractCameraIntrinsicMatrixParameters(const struct MikanMatrix3d& intrinsic_matrix, float& out_focal_length_x,
+											float& out_focal_length_y, float& out_principal_point_x,
+											float& out_principal_point_y, float& out_skew);
+void extractCameraIntrinsicMatrixParameters(const cv::Matx33f& intrinsic_matrix, float& out_focal_length_x,
+											float& out_focal_length_y, float& out_principal_point_x,
+											float& out_principal_point_y, float& out_skew);
+bool computeOpenCVCameraRectification(VideoSourceComponentPtr videoSource, VideoFrameSection section,
+									  cv::Matx33d& rotationOut, cv::Matx34d& projectionOut);
 
-void createDefautMonoIntrinsics(
-	int pixelWidth,
-	int pixelHeight,
-	struct MikanMonoIntrinsics& outIntrinsics);
+void createDefautMonoIntrinsics(int pixelWidth, int pixelHeight, struct MikanMonoIntrinsics& outIntrinsics);
 
-void computeOpenGLProjMatFromCameraIntrinsics(
-	const struct MikanMonoIntrinsics& intrinsics,
-	glm::mat4& outProjection,
-	int* outViewport= nullptr);
+void computeOpenGLProjMatFromCameraIntrinsics(const struct MikanMonoIntrinsics& intrinsics, glm::mat4& outProjection,
+											  int* outViewport= nullptr);
 
 enum class eStereoIntrinsicsSide
 {
 	left,
 	right
 };
-void computeOpenGLProjMatFromCameraIntrinsics(
-	const struct MikanStereoIntrinsics& intrinsics,
-	eStereoIntrinsicsSide side,
-	glm::mat4& outProjection,
-	int* outViewport= nullptr);
+void computeOpenGLProjMatFromCameraIntrinsics(const struct MikanStereoIntrinsics& intrinsics,
+											  eStereoIntrinsicsSide side, glm::mat4& outProjection,
+											  int* outViewport= nullptr);
 
-void computeCameraRayAtPixel(
-	const struct MikanMonoIntrinsics& intrinsics,
-	const glm::mat4& cameraXform,
-	const glm::vec2& imagePoint,
-	glm::vec3& outRayStart,
-	glm::vec3& outRayDirection);
+void computeCameraRayAtPixel(const struct MikanMonoIntrinsics& intrinsics, const glm::mat4& cameraXform,
+							 const glm::vec2& imagePoint, glm::vec3& outRayStart, glm::vec3& outRayDirection);
 
 /**
  * Computes the camera tracking mount (or "puck") to aperature offset transform
@@ -135,9 +103,6 @@ struct CameraPuckToApertureResults
 	}
 };
 
-void computeCameraPuckToApertureXform(
-	const glm::dmat4& cameraPuckXform_VRSpace,
-	const glm::dmat4& matPuckXform_VRSpace,
-	const glm::dmat4& apertureToPatternXform,
-	const glm::dvec3& matPuckOffsetMM,
-	CameraPuckToApertureResults& outResults);
+void computeCameraPuckToApertureXform(const glm::dmat4& cameraPuckXform_VRSpace, const glm::dmat4& matPuckXform_VRSpace,
+									  const glm::dmat4& apertureToPatternXform, const glm::dvec3& matPuckOffsetMM,
+									  CameraPuckToApertureResults& outResults);

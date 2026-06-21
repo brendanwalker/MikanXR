@@ -252,12 +252,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQua
 /// A single-precision Scale-Rotation-Translation transform.
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanTransform
 {
-	FIELD()
-	MikanVector3f scale;
-	FIELD()
-	MikanQuatf rotation;
-	FIELD()
-	MikanVector3f position;
+	FIELD() MikanVector3f scale;
+	FIELD() MikanQuatf rotation;
+	FIELD() MikanVector3f position;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTransform_GENERATED

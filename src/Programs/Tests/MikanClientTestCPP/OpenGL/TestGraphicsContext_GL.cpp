@@ -60,15 +60,9 @@ public:
 
 	virtual ~TestMkWindow() {}
 
-	void* getOpenGLContext() const
-	{
-		return m_glContext;
-	}
+	void* getOpenGLContext() const { return m_glContext; }
 
-	SDL_Window* getSDLWindow() const
-	{
-		return m_sdlWindow;
-	}
+	SDL_Window* getSDLWindow() const { return m_sdlWindow; }
 
 	void setWindowSize(int width, int height)
 	{
@@ -122,12 +116,10 @@ public:
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-		SDL_WindowFlags window_flags= (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-		m_sdlWindow= SDL_CreateWindow("Mikan Client Test",
-									  SDL_WINDOWPOS_CENTERED,
-									  SDL_WINDOWPOS_CENTERED,
-									  m_windowWidth, m_windowHeight,
-									  window_flags);
+		SDL_WindowFlags window_flags=
+			(SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+		m_sdlWindow= SDL_CreateWindow("Mikan Client Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+									  m_windowWidth, m_windowHeight, window_flags);
 		if (m_sdlWindow == nullptr)
 		{
 			MIKAN_LOG_ERROR("startup") << "Unable to initialize window: " << SDL_GetError();
@@ -178,8 +170,7 @@ public:
 			// Enable for debugging state changes
 			// m_mkStateStack->setDebugPrintEnabled(true);
 
-			mkState
-				->enableFlag(eMkStateFlagType::texture2d)
+			mkState->enableFlag(eMkStateFlagType::texture2d)
 				->enableFlag(eMkStateFlagType::depthTest)
 				->enableFlag(eMkStateFlagType::cullFace);
 
@@ -194,14 +185,12 @@ public:
 	}
 
 	// Present rendered frame (called externally by the test main loop)
-	void present()
-	{
-		SDL_GL_SwapWindow(m_sdlWindow);
-	}
+	void present() { SDL_GL_SwapWindow(m_sdlWindow); }
 
 	virtual void shutdown() override
 	{
-		// Unwind any remaining states to ensure proper cleanup of GL resources owned by states (e.g. depth state buffers)
+		// Unwind any remaining states to ensure proper cleanup of GL resources owned by states (e.g. depth state
+		// buffers)
 		m_mkStateStack= nullptr;
 
 		m_textureCache->shutdown();
@@ -246,15 +235,9 @@ TestGraphicsContext_GL::TestGraphicsContext_GL(TestApp* ownerApp)
 {
 }
 
-MkStateStack& TestGraphicsContext_GL::getMkStateStack()
-{
-	return m_mkWindow->getMkStateStack();
-}
+MkStateStack& TestGraphicsContext_GL::getMkStateStack() { return m_mkWindow->getMkStateStack(); }
 
-void* TestGraphicsContext_GL::getGraphicsDeviceInterface() const
-{
-	return getTestMkWindow()->getOpenGLContext();
-}
+void* TestGraphicsContext_GL::getGraphicsDeviceInterface() const { return getTestMkWindow()->getOpenGLContext(); }
 
 SDL_Window* TestGraphicsContext_GL::getSDLWindow() const
 {
@@ -292,8 +275,7 @@ bool TestGraphicsContext_GL::create(int windowWidth, int windowHeight)
 	m_viewportQuadMesh= createFullscreenQuadMesh(m_mkWindow.get(), false);
 
 	// Create a fullscreen quad mesh for rendering normalized depth using the depth normalize material
-	auto depthNormalizeMaterial=
-		m_mkWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH);
+	auto depthNormalizeMaterial= m_mkWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH);
 	assert(depthNormalizeMaterial);
 	m_depthNormalizeQuadMesh= createFullscreenQuadMesh(m_mkWindow.get(), depthNormalizeMaterial, false);
 
@@ -368,27 +350,21 @@ bool TestGraphicsContext_GL::initializeCubeGeometry()
 		};
 
 		static uint16_t x_indices[]= {
-			0, 1, 2, 3, 4, 5,       // Front
-			6, 7, 8, 9, 10, 11,     // Back
+			0,  1,  2,  3,  4,  5,  // Front
+			6,  7,  8,  9,  10, 11, // Back
 			12, 13, 14, 15, 16, 17, // Top
 			18, 19, 20, 21, 22, 23, // Bottom
 			24, 25, 26, 27, 28, 29, // Left
 			30, 31, 32, 33, 34, 35  // Right
 		};
 
-		m_boxMesh=
-			createMkTriangulatedMesh(
-				m_mkWindow.get(),
-				"box_mesh",
-				(const uint8_t*)x_vertices,
-				vertexSize,
-				6 * 6, // 6 faces * 6 vertices per face
-				(const uint8_t*)x_indices,
-				sizeof(uint16_t), // 2 bytes per index
-				12,               // 12 tris in a cube (6 faces * 2 tris/face)
-				false);           // mesh doesn't own box vertex data
-		if (!m_boxMesh->setMaterial(stencilMaterial) ||
-			!m_boxMesh->createResources())
+		m_boxMesh= createMkTriangulatedMesh(m_mkWindow.get(), "box_mesh", (const uint8_t*)x_vertices, vertexSize,
+											6 * 6, // 6 faces * 6 vertices per face
+											(const uint8_t*)x_indices,
+											sizeof(uint16_t), // 2 bytes per index
+											12,               // 12 tris in a cube (6 faces * 2 tris/face)
+											false);           // mesh doesn't own box vertex data
+		if (!m_boxMesh->setMaterial(stencilMaterial) || !m_boxMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("initializeCubeGeometry") << "Failed to create box mesh";
 			return false;
@@ -448,8 +424,7 @@ void TestGraphicsContext_GL::renderMainTarget() const
 	getTestMkWindow()->present();
 }
 
-bool TestGraphicsContext_GL::renderToCameraTarget(
-	TestCameraRenderTarget* cameraRenderTarget)
+bool TestGraphicsContext_GL::renderToCameraTarget(TestCameraRenderTarget* cameraRenderTarget)
 {
 	auto* glRenderTarget= static_cast<TestCameraRenderTarget_GL*>(cameraRenderTarget);
 
@@ -485,8 +460,7 @@ void TestGraphicsContext_GL::renderColorTexture(TestCameraRenderTarget_GL* glRen
 			// Draw the color texture
 			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
-				MkScopedState scopedState=
-					m_mkWindow->getMkStateStack().createScopedState("MainTargetComponentRender");
+				MkScopedState scopedState= m_mkWindow->getMkStateStack().createScopedState("MainTargetComponentRender");
 				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 				m_viewportQuadMesh->drawElements();
@@ -515,8 +489,7 @@ void TestGraphicsContext_GL::renderNormalizedDepthTexture(TestCameraRenderTarget
 			// Draw the normalized depth visualization
 			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
-				MkScopedState scopedState=
-					m_mkWindow->getMkStateStack().createScopedState("MainTargetDepthRender");
+				MkScopedState scopedState= m_mkWindow->getMkStateStack().createScopedState("MainTargetDepthRender");
 				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 				m_depthNormalizeQuadMesh->drawElements();
@@ -525,9 +498,8 @@ void TestGraphicsContext_GL::renderNormalizedDepthTexture(TestCameraRenderTarget
 	}
 }
 
-void TestGraphicsContext_GL::renderPackedDepthTexture(
-	TestCameraRenderTarget_GL* glRenderTarget,
-	IMikanAPIPtr mikanApi) const
+void TestGraphicsContext_GL::renderPackedDepthTexture(TestCameraRenderTarget_GL* glRenderTarget,
+													  IMikanAPIPtr mikanApi) const
 {
 	MikanCameraID cameraId= glRenderTarget->getCameraId();
 
@@ -560,12 +532,9 @@ void TestGraphicsContext_GL::renderPackedDepthTexture(
 	}
 }
 
-void TestGraphicsContext_GL::renderCube(
-	const glm::mat4& viewProj,
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraForward,
-	const glm::vec3& cameraUp,
-	const glm::vec3& cameraRight) const
+void TestGraphicsContext_GL::renderCube(const glm::mat4& viewProj, const glm::vec3& cameraPosition,
+										const glm::vec3& cameraForward, const glm::vec3& cameraUp,
+										const glm::vec3& cameraRight) const
 {
 	const float time= m_ownerApp->getTimeSeconds();
 	const MikanVector3f& cubeOffset= m_ownerApp->getCubeOffset();
@@ -578,26 +547,21 @@ void TestGraphicsContext_GL::renderCube(
 	{
 		// Compute cube position
 		glm::vec3 cubePosition=
-			cameraPosition +
-			cameraForward * cubeOffset.z +
-			cameraUp * cubeOffset.y +
-			cameraRight * cubeOffset.x;
+			cameraPosition + cameraForward * cubeOffset.z + cameraUp * cubeOffset.y + cameraRight * cubeOffset.x;
 
 		// Build cube transformation matrix
-		glm::mat4 cubeXform=
-			glm::translate(glm::mat4(1.0f), cubePosition) *
-			glm::rotate(glm::mat4(1.0f), time * 0.7f, glm::vec3(0.0f, 0.0f, 1.0f)) *
-			glm::rotate(glm::mat4(1.0f), time * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f)) *
-			glm::rotate(glm::mat4(1.0f), time, glm::vec3(1.0f, 0.0f, 0.0f)) *
-			glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+		glm::mat4 cubeXform= glm::translate(glm::mat4(1.0f), cubePosition)
+							 * glm::rotate(glm::mat4(1.0f), time * 0.7f, glm::vec3(0.0f, 0.0f, 1.0f))
+							 * glm::rotate(glm::mat4(1.0f), time * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f))
+							 * glm::rotate(glm::mat4(1.0f), time, glm::vec3(1.0f, 0.0f, 0.0f))
+							 * glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
 		materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, viewProj * cubeXform);
 
 		// Draw the cube
 		if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 		{
-			MkScopedState scopedState=
-				m_mkWindow->getMkStateStack().createScopedState("CubeRender");
+			MkScopedState scopedState= m_mkWindow->getMkStateStack().createScopedState("CubeRender");
 			scopedState.getStackState()->enableFlag(eMkStateFlagType::depthTest);
 
 			m_boxMesh->drawElements();

@@ -16,10 +16,7 @@ public:
 	{
 	}
 
-	virtual ~MikanWMFVideoModule()
-	{
-		shutdown();
-	}
+	virtual ~MikanWMFVideoModule() { shutdown(); }
 
 	bool startup() override
 	{
@@ -66,12 +63,6 @@ private:
 };
 
 // C-API
-IUsbVideoDeviceModule* AllocatePluginModule()
-{
-	return new MikanWMFVideoModule();
-}
+IUsbVideoDeviceModule* AllocatePluginModule() { return new MikanWMFVideoModule(); }
 
-void FreePluginModule(IUsbVideoDeviceModule* module)
-{
-	delete module;
-}
+void FreePluginModule(IUsbVideoDeviceModule* module) { delete module; }

@@ -16,10 +16,7 @@
 // lifetime systems: the component is owned by the ECS, the client is owned by CEF. The client
 // holds only a weak_ptr back to the component so it can be safely destroyed first.
 // -------------------------------------------------------------------------------------------------
-class CEFBrowserClient
-	: public CefClient,
-	  public CefRenderHandler,
-	  public CefLifeSpanHandler
+class CEFBrowserClient : public CefClient, public CefRenderHandler, public CefLifeSpanHandler
 {
 public:
 	explicit CEFBrowserClient(std::weak_ptr<class CEFTextureSourceComponent> owner);
@@ -30,8 +27,8 @@ public:
 
 	// -- CefRenderHandler ----
 	virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
-	virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
-						 const RectList& dirtyRects, const void* buffer, int width, int height) override;
+	virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects,
+						 const void* buffer, int width, int height) override;
 
 	// -- CefLifeSpanHandler ----
 	virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;

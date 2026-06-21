@@ -14,9 +14,7 @@
 
 #include "opencv2/core.hpp"
 
-GLVideoFrameProcessor::GLVideoFrameProcessor()
-{
-}
+GLVideoFrameProcessor::GLVideoFrameProcessor() {}
 
 void GLVideoFrameProcessor::init(IMkShaderCache* shaderCache)
 {
@@ -40,12 +38,9 @@ void GLVideoFrameProcessor::ensureBufferSize(int width, int height)
 
 	// Allocate a GL texture to copy the source video frame into
 	// This is only used when doing shader based undistortion
-	m_bgrSourceTextureMap= CreateMkTexture(
-		width,
-		height,
-		nullptr,
-		MK_RGB,  // texture format
-		MK_BGR); // buffer format
+	m_bgrSourceTextureMap= CreateMkTexture(width, height, nullptr,
+										   MK_RGB,  // texture format
+										   MK_BGR); // buffer format
 	m_bgrSourceTextureMap->setGenerateMipMap(false);
 	m_bgrSourceTextureMap->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
 	m_bgrSourceTextureMap->createTexture();
@@ -60,11 +55,9 @@ void GLVideoFrameProcessor::uploadSourceBuffer(const cv::Mat& srcBuffer)
 	}
 }
 
-void GLVideoFrameProcessor::computeUndistortion(
-	IMkTexturePtr writeTexture,
-	IMkTexturePtr distortionTexture,
-	IMkTriangulatedMeshPtr fullscreenQuad,
-	IMkGraphicsContext* graphicsContext)
+void GLVideoFrameProcessor::computeUndistortion(IMkTexturePtr writeTexture, IMkTexturePtr distortionTexture,
+												IMkTriangulatedMeshPtr fullscreenQuad,
+												IMkGraphicsContext* graphicsContext)
 {
 	// Point the framebuffer at the target queue slot texture.
 	// If the FBO already exists this is a cheap glFramebufferTexture2D re-attach;
@@ -83,17 +76,17 @@ void GLVideoFrameProcessor::computeUndistortion(
 
 	// Run the undistortion shader on the frame buffer
 	{
-		MkScopedObjectBinding colorFramebufferBinding(
-			graphicsContext->getMkStateStack().getCurrentState(),
-			"GLVideoFrameProcessor Framebuffer Scope",
-			m_undistortionFrameBuffer);
+		MkScopedObjectBinding colorFramebufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+													  "GLVideoFrameProcessor Framebuffer Scope",
+													  m_undistortionFrameBuffer);
 
 		if (colorFramebufferBinding)
 		{
 			if (auto materialBinding= m_undistortionMaterial->bindMaterial())
 			{
 				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_bgrSourceTextureMap);
-				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::distortionTexture, distortionTexture);
+				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::distortionTexture,
+																  distortionTexture);
 
 				// Draw the color texture
 				if (auto materialInstanceBinding= m_undistortMaterialInstance->bindMaterialInstance(materialBinding))

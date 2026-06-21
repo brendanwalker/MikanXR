@@ -15,10 +15,7 @@ GuiPanel_StageComponent::GuiPanel_StageComponent(AppStage* ownerAppStage)
 {
 }
 
-bool GuiPanel_StageComponent::init()
-{
-	return initTypedPropertyInterface<StageComponent>();
-}
+bool GuiPanel_StageComponent::init() { return initTypedPropertyInterface<StageComponent>(); }
 
 void GuiPanel_StageComponent::onConstruct()
 {
@@ -38,15 +35,12 @@ void GuiPanel_StageComponent::onConstruct()
 
 			const MikanTrackingVolumeID currentVolumeId=
 				stageComp->getStageComponentDefinition()->getTrackingVolumeId();
-			int selectedIndex=
-				m_trackingVolumeDataSource.getEntryIndexByComponentId(currentVolumeId);
+			int selectedIndex= m_trackingVolumeDataSource.getEntryIndexByComponentId(currentVolumeId);
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					stageComp->makePropertyUIIdentifier(StageComponentDefinition::k_trackingVolumeIdPropertyId),
-					"Tracking Volume",
-					&m_trackingVolumeDataSource,
-					selectedIndex))
+					"Tracking Volume", &m_trackingVolumeDataSource, selectedIndex))
 			{
 				MikanComponentPtr newVolume= m_trackingVolumeDataSource.getEntryAtIndex(selectedIndex);
 				if (newVolume)

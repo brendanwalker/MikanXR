@@ -25,20 +25,11 @@ public:
 	void addTriangulatedMesh(IMkTriangulatedMeshPtr mesh);
 	void addWireframeMesh(IMkWireframeMeshPtr mesh);
 
-	int getTriangulatedMeshCount() const
-	{
-		return (int)m_triangulatedMeshes.size();
-	}
-	IMkTriangulatedMeshPtr getTriangulatedMesh(int meshIndex) const
-	{
-		return m_triangulatedMeshes[meshIndex];
-	}
+	int getTriangulatedMeshCount() const { return (int)m_triangulatedMeshes.size(); }
+	IMkTriangulatedMeshPtr getTriangulatedMesh(int meshIndex) const { return m_triangulatedMeshes[meshIndex]; }
 
 	size_t getWireframeMeshCount() const { return m_wireframeMeshes.size(); }
-	IMkWireframeMeshPtr getWireframeMesh(int meshIndex) const
-	{
-		return m_wireframeMeshes[meshIndex];
-	}
+	IMkWireframeMeshPtr getWireframeMesh(int meshIndex) const { return m_wireframeMeshes[meshIndex]; }
 
 protected:
 	void disposeMeshRenderResources();

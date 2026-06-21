@@ -28,8 +28,7 @@ TestCameraRenderTargetPtr TestGraphicsContext::getCameraRenderTarget(MikanCamera
 	return nullptr;
 }
 
-TestCameraRenderTargetPtr TestGraphicsContext::getOrAddCameraRenderTarget(
-	MikanCameraID cameraId)
+TestCameraRenderTargetPtr TestGraphicsContext::getOrAddCameraRenderTarget(MikanCameraID cameraId)
 {
 	TestCameraRenderTargetPtr renderTarget= getCameraRenderTarget(cameraId);
 	if (!renderTarget)
@@ -41,9 +40,7 @@ TestCameraRenderTargetPtr TestGraphicsContext::getOrAddCameraRenderTarget(
 	return renderTarget;
 }
 
-void TestGraphicsContext::removeCameraRenderTarget(
-	IMikanAPIPtr mikanApi,
-	MikanCameraID cameraId)
+void TestGraphicsContext::removeCameraRenderTarget(IMikanAPIPtr mikanApi, MikanCameraID cameraId)
 {
 	auto it= m_cameraRenderTargetMap.find(cameraId);
 	if (it != m_cameraRenderTargetMap.end())

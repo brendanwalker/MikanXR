@@ -16,10 +16,8 @@ typedef int32_t MikanStencilID;
 class StencilAligner
 {
 public:
-	StencilAligner(
-		CameraComponentPtr m_cameraComponent,
-		class VideoFrameDistortionView* distortionView,
-		ModelStencilComponentPtr modelStencil);
+	StencilAligner(CameraComponentPtr m_cameraComponent, class VideoFrameDistortionView* distortionView,
+				   ModelStencilComponentPtr modelStencil);
 	virtual ~StencilAligner();
 
 	bool hasFinishedPointSampling() const;

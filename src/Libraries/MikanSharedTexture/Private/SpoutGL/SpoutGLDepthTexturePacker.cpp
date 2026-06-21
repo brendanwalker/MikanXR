@@ -110,20 +110,15 @@ const char* packSceneDepthFragmentShader= R""""(
 	)"""";
 } // namespace SpoutGLDepthPackerShaderCode
 
-SpoutGLDepthTexturePacker::SpoutGLDepthTexturePacker(
-	SharedTextureLogger& logger,
-	SPOUTLIBRARY* spout,
-	const SharedTextureDescriptor* descriptor)
+SpoutGLDepthTexturePacker::SpoutGLDepthTexturePacker(SharedTextureLogger& logger, SPOUTLIBRARY* spout,
+													 const SharedTextureDescriptor* descriptor)
 	: m_logger(logger)
 	, m_spout(spout)
 	, m_mikanDescriptor(*descriptor)
 {
 }
 
-SpoutGLDepthTexturePacker::~SpoutGLDepthTexturePacker()
-{
-	dispose();
-}
+SpoutGLDepthTexturePacker::~SpoutGLDepthTexturePacker() { dispose(); }
 
 bool SpoutGLDepthTexturePacker::init()
 {
@@ -136,10 +131,7 @@ bool SpoutGLDepthTexturePacker::init()
 	return true;
 }
 
-GLuint SpoutGLDepthTexturePacker::packDepthTexture(
-	GLuint inDepthTexture,
-	float zNear,
-	float zFar)
+GLuint SpoutGLDepthTexturePacker::packDepthTexture(GLuint inDepthTexture, float zNear, float zFar)
 {
 	if (inDepthTexture == 0)
 	{
@@ -155,14 +147,13 @@ GLuint SpoutGLDepthTexturePacker::packDepthTexture(
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// Refresh the render target resources if the input texture has changed
-	if (m_colorTargetTexture == 0 ||
-		m_inFloatDepthTexture != inDepthTexture ||
-		m_inFloatDepthTextureWidth != inWidth ||
-		m_inFloatDepthTextureHeight != inHeight)
+	if (m_colorTargetTexture == 0 || m_inFloatDepthTexture != inDepthTexture || m_inFloatDepthTextureWidth != inWidth
+		|| m_inFloatDepthTextureHeight != inHeight)
 	{
 		if (!initRenderTargetResources(inDepthTexture))
 		{
-			m_logger.log(SharedTextureLogLevel::error, "packDepthTexture - Failed to initialize render target resources");
+			m_logger.log(SharedTextureLogLevel::error,
+						 "packDepthTexture - Failed to initialize render target resources");
 			return 0;
 		}
 
@@ -271,13 +262,9 @@ bool SpoutGLDepthTexturePacker::initQuadGeometry()
 {
 	// Define a fullscreen quad (2 triangles)
 	QuadVertex vertices[]= {
-		{{-1.0f, 1.0f}, {0.0f, 1.0f}},
-		{{-1.0f, -1.0f}, {0.0f, 0.0f}},
-		{{1.0f, -1.0f}, {1.0f, 0.0f}},
+		{{-1.0f, 1.0f}, {0.0f, 1.0f}}, {{-1.0f, -1.0f}, {0.0f, 0.0f}}, {{1.0f, -1.0f}, {1.0f, 0.0f}},
 
-		{{-1.0f, 1.0f}, {0.0f, 1.0f}},
-		{{1.0f, -1.0f}, {1.0f, 0.0f}},
-		{{1.0f, 1.0f}, {1.0f, 1.0f}},
+		{{-1.0f, 1.0f}, {0.0f, 1.0f}}, {{1.0f, -1.0f}, {1.0f, 0.0f}},  {{1.0f, 1.0f}, {1.0f, 1.0f}},
 	};
 
 	// Create and bind VAO

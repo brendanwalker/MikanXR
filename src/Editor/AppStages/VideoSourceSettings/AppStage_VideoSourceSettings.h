@@ -37,10 +37,8 @@ protected:
 	void onReturnEvent();
 
 	// Remote Control
-	bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults);
+	bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+									std::vector<std::string>& outResults);
 	bool handleGetVideoSourceComponentId(std::vector<std::string>& outResults);
 	bool handleReturnRequest(std::vector<std::string>& outResults);
 

@@ -71,18 +71,8 @@ private:
 class IPropertyInterface
 {
 public:
-	virtual bool getPropertyValue(
-		const std::string& propertyName,
-		MikanVariant& outValue) const
-	{
-		return false;
-	}
-	virtual bool setPropertyValue(
-		const std::string& propertyName,
-		const MikanVariant& inValue)
-	{
-		return false;
-	}
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const { return false; }
+	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) { return false; }
 };
 using IPropertyInterfacePtr= std::shared_ptr<IPropertyInterface>;
 using IPropertyInterfaceConstPtr= std::shared_ptr<const IPropertyInterface>;

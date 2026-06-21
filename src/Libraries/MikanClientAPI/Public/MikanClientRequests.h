@@ -12,11 +12,9 @@
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientRequests")) InitClientRequest : public MikanRequest
 {
 public:
-	InitClientRequest(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(InitClientRequest)}
+	InitClientRequest(){MIKAN_REQUEST_TYPE_INFO_INIT(InitClientRequest)}
 
-	FIELD()
-	MikanClientInfo clientInfo;
+	FIELD() MikanClientInfo clientInfo;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	InitClientRequest_GENERATED
@@ -26,11 +24,9 @@ public:
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientRequests")) DisposeClientRequest : public MikanRequest
 {
 public:
-	DisposeClientRequest(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(DisposeClientRequest)}
+	DisposeClientRequest(){MIKAN_REQUEST_TYPE_INFO_INIT(DisposeClientRequest)}
 
-	FIELD()
-	Serialization::String clientId;
+	FIELD() Serialization::String clientId;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	DisposeClientRequest_GENERATED

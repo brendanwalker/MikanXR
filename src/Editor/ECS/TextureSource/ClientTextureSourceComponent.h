@@ -12,9 +12,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_clientSourcePropertyId;
 	inline const std::string& getClientSource() const { return m_clientSource; }
@@ -40,8 +39,10 @@ public:
 	const std::string& getClientSourceName() const;
 
 	// Texture Source Interface
-	IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const;
-	IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex= -1) const;
+	IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType,
+											  int64_t frameIndex= -1) const;
+	IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType,
+											  int64_t frameIndex= -1) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

@@ -14,11 +14,9 @@
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) PushAppStage : public MikanRequest
 {
-	PushAppStage(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(PushAppStage)}
+	PushAppStage(){MIKAN_REQUEST_TYPE_INFO_INIT(PushAppStage)}
 
-	FIELD()
-	Serialization::String app_state_name;
+	FIELD() Serialization::String app_state_name;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	PushAppStage_GENERATED
@@ -27,8 +25,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest"
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) PopAppStage : public MikanRequest
 {
-	PopAppStage(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(PopAppStage)}
+	PopAppStage(){MIKAN_REQUEST_TYPE_INFO_INIT(PopAppStage)}
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	PopAppStage_GENERATED
@@ -37,25 +34,21 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest"
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) GetAppStageInfo : public MikanRequest
 {
-	GetAppStageInfo(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetAppStageInfo)}
+	GetAppStageInfo(){MIKAN_REQUEST_TYPE_INFO_INIT(GetAppStageInfo)}
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	GetAppStageInfo_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanRemoteControlCommand : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanRemoteControlCommand
+	: public MikanRequest
 {
-	MikanRemoteControlCommand(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(MikanRemoteControlCommand)}
+	MikanRemoteControlCommand(){MIKAN_REQUEST_TYPE_INFO_INIT(MikanRemoteControlCommand)}
 
-	FIELD()
-	Serialization::String command;
+	FIELD() Serialization::String command;
 
-	FIELD()
-	Serialization::List<Serialization::String>
-		parameters;
+	FIELD() Serialization::List<Serialization::String> parameters;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRemoteControlCommand_GENERATED
@@ -65,26 +58,24 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest"
 // Remote Control Response Types
 // ------
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanAppStageInfoResponse : public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanAppStageInfoResponse
+	: public MikanResponse
 {
-	MikanAppStageInfoResponse(){
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanAppStageInfoResponse)}
+	MikanAppStageInfoResponse(){MIKAN_RESPONSE_TYPE_INFO_INIT(MikanAppStageInfoResponse)}
 
-	FIELD()
-	MikanAppStageInfo app_stage_info;
+	FIELD() MikanAppStageInfo app_stage_info;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAppStageInfoResponse_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanRemoteControlCommandResult : public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanRemoteControlCommandResult
+	: public MikanResponse
 {
-	MikanRemoteControlCommandResult(){
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanRemoteControlCommandResult)}
+	MikanRemoteControlCommandResult(){MIKAN_RESPONSE_TYPE_INFO_INIT(MikanRemoteControlCommandResult)}
 
-	FIELD()
-	Serialization::List<Serialization::String> results;
+	FIELD() Serialization::List<Serialization::String> results;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRemoteControlCommandResult_GENERATED

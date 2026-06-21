@@ -15,7 +15,8 @@ TextureSourceComponentList getTextureSourceComponentList(ProjectManagerPtr proje
 
 	auto clientTextureSourceSystem= projectManager->getSystemOfType<ClientTextureSourceSystem>();
 	auto clientTextureSourceComponents= clientTextureSourceSystem->getTextureSourceComponentList();
-	componentList.insert(componentList.end(), clientTextureSourceComponents.begin(), clientTextureSourceComponents.end());
+	componentList.insert(componentList.end(), clientTextureSourceComponents.begin(),
+						 clientTextureSourceComponents.end());
 
 	auto spoutTextureSourceSystem= projectManager->getSystemOfType<SpoutTextureSourceSystem>();
 	auto spoutTextureSourceComponents= spoutTextureSourceSystem->getTextureSourceComponentList();

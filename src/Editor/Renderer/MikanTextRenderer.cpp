@@ -21,12 +21,8 @@
 #include <stdarg.h>
 
 //-- Drawing Methods -----
-void drawTextAtWorldPosition(
-	IMkGraphicsContext* graphicsContext,
-	const TextStyle& style,
-	const glm::vec3& position,
-	const wchar_t* format,
-	...)
+void drawTextAtWorldPosition(IMkGraphicsContext* graphicsContext, const TextStyle& style, const glm::vec3& position,
+							 const wchar_t* format, ...)
 {
 	IMkTextRenderer* textRenderer= graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
@@ -39,12 +35,8 @@ void drawTextAtWorldPosition(
 	// Convert the world space coordinates into screen space
 	const int screenWidth= (int)graphicsContext->getWidth();
 	const int screenHeight= (int)graphicsContext->getHeight();
-	glm::vec3 screenCoords=
-		glm::project(
-			position,
-			camera->getViewMatrix(),
-			camera->getProjectionMatrix(),
-			glm::vec4(0, screenHeight, screenWidth, -screenHeight));
+	glm::vec3 screenCoords= glm::project(position, camera->getViewMatrix(), camera->getProjectionMatrix(),
+										 glm::vec4(0, screenHeight, screenWidth, -screenHeight));
 
 	// Bake out the text string
 	wchar_t text[1024];
@@ -57,12 +49,8 @@ void drawTextAtWorldPosition(
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
 }
 
-void drawTextAtScreenPosition(
-	IMkGraphicsContext* graphicsContext,
-	const TextStyle& style,
-	const glm::vec2& screenCoords,
-	const wchar_t* format,
-	...)
+void drawTextAtScreenPosition(IMkGraphicsContext* graphicsContext, const TextStyle& style,
+							  const glm::vec2& screenCoords, const wchar_t* format, ...)
 {
 	// Bake out the text string
 	wchar_t text[1024];
@@ -79,13 +67,8 @@ void drawTextAtScreenPosition(
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
 }
 
-void drawTextAtTrackerPosition(
-	IMkGraphicsContext* graphicsContext,
-	const TextStyle& style,
-	const float trackerWidth, const float trackerHeight,
-	const glm::vec2& trackerCoords,
-	const wchar_t* format,
-	...)
+void drawTextAtTrackerPosition(IMkGraphicsContext* graphicsContext, const TextStyle& style, const float trackerWidth,
+							   const float trackerHeight, const glm::vec2& trackerCoords, const wchar_t* format, ...)
 {
 	IMkTextRenderer* textRenderer= graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
@@ -104,22 +87,13 @@ void drawTextAtTrackerPosition(
 	const float windowX0= 0.0f, windowY0= 0.f;
 	const float windowX1= windowWidth - 1.f, windowY1= windowHeight - 1.f;
 	glm::vec2 screenCoords=
-		remapPointIntoTarget(
-			trackerWidth, trackerHeight,
-			windowX0, windowY0,
-			windowX1, windowY1,
-			trackerCoords);
+		remapPointIntoTarget(trackerWidth, trackerHeight, windowX0, windowY0, windowX1, windowY1, trackerCoords);
 
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
 }
 
-void drawTextAtCameraPosition(
-	IMkGraphicsContext* graphicsContext,
-	const TextStyle& style,
-	const float cameraWidth, const float cameraHeight,
-	const glm::vec2& cameraCoords,
-	const wchar_t* format,
-	...)
+void drawTextAtCameraPosition(IMkGraphicsContext* graphicsContext, const TextStyle& style, const float cameraWidth,
+							  const float cameraHeight, const glm::vec2& cameraCoords, const wchar_t* format, ...)
 {
 	// Bake out the text string
 	wchar_t text[1024];
@@ -140,11 +114,7 @@ void drawTextAtCameraPosition(
 
 	// Remaps the camera relative segment to window relative coordinates
 	const glm::vec2 screenCoords=
-		remapPointIntoTarget(
-			cameraWidth, cameraHeight,
-			windowX0, windowY0,
-			windowX1, windowY1,
-			cameraCoords);
+		remapPointIntoTarget(cameraWidth, cameraHeight, windowX0, windowY0, windowX1, windowY1, cameraCoords);
 
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
 }

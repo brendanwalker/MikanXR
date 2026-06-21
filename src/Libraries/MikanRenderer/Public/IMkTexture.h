@@ -76,12 +76,8 @@ public:
 };
 
 MIKAN_RENDERER_FUNC(IMkTexturePtr) CreateMkTexture();
-MIKAN_RENDERER_FUNC(IMkTexturePtr) CreateMkTexture(
-	uint16_t width,
-	uint16_t height,
-	const uint8_t* textureMapData,
-	uint32_t textureFormat,
-	uint32_t bufferFormat);
+MIKAN_RENDERER_FUNC(IMkTexturePtr) CreateMkTexture(uint16_t width, uint16_t height, const uint8_t* textureMapData,
+												   uint32_t textureFormat, uint32_t bufferFormat);
 
 MIKAN_RENDERER_FUNC(IMkExternalTexturePtr) CreateMkExternalTexture();
 MIKAN_RENDERER_FUNC(IMkExternalTexturePtr) CreateMkExternalTexture(void* platformTexture);

@@ -38,10 +38,7 @@ protected:
 		{
 		}
 
-		~PointBufferState()
-		{
-			delete[] m_points;
-		}
+		~PointBufferState() { delete[] m_points; }
 
 		void createGlBufferState(IMkShaderPtr program)
 		{
@@ -95,11 +92,7 @@ protected:
 
 		inline bool hasPoints() const { return m_pointCount > 0; }
 
-		void addPoint3d(
-			const glm::mat4& xform,
-			const glm::vec3& pos,
-			const glm::vec3& color,
-			float size)
+		void addPoint3d(const glm::mat4& xform, const glm::vec3& pos, const glm::vec3& color, float size)
 		{
 			if (m_pointCount < k_max_points)
 			{
@@ -110,10 +103,7 @@ protected:
 			}
 		}
 
-		void addPoint2d(
-			const glm::vec2& pos,
-			const glm::vec3& color,
-			float size)
+		void addPoint2d(const glm::vec2& pos, const glm::vec3& color, float size)
 		{
 			if (m_pointCount < k_max_points)
 			{
@@ -138,10 +128,9 @@ protected:
 
 		if (x_shaderCode == nullptr)
 		{
-			x_shaderCode= createIMkShaderCode(
-				"line shader",
-				// vertex shader
-				R""""(
+			x_shaderCode= createIMkShaderCode("line shader",
+											  // vertex shader
+											  R""""(
 				#version 410 
 				uniform mat4 mvpMatrix; 
 				layout(location = 0) in vec3 in_position; 
@@ -154,8 +143,8 @@ protected:
 					v_Color = vec4(in_colorPointSize.xyz, 1.0);
 				}
 				)"""",
-				// fragment shader
-				R""""(
+											  // fragment shader
+											  R""""(
 				#version 410 core
 				in vec4 v_Color;
 				out vec4 out_FragColor;
@@ -165,7 +154,8 @@ protected:
 				}
 				)"""");
 			x_shaderCode->addVertexAttribute("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("in_colorPointSize", eVertexDataType::datatype_vec4, eVertexSemantic::colorAndSize);
+			x_shaderCode->addVertexAttribute("in_colorPointSize", eVertexDataType::datatype_vec4,
+											 eVertexSemantic::colorAndSize);
 			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
 		}
 
@@ -196,10 +186,7 @@ public:
 	{
 	}
 
-	virtual ~GlLineRenderer()
-	{
-		m_program= nullptr;
-	}
+	virtual ~GlLineRenderer() { m_program= nullptr; }
 
 	virtual bool startup() override
 	{
@@ -210,7 +197,8 @@ public:
 			return false;
 		}
 
-		if (!m_program->getFirstUniformNameOfSemantic(eUniformSemantic::modelViewProjectionMatrix, m_modelViewUniformName))
+		if (!m_program->getFirstUniformNameOfSemantic(eUniformSemantic::modelViewProjectionMatrix,
+													  m_modelViewUniformName))
 		{
 			MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to find model view projection uniform";
 			return false;
@@ -230,8 +218,7 @@ public:
 		if (m_ownerContext == nullptr)
 			return;
 
-		if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
-			m_points2d.hasPoints() || m_lines2d.hasPoints())
+		if (m_points3d.hasPoints() || m_lines3d.hasPoints() || m_points2d.hasPoints() || m_lines2d.hasPoints())
 		{
 			MkScopedState stateScope= m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer");
 			IMkState* mkState= stateScope.getStackState();
@@ -250,7 +237,8 @@ public:
 				{
 					const glm::mat4 cameraVPMatrix= camera->getViewProjectionMatrix();
 
-					MkScopedState scopedState= m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer_3dLines");
+					MkScopedState scopedState=
+						m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer_3dLines");
 					if (bDisable3dDepth)
 					{
 						scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
@@ -277,8 +265,7 @@ public:
 				glm::i32vec2 renderingOrigin;
 				glm::i32vec2 renderingSize;
 				IMkViewportConstPtr viewport= m_ownerContext->getRenderingViewport();
-				if (viewport != nullptr &&
-					viewport->getRenderingViewport(renderingOrigin, renderingSize))
+				if (viewport != nullptr && viewport->getRenderingViewport(renderingOrigin, renderingSize))
 				{
 					left= renderingOrigin.x;
 					right= renderingOrigin.x + renderingSize.x;
@@ -299,7 +286,8 @@ public:
 
 				{
 					// disable the depth buffer to allow overdraw
-					MkScopedState scopedState= m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer_2dLines");
+					MkScopedState scopedState=
+						m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer_2dLines");
 					scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 					m_points2d.drawGlBufferState(GL_POINTS);
@@ -322,36 +310,25 @@ public:
 		m_program= nullptr;
 	}
 
-	virtual void addPoint3d(
-		const glm::mat4& xform,
-		const glm::vec3& pos,
-		const glm::vec3& color,
-		float size) override
+	virtual void addPoint3d(const glm::mat4& xform, const glm::vec3& pos, const glm::vec3& color, float size) override
 	{
 		m_points3d.addPoint3d(xform, pos, color, size);
 	}
 
-	virtual void addSegment3d(
-		const glm::mat4& xform,
-		const glm::vec3& pos0, const glm::vec3& color0,
-		const glm::vec3& pos1, const glm::vec3& color1,
-		float size0, float size1) override
+	virtual void addSegment3d(const glm::mat4& xform, const glm::vec3& pos0, const glm::vec3& color0,
+							  const glm::vec3& pos1, const glm::vec3& color1, float size0, float size1) override
 	{
 		m_lines3d.addPoint3d(xform, pos0, color0, size0);
 		m_lines3d.addPoint3d(xform, pos1, color1, size1);
 	}
 
-	virtual void addPoint2d(
-		const glm::vec2& pos, const glm::vec3& color,
-		float size) override
+	virtual void addPoint2d(const glm::vec2& pos, const glm::vec3& color, float size) override
 	{
 		m_points2d.addPoint2d(pos, color, size);
 	}
 
-	virtual void addSegment2d(
-		const glm::vec2& pos0, const glm::vec3& color0,
-		const glm::vec2& pos1, const glm::vec3& color1,
-		float size0, float size1) override
+	virtual void addSegment2d(const glm::vec2& pos0, const glm::vec3& color0, const glm::vec2& pos1,
+							  const glm::vec3& color1, float size0, float size1) override
 	{
 		m_lines2d.addPoint2d(pos0, color0, size0);
 		m_lines2d.addPoint2d(pos1, color1, size1);

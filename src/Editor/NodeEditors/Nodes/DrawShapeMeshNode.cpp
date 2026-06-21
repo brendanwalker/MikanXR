@@ -58,9 +58,7 @@ void DrawShapeMeshNodeConfig::readFromJSON(const configuru::Config& pt)
 	NodeConfig::readFromJSON(pt);
 
 	const std::string blendModeString=
-		pt.get_or<std::string>(
-			"blend_mode",
-			k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOn]);
+		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOn]);
 	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
 	bDepthTest= pt.get_or<bool>("depth_test", false);
@@ -142,18 +140,12 @@ void DrawShapeMeshNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	}
 }
 
-void DrawShapeMeshNode::setMaterialPin(PropertyPinPtr inPin)
-{
-	m_materialPin= inPin;
-}
+void DrawShapeMeshNode::setMaterialPin(PropertyPinPtr inPin) { m_materialPin= inPin; }
 
 void DrawShapeMeshNode::setMaterial(MkMaterialConstPtr inMaterial)
 {
 	m_material= inMaterial;
-	m_materialInstance=
-		m_material
-			? createMkMaterialInstance(inMaterial)
-			: MkMaterialInstancePtr();
+	m_materialInstance= m_material ? createMkMaterialInstance(inMaterial) : MkMaterialInstancePtr();
 }
 
 void DrawShapeMeshNode::onGraphLoaded(bool success)
@@ -256,12 +248,14 @@ void DrawShapeMeshNode::rebuildInputPins()
 			case eUniformDataType::datatype_mat4:
 				if (uniformSemantic == eUniformSemantic::modelViewProjectionMatrix)
 				{
-					// The node graph will automatically feed in the correct value for this semantic, so we don't need an input pin for it
+					// The node graph will automatically feed in the correct value for this semantic, so we don't need
+					// an input pin for it
 					break;
 				}
 				else
 				{
-					MIKAN_LOG_WARNING("DrawShapeMeshNode::rebuildInputPins") << "DrawShapeMeshNode does not support mat4 uniform" << uniformName;
+					MIKAN_LOG_WARNING("DrawShapeMeshNode::rebuildInputPins")
+						<< "DrawShapeMeshNode does not support mat4 uniform" << uniformName;
 					assert(false);
 				}
 			default:
@@ -338,7 +332,8 @@ bool DrawShapeMeshNode::evaluateNode(NodeEvaluator& evaluator)
 	ShapeComponentPtr shape= shapeGraph->getBoundShapeComponent();
 	if (!shape)
 	{
-		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::missingInput, "No bound ShapeComponent", this));
+		evaluator.addError(
+			NodeEvaluationError(eNodeEvaluationErrorCode::missingInput, "No bound ShapeComponent", this));
 		return false;
 	}
 
@@ -377,8 +372,7 @@ bool DrawShapeMeshNode::evaluateNode(NodeEvaluator& evaluator)
 	}
 
 	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
-	MkScopedState mkStateScope=
-		graphicsContext->getMkStateStack().createScopedState("Draw Shape Mesh Node");
+	MkScopedState mkStateScope= graphicsContext->getMkStateStack().createScopedState("Draw Shape Mesh Node");
 	IMkState* mkState= mkStateScope.getStackState();
 
 	// Set blend mode
@@ -426,9 +420,7 @@ bool DrawShapeMeshNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-void DrawShapeMeshNode::drawShapeRenderable(
-	IMkSceneRenderableConstPtr renderable,
-	const glm::mat4& vpMatrix)
+void DrawShapeMeshNode::drawShapeRenderable(IMkSceneRenderableConstPtr renderable, const glm::mat4& vpMatrix)
 {
 	// Compute MVP without storing it on the material instance
 	const glm::mat4 mvpMatrix= vpMatrix * renderable->getModelMatrix();
@@ -437,17 +429,14 @@ void DrawShapeMeshNode::drawShapeRenderable(
 	// never written into mat4Sources on the shared material instance
 	if (auto materialBinding= m_material->bindMaterial())
 	{
-		BindUniformCallback mvpCallback= [&mvpMatrix](
-											 IMkShaderPtr program,
-											 eUniformDataType dataType,
-											 eUniformSemantic semantic,
-											 const std::string& uniformName) -> eUniformBindResult
+		BindUniformCallback mvpCallback= [&mvpMatrix](IMkShaderPtr program, eUniformDataType dataType,
+													  eUniformSemantic semantic,
+													  const std::string& uniformName) -> eUniformBindResult
 		{
 			if (semantic == eUniformSemantic::modelViewProjectionMatrix)
 			{
-				return program->setMatrix4x4Uniform(uniformName, mvpMatrix)
-						   ? eUniformBindResult::bound
-						   : eUniformBindResult::error;
+				return program->setMatrix4x4Uniform(uniformName, mvpMatrix) ? eUniformBindResult::bound
+																			: eUniformBindResult::error;
 			}
 			return eUniformBindResult::unbound;
 		};
@@ -469,10 +458,7 @@ void DrawShapeMeshNode::drawShapeRenderable(
 	}
 }
 
-FlowPinPtr DrawShapeMeshNode::getOutputFlowPin() const
-{
-	return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT);
-}
+FlowPinPtr DrawShapeMeshNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
 
 void DrawShapeMeshNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
@@ -484,21 +470,14 @@ void DrawShapeMeshNode::editorRenderPropertySheet(const NodeEditorState& editorS
 
 		// Blend Mode
 		int iBlendMode= (int)m_blendMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-				"drawShapeMeshNodeBlendMode",
-				"Blend Mode",
-				"Blend Off\0Blend On\0",
-				iBlendMode,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawShapeMeshNodeBlendMode", "Blend Mode",
+													 "Blend Off\0Blend On\0", iBlendMode, editorState.styleManager))
 		{
 			m_blendMode= (eCompositorBlendMode)iBlendMode;
 		}
 
 		// Depth Test
-		NodeEditorUI::DrawCheckBoxProperty(
-			"drawShapeMeshNodeDepthTest",
-			"Depth Test",
-			m_bDepthTest);
+		NodeEditorUI::DrawCheckBoxProperty("drawShapeMeshNodeDepthTest", "Depth Test", m_bDepthTest);
 	}
 }
 

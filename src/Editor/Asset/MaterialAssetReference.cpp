@@ -51,13 +51,8 @@ void MaterialAssetReference::editorRenderPropertySheet(const NodeEditorState& ed
 			static const char* filterItems[1]= {"*.mat"};
 
 			const char* picked=
-				tinyfd_openFileDialog(
-					"Load Material",
-					materialPath.c_str(),
-					1,
-					filterItems,
-					"Material Files (*.mat)",
-					0); // disallow multiple selections
+				tinyfd_openFileDialog("Load Material", materialPath.c_str(), 1, filterItems, "Material Files (*.mat)",
+									  0); // disallow multiple selections
 
 			if (picked != nullptr && picked[0] != '\0')
 			{

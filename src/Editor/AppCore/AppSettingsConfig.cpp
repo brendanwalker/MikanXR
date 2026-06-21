@@ -7,8 +7,7 @@ const std::string AppSettingsConfig::k_appLanguagePropertyId= "appLanguage";
 const std::string AppSettingsConfig::k_scriptEditorCommandPropertyId= "scriptEditorCommand";
 
 AppSettingsConfig::AppSettingsConfig(const std::string& fnamebase)
-	: CommonConfig(fnamebase) {
-	};
+	: CommonConfig(fnamebase) {};
 
 configuru::Config AppSettingsConfig::writeToJSON()
 {

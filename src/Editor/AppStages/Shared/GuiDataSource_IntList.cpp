@@ -26,10 +26,7 @@ int GuiDataSource_IntList::getEntryValue(int index) const
 	return -1;
 }
 
-int GuiDataSource_IntList::getEntryCount() const
-{
-	return (int)m_entries.size();
-}
+int GuiDataSource_IntList::getEntryCount() const { return (int)m_entries.size(); }
 
 const std::string& GuiDataSource_IntList::getEntryDisplayString(int index) const
 {

@@ -36,9 +36,7 @@ public:
 					selectedAssetRefIndex= listIndex;
 				}
 
-				ComboEntry entry= {
-					matAssetRef,
-					matAssetRef ? assetRef->getShortName() : "<No Asset Ref>"};
+				ComboEntry entry= {matAssetRef, matAssetRef ? assetRef->getShortName() : "<No Asset Ref>"};
 
 				comboEntries.push_back(entry);
 				listIndex++;
@@ -46,25 +44,13 @@ public:
 		}
 	}
 
-	inline int getCurrentAssetIndex() const
-	{
-		return selectedAssetRefIndex;
-	}
+	inline int getCurrentAssetIndex() const { return selectedAssetRefIndex; }
 
-	inline MaterialAssetReferencePtr getEntryAssetRef(int index)
-	{
-		return comboEntries[index].assetReference;
-	}
+	inline MaterialAssetReferencePtr getEntryAssetRef(int index) { return comboEntries[index].assetReference; }
 
-	virtual int getEntryCount() override
-	{
-		return (int)comboEntries.size();
-	}
+	virtual int getEntryCount() override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override
-	{
-		return comboEntries[index].entryString;
-	}
+	virtual const std::string& getEntryDisplayString(int index) override { return comboEntries[index].entryString; }
 
 private:
 	struct ComboEntry
@@ -96,9 +82,7 @@ void GraphMaterialPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphMaterialProperty -----
-bool GraphMaterialProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphMaterialProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
@@ -144,7 +128,8 @@ void GraphMaterialProperty::saveToConfig(GraphPropertyConfigPtr config) const
 
 		if (propConfig->assetRefIndex == -1)
 		{
-			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig") << "Material property has orphaned asset reference: " << m_materialAssetRef->getAssetPath();
+			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig")
+				<< "Material property has orphaned asset reference: " << m_materialAssetRef->getAssetPath();
 		}
 	}
 
@@ -193,15 +178,15 @@ void GraphMaterialProperty::editorRenderPropertySheet(const NodeEditorState& edi
 		// Material Asset
 		MaterialAssetComboDataSource dataSource(std::static_pointer_cast<GraphMaterialProperty>(shared_from_this()));
 		int selectedIndex= dataSource.getCurrentAssetIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("materialSelection", "Material", &dataSource, selectedIndex, editorState.styleManager))
+		if (NodeEditorUI::DrawComboBoxProperty("materialSelection", "Material", &dataSource, selectedIndex,
+											   editorState.styleManager))
 		{
 			setMaterialAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}
 
 		// Drag-Drop Handling
 		auto materialAssetRef=
-			NodeEditorUI::receiveTypedDragDropPayload<MaterialAssetReference>(
-				MaterialAssetReference::k_assetClassName);
+			NodeEditorUI::receiveTypedDragDropPayload<MaterialAssetReference>(MaterialAssetReference::k_assetClassName);
 		if (materialAssetRef)
 		{
 			setMaterialAssetReference(materialAssetRef);

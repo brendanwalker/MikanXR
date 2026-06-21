@@ -37,16 +37,9 @@ public:
 	bool setMesh(IMkMeshConstPtr mesh);
 	inline IMkMeshConstPtr getMesh() const;
 
-	bool getLocalAABB(
-		glm::vec3& outMin,
-		glm::vec3& outMax) const;
-	bool computeRayIntersection(
-		const KdTreeRaycastRequest& request,
-		KdTreeRaycastResult& result) const;
-	bool computeClosestVertex(
-		const glm::vec3& localPoint,
-		const int triangleIndex,
-		glm::vec3& closestVertex) const;
+	bool getLocalAABB(glm::vec3& outMin, glm::vec3& outMax) const;
+	bool computeRayIntersection(const KdTreeRaycastRequest& request, KdTreeRaycastResult& result) const;
+	bool computeClosestVertex(const glm::vec3& localPoint, const int triangleIndex, glm::vec3& closestVertex) const;
 
 private:
 	class KdTreeMeshAccessor* m_meshAccessor= nullptr;

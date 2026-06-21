@@ -23,16 +23,10 @@ public:
 	inline bool hasLoadedScript() const { return m_luaState != nullptr; }
 	inline lua_State* getLuaState() const { return m_luaState; }
 
-	const std::vector<std::string>& getScriptTriggers() const
-	{
-		return m_triggers;
-	}
+	const std::vector<std::string>& getScriptTriggers() const { return m_triggers; }
 	bool invokeScriptTrigger(const std::string& triggerName);
 
-	const std::vector<std::string>& getScriptMessageHandler() const
-	{
-		return m_messageHandlers;
-	}
+	const std::vector<std::string>& getScriptMessageHandler() const { return m_messageHandlers; }
 	bool invokeScriptMessageHandler(const std::string& message);
 
 	MulticastDelegate<void(const std::string& message)> OnScriptMessage;

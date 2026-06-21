@@ -37,9 +37,7 @@ glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform)
 	return modelView;
 }
 
-bool computeOpenCVCameraExtrinsicMatrix(
-	CameraComponentPtr cameraComponent,
-	cv::Matx34f& out)
+bool computeOpenCVCameraExtrinsicMatrix(CameraComponentPtr cameraComponent, cv::Matx34f& out)
 {
 	// Extrinsic matrix is the inverse of the camera pose matrix
 	glm::mat4 glm_camera_xform;
@@ -66,14 +64,11 @@ bool computeOpenCVCameraExtrinsicMatrix(
 	return false;
 }
 
-bool computeMonoLensCameraCalibration(
-	const int frameWidth,
-	const int frameHeight,
-	const OpenCVCalibrationGeometry& opencvLensCalibrationGeometry,
-	const std::vector<t_opencv_point2d_list>& cvImagePointsList,
-	const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
-	MikanMonoIntrinsics& outIntrinsics,
-	double& outReprojectionError)
+bool computeMonoLensCameraCalibration(const int frameWidth, const int frameHeight,
+									  const OpenCVCalibrationGeometry& opencvLensCalibrationGeometry,
+									  const std::vector<t_opencv_point2d_list>& cvImagePointsList,
+									  const std::vector<t_opencv_pointID_list>& cvImagePointIDs,
+									  MikanMonoIntrinsics& outIntrinsics, double& outReprojectionError)
 {
 	bool bSuccess= true;
 
@@ -88,30 +83,25 @@ bool computeMonoLensCameraCalibration(
 	// Compute an initial guess for the distorted camera intrinsic matrix
 	// using correspondence between the object points and the image points
 	cv::Size cvImageSize(frameWidth, frameHeight);
-	cv::Matx33d cvDistortedIntrinsicMatrix=
-		cv::initCameraMatrix2D(
-			cvObjectPointsList,
-			cvImagePointsList,
-			cvImageSize);
+	cv::Matx33d cvDistortedIntrinsicMatrix= cv::initCameraMatrix2D(cvObjectPointsList, cvImagePointsList, cvImageSize);
 
 	// Refine the camera intrinsic matrix and compute distortion parameters
 	cv::Mat cvDistCoeffsRowVector;
 	try
 	{
-		outReprojectionError=
-			cv::calibrateCamera(
-				cvObjectPointsList,
-				cvImagePointsList,
-				cvImageSize,
-				cvDistortedIntrinsicMatrix,                                 // Input/Output camera intrinsic matrix
-				cvDistCoeffsRowVector,                                      // Output distortion coefficients
-				cv::noArray(), cv::noArray(),                               // best fit board poses as rvec/tvec pairs
-				cv::CALIB_FIX_ASPECT_RATIO +                                // The functions considers only fy as a free parameter
-					cv::CALIB_FIX_PRINCIPAL_POINT +                         // The principal point is not changed during the global optimization
-					cv::CALIB_ZERO_TANGENT_DIST +                           // Tangential distortion coefficients (p1,p2) are set to zeros and stay zero
-					cv::CALIB_RATIONAL_MODEL +                              // Coefficients k4, k5, and k6 are enabled
-					cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5, // radial distortion coefficients k3, k4, & k5 are not changed during the optimization
-				cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, DBL_EPSILON));
+		outReprojectionError= cv::calibrateCamera(
+			cvObjectPointsList, cvImagePointsList, cvImageSize,
+			cvDistortedIntrinsicMatrix,         // Input/Output camera intrinsic matrix
+			cvDistCoeffsRowVector,              // Output distortion coefficients
+			cv::noArray(), cv::noArray(),       // best fit board poses as rvec/tvec pairs
+			cv::CALIB_FIX_ASPECT_RATIO +        // The functions considers only fy as a free parameter
+				cv::CALIB_FIX_PRINCIPAL_POINT + // The principal point is not changed during the global optimization
+				cv::CALIB_ZERO_TANGENT_DIST
+				+                          // Tangential distortion coefficients (p1,p2) are set to zeros and stay zero
+				cv::CALIB_RATIONAL_MODEL + // Coefficients k4, k5, and k6 are enabled
+				cv::CALIB_FIX_K3 + cv::CALIB_FIX_K4 + cv::CALIB_FIX_K5, // radial distortion coefficients k3, k4, & k5
+																		// are not changed during the optimization
+			cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, DBL_EPSILON));
 
 		bSuccess= is_valid_float(outReprojectionError);
 	}
@@ -124,26 +114,18 @@ bool computeMonoLensCameraCalibration(
 	if (bSuccess)
 	{
 		// Create a modified camera intrinsic matrix to crop out the unwanted border
-		cv::Mat cvUndistortedIntrinsicMatrix=
-			cv::getOptimalNewCameraMatrix(
-				cvDistortedIntrinsicMatrix,
-				cvDistCoeffsRowVector,
-				cv::Size(frameWidth, frameHeight),
-				0.f); // We want 0% of the garbage border
+		cv::Mat cvUndistortedIntrinsicMatrix= cv::getOptimalNewCameraMatrix(
+			cvDistortedIntrinsicMatrix, cvDistCoeffsRowVector, cv::Size(frameWidth, frameHeight),
+			0.f); // We want 0% of the garbage border
 
 		// Derive the FoV angles from the image size and the newly computed undistorted intrinsic matrix
 		double hfov, vfov;
 		double unusedFocalLength;
 		cv::Point2d ununsedPrincipalPoint;
 		double aspectRatio;
-		cv::calibrationMatrixValues(
-			cvUndistortedIntrinsicMatrix,
-			cvImageSize,
-			0.0, 0.0, // Don't know (and don't need) the physical aperture size of the lens
-			hfov, vfov,
-			unusedFocalLength,
-			ununsedPrincipalPoint,
-			aspectRatio);
+		cv::calibrationMatrixValues(cvUndistortedIntrinsicMatrix, cvImageSize, 0.0,
+									0.0, // Don't know (and don't need) the physical aperture size of the lens
+									hfov, vfov, unusedFocalLength, ununsedPrincipalPoint, aspectRatio);
 
 		// cv::calibrateCamera() will return all 14 distortion parameters, but we only want the first 8
 		// Also convert from a row vector (OpenCV format) back to a column vector (Mikan format)
@@ -166,13 +148,10 @@ bool computeMonoLensCameraCalibration(
 	return bSuccess;
 }
 
-bool computeOpenCVCameraRelativePatternTransform(
-	const MikanMonoIntrinsics& intrinsics,
-	const t_opencv_point2d_list& undistortedImagePoints,
-	const t_opencv_point3d_list& objectPointsMM,
-	cv::Quatd& outOrientation,
-	cv::Vec3d& outPositionMM,
-	double* outMeanError)
+bool computeOpenCVCameraRelativePatternTransform(const MikanMonoIntrinsics& intrinsics,
+												 const t_opencv_point2d_list& undistortedImagePoints,
+												 const t_opencv_point3d_list& objectPointsMM, cv::Quatd& outOrientation,
+												 cv::Vec3d& outPositionMM, double* outMeanError)
 {
 	// Bail if there isn't a corresponding world point for every image point
 	if (undistortedImagePoints.size() != objectPointsMM.size() || undistortedImagePoints.size() == 0)
@@ -195,12 +174,9 @@ bool computeOpenCVCameraRelativePatternTransform(
 	// a position and orientation of the mat relative to the camera
 	cv::Mat rvec;
 	cv::Mat tvecMM; // Mat position in millimeters
-	if (!cv::solvePnP(
-			objectPointsMM, undistortedImagePoints,
-			cvIntrinsicMatrix, cvDistCoeffsRowVector,
-			rvec, tvecMM,
-			false, // useExtrinsicGuess
-			solver))
+	if (!cv::solvePnP(objectPointsMM, undistortedImagePoints, cvIntrinsicMatrix, cvDistCoeffsRowVector, rvec, tvecMM,
+					  false, // useExtrinsicGuess
+					  solver))
 	{
 		return false;
 	}
@@ -228,10 +204,8 @@ bool computeOpenCVCameraRelativePatternTransform(
 	return true;
 }
 
-void convertOpenCVCameraRelativePoseToGLMMat(
-	const cv::Quatd& orientation,
-	const cv::Vec3d& positionMM,
-	glm::dmat4& outXform)
+void convertOpenCVCameraRelativePoseToGLMMat(const cv::Quatd& orientation, const cv::Vec3d& positionMM,
+											 glm::dmat4& outXform)
 {
 	// OpenCV camera relative locations in millimeters (by convention from object points passed into solvePnP),
 	// but the output GLM transform is in meters (by convention as defined by our renderer)
@@ -243,11 +217,9 @@ void convertOpenCVCameraRelativePoseToGLMMat(
 	// Compose the openCV  rotation and translation together,
 	// then convert OpenCV coordinates to OpenGL coordinates
 	// (x, y, z) -> (x, -y, -z)
-	cv::Matx44d cv_RTMat= cv::Matx44d(
-		rmat(0, 0), rmat(0, 1), rmat(0, 2), tvec(0),
-		-rmat(1, 0), -rmat(1, 1), -rmat(1, 2), -tvec(1),
-		-rmat(2, 0), -rmat(2, 1), -rmat(2, 2), -tvec(2),
-		0.0F, 0.0F, 0.0F, 1.0F);
+	cv::Matx44d cv_RTMat=
+		cv::Matx44d(rmat(0, 0), rmat(0, 1), rmat(0, 2), tvec(0), -rmat(1, 0), -rmat(1, 1), -rmat(1, 2), -tvec(1),
+					-rmat(2, 0), -rmat(2, 1), -rmat(2, 2), -tvec(2), 0.0F, 0.0F, 0.0F, 1.0F);
 
 	// Convert OpenCV matrix to GLM matrix
 	glm::mat4 RTMat;
@@ -266,13 +238,9 @@ void convertOpenCVCameraRelativePoseToGLMMat(
 	outXform= RTMat * flipAboutX;
 }
 
-void extractCameraIntrinsicMatrixParameters(
-	const MikanMatrix3d& intrinsic_matrix,
-	float& out_focal_length_x,
-	float& out_focal_length_y,
-	float& out_principal_point_x,
-	float& out_principal_point_y,
-	float& out_skew)
+void extractCameraIntrinsicMatrixParameters(const MikanMatrix3d& intrinsic_matrix, float& out_focal_length_x,
+											float& out_focal_length_y, float& out_principal_point_x,
+											float& out_principal_point_y, float& out_skew)
 {
 	out_focal_length_x= intrinsic_matrix.x0;
 	out_focal_length_y= intrinsic_matrix.y1;
@@ -281,13 +249,9 @@ void extractCameraIntrinsicMatrixParameters(
 	out_skew= intrinsic_matrix.y0;
 }
 
-void extractCameraIntrinsicMatrixParameters(
-	const cv::Matx33f& intrinsic_matrix,
-	float& out_focal_length_x,
-	float& out_focal_length_y,
-	float& out_principal_point_x,
-	float& out_principal_point_y,
-	float& out_skew)
+void extractCameraIntrinsicMatrixParameters(const cv::Matx33f& intrinsic_matrix, float& out_focal_length_x,
+											float& out_focal_length_y, float& out_principal_point_x,
+											float& out_principal_point_y, float& out_skew)
 {
 	out_focal_length_x= intrinsic_matrix(0, 0);
 	out_focal_length_y= intrinsic_matrix(1, 1);
@@ -296,11 +260,8 @@ void extractCameraIntrinsicMatrixParameters(
 	out_skew= intrinsic_matrix(0, 1);
 }
 
-bool computeOpenCVCameraRectification(
-	VideoSourceComponentPtr videoSource,
-	VideoFrameSection section,
-	cv::Matx33d& rotationOut,
-	cv::Matx34d& projectionOut)
+bool computeOpenCVCameraRectification(VideoSourceComponentPtr videoSource, VideoFrameSection section,
+									  cv::Matx33d& rotationOut, cv::Matx34d& projectionOut)
 {
 	MikanVideoSourceIntrinsics tracker_intrinsics;
 	videoSource->getCameraIntrinsics(tracker_intrinsics);
@@ -340,10 +301,7 @@ bool computeOpenCVCameraRectification(
 	}
 }
 
-void createDefautMonoIntrinsics(
-	int pixelWidth,
-	int pixelHeight,
-	MikanMonoIntrinsics& outIntrinsics)
+void createDefautMonoIntrinsics(int pixelWidth, int pixelHeight, MikanMonoIntrinsics& outIntrinsics)
 {
 	outIntrinsics= MikanMonoIntrinsics();
 
@@ -361,34 +319,25 @@ void createDefautMonoIntrinsics(
 	outIntrinsics.vfov= vfov;
 	outIntrinsics.znear= DEFAULT_MONO_ZNEAR;
 	outIntrinsics.zfar= DEFAULT_MONO_ZFAR;
-	outIntrinsics.distorted_camera_matrix= {
-		f_x, 0.0, c_x,
-		0.0, f_y, c_y,
-		0.0, 0.0, 1.0};
+	outIntrinsics.distorted_camera_matrix= {f_x, 0.0, c_x, 0.0, f_y, c_y, 0.0, 0.0, 1.0};
 	outIntrinsics.undistorted_camera_matrix= outIntrinsics.distorted_camera_matrix;
 }
 // Adapted from https://jamesgregson.blogspot.com/2011/11/matching-calibrated-cameras-with-opengl.html
 // Great articles on the subject:
 //     https://amytabb.com/tips/tutorials/2019/06/28/OpenCV-to-OpenGL-tutorial-essentials/
 //     https://ksimek.github.io/2013/06/03/calibrated_cameras_in_opengl/
-static void computeOpenGLProjMatFromCameraMatrix(
-	const double pixelWidth,
-	const double pixelHeight,
-	const MikanMatrix3d& cameraMatrix,
-	const float zNear,
-	const float zFar,
-	glm::mat4& outProjection,
-	int* outViewport)
+static void computeOpenGLProjMatFromCameraMatrix(const double pixelWidth, const double pixelHeight,
+												 const MikanMatrix3d& cameraMatrix, const float zNear, const float zFar,
+												 glm::mat4& outProjection, int* outViewport)
 {
 	// Extract the 5 OpenCV camera intrinsic parameters
 	float alpha, beta, skew, u0, v0;
-	extractCameraIntrinsicMatrixParameters(
-		cameraMatrix,
-		alpha, // focal length x
-		beta,  // focal length y
-		u0,    // principal point x (usually image center x)
-		v0,    // principal point y (usually image center y)
-		skew); // skew (usually 0)
+	extractCameraIntrinsicMatrixParameters(cameraMatrix,
+										   alpha, // focal length x
+										   beta,  // focal length y
+										   u0,    // principal point x (usually image center x)
+										   v0,    // principal point y (usually image center y)
+										   skew); // skew (usually 0)
 
 	// These parameters define the final viewport that is rendered into by
 	// the camera.
@@ -442,45 +391,25 @@ static void computeOpenGLProjMatFromCameraMatrix(
 	}
 }
 
-void computeOpenGLProjMatFromCameraIntrinsics(
-	const MikanMonoIntrinsics& intrinsics,
-	glm::mat4& outProjection,
-	int* outViewport)
+void computeOpenGLProjMatFromCameraIntrinsics(const MikanMonoIntrinsics& intrinsics, glm::mat4& outProjection,
+											  int* outViewport)
 {
-	computeOpenGLProjMatFromCameraMatrix(
-		intrinsics.pixel_width,
-		intrinsics.pixel_height,
-		intrinsics.undistorted_camera_matrix,
-		intrinsics.znear,
-		intrinsics.zfar,
-		outProjection,
-		outViewport);
+	computeOpenGLProjMatFromCameraMatrix(intrinsics.pixel_width, intrinsics.pixel_height,
+										 intrinsics.undistorted_camera_matrix, intrinsics.znear, intrinsics.zfar,
+										 outProjection, outViewport);
 }
 
-void computeOpenGLProjMatFromCameraIntrinsics(
-	const MikanStereoIntrinsics& intrinsics,
-	eStereoIntrinsicsSide side,
-	glm::mat4& outProjection,
-	int* outViewport)
+void computeOpenGLProjMatFromCameraIntrinsics(const MikanStereoIntrinsics& intrinsics, eStereoIntrinsicsSide side,
+											  glm::mat4& outProjection, int* outViewport)
 {
-	computeOpenGLProjMatFromCameraMatrix(
-		intrinsics.pixel_width,
-		intrinsics.pixel_height,
-		(side == eStereoIntrinsicsSide::left)
-			? intrinsics.left_camera_matrix
-			: intrinsics.right_camera_matrix,
-		intrinsics.znear,
-		intrinsics.zfar,
-		outProjection,
-		outViewport);
+	computeOpenGLProjMatFromCameraMatrix(intrinsics.pixel_width, intrinsics.pixel_height,
+										 (side == eStereoIntrinsicsSide::left) ? intrinsics.left_camera_matrix
+																			   : intrinsics.right_camera_matrix,
+										 intrinsics.znear, intrinsics.zfar, outProjection, outViewport);
 }
 
-void computeCameraRayAtPixel(
-	const struct MikanMonoIntrinsics& intrinsics,
-	const glm::mat4& cameraXform,
-	const glm::vec2& imagePoint,
-	glm::vec3& outRayStart,
-	glm::vec3& outRayDirection)
+void computeCameraRayAtPixel(const struct MikanMonoIntrinsics& intrinsics, const glm::mat4& cameraXform,
+							 const glm::vec2& imagePoint, glm::vec3& outRayStart, glm::vec3& outRayDirection)
 {
 	const glm::vec3 glmCameraRight= cameraXform[0];
 	const glm::vec3 glmCameraUp= cameraXform[1];
@@ -488,26 +417,19 @@ void computeCameraRayAtPixel(
 	const glm::vec3 glmCameraCenter= cameraXform[3];
 
 	float focal_length_x, focal_length_y, principal_point_x, principal_point_y, skew;
-	extractCameraIntrinsicMatrixParameters(
-		intrinsics.undistorted_camera_matrix,
-		focal_length_x, focal_length_y,
-		principal_point_x, principal_point_y,
-		skew);
+	extractCameraIntrinsicMatrixParameters(intrinsics.undistorted_camera_matrix, focal_length_x, focal_length_y,
+										   principal_point_x, principal_point_y, skew);
 
 	const float local_x= (imagePoint.x - principal_point_x) / focal_length_x;
 	const float local_y= (principal_point_y - imagePoint.y) / focal_length_y; // flip y
 
 	outRayStart= glmCameraCenter;
-	outRayDirection= glm::normalize(
-		local_x * glmCameraRight + local_y * glmCameraUp + glmCameraForward);
+	outRayDirection= glm::normalize(local_x * glmCameraRight + local_y * glmCameraUp + glmCameraForward);
 }
 
-void computeCameraPuckToApertureXform(
-	const glm::dmat4& cameraPuckXform_VRSpace,
-	const glm::dmat4& matPuckXform_VRSpace,
-	const glm::dmat4& apertureToPatternXform_CameraSpace,
-	const glm::dvec3& matPuckOffsetMM,
-	CameraPuckToApertureResults& outResults)
+void computeCameraPuckToApertureXform(const glm::dmat4& cameraPuckXform_VRSpace, const glm::dmat4& matPuckXform_VRSpace,
+									  const glm::dmat4& apertureToPatternXform_CameraSpace,
+									  const glm::dvec3& matPuckOffsetMM, CameraPuckToApertureResults& outResults)
 {
 	// Convert mm offset to meters.
 	// NOTE: Y and Z are intentionally swapped here to convert from the
@@ -518,39 +440,30 @@ void computeCameraPuckToApertureXform(
 
 	// The calibration pattern faces the camera, so it is rotated 180 degrees about Y
 	// relative to the mat tracking puck's forward direction.
-	const glm::dmat4 puckYawRot180=
-		glm::rotate(glm::dmat4(1.0), k_real64_pi, glm::dvec3(0.0, 1.0, 0.0));
+	const glm::dmat4 puckYawRot180= glm::rotate(glm::dmat4(1.0), k_real64_pi, glm::dvec3(0.0, 1.0, 0.0));
 
 	// Physical translation from mat puck origin to pattern origin (Y/Z swapped)
 	const glm::dmat4 translateToPatternXform=
-		glm::translate(
-			glm::dmat4(1.0),
-			glm::dvec3(puckToPatternX, puckToPatternZ, puckToPatternY));
+		glm::translate(glm::dmat4(1.0), glm::dvec3(puckToPatternX, puckToPatternZ, puckToPatternY));
 
 	// Combined mat-puck-to-pattern-origin transform: rotate first, then translate
-	const glm::dmat4 matPuckToPatternXform=
-		glm_composite_xform(puckYawRot180, translateToPatternXform);
+	const glm::dmat4 matPuckToPatternXform= glm_composite_xform(puckYawRot180, translateToPatternXform);
 
 	// Place the pattern in VR tracking space using the mat puck's pose
-	const glm::dmat4 patternXform_VRSpace=
-		glm_composite_xform(matPuckToPatternXform, matPuckXform_VRSpace);
+	const glm::dmat4 patternXform_VRSpace= glm_composite_xform(matPuckToPatternXform, matPuckXform_VRSpace);
 
 	// Invert the aperture-to-pattern transform to get pattern-to-aperture
 	const glm::dmat4 patternToApertureXform= glm::inverse(apertureToPatternXform_CameraSpace);
 
 	// Derive the aperture's pose in VR tracking space
-	const glm::dmat4 apertureXform_VRSpace=
-		glm_composite_xform(patternToApertureXform, patternXform_VRSpace);
+	const glm::dmat4 apertureXform_VRSpace= glm_composite_xform(patternToApertureXform, patternXform_VRSpace);
 
 	// Compute the relative offset from the camera tracking puck to the aperture
-	const glm::dmat4 cameraPuckToApertureXform=
-		glm_relative_xform(cameraPuckXform_VRSpace, apertureXform_VRSpace);
+	const glm::dmat4 cameraPuckToApertureXform= glm_relative_xform(cameraPuckXform_VRSpace, apertureXform_VRSpace);
 
 	outResults.apertureToPatternXform_CameraSpace= apertureToPatternXform_CameraSpace;
 	outResults.apertureToMatPuckXform_CameraSpace=
-		glm_composite_xform(
-			glm::inverse(matPuckToPatternXform),
-			apertureToPatternXform_CameraSpace);
+		glm_composite_xform(glm::inverse(matPuckToPatternXform), apertureToPatternXform_CameraSpace);
 
 	outResults.patternXform_VRSpace= patternXform_VRSpace;
 	outResults.apertureXform_VRSpace= apertureXform_VRSpace;

@@ -40,13 +40,8 @@ void NodePinConfig::readFromJSON(const configuru::Config& pt)
 	pinName= pt.get_or<std::string>("pin_name", "");
 	id= pt.get_or<t_node_id>("id", -1);
 	const std::string directionString=
-		pt.get_or<std::string>(
-			"direction",
-			k_nodePinDirectionStrings[(int)eNodePinDirection::INPUT]);
-	direction=
-		StringUtils::FindEnumValue<eNodePinDirection>(
-			directionString,
-			k_nodePinDirectionStrings);
+		pt.get_or<std::string>("direction", k_nodePinDirectionStrings[(int)eNodePinDirection::INPUT]);
+	direction= StringUtils::FindEnumValue<eNodePinDirection>(directionString, k_nodePinDirectionStrings);
 	ownerNodeId= pt.get_or<t_node_id>("owner_node_id", -1);
 	readStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
 	hasDefaultValue= pt.get_or<bool>("has_default_value", false);
@@ -78,8 +73,7 @@ bool NodePin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr conf
 	else
 	{
 		MIKAN_LOG_INFO("NodePin::loadFromConfig")
-			<< "Missing owner node on pin id: " << m_id
-			<< ", owner node id: " << config->ownerNodeId;
+			<< "Missing owner node on pin id: " << m_id << ", owner node id: " << config->ownerNodeId;
 		bSuccess= false;
 	}
 
@@ -93,8 +87,7 @@ bool NodePin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr conf
 		else
 		{
 			MIKAN_LOG_INFO("NodePin::loadFromConfig")
-				<< "Missing connected link id: " << linkId
-				<< ", on pin id: " << m_id;
+				<< "Missing connected link id: " << linkId << ", on pin id: " << m_id;
 			bSuccess= false;
 		}
 	}
@@ -178,8 +171,7 @@ bool NodePin::connectLink(NodeLinkPtr linkPtr)
 			if (!getOwnerNode()->getOwnerGraph()->deleteLinkById(existingLinkId))
 			{
 				MIKAN_LOG_ERROR("NodePin::connectLink")
-					<< "Failed to delete pre-existing link id: " << existingLinkId
-					<< ", from node pin id: " << getId()
+					<< "Failed to delete pre-existing link id: " << existingLinkId << ", from node pin id: " << getId()
 					<< ", of pin class: " << getClassName();
 				break;
 			}
@@ -309,7 +301,4 @@ std::shared_ptr<MkNodesScopedColorStyle> NodePin::editorRenderMakeLinkStyle(floa
 	return style;
 }
 
-ImU32 NodePin::editorGetLinkStyleColor() const
-{
-	return IM_COL32(252, 200, 35, 255);
-}
+ImU32 NodePin::editorGetLinkStyleColor() const { return IM_COL32(252, 200, 35, 255); }

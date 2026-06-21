@@ -71,10 +71,8 @@ ImNodesPinShape PropertyPin::editorComputePinShape() const
 
 std::shared_ptr<MkNodesScopedColorStyle> PropertyPin::editorRenderMakePinStyle(float alpha)
 {
-	const unsigned int pinColor=
-		!m_propertyClassName.empty()
-			? IM_COL32(148, 0, 0, (unsigned char)(alpha * 255))
-			: IM_COL32(70, 0, 0, (unsigned char)(alpha * 255));
+	const unsigned int pinColor= !m_propertyClassName.empty() ? IM_COL32(148, 0, 0, (unsigned char)(alpha * 255))
+															  : IM_COL32(70, 0, 0, (unsigned char)(alpha * 255));
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Pin, pinColor)
 		.push(ImNodesCol_PinHovered, IM_COL32(183, 137, 137, (unsigned char)(alpha * 255)));
@@ -95,7 +93,4 @@ void PropertyPin::editorRenderContextMenu(const NodeEditorState& editorState)
 	// TODO: If we are an array input pin, offer a deletion option
 }
 
-ImU32 PropertyPin::editorGetLinkStyleColor() const
-{
-	return IM_COL32(148, 0, 0, 255);
-}
+ImU32 PropertyPin::editorGetLinkStyleColor() const { return IM_COL32(148, 0, 0, 255); }

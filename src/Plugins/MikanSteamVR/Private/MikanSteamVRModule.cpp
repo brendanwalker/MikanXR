@@ -10,10 +10,7 @@ public:
 	{
 	}
 
-	virtual ~MikanSteamVRModule()
-	{
-		shutdown();
-	}
+	virtual ~MikanSteamVRModule() { shutdown(); }
 
 	bool startup() override
 	{
@@ -23,10 +20,7 @@ public:
 		return m_bIsInitialized;
 	}
 
-	void shutdown() override
-	{
-		m_bIsInitialized= false;
-	}
+	void shutdown() override { m_bIsInitialized= false; }
 
 	IVRDeviceManagerPtr createTrackingRuntime() override
 	{
@@ -43,12 +37,6 @@ private:
 };
 
 // C-API
-IVRDeviceModule* AllocatePluginModule()
-{
-	return new MikanSteamVRModule();
-}
+IVRDeviceModule* AllocatePluginModule() { return new MikanSteamVRModule(); }
 
-void FreePluginModule(IVRDeviceModule* module)
-{
-	delete module;
-}
+void FreePluginModule(IVRDeviceModule* module) { delete module; }

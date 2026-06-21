@@ -10,12 +10,9 @@
 class MonoLensTrackerPoseCalibrator
 {
 public:
-	MonoLensTrackerPoseCalibrator(
-		CameraComponentPtr cameraComponent,
-		VRDevicePoseViewPtr cameraPuckPoseView,
-		VRDevicePoseViewPtr matTrackingPuckView,
-		class VideoFrameDistortionView* distortionView,
-		int desiredSampleCount);
+	MonoLensTrackerPoseCalibrator(CameraComponentPtr cameraComponent, VRDevicePoseViewPtr cameraPuckPoseView,
+								  VRDevicePoseViewPtr matTrackingPuckView,
+								  class VideoFrameDistortionView* distortionView, int desiredSampleCount);
 	virtual ~MonoLensTrackerPoseCalibrator();
 
 	inline class CalibrationPatternFinder* getPatternFinder() const { return m_patternFinder; }
@@ -36,10 +33,8 @@ public:
 
 protected:
 	// Protected constructor for test subclasses (bypasses CameraComponent + VideoFrameDistortionView)
-	MonoLensTrackerPoseCalibrator(
-		class CalibrationPatternFinder* patternFinder,
-		const struct MikanMonoIntrinsics& cameraIntrinsics,
-		int desiredSampleCount);
+	MonoLensTrackerPoseCalibrator(class CalibrationPatternFinder* patternFinder,
+								  const struct MikanMonoIntrinsics& cameraIntrinsics, int desiredSampleCount);
 
 	// Overridable input accessors — test subclasses return stored test values
 	virtual bool fetchCameraPuckVRSpacePose(glm::dmat4& outPose) const;

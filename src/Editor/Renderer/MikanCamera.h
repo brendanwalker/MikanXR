@@ -64,11 +64,8 @@ public:
 	void adjustOrbitRadius(float deltaRadius);
 	void adjustOrbitTargetPosition(const glm::vec3& deltaTarget);
 
-	void computeCameraRayThruPixel(
-		MikanViewportConstPtr viewportPtr,
-		const glm::vec2& pixelLocation,
-		glm::vec3& outRayOrigin,
-		glm::vec3& outRayDirection) const;
+	void computeCameraRayThruPixel(MikanViewportConstPtr viewportPtr, const glm::vec2& pixelLocation,
+								   glm::vec3& outRayOrigin, glm::vec3& outRayDirection) const;
 
 protected:
 	void applyStationaryParamsToViewMatrix();

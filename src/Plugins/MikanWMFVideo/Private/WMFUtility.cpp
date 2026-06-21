@@ -63,14 +63,9 @@ std::string getHresultMessage(HRESULT hr)
 	}
 
 	LPSTR messageBuffer= nullptr;
-	size_t size= FormatMessageA(
-		flags,
-		NULL,
-		hr, // Use the HRESULT or the extracted code
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPSTR)&messageBuffer,
-		0,
-		NULL);
+	size_t size= FormatMessageA(flags, NULL,
+								hr, // Use the HRESULT or the extracted code
+								MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
 	std::stringstream stream;
 	stream << "Unknown error 0x" << std::hex << std::uppercase << hr;
@@ -85,19 +80,15 @@ std::string getHresultMessage(HRESULT hr)
 	return message;
 }
 
-IMFMediaType* makeWMFMediaTypeFromSourceReader(
-	IMFSourceReader* pSourceReader,
-	DWORD deviceFormatIndex,
-	GUID wmfOutputFormat)
+IMFMediaType* makeWMFMediaTypeFromSourceReader(IMFSourceReader* pSourceReader, DWORD deviceFormatIndex,
+											   GUID wmfOutputFormat)
 {
 	IMFMediaType* pClonedType= nullptr;
 
 	// Get the complete native media type by index
 	IMFMediaType* pNativeType= nullptr;
-	HRESULT hr= pSourceReader->GetNativeMediaType(
-		(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-		deviceFormatIndex,
-		&pNativeType);
+	HRESULT hr=
+		pSourceReader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, deviceFormatIndex, &pNativeType);
 
 	if (SUCCEEDED(hr))
 	{
@@ -125,9 +116,7 @@ IMFMediaType* makeWMFMediaTypeFromSourceReader(
 	return pClonedType;
 }
 
-IMFMediaType* makeWMFMediaTypeFromDeviceFormatInfo(
-	const WMFDeviceFormatInfo& m_deviceFormat,
-	GUID wmfOutputFormat)
+IMFMediaType* makeWMFMediaTypeFromDeviceFormatInfo(const WMFDeviceFormatInfo& m_deviceFormat, GUID wmfOutputFormat)
 {
 	IMFMediaType* pClonedType= nullptr;
 
@@ -141,15 +130,11 @@ IMFMediaType* makeWMFMediaTypeFromDeviceFormatInfo(
 
 	if (SUCCEEDED(hr))
 	{
-		hr= MFSetAttributeSize(pClonedType, MF_MT_FRAME_SIZE,
-							   m_deviceFormat.width, m_deviceFormat.height);
+		hr= MFSetAttributeSize(pClonedType, MF_MT_FRAME_SIZE, m_deviceFormat.width, m_deviceFormat.height);
 	}
-	if (SUCCEEDED(hr) &&
-		m_deviceFormat.frame_rate_numerator > 0 &&
-		m_deviceFormat.frame_rate_denominator > 0)
+	if (SUCCEEDED(hr) && m_deviceFormat.frame_rate_numerator > 0 && m_deviceFormat.frame_rate_denominator > 0)
 	{
-		hr= MFSetAttributeRatio(pClonedType, MF_MT_FRAME_RATE,
-								m_deviceFormat.frame_rate_numerator,
+		hr= MFSetAttributeRatio(pClonedType, MF_MT_FRAME_RATE, m_deviceFormat.frame_rate_numerator,
 								m_deviceFormat.frame_rate_denominator);
 	}
 
@@ -159,18 +144,11 @@ IMFMediaType* makeWMFMediaTypeFromDeviceFormatInfo(
 std::string GUIDToString(const GUID& guid)
 {
 	std::stringstream guidStr;
-	guidStr << std::hex << std::uppercase
-			<< std::setfill('0') << std::setw(8) << guid.Data1 << "-"
-			<< std::setw(4) << guid.Data2 << "-"
-			<< std::setw(4) << guid.Data3 << "-"
-			<< std::setw(2) << (int)guid.Data4[0]
-			<< std::setw(2) << (int)guid.Data4[1] << "-"
-			<< std::setw(2) << (int)guid.Data4[2]
-			<< std::setw(2) << (int)guid.Data4[3]
-			<< std::setw(2) << (int)guid.Data4[4]
-			<< std::setw(2) << (int)guid.Data4[5]
-			<< std::setw(2) << (int)guid.Data4[6]
-			<< std::setw(2) << (int)guid.Data4[7];
+	guidStr << std::hex << std::uppercase << std::setfill('0') << std::setw(8) << guid.Data1 << "-" << std::setw(4)
+			<< guid.Data2 << "-" << std::setw(4) << guid.Data3 << "-" << std::setw(2) << (int)guid.Data4[0]
+			<< std::setw(2) << (int)guid.Data4[1] << "-" << std::setw(2) << (int)guid.Data4[2] << std::setw(2)
+			<< (int)guid.Data4[3] << std::setw(2) << (int)guid.Data4[4] << std::setw(2) << (int)guid.Data4[5]
+			<< std::setw(2) << (int)guid.Data4[6] << std::setw(2) << (int)guid.Data4[7];
 
 	return guidStr.str();
 }
@@ -188,11 +166,10 @@ void logNativeMediaType(const std::string& function, IMFMediaType* pMediaType)
 
 	std::string guidStr= GUIDToString(nativeSubtype);
 
-	MIKAN_LOG_INFO(function)
-		<< "Native input type - Subtype GUID: " << guidStr
-		<< " (" << getWMFVideoFormatName(nativeSubtype) << ")"
-		<< ", Resolution: " << nativeWidth << "x" << nativeHeight
-		<< ", Codec data size: " << codecDataSize << " bytes";
+	MIKAN_LOG_INFO(function) << "Native input type - Subtype GUID: " << guidStr << " ("
+							 << getWMFVideoFormatName(nativeSubtype) << ")"
+							 << ", Resolution: " << nativeWidth << "x" << nativeHeight
+							 << ", Codec data size: " << codecDataSize << " bytes";
 }
 
 HRESULT findBestH264Decoder(CLSID* pDecoderCLSID)
@@ -204,31 +181,24 @@ HRESULT findBestH264Decoder(CLSID* pDecoderCLSID)
 
 	// Known problematic vendor MFT CLSIDs to avoid
 	// AMD Advanced Media Framework (AMF) Decoders
-	static const CLSID CLSID_AMD_H264_DECODER=
-		{0x82CE8B14, 0xF24E, 0x4F2E, {0x80, 0x93, 0xDB, 0x8C, 0x63, 0x09, 0x87, 0x72}};
+	static const CLSID CLSID_AMD_H264_DECODER= {
+		0x82CE8B14, 0xF24E, 0x4F2E, {0x80, 0x93, 0xDB, 0x8C, 0x63, 0x09, 0x87, 0x72}};
 
 	// NVIDIA Video Decoder
-	static const CLSID CLSID_NVIDIA_H264_DECODER=
-		{0x56AF0A3E, 0x47A9, 0x4F49, {0x9F, 0x7A, 0x6C, 0x1A, 0x6E, 0x72, 0x0B, 0x5A}};
+	static const CLSID CLSID_NVIDIA_H264_DECODER= {
+		0x56AF0A3E, 0x47A9, 0x4F49, {0x9F, 0x7A, 0x6C, 0x1A, 0x6E, 0x72, 0x0B, 0x5A}};
 
 	// Configure input/output types for MFT enumeration
 	MFT_REGISTER_TYPE_INFO inputType= {MFMediaType_Video, MFVideoFormat_H264};
 	MFT_REGISTER_TYPE_INFO outputType= {MFMediaType_Video, MFVideoFormat_NV12};
 
-	UINT32 flags= MFT_ENUM_FLAG_SYNCMFT | MFT_ENUM_FLAG_ASYNCMFT |
-				  MFT_ENUM_FLAG_HARDWARE | MFT_ENUM_FLAG_SORTANDFILTER;
+	UINT32 flags= MFT_ENUM_FLAG_SYNCMFT | MFT_ENUM_FLAG_ASYNCMFT | MFT_ENUM_FLAG_HARDWARE | MFT_ENUM_FLAG_SORTANDFILTER;
 
 	IMFActivate** ppActivate= nullptr;
 	UINT32 count= 0;
 
 	// Enumerate H.264 decoders
-	HRESULT hr= MFTEnumEx(
-		MFT_CATEGORY_VIDEO_DECODER,
-		flags,
-		&inputType,
-		&outputType,
-		&ppActivate,
-		&count);
+	HRESULT hr= MFTEnumEx(MFT_CATEGORY_VIDEO_DECODER, flags, &inputType, &outputType, &ppActivate, &count);
 
 	if (FAILED(hr) || count == 0)
 	{
@@ -237,8 +207,7 @@ HRESULT findBestH264Decoder(CLSID* pDecoderCLSID)
 		return E_FAIL;
 	}
 
-	MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder")
-		<< "Found " << count << " H.264 decoder(s)";
+	MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder") << "Found " << count << " H.264 decoder(s)";
 
 	// Find the best decoder (prefer Microsoft, avoid AMD/NVIDIA)
 	CLSID selectedCLSID= GUID_NULL;
@@ -261,15 +230,13 @@ HRESULT findBestH264Decoder(CLSID* pDecoderCLSID)
 			std::string name(wname.begin(), wname.end());
 
 			// Check if this is a problematic vendor MFT
-			bool isProblematic= (clsid == CLSID_AMD_H264_DECODER ||
-								 clsid == CLSID_NVIDIA_H264_DECODER);
+			bool isProblematic= (clsid == CLSID_AMD_H264_DECODER || clsid == CLSID_NVIDIA_H264_DECODER);
 
 			// Check if this is Microsoft's decoder (best guess by name)
 			bool isMicrosoft= (name.find("Microsoft") != std::string::npos);
 
 			MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder")
-				<< "  [" << i << "] " << name
-				<< (isMicrosoft ? " (Microsoft)" : "")
+				<< "  [" << i << "] " << name << (isMicrosoft ? " (Microsoft)" : "")
 				<< (isProblematic ? " (PROBLEMATIC vendor - may cause hangs)" : "");
 
 			if (pName)
@@ -303,8 +270,7 @@ HRESULT findBestH264Decoder(CLSID* pDecoderCLSID)
 	if (foundMicrosoft)
 	{
 		*pDecoderCLSID= microsoftCLSID;
-		MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder")
-			<< "Selected Microsoft H.264 decoder";
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder") << "Selected Microsoft H.264 decoder";
 		return S_OK;
 	}
 	else if (selectedCLSID != GUID_NULL)
@@ -315,8 +281,7 @@ HRESULT findBestH264Decoder(CLSID* pDecoderCLSID)
 		return S_OK;
 	}
 
-	MIKAN_LOG_ERROR("WMFVideoFrameProcessor::findBestH264Decoder")
-		<< "No suitable H.264 decoder found";
+	MIKAN_LOG_ERROR("WMFVideoFrameProcessor::findBestH264Decoder") << "No suitable H.264 decoder found";
 	return E_FAIL;
 }
 

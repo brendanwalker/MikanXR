@@ -11,9 +11,7 @@ class FunctionDescriptor : public std::enable_shared_from_this<FunctionDescripto
 {
 public:
 	FunctionDescriptor()= default;
-	FunctionDescriptor(
-		const std::string& functionName,
-		const std::string& displayName)
+	FunctionDescriptor(const std::string& functionName, const std::string& displayName)
 		: m_functionName(functionName)
 		, m_displayName(displayName)
 	{

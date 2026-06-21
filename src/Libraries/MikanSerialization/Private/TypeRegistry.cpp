@@ -13,13 +13,16 @@ void TypeRegistry::buildFromRfkDatabase()
 {
 	s_structs.clear();
 
-	rfk::getDatabase().foreachFileLevelStruct([](rfk::Struct const& entity, void* userData) -> bool
-											  {
+	rfk::getDatabase().foreachFileLevelStruct(
+		[](rfk::Struct const& entity, void* userData) -> bool
+		{
 			if (entity.getProperty<Serialization::CodeGenModule>() != nullptr)
 			{
-				s_structs[entity.getName()] = &entity;
+				s_structs[entity.getName()]= &entity;
 			}
-			return true; }, nullptr);
+			return true;
+		},
+		nullptr);
 }
 
 rfk::Struct const* TypeRegistry::getStructByName(const std::string& typeName)

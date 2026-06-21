@@ -29,10 +29,7 @@ bool GuiPanel_ProjectSettings::init(ProjectGuiPanelContext* context)
 	return true;
 }
 
-void GuiPanel_ProjectSettings::dispose()
-{
-	GuiPanel::dispose();
-}
+void GuiPanel_ProjectSettings::dispose() { GuiPanel::dispose(); }
 
 void GuiPanel_ProjectSettings::onGui()
 {
@@ -59,22 +56,25 @@ void GuiPanel_ProjectSettings::onGui()
 	bool renderQuadStencils= editorConfig->getRenderQuadStencilsFlag();
 	if (ImGui::Checkbox("Render Quad Stencils", &renderQuadStencils))
 	{
-		addDeferredGuiEvent([this, renderQuadStencils]()
-							{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderQuadStencilsFlag(renderQuadStencils); });
+		addDeferredGuiEvent(
+			[this, renderQuadStencils]()
+			{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderQuadStencilsFlag(renderQuadStencils); });
 	}
 
 	bool renderBoxStencils= editorConfig->getRenderBoxStencilsFlag();
 	if (ImGui::Checkbox("Render Box Stencils", &renderBoxStencils))
 	{
-		addDeferredGuiEvent([this, renderBoxStencils]()
-							{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderBoxStencilsFlag(renderBoxStencils); });
+		addDeferredGuiEvent(
+			[this, renderBoxStencils]()
+			{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderBoxStencilsFlag(renderBoxStencils); });
 	}
 
 	bool renderModelStencils= editorConfig->getRenderModelStencilsFlag();
 	if (ImGui::Checkbox("Render Model Stencils", &renderModelStencils))
 	{
-		addDeferredGuiEvent([this, renderModelStencils]()
-							{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderModelStencilsFlag(renderModelStencils); });
+		addDeferredGuiEvent(
+			[this, renderModelStencils]()
+			{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderModelStencilsFlag(renderModelStencils); });
 	}
 
 	ImGui::Separator();
@@ -86,15 +86,13 @@ void GuiPanel_ProjectSettings::onGui()
 
 	m_languageDataSource.setEntries(m_languageIdList);
 	int selectedIndex= m_languageDataSource.getEntryIndexByString(m_selectedLanguageId);
-	if (MkGui::drawComboBoxProperty(
-			m_defaultGuiStyle, "projectLanguage", "Language",
-			&m_languageDataSource, selectedIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectLanguage", "Language", &m_languageDataSource,
+									selectedIndex))
 	{
 		if (selectedIndex >= 0)
 		{
 			const std::string lang= m_languageDataSource.getEntryDisplayString(selectedIndex);
-			addDeferredGuiEvent([locManager, lang]()
-								{ locManager->setLanguage(lang); });
+			addDeferredGuiEvent([locManager, lang]() { locManager->setLanguage(lang); });
 		}
 	}
 
@@ -108,8 +106,7 @@ void GuiPanel_ProjectSettings::onGui()
 		if (ImGui::InputText("Script Editor Command", editorBuf, sizeof(editorBuf)))
 		{
 			const std::string newCmd(editorBuf);
-			addDeferredGuiEvent([appSettings, newCmd]()
-								{ appSettings->setScriptEditorCommand(newCmd); });
+			addDeferredGuiEvent([appSettings, newCmd]() { appSettings->setScriptEditorCommand(newCmd); });
 		}
 	}
 

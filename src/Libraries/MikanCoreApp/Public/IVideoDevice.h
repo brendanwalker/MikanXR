@@ -70,7 +70,8 @@ public:
 
 	// -- Video Settings
 	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const= 0;
-	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const= 0;
+	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type,
+										   VideoSettingConstraint& outConstraint) const= 0;
 	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value)= 0;
 	virtual int getVideoSetting(const eVideoSettingType property_type) const= 0;
 };

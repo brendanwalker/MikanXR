@@ -11,10 +11,13 @@
 #include <future>
 #include <string>
 
-class NetworkVideoSourceSystemDefinition : public MikanTypedObjectSystemDefinition<NetworkVideoSourceComponent, NetworkVideoSourceDefinition, MikanVideoSourceID>
+class NetworkVideoSourceSystemDefinition
+	: public MikanTypedObjectSystemDefinition<NetworkVideoSourceComponent, NetworkVideoSourceDefinition,
+											  MikanVideoSourceID>
 {
 public:
-	using Super= MikanTypedObjectSystemDefinition<NetworkVideoSourceComponent, NetworkVideoSourceDefinition, MikanVideoSourceID>;
+	using Super=
+		MikanTypedObjectSystemDefinition<NetworkVideoSourceComponent, NetworkVideoSourceDefinition, MikanVideoSourceID>;
 
 	NetworkVideoSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -22,16 +25,13 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class NetworkVideoSourceSystem : public MikanTypedObjectSystem<
-									 NetworkVideoSourceComponent, NetworkVideoSourceDefinition,
-									 MikanVideoSourceID,
-									 NetworkVideoSourceSystem, NetworkVideoSourceSystemDefinition>
+class NetworkVideoSourceSystem
+	: public MikanTypedObjectSystem<NetworkVideoSourceComponent, NetworkVideoSourceDefinition, MikanVideoSourceID,
+									NetworkVideoSourceSystem, NetworkVideoSourceSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		NetworkVideoSourceComponent, NetworkVideoSourceDefinition,
-		MikanVideoSourceID,
-		NetworkVideoSourceSystem, NetworkVideoSourceSystemDefinition>;
+	using Super= MikanTypedObjectSystem<NetworkVideoSourceComponent, NetworkVideoSourceDefinition, MikanVideoSourceID,
+										NetworkVideoSourceSystem, NetworkVideoSourceSystemDefinition>;
 
 	NetworkVideoSourceSystem(ProjectManagerPtr ownerObjectSystem);
 
@@ -40,7 +40,10 @@ public:
 
 	virtual void update(float deltaTime) override;
 	virtual void dispose() override;
-	virtual bool isLoading() const override { return m_networkVideoManagerState == eNetworkVideoManagerState::initializing; }
+	virtual bool isLoading() const override
+	{
+		return m_networkVideoManagerState == eNetworkVideoManagerState::initializing;
+	}
 
 	INetworkVideoDeviceManagerPtr getNetworkVideoDeviceManager() const { return m_networkVideoDeviceManager; }
 

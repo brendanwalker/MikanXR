@@ -82,8 +82,7 @@ MainWindow::MainWindow(App* ownerApp)
 	m_graphicsContext= createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get());
 	m_mkWindowContext= createMkWindowContext(m_ownerApp->getWindowManager(), m_graphicsContext);
 	m_modelResourceManager=
-		MikanModelResourceManagerUniquePtr(
-			new MikanModelResourceManager(getGraphicsContext().get()));
+		MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(getGraphicsContext().get()));
 
 	m_appStageFactory.addAppStageConstructor<AppStage_AlignmentCalibration>();
 	m_appStageFactory.addAppStageConstructor<AppStage_AlignCameraByUtilityMarker>();
@@ -108,20 +107,11 @@ MainWindow::~MainWindow()
 	delete m_clientSourceManager;
 }
 
-EventBus* MainWindow::getEventBus() const
-{
-	return m_ownerApp->getEventBus();
-}
+EventBus* MainWindow::getEventBus() const { return m_ownerApp->getEventBus(); }
 
-LocalizationManager* MainWindow::getLocalizationManager() const
-{
-	return m_ownerApp->getLocalizationManager();
-}
+LocalizationManager* MainWindow::getLocalizationManager() const { return m_ownerApp->getLocalizationManager(); }
 
-IMkViewportPtr MainWindow::getRenderingViewport() const
-{
-	return m_graphicsContext->getRenderingViewport();
-}
+IMkViewportPtr MainWindow::getRenderingViewport() const { return m_graphicsContext->getRenderingViewport(); }
 
 bool MainWindow::startup()
 {
@@ -131,16 +121,14 @@ bool MainWindow::startup()
 
 	MIKAN_LOG_INFO("MainWindow::init()") << "Initializing MainWindow";
 
-#define MIKAN_TIMED_STARTUP(label, expr)                                                \
-	do                                                                                  \
-	{                                                                                   \
-		auto _t0= std::chrono::high_resolution_clock::now();                            \
-		expr;                                                                           \
-		auto _t1= std::chrono::high_resolution_clock::now();                            \
-		MIKAN_LOG_INFO("MainWindow::startup")                                           \
-			<< label ": "                                                               \
-			<< std::chrono::duration_cast<std::chrono::milliseconds>(_t1 - _t0).count() \
-			<< "ms";                                                                    \
+#define MIKAN_TIMED_STARTUP(label, expr)                                                                               \
+	do                                                                                                                 \
+	{                                                                                                                  \
+		auto _t0= std::chrono::high_resolution_clock::now();                                                           \
+		expr;                                                                                                          \
+		auto _t1= std::chrono::high_resolution_clock::now();                                                           \
+		MIKAN_LOG_INFO("MainWindow::startup")                                                                          \
+			<< label ": " << std::chrono::duration_cast<std::chrono::milliseconds>(_t1 - _t0).count() << "ms";         \
 	} while (0)
 
 	auto windowTitle= StringUtils::stringify("MikanXR v", MIKAN_RELEASE_VERSION_STRING);
@@ -261,10 +249,7 @@ bool MainWindow::startup()
 		mkStateSetViewport(mkState, 0, 0, m_mkWindowContext->getWidth(), m_mkWindowContext->getHeight());
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
-		m_uiViewport=
-			std::make_shared<MikanViewport>(
-				this,
-				glm::i32vec2(k_window_pixel_width, k_window_pixel_height));
+		m_uiViewport= std::make_shared<MikanViewport>(this, glm::i32vec2(k_window_pixel_width, k_window_pixel_height));
 	}
 
 	if (success)
@@ -395,11 +380,8 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	TextStyle style= getDefaultTextStyle();
 	style.horizontalAlignment= eHorizontalTextAlignment::Right;
 	style.verticalAlignment= eVerticalTextAlignment::Bottom;
-	drawTextAtScreenPosition(
-		m_graphicsContext.get(),
-		style,
-		glm::vec2(getWidth() - 1, getHeight() - 1),
-		L"%.1ffps", App::getInstance()->getFPS());
+	drawTextAtScreenPosition(m_graphicsContext.get(), style, glm::vec2(getWidth() - 1, getHeight() - 1), L"%.1ffps",
+							 App::getInstance()->getFPS());
 
 	// Show "Loading..." centered on screen while background systems are initializing
 	if (m_projectManager->isAnySystemLoading())
@@ -412,11 +394,8 @@ void MainWindow::renderStageUI(AppStage* appStage)
 		loadingStyle.shadowColor= {0.f, 0.f, 0.f};
 		loadingStyle.shadowOffset= {3, 3};
 		loadingStyle.shadowOpacity= 0.8f;
-		drawTextAtScreenPosition(
-			m_graphicsContext.get(),
-			loadingStyle,
-			glm::vec2(getWidth() * 0.5f, getHeight() * 0.5f),
-			L"Loading...");
+		drawTextAtScreenPosition(m_graphicsContext.get(), loadingStyle,
+								 glm::vec2(getWidth() * 0.5f, getHeight() * 0.5f), L"Loading...");
 	}
 
 	// Render any 2D line segments emitted by the AppStage renderUI phase
@@ -467,8 +446,7 @@ bool MainWindow::onWindowEvent(const MkWindowEvent& event)
 	const auto keySym= event.getKeySym();
 
 	// First see if we got an app shutdown request
-	if (eventType == eMkWindowEventType::Quit ||
-		(eventType == eMkWindowEventType::KeyDown && keySym == MkKey::ESCAPE))
+	if (eventType == eMkWindowEventType::Quit || (eventType == eMkWindowEventType::KeyDown && keySym == MkKey::ESCAPE))
 	{
 		MIKAN_LOG_INFO("App::exec") << "QUIT message received";
 		App::getInstance()->requestShutdown();
@@ -523,9 +501,7 @@ AppStage* MainWindow::pushAppStage(const std::string& appStageName)
 	if (newAppStage)
 	{
 		AppStagePtr parentAppStage=
-			m_appStageStack.size() > 0
-				? m_appStageStack[m_appStageStack.size() - 1]
-				: AppStagePtr();
+			m_appStageStack.size() > 0 ? m_appStageStack[m_appStageStack.size() - 1] : AppStagePtr();
 
 		m_appStageStack.push_back(newAppStage);
 		m_pendingAppStageOps.push_back({parentAppStage, newAppStage, AppStageOperation::enter});
@@ -539,18 +515,13 @@ AppStage* MainWindow::pushAppStage(const std::string& appStageName)
 void MainWindow::popAppState()
 {
 	assert(bAppStackOperationAllowed);
-	AppStagePtr appStage=
-		m_appStageStack.size() > 0
-			? m_appStageStack[m_appStageStack.size() - 1]
-			: AppStagePtr();
+	AppStagePtr appStage= m_appStageStack.size() > 0 ? m_appStageStack[m_appStageStack.size() - 1] : AppStagePtr();
 	if (appStage)
 	{
 		m_appStageStack.pop_back();
 
 		AppStagePtr parentAppStage=
-			m_appStageStack.size() > 0
-				? m_appStageStack[m_appStageStack.size() - 1]
-				: AppStagePtr();
+			m_appStageStack.size() > 0 ? m_appStageStack[m_appStageStack.size() - 1] : AppStagePtr();
 
 		m_pendingAppStageOps.push_back({parentAppStage, appStage, AppStageOperation::exit});
 	}

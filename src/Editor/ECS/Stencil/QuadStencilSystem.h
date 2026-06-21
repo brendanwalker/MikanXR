@@ -12,7 +12,8 @@
 
 #include <glm/glm.hpp>
 
-class QuadStencilSystemDefinition : public MikanTypedObjectSystemDefinition<QuadStencilComponent, QuadStencilDefinition, MikanStencilID>
+class QuadStencilSystemDefinition
+	: public MikanTypedObjectSystemDefinition<QuadStencilComponent, QuadStencilDefinition, MikanStencilID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<QuadStencilComponent, QuadStencilDefinition, MikanStencilID>;
@@ -25,16 +26,12 @@ public:
 protected:
 };
 
-class QuadStencilSystem : public MikanTypedObjectSystem<
-							  QuadStencilComponent, QuadStencilDefinition,
-							  MikanStencilID,
-							  QuadStencilSystem, QuadStencilSystemDefinition>
+class QuadStencilSystem : public MikanTypedObjectSystem<QuadStencilComponent, QuadStencilDefinition, MikanStencilID,
+														QuadStencilSystem, QuadStencilSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		QuadStencilComponent, QuadStencilDefinition,
-		MikanStencilID,
-		QuadStencilSystem, QuadStencilSystemDefinition>;
+	using Super= MikanTypedObjectSystem<QuadStencilComponent, QuadStencilDefinition, MikanStencilID, QuadStencilSystem,
+										QuadStencilSystemDefinition>;
 
 	QuadStencilSystem(ProjectManagerPtr ownerObjectSystem);
 
@@ -51,11 +48,9 @@ public:
 	}
 
 	// Helper methods for compatibility
-	void getRelevantQuadStencilList(
-		const std::vector<MikanStencilID>* allowedStencilIds,
-		const glm::vec3& cameraPosition,
-		const glm::vec3& cameraForward,
-		std::vector<QuadStencilComponentPtr>& outStencilList) const;
+	void getRelevantQuadStencilList(const std::vector<MikanStencilID>* allowedStencilIds,
+									const glm::vec3& cameraPosition, const glm::vec3& cameraForward,
+									std::vector<QuadStencilComponentPtr>& outStencilList) const;
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);
@@ -66,11 +61,9 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 protected:
-	static bool isStencilFacingCamera(
-		StencilComponentConstPtr stencil,
-		const glm::vec3& cameraPosition, const glm::vec3& cameraForward);
+	static bool isStencilFacingCamera(StencilComponentConstPtr stencil, const glm::vec3& cameraPosition,
+									  const glm::vec3& cameraForward);
 
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		ComponentDefinitionPtr componentDefinition) override;
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											ComponentDefinitionPtr componentDefinition) override;
 };

@@ -2,12 +2,6 @@
 
 #include "imnodes.h"
 
-MkNodesScopedNodeTitleBar::MkNodesScopedNodeTitleBar()
-{
-	ImNodes::BeginNodeTitleBar();
-}
+MkNodesScopedNodeTitleBar::MkNodesScopedNodeTitleBar() { ImNodes::BeginNodeTitleBar(); }
 
-MkNodesScopedNodeTitleBar::~MkNodesScopedNodeTitleBar()
-{
-	ImNodes::EndNodeTitleBar();
-}
+MkNodesScopedNodeTitleBar::~MkNodesScopedNodeTitleBar() { ImNodes::EndNodeTitleBar(); }

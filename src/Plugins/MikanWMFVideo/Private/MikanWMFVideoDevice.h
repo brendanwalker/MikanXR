@@ -18,9 +18,7 @@
 class MikanWMFVideoDevice : public IUsbVideoDevice
 {
 public:
-	MikanWMFVideoDevice(
-		class MikanWMFVideoDeviceManager* ownerDeviceManager,
-		const WMFDeviceInfo& deviceInfo);
+	MikanWMFVideoDevice(class MikanWMFVideoDeviceManager* ownerDeviceManager, const WMFDeviceInfo& deviceInfo);
 	virtual ~MikanWMFVideoDevice();
 
 	// -- Device Listener
@@ -46,7 +44,8 @@ public:
 
 	// -- Camera Settings
 	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const override;
-	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const override;
+	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type,
+										   VideoSettingConstraint& outConstraint) const override;
 	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value) override;
 	virtual int getVideoSetting(const eVideoSettingType property_type) const override;
 

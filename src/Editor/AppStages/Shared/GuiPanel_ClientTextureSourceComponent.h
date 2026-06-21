@@ -20,10 +20,7 @@ public:
 	virtual bool init() override;
 	virtual void onGui() override;
 
-	inline eTextureSourceDisplayBufferType getDisplayBufferType() const
-	{
-		return m_displayBufferType;
-	}
+	inline eTextureSourceDisplayBufferType getDisplayBufferType() const { return m_displayBufferType; }
 
 private:
 	eTextureSourceDisplayBufferType m_displayBufferType= eTextureSourceDisplayBufferType::Color;

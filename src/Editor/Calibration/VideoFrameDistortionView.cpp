@@ -35,10 +35,7 @@ struct OpenCVMonoCameraIntrinsics
 		double cx= pixelWidth * 0.5;
 		double cy= pixelHeight * 0.5;
 
-		distorted_intrinsic_matrix= cv::Matx33d(
-			focalLength, 0.0, cx,
-			0.0, focalLength, cy,
-			0.0, 0.0, 1.0);
+		distorted_intrinsic_matrix= cv::Matx33d(focalLength, 0.0, cx, 0.0, focalLength, cy, 0.0, 0.0, 1.0);
 
 		// No distortion coefficients
 		distortion_coeffs= cv::Matx81d(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
@@ -65,11 +62,9 @@ struct OpenCVMonoCameraIntrinsics
 	}
 };
 
-VideoFrameDistortionView::VideoFrameDistortionView(
-	VideoSourceComponentPtr videoSourceComponent,
-	eVideoFrameProcessorMode processorMode,
-	unsigned int frameQueueSize,
-	VideoFrameSection videoFramesection)
+VideoFrameDistortionView::VideoFrameDistortionView(VideoSourceComponentPtr videoSourceComponent,
+												   eVideoFrameProcessorMode processorMode, unsigned int frameQueueSize,
+												   VideoFrameSection videoFramesection)
 	: m_videoFrameSection(videoFramesection)
 	, m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceComponent(videoSourceComponent)
@@ -290,12 +285,9 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 			}
 
 			// Allocate a new texture for this queue entry
-			IMkTexturePtr videoTexture= CreateMkTexture(
-				m_frameWidth,
-				m_frameHeight,
-				nullptr,
-				MK_RGB,  // texture format
-				MK_BGR); // buffer format
+			IMkTexturePtr videoTexture= CreateMkTexture(m_frameWidth, m_frameHeight, nullptr,
+														MK_RGB,  // texture format
+														MK_BGR); // buffer format
 			videoTexture->setGenerateMipMap(false);
 			// Use PBO upload optimization only for CPU->GPU uploads (CV path).
 			// GL path writes to these textures as FBO render targets, so PBO mode is not applicable.
@@ -329,18 +321,15 @@ IMkGraphicsContext* VideoFrameDistortionView::getGraphicsContext() const
 	return nullptr;
 }
 
-void VideoFrameDistortionView::writeVideoFrame(
-	const unsigned char* videoBuffer,
-	const cv::Size& bufferDimensions,
-	bool bIsFlipped)
+void VideoFrameDistortionView::writeVideoFrame(const unsigned char* videoBuffer, const cv::Size& bufferDimensions,
+											   bool bIsFlipped)
 {
 	EASY_FUNCTION();
 	std::lock_guard<std::mutex> bufferLock(m_bgrSourceBufferMutex);
 
 	const int srcBufferWidth= bufferDimensions.width;
 	const int srcBufferHeight= bufferDimensions.height;
-	const cv::Mat videoBufferMat(
-		srcBufferHeight, srcBufferWidth, CV_8UC3, const_cast<unsigned char*>(videoBuffer));
+	const cv::Mat videoBufferMat(srcBufferHeight, srcBufferWidth, CV_8UC3, const_cast<unsigned char*>(videoBuffer));
 
 	// (Re)create the target buffer to match source size
 	if (m_bgrSourceBufferWidth != srcBufferWidth || m_bgrSourceBufferHeight != srcBufferHeight)
@@ -369,19 +358,16 @@ void VideoFrameDistortionView::writeVideoFrame(
 	m_lastVideoFrameWriteIndex++;
 }
 
-void VideoFrameDistortionView::writeStereoVideoFrameSection(
-	const unsigned char* videoBuffer,
-	const cv::Size& bufferDimensions,
-	const bool bIsFlipped,
-	const cv::Rect& bufferBounds)
+void VideoFrameDistortionView::writeStereoVideoFrameSection(const unsigned char* videoBuffer,
+															const cv::Size& bufferDimensions, const bool bIsFlipped,
+															const cv::Rect& bufferBounds)
 {
 	EASY_FUNCTION();
 	std::lock_guard<std::mutex> bufferLock(m_bgrSourceBufferMutex);
 
 	const int srcBufferWidth= bufferDimensions.width;
 	const int srcBufferHeight= bufferDimensions.height;
-	const cv::Mat videoBufferMat(
-		srcBufferHeight, srcBufferWidth, CV_8UC3, const_cast<unsigned char*>(videoBuffer));
+	const cv::Mat videoBufferMat(srcBufferHeight, srcBufferWidth, CV_8UC3, const_cast<unsigned char*>(videoBuffer));
 
 	// (Re)create the target buffer to match source size
 	const int srcSectionWidth= bufferBounds.size().width;
@@ -428,9 +414,7 @@ int64_t VideoFrameDistortionView::readNextVideoFrameIndex()
 		{
 			// Update framerate statistics
 			const auto now= std::chrono::steady_clock::now();
-			const float deltaSeconds= fminf(
-				std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
-				0.1f);
+			const float deltaSeconds= fminf(std::chrono::duration<float>(now - m_lastFrameTimestamp).count(), 0.1f);
 			const float fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 			m_fps= (m_fps * 0.9f) + (fps * 0.1f);
 			m_lastFrameTimestamp= now;
@@ -496,11 +480,8 @@ void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 			{
 				// Upload the source BGR frame to the GL texture, then run the undistortion shader
 				m_glProcessor->uploadSourceBuffer(*m_bgrSourceBuffer);
-				m_glProcessor->computeUndistortion(
-					writeTexture,
-					m_distortionTextureMap,
-					m_fullscreenRGBVideoQuad,
-					getGraphicsContext());
+				m_glProcessor->computeUndistortion(writeTexture, m_distortionTextureMap, m_fullscreenRGBVideoQuad,
+												   getGraphicsContext());
 			}
 			else if (m_cvProcessor && m_cvProcessor->getBGRUndistortBuffer())
 			{
@@ -571,8 +552,7 @@ IMkTexturePtr VideoFrameDistortionView::getVideoTexture(int64_t desiredFrameInde
 	return IMkTexturePtr();
 }
 
-void VideoFrameDistortionView::applyMonoCameraIntrinsics(
-	const struct MikanMonoIntrinsics* instrinsics)
+void VideoFrameDistortionView::applyMonoCameraIntrinsics(const struct MikanMonoIntrinsics* instrinsics)
 {
 	m_intrinsics->init(*instrinsics);
 	rebuildDistortionMap();
@@ -585,14 +565,11 @@ void VideoFrameDistortionView::rebuildDistortionMap()
 	if (m_distortionMapX != nullptr && m_distortionMapY != nullptr)
 	{
 		// (Re)create the X and Y undistortion maps used by cv::remap
-		cv::initUndistortRectifyMap(
-			m_intrinsics->distorted_intrinsic_matrix,
-			m_intrinsics->distortion_coeffs,
-			cv::noArray(), // unneeded rectification transformation computed by stereoRectify()
-			m_intrinsics->undistorted_intrinsic_matrix,
-			cv::Size(m_frameWidth, m_frameHeight),
-			CV_32FC1, // Distortion map type
-			*m_distortionMapX, *m_distortionMapY);
+		cv::initUndistortRectifyMap(m_intrinsics->distorted_intrinsic_matrix, m_intrinsics->distortion_coeffs,
+									cv::noArray(), // unneeded rectification transformation computed by stereoRectify()
+									m_intrinsics->undistorted_intrinsic_matrix, cv::Size(m_frameWidth, m_frameHeight),
+									CV_32FC1, // Distortion map type
+									*m_distortionMapX, *m_distortionMapY);
 
 		// Copy the distortion pixel offsets into a texture with normalized float values
 		{

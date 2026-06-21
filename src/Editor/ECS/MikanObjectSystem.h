@@ -18,9 +18,7 @@ using MikanFunctionDatabasePtr= std::shared_ptr<class MikanFunctionDatabase>;
 class MikanObjectSystemDefinition : public CommonConfig
 {
 public:
-	MikanObjectSystemDefinition(
-		const std::string& configName,
-		IEntityIDAllocatorPtr idAllocator)
+	MikanObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 		: CommonConfig(configName)
 		, m_idAllocator(idAllocator)
 	{
@@ -34,8 +32,7 @@ protected:
 	IEntityIDAllocatorWeakPtr m_idAllocator;
 };
 
-class MikanObjectSystem : public std::enable_shared_from_this<MikanObjectSystem>,
-						  public IEntityAccessor
+class MikanObjectSystem : public std::enable_shared_from_this<MikanObjectSystem>, public IEntityAccessor
 {
 public:
 	MikanObjectSystem(ProjectManagerPtr ownerObjectSystem);
@@ -61,14 +58,8 @@ public:
 		return getOwnerProjectManager()->getSystemOfType<t_object_system_type>();
 	}
 
-	inline MikanObjectSystemDefinitionConstPtr getDefinitionConst() const
-	{
-		return m_definitionWeakPtr.lock();
-	}
-	inline MikanObjectSystemDefinitionPtr getDefinition()
-	{
-		return m_definitionWeakPtr.lock();
-	}
+	inline MikanObjectSystemDefinitionConstPtr getDefinitionConst() const { return m_definitionWeakPtr.lock(); }
+	inline MikanObjectSystemDefinitionPtr getDefinition() { return m_definitionWeakPtr.lock(); }
 
 	using VisitFunction= std::function<void(MikanObjectPtr)>;
 	void visitAllObjects(VisitFunction visitFunc) const
@@ -83,13 +74,14 @@ public:
 	}
 
 	virtual MikanComponentPtr getComponentById(int componentId) const= 0;
-	virtual bool getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const= 0;
-	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const= 0;
+	virtual bool getComponentList(const std::string& componentClassName,
+								  std::vector<MikanComponentPtr>& outComponentList) const= 0;
+	virtual bool getComponentIdList(const std::string& componentClassName,
+									std::vector<int>& outComponentIdList) const= 0;
 
 	MikanObjectPtr newEmptyObject();
-	virtual MikanComponentPtr addNewObjectByUntypedDefinition(
-		const std::string& primaryComponentClass,
-		Serialization::PolymorphicObjectPtr initParams);
+	virtual MikanComponentPtr addNewObjectByUntypedDefinition(const std::string& primaryComponentClass,
+															  Serialization::PolymorphicObjectPtr initParams);
 	virtual bool deleteObject(MikanObjectPtr objectPtr);
 	void deleteAllObjects();
 	inline const MikanObjectList& getObjectList() const { return m_objects; }
@@ -107,8 +99,14 @@ public:
 	// -- IPropertyInterface ----
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase);
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors) {}
-	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override { return false; }
-	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override { return false; }
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override
+	{
+		return false;
+	}
+	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override
+	{
+		return false;
+	}
 
 	// -- IFunctionInterface ----
 	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase);

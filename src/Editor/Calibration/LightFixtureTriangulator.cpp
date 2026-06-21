@@ -51,9 +51,8 @@ struct LightFixtureTriangulationState
 };
 
 // -- LightFixtureTriangulator -----
-LightFixtureTriangulator::LightFixtureTriangulator(
-	CameraComponentPtr cameraComponent,
-	VideoFrameDistortionView* distortionView)
+LightFixtureTriangulator::LightFixtureTriangulator(CameraComponentPtr cameraComponent,
+												   VideoFrameDistortionView* distortionView)
 	: m_cameraComponent(cameraComponent)
 	, m_distortionView(distortionView)
 	, m_state(new LightFixtureTriangulationState)
@@ -63,25 +62,13 @@ LightFixtureTriangulator::LightFixtureTriangulator(
 	m_state->init(cameraComponent);
 }
 
-LightFixtureTriangulator::~LightFixtureTriangulator()
-{
-	delete m_state;
-}
+LightFixtureTriangulator::~LightFixtureTriangulator() { delete m_state; }
 
-bool LightFixtureTriangulator::hasInitialSample() const
-{
-	return m_state->hasInitialSample;
-}
+bool LightFixtureTriangulator::hasInitialSample() const { return m_state->hasInitialSample; }
 
-bool LightFixtureTriangulator::hasTriangulatedPosition() const
-{
-	return m_state->hasTriangulatedPosition;
-}
+bool LightFixtureTriangulator::hasTriangulatedPosition() const { return m_state->hasTriangulatedPosition; }
 
-void LightFixtureTriangulator::resetCalibrationState()
-{
-	m_state->reset();
-}
+void LightFixtureTriangulator::resetCalibrationState() { m_state->reset(); }
 
 void LightFixtureTriangulator::sampleCameraPose()
 {
@@ -112,29 +99,20 @@ void LightFixtureTriangulator::computeCurrentTriangulation()
 		return;
 
 	glm::vec3 ray1Start, ray1Dir;
-	computeCameraRayAtPixel(
-		m_state->inputCameraIntrinsics,
-		m_state->initialCameraPose,
-		m_state->initialPixelSample,
-		ray1Start, ray1Dir);
+	computeCameraRayAtPixel(m_state->inputCameraIntrinsics, m_state->initialCameraPose, m_state->initialPixelSample,
+							ray1Start, ray1Dir);
 
 	glm::mat4 currentCameraPose;
 	if (m_cameraComponent->getStageSpaceAperturePose(currentCameraPose))
 	{
 		glm::vec3 ray2Start, ray2Dir;
-		computeCameraRayAtPixel(
-			m_state->inputCameraIntrinsics,
-			currentCameraPose,
-			computeMouseScreenPosition(),
-			ray2Start, ray2Dir);
+		computeCameraRayAtPixel(m_state->inputCameraIntrinsics, currentCameraPose, computeMouseScreenPosition(),
+								ray2Start, ray2Dir);
 
 		float closestTime;
 		glm::vec3 closestPoint;
-		if (glm_closest_point_on_ray_to_ray(
-				ray1Start, ray1Dir,
-				ray2Start, ray2Dir,
-				closestTime, closestPoint) &&
-			closestTime >= 0.f)
+		if (glm_closest_point_on_ray_to_ray(ray1Start, ray1Dir, ray2Start, ray2Dir, closestTime, closestPoint)
+			&& closestTime >= 0.f)
 		{
 			m_state->lastTriangulatedPoint= closestPoint;
 		}
@@ -159,9 +137,8 @@ glm::vec2 LightFixtureTriangulator::computeMouseScreenPosition() const
 	const float screenWidth= window->getWidth();
 	const float screenHeight= window->getHeight();
 
-	return glm::vec2(
-		((float)mouseScreenX * m_frameWidth) / screenWidth,
-		((float)mouseScreenY * m_frameHeight) / screenHeight);
+	return glm::vec2(((float)mouseScreenX * m_frameWidth) / screenWidth,
+					 ((float)mouseScreenY * m_frameHeight) / screenHeight);
 }
 
 void LightFixtureTriangulator::renderInitialPoint2d()
@@ -190,17 +167,12 @@ void LightFixtureTriangulator::renderCurrentTriangulation()
 
 	// Draw initial ray
 	glm::vec3 rayStart, rayDir;
-	computeCameraRayAtPixel(
-		m_state->inputCameraIntrinsics,
-		m_state->initialCameraPose,
-		m_state->initialPixelSample,
-		rayStart, rayDir);
-	drawSegment(graphicsContext, glm::mat4(1.f),
-				rayStart, rayStart + rayDir * 1000.f, Colors::Yellow);
+	computeCameraRayAtPixel(m_state->inputCameraIntrinsics, m_state->initialCameraPose, m_state->initialPixelSample,
+							rayStart, rayDir);
+	drawSegment(graphicsContext, glm::mat4(1.f), rayStart, rayStart + rayDir * 1000.f, Colors::Yellow);
 
 	// Draw current live triangulated point
-	drawPoint(graphicsContext, glm::mat4(1.f),
-			  m_state->lastTriangulatedPoint, Colors::Yellow, 5.f);
+	drawPoint(graphicsContext, glm::mat4(1.f), m_state->lastTriangulatedPoint, Colors::Yellow, 5.f);
 }
 
 void LightFixtureTriangulator::renderTriangulatedPosition()
@@ -210,10 +182,8 @@ void LightFixtureTriangulator::renderTriangulatedPosition()
 
 	IMkGraphicsContext* graphicsContext= m_cameraComponent->getGraphicsContext();
 
-	drawPoint(graphicsContext, glm::mat4(1.f),
-			  m_state->triangulatedPosition, Colors::Cyan, 8.f);
+	drawPoint(graphicsContext, glm::mat4(1.f), m_state->triangulatedPosition, Colors::Cyan, 8.f);
 
 	TextStyle style= getDefaultTextStyle();
-	drawTextAtWorldPosition(graphicsContext, style,
-							m_state->triangulatedPosition, L"Light Position");
+	drawTextAtWorldPosition(graphicsContext, style, m_state->triangulatedPosition, L"Light Position");
 }

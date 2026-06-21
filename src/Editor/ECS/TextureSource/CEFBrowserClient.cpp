@@ -20,13 +20,8 @@ void CEFBrowserClient::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 	}
 }
 
-void CEFBrowserClient::OnPaint(
-	CefRefPtr<CefBrowser> browser,
-	PaintElementType type,
-	const RectList& dirtyRects,
-	const void* buffer,
-	int width,
-	int height)
+void CEFBrowserClient::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects,
+							   const void* buffer, int width, int height)
 {
 	if (type != PET_VIEW)
 		return;

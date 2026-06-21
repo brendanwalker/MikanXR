@@ -9,8 +9,8 @@
 #include "VRObjectSystem.h"
 
 // -- VRTrackingVolumeSystemDefinition -----
-VRTrackingVolumeSystemDefinition::VRTrackingVolumeSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+VRTrackingVolumeSystemDefinition::VRTrackingVolumeSystemDefinition(const std::string& configName,
+																   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -22,10 +22,7 @@ configuru::Config VRTrackingVolumeSystemDefinition::writeToJSON()
 	return pt;
 }
 
-void VRTrackingVolumeSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	Super::readFromJSON(pt);
-}
+void VRTrackingVolumeSystemDefinition::readFromJSON(const configuru::Config& pt) { Super::readFromJSON(pt); }
 
 // -- VRTrackingVolumeSystem -----
 VRTrackingVolumeSystem::VRTrackingVolumeSystem(ProjectManagerPtr ownerObjectSystemManager)
@@ -72,22 +69,22 @@ VRTrackingVolumeComponentPtr VRTrackingVolumeSystem::addNewVRTrackingVolume(eTra
 	vrObjectSystem->createTrackingRuntime(trackingRuntime);
 
 	// Only block creation if the runtime definitively failed (not just pending)
-	if (vrObjectSystem->getTrackingRuntimeState(trackingRuntime) ==
-		VRObjectSystem::eTrackingRuntimeState::failed)
+	if (vrObjectSystem->getTrackingRuntimeState(trackingRuntime) == VRObjectSystem::eTrackingRuntimeState::failed)
 	{
 		return VRTrackingVolumeComponentPtr();
 	}
 
 	// Use the base class method to create the object, with a custom definition init
-	return Super::addNewObjectByTypedDefinition([trackingRuntime](VRTrackingVolumeDefinitionPtr def)
-												{
-		def->setTrackingRuntime(trackingRuntime);
-		return true; });
+	return Super::addNewObjectByTypedDefinition(
+		[trackingRuntime](VRTrackingVolumeDefinitionPtr def)
+		{
+			def->setTrackingRuntime(trackingRuntime);
+			return true;
+		});
 }
 
-void VRTrackingVolumeSystem::additionalComponentFactory(
-	MikanObjectPtr ownerComponentObject,
-	VRTrackingVolumeDefinitionPtr componentDefinition)
+void VRTrackingVolumeSystem::additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+														VRTrackingVolumeDefinitionPtr componentDefinition)
 {
 	// Ensure the VRObjectSystem has a runtime for this type
 	auto vrObjectSystem= getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();

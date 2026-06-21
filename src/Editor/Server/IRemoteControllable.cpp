@@ -16,9 +16,7 @@ void IRemoteControllable::sendRemoteControlEvent(const std::string& event)
 	}
 }
 
-void IRemoteControllable::sendRemoteControlEvent(
-	const std::string& event,
-	const std::vector<std::string>& parameters)
+void IRemoteControllable::sendRemoteControlEvent(const std::string& event, const std::vector<std::string>& parameters)
 {
 	if (m_pRemoteControlManager)
 	{
@@ -26,10 +24,9 @@ void IRemoteControllable::sendRemoteControlEvent(
 	}
 }
 
-bool IRemoteControllable::handleRemoteControlCommand(
-	const std::string& command,
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool IRemoteControllable::handleRemoteControlCommand(const std::string& command,
+													 const std::vector<std::string>& parameters,
+													 std::vector<std::string>& outResults)
 {
 	// by default, we don't handle any commands
 	return false;

@@ -7,23 +7,16 @@
 
 #include "openvr.h"
 
-MikanSteamVRDevice::MikanSteamVRDevice(
-	MikanSteamVRManager* ownerDeviceManager,
-	vr::TrackedDeviceIndex_t steamvrDeviceId)
+MikanSteamVRDevice::MikanSteamVRDevice(MikanSteamVRManager* ownerDeviceManager,
+									   vr::TrackedDeviceIndex_t steamvrDeviceId)
 	: m_ownerDeviceManager(ownerDeviceManager)
 	, m_deviceProperties(new SteamVRDeviceProperties(steamvrDeviceId))
 {
 }
 
-MikanSteamVRDevice::~MikanSteamVRDevice()
-{
-	delete m_deviceProperties;
-}
+MikanSteamVRDevice::~MikanSteamVRDevice() { delete m_deviceProperties; }
 
-size_t MikanSteamVRDevice::getDeviceIndex() const
-{
-	return m_deviceProperties->getSteamVRDeviceIndex();
-}
+size_t MikanSteamVRDevice::getDeviceIndex() const { return m_deviceProperties->getSteamVRDeviceIndex(); }
 
 eVRDeviceType MikanSteamVRDevice::getDeviceType() const
 {
@@ -40,16 +33,12 @@ eVRDeviceType MikanSteamVRDevice::getDeviceType() const
 	}
 }
 
-const char* MikanSteamVRDevice::getDevicePath() const
-{
-	return m_deviceProperties->getDevicePath().c_str();
-}
+const char* MikanSteamVRDevice::getDevicePath() const { return m_deviceProperties->getDevicePath().c_str(); }
 
 bool MikanSteamVRDevice::getDevicePose(int vrFrameDelay, VRDevicePose& outPose) const
 {
 	const vr::TrackedDevicePose_t* rawDevicePose=
-		m_ownerDeviceManager->getDevicePose(
-			m_deviceProperties->getSteamVRDeviceIndex(), vrFrameDelay);
+		m_ownerDeviceManager->getDevicePose(m_deviceProperties->getSteamVRDeviceIndex(), vrFrameDelay);
 
 	if (rawDevicePose != nullptr)
 	{
@@ -63,40 +52,22 @@ bool MikanSteamVRDevice::getDevicePose(int vrFrameDelay, VRDevicePose& outPose) 
 	return false;
 }
 
-const char* MikanSteamVRDevice::getSerialNumber() const
-{
-	return m_deviceProperties->getSerialNumber().c_str();
-}
+const char* MikanSteamVRDevice::getSerialNumber() const { return m_deviceProperties->getSerialNumber().c_str(); }
 
-const char* MikanSteamVRDevice::getTrackingSystem() const
-{
-	return m_deviceProperties->getTrackingSystem().c_str();
-}
+const char* MikanSteamVRDevice::getTrackingSystem() const { return m_deviceProperties->getTrackingSystem().c_str(); }
 
-const char* MikanSteamVRDevice::getTrackerRole() const
-{
-	return m_deviceProperties->getTrackingRole().c_str();
-}
+const char* MikanSteamVRDevice::getTrackerRole() const { return m_deviceProperties->getTrackingRole().c_str(); }
 
-const char* MikanSteamVRDevice::getModelLabel() const
-{
-	return m_deviceProperties->getModelLabel().c_str();
-}
+const char* MikanSteamVRDevice::getModelLabel() const { return m_deviceProperties->getModelLabel().c_str(); }
 
-const char* MikanSteamVRDevice::getModelNumber() const
-{
-	return m_deviceProperties->getModelNumber().c_str();
-}
+const char* MikanSteamVRDevice::getModelNumber() const { return m_deviceProperties->getModelNumber().c_str(); }
 
 const char* MikanSteamVRDevice::getManufacturerName() const
 {
 	return m_deviceProperties->getManufacturerName().c_str();
 }
 
-size_t MikanSteamVRDevice::getSocketCount() const
-{
-	return m_sockets.size();
-}
+size_t MikanSteamVRDevice::getSocketCount() const { return m_sockets.size(); }
 
 IVRDeviceSocket* MikanSteamVRDevice::geSocketByIndex(size_t socketIndex) const
 {
@@ -119,10 +90,7 @@ IVRDeviceSocket* MikanSteamVRDevice::getSocketByName(const char* socketName) con
 	return nullptr;
 }
 
-size_t MikanSteamVRDevice::getMeshCount() const
-{
-	return m_meshes.size();
-}
+size_t MikanSteamVRDevice::getMeshCount() const { return m_meshes.size(); }
 
 IVRDeviceMesh* MikanSteamVRDevice::getMeshByIndex(size_t meshIndex) const
 {
@@ -172,18 +140,14 @@ void MikanSteamVRDevice::rebuildComponents()
 		{
 			if (definition.isRenderable)
 			{
-				m_meshes.insert({definition.componentName,
-								 std::make_shared<MikanSteamVRDeviceMesh>(
-									 this,
-									 definition.componentName,
-									 definition.renderModelName)});
+				m_meshes.insert(
+					{definition.componentName, std::make_shared<MikanSteamVRDeviceMesh>(this, definition.componentName,
+																						definition.renderModelName)});
 			}
 			else
 			{
 				m_sockets.insert({definition.componentName,
-								  std::make_shared<MikanSteamVRDeviceSocket>(
-									  this,
-									  definition.componentName)});
+								  std::make_shared<MikanSteamVRDeviceSocket>(this, definition.componentName)});
 			}
 		}
 	}

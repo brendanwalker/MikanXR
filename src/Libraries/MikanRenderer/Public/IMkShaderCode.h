@@ -33,11 +33,8 @@ public:
 	virtual size_t getCodeHash() const= 0;
 
 	virtual const std::vector<IMkVertexAttributeConstPtr>& getVertexAttributes() const= 0;
-	virtual void addVertexAttribute(
-		const std::string& name,
-		eVertexDataType dataType,
-		eVertexSemantic semantic= eVertexSemantic::generic,
-		bool isNormalized= false)= 0;
+	virtual void addVertexAttribute(const std::string& name, eVertexDataType dataType,
+									eVertexSemantic semantic= eVertexSemantic::generic, bool isNormalized= false)= 0;
 
 	virtual const std::vector<Uniform>& getUniformList() const= 0;
 	virtual void addUniform(const std::string& name, eUniformSemantic semantic)= 0;
@@ -49,7 +46,5 @@ public:
 
 MIKAN_RENDERER_FUNC(IMkShaderCodePtr) createIMkShaderCode();
 MIKAN_RENDERER_FUNC(IMkShaderCodePtr) createIMkShaderCode(const std::string& programName);
-MIKAN_RENDERER_FUNC(IMkShaderCodePtr) createIMkShaderCode(
-	const std::string& programName,
-	const std::string& vertexCode,
-	const std::string& fragmentCode);
+MIKAN_RENDERER_FUNC(IMkShaderCodePtr) createIMkShaderCode(const std::string& programName, const std::string& vertexCode,
+														  const std::string& fragmentCode);

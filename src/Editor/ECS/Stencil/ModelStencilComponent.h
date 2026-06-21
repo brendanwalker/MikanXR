@@ -23,9 +23,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_modelStencilObjPathPropertyId;
 	bool hasModelPath() const;
@@ -51,18 +50,9 @@ public:
 	{
 		return std::static_pointer_cast<ModelStencilDefinition>(m_definition);
 	}
-	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const
-	{
-		return m_triMeshComponents;
-	}
-	inline const std::vector<IMkStaticMeshInstancePtr>& getWireframeMeshes() const
-	{
-		return m_wireframeMeshes;
-	}
-	inline const std::vector<MeshColliderComponentPtr>& getColliderComponents() const
-	{
-		return m_colliderComponents;
-	}
+	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const { return m_triMeshComponents; }
+	inline const std::vector<IMkStaticMeshInstancePtr>& getWireframeMeshes() const { return m_wireframeMeshes; }
+	inline const std::vector<MeshColliderComponentPtr>& getColliderComponents() const { return m_colliderComponents; }
 
 	void setRenderStencilsFlag(bool flag);
 	void setModelPath(const std::filesystem::path& path);

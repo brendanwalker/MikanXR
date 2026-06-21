@@ -33,15 +33,13 @@ MikanAPIResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
 	size_t utf8BytesWritten= 0;
 
 	MikanAPIResult result=
-		(MikanAPIResult)Mikan_FetchNextEvent(
-			m_context, sizeof(utf8Buffer), utf8Buffer, &utf8BytesWritten);
+		(MikanAPIResult)Mikan_FetchNextEvent(m_context, sizeof(utf8Buffer), utf8Buffer, &utf8BytesWritten);
 	if (result == MikanAPIResult::Success)
 	{
 		out_event= parseEventString(utf8Buffer);
 		if (!out_event)
 		{
-			MIKAN_MT_LOG_WARNING("MikanClient::fetchNextEvent()")
-				<< "Failed to parse event string: " << utf8Buffer;
+			MIKAN_MT_LOG_WARNING("MikanClient::fetchNextEvent()") << "Failed to parse event string: " << utf8Buffer;
 			result= MikanAPIResult::MalformedResponse;
 		}
 	}
@@ -71,8 +69,7 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 
 			MIKAN_MT_LOG_INFO("MikanClient::parseEventString()")
 				<< "Received websocket DISCONNECT"
-				<< ", disconnectCode: " << disconnectCode
-				<< ", protocol: " << disconnectReason;
+				<< ", disconnectCode: " << disconnectCode << ", protocol: " << disconnectReason;
 
 			auto disconnectEventPtr= std::make_shared<MikanDisconnectedEvent>();
 			disconnectEventPtr->code= (MikanDisconnectCode)disconnectCode;
@@ -86,7 +83,8 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 
 			MikanEvent eventHeader= {};
 			std::string parseHeaderError;
-			if (!Serialization::deserializeFromJson(jsonResponse, &eventHeader, MikanEvent::staticGetArchetype(), parseHeaderError))
+			if (!Serialization::deserializeFromJson(jsonResponse, &eventHeader, MikanEvent::staticGetArchetype(),
+													parseHeaderError))
 			{
 				MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()")
 					<< "Failed to parse event header: " << parseHeaderError;
@@ -115,13 +113,11 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 	}
 	catch (json::parse_error& e)
 	{
-		MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()")
-			<< "Failed to parse event: " << e.what();
+		MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()") << "Failed to parse event: " << e.what();
 	}
 	catch (json::exception& e)
 	{
-		MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()")
-			<< "Failed to parse event: " << e.what();
+		MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()") << "Failed to parse event: " << e.what();
 	}
 
 	return eventPtr;

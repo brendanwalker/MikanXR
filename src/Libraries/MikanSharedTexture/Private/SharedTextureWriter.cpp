@@ -27,10 +27,8 @@ public:
 	virtual bool getIsInitialized() const;
 	virtual void setLogCallback(SharedTextureLogCallback callback) override;
 
-	virtual bool initialize(
-		const SharedTextureDescriptor* descriptor,
-		bool bEnableFrameCounter,
-		void* apiDeviceInterface) override;
+	virtual bool initialize(const SharedTextureDescriptor* descriptor, bool bEnableFrameCounter,
+							void* apiDeviceInterface) override;
 	virtual void dispose() override;
 
 	virtual const SharedTextureDescriptor* getRenderTargetDescriptor() const override;
@@ -69,10 +67,7 @@ public:
 	{
 	}
 
-	virtual ~SpoutOpenGLTextureWriter()
-	{
-		dispose();
-	}
+	virtual ~SpoutOpenGLTextureWriter() { dispose(); }
 
 	bool init()
 	{
@@ -88,8 +83,8 @@ public:
 			return false;
 		}
 
-		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32 ||
-			descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
+			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 		{
 			m_spoutColorFrame->EnableSpoutLog();
 			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
@@ -111,14 +106,15 @@ public:
 			bSuccess= false;
 		}
 
-		if (descriptor->depth_buffer_type == SharedDepthBufferType::PACK_DEPTH_RGBA ||
-			descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-			descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
+		if (descriptor->depth_buffer_type == SharedDepthBufferType::PACK_DEPTH_RGBA
+			|| descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH
+			|| descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
 		{
 			m_spoutDepthFrame= GetSpout();
 			if (m_spoutDepthFrame == nullptr)
 			{
-				m_logger.log(SharedTextureLogLevel::error, "SpoutOpenGLTextureWriter::init() - Failed to open spout api for depth");
+				m_logger.log(SharedTextureLogLevel::error,
+							 "SpoutOpenGLTextureWriter::init() - Failed to open spout api for depth");
 				return false;
 			}
 
@@ -127,13 +123,14 @@ public:
 			m_spoutDepthFrame->SetSenderName(m_parentAccessor->getDepthSenderName().c_str());
 
 			// Initialize the depth texture packer if we are sending float depth textures
-			if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-				descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
+			if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH
+				|| descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
 			{
 				m_depthTexturePacker= new SpoutGLDepthTexturePacker(m_logger, m_spoutDepthFrame, descriptor);
 				if (!m_depthTexturePacker->init())
 				{
-					m_logger.log(SharedTextureLogLevel::info, "SpoutOpenGLTextureWriter::init() - Error initializing float depth packer");
+					m_logger.log(SharedTextureLogLevel::info,
+								 "SpoutOpenGLTextureWriter::init() - Error initializing float depth packer");
 					return false;
 				}
 			}
@@ -200,21 +197,17 @@ public:
 			{
 				// Convert the float depth texture to a RGBA8 texture using a shader
 				// (Spout can only send RGBA8 textures)
-				GLuint packedDepthTexture=
-					m_depthTexturePacker->packDepthTexture(textureID, zNear, zFar);
+				GLuint packedDepthTexture= m_depthTexturePacker->packDepthTexture(textureID, zNear, zFar);
 
 				if (packedDepthTexture != 0)
 				{
-					return m_spoutDepthFrame->SendTexture(
-						packedDepthTexture, GL_TEXTURE_2D,
-						descriptor->width, descriptor->height);
+					return m_spoutDepthFrame->SendTexture(packedDepthTexture, GL_TEXTURE_2D, descriptor->width,
+														  descriptor->height);
 				}
 			}
 			else
 			{
-				return m_spoutDepthFrame->SendTexture(
-					textureID, GL_TEXTURE_2D,
-					descriptor->width, descriptor->height);
+				return m_spoutDepthFrame->SendTexture(textureID, GL_TEXTURE_2D, descriptor->width, descriptor->height);
 			}
 		}
 
@@ -223,9 +216,8 @@ public:
 
 	void* getPackDepthTextureResourcePtr() const
 	{
-		return m_depthTexturePacker != nullptr
-				   ? (void*)m_depthTexturePacker->getPackedDepthTextureResourcePtr()
-				   : nullptr;
+		return m_depthTexturePacker != nullptr ? (void*)m_depthTexturePacker->getPackedDepthTextureResourcePtr()
+											   : nullptr;
 	}
 
 private:
@@ -248,10 +240,7 @@ public:
 	{
 	}
 
-	virtual ~SpoutDX11TextureWriter()
-	{
-		dispose();
-	}
+	virtual ~SpoutDX11TextureWriter() { dispose(); }
 
 	bool init()
 	{
@@ -266,11 +255,11 @@ public:
 		SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
 
 		// Initialize the color spout frame
-		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32 ||
-			descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
+			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 		{
-			if (m_spoutColorFrame.OpenDirectX11(d3d11Device) &&
-				m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
+			if (m_spoutColorFrame.OpenDirectX11(d3d11Device)
+				&& m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
 			{
 				if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
@@ -284,7 +273,8 @@ public:
 			}
 			else
 			{
-				m_logger.log(SharedTextureLogLevel::info, "SpoutDX11TextureWriter::init() - Error initializing color spout frame");
+				m_logger.log(SharedTextureLogLevel::info,
+							 "SpoutDX11TextureWriter::init() - Error initializing color spout frame");
 				return false;
 			}
 		}
@@ -300,17 +290,18 @@ public:
 		// Initialize the depth spout frame, if requested
 		if (descriptor->depth_buffer_type != SharedDepthBufferType::NODEPTH)
 		{
-			if (m_spoutDepthFrame.OpenDirectX11(d3d11Device) &&
-				m_spoutDepthFrame.SetSenderName(m_parentAccessor->getDepthSenderName().c_str()))
+			if (m_spoutDepthFrame.OpenDirectX11(d3d11Device)
+				&& m_spoutDepthFrame.SetSenderName(m_parentAccessor->getDepthSenderName().c_str()))
 			{
 				// Initialize the depth texture packer if we are sending float depth textures
-				if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-					descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
+				if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH
+					|| descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
 				{
 					m_depthTexturePacker= new SpoutDXDepthTexturePacker(m_logger, m_spoutDepthFrame, descriptor);
 					if (!m_depthTexturePacker->init())
 					{
-						m_logger.log(SharedTextureLogLevel::info, "SpoutDX11TextureWriter::init() - Error initializing float depth packer");
+						m_logger.log(SharedTextureLogLevel::info,
+									 "SpoutDX11TextureWriter::init() - Error initializing float depth packer");
 						return false;
 					}
 				}
@@ -324,7 +315,8 @@ public:
 			}
 			else
 			{
-				m_logger.log(SharedTextureLogLevel::info, "SpoutDX11TextureWriter::init() - Error initializing depth spout frame");
+				m_logger.log(SharedTextureLogLevel::info,
+							 "SpoutDX11TextureWriter::init() - Error initializing depth spout frame");
 				return false;
 			}
 		}
@@ -364,8 +356,7 @@ public:
 			{
 				// Convert the float depth texture to a RGBA8 texture using a shader
 				// (Spout can only send RGBA8 textures)
-				ID3D11Texture2D* packedDepthTexture=
-					m_depthTexturePacker->packDepthTexture(pTexture, zNear, zFar);
+				ID3D11Texture2D* packedDepthTexture= m_depthTexturePacker->packDepthTexture(pTexture, zNear, zFar);
 
 				if (packedDepthTexture != nullptr)
 				{
@@ -408,10 +399,7 @@ public:
 	{
 	}
 
-	virtual ~SpoutDX12TextureWriter()
-	{
-		dispose();
-	}
+	virtual ~SpoutDX12TextureWriter() { dispose(); }
 
 	bool init()
 	{
@@ -426,11 +414,11 @@ public:
 		SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
 
 		// Initialize the color spout frame
-		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32 ||
-			descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
+			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 		{
-			if (m_spoutColorFrame.OpenDirectX12(d3d12Device) &&
-				m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
+			if (m_spoutColorFrame.OpenDirectX12(d3d12Device)
+				&& m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
 			{
 				if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
@@ -444,7 +432,8 @@ public:
 			}
 			else
 			{
-				m_logger.log(SharedTextureLogLevel::info, "SpoutDX11TextureWriter::init() - Error initializing color spout frame");
+				m_logger.log(SharedTextureLogLevel::info,
+							 "SpoutDX11TextureWriter::init() - Error initializing color spout frame");
 				return false;
 			}
 		}
@@ -460,17 +449,18 @@ public:
 		// Initialize the depth spout frame, if requested
 		if (descriptor->depth_buffer_type != SharedDepthBufferType::NODEPTH)
 		{
-			if (m_spoutDepthFrame.OpenDirectX12(d3d12Device) &&
-				m_spoutDepthFrame.SetSenderName(m_parentAccessor->getDepthSenderName().c_str()))
+			if (m_spoutDepthFrame.OpenDirectX12(d3d12Device)
+				&& m_spoutDepthFrame.SetSenderName(m_parentAccessor->getDepthSenderName().c_str()))
 			{
 				// Initialize the depth texture packer if we are sending float depth textures
-				if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-					descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
+				if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH
+					|| descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
 				{
 					m_depthTexturePacker= new SpoutDXDepthTexturePacker(m_logger, m_spoutDepthFrame, descriptor);
 					if (!m_depthTexturePacker->init())
 					{
-						m_logger.log(SharedTextureLogLevel::info, "SpoutDX11TextureWriter::init() - Error initializing float depth packer");
+						m_logger.log(SharedTextureLogLevel::info,
+									 "SpoutDX11TextureWriter::init() - Error initializing float depth packer");
 						return false;
 					}
 				}
@@ -484,7 +474,8 @@ public:
 			}
 			else
 			{
-				m_logger.log(SharedTextureLogLevel::info, "SpoutDX11TextureWriter::init() - Error initializing depth spout frame");
+				m_logger.log(SharedTextureLogLevel::info,
+							 "SpoutDX11TextureWriter::init() - Error initializing depth spout frame");
 				return false;
 			}
 		}
@@ -525,11 +516,9 @@ public:
 					m_spoutDX11ColorTexture= nullptr;
 				}
 
-				if (dx12TextureResource != nullptr &&
-					m_spoutColorFrame.WrapDX12Resource(
-						dx12TextureResource,
-						&m_spoutDX11ColorTexture,
-						D3D12_RESOURCE_STATE_COPY_SOURCE))
+				if (dx12TextureResource != nullptr
+					&& m_spoutColorFrame.WrapDX12Resource(dx12TextureResource, &m_spoutDX11ColorTexture,
+														  D3D12_RESOURCE_STATE_COPY_SOURCE))
 				{
 					m_spoutDX12ColorTexture= dx12TextureResource;
 				}
@@ -558,11 +547,9 @@ public:
 					m_spoutDX11DepthTexture= nullptr;
 				}
 
-				if (dx12TextureResource != nullptr &&
-					m_spoutDepthFrame.WrapDX12Resource(
-						dx12TextureResource,
-						&m_spoutDX11DepthTexture,
-						D3D12_RESOURCE_STATE_COPY_SOURCE))
+				if (dx12TextureResource != nullptr
+					&& m_spoutDepthFrame.WrapDX12Resource(dx12TextureResource, &m_spoutDX11DepthTexture,
+														  D3D12_RESOURCE_STATE_COPY_SOURCE))
 				{
 					m_spoutDX12DepthTexture= dx12TextureResource;
 				}
@@ -620,25 +607,17 @@ SharedTextureWriteAccessor::SharedTextureWriteAccessor(const std::string& sender
 {
 }
 
-SharedTextureWriteAccessor::~SharedTextureWriteAccessor()
-{
-	dispose();
-}
+SharedTextureWriteAccessor::~SharedTextureWriteAccessor() { dispose(); }
 
-bool SharedTextureWriteAccessor::getIsInitialized() const
-{
-	return m_bIsInitialized;
-}
+bool SharedTextureWriteAccessor::getIsInitialized() const { return m_bIsInitialized; }
 
 void SharedTextureWriteAccessor::setLogCallback(SharedTextureLogCallback callback)
 {
 	m_logger.setLogCallback(callback);
 }
 
-bool SharedTextureWriteAccessor::initialize(
-	const SharedTextureDescriptor* descriptor,
-	bool bEnableFrameCounter,
-	void* apiDeviceInterface)
+bool SharedTextureWriteAccessor::initialize(const SharedTextureDescriptor* descriptor, bool bEnableFrameCounter,
+											void* apiDeviceInterface)
 {
 	dispose();
 
@@ -646,25 +625,19 @@ bool SharedTextureWriteAccessor::initialize(
 	m_bEnableFrameCounter= bEnableFrameCounter;
 	m_apiDeviceInterface= apiDeviceInterface;
 
-	if (!makeSpoutSenderName(
-			m_senderPrefix,
-			m_cameraId,
-			SharedTextureType::COLOR,
-			m_colorSenderName))
+	if (!makeSpoutSenderName(m_senderPrefix, m_cameraId, SharedTextureType::COLOR, m_colorSenderName))
 	{
-		m_logger.log(SharedTextureLogLevel::error, "SharedTextureWriteAccessor::initialize() - Failed to create spout color texture sender name");
+		m_logger.log(SharedTextureLogLevel::error,
+					 "SharedTextureWriteAccessor::initialize() - Failed to create spout color texture sender name");
 		return false;
 	}
 
 	if (descriptor->depth_buffer_type != SharedDepthBufferType::NODEPTH)
 	{
-		if (!makeSpoutSenderName(
-				m_senderPrefix,
-				m_cameraId,
-				SharedTextureType::DEPTH,
-				m_depthSenderName))
+		if (!makeSpoutSenderName(m_senderPrefix, m_cameraId, SharedTextureType::DEPTH, m_depthSenderName))
 		{
-			m_logger.log(SharedTextureLogLevel::error, "SharedTextureWriteAccessor::initialize() - Failed to create spout depth texture sender name");
+			m_logger.log(SharedTextureLogLevel::error,
+						 "SharedTextureWriteAccessor::initialize() - Failed to create spout depth texture sender name");
 			return false;
 		}
 	}
@@ -696,9 +669,9 @@ bool SharedTextureWriteAccessor::initialize(
 	}
 
 	// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
-	if (m_bIsInitialized &&
-		(m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-		 m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
+	if (m_bIsInitialized
+		&& (m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH
+			|| m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
 	{
 		m_renderTargetDescriptor.depth_buffer_type= SharedDepthBufferType::PACK_DEPTH_RGBA;
 	}
@@ -777,10 +750,7 @@ bool SharedTextureWriteAccessor::writeColorFrameTexture(void* apiTexturePtr)
 	return true;
 }
 
-bool SharedTextureWriteAccessor::writeDepthFrameTexture(
-	void* apiTexturePtr,
-	float zNear,
-	float zFar)
+bool SharedTextureWriteAccessor::writeDepthFrameTexture(void* apiTexturePtr, float zNear, float zFar)
 {
 	bool bSuccess= false;
 

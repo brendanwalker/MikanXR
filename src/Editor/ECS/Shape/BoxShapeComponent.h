@@ -73,9 +73,8 @@ public:
 	void closeShape();
 
 protected:
-	virtual void onDefinitionMarkedDirty(
-		CommonConfigPtr configPtr,
-		const ConfigPropertyChangeSet& changedPropertySet) override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
 
 	void updateBoxColliderExtents();
 

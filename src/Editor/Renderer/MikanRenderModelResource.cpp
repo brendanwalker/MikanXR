@@ -8,10 +8,7 @@ MikanRenderModelResource::MikanRenderModelResource(IMkGraphicsContext* ownerGrap
 {
 }
 
-MikanRenderModelResource::~MikanRenderModelResource()
-{
-	disposeMeshRenderResources();
-}
+MikanRenderModelResource::~MikanRenderModelResource() { disposeMeshRenderResources(); }
 
 void MikanRenderModelResource::addTriangulatedMesh(IMkTriangulatedMeshPtr mesh)
 {

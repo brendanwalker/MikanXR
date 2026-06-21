@@ -11,10 +11,8 @@
 
 #include "openvr.h"
 
-MikanSteamVRDeviceMesh::MikanSteamVRDeviceMesh(
-	MikanSteamVRDevice* ownerDevice,
-	const std::string& componentName,
-	const std::string& renderModelName)
+MikanSteamVRDeviceMesh::MikanSteamVRDeviceMesh(MikanSteamVRDevice* ownerDevice, const std::string& componentName,
+											   const std::string& renderModelName)
 	: m_ownerDevice(ownerDevice)
 	, m_componentName(componentName)
 	, m_renderModelName(renderModelName)
@@ -24,33 +22,22 @@ MikanSteamVRDeviceMesh::MikanSteamVRDeviceMesh(
 	m_renderModelResource= resourceManager->fetchRenderModel(m_renderModelName);
 }
 
-const char* MikanSteamVRDeviceMesh::getName() const
-{
-	return m_componentName.c_str();
-}
+const char* MikanSteamVRDeviceMesh::getName() const { return m_componentName.c_str(); }
 
-bool MikanSteamVRDeviceMesh::getMeshState(
-	VRDevicePose& outRelativePose,
-	bool& outIsVisible) const
+bool MikanSteamVRDeviceMesh::getMeshState(VRDevicePose& outRelativePose, bool& outIsVisible) const
 {
 	vr::IVRRenderModels* renderModelInterface= vr::VRRenderModels();
-	const std::string ownerRenderModelName=
-		m_ownerDevice->getProperties()->getRenderModelName();
+	const std::string ownerRenderModelName= m_ownerDevice->getProperties()->getRenderModelName();
 
 	vr::VRControllerState_t* controllerState= nullptr;
 	vr::RenderModel_ComponentState_t componentState= {};
 	vr::RenderModel_ControllerMode_State_t componentModeState= {};
 
-	if (renderModelInterface != nullptr &&
-		renderModelInterface->GetComponentState(
-			ownerRenderModelName.c_str(),
-			m_componentName.c_str(),
-			controllerState,
-			&componentModeState,
-			&componentState))
+	if (renderModelInterface != nullptr
+		&& renderModelInterface->GetComponentState(ownerRenderModelName.c_str(), m_componentName.c_str(),
+												   controllerState, &componentModeState, &componentState))
 	{
-		const glm::mat4 trackingToRenderMat=
-			vr_HmdMatrix34_to_glm_mat4(componentState.mTrackingToComponentRenderModel);
+		const glm::mat4 trackingToRenderMat= vr_HmdMatrix34_to_glm_mat4(componentState.mTrackingToComponentRenderModel);
 
 		outRelativePose= glm_mat4_to_VRDevicePose(trackingToRenderMat);
 		outIsVisible= (componentState.uProperties & (uint32_t)vr::VRComponentProperty_IsVisible) != 0;

@@ -33,10 +33,7 @@ LocalizationManager::LocalizationManager()
 {
 }
 
-LocalizationManager::~LocalizationManager()
-{
-	shutdown();
-}
+LocalizationManager::~LocalizationManager() { shutdown(); }
 
 bool LocalizationManager::startup(AppSettingsConfigPtr appSettings)
 {
@@ -74,10 +71,7 @@ void LocalizationManager::shutdown()
 	unloadLanguages();
 }
 
-const std::string& LocalizationManager::getDefaultLanguage() const
-{
-	return kDefaultLanguage;
-}
+const std::string& LocalizationManager::getDefaultLanguage() const { return kDefaultLanguage; }
 
 t_language_tags LocalizationManager::getSystemLanguage() const
 {
@@ -113,9 +107,7 @@ t_language_tags LocalizationManager::getSystemLanguage() const
 	return result;
 }
 
-void LocalizationManager::loadCSVsFromDirectory(
-	const std::filesystem::path& locFolderPath,
-	bool allowOverwrite)
+void LocalizationManager::loadCSVsFromDirectory(const std::filesystem::path& locFolderPath, bool allowOverwrite)
 {
 	const std::vector<std::string> locFiles= PathUtils::listFilenamesInDirectory(locFolderPath, ".csv");
 
@@ -179,13 +171,15 @@ void LocalizationManager::loadCSVsFromDirectory(
 				}
 				else
 				{
-					MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory") << "Duplicate key \'" << key << "\' in table \'" << tableName << "\'";
+					MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory")
+						<< "Duplicate key \'" << key << "\' in table \'" << tableName << "\'";
 				}
 			}
 		}
 		else
 		{
-			MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory") << "Malformed loc filename: " << locFilePath;
+			MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory")
+				<< "Malformed loc filename: " << locFilePath;
 		}
 	}
 }
@@ -235,8 +229,7 @@ void LocalizationManager::startRemoteFetch()
 	// Use @main so community translation updates reach users without requiring a new build.
 	// Version-pinned tags (e.g. @v1.0.0) are permanently cached by jsDelivr and cannot be
 	// updated after tagging, which would defeat the purpose of remote localization.
-	const std::string baseUrl=
-		"https://cdn.jsdelivr.net/gh/brendanwalker/MikanXR@main/resources/localization";
+	const std::string baseUrl= "https://cdn.jsdelivr.net/gh/brendanwalker/MikanXR@main/resources/localization";
 
 	m_remoteFetcher= std::make_unique<LocalizationRemoteFetcher>(baseUrl, getUserLocalizationCacheDir());
 	m_remoteFetcher->startFetch();
@@ -296,10 +289,7 @@ bool LocalizationManager::setLanguage(const std::string& languageId)
 	return false;
 }
 
-const char* LocalizationManager::fetchUTF8Text(
-	const char* tableName,
-	const char* stringKey,
-	bool* outHasString)
+const char* LocalizationManager::fetchUTF8Text(const char* tableName, const char* stringKey, bool* outHasString)
 {
 	const char* actualTableName= tableName;
 	if (tableName == nullptr || tableName[0] == '\0')
@@ -346,10 +336,7 @@ const char* LocalizationManager::fetchUTF8Text(
 	return result;
 }
 
-const wchar_t* LocalizationManager::fetchUTF16Text(
-	const char* tableName,
-	const char* stringKey,
-	bool* outHasString)
+const wchar_t* LocalizationManager::fetchUTF16Text(const char* tableName, const char* stringKey, bool* outHasString)
 {
 	const char* actualTableName= tableName;
 	if (tableName == nullptr || tableName[0] == '\0')

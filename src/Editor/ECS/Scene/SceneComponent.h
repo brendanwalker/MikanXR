@@ -17,9 +17,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	MikanSceneID getSceneId() const { return getComponentId(); }
 
@@ -78,5 +77,6 @@ public:
 	void refreshActiveCompositors();
 
 protected:
-	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
 };

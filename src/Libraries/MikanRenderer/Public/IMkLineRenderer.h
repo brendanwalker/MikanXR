@@ -18,24 +18,14 @@ public:
 	virtual void shutdown()= 0;
 
 	// Draw 3d points and lines in world space
-	virtual void addPoint3d(
-		const glm::mat4& xform,
-		const glm::vec3& pos, const glm::vec3& color,
-		float size= 1.f)= 0;
-	virtual void addSegment3d(
-		const glm::mat4& xform,
-		const glm::vec3& pos0, const glm::vec3& color0,
-		const glm::vec3& pos1, const glm::vec3& color1,
-		float size0= 1.f, float size1= 1.f)= 0;
+	virtual void addPoint3d(const glm::mat4& xform, const glm::vec3& pos, const glm::vec3& color, float size= 1.f)= 0;
+	virtual void addSegment3d(const glm::mat4& xform, const glm::vec3& pos0, const glm::vec3& color0,
+							  const glm::vec3& pos1, const glm::vec3& color1, float size0= 1.f, float size1= 1.f)= 0;
 
 	// Draw 2d points and lines in screen space [0,w-1]x[0,h-1]
-	virtual void addPoint2d(
-		const glm::vec2& pos, const glm::vec3& color,
-		float size= 1.f)= 0;
-	virtual void addSegment2d(
-		const glm::vec2& pos0, const glm::vec3& color0,
-		const glm::vec2& pos1, const glm::vec3& color1,
-		float size0= 1.f, float size1= 1.f)= 0;
+	virtual void addPoint2d(const glm::vec2& pos, const glm::vec3& color, float size= 1.f)= 0;
+	virtual void addSegment2d(const glm::vec2& pos0, const glm::vec3& color0, const glm::vec2& pos1,
+							  const glm::vec3& color1, float size0= 1.f, float size1= 1.f)= 0;
 };
 
 MIKAN_RENDERER_FUNC(IMkLineRendererPtr) createMkLineRenderer(IMkGraphicsContext* ownerContext);

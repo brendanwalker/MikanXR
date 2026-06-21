@@ -12,10 +12,8 @@
 class MonoLensDistortionCalibrator
 {
 public:
-	MonoLensDistortionCalibrator(
-		MarkerObjectSystemPtr markerObjectSystem,
-		class VideoFrameDistortionView* distortionView,
-		int desiredBoardCount);
+	MonoLensDistortionCalibrator(MarkerObjectSystemPtr markerObjectSystem,
+								 class VideoFrameDistortionView* distortionView, int desiredBoardCount);
 	virtual ~MonoLensDistortionCalibrator();
 
 	inline class CalibrationPatternFinder* getPatternFinder() const { return m_patternFinder; }

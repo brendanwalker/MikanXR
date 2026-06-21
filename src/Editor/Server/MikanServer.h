@@ -45,7 +45,10 @@ public:
 	inline class RemoteControlManager* getRemoteControlManager() const { return m_remoteControlManager; }
 	inline class ShapeRequestHandler* getShapeRequestHandler() const { return m_shapeRequestHandler; }
 	inline class StencilRequestHandler* getStencilRequestHandler() const { return m_stencilRequestHandler; }
-	inline class TextureSourceRequestHandler* getTextureSourceRequestHandler() const { return m_textureSourceRequestHandler; }
+	inline class TextureSourceRequestHandler* getTextureSourceRequestHandler() const
+	{
+		return m_textureSourceRequestHandler;
+	}
 	inline class MarkerRequestHandler* getMarkerRequestHandler() const { return m_markerRequestHandler; }
 	inline class VideoSourceRequestHandler* getVideoSourceRequestHandler() const { return m_videoSourceRequestHandler; }
 

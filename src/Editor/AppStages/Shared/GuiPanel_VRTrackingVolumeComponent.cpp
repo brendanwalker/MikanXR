@@ -7,32 +7,27 @@
 
 GuiPanel_VRTrackingVolumeComponent::GuiPanel_VRTrackingVolumeComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
-	, m_charucoMountDataSource(
-		  ownerAppStage->getProjectManager(),
-		  {{TrackingMountObjectSystem::k_objectSystemClassName,
-			TrackingMountComponent::k_componentClassName}})
-	, m_originMarkerDataSource(
-		  ownerAppStage->getProjectManager(),
-		  {{MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName}})
-	, m_utilityMarkerDataSource(
-		  ownerAppStage->getProjectManager(),
-		  {{MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName}})
+	, m_charucoMountDataSource(ownerAppStage->getProjectManager(), {{TrackingMountObjectSystem::k_objectSystemClassName,
+																	 TrackingMountComponent::k_componentClassName}})
+	, m_originMarkerDataSource(ownerAppStage->getProjectManager(),
+							   {{MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName}})
+	, m_utilityMarkerDataSource(ownerAppStage->getProjectManager(),
+								{{MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName}})
 {
-	m_charucoMountDataSource.setFilter([this](MikanComponentPtr comp) -> bool
-									   {
-		VRTrackingVolumeComponentPtr ownerVolume= getVRTrackingVolumeComponent();
-		if (ownerVolume)
+	m_charucoMountDataSource.setFilter(
+		[this](MikanComponentPtr comp) -> bool
 		{
-			auto trackingMount = std::static_pointer_cast<TrackingMountComponent>(comp);
-			return ownerVolume->ownsTrackingMount(trackingMount->getComponentId());
-		}
-		return false; });
+			VRTrackingVolumeComponentPtr ownerVolume= getVRTrackingVolumeComponent();
+			if (ownerVolume)
+			{
+				auto trackingMount= std::static_pointer_cast<TrackingMountComponent>(comp);
+				return ownerVolume->ownsTrackingMount(trackingMount->getComponentId());
+			}
+			return false;
+		});
 }
 
-bool GuiPanel_VRTrackingVolumeComponent::init()
-{
-	return initTypedPropertyInterface<VRTrackingVolumeComponent>();
-}
+bool GuiPanel_VRTrackingVolumeComponent::init() { return initTypedPropertyInterface<VRTrackingVolumeComponent>(); }
 
 void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 {
@@ -55,8 +50,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_charucoMountIdPropertyId),
-					"Charuco Mount",
-					&m_charucoMountDataSource, selectedIndex))
+					"Charuco Mount", &m_charucoMountDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -64,8 +58,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 					if (comp)
 					{
 						const int newId= comp->getComponentId();
-						addDeferredGuiEvent([volumeDef, newId]()
-											{ volumeDef->setCharucoTrackingMountId(newId); });
+						addDeferredGuiEvent([volumeDef, newId]() { volumeDef->setCharucoTrackingMountId(newId); });
 					}
 				}
 			}
@@ -89,8 +82,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_originMarkerIdPropertyId),
-					"Origin Marker",
-					&m_originMarkerDataSource, selectedIndex))
+					"Origin Marker", &m_originMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -98,8 +90,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 					if (comp)
 					{
 						const int newId= comp->getComponentId();
-						addDeferredGuiEvent([volumeDef, newId]()
-											{ volumeDef->setOriginMarkerId(newId); });
+						addDeferredGuiEvent([volumeDef, newId]() { volumeDef->setOriginMarkerId(newId); });
 					}
 				}
 			}
@@ -123,8 +114,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId),
-					"Utility Marker",
-					&m_utilityMarkerDataSource, selectedIndex))
+					"Utility Marker", &m_utilityMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -132,8 +122,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 					if (comp)
 					{
 						const int newId= comp->getComponentId();
-						addDeferredGuiEvent([volumeDef, newId]()
-											{ volumeDef->setUtilityMarkerId(newId); });
+						addDeferredGuiEvent([volumeDef, newId]() { volumeDef->setUtilityMarkerId(newId); });
 					}
 				}
 			}
@@ -141,10 +130,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 		});
 }
 
-void GuiPanel_VRTrackingVolumeComponent::onGui()
-{
-	GuiPanel_MikanComponent::onGui();
-}
+void GuiPanel_VRTrackingVolumeComponent::onGui() { GuiPanel_MikanComponent::onGui(); }
 
 VRTrackingVolumeComponentPtr GuiPanel_VRTrackingVolumeComponent::getVRTrackingVolumeComponent() const
 {

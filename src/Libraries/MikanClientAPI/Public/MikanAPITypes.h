@@ -52,8 +52,7 @@ enum class ENUM(Serialization::CodeGenModule("MikanAPITypes")) MikanAPIResult
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
-#define MIKAN_TYPE_INFO_INIT(classPrefix, className) \
-	classPrefix##TypeName= className::staticGetArchetype().getName();
+#define MIKAN_TYPE_INFO_INIT(classPrefix, className) classPrefix##TypeName= className::staticGetArchetype().getName();
 
 #define MIKAN_EVENT_TYPE_INFO_INIT(className) MIKAN_TYPE_INFO_INIT(event, className)
 #define MIKAN_REQUEST_TYPE_INFO_INIT(className) MIKAN_TYPE_INFO_INIT(request, className)
@@ -67,16 +66,11 @@ enum class ENUM(Serialization::CodeGenModule("MikanAPITypes")) MikanAPIResult
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequest
 {
-	MikanRequest()
-	{
-		MIKAN_TYPE_INFO_INIT(request, MikanRequest)
-	}
+	MikanRequest() { MIKAN_TYPE_INFO_INIT(request, MikanRequest) }
 	virtual ~MikanRequest() {} // Virtual destructor for RTTI
 
-	FIELD()
-	Serialization::String requestTypeName;
-	FIELD()
-	MikanRequestID requestId= -1;
+	FIELD() Serialization::String requestTypeName;
+	FIELD() MikanRequestID requestId= -1;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRequest_GENERATED
@@ -85,18 +79,12 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequ
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanResponse
 {
-	MikanResponse()
-	{
-		MIKAN_TYPE_INFO_INIT(response, MikanResponse)
-	}
+	MikanResponse() { MIKAN_TYPE_INFO_INIT(response, MikanResponse) }
 	virtual ~MikanResponse() {} // Virtual destructor for RTTI
 
-	FIELD()
-	Serialization::String responseTypeName;
-	FIELD()
-	MikanRequestID requestId= INVALID_MIKAN_ID;
-	FIELD()
-	MikanAPIResult resultCode= MikanAPIResult::Success;
+	FIELD() Serialization::String responseTypeName;
+	FIELD() MikanRequestID requestId= INVALID_MIKAN_ID;
+	FIELD() MikanAPIResult resultCode= MikanAPIResult::Success;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanResponse_GENERATED
@@ -105,14 +93,10 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanResp
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanEvent
 {
-	MikanEvent()
-	{
-		MIKAN_TYPE_INFO_INIT(event, MikanEvent)
-	}
+	MikanEvent() { MIKAN_TYPE_INFO_INIT(event, MikanEvent) }
 	virtual ~MikanEvent() {} // Virtual destructor for RTTI
 
-	FIELD()
-	Serialization::String eventTypeName;
+	FIELD() Serialization::String eventTypeName;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanEvent_GENERATED

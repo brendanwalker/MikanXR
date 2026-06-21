@@ -2,11 +2,8 @@
 
 #include <sstream>
 
-bool makeSpoutSenderName(
-	const std::string prefix,
-	MikanCameraID camera_id,
-	SharedTextureType buffer_type,
-	std::string& outSenderName)
+bool makeSpoutSenderName(const std::string prefix, MikanCameraID camera_id, SharedTextureType buffer_type,
+						 std::string& outSenderName)
 {
 	std::string buffer_name;
 	switch (buffer_type)

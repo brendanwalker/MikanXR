@@ -4,8 +4,7 @@
 #include "backends/imgui_impl_sdl.h"
 #include "backends/imgui_impl_opengl3.h"
 
-MkGuiScopedUpdate::MkGuiScopedUpdate(
-	MkGuiContext& context)
+MkGuiScopedUpdate::MkGuiScopedUpdate(MkGuiContext& context)
 	: MkGuiScopedContext(context)
 {
 	// Tell ImGui to prepare for a new frame

@@ -55,16 +55,12 @@ public:
 	virtual DelegateFree* Clone() const { return new DelegateFree(*this); }
 
 	/// Invoke the bound delegate function.
-	virtual RetType operator()(Args... args)
-	{
-		return std::invoke(m_func, args...);
-	}
+	virtual RetType operator()(Args... args) { return std::invoke(m_func, args...); }
 
 	virtual bool operator==(const DelegateBase& rhs) const
 	{
 		const DelegateFree<RetType(Args...)>* derivedRhs= dynamic_cast<const DelegateFree<RetType(Args...)>*>(&rhs);
-		return derivedRhs &&
-			   m_func == derivedRhs->m_func;
+		return derivedRhs && m_func == derivedRhs->m_func;
 	}
 
 	bool Empty() const { return !m_func; }
@@ -112,17 +108,13 @@ public:
 	virtual DelegateMember* Clone() const { return new DelegateMember(*this); }
 
 	// Invoke the bound delegate function
-	virtual RetType operator()(Args... args)
-	{
-		return std::invoke(m_func, m_object, args...);
-	}
+	virtual RetType operator()(Args... args) { return std::invoke(m_func, m_object, args...); }
 
 	virtual bool operator==(const DelegateBase& rhs) const
 	{
-		const DelegateMember<TClass, RetType(Args...)>* derivedRhs= dynamic_cast<const DelegateMember<TClass, RetType(Args...)>*>(&rhs);
-		return derivedRhs &&
-			   m_func == derivedRhs->m_func &&
-			   m_object == derivedRhs->m_object;
+		const DelegateMember<TClass, RetType(Args...)>* derivedRhs=
+			dynamic_cast<const DelegateMember<TClass, RetType(Args...)>*>(&rhs);
+		return derivedRhs && m_func == derivedRhs->m_func && m_object == derivedRhs->m_object;
 	}
 
 	bool Empty() const { return !(m_object && m_func); }

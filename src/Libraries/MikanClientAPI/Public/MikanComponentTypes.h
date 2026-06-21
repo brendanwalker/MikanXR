@@ -17,10 +17,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanComponentTypes")) Mik
 	: public Serialization::PolymorphicStruct
 {
 	FIELD() int component_id= INVALID_MIKAN_ID;
-	FIELD()
-	Serialization::String component_name;
-	FIELD()
-	Serialization::String component_script;
+	FIELD() Serialization::String component_name;
+	FIELD() Serialization::String component_script;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanComponentValues_GENERATED

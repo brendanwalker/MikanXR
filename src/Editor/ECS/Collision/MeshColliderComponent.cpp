@@ -51,9 +51,8 @@ bool MeshColliderComponent::getBoundingSphere(glm::vec3& outCenter, float& outRa
 	return true;
 }
 
-bool MeshColliderComponent::computeRayIntersection(
-	const ColliderRaycastHitRequest& request,
-	ColliderRaycastHitResult& outResult) const
+bool MeshColliderComponent::computeRayIntersection(const ColliderRaycastHitRequest& request,
+												   ColliderRaycastHitResult& outResult) const
 {
 	if (!m_bEnabled || !m_kdTree)
 		return false;
@@ -76,16 +75,11 @@ bool MeshColliderComponent::computeRayIntersection(
 		outResult.hitNormal= worldXform * glm::vec4(kdTreeResult.normal, 0.f);
 		outResult.hitDistance= glm::distance(request.rayOrigin, outResult.hitLocation);
 		outResult.hitPriority= m_priority;
-		outResult.hitComponent=
-			std::const_pointer_cast<ColliderComponent>(
-				getSelfPtr<const ColliderComponent>());
+		outResult.hitComponent= std::const_pointer_cast<ColliderComponent>(getSelfPtr<const ColliderComponent>());
 
 		// Compute closest vertex to the collision point in the local space of the mesh
 		glm::vec3 localClosestVertex;
-		if (m_kdTree->computeClosestVertex(
-				kdTreeResult.position,
-				kdTreeResult.triangleIndex,
-				localClosestVertex))
+		if (m_kdTree->computeClosestVertex(kdTreeResult.position, kdTreeResult.triangleIndex, localClosestVertex))
 		{
 			outResult.closestVertexLocal= localClosestVertex;
 			outResult.closestVertexWorld= worldXform * glm::vec4(localClosestVertex, 1.f);

@@ -51,7 +51,8 @@ struct WMFDeviceInfo
 {
 	int wmfDeviceIndex;
 	std::string deviceFriendlyName; // utf-8 string
-	std::string deviceSymbolicLink; // can be passed in as the value of the DevicePath argument of the SetupDiOpenDeviceInterface function.
+	std::string deviceSymbolicLink; // can be passed in as the value of the DevicePath argument of the
+									// SetupDiOpenDeviceInterface function.
 	std::string uniqueIdentifier;
 	unsigned int usbVendorId;
 	unsigned int usbProductId;
@@ -69,7 +70,6 @@ struct WMFDeviceInfo
 	}
 
 	int findDeviceFormatByName(const std::string& format_name) const;
-	int findBestDeviceFormatIndex(
-		unsigned int width, unsigned int height,
-		unsigned int frameRate, const char* buffer_format) const;
+	int findBestDeviceFormatIndex(unsigned int width, unsigned int height, unsigned int frameRate,
+								  const char* buffer_format) const;
 };

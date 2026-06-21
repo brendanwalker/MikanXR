@@ -8,13 +8,15 @@ UseTab: ForContinuationAndIndentation
 TabWidth: 4
 IndentWidth: 4
 BreakBeforeBraces: Allman
+BreakBeforeBinaryOperators: NonAssignment
+BreakTemplateDeclarations: Yes
 AccessModifierOffset: -4
 AllowShortFunctionsOnASingleLine: All
 AllowShortBlocksOnASingleLine: Empty
 PointerAlignment: Left
 ReferenceAlignment: Left
 SpaceBeforeAssignmentOperators: false
-ColumnLimit: 0
+ColumnLimit: 120
 BreakConstructorInitializers: BeforeComma
 SortIncludes: false
 # Refureku (rfk) reflection annotation macros. Treating them as attributes

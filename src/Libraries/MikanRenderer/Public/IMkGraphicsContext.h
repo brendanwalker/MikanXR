@@ -49,6 +49,4 @@ public:
 	virtual IMkTextureCache* getTextureCache()= 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkGraphicsContextPtr) createMkGraphicsContext(
-	eGraphicsAPI api,
-	class IMkFontManager* fontManager);
+MIKAN_RENDERER_FUNC(IMkGraphicsContextPtr) createMkGraphicsContext(eGraphicsAPI api, class IMkFontManager* fontManager);

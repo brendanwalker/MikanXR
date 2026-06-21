@@ -15,10 +15,7 @@ public:
 	MikanModule(const std::string& moduleName);
 	~MikanModule();
 
-	inline IMikanModule* getModuleInterface() const
-	{
-		return m_moduleInterface;
-	}
+	inline IMikanModule* getModuleInterface() const { return m_moduleInterface; }
 
 	bool load();
 	void unload();

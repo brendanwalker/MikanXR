@@ -10,13 +10,12 @@
 #include "MikanPropertyEvents.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyEvents")) MikanPropertyUpdateEvent : public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyEvents")) MikanPropertyUpdateEvent
+	: public MikanEvent
 {
-	MikanPropertyUpdateEvent(){
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanPropertyUpdateEvent)}
+	MikanPropertyUpdateEvent(){MIKAN_EVENT_TYPE_INFO_INIT(MikanPropertyUpdateEvent)}
 
-	FIELD()
-	MikanPropertyValue propertyValue;
+	FIELD() MikanPropertyValue propertyValue;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanPropertyUpdateEvent_GENERATED

@@ -22,9 +22,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	inline MikanMarkerID getMarkerId() const { return getComponentId(); }
 
@@ -75,10 +74,8 @@ public:
 
 	// -- Rendering ----
 	IMkTexturePtr getMarkerTexture(class IMkGraphicsContext* graphicsContext);
-	void renderArucoMarker(
-		class IMkGraphicsContext* graphicsContext,
-		IMkCameraConstPtr camera,
-		const glm::mat4& transform);
+	void renderArucoMarker(class IMkGraphicsContext* graphicsContext, IMkCameraConstPtr camera,
+						   const glm::mat4& transform);
 
 private:
 	void ensureMarkerResources(class IMkGraphicsContext* graphicsContext);

@@ -52,8 +52,10 @@ private:
 	void addTransformComponent(TransformComponentPtr transformComponentPtr, int depth);
 
 	// Delegate handlers
-	void onAnchorSystemConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
-	void onStencilSystemConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+	void onAnchorSystemConfigChanged(CommonConfigPtr configPtr,
+									 const class ConfigPropertyChangeSet& changedPropertySet);
+	void onStencilSystemConfigChanged(CommonConfigPtr configPtr,
+									  const class ConfigPropertyChangeSet& changedPropertySet);
 	void onShapeSystemConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void onObjectInitialized(MikanObjectSystemPtr objectSystemPtr, MikanObjectPtr objectPtr);
 	void onObjectDisposed(MikanObjectSystemPtr objectSystemPtr, MikanObjectConstPtr objectPtr);

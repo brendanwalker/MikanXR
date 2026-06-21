@@ -13,14 +13,11 @@
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanConnectedEvent : public MikanEvent
 {
-	MikanConnectedEvent(){
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanConnectedEvent)}
+	MikanConnectedEvent(){MIKAN_EVENT_TYPE_INFO_INIT(MikanConnectedEvent)}
 
-	FIELD()
-	MikanClientAPIVersion serverVersion;
+	FIELD() MikanClientAPIVersion serverVersion;
 
-	FIELD()
-	MikanClientAPIVersion minClientVersion;
+	FIELD() MikanClientAPIVersion minClientVersion;
 
 	FIELD() bool isClientCompatible= false;
 
@@ -31,14 +28,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientEvents")) Mikan
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientEvents")) MikanDisconnectedEvent : public MikanEvent
 {
-	MikanDisconnectedEvent(){
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanDisconnectedEvent)}
+	MikanDisconnectedEvent(){MIKAN_EVENT_TYPE_INFO_INIT(MikanDisconnectedEvent)}
 
-	FIELD()
-	MikanDisconnectCode code= MikanDisconnectCode::MikanDisconnectCode_Normal;
+	FIELD() MikanDisconnectCode code= MikanDisconnectCode::MikanDisconnectCode_Normal;
 
-	FIELD()
-	Serialization::String reason;
+	FIELD() Serialization::String reason;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDisconnectedEvent_GENERATED

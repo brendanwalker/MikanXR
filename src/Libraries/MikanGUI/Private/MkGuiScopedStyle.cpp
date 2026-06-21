@@ -49,7 +49,4 @@ MkGuiScopedStyle::MkGuiScopedStyle(MkGuiStyleConstPtr style)
 	}
 }
 
-MkGuiScopedStyle::~MkGuiScopedStyle()
-{
-	delete m_impl;
-}
+MkGuiScopedStyle::~MkGuiScopedStyle() { delete m_impl; }

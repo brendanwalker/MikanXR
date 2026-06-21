@@ -14,14 +14,10 @@ public:
 	}
 
 	void sendRemoteControlEvent(const std::string& event);
-	void sendRemoteControlEvent(
-		const std::string& event,
-		const std::vector<std::string>& parameters);
+	void sendRemoteControlEvent(const std::string& event, const std::vector<std::string>& parameters);
 
-	virtual bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults);
+	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+											std::vector<std::string>& outResults);
 
 	static const std::string k_success;
 	static const std::string k_failure;

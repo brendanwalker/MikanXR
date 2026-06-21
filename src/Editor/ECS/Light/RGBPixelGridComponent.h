@@ -19,9 +19,8 @@ public:
 
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_gridColumnsPropertyId;
 	int getColumns() const { return m_columns; }
@@ -48,9 +47,7 @@ public:
 	RGBPixelGridComponent(MikanObjectWeakPtr owner);
 
 	virtual void init() override;
-	virtual void customRender(
-		IMkGraphicsContext* graphicsContext,
-		MikanCameraPtr viewportCamera) const override;
+	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 
 	inline static const std::string k_componentClassName= "RGBPixelGridComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
@@ -99,9 +96,8 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	virtual void onDefinitionMarkedDirty(
-		CommonConfigPtr configPtr,
-		const ConfigPropertyChangeSet& changedPropertySet) override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
 	void resizePixelDataBuffer();
 
 protected:

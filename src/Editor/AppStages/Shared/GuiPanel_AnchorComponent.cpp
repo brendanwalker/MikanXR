@@ -24,10 +24,7 @@ GuiPanel_AnchorComponent::GuiPanel_AnchorComponent(AppStage* ownerAppStage)
 {
 }
 
-bool GuiPanel_AnchorComponent::init()
-{
-	return initTypedPropertyInterface<AnchorComponent>();
-}
+bool GuiPanel_AnchorComponent::init() { return initTypedPropertyInterface<AnchorComponent>(); }
 
 void GuiPanel_AnchorComponent::onConstruct()
 {
@@ -35,8 +32,7 @@ void GuiPanel_AnchorComponent::onConstruct()
 		TransformComponentDefinition::k_parentTransformIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			AnchorComponentPtr anchorComp=
-				std::static_pointer_cast<AnchorComponent>(getComponent());
+			AnchorComponentPtr anchorComp= std::static_pointer_cast<AnchorComponent>(getComponent());
 			if (!anchorComp)
 				return false;
 
@@ -45,22 +41,19 @@ void GuiPanel_AnchorComponent::onConstruct()
 				return false;
 
 			const MikanTransformID parentTransformId= anchorComp->getParentTransformId();
-			int selectedIndex=
-				m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
+			int selectedIndex= m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					anchorComp->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
-					"Parent",
-					&m_parentTransformDataSource,
-					selectedIndex))
+					"Parent", &m_parentTransformDataSource, selectedIndex))
 			{
 				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
 				if (newParent)
 				{
-					addDeferredGuiEvent([anchorComp, newParent]()
-										{ anchorComp->getAnchorDefinition()->setParentTransformId(
-											  newParent->getComponentId()); });
+					addDeferredGuiEvent(
+						[anchorComp, newParent]()
+						{ anchorComp->getAnchorDefinition()->setParentTransformId(newParent->getComponentId()); });
 				}
 			}
 			return true;

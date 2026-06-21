@@ -18,11 +18,8 @@ struct MikanFunctionEntry
 	std::string componentClassName;
 	FunctionDescriptorConstPtr descriptor;
 
-	MikanFunctionEntry(
-		int inPropertyIndex,
-		const std::string& inSystemName,
-		const std::string& inComponentClassName,
-		FunctionDescriptorConstPtr inDescriptor)
+	MikanFunctionEntry(int inPropertyIndex, const std::string& inSystemName, const std::string& inComponentClassName,
+					   FunctionDescriptorConstPtr inDescriptor)
 		: propertyIndex(inPropertyIndex)
 		, systemName(inSystemName)
 		, componentClassName(inComponentClassName)
@@ -56,37 +53,28 @@ public:
 
 		for (const FunctionDescriptorConstPtr& descriptor : descriptors)
 		{
-			registerFunction(
-				t_system_class::k_objectSystemClassName,
-				t_component_class::k_componentClassName,
-				descriptor);
+			registerFunction(t_system_class::k_objectSystemClassName, t_component_class::k_componentClassName,
+							 descriptor);
 		}
 	}
 
 	void clear();
-	void registerFunction(
-		const std::string& systemName,
-		const std::string& componentClassName,
-		FunctionDescriptorConstPtr descriptor);
+	void registerFunction(const std::string& systemName, const std::string& componentClassName,
+						  FunctionDescriptorConstPtr descriptor);
 
 	const std::vector<MikanFunctionEntry>& getAllFunctions() const { return m_functions; }
 
-	int findFunctionIndex(
-		const std::string& systemName,
-		const std::string& componentClassName,
-		const std::string& functionName) const;
+	int findFunctionIndex(const std::string& systemName, const std::string& componentClassName,
+						  const std::string& functionName) const;
 	const MikanFunctionEntry* getFunctionByIndex(int functionIndex) const;
 
-	FunctionDescriptorConstPtr findFunctionDescriptor(
-		const std::string& systemName,
-		const std::string& componentClassName,
-		const std::string& functionName) const;
+	FunctionDescriptorConstPtr findFunctionDescriptor(const std::string& systemName,
+													  const std::string& componentClassName,
+													  const std::string& functionName) const;
 
 private:
-	static std::string makeFunctionKey(
-		const std::string& systemName,
-		const std::string& componentClassName,
-		const std::string& functionName);
+	static std::string makeFunctionKey(const std::string& systemName, const std::string& componentClassName,
+									   const std::string& functionName);
 
 private:
 	std::vector<MikanFunctionEntry> m_functions;

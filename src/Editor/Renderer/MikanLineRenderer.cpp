@@ -17,42 +17,26 @@
 
 #include "glm/ext/matrix_clip_space.hpp"
 
-void drawPoint(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform,
-	const glm::vec3& point,
-	const glm::vec3& color,
-	const float size)
+void drawPoint(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& point,
+			   const glm::vec3& color, const float size)
 {
 	graphicsContext->getLineRenderer()->addPoint3d(transform, point, color, size);
 }
 
-void drawSegment(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform,
-	const glm::vec3& start,
-	const glm::vec3& end,
-	const glm::vec3& color)
+void drawSegment(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& start,
+				 const glm::vec3& end, const glm::vec3& color)
 {
 	graphicsContext->getLineRenderer()->addSegment3d(transform, start, color, end, color);
 }
 
-void drawSegment(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform,
-	const glm::vec3& start, const glm::vec3& end,
-	const glm::vec3& colorStart, const glm::vec3& colorEnd)
+void drawSegment(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& start,
+				 const glm::vec3& end, const glm::vec3& colorStart, const glm::vec3& colorEnd)
 {
 	graphicsContext->getLineRenderer()->addSegment3d(transform, start, colorStart, end, colorEnd);
 }
 
-void drawArrow(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform,
-	const glm::vec3& start,
-	const glm::vec3& end,
-	const float headFraction,
-	const glm::vec3& color)
+void drawArrow(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& start,
+			   const glm::vec3& end, const float headFraction, const glm::vec3& color)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -91,25 +75,16 @@ void drawTransformedAxes(IMkGraphicsContext* graphicsContext, const glm::mat4& t
 	drawTransformedAxes(graphicsContext, transform, scale, scale, scale, drawLabels);
 }
 
-void drawTransformedAxes(IMkGraphicsContext* graphicsContext,
-						 const glm::mat4& transform,
-						 float xScale, float yScale, float zScale,
-						 bool drawLabels)
+void drawTransformedAxes(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float xScale, float yScale,
+						 float zScale, bool drawLabels)
 {
-	drawTransformedAxes(
-		graphicsContext,
-		transform,
-		xScale, yScale, zScale,
-		Colors::Red, Colors::Green, Colors::Blue,
-		drawLabels);
+	drawTransformedAxes(graphicsContext, transform, xScale, yScale, zScale, Colors::Red, Colors::Green, Colors::Blue,
+						drawLabels);
 }
 
-void drawTransformedAxes(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform,
-	float xScale, float yScale, float zScale,
-	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor,
-	bool drawLabels)
+void drawTransformedAxes(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float xScale, float yScale,
+						 float zScale, const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor,
+						 bool drawLabels)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -125,22 +100,14 @@ void drawTransformedAxes(
 	if (drawLabels)
 	{
 		TextStyle style= getDefaultTextStyle();
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, glm::vec3(transform * glm::vec4(xAxis, 1.0f)), L"X");
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, glm::vec3(transform * glm::vec4(yAxis, 1.0f)), L"Y");
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, glm::vec3(transform * glm::vec4(zAxis, 1.0f)), L"Z");
+		drawTextAtWorldPosition(graphicsContext, style, glm::vec3(transform * glm::vec4(xAxis, 1.0f)), L"X");
+		drawTextAtWorldPosition(graphicsContext, style, glm::vec3(transform * glm::vec4(yAxis, 1.0f)), L"Y");
+		drawTextAtWorldPosition(graphicsContext, style, glm::vec3(transform * glm::vec4(zAxis, 1.0f)), L"Z");
 	}
 }
 
-void drawTransformedCircle(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform, float radius, const glm::vec3& color,
-	int segmentCount)
+void drawTransformedCircle(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float radius,
+						   const glm::vec3& color, int segmentCount)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -166,14 +133,8 @@ void drawTransformedCircle(
 	}
 }
 
-void drawTransformedSpiralArc(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform,
-	float radius,
-	float radiusFractionPerCircle,
-	float totalAngle,
-	const glm::vec3& color,
-	int segmentCount)
+void drawTransformedSpiralArc(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float radius,
+							  float radiusFractionPerCircle, float totalAngle, const glm::vec3& color, int segmentCount)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -217,9 +178,8 @@ void drawTransformedSpiralArc(
 	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
 }
 
-void drawGrid(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform, float xSize, float zSize, int xSubDiv, int zSubDiv, const glm::vec3& color)
+void drawGrid(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float xSize, float zSize, int xSubDiv,
+			  int zSubDiv, const glm::vec3& color)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -238,9 +198,8 @@ void drawGrid(
 	}
 }
 
-void drawTransformedQuad(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform, float xSize, float ySize, const glm::vec3& color)
+void drawTransformedQuad(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float xSize, float ySize,
+						 const glm::vec3& color)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -255,9 +214,8 @@ void drawTransformedQuad(
 	lineRenderer->addSegment3d(transform, p3, color, p0, color);
 }
 
-void drawTransformedTriangle(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform, const GlmTriangle& tri, const glm::vec3& color)
+void drawTransformedTriangle(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const GlmTriangle& tri,
+							 const glm::vec3& color)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -266,16 +224,14 @@ void drawTransformedTriangle(
 	lineRenderer->addSegment3d(transform, tri.v2, color, tri.v0, color);
 }
 
-void drawTransformedBox(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform, const glm::vec3& half_extents, const glm::vec3& color)
+void drawTransformedBox(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& half_extents,
+						const glm::vec3& color)
 {
 	drawTransformedBox(graphicsContext, transform, -half_extents, half_extents, color);
 }
 
-void drawTransformedBox(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform, const glm::vec3& box_min, const glm::vec3& box_max, const glm::vec3& color)
+void drawTransformedBox(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& box_min,
+						const glm::vec3& box_max, const glm::vec3& color)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -304,14 +260,8 @@ void drawTransformedBox(
 	lineRenderer->addSegment3d(transform, v3, color, v7, color);
 }
 
-void drawTransformedFrustum(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform,
-	const float hfov_radians,
-	const float vfov_radians,
-	const float zNear,
-	const float zFar,
-	const glm::vec3& color)
+void drawTransformedFrustum(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const float hfov_radians,
+							const float vfov_radians, const float zNear, const float zFar, const glm::vec3& color)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 

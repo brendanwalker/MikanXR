@@ -25,8 +25,7 @@ public:
 	std::shared_ptr<t_system_config_type> addTypedDefinition(IEntityIDAllocatorPtr idAllocator)
 	{
 		std::shared_ptr<t_system_config_type> newConfig=
-			std::make_shared<t_system_config_type>(
-				t_system_type::k_objectSystemClassName, idAllocator);
+			std::make_shared<t_system_config_type>(t_system_type::k_objectSystemClassName, idAllocator);
 		addChildConfig(newConfig);
 		return newConfig;
 	}

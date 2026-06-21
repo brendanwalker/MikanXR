@@ -33,10 +33,8 @@ protected:
 
 	static void binaryResponseHandlerStatic(const uint8_t* buffer, size_t bufferSize, void* userdata);
 	void binaryResponseHander(const uint8_t* buffer, size_t bufferSize);
-	MikanResponsePtr parseResponseBinaryReader(
-		const MikanResponse& requestHeader,
-		const uint8_t* buffer,
-		size_t bufferSize);
+	MikanResponsePtr parseResponseBinaryReader(const MikanResponse& requestHeader, const uint8_t* buffer,
+											   size_t bufferSize);
 
 private:
 	struct PendingRequest

@@ -15,9 +15,8 @@ public:
 	using ComponentFilter= std::function<bool(MikanComponentPtr)>;
 	using DisplayStringBuilder= std::function<std::string(MikanComponentPtr)>;
 
-	GuiDataSource_ComboBox(
-		ProjectManagerPtr projectManager,
-		const std::vector<SystemComponentPair>& systemNameComponentPairs);
+	GuiDataSource_ComboBox(ProjectManagerPtr projectManager,
+						   const std::vector<SystemComponentPair>& systemNameComponentPairs);
 
 	void setFilter(ComponentFilter filter);
 	void setDisplayStringBuilder(DisplayStringBuilder builder);

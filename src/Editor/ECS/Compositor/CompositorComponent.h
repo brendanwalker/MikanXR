@@ -36,9 +36,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	MikanCompositorID getCompositorId() const { return getComponentId(); }
 
@@ -103,10 +102,7 @@ public:
 	{
 		return std::static_pointer_cast<CompositorDefinition>(m_definition);
 	}
-	inline MikanCompositorID getCompositorId() const
-	{
-		return getCompositorDefinition()->getCompositorId();
-	}
+	inline MikanCompositorID getCompositorId() const { return getCompositorDefinition()->getCompositorId(); }
 
 	IMkTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
 	IMkTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;

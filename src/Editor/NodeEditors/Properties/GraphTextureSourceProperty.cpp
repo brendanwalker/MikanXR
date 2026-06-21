@@ -26,10 +26,8 @@
 class TextureSourceComboDataSource : public NodeEditorUI::ComboBoxDataSource
 {
 public:
-	TextureSourceComboDataSource(
-		NodeGraphPtr ownerGraph,
-		TextureSourceComponentPtr textureSourceComponent,
-		eTextureSourceType textureSourceType)
+	TextureSourceComboDataSource(NodeGraphPtr ownerGraph, TextureSourceComponentPtr textureSourceComponent,
+								 eTextureSourceType textureSourceType)
 	{
 		if (!ownerGraph)
 		{
@@ -44,8 +42,7 @@ public:
 		{
 			auto cefTextureSourceSystem= ownerGraph->getObjectSystemOfType<CEFTextureSourceSystem>();
 			for (auto it= cefTextureSourceSystem->getComponentMap().begin();
-				 it != cefTextureSourceSystem->getComponentMap().end();
-				 it++)
+				 it != cefTextureSourceSystem->getComponentMap().end(); it++)
 			{
 				auto textureSourcePtr= it->second.lock();
 				if (textureSourcePtr == textureSourceComponent)
@@ -61,8 +58,7 @@ public:
 		{
 			auto clientTextureSourceSystem= ownerGraph->getObjectSystemOfType<ClientTextureSourceSystem>();
 			for (auto it= clientTextureSourceSystem->getComponentMap().begin();
-				 it != clientTextureSourceSystem->getComponentMap().end();
-				 it++)
+				 it != clientTextureSourceSystem->getComponentMap().end(); it++)
 			{
 				auto textureSourcePtr= it->second.lock();
 				if (textureSourcePtr == textureSourceComponent)
@@ -78,8 +74,7 @@ public:
 		{
 			auto modelTextureSourceSystem= ownerGraph->getObjectSystemOfType<SpoutTextureSourceSystem>();
 			for (auto it= modelTextureSourceSystem->getComponentMap().begin();
-				 it != modelTextureSourceSystem->getComponentMap().end();
-				 it++)
+				 it != modelTextureSourceSystem->getComponentMap().end(); it++)
 			{
 				auto textureSourcePtr= it->second.lock();
 				if (textureSourcePtr == textureSourceComponent)
@@ -96,10 +91,7 @@ public:
 		}
 	}
 
-	inline int getCurrentTextureSourceIndex() const
-	{
-		return textureSourceSourceIndex;
-	}
+	inline int getCurrentTextureSourceIndex() const { return textureSourceSourceIndex; }
 
 	inline TextureSourceComponentPtr getEntryTextureSource(int index)
 	{
@@ -108,10 +100,7 @@ public:
 		return comboEntries[index].TextureSource;
 	}
 
-	virtual int getEntryCount() override
-	{
-		return (int)comboEntries.size();
-	}
+	virtual int getEntryCount() override { return (int)comboEntries.size(); }
 
 	virtual const std::string& getEntryDisplayString(int index) override
 	{
@@ -135,10 +124,9 @@ configuru::Config GraphTextureSourcePropertyConfig::writeToJSON()
 {
 	configuru::Config pt= GraphPropertyConfig::writeToJSON();
 
-	pt["texture_source_type"]=
-		(textureSourceType != eTextureSourceType::INVALID)
-			? k_textureSourceTypeStrings[(int)textureSourceType]
-			: k_textureSourceTypeStrings[(int)eTextureSourceType::spout];
+	pt["texture_source_type"]= (textureSourceType != eTextureSourceType::INVALID)
+								   ? k_textureSourceTypeStrings[(int)textureSourceType]
+								   : k_textureSourceTypeStrings[(int)eTextureSourceType::spout];
 	pt["texture_source_name"]= textureSourceName;
 
 	return pt;
@@ -147,27 +135,24 @@ configuru::Config GraphTextureSourcePropertyConfig::writeToJSON()
 void GraphTextureSourcePropertyConfig::readFromJSON(const configuru::Config& pt)
 {
 	const std::string textureSourceTypeString=
-		pt.get_or<std::string>(
-			"texture_source_type",
-			k_textureSourceTypeStrings[(int)eTextureSourceType::spout]);
+		pt.get_or<std::string>("texture_source_type", k_textureSourceTypeStrings[(int)eTextureSourceType::spout]);
 	textureSourceType=
-		StringUtils::FindEnumValue<eTextureSourceType>(
-			textureSourceTypeString,
-			k_textureSourceTypeStrings);
+		StringUtils::FindEnumValue<eTextureSourceType>(textureSourceTypeString, k_textureSourceTypeStrings);
 	textureSourceName= pt.get_or<std::string>("texture_source_name", "");
 
 	GraphPropertyConfig::readFromJSON(pt);
 }
 
 // -- GraphTextureSourceProperty -----
-bool GraphTextureSourceProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphTextureSourceProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig,
+												const NodeGraphConfig& graphConfig)
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto& textureSourcePropConfig= std::static_pointer_cast<const GraphTextureSourcePropertyConfig>(propConfig);
-		if (!textureSourcePropConfig->textureSourceName.empty() && textureSourcePropConfig->textureSourceType != eTextureSourceType::INVALID)
+		const auto& textureSourcePropConfig=
+			std::static_pointer_cast<const GraphTextureSourcePropertyConfig>(propConfig);
+		if (!textureSourcePropConfig->textureSourceName.empty()
+			&& textureSourcePropConfig->textureSourceType != eTextureSourceType::INVALID)
 		{
 			switch (textureSourcePropConfig->textureSourceType)
 			{
@@ -175,8 +160,7 @@ bool GraphTextureSourceProperty::loadFromConfig(
 			{
 				auto cefTextureSourceSystem= getOwnerGraph()->getObjectSystemOfType<CEFTextureSourceSystem>();
 				setTextureSourceComponent(
-					cefTextureSourceSystem->getTypedComponentByName(
-						textureSourcePropConfig->textureSourceName));
+					cefTextureSourceSystem->getTypedComponentByName(textureSourcePropConfig->textureSourceName));
 				m_textureSourceType= eTextureSourceType::cef;
 			}
 			break;
@@ -184,8 +168,7 @@ bool GraphTextureSourceProperty::loadFromConfig(
 			{
 				auto clientTextureSourceSystem= getOwnerGraph()->getObjectSystemOfType<ClientTextureSourceSystem>();
 				setTextureSourceComponent(
-					clientTextureSourceSystem->getTypedComponentByName(
-						textureSourcePropConfig->textureSourceName));
+					clientTextureSourceSystem->getTypedComponentByName(textureSourcePropConfig->textureSourceName));
 				m_textureSourceType= eTextureSourceType::client;
 			}
 			break;
@@ -193,8 +176,7 @@ bool GraphTextureSourceProperty::loadFromConfig(
 			{
 				auto spoutTextureSourceSystem= getOwnerGraph()->getObjectSystemOfType<SpoutTextureSourceSystem>();
 				setTextureSourceComponent(
-					spoutTextureSourceSystem->getTypedComponentByName(
-						textureSourcePropConfig->textureSourceName));
+					spoutTextureSourceSystem->getTypedComponentByName(textureSourcePropConfig->textureSourceName));
 				m_textureSourceType= eTextureSourceType::spout;
 			}
 			break;
@@ -228,10 +210,8 @@ void GraphTextureSourceProperty::saveToConfig(GraphPropertyConfigPtr config) con
 
 		TextureSourcePropConfig->textureSourceName= definition->getComponentName();
 		TextureSourcePropConfig->id= definition->getComponentId();
-		TextureSourcePropConfig->textureSourceType=
-			TextureSourceQueries::getTextureSourceType(
-				getOwnerGraph()->getOwnerProject(),
-				definition->getComponentId());
+		TextureSourcePropConfig->textureSourceType= TextureSourceQueries::getTextureSourceType(
+			getOwnerGraph()->getOwnerProject(), definition->getComponentId());
 	}
 	else
 	{
@@ -271,19 +251,12 @@ void GraphTextureSourceProperty::editorRenderPropertySheet(const class NodeEdito
 		// TextureSource
 		TextureSourceComboDataSource dataSource(m_ownerGraph, m_textureSourceComponent, m_textureSourceType);
 		int selectedIndex= dataSource.getCurrentTextureSourceIndex();
-		if (NodeEditorUI::DrawComboBoxProperty(
-				"TextureSourceSelection",
-				"Source",
-				&dataSource,
-				selectedIndex,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawComboBoxProperty("TextureSourceSelection", "Source", &dataSource, selectedIndex,
+											   editorState.styleManager))
 		{
 			setTextureSourceComponent(dataSource.getEntryTextureSource(selectedIndex));
 		}
 	}
 }
 
-const ImVec4 GraphTextureSourceProperty::editorGetIconColor() const
-{
-	return NodeEditorUI::getComponentColor();
-}
+const ImVec4 GraphTextureSourceProperty::editorGetIconColor() const { return NodeEditorUI::getComponentColor(); }

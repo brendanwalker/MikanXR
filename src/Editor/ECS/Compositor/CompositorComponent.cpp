@@ -60,8 +60,7 @@ CompositorDefinition::CompositorDefinition()
 {
 }
 
-CompositorDefinition::CompositorDefinition(
-	MikanCompositorID compositorId)
+CompositorDefinition::CompositorDefinition(MikanCompositorID compositorId)
 	: MikanComponentDefinition(compositorId, "")
 	, m_ownerSceneId(INVALID_MIKAN_ID)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
@@ -105,9 +104,8 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-bool CompositorDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool CompositorDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+											  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -156,22 +154,17 @@ void CompositorDefinition::setOwnerSceneId(MikanSceneID stageId)
 	}
 }
 
-bool CompositorDefinition::hasCompositorGraphPath() const
-{
-	return !m_nodeGraphAssetRef->assetPath.empty();
-}
+bool CompositorDefinition::hasCompositorGraphPath() const { return !m_nodeGraphAssetRef->assetPath.empty(); }
 
-std::filesystem::path CompositorDefinition::getCompositorGraphPath() const
-{
-	return m_nodeGraphAssetRef->assetPath;
-}
+std::filesystem::path CompositorDefinition::getCompositorGraphPath() const { return m_nodeGraphAssetRef->assetPath; }
 
 void CompositorDefinition::setCompositorGraphPath(const std::filesystem::path& graphPath)
 {
 	if (graphPath != m_nodeGraphAssetRef->assetPath)
 	{
 		m_nodeGraphAssetRef->assetPath= graphPath.string();
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(CompositorDefinition::k_compositorGraphPathPropertyId));
+		notifyPropertyChanged(
+			ConfigPropertyChangeSet().addPropertyName(CompositorDefinition::k_compositorGraphPathPropertyId));
 	}
 }
 
@@ -212,8 +205,7 @@ void CompositorComponent::init()
 
 	m_viewportQuadMesh= createFullscreenQuadMesh(getGraphicsContext(), false);
 	m_nodeGraphAssetRef=
-		std::static_pointer_cast<NodeGraphAssetReference>(
-			NodeGraphAssetReferenceFactory().allocateAssetReference());
+		std::static_pointer_cast<NodeGraphAssetReference>(NodeGraphAssetReferenceFactory().allocateAssetReference());
 
 	// Listen for changes to the compositor definition
 	getCompositorDefinition()->OnPropertyChanged+= MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
@@ -261,8 +253,7 @@ void CompositorComponent::tryCompositeOldestFrame(float deltaSeconds)
 	// The oldest pending frame is at the front of the queue
 	MikanCameraNewFrameEvent& oldestPendingFrame= m_frameEventQueue.front();
 
-	MIKAN_LOG_TRACE("CompositorComponent::tryCompositeOldestFrame")
-		<< "Compositing frame " << oldestPendingFrame.frame;
+	MIKAN_LOG_TRACE("CompositorComponent::tryCompositeOldestFrame") << "Compositing frame " << oldestPendingFrame.frame;
 
 	// Try to get the editor node graph first...
 	CompositorNodeGraphPtr nodeGraph= m_editorNodeGraph.lock();
@@ -325,17 +316,14 @@ void CompositorComponent::tryEnqueueNewFrame(CameraComponentPtr cameraComponent)
 
 		// Try and make a new frame event with the current camera properties.
 		// If we fail (e.g. due to invalid intrinsics), skip this frame and try again with the next one
-		if (MikanCameraNewFrameEvent newFrameEvent;
-			cameraComponent->makeNewCameraFrameEvent(
-				m_lastReadVideoFrameIndex,
-				0, 0, // no fallback render target size in this case
+		if (MikanCameraNewFrameEvent newFrameEvent; cameraComponent->makeNewCameraFrameEvent(
+				m_lastReadVideoFrameIndex, 0, 0, // no fallback render target size in this case
 				newFrameEvent))
 		{
 			MikanServer* mikanServer= getOwnerEditorWindow()->getMikanServer();
 			CameraRequestHandler* cameraRequestHandler= mikanServer->getCameraRequestHandler();
 
-			MIKAN_LOG_TRACE("CompositorComponent::tryEnqueueNewFrame")
-				<< "Enqueue frame " << newFrameEvent.frame;
+			MIKAN_LOG_TRACE("CompositorComponent::tryEnqueueNewFrame") << "Enqueue frame " << newFrameEvent.frame;
 			m_frameEventQueue.push(newFrameEvent);
 
 			// Tell all clients that we have a new frame to render
@@ -387,13 +375,10 @@ IMkTexturePtr CompositorComponent::getVideoSourceTexture(eVideoTextureSource tex
 	switch (textureSource)
 	{
 	case eVideoTextureSource::video_texture:
-		return (m_videoDistortionView != nullptr)
-				   ? m_videoDistortionView->getVideoTexture(pendingFrameIndex)
-				   : IMkTexturePtr();
+		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getVideoTexture(pendingFrameIndex)
+												  : IMkTexturePtr();
 	case eVideoTextureSource::distortion_texture:
-		return (m_videoDistortionView != nullptr)
-				   ? m_videoDistortionView->getDistortionTexture()
-				   : IMkTexturePtr();
+		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : IMkTexturePtr();
 	}
 
 	return IMkTexturePtr();
@@ -425,10 +410,7 @@ int64_t CompositorComponent::getPendingCompositedFrameIndex() const
 	return !m_frameEventQueue.empty() ? m_frameEventQueue.front().frame : -1;
 }
 
-bool CompositorComponent::hasValidCompositorGraph() const
-{
-	return m_nodeGraph != nullptr;
-}
+bool CompositorComponent::hasValidCompositorGraph() const { return m_nodeGraph != nullptr; }
 
 void CompositorComponent::addNewCompositorGraph()
 {
@@ -442,27 +424,18 @@ void CompositorComponent::editCompositorGraph()
 
 	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
 	{
-		app->createAppWindow<CompositorNodeEditorWindow>()
-			->bindCompositorComponent(getSelfPtr<CompositorComponent>());
+		app->createAppWindow<CompositorNodeEditorWindow>()->bindCompositorComponent(getSelfPtr<CompositorComponent>());
 	}
 }
 
-void CompositorComponent::removeCompositorGraph()
-{
-	setCompositorGraphAssetPath(std::filesystem::path());
-}
+void CompositorComponent::removeCompositorGraph() { setCompositorGraphAssetPath(std::filesystem::path()); }
 
 void CompositorComponent::selectCompositorGraph()
 {
 	NodeGraphAssetReferenceFactory assetRefFactory;
-	const char* picked=
-		tinyfd_openFileDialog(
-			assetRefFactory.getFileDialogTitle(),
-			assetRefFactory.getDefaultPath(),
-			assetRefFactory.getFilterPatternCount(),
-			assetRefFactory.getFilterPatterns(),
-			assetRefFactory.getFilterDescription(),
-			1);
+	const char* picked= tinyfd_openFileDialog(
+		assetRefFactory.getFileDialogTitle(), assetRefFactory.getDefaultPath(), assetRefFactory.getFilterPatternCount(),
+		assetRefFactory.getFilterPatterns(), assetRefFactory.getFilterDescription(), 1);
 
 	if (picked != nullptr && picked[0] != '\0')
 	{
@@ -475,9 +448,7 @@ void CompositorComponent::selectCompositorGraph()
 void CompositorComponent::evaluateCompositorNodeGraph(CompositorNodeGraphPtr nodeGraph)
 {
 	NodeEvaluator evaluator= {};
-	evaluator
-		.setCurrentGraphicsContext(getGraphicsContext())
-		.setDeltaSeconds(m_timeSinceLastFrameComposited);
+	evaluator.setCurrentGraphicsContext(getGraphicsContext()).setDeltaSeconds(m_timeSinceLastFrameComposited);
 
 	if (nodeGraph->compositeFrame(evaluator))
 	{
@@ -580,10 +551,9 @@ void CompositorComponent::startVideoSourceStreaming(VideoSourceComponentPtr vide
 
 	// Create a distortion view to read the incoming video frames into a texture
 	// (VideoFrameDistortionView subscribes to OnFrameSizeChanged internally)
-	m_videoDistortionView= std::make_shared<VideoFrameDistortionView>(
-		videoSource,
-		eVideoFrameProcessorMode::COMPOSITOR,
-		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
+	m_videoDistortionView=
+		std::make_shared<VideoFrameDistortionView>(videoSource, eVideoFrameProcessorMode::COMPOSITOR,
+												   videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
 
 	// Always use the undistorted video frame for compositing
 	m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
@@ -595,9 +565,7 @@ void CompositorComponent::startVideoSourceStreaming(VideoSourceComponentPtr vide
 void CompositorComponent::updateOutputStreaming()
 {
 	CompositorDefinitionConstPtr definition= getCompositorDefinition();
-	const bool bWantsOutput=
-		definition->getIsSpoutOutputStreaming() &&
-		!definition->getSpoutOutputName().empty();
+	const bool bWantsOutput= definition->getIsSpoutOutputStreaming() && !definition->getSpoutOutputName().empty();
 	const bool bIsStreaming= getIsOutputStreaming();
 
 	// Create the Spout sender if we don't have one already but want to stream
@@ -685,10 +653,7 @@ CompositorObjectSystemPtr CompositorComponent::getOwnerObjectSystem() const
 	return std::static_pointer_cast<CompositorObjectSystem>(getOwnerObject()->getOwnerSystem());
 }
 
-MikanStageID CompositorComponent::getOwnerStageId() const
-{
-	return getCompositorDefinition()->getOwnerSceneId();
-}
+MikanStageID CompositorComponent::getOwnerStageId() const { return getCompositorDefinition()->getOwnerSceneId(); }
 
 StageComponentPtr CompositorComponent::getOwnerStageComponent() const
 {
@@ -746,9 +711,8 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 
 	if (m_nodeGraphAssetRef->isValid())
 	{
-		m_nodeGraph=
-			std::dynamic_pointer_cast<CompositorNodeGraph>(
-				NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
+		m_nodeGraph= std::dynamic_pointer_cast<CompositorNodeGraph>(
+			NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
 
 		if (m_nodeGraph)
 		{
@@ -772,7 +736,8 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 	m_lastNodeEvalErrors.clear();
 }
 
-void CompositorComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
+void CompositorComponent::onDefinitionChanged(CommonConfigPtr configPtr,
+											  const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (changedPropertySet.hasPropertyName(CompositorDefinition::k_spoutEnableOutputNamePropertyId))
 	{
@@ -792,31 +757,24 @@ void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 	MikanComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			CompositorDefinition::k_cameraIdPropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(CompositorDefinition::k_cameraIdPropertyId, MikanVariantType::INT)
 			->setDefaultValue(-1)
 			->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			CompositorDefinition::k_ownerScenePropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(CompositorDefinition::k_ownerScenePropertyId, MikanVariantType::INT)
 			->setDefaultValue(-1)
 			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			CompositorDefinition::k_compositorGraphPathPropertyId, MikanVariantType::STRING)
-			->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
-				AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			CompositorDefinition::k_spoutEnableOutputNamePropertyId, MikanVariantType::BOOL));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			CompositorDefinition::k_spoutOutputNamePropertyId, MikanVariantType::STRING));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(CompositorDefinition::k_compositorGraphPathPropertyId,
+																  MikanVariantType::STRING)
+								 ->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
+									 AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		CompositorDefinition::k_spoutEnableOutputNamePropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(CompositorDefinition::k_spoutOutputNamePropertyId,
+																  MikanVariantType::STRING));
 }
 
-bool CompositorComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool CompositorComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
@@ -847,9 +805,7 @@ bool CompositorComponent::getPropertyValue(
 	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool CompositorComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool CompositorComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
@@ -898,20 +854,14 @@ void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorC
 	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_editCompositorGraphFunctionId, "Add Compositor Graph")
+		std::make_shared<FunctionDescriptor>(k_editCompositorGraphFunctionId, "Add Compositor Graph")->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(k_editCompositorGraphFunctionId, "Edit Compositor Graph")->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(k_removeCompositorGraphFunctionId, "Remove Compositor Graph")
 			->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_editCompositorGraphFunctionId, "Edit Compositor Graph")
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_removeCompositorGraphFunctionId, "Remove Compositor Graph")
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_selectCompositorGraphFunctionId, "Select Compositor Graph")
+		std::make_shared<FunctionDescriptor>(k_selectCompositorGraphFunctionId, "Select Compositor Graph")
 			->setUIHidden());
 }
 
@@ -945,34 +895,19 @@ bool CompositorComponent::invokeFunction(const std::string& functionName)
 void CompositorComponent::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<CompositorComponent, MikanComponent>(
-			CompositorComponent::k_componentClassName.c_str())
-		.addProperty("compositorId",
-					 [](CompositorComponent* c) -> int
-					 {
-						 return c->getCompositorId();
-					 })
+		.deriveClass<CompositorComponent, MikanComponent>(CompositorComponent::k_componentClassName.c_str())
+		.addProperty("compositorId", [](CompositorComponent* c) -> int { return c->getCompositorId(); })
 		.addProperty("cameraId",
-					 [](CompositorComponent* c) -> int
-					 {
-						 return c->getCompositorDefinition()->getCameraId();
-					 })
+					 [](CompositorComponent* c) -> int { return c->getCompositorDefinition()->getCameraId(); })
 		.addProperty("ownerSceneId",
-					 [](CompositorComponent* c) -> int
-					 {
-						 return c->getCompositorDefinition()->getOwnerSceneId();
-					 })
-		.addProperty("ownerStageId",
-					 [](CompositorComponent* c) -> int
-					 {
-						 return c->getOwnerStageId();
-					 })
-		.addProperty("isSpoutOutputStreaming", [](CompositorComponent* c) -> bool
-					 { return c->getCompositorDefinition()->getIsSpoutOutputStreaming(); }, [](CompositorComponent* c, bool v)
-					 { c->getCompositorDefinition()->setIsSpoutOutputStreaming(v); })
-		.addFunction("editCompositorGraph", [](CompositorComponent* c)
-					 { c->editCompositorGraph(); })
-		.addFunction("getOwnerStage", [](CompositorComponent* c) -> StageComponent*
-					 { return c->getOwnerStageComponent().get(); })
+					 [](CompositorComponent* c) -> int { return c->getCompositorDefinition()->getOwnerSceneId(); })
+		.addProperty("ownerStageId", [](CompositorComponent* c) -> int { return c->getOwnerStageId(); })
+		.addProperty(
+			"isSpoutOutputStreaming",
+			[](CompositorComponent* c) -> bool { return c->getCompositorDefinition()->getIsSpoutOutputStreaming(); },
+			[](CompositorComponent* c, bool v) { c->getCompositorDefinition()->setIsSpoutOutputStreaming(v); })
+		.addFunction("editCompositorGraph", [](CompositorComponent* c) { c->editCompositorGraph(); })
+		.addFunction("getOwnerStage",
+					 [](CompositorComponent* c) -> StageComponent* { return c->getOwnerStageComponent().get(); })
 		.endClass();
 }

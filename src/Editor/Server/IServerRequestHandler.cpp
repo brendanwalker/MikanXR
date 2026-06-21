@@ -9,7 +9,4 @@ ProjectManagerPtr IServerRequestHandler::getProjectManager() const
 	return ownerWindow ? ownerWindow->getProjectManager() : ProjectManagerPtr();
 }
 
-ProjectConfigPtr IServerRequestHandler::getProjectConfig() const
-{
-	return m_owner->getProjectConfig();
-}
+ProjectConfigPtr IServerRequestHandler::getProjectConfig() const { return m_owner->getProjectConfig(); }

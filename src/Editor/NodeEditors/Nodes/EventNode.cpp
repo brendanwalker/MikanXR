@@ -56,10 +56,7 @@ bool EventNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-FlowPinPtr EventNode::getOutputFlowPin() const
-{
-	return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT);
-}
+FlowPinPtr EventNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
 
 std::shared_ptr<MkNodesScopedColorStyle> EventNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
@@ -70,10 +67,7 @@ std::shared_ptr<MkNodesScopedColorStyle> EventNode::editorRenderMakeNodeStyle(co
 	return style;
 }
 
-std::string EventNode::editorGetTitle() const
-{
-	return !m_eventName.empty() ? m_eventName : k_nodeClassName;
-}
+std::string EventNode::editorGetTitle() const { return !m_eventName.empty() ? m_eventName : k_nodeClassName; }
 
 // -- EventNode Factory -----
 NodePtr EventNodeFactory::createNode(const NodeEditorState& editorState) const

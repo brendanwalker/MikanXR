@@ -29,8 +29,8 @@ const std::string MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyI
 const std::string MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId= "charuco_marker_length_mm";
 const std::string MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId= "charuco_dictionary_type";
 
-MarkerObjectSystemDefinition::MarkerObjectSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+MarkerObjectSystemDefinition::MarkerObjectSystemDefinition(const std::string& configName,
+														   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -60,14 +60,10 @@ void MarkerObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	Super::readFromJSON(pt);
 
 	// Read in the ArUco settings
-	const std::string charcuoDictionaryString=
-		pt.get_or<std::string>(
-			k_arucoDictionaryTypePropertyId,
-			k_charucoDictionaryStrings[(int)eCharucoDictionaryType::DICT_6X6]);
+	const std::string charcuoDictionaryString= pt.get_or<std::string>(
+		k_arucoDictionaryTypePropertyId, k_charucoDictionaryStrings[(int)eCharucoDictionaryType::DICT_6X6]);
 	m_arucoDictionaryType=
-		StringUtils::FindEnumValue<eCharucoDictionaryType>(
-			charcuoDictionaryString,
-			k_charucoDictionaryStrings);
+		StringUtils::FindEnumValue<eCharucoDictionaryType>(charcuoDictionaryString, k_charucoDictionaryStrings);
 
 	// Read ChArUco settings
 	m_charucoRows= pt.get_or<int>(k_charucoRowsPropertyId, m_charucoRows);
@@ -75,21 +71,16 @@ void MarkerObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	m_charucoSquareLengthMM= pt.get_or<float>(k_charucoSquareLengthMMPropertyId, m_charucoSquareLengthMM);
 	m_charucoMarkerLengthMM= pt.get_or<float>(k_charucoMarkerLengthMMPropertyId, m_charucoMarkerLengthMM);
 
-	const std::string charucoDictionaryString=
-		pt.get_or<std::string>(
-			k_charucoDictionaryTypePropertyId,
-			k_charucoDictionaryStrings[(int)eCharucoDictionaryType::DICT_6X6]);
+	const std::string charucoDictionaryString= pt.get_or<std::string>(
+		k_charucoDictionaryTypePropertyId, k_charucoDictionaryStrings[(int)eCharucoDictionaryType::DICT_6X6]);
 	m_charucoDictionaryType=
-		StringUtils::FindEnumValue<eCharucoDictionaryType>(
-			charucoDictionaryString,
-			k_charucoDictionaryStrings);
+		StringUtils::FindEnumValue<eCharucoDictionaryType>(charucoDictionaryString, k_charucoDictionaryStrings);
 }
 
 void MarkerObjectSystemDefinition::setArucoDictionaryType(eCharucoDictionaryType dictionaryType)
 {
-	if (dictionaryType != m_arucoDictionaryType &&
-		(int)dictionaryType >= 0 &&
-		(int)dictionaryType < (int)eCharucoDictionaryType::COUNT)
+	if (dictionaryType != m_arucoDictionaryType && (int)dictionaryType >= 0
+		&& (int)dictionaryType < (int)eCharucoDictionaryType::COUNT)
 	{
 		m_arucoDictionaryType= dictionaryType;
 		notifyPropertyChanged(ConfigPropertyChangeSet()
@@ -127,9 +118,8 @@ void MarkerObjectSystemDefinition::getArucoIdList(std::vector<int>& outMarkerIdL
 
 void MarkerObjectSystemDefinition::setCharucoRows(int charucoRows)
 {
-	if (charucoRows != m_charucoRows &&
-		charucoRows >= MIN_CHARUCO_CORNER_COUNT &&
-		charucoRows <= MAX_CHARUCO_CORNER_COUNT)
+	if (charucoRows != m_charucoRows && charucoRows >= MIN_CHARUCO_CORNER_COUNT
+		&& charucoRows <= MAX_CHARUCO_CORNER_COUNT)
 	{
 		m_charucoRows= charucoRows;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoRowsPropertyId));
@@ -138,9 +128,8 @@ void MarkerObjectSystemDefinition::setCharucoRows(int charucoRows)
 
 void MarkerObjectSystemDefinition::setCharucoCols(int charucoCols)
 {
-	if (charucoCols != m_charucoCols &&
-		charucoCols >= MIN_CHARUCO_CORNER_COUNT &&
-		charucoCols <= MAX_CHARUCO_CORNER_COUNT)
+	if (charucoCols != m_charucoCols && charucoCols >= MIN_CHARUCO_CORNER_COUNT
+		&& charucoCols <= MAX_CHARUCO_CORNER_COUNT)
 	{
 		m_charucoCols= charucoCols;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoColsPropertyId));
@@ -167,9 +156,8 @@ void MarkerObjectSystemDefinition::setCharucoMarkerLengthMM(float charucoMarkerL
 
 void MarkerObjectSystemDefinition::setCharucoDictionaryType(eCharucoDictionaryType charucoDictionaryType)
 {
-	if (charucoDictionaryType != m_charucoDictionaryType &&
-		(int)charucoDictionaryType >= 0 &&
-		(int)charucoDictionaryType < (int)eCharucoDictionaryType::COUNT)
+	if (charucoDictionaryType != m_charucoDictionaryType && (int)charucoDictionaryType >= 0
+		&& (int)charucoDictionaryType < (int)eCharucoDictionaryType::COUNT)
 	{
 		m_charucoDictionaryType= charucoDictionaryType;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoDictionaryTypePropertyId));
@@ -193,40 +181,33 @@ void MarkerObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 {
 	Super::getPropertyDescriptors(outDescriptors);
 
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(MarkerObjectSystemDefinition::k_arucoIdListPropertyId,
+																  MikanVariantType::INT_ARRAY)
+								 ->setReadOnly()
+								 ->setUIHidden());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId, MikanVariantType::INT)
+								 ->setDefaultValue((int)DEFAULT_ARUCO_DICTIONARY_TYPE));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId, MikanVariantType::INT)
+								 ->setDefaultValue((int)DEFAULT_CHARUCO_DICTIONARY_TYPE));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(MarkerObjectSystemDefinition::k_charucoRowsPropertyId,
+																  MikanVariantType::INT)
+								 ->setDefaultValue(CHARUCO_PATTERN_H));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(MarkerObjectSystemDefinition::k_charucoColsPropertyId,
+																  MikanVariantType::INT)
+								 ->setDefaultValue(CHARUCO_PATTERN_W));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemDefinition::k_arucoIdListPropertyId, MikanVariantType::INT_ARRAY)
-			->setReadOnly()
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId, MikanVariantType::INT)
-			->setDefaultValue((int)DEFAULT_ARUCO_DICTIONARY_TYPE));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId, MikanVariantType::INT)
-			->setDefaultValue((int)DEFAULT_CHARUCO_DICTIONARY_TYPE));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemDefinition::k_charucoRowsPropertyId, MikanVariantType::INT)
-			->setDefaultValue(CHARUCO_PATTERN_H));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemDefinition::k_charucoColsPropertyId, MikanVariantType::INT)
-			->setDefaultValue(CHARUCO_PATTERN_W));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyId, MikanVariantType::FLOAT)
+		std::make_shared<PropertyDescriptor>(MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyId,
+											 MikanVariantType::FLOAT)
 			->setDefaultValue(DEFAULT_CHARUCO_SQUARE_LEN_MM));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId, MikanVariantType::FLOAT)
+		std::make_shared<PropertyDescriptor>(MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId,
+											 MikanVariantType::FLOAT)
 			->setDefaultValue(DEFAULT_CHARUCO_MARKER_LEN_MM));
 }
 
-bool MarkerObjectSystem::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool MarkerObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	MarkerObjectSystemDefinitionConstPtr markerSystemDefinition= getTypedDefinitionConst();
 
@@ -273,9 +254,7 @@ bool MarkerObjectSystem::getPropertyValue(
 	return Super::getPropertyValue(propertyName, outValue);
 }
 
-bool MarkerObjectSystem::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool MarkerObjectSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	MarkerObjectSystemDefinitionPtr markerSystemDefinition= getTypedDefinition();
 
@@ -326,9 +305,7 @@ void MarkerObjectSystem::getFunctionDescriptors(std::vector<FunctionDescriptorCo
 {
 	Super::getFunctionDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_printCharucoMarkerFunctionId, "Print Marker"));
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_printCharucoMarkerFunctionId, "Print Marker"));
 }
 
 bool MarkerObjectSystem::invokeFunction(const std::string& functionName)
@@ -346,8 +323,7 @@ void MarkerObjectSystem::printMarker()
 {
 	MarkerObjectSystemDefinitionPtr markerSystemDefinition= getTypedDefinition();
 	ArucoDictionaryPtr dictionary=
-		CalibrationPatternFinder::getArucoDictionary(
-			markerSystemDefinition->getArucoDictionaryType());
+		CalibrationPatternFinder::getArucoDictionary(markerSystemDefinition->getArucoDictionaryType());
 
 	// Get ChArUco board parameters from config
 	const int charucoRows= markerSystemDefinition->getCharucoRows();
@@ -357,11 +333,8 @@ void MarkerObjectSystem::printMarker()
 	const eCharucoDictionaryType charucoDictionaryType= markerSystemDefinition->getCharucoDictionaryType();
 
 	// Create ChArUco board
-	cv::aruco::CharucoBoard charucoBoard(
-		cv::Size(charucoCols, charucoRows),
-		squareLengthMM,
-		markerLengthMM,
-		*dictionary.get());
+	cv::aruco::CharucoBoard charucoBoard(cv::Size(charucoCols, charucoRows), squareLengthMM, markerLengthMM,
+										 *dictionary.get());
 
 	// Generate ChArUco board image
 	cv::Mat boardImage;
@@ -415,9 +388,9 @@ void MarkerObjectSystem::printMarker()
 	HPDF_Font font= HPDF_GetFont(pdf, "Helvetica", NULL);
 	HPDF_Page_SetFontAndSize(page, font, 12);
 
-	std::string labelText= "ChArUco Board: " + std::to_string(charucoRows) + "x" + std::to_string(charucoCols) +
-						   " | Square: " + std::to_string((int)squareLengthMM) + "mm" +
-						   " | Marker: " + std::to_string((int)markerLengthMM) + "mm";
+	std::string labelText= "ChArUco Board: " + std::to_string(charucoRows) + "x" + std::to_string(charucoCols)
+						   + " | Square: " + std::to_string((int)squareLengthMM) + "mm"
+						   + " | Marker: " + std::to_string((int)markerLengthMM) + "mm";
 	const float textWidth= HPDF_Page_TextWidth(page, labelText.c_str());
 	const float textXPos= (pageWidth - textWidth) / 2.0f;
 	const float textYPos= yPos - 30.0f;
@@ -427,8 +400,9 @@ void MarkerObjectSystem::printMarker()
 	HPDF_Page_EndText(page);
 
 	// Save PDF to temp file
-	std::filesystem::path pdfFilePath= std::filesystem::temp_directory_path() /
-									   ("MikanCharucoBoard_" + std::to_string(charucoRows) + "x" + std::to_string(charucoCols) + ".pdf");
+	std::filesystem::path pdfFilePath=
+		std::filesystem::temp_directory_path()
+		/ ("MikanCharucoBoard_" + std::to_string(charucoRows) + "x" + std::to_string(charucoCols) + ".pdf");
 
 	HPDF_STATUS status= HPDF_SaveToFile(pdf, pdfFilePath.string().c_str());
 	HPDF_Free(pdf);

@@ -134,7 +134,4 @@ int SdlWindowEvent::getWindowData2() const
 	return 0;
 }
 
-const void* SdlWindowEvent::getInternalWindowEvent() const
-{
-	return m_event;
-}
+const void* SdlWindowEvent::getInternalWindowEvent() const { return m_event; }

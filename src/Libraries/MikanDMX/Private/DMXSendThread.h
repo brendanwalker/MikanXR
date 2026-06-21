@@ -30,11 +30,7 @@ public:
 	DMXSendThread(const DMXSendThread&)= delete;
 	DMXSendThread& operator=(const DMXSendThread&)= delete;
 
-	bool start(
-		const std::string& bindIP,
-		const std::string& sourceName,
-		uint8_t priority,
-		float transmitRateHz);
+	bool start(const std::string& bindIP, const std::string& sourceName, uint8_t priority, float transmitRateHz);
 
 	void stop();
 

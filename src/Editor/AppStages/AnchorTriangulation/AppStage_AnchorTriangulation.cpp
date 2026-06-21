@@ -47,9 +47,7 @@ AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(IEditorWindow* ownerW
 	m_targetAnchor.worldTransform= GlmTransform();
 }
 
-AppStage_AnchorTriangulation::~AppStage_AnchorTriangulation()
-{
-}
+AppStage_AnchorTriangulation::~AppStage_AnchorTriangulation() {}
 
 void AppStage_AnchorTriangulation::setBypassCalibrationFlag(bool flag)
 {
@@ -79,10 +77,7 @@ void AppStage_AnchorTriangulation::enter()
 	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create the distortion view eagerly — it is the stream ownership token
-	m_monoDistortionView=
-		new VideoFrameDistortionView(
-			m_videoSourceComponent,
-			eVideoFrameProcessorMode::CALIBRATION);
+	m_monoDistortionView= new VideoFrameDistortionView(m_videoSourceComponent, eVideoFrameProcessorMode::CALIBRATION);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
@@ -95,12 +90,9 @@ void AppStage_AnchorTriangulation::enter()
 	{
 		m_calibrationPanel= addGuiPanel<GuiPanel_AnchorTriangulation>();
 		m_calibrationPanel->setBypassCalibrationFlag(m_bypassCalibrationFlag);
-		m_calibrationPanel->OnOkEvent= [this]()
-		{ onOkEvent(); };
-		m_calibrationPanel->OnRedoEvent= [this]()
-		{ onRedoEvent(); };
-		m_calibrationPanel->OnCancelEvent= [this]()
-		{ onCancelEvent(); };
+		m_calibrationPanel->OnOkEvent= [this]() { onOkEvent(); };
+		m_calibrationPanel->OnRedoEvent= [this]() { onRedoEvent(); };
+		m_calibrationPanel->OnCancelEvent= [this]() { onCancelEvent(); };
 	}
 
 	// Bind to space bar to capture frames
@@ -117,10 +109,7 @@ void AppStage_AnchorTriangulation::enter()
 void AppStage_AnchorTriangulation::setupDistortionView()
 {
 	// Create a calibrator to do the actual triangulation
-	m_anchorTriangulator=
-		new AnchorTriangulator(
-			m_currentSceneCameraComponent,
-			m_monoDistortionView);
+	m_anchorTriangulator= new AnchorTriangulator(m_currentSceneCameraComponent, m_monoDistortionView);
 }
 
 void AppStage_AnchorTriangulation::exit()
@@ -192,9 +181,9 @@ void AppStage_AnchorTriangulation::update(float deltaSeconds)
 		m_monoDistortionView->readAndProcessVideoFrame();
 
 		// Update triangulation during triangulation states
-		if (calibrationState == eAnchorTriangulationMenuState::captureOrigin2 ||
-			calibrationState == eAnchorTriangulationMenuState::captureXAxis2 ||
-			calibrationState == eAnchorTriangulationMenuState::captureYAxis2)
+		if (calibrationState == eAnchorTriangulationMenuState::captureOrigin2
+			|| calibrationState == eAnchorTriangulationMenuState::captureXAxis2
+			|| calibrationState == eAnchorTriangulationMenuState::captureYAxis2)
 		{
 			m_anchorTriangulator->computeCurrentTriangulation();
 		}
@@ -262,12 +251,12 @@ void AppStage_AnchorTriangulation::onMouseButtonUp(int button)
 {
 	eAnchorTriangulationMenuState menuState= m_calibrationPanel->getMenuState();
 
-	if (menuState == eAnchorTriangulationMenuState::captureOrigin1 ||
-		menuState == eAnchorTriangulationMenuState::captureXAxis1 ||
-		menuState == eAnchorTriangulationMenuState::captureYAxis1 ||
-		menuState == eAnchorTriangulationMenuState::captureOrigin2 ||
-		menuState == eAnchorTriangulationMenuState::captureXAxis2 ||
-		menuState == eAnchorTriangulationMenuState::captureYAxis2)
+	if (menuState == eAnchorTriangulationMenuState::captureOrigin1
+		|| menuState == eAnchorTriangulationMenuState::captureXAxis1
+		|| menuState == eAnchorTriangulationMenuState::captureYAxis1
+		|| menuState == eAnchorTriangulationMenuState::captureOrigin2
+		|| menuState == eAnchorTriangulationMenuState::captureXAxis2
+		|| menuState == eAnchorTriangulationMenuState::captureYAxis2)
 	{
 		if (button == MkMouseButton::LEFT)
 		{
@@ -348,8 +337,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 		else
 		{
 			AnchorComponentPtr anchorComponent=
-				getSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(
-					m_targetAnchor.anchorId);
+				getSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(m_targetAnchor.anchorId);
 
 			anchorComponent->setWorldTransform(m_targetAnchor.worldTransform.getMat4());
 		}
@@ -393,10 +381,7 @@ void AppStage_AnchorTriangulation::onRedoEvent()
 	}
 }
 
-void AppStage_AnchorTriangulation::onCancelEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_AnchorTriangulation::onCancelEvent() { m_ownerWindow->popAppState(); }
 
 void AppStage_AnchorTriangulation::onGui()
 {
@@ -409,8 +394,7 @@ void AppStage_AnchorTriangulation::onGui()
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 	MkGuiScopedWindow panel("##AnchorTriangulation", nullptr, k_flags);
 	if (!panel)
 		return;

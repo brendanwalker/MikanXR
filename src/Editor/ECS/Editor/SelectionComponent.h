@@ -17,14 +17,8 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
-	inline bool getIsTransformGizmoAllowed() const
-	{
-		return m_bIsTransformGizmoAllowed;
-	}
-	inline void setIsTransformGizmoAllowed(bool bAllowed)
-	{
-		m_bIsTransformGizmoAllowed= bAllowed;
-	}
+	inline bool getIsTransformGizmoAllowed() const { return m_bIsTransformGizmoAllowed; }
+	inline void setIsTransformGizmoAllowed(bool bAllowed) { m_bIsTransformGizmoAllowed= bAllowed; }
 
 	void rebindColliders();
 

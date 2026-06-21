@@ -34,10 +34,8 @@ MikanClient::~MikanClient()
 }
 
 // -- ClientMikanAPI System -----
-MikanCoreResult MikanClient::startup(
-	const char* client_name,
-	ClientLogSeverityLevel log_level,
-	t_logCallback log_callback)
+MikanCoreResult MikanClient::startup(const char* client_name, ClientLogSeverityLevel log_level,
+									 t_logCallback log_callback)
 {
 	MikanCoreResult resultCode= MikanCoreResult_Success;
 
@@ -55,30 +53,21 @@ MikanCoreResult MikanClient::startup(
 
 	if (!ix::initNetSystem())
 	{
-		MIKAN_LOG_WARNING("WebsocketInterprocessMessageServer::initialize()")
-			<< "Failed to initialize net system";
+		MIKAN_LOG_WARNING("WebsocketInterprocessMessageServer::initialize()") << "Failed to initialize net system";
 		resultCode= MikanCoreResult_RequestFailed;
 	}
 
 	return resultCode;
 }
 
-MikanCoreResult MikanClient::connect(
-	const std::string& host,
-	const std::string& port)
+MikanCoreResult MikanClient::connect(const std::string& host, const std::string& port)
 {
 	return m_messageClient->connect(host, port);
 }
 
-bool MikanClient::getIsConnected() const
-{
-	return m_messageClient->getIsConnected();
-}
+bool MikanClient::getIsConnected() const { return m_messageClient->getIsConnected(); }
 
-const std::string& MikanClient::getClientName() const
-{
-	return m_clientName;
-}
+const std::string& MikanClient::getClientName() const { return m_clientName; }
 
 MikanCoreResult MikanClient::disconnect(uint16_t code, const std::string& reason)
 {
@@ -96,10 +85,8 @@ MikanCoreResult MikanClient::disconnect(uint16_t code, const std::string& reason
 	return resultCode;
 }
 
-MikanCoreResult MikanClient::fetchNextEvent(
-	size_t utf8_buffer_size,
-	char* out_utf8_buffer,
-	size_t* out_utf8_bytes_written)
+MikanCoreResult MikanClient::fetchNextEvent(size_t utf8_buffer_size, char* out_utf8_buffer,
+											size_t* out_utf8_bytes_written)
 {
 	// Events can arrive even when not connected (e.g. disconnect event)
 	// So we don't check for connection here
@@ -141,10 +128,8 @@ void MikanClient::textResponseHandler(const std::string& utf8ResponseString)
 
 		if (searcher.fetchKeyValuePair(utf8ResponseString, "requestId", requestId))
 		{
-			m_textResponseCallback(
-				(MikanRequestID)requestId,
-				utf8ResponseString.c_str(),
-				m_textResponseCallbackUserData);
+			m_textResponseCallback((MikanRequestID)requestId, utf8ResponseString.c_str(),
+								   m_textResponseCallbackUserData);
 		}
 		else
 		{
@@ -202,9 +187,8 @@ ISharedTextureWriteAccessorPtr MikanClient::addSharedTextureWriteAccessor(MikanC
 	return writeAccessor;
 }
 
-MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(
-	MikanCameraID cameraId,
-	const MikanRenderTargetDescriptor& mkDesiredDescriptor)
+MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(MikanCameraID cameraId,
+																const MikanRenderTargetDescriptor& mkDesiredDescriptor)
 {
 	MikanCoreResult resultCode;
 
@@ -299,9 +283,8 @@ MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(
 	return resultCode;
 }
 
-MikanCoreResult MikanClient::getCameraRenderTargetDescriptor(
-	MikanCameraID cameraId,
-	MikanRenderTargetDescriptor& outDescriptor)
+MikanCoreResult MikanClient::getCameraRenderTargetDescriptor(MikanCameraID cameraId,
+															 MikanRenderTargetDescriptor& outDescriptor)
 {
 	ISharedTextureWriteAccessorPtr renderTargetWriter= getSharedTextureWriteAccessor(cameraId);
 	if (renderTargetWriter)
@@ -397,9 +380,7 @@ MikanCoreResult MikanClient::freeAllCameraRenderTargetTextures()
 	return MikanCoreResult_Success;
 }
 
-MikanCoreResult MikanClient::writeCameraColorRenderTargetTexture(
-	MikanCameraID cameraId,
-	void* apiColorTexturePtr)
+MikanCoreResult MikanClient::writeCameraColorRenderTargetTexture(MikanCameraID cameraId, void* apiColorTexturePtr)
 {
 	ISharedTextureWriteAccessorPtr renderTargetWriter= getSharedTextureWriteAccessor(cameraId);
 	if (renderTargetWriter && renderTargetWriter->writeColorFrameTexture(apiColorTexturePtr))
@@ -410,11 +391,8 @@ MikanCoreResult MikanClient::writeCameraColorRenderTargetTexture(
 	return MikanCoreResult_RequestFailed;
 }
 
-MikanCoreResult MikanClient::writeCameraDepthRenderTargetTexture(
-	MikanCameraID cameraId,
-	void* apiDepthTexturePtr,
-	float zNear,
-	float zFar)
+MikanCoreResult MikanClient::writeCameraDepthRenderTargetTexture(MikanCameraID cameraId, void* apiDepthTexturePtr,
+																 float zNear, float zFar)
 {
 	ISharedTextureWriteAccessorPtr renderTargetWriter= getSharedTextureWriteAccessor(cameraId);
 	if (renderTargetWriter)

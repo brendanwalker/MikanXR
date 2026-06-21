@@ -59,8 +59,7 @@ public:
 	{
 		for (MikanObjectSystemPtr system : m_systems)
 		{
-			std::shared_ptr<const t_system_type> derivedSystem=
-				std::dynamic_pointer_cast<const t_system_type>(system);
+			std::shared_ptr<const t_system_type> derivedSystem= std::dynamic_pointer_cast<const t_system_type>(system);
 
 			if (derivedSystem != nullptr)
 			{

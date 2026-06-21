@@ -26,10 +26,8 @@ protected:
 	virtual void render(IMkViewportPtr targetViewport);
 
 	// -- IRemoteControllableAppStage Interface -- //
-	virtual bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults);
+	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+											std::vector<std::string>& outResults);
 	bool handleResumeProjectCommand(std::vector<std::string>& outResults);
 	bool handleOpenProjectCommand(const std::vector<std::string>& parameters, std::vector<std::string>& outResults);
 	bool handleNewProjectCommand(const std::vector<std::string>& parameters, std::vector<std::string>& outResults);

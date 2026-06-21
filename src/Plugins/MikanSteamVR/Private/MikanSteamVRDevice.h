@@ -9,9 +9,7 @@
 class MikanSteamVRDevice : public IVRDevice
 {
 public:
-	MikanSteamVRDevice(
-		class MikanSteamVRManager* ownerDeviceManager,
-		vr::TrackedDeviceIndex_t steamvrDeviceId);
+	MikanSteamVRDevice(class MikanSteamVRManager* ownerDeviceManager, vr::TrackedDeviceIndex_t steamvrDeviceId);
 	virtual ~MikanSteamVRDevice();
 
 	// -- Device Properties

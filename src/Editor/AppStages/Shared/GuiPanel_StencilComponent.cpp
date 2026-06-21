@@ -45,22 +45,22 @@ void GuiPanel_StencilComponent::onConstruct()
 
 			const MikanTransformID parentTransformId=
 				stencilComponent->getStencilComponentDefinition()->getParentTransformId();
-			int selectedIndex=
-				m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
+			int selectedIndex= m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
 
-			if (MkGui::drawComboBoxProperty(
-					m_defaultGuiStyle,
-					stencilComponent->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
-					"Parent",
-					&m_parentTransformDataSource,
-					selectedIndex))
+			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
+											stencilComponent->makePropertyUIIdentifier(
+												TransformComponentDefinition::k_parentTransformIdPropertyId),
+											"Parent", &m_parentTransformDataSource, selectedIndex))
 			{
 				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
 				if (newParent)
 				{
-					addDeferredGuiEvent([stencilComponent, newParent]()
-										{ stencilComponent->getStencilComponentDefinition()->setParentTransformId(
-											  newParent->getComponentId()); });
+					addDeferredGuiEvent(
+						[stencilComponent, newParent]()
+						{
+							stencilComponent->getStencilComponentDefinition()->setParentTransformId(
+								newParent->getComponentId());
+						});
 				}
 			}
 			return true;
@@ -77,17 +77,8 @@ StencilComponentPtr GuiPanel_StencilComponent::getStencilComponent() const
 	return nullptr;
 }
 
-bool GuiPanel_QuadStencilComponent::init()
-{
-	return initTypedPropertyInterface<QuadStencilComponent>();
-}
+bool GuiPanel_QuadStencilComponent::init() { return initTypedPropertyInterface<QuadStencilComponent>(); }
 
-bool GuiPanel_BoxStencilComponent::init()
-{
-	return initTypedPropertyInterface<BoxStencilComponent>();
-}
+bool GuiPanel_BoxStencilComponent::init() { return initTypedPropertyInterface<BoxStencilComponent>(); }
 
-bool GuiPanel_ModelStencilComponent::init()
-{
-	return initTypedPropertyInterface<ModelStencilComponent>();
-}
+bool GuiPanel_ModelStencilComponent::init() { return initTypedPropertyInterface<ModelStencilComponent>(); }

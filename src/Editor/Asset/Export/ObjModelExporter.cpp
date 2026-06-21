@@ -41,15 +41,9 @@ public:
 		delete[] m_buffer;
 	}
 
-	inline bool isOpen() const
-	{
-		return m_file != nullptr;
-	}
+	inline bool isOpen() const { return m_file != nullptr; }
 
-	void writeString(const std::string& str)
-	{
-		writeChars(str.c_str(), str.size());
-	}
+	void writeString(const std::string& str) { writeChars(str.c_str(), str.size()); }
 
 	void writeChars(const char* szLine, size_t lineBytes)
 	{
@@ -80,19 +74,16 @@ private:
 
 namespace ObjUtils
 {
-bool writeMaterialInstanceTextureToFile(
-	MkMaterialInstanceConstPtr materialInstance,
-	const std::filesystem::path& mtlPath,
-	const eUniformSemantic semantic,
-	std::string& outRelativeTexturePath)
+bool writeMaterialInstanceTextureToFile(MkMaterialInstanceConstPtr materialInstance,
+										const std::filesystem::path& mtlPath, const eUniformSemantic semantic,
+										std::string& outRelativeTexturePath)
 {
 	IMkShaderPtr program= materialInstance->getMaterial()->getProgram();
 
 	std::string uniformName;
 	IMkTexturePtr texture;
-	if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
-		materialInstance->getMutableTextureBySemantic(semantic, texture) &&
-		texture != nullptr)
+	if (program->getFirstUniformNameOfSemantic(semantic, uniformName)
+		&& materialInstance->getMutableTextureBySemantic(semantic, texture) && texture != nullptr)
 	{
 		const std::string modelFileStem= mtlPath.stem().string();
 		const std::string textureFileName= modelFileStem + std::string("_") + uniformName + std::string(".png");
@@ -114,9 +105,8 @@ bool writeMaterialInstanceTextureToFile(
 	return false;
 }
 }; // namespace ObjUtils
-bool ObjModelExporter::exportModelToFile(
-	MikanRenderModelResourcePtr modelResource,
-	const std::filesystem::path& modelPath)
+bool ObjModelExporter::exportModelToFile(MikanRenderModelResourcePtr modelResource,
+										 const std::filesystem::path& modelPath)
 {
 	if (modelPath.empty())
 	{
@@ -176,10 +166,7 @@ bool ObjModelExporter::exportModelToFile(
 					const glm::vec3& pos= *(const glm::vec3*)posData;
 
 					size_t numChars=
-						StringUtils::formatString(
-							szLine, sizeof(szLine),
-							"v %f %f %f\n",
-							pos.x, pos.y, pos.z);
+						StringUtils::formatString(szLine, sizeof(szLine), "v %f %f %f\n", pos.x, pos.y, pos.z);
 					posData+= vertexSize;
 
 					objFile.writeChars(szLine, numChars);
@@ -194,11 +181,8 @@ bool ObjModelExporter::exportModelToFile(
 				{
 					const glm::vec3& normal= *(const glm::vec3*)normalData;
 
-					size_t numChars=
-						StringUtils::formatString(
-							szLine, sizeof(szLine),
-							"vn %f %f %f\n",
-							normal.x, normal.y, normal.z);
+					size_t numChars= StringUtils::formatString(szLine, sizeof(szLine), "vn %f %f %f\n", normal.x,
+															   normal.y, normal.z);
 					normalData+= vertexSize;
 
 					objFile.writeChars(szLine, numChars);
@@ -213,11 +197,7 @@ bool ObjModelExporter::exportModelToFile(
 				{
 					const glm::vec2& texel= *(const glm::vec2*)texelData;
 
-					size_t numChars=
-						StringUtils::formatString(
-							szLine, sizeof(szLine),
-							"vt %f %f\n",
-							texel.x, texel.y);
+					size_t numChars= StringUtils::formatString(szLine, sizeof(szLine), "vt %f %f\n", texel.x, texel.y);
 					texelData+= vertexSize;
 
 					objFile.writeChars(szLine, numChars);
@@ -251,34 +231,25 @@ bool ObjModelExporter::exportModelToFile(
 						uint32_t oneBasedIndex= index + 1;
 						if (texelAttrib && normalAttrib)
 						{
-							size_t numChars= StringUtils::formatString(
-								szLine, sizeof(szLine),
-								" %d/%d/%d",
-								oneBasedIndex, oneBasedIndex, oneBasedIndex);
+							size_t numChars= StringUtils::formatString(szLine, sizeof(szLine), " %d/%d/%d",
+																	   oneBasedIndex, oneBasedIndex, oneBasedIndex);
 							objFile.writeChars(szLine, numChars);
 						}
 						else if (normalAttrib)
 						{
-							size_t numChars= StringUtils::formatString(
-								szLine, sizeof(szLine),
-								" %d//%d",
-								oneBasedIndex, oneBasedIndex);
+							size_t numChars= StringUtils::formatString(szLine, sizeof(szLine), " %d//%d", oneBasedIndex,
+																	   oneBasedIndex);
 							objFile.writeChars(szLine, numChars);
 						}
 						else if (texelAttrib)
 						{
-							size_t numChars= StringUtils::formatString(
-								szLine, sizeof(szLine),
-								" %d/%d",
-								oneBasedIndex, oneBasedIndex);
+							size_t numChars= StringUtils::formatString(szLine, sizeof(szLine), " %d/%d", oneBasedIndex,
+																	   oneBasedIndex);
 							objFile.writeChars(szLine, numChars);
 						}
 						else
 						{
-							size_t numChars= StringUtils::formatString(
-								szLine, sizeof(szLine),
-								" %d",
-								oneBasedIndex);
+							size_t numChars= StringUtils::formatString(szLine, sizeof(szLine), " %d", oneBasedIndex);
 							objFile.writeChars(szLine, numChars);
 						}
 
@@ -356,13 +327,13 @@ bool ObjModelExporter::exportModelToFile(
 
 				// Write out the textures, if available
 				std::string relativeTexturePath;
-				if (ObjUtils::writeMaterialInstanceTextureToFile(
-						materialInstance, mtlPath, eUniformSemantic::ambientTexture, relativeTexturePath))
+				if (ObjUtils::writeMaterialInstanceTextureToFile(materialInstance, mtlPath,
+																 eUniformSemantic::ambientTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_Ka ", relativeTexturePath, "\n"));
 				}
-				if (ObjUtils::writeMaterialInstanceTextureToFile(
-						materialInstance, mtlPath, eUniformSemantic::diffuseTexture, relativeTexturePath))
+				if (ObjUtils::writeMaterialInstanceTextureToFile(materialInstance, mtlPath,
+																 eUniformSemantic::diffuseTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_Kd ", relativeTexturePath, "\n"));
 				}
@@ -376,13 +347,13 @@ bool ObjModelExporter::exportModelToFile(
 				{
 					mtlFile.writeString(StringUtils::stringify("map_Ns ", relativeTexturePath, "\n"));
 				}
-				if (ObjUtils::writeMaterialInstanceTextureToFile(
-						materialInstance, mtlPath, eUniformSemantic::alphaTexture, relativeTexturePath))
+				if (ObjUtils::writeMaterialInstanceTextureToFile(materialInstance, mtlPath,
+																 eUniformSemantic::alphaTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_d ", relativeTexturePath, "\n"));
 				}
-				if (ObjUtils::writeMaterialInstanceTextureToFile(
-						materialInstance, mtlPath, eUniformSemantic::bumpTexture, relativeTexturePath))
+				if (ObjUtils::writeMaterialInstanceTextureToFile(materialInstance, mtlPath,
+																 eUniformSemantic::bumpTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_bump ", relativeTexturePath, "\n"));
 				}

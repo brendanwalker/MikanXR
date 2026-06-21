@@ -21,9 +21,8 @@ public:
 
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_ownerStageIdPropertyId;
 	inline MikanStageID getOwnerStageId() const { return m_stageId; }

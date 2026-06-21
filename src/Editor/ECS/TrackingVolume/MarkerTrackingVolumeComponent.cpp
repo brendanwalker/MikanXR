@@ -7,8 +7,7 @@ MarkerTrackingVolumeDefinition::MarkerTrackingVolumeDefinition()
 {
 }
 
-MarkerTrackingVolumeDefinition::MarkerTrackingVolumeDefinition(
-	MikanTrackingVolumeID trackingVolumeId)
+MarkerTrackingVolumeDefinition::MarkerTrackingVolumeDefinition(MikanTrackingVolumeID trackingVolumeId)
 	: TrackingVolumeDefinition(trackingVolumeId)
 {
 }
@@ -18,9 +17,8 @@ eTrackingVolumeType MarkerTrackingVolumeDefinition::getTrackingVolumeType() cons
 	return eTrackingVolumeType::marker;
 }
 
-bool MarkerTrackingVolumeDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool MarkerTrackingVolumeDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+														const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TrackingVolumeDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;

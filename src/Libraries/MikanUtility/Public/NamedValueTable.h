@@ -10,18 +10,9 @@ class NamedValueTable
 public:
 	using NamedValueMap= std::map<std::string, t_value_type>;
 
-	int getNumEntries() const
-	{
-		return (int)dataValueMap.size();
-	}
-	bool hasValue(const std::string& key) const
-	{
-		return dataValueMap.find(key) != dataValueMap.end();
-	}
-	void setValue(const std::string& key, t_value_type value)
-	{
-		dataValueMap.insert_or_assign(key, value);
-	}
+	int getNumEntries() const { return (int)dataValueMap.size(); }
+	bool hasValue(const std::string& key) const { return dataValueMap.find(key) != dataValueMap.end(); }
+	void setValue(const std::string& key, t_value_type value) { dataValueMap.insert_or_assign(key, value); }
 	bool tryGetValue(const std::string& key, t_value_type& outValue) const
 	{
 		const auto& it= dataValueMap.find(key);
@@ -46,10 +37,7 @@ public:
 		if (it != dataValueMap.end())
 			dataValueMap.erase(it);
 	}
-	const NamedValueMap& getMap() const
-	{
-		return dataValueMap;
-	}
+	const NamedValueMap& getMap() const { return dataValueMap; }
 	std::vector<std::string> getNames() const
 	{
 		std::vector<std::string> names;
@@ -61,10 +49,7 @@ public:
 
 		return names;
 	}
-	void clear()
-	{
-		dataValueMap.clear();
-	}
+	void clear() { dataValueMap.clear(); }
 
 protected:
 	std::map<std::string, t_value_type> dataValueMap;

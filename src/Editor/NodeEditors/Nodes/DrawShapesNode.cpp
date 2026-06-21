@@ -58,9 +58,7 @@ void DrawShapesNodeConfig::readFromJSON(const configuru::Config& pt)
 	NodeConfig::readFromJSON(pt);
 
 	const std::string blendModeString=
-		pt.get_or<std::string>(
-			"blend_mode",
-			k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOn]);
+		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOn]);
 	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
 	bDepthTest= pt.get_or<bool>("depth_test", false);
@@ -110,10 +108,7 @@ void DrawShapesNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	}
 }
 
-void DrawShapesNode::setShapesPin(ArrayPinPtr inPin)
-{
-	m_shapesPin= inPin;
-}
+void DrawShapesNode::setShapesPin(ArrayPinPtr inPin) { m_shapesPin= inPin; }
 
 void DrawShapesNode::onGraphLoaded(bool success)
 {
@@ -178,8 +173,7 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 	}
 
 	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
-	MkScopedState mkStateScope=
-		graphicsContext->getMkStateStack().createScopedState("Draw Shapes Node");
+	MkScopedState mkStateScope= graphicsContext->getMkStateStack().createScopedState("Draw Shapes Node");
 	IMkState* mkState= mkStateScope.getStackState();
 
 	// Set blend mode
@@ -243,10 +237,8 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-void DrawShapesNode::drawShapeRenderable(
-	IMkSceneRenderableConstPtr renderable,
-	const glm::mat4& vpMatrix,
-	IMkTexturePtr colorTexture)
+void DrawShapesNode::drawShapeRenderable(IMkSceneRenderableConstPtr renderable, const glm::mat4& vpMatrix,
+										 IMkTexturePtr colorTexture)
 {
 	MkMaterialInstancePtr matInst= renderable->getMaterialInstance();
 	if (!matInst)
@@ -272,17 +264,14 @@ void DrawShapesNode::drawShapeRenderable(
 	// never written into mat4Sources on the shared material instance.
 	if (auto materialBinding= material->bindMaterial())
 	{
-		BindUniformCallback mvpCallback= [&mvpMatrix](
-											 IMkShaderPtr program,
-											 eUniformDataType dataType,
-											 eUniformSemantic semantic,
-											 const std::string& uniformName) -> eUniformBindResult
+		BindUniformCallback mvpCallback= [&mvpMatrix](IMkShaderPtr program, eUniformDataType dataType,
+													  eUniformSemantic semantic,
+													  const std::string& uniformName) -> eUniformBindResult
 		{
 			if (semantic == eUniformSemantic::modelViewProjectionMatrix)
 			{
-				return program->setMatrix4x4Uniform(uniformName, mvpMatrix)
-						   ? eUniformBindResult::bound
-						   : eUniformBindResult::error;
+				return program->setMatrix4x4Uniform(uniformName, mvpMatrix) ? eUniformBindResult::bound
+																			: eUniformBindResult::error;
 			}
 			return eUniformBindResult::unbound;
 		};
@@ -300,10 +289,7 @@ void DrawShapesNode::drawShapeRenderable(
 	}
 }
 
-FlowPinPtr DrawShapesNode::getOutputFlowPin() const
-{
-	return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT);
-}
+FlowPinPtr DrawShapesNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
 
 void DrawShapesNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
@@ -311,21 +297,14 @@ void DrawShapesNode::editorRenderPropertySheet(const NodeEditorState& editorStat
 	{
 		// Blend Mode
 		int iBlendMode= (int)m_blendMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-				"drawShapesNodeBlendMode",
-				"Blend Mode",
-				"Blend Off\0Blend On\0",
-				iBlendMode,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawShapesNodeBlendMode", "Blend Mode", "Blend Off\0Blend On\0",
+													 iBlendMode, editorState.styleManager))
 		{
 			m_blendMode= (eCompositorBlendMode)iBlendMode;
 		}
 
 		// Depth Test
-		NodeEditorUI::DrawCheckBoxProperty(
-			"drawShapesNodeDepthTest",
-			"Depth Test",
-			m_bDepthTest);
+		NodeEditorUI::DrawCheckBoxProperty("drawShapesNodeDepthTest", "Depth Test", m_bDepthTest);
 	}
 }
 

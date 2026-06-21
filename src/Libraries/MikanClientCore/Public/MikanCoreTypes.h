@@ -111,16 +111,11 @@ struct MIKAN_CORE_API STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) Mik
 
 struct MIKAN_CORE_API STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanRenderTargetDescriptor
 {
-	FIELD()
-	MikanColorBufferType color_buffer_type= MikanColorBufferType::MikanColorBuffer_NOCOLOR;
-	FIELD()
-	MikanDepthBufferType depth_buffer_type= MikanDepthBufferType::MikanDepthBuffer_NODEPTH;
-	FIELD()
-	uint32_t width= 0;
-	FIELD()
-	uint32_t height= 0;
-	FIELD()
-	MikanClientGraphicsApi graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
+	FIELD() MikanColorBufferType color_buffer_type= MikanColorBufferType::MikanColorBuffer_NOCOLOR;
+	FIELD() MikanDepthBufferType depth_buffer_type= MikanDepthBufferType::MikanDepthBuffer_NODEPTH;
+	FIELD() uint32_t width= 0;
+	FIELD() uint32_t height= 0;
+	FIELD() MikanClientGraphicsApi graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
 
 #ifdef MIKANCORE_REFLECTION_ENABLED
 	MikanRenderTargetDescriptor_GENERATED
@@ -136,15 +131,13 @@ typedef int MikanRequestID;
 typedef int MikanCameraID;
 
 /// Registered text response callback function for a Mikan request
-typedef void(MIKAN_CALLBACK* MikanTextResponseCallback)(
-	MikanRequestID request_id, const char* utf8_response_string, void* userdata);
+typedef void(MIKAN_CALLBACK* MikanTextResponseCallback)(MikanRequestID request_id, const char* utf8_response_string,
+														void* userdata);
 
 /// Registered binary response callback function for a Mikan request
-typedef void(MIKAN_CALLBACK* MikanBinaryResponseCallback)(
-	const uint8_t* buffer, size_t buffer_size, void* userdata);
+typedef void(MIKAN_CALLBACK* MikanBinaryResponseCallback)(const uint8_t* buffer, size_t buffer_size, void* userdata);
 
-typedef void(MIKAN_CALLBACK* MikanLogCallback)(
-	int /*log_level*/, const char* /*log_message*/);
+typedef void(MIKAN_CALLBACK* MikanLogCallback)(int /*log_level*/, const char* /*log_message*/);
 
 #ifdef MIKANCORE_REFLECTION_ENABLED
 File_MikanCoreTypes_GENERATED

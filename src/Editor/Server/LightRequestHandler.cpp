@@ -18,15 +18,12 @@ bool LightRequestHandler::startup(MainWindow* mainWindow)
 	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	// Register request handlers
-	messageServer->setRequestHandler(
-		SetLightDMXDataSubcription::staticGetArchetype().getName(),
-		std::bind(&LightRequestHandler::setLightDMXDataSubscriptionHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		SetLightDMXData::staticGetArchetype().getName(),
-		std::bind(&LightRequestHandler::setLightDMXDataHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		GetLightDMXData::staticGetArchetype().getName(),
-		std::bind(&LightRequestHandler::getLightDMXDataHandler, this, _1, _2));
+	messageServer->setRequestHandler(SetLightDMXDataSubcription::staticGetArchetype().getName(),
+									 std::bind(&LightRequestHandler::setLightDMXDataSubscriptionHandler, this, _1, _2));
+	messageServer->setRequestHandler(SetLightDMXData::staticGetArchetype().getName(),
+									 std::bind(&LightRequestHandler::setLightDMXDataHandler, this, _1, _2));
+	messageServer->setRequestHandler(GetLightDMXData::staticGetArchetype().getName(),
+									 std::bind(&LightRequestHandler::getLightDMXDataHandler, this, _1, _2));
 
 	// Subscribe to the single DMXObjectSystem delegate for all fixture DMX data changes
 	if (auto dmxSystem= getObjectSystemOfType<DMXObjectSystem>())
@@ -72,9 +69,7 @@ void LightRequestHandler::onLightDMXDataChanged(MikanLightID lightId)
 	}
 }
 
-void LightRequestHandler::setLightDMXDataSubscriptionHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void LightRequestHandler::setLightDMXDataSubscriptionHandler(const ClientRequest& request, ClientResponse& response)
 {
 	SetLightDMXDataSubcription subscriptionRequest;
 	if (!readTypedRequest(request.utf8RequestString, subscriptionRequest))
@@ -100,9 +95,7 @@ void LightRequestHandler::setLightDMXDataSubscriptionHandler(
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void LightRequestHandler::setLightDMXDataHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void LightRequestHandler::setLightDMXDataHandler(const ClientRequest& request, ClientResponse& response)
 {
 	SetLightDMXData setDataRequest;
 	if (!readTypedRequest(request.utf8RequestString, setDataRequest))
@@ -124,9 +117,7 @@ void LightRequestHandler::setLightDMXDataHandler(
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void LightRequestHandler::getLightDMXDataHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void LightRequestHandler::getLightDMXDataHandler(const ClientRequest& request, ClientResponse& response)
 {
 	GetLightDMXData getDataRequest;
 	if (!readTypedRequest(request.utf8RequestString, getDataRequest))

@@ -57,10 +57,8 @@ class ISharedTextureWriteAccessor
 public:
 	virtual ~ISharedTextureWriteAccessor() {}
 
-	virtual bool initialize(
-		const struct SharedTextureDescriptor* descriptor,
-		bool bEnableFrameCounter,
-		void* apiDeviceInterface= nullptr)= 0;
+	virtual bool initialize(const struct SharedTextureDescriptor* descriptor, bool bEnableFrameCounter,
+							void* apiDeviceInterface= nullptr)= 0;
 	virtual void dispose()= 0;
 
 	virtual bool writeColorFrameTexture(void* ApiTexturePtr)= 0;
@@ -71,4 +69,5 @@ public:
 	virtual void setLogCallback(SharedTextureLogCallback callback)= 0;
 };
 
-MIKAN_SHAREDTEXTURE_FUNC(ISharedTextureWriteAccessorPtr) createSharedTextureWriteAccessor(const std::string& prefix, MikanCameraID cameraId);
+MIKAN_SHAREDTEXTURE_FUNC(ISharedTextureWriteAccessorPtr) createSharedTextureWriteAccessor(const std::string& prefix,
+																						  MikanCameraID cameraId);

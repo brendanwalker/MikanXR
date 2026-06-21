@@ -18,19 +18,17 @@ enum class ENUM(Serialization::CodeGenModule("MikanStageTypes")) MikanStageTrack
 	SteamVR ENUMVALUE_STRING("SteamVR")= 1
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStageTypes")) MikanStageComponentValues : public MikanTransformComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStageTypes")) MikanStageComponentValues
+	: public MikanTransformComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	MikanTrackingVolumeID tracking_volume_id= INVALID_MIKAN_ID;
+	FIELD() MikanTrackingVolumeID tracking_volume_id= INVALID_MIKAN_ID;
 
-	FIELD()
-	MikanVector3f stage_bounds_min;
+	FIELD() MikanVector3f stage_bounds_min;
 
-	FIELD()
-	MikanVector3f stage_bounds_max;
+	FIELD() MikanVector3f stage_bounds_max;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStageComponentValues_GENERATED

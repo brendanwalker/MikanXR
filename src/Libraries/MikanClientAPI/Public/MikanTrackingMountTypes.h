@@ -14,18 +14,15 @@
 #include <assert.h>
 
 // Structures
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingMountTypes")) MikanTrackingMountComponentValues : public MikanComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingMountTypes")) MikanTrackingMountComponentValues
+	: public MikanComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	Serialization::String device_path;
-	FIELD()
-	Serialization::String socket_name;
-	FIELD()
-	Serialization::List<Serialization::String>
-		available_socket_names;
+	FIELD() Serialization::String device_path;
+	FIELD() Serialization::String socket_name;
+	FIELD() Serialization::List<Serialization::String> available_socket_names;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTrackingMountComponentValues_GENERATED

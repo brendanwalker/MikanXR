@@ -20,10 +20,8 @@ class MIKAN_RENDERER_CLASS MkScopedMaterialInstanceBinding
 {
 public:
 	MkScopedMaterialInstanceBinding();
-	MkScopedMaterialInstanceBinding(
-		const MkMaterialInstance* materialInstance,
-		UniformNameSet unboundUniformNames,
-		bool bMaterialInstanceFailure);
+	MkScopedMaterialInstanceBinding(const MkMaterialInstance* materialInstance, UniformNameSet unboundUniformNames,
+									bool bMaterialInstanceFailure);
 	virtual ~MkScopedMaterialInstanceBinding();
 
 	const MkMaterialInstance* getBoundMaterialInstance() const;
@@ -75,9 +73,8 @@ public:
 	bool getTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const;
 	bool getMutableTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const;
 
-	MkScopedMaterialInstanceBinding bindMaterialInstance(
-		const MkScopedMaterialBinding& materialBinding,
-		BindUniformCallback callback= BindUniformCallback()) const;
+	MkScopedMaterialInstanceBinding bindMaterialInstance(const MkScopedMaterialBinding& materialBinding,
+														 BindUniformCallback callback= BindUniformCallback()) const;
 
 protected:
 	friend class MkScopedMaterialInstanceBinding;

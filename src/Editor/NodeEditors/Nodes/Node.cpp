@@ -67,8 +67,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("Node::loadFromConfig")
-				<< "Failed to find create input pin: " << pinId
-				<< ", on node: " << getClassName();
+				<< "Failed to find create input pin: " << pinId << ", on node: " << getClassName();
 			success= false;
 		}
 	}
@@ -83,8 +82,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("Node::loadFromConfig")
-				<< "Failed to find create output pin: " << pinId
-				<< ", on node: " << getClassName();
+				<< "Failed to find create output pin: " << pinId << ", on node: " << getClassName();
 			success= false;
 		}
 	}
@@ -109,15 +107,9 @@ void Node::saveToConfig(NodeConfigPtr nodeConfig) const
 	}
 }
 
-void Node::setOwnerGraph(NodeGraphPtr ownerGraph)
-{
-	m_ownerGraph= ownerGraph;
-}
+void Node::setOwnerGraph(NodeGraphPtr ownerGraph) { m_ownerGraph= ownerGraph; }
 
-ProjectManagerPtr Node::getOwnerProject() const
-{
-	return getOwnerGraph()->getOwnerProject();
-}
+ProjectManagerPtr Node::getOwnerProject() const { return getOwnerGraph()->getOwnerProject(); }
 
 NodePinPtr Node::addPinByClassName(const std::string& className, const std::string& name, eNodePinDirection direction)
 {
@@ -178,8 +170,7 @@ void Node::disconnectAllPins()
 		if (!m_ownerGraph->deletePinById(pinId))
 		{
 			MIKAN_LOG_ERROR("Node::disconnectAllPins")
-				<< "Failed to delete output pin id: " << pinId
-				<< ", on node class: " << getClassName();
+				<< "Failed to delete output pin id: " << pinId << ", on node class: " << getClassName();
 			break;
 		}
 	}
@@ -192,8 +183,7 @@ void Node::disconnectAllPins()
 		if (!m_ownerGraph->deletePinById(pinId))
 		{
 			MIKAN_LOG_ERROR("Node::disconnectAllPins")
-				<< "Failed to delete input pin id: " << pinId
-				<< ", on node class: " << getClassName();
+				<< "Failed to delete input pin id: " << pinId << ", on node class: " << getClassName();
 			break;
 		}
 	}
@@ -202,10 +192,7 @@ void Node::disconnectAllPins()
 bool Node::evaluateNode(NodeEvaluator& evaluator)
 {
 	evaluator.addError(
-		NodeEvaluationError(
-			eNodeEvaluationErrorCode::invalidNode,
-			"Node missing evaluateNode implementation",
-			this));
+		NodeEvaluationError(eNodeEvaluationErrorCode::invalidNode, "Node missing evaluateNode implementation", this));
 
 	return false;
 }
@@ -238,12 +225,9 @@ bool Node::evaluateInputs(NodeEvaluator& evaluator)
 			}
 			else
 			{
-				evaluator.addError(
-					NodeEvaluationError(
-						eNodeEvaluationErrorCode::missingInput,
-						StringUtils::stringify(inputPin->getName(), " missing input connection"),
-						this,
-						inputPin.get()));
+				evaluator.addError(NodeEvaluationError(
+					eNodeEvaluationErrorCode::missingInput,
+					StringUtils::stringify(inputPin->getName(), " missing input connection"), this, inputPin.get()));
 				return false;
 			}
 		}
@@ -292,10 +276,7 @@ bool Node::hasAnyConnectedPins() const
 	return false;
 }
 
-FlowPinPtr Node::getOutputFlowPin() const
-{
-	return FlowPinPtr();
-}
+FlowPinPtr Node::getOutputFlowPin() const { return FlowPinPtr(); }
 
 void Node::editorRenderNode(const NodeEditorState& editorState)
 {
@@ -338,24 +319,16 @@ void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
 		float textWidth= ImGui::CalcTextSize(pin->getName().c_str()).x + 11.0f;
 		const float inputWidth= pin->editorComputeInputWidth();
 
-		outDims.inputColomnWidth=
-			std::max(
-				outDims.inputColomnWidth,
-				std::max(textWidth, inputWidth));
+		outDims.inputColomnWidth= std::max(outDims.inputColomnWidth, std::max(textWidth, inputWidth));
 	}
 
 	for (auto& pin : m_pinsOut)
 	{
 		outDims.outputColomnWidth=
-			std::max(
-				outDims.outputColomnWidth,
-				ImGui::CalcTextSize(pin->getName().c_str()).x + 11.0f);
+			std::max(outDims.outputColomnWidth, ImGui::CalcTextSize(pin->getName().c_str()).x + 11.0f);
 	}
 
-	outDims.totalNodeWidth=
-		std::max(
-			outDims.totalNodeWidth,
-			outDims.inputColomnWidth + outDims.outputColomnWidth);
+	outDims.totalNodeWidth= std::max(outDims.totalNodeWidth, outDims.inputColomnWidth + outDims.outputColomnWidth);
 }
 
 void Node::editorRenderTitle(const NodeEditorState& editorState) const
@@ -402,15 +375,9 @@ void Node::editorRenderOutputPins(const NodeEditorState& editorState) const
 }
 
 // -- NodeFactory -----
-NodeConfigPtr NodeFactory::allocateNodeConfig() const
-{
-	return std::make_shared<NodeConfig>();
-}
+NodeConfigPtr NodeFactory::allocateNodeConfig() const { return std::make_shared<NodeConfig>(); }
 
-NodePtr NodeFactory::allocateNode() const
-{
-	return std::make_shared<Node>();
-}
+NodePtr NodeFactory::allocateNode() const { return std::make_shared<Node>(); }
 
 NodePtr NodeFactory::createNode(const NodeEditorState& editorState) const
 {

@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-class ModelShapeSystemDefinition : public MikanTypedObjectSystemDefinition<ModelShapeComponent, ModelShapeDefinition, MikanShapeID>
+class ModelShapeSystemDefinition
+	: public MikanTypedObjectSystemDefinition<ModelShapeComponent, ModelShapeDefinition, MikanShapeID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<ModelShapeComponent, ModelShapeDefinition, MikanShapeID>;
@@ -21,16 +22,12 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class ModelShapeSystem : public MikanTypedObjectSystem<
-							 ModelShapeComponent, ModelShapeDefinition,
-							 MikanShapeID,
-							 ModelShapeSystem, ModelShapeSystemDefinition>
+class ModelShapeSystem : public MikanTypedObjectSystem<ModelShapeComponent, ModelShapeDefinition, MikanShapeID,
+													   ModelShapeSystem, ModelShapeSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		ModelShapeComponent, ModelShapeDefinition,
-		MikanShapeID,
-		ModelShapeSystem, ModelShapeSystemDefinition>;
+	using Super= MikanTypedObjectSystem<ModelShapeComponent, ModelShapeDefinition, MikanShapeID, ModelShapeSystem,
+										ModelShapeSystemDefinition>;
 
 	ModelShapeSystem(ProjectManagerPtr ownerObjectSystem);
 
@@ -56,9 +53,8 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		ComponentDefinitionPtr componentDefinition) override;
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											ComponentDefinitionPtr componentDefinition) override;
 };
 
 using ModelShapeSystemPtr= std::shared_ptr<ModelShapeSystem>;

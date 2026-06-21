@@ -22,9 +22,7 @@ public:
 	AppStage_AlignmentCalibration(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_AlignmentCalibration();
 
-	static bool tryEnterAlignmentCalibration(
-		AppStage* fromAppStage,
-		CameraComponentPtr forCameraComponent);
+	static bool tryEnterAlignmentCalibration(AppStage* fromAppStage, CameraComponentPtr forCameraComponent);
 
 	void setBypassCalibrationFlag(bool flag);
 	void setTargetCameraComponent(CameraComponentPtr cameraComponent);
@@ -61,10 +59,8 @@ protected:
 	void onVRFrameDelayChanged(int newVRFrameDelay);
 
 	// Remote Control
-	virtual bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults) override;
+	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+											std::vector<std::string>& outResults) override;
 	bool handleGetStateCommand(std::vector<std::string>& outResults);
 	bool handleGetChessboardStabilityCommand(std::vector<std::string>& outResults);
 	bool handleBeginCommand(std::vector<std::string>& outResults);

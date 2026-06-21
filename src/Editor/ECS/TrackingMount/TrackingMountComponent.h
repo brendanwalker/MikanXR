@@ -21,9 +21,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	inline MikanTrackingMountID getTrackingMountId() const { return getComponentId(); }
 
@@ -75,5 +74,6 @@ public:
 	}
 
 protected:
-	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
 };

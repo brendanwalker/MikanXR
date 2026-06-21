@@ -19,16 +19,10 @@ void AssetReferenceConfig::readFromJSON(const configuru::Config& pt)
 	assetPath= pt.get_or<std::string>("asset_path", "");
 }
 
-bool AssetReferenceConfig::isValid() const
-{
-	return !className.empty() && !assetPath.empty();
-}
+bool AssetReferenceConfig::isValid() const { return !className.empty() && !assetPath.empty(); }
 
 // -- Asset Reference -----
-AssetReference::~AssetReference()
-{
-	m_previewTexture= nullptr;
-}
+AssetReference::~AssetReference() { m_previewTexture= nullptr; }
 
 bool AssetReference::loadFromConfig(AssetReferenceConfigConstPtr config)
 {
@@ -52,10 +46,7 @@ void AssetReference::setAssetPath(const std::filesystem::path& inPath)
 	}
 }
 
-bool AssetReference::isValid() const
-{
-	return !m_assetPath.empty() && std::filesystem::exists(m_assetPath);
-}
+bool AssetReference::isValid() const { return !m_assetPath.empty() && std::filesystem::exists(m_assetPath); }
 
 std::string AssetReference::getShortName() const
 {
@@ -73,7 +64,4 @@ AssetReferenceConfigPtr AssetReferenceFactory::allocateAssetReferenceConfig() co
 	return std::make_shared<AssetReferenceConfig>();
 }
 
-AssetReferencePtr AssetReferenceFactory::allocateAssetReference() const
-{
-	return std::make_shared<AssetReference>();
-}
+AssetReferencePtr AssetReferenceFactory::allocateAssetReference() const { return std::make_shared<AssetReference>(); }

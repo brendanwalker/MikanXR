@@ -32,19 +32,12 @@ AnchorDefinition::AnchorDefinition(MikanSpatialAnchorID anchorId)
 {
 }
 
-configuru::Config AnchorDefinition::writeToJSON()
-{
-	return TransformComponentDefinition::writeToJSON();
-}
+configuru::Config AnchorDefinition::writeToJSON() { return TransformComponentDefinition::writeToJSON(); }
 
-void AnchorDefinition::readFromJSON(const configuru::Config& pt)
-{
-	TransformComponentDefinition::readFromJSON(pt);
-}
+void AnchorDefinition::readFromJSON(const configuru::Config& pt) { TransformComponentDefinition::readFromJSON(pt); }
 
-bool AnchorDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool AnchorDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+										  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	return TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams);
 }
@@ -72,9 +65,7 @@ void AnchorComponent::init()
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 }
 
-void AnchorComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void AnchorComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	TextStyle style= getDefaultTextStyle();
 
@@ -115,9 +106,7 @@ void AnchorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 {
 	TransformComponent::getFunctionDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_editAnchorFunctionId, "Edit Anchor"));
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_editAnchorFunctionId, "Edit Anchor"));
 }
 
 bool AnchorComponent::invokeFunction(const std::string& functionName)
@@ -135,8 +124,7 @@ void AnchorComponent::editAnchor()
 {
 	AnchorDefinitionPtr definition= getAnchorDefinition();
 	MikanSpatialAnchorID anchorId= definition->getComponentId();
-	AnchorComponentPtr anchorComponent=
-		getObjectSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(anchorId);
+	AnchorComponentPtr anchorComponent= getObjectSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(anchorId);
 	if (anchorComponent != nullptr)
 	{
 		AppStage* currentAppStage= getOwnerEditorWindow()->getCurrentAppStage();
@@ -149,10 +137,8 @@ void AnchorComponent::editAnchor()
 				AppStage_AnchorTriangulation* anchorTriangulation=
 					getOwnerEditorWindow()->pushAppStageOfType<AppStage_AnchorTriangulation>();
 
-				AnchorTriangulatorInfo anchorInfo= {
-					definition->getComponentId(),
-					definition->getRelativeTransform(),
-					definition->getComponentName()};
+				AnchorTriangulatorInfo anchorInfo= {definition->getComponentId(), definition->getRelativeTransform(),
+													definition->getComponentName()};
 				anchorTriangulation->setSourceCamera(
 					getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId));
 				anchorTriangulation->setTargetAnchor(anchorInfo);
@@ -164,12 +150,7 @@ void AnchorComponent::editAnchor()
 void AnchorComponent::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<AnchorComponent, TransformComponent>(
-			AnchorComponent::k_componentClassName.c_str())
-		.addFunction("editAnchor",
-					 [](AnchorComponent* c)
-					 {
-						 c->editAnchor();
-					 })
+		.deriveClass<AnchorComponent, TransformComponent>(AnchorComponent::k_componentClassName.c_str())
+		.addFunction("editAnchor", [](AnchorComponent* c) { c->editAnchor(); })
 		.endClass();
 }

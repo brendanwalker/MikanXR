@@ -10,8 +10,7 @@
 
 using MikanWMFVideoDevicePtr= std::shared_ptr<class MikanWMFVideoDevice>;
 
-class MikanWMFVideoDeviceManager : public IUsbVideoDeviceManager,
-								   public IDeviceHotplugListener
+class MikanWMFVideoDeviceManager : public IUsbVideoDeviceManager, public IDeviceHotplugListener
 {
 public:
 	MikanWMFVideoDeviceManager();

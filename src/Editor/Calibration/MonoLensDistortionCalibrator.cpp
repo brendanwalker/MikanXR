@@ -43,10 +43,7 @@ struct MonoLensDistortionCalibrationState
 	MikanMonoIntrinsics outputCameraIntrinsics;
 	double reprojectionError;
 
-	void init(
-		CalibrationPatternFinder* patternFinder,
-		VideoSourceComponentPtr videoSourceComponent,
-		int patternCount)
+	void init(CalibrationPatternFinder* patternFinder, VideoSourceComponentPtr videoSourceComponent, int patternCount)
 	{
 		videoSourceComponent->getVideoPixelDimensions(frameWidth, frameHeight);
 		desiredPatternCount= patternCount;
@@ -74,36 +71,25 @@ struct MonoLensDistortionCalibrationState
 };
 
 //-- MonoDistortionCalibrator ----
-MonoLensDistortionCalibrator::MonoLensDistortionCalibrator(
-	MarkerObjectSystemPtr markerObjectSystem,
-	VideoFrameDistortionView* distortionView,
-	int desiredBoardCount)
+MonoLensDistortionCalibrator::MonoLensDistortionCalibrator(MarkerObjectSystemPtr markerObjectSystem,
+														   VideoFrameDistortionView* distortionView,
+														   int desiredBoardCount)
 	: m_calibrationState(new MonoLensDistortionCalibrationState)
 	, m_distortionView(distortionView)
 {
 	auto markerConfig= markerObjectSystem->getTypedDefinition();
-	m_patternFinder=
-		new CalibrationPatternFinder_Charuco(
-			distortionView,
-			markerConfig->getCharucoRows(),
-			markerConfig->getCharucoCols(),
-			markerConfig->getCharucoSquareLengthMM(),
-			markerConfig->getCharucoMarkerLengthMM(),
-			markerConfig->getCharucoDictionaryType());
+	m_patternFinder= new CalibrationPatternFinder_Charuco(
+		distortionView, markerConfig->getCharucoRows(), markerConfig->getCharucoCols(),
+		markerConfig->getCharucoSquareLengthMM(), markerConfig->getCharucoMarkerLengthMM(),
+		markerConfig->getCharucoDictionaryType());
 
 	frameWidth= distortionView->getFrameWidth();
 	frameHeight= distortionView->getFrameHeight();
 
-	m_calibrationState->init(
-		m_patternFinder,
-		distortionView->getVideoSourceComponent(),
-		desiredBoardCount);
+	m_calibrationState->init(m_patternFinder, distortionView->getVideoSourceComponent(), desiredBoardCount);
 }
 
-MonoLensDistortionCalibrator::~MonoLensDistortionCalibrator()
-{
-	delete m_patternFinder;
-}
+MonoLensDistortionCalibrator::~MonoLensDistortionCalibrator() { delete m_patternFinder; }
 
 void MonoLensDistortionCalibrator::findNewCalibrationPattern(const float minSeperationDist)
 {
@@ -151,10 +137,7 @@ float MonoLensDistortionCalibrator::computeCalibrationProgress() const
 	return samplePercentage;
 }
 
-void MonoLensDistortionCalibrator::resetCalibrationState()
-{
-	m_calibrationState->resetCalibration();
-}
+void MonoLensDistortionCalibrator::resetCalibrationState() { m_calibrationState->resetCalibration(); }
 
 void MonoLensDistortionCalibrator::resetDistortionView()
 {
@@ -172,37 +155,29 @@ void MonoLensDistortionCalibrator::computeCameraCalibration()
 	// Spin up a worker thread to compute the camera calibration.
 	// The result of this is polled by getCameraCalibration().
 	calibrationState->asyncComputeTaskStatus= MonoLensDistortionCalibrationState::Running;
-	calibrationState->asyncComputeTask= new std::thread([patternFinder, calibrationState]
-														{
-		bool bSuccess= 
-			computeMonoLensCameraCalibration(
-				calibrationState->frameWidth,
-				calibrationState->frameHeight,
-				calibrationState->calibrationGeometry,
-				calibrationState->imagePointsList,
-				calibrationState->imagePointIDList,
-				calibrationState->outputCameraIntrinsics,
-				calibrationState->reprojectionError);
+	calibrationState->asyncComputeTask= new std::thread(
+		[patternFinder, calibrationState]
+		{
+			bool bSuccess= computeMonoLensCameraCalibration(
+				calibrationState->frameWidth, calibrationState->frameHeight, calibrationState->calibrationGeometry,
+				calibrationState->imagePointsList, calibrationState->imagePointIDList,
+				calibrationState->outputCameraIntrinsics, calibrationState->reprojectionError);
 
-		// Signal the main thread that the task is complete
-		calibrationState->asyncComputeTaskStatus = 
-			bSuccess 
-			? MonoLensDistortionCalibrationState::Succeded
-			: MonoLensDistortionCalibrationState::Failed; });
+			// Signal the main thread that the task is complete
+			calibrationState->asyncComputeTaskStatus=
+				bSuccess ? MonoLensDistortionCalibrationState::Succeded : MonoLensDistortionCalibrationState::Failed;
+		});
 }
 
 bool MonoLensDistortionCalibrator::getIsCameraCalibrationComplete() const
 {
 	auto status= m_calibrationState->asyncComputeTaskStatus.load();
 
-	return status == MonoLensDistortionCalibrationState::Succeded ||
-		   status == MonoLensDistortionCalibrationState::Failed;
+	return status == MonoLensDistortionCalibrationState::Succeded
+		   || status == MonoLensDistortionCalibrationState::Failed;
 }
 
-int MonoLensDistortionCalibrator::getDesiredPatternCount() const
-{
-	return m_calibrationState->desiredPatternCount;
-}
+int MonoLensDistortionCalibrator::getDesiredPatternCount() const { return m_calibrationState->desiredPatternCount; }
 
 bool MonoLensDistortionCalibrator::getCameraCalibration(MikanMonoIntrinsics* out_mono_intrinsics)
 {
@@ -225,10 +200,7 @@ bool MonoLensDistortionCalibrator::getCameraCalibration(MikanMonoIntrinsics* out
 	return bFetchSuccess;
 }
 
-float MonoLensDistortionCalibrator::getReprojectionError() const
-{
-	return m_calibrationState->reprojectionError;
-}
+float MonoLensDistortionCalibrator::getReprojectionError() const { return m_calibrationState->reprojectionError; }
 
 void MonoLensDistortionCalibrator::renderCalibrationState()
 {
@@ -240,11 +212,8 @@ void MonoLensDistortionCalibrator::renderCalibrationState()
 	// Draw the outlines of all of the chess boards
 	if (m_calibrationState->quadList.size() > 0)
 	{
-		drawQuadList2d(
-			graphicsContext,
-			frameWidth, frameHeight,
-			(float*)m_calibrationState->quadList.data(), // cv::point2f is just two floats
-			(int)m_calibrationState->quadList.size(),
-			Colors::Yellow);
+		drawQuadList2d(graphicsContext, frameWidth, frameHeight,
+					   (float*)m_calibrationState->quadList.data(), // cv::point2f is just two floats
+					   (int)m_calibrationState->quadList.size(), Colors::Yellow);
 	}
 }

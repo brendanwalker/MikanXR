@@ -21,11 +21,8 @@ public:
 	using SelectCallback= std::function<void(MikanCameraID)>;
 	using CancelCallback= std::function<void()>;
 	using FilterCallback= std::function<bool(CameraComponentPtr)>;
-	static bool selectCamera(
-		AppStage* appStage,
-		SelectCallback selectCallback= {},
-		CancelCallback cancelCallback= {},
-		FilterCallback filterCallback= {});
+	static bool selectCamera(AppStage* appStage, SelectCallback selectCallback= {}, CancelCallback cancelCallback= {},
+							 FilterCallback filterCallback= {});
 
 	virtual void onGui() override;
 

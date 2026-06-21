@@ -9,24 +9,24 @@
 
 #include <string>
 
-class SpoutTextureSourceSystemDefinition : public MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID>
+class SpoutTextureSourceSystemDefinition
+	: public MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition,
+											  MikanTextureSourceID>
 {
 public:
-	using Super= MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID>;
+	using Super= MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition,
+												  MikanTextureSourceID>;
 
 	SpoutTextureSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class SpoutTextureSourceSystem : public MikanTypedObjectSystem<
-									 SpoutTextureSourceComponent, SpoutTextureSourceDefinition,
-									 MikanTextureSourceID,
-									 SpoutTextureSourceSystem, SpoutTextureSourceSystemDefinition>
+class SpoutTextureSourceSystem
+	: public MikanTypedObjectSystem<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID,
+									SpoutTextureSourceSystem, SpoutTextureSourceSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		SpoutTextureSourceComponent, SpoutTextureSourceDefinition,
-		MikanTextureSourceID,
-		SpoutTextureSourceSystem, SpoutTextureSourceSystemDefinition>;
+	using Super= MikanTypedObjectSystem<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID,
+										SpoutTextureSourceSystem, SpoutTextureSourceSystemDefinition>;
 
 	SpoutTextureSourceSystem(ProjectManagerPtr ownerObjectSystem);
 

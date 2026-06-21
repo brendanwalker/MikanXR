@@ -19,16 +19,13 @@ bool MarkerRequestHandler::startup(MainWindow* mainWindow)
 {
 	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
-	messageServer->setRequestHandler(
-		GetArucoMarkerImageRequest::staticGetArchetype().getName(),
-		std::bind(&MarkerRequestHandler::getArucoMarkerImageHandler, this, _1, _2));
+	messageServer->setRequestHandler(GetArucoMarkerImageRequest::staticGetArchetype().getName(),
+									 std::bind(&MarkerRequestHandler::getArucoMarkerImageHandler, this, _1, _2));
 
 	return true;
 }
 
-void MarkerRequestHandler::getArucoMarkerImageHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void MarkerRequestHandler::getArucoMarkerImageHandler(const ClientRequest& request, ClientResponse& response)
 {
 	GetArucoMarkerImageRequest imageRequest;
 	if (!readTypedRequest(request.utf8RequestString, imageRequest))
@@ -44,8 +41,7 @@ void MarkerRequestHandler::getArucoMarkerImageHandler(
 		return;
 	}
 
-	const eCharucoDictionaryType dictionaryType=
-		markerSystem->getTypedDefinitionConst()->getArucoDictionaryType();
+	const eCharucoDictionaryType dictionaryType= markerSystem->getTypedDefinitionConst()->getArucoDictionaryType();
 
 	ArucoDictionaryPtr dictionary= CalibrationPatternFinder::getArucoDictionary(dictionaryType);
 	if (!dictionary)

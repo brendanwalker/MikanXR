@@ -20,7 +20,8 @@ bool MikanTextureCache::startup()
 	bSuccess&= loadTexturePath(texturePath / "blackRGB.png", INTERNAL_TEXTURE_BLACK_RGB) != nullptr;
 	bSuccess&= loadTexturePath(texturePath / "whiteRGBA.png", INTERNAL_TEXTURE_WHITE_RGBA) != nullptr;
 	bSuccess&= loadTexturePath(texturePath / "blackRGBA.png", INTERNAL_TEXTURE_BLACK_RGBA) != nullptr;
-	bSuccess&= loadTexturePath(texturePath / "blackRGBA_transparent.png", INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT) != nullptr;
+	bSuccess&=
+		loadTexturePath(texturePath / "blackRGBA_transparent.png", INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT) != nullptr;
 	bSuccess&= loadTexturePath(texturePath / "missing_texture.png", INTERNAL_MISSING_TEXTURE_RGBA) != nullptr;
 
 	return bSuccess;
@@ -42,9 +43,8 @@ IMkTexturePtr MikanTextureCache::loadTextureAssetReference(TextureAssetReference
 	return loadTexturePath(textureAssetRef->getAssetPath());
 }
 
-IMkTexturePtr MikanTextureCache::loadTexturePath(
-	const std::filesystem::path& texturePath,
-	const std::string& overrideName)
+IMkTexturePtr MikanTextureCache::loadTexturePath(const std::filesystem::path& texturePath,
+												 const std::string& overrideName)
 {
 	return m_textureCache->loadTexturePath(texturePath, overrideName);
 }

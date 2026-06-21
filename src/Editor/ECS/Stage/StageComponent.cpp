@@ -24,8 +24,7 @@ const std::string StageComponentDefinition::k_trackingVolumeIdPropertyId= "track
 const std::string StageComponentDefinition::k_stageBoundsMinPropertyId= "stage_bounds_min";
 const std::string StageComponentDefinition::k_stageBoundsMaxPropertyId= "stage_bounds_max";
 
-StageComponentDefinition::StageComponentDefinition(
-	MikanStageID sceneId)
+StageComponentDefinition::StageComponentDefinition(MikanStageID sceneId)
 	: TransformComponentDefinition(sceneId, "", glm_transform_to_MikanTransform(GlmTransform()))
 	, m_trackingVolumeId(INVALID_MIKAN_ID)
 	, m_stageBoundsMinMM(MikanVector3f(0.0f))
@@ -53,9 +52,8 @@ void StageComponentDefinition::readFromJSON(const configuru::Config& pt)
 	readVector3f(pt, k_stageBoundsMaxPropertyId.c_str(), m_stageBoundsMaxMM);
 }
 
-bool StageComponentDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool StageComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -106,19 +104,11 @@ void StageComponent::setDefinition(MikanComponentDefinitionPtr definition)
 	TransformComponent::setDefinition(definition);
 }
 
-void StageComponent::init()
-{
-	TransformComponent::init();
-}
+void StageComponent::init() { TransformComponent::init(); }
 
-void StageComponent::dispose()
-{
-	TransformComponent::dispose();
-}
+void StageComponent::dispose() { TransformComponent::dispose(); }
 
-void StageComponent::renderStageBounds(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform) const
+void StageComponent::renderStageBounds(IMkGraphicsContext* graphicsContext, const glm::mat4& transform) const
 {
 	StageComponentDefinitionConstPtr definition= getStageComponentDefinitionConst();
 
@@ -132,23 +122,18 @@ void StageComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			StageComponentDefinition::k_trackingVolumeIdPropertyId, MikanVariantType::INT)
-			->setDefaultValue(-1));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			StageComponentDefinition::k_stageBoundsMinPropertyId, MikanVariantType::VECTOR3F)
-			->setDefaultValue(MikanVector3f(0, 0, 0)));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			StageComponentDefinition::k_stageBoundsMaxPropertyId, MikanVariantType::VECTOR3F)
-			->setDefaultValue(MikanVector3f(0, 0, 0)));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 StageComponentDefinition::k_trackingVolumeIdPropertyId, MikanVariantType::INT)
+								 ->setDefaultValue(-1));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(StageComponentDefinition::k_stageBoundsMinPropertyId,
+																  MikanVariantType::VECTOR3F)
+								 ->setDefaultValue(MikanVector3f(0, 0, 0)));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(StageComponentDefinition::k_stageBoundsMaxPropertyId,
+																  MikanVariantType::VECTOR3F)
+								 ->setDefaultValue(MikanVector3f(0, 0, 0)));
 }
 
-bool StageComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool StageComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
@@ -169,9 +154,7 @@ bool StageComponent::getPropertyValue(
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool StageComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool StageComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
@@ -215,10 +198,7 @@ TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionCons
 	return TrackingVolumeDefinitionConstPtr();
 }
 
-MikanStageID StageComponent::getStageId() const
-{
-	return getStageComponentDefinitionConst()->getComponentId();
-}
+MikanStageID StageComponent::getStageId() const { return getStageComponentDefinitionConst()->getComponentId(); }
 
 void StageComponent::setTrackingVolumeId(MikanTrackingVolumeID volumeId)
 {
@@ -229,16 +209,12 @@ void StageComponent::setTrackingVolumeId(MikanTrackingVolumeID volumeId)
 void StageComponent::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<StageComponent, TransformComponent>(
-			StageComponent::k_componentClassName.c_str())
-		.addProperty("stageId",
-					 [](StageComponent* c) -> int
-					 {
-						 return c->getStageId();
-					 })
-		.addProperty("trackingVolumeId", [](StageComponent* c) -> int
-					 { return c->getStageComponentDefinitionConst()->getTrackingVolumeId(); }, [](StageComponent* c, int v)
-					 { c->setTrackingVolumeId(static_cast<MikanTrackingVolumeID>(v)); })
+		.deriveClass<StageComponent, TransformComponent>(StageComponent::k_componentClassName.c_str())
+		.addProperty("stageId", [](StageComponent* c) -> int { return c->getStageId(); })
+		.addProperty(
+			"trackingVolumeId",
+			[](StageComponent* c) -> int { return c->getStageComponentDefinitionConst()->getTrackingVolumeId(); },
+			[](StageComponent* c, int v) { c->setTrackingVolumeId(static_cast<MikanTrackingVolumeID>(v)); })
 		.addProperty("stageBoundsMin", [](StageComponent* c) -> LuaVec3f
 					 { return LuaVec3f(c->getStageComponentDefinitionConst()->getStageBoundsMinMM()); })
 		.addProperty("stageBoundsMax", [](StageComponent* c) -> LuaVec3f

@@ -16,8 +16,7 @@ SpoutTextureSourceDefinition::SpoutTextureSourceDefinition()
 {
 }
 
-SpoutTextureSourceDefinition::SpoutTextureSourceDefinition(
-	MikanTextureSourceID textureSourceId)
+SpoutTextureSourceDefinition::SpoutTextureSourceDefinition(MikanTextureSourceID textureSourceId)
 	: TextureSourceDefinition(textureSourceId)
 {
 }
@@ -38,9 +37,8 @@ void SpoutTextureSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_spoutSource= pt.get_or<std::string>("spout_source", m_spoutSource);
 }
 
-bool SpoutTextureSourceDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool SpoutTextureSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+													  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TextureSourceDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -85,9 +83,8 @@ void SpoutTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr defi
 	openTextureSource();
 }
 
-void SpoutTextureSourceComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void SpoutTextureSourceComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+														  const ConfigPropertyChangeSet& changedPropertySet)
 {
 	TextureSourceComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
@@ -208,10 +205,9 @@ void SpoutTextureSourceComponent::openTextureSource()
 }
 
 // -- Texture Source Interface ---
-IMkTexturePtr SpoutTextureSourceComponent::getClientColorSourceTexture(
-	MikanCameraID cameraId,
-	eTextureSourceColorType textureSourceColorType,
-	int64_t frameIndex) const
+IMkTexturePtr SpoutTextureSourceComponent::getClientColorSourceTexture(MikanCameraID cameraId,
+																	   eTextureSourceColorType textureSourceColorType,
+																	   int64_t frameIndex) const
 {
 	return m_colorTexture;
 }
@@ -221,14 +217,11 @@ void SpoutTextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDes
 {
 	TextureSourceComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			SpoutTextureSourceDefinition::k_spoutSourcePropertyId, MikanVariantType::STRING));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(SpoutTextureSourceDefinition::k_spoutSourcePropertyId,
+																  MikanVariantType::STRING));
 }
 
-bool SpoutTextureSourceComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool SpoutTextureSourceComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{
@@ -239,9 +232,7 @@ bool SpoutTextureSourceComponent::getPropertyValue(
 	return TextureSourceComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool SpoutTextureSourceComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool SpoutTextureSourceComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{

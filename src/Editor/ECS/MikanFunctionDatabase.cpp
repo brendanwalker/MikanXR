@@ -1,8 +1,6 @@
 #include "MikanFunctionDatabase.h"
 
-MikanFunctionDatabase::MikanFunctionDatabase()
-{
-}
+MikanFunctionDatabase::MikanFunctionDatabase() {}
 
 void MikanFunctionDatabase::clear()
 {
@@ -10,10 +8,8 @@ void MikanFunctionDatabase::clear()
 	m_functionKeyToIndexMap.clear();
 }
 
-void MikanFunctionDatabase::registerFunction(
-	const std::string& systemName,
-	const std::string& componentClassName,
-	FunctionDescriptorConstPtr descriptor)
+void MikanFunctionDatabase::registerFunction(const std::string& systemName, const std::string& componentClassName,
+											 FunctionDescriptorConstPtr descriptor)
 {
 	const int functionIndex= (int)m_functions.size();
 	m_functions.push_back(MikanFunctionEntry(functionIndex, systemName, componentClassName, descriptor));
@@ -23,10 +19,8 @@ void MikanFunctionDatabase::registerFunction(
 	m_functionKeyToIndexMap[key]= functionIndex;
 }
 
-int MikanFunctionDatabase::findFunctionIndex(
-	const std::string& systemName,
-	const std::string& componentClassName,
-	const std::string& functionName) const
+int MikanFunctionDatabase::findFunctionIndex(const std::string& systemName, const std::string& componentClassName,
+											 const std::string& functionName) const
 {
 	// Use the hash map for O(1) lookup
 	const std::string key= makeFunctionKey(systemName, componentClassName, functionName);
@@ -39,10 +33,8 @@ int MikanFunctionDatabase::findFunctionIndex(
 	return -1;
 }
 
-std::string MikanFunctionDatabase::makeFunctionKey(
-	const std::string& systemName,
-	const std::string& componentClassName,
-	const std::string& functionName)
+std::string MikanFunctionDatabase::makeFunctionKey(const std::string& systemName, const std::string& componentClassName,
+												   const std::string& functionName)
 {
 	// Create a composite key using delimiter that won't appear in names
 	// Format: "systemName|componentClassName|functionName"
@@ -59,10 +51,9 @@ const MikanFunctionEntry* MikanFunctionDatabase::getFunctionByIndex(int function
 	return nullptr;
 }
 
-FunctionDescriptorConstPtr MikanFunctionDatabase::findFunctionDescriptor(
-	const std::string& systemName,
-	const std::string& componentClassName,
-	const std::string& functionName) const
+FunctionDescriptorConstPtr MikanFunctionDatabase::findFunctionDescriptor(const std::string& systemName,
+																		 const std::string& componentClassName,
+																		 const std::string& functionName) const
 {
 	int functionIndex= findFunctionIndex(systemName, componentClassName, functionName);
 	if (functionIndex != -1)

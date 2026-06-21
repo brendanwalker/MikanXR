@@ -8,11 +8,8 @@
 
 glm::mat4 vr_HmdMatrix34_to_glm_mat4(const vr::HmdMatrix34_t& in)
 {
-	float mat44[16]= {
-		in.m[0][0], in.m[1][0], in.m[2][0], 0.0f,
-		in.m[0][1], in.m[1][1], in.m[2][1], 0.0f,
-		in.m[0][2], in.m[1][2], in.m[2][2], 0.0f,
-		in.m[0][3], in.m[1][3], in.m[2][3], 1.0f};
+	float mat44[16]= {in.m[0][0], in.m[1][0], in.m[2][0], 0.0f, in.m[0][1], in.m[1][1], in.m[2][1], 0.0f,
+					  in.m[0][2], in.m[1][2], in.m[2][2], 0.0f, in.m[0][3], in.m[1][3], in.m[2][3], 1.0f};
 
 	return glm::make_mat4(mat44);
 }

@@ -7,8 +7,7 @@
 
 #include <glm/glm.hpp>
 
-class TestGraphicsContext_GL : public TestGraphicsContext,
-							   public std::enable_shared_from_this<TestGraphicsContext_GL>
+class TestGraphicsContext_GL : public TestGraphicsContext, public std::enable_shared_from_this<TestGraphicsContext_GL>
 {
 public:
 	TestGraphicsContext_GL(class TestApp* ownerApp);
@@ -31,12 +30,8 @@ protected:
 	void renderColorTexture(class TestCameraRenderTarget_GL* glRenderTarget) const;
 	void renderNormalizedDepthTexture(class TestCameraRenderTarget_GL* glRenderTarget) const;
 	void renderPackedDepthTexture(class TestCameraRenderTarget_GL* glRenderTarget, IMikanAPIPtr mikanApi) const;
-	void renderCube(
-		const glm::mat4& viewProj,
-		const glm::vec3& cameraPosition,
-		const glm::vec3& cameraForward,
-		const glm::vec3& cameraUp,
-		const glm::vec3& cameraRight) const;
+	void renderCube(const glm::mat4& viewProj, const glm::vec3& cameraPosition, const glm::vec3& cameraForward,
+					const glm::vec3& cameraUp, const glm::vec3& cameraRight) const;
 
 private:
 	IMkGraphicsContextPtr m_mkWindow;

@@ -99,8 +99,7 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	if (!loadProject(appSettings->getLastProjectPath().string()))
 	{
 		const std::filesystem::path defaultProjectPath=
-			PathUtils::makeTimestampedFilePath(
-				getDefaultProjectFolder(), "Default", k_mikanProjectFileExtension);
+			PathUtils::makeTimestampedFilePath(getDefaultProjectFolder(), "Default", k_mikanProjectFileExtension);
 
 		if (newProject(defaultProjectPath.string()))
 		{
@@ -176,15 +175,9 @@ void ProjectManager::update(float deltaSeconds)
 	}
 }
 
-std::filesystem::path ProjectManager::getDefaultProjectFolder()
-{
-	return PathUtils::getHomeDirectory() / "Mikan";
-}
+std::filesystem::path ProjectManager::getDefaultProjectFolder() { return PathUtils::getHomeDirectory() / "Mikan"; }
 
-bool ProjectManager::hasLoadedProject() const
-{
-	return m_projectConfig != nullptr;
-}
+bool ProjectManager::hasLoadedProject() const { return m_projectConfig != nullptr; }
 
 bool ProjectManager::isAnySystemLoading() const
 {
@@ -231,8 +224,7 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 	bool bSuccess= m_projectConfig->load(projectFilePath);
 	auto loadEnd= std::chrono::high_resolution_clock::now();
 	MIKAN_LOG_INFO("ProjectManager::loadProject")
-		<< "Config load: "
-		<< std::chrono::duration_cast<std::chrono::milliseconds>(loadEnd - loadStart).count()
+		<< "Config load: " << std::chrono::duration_cast<std::chrono::milliseconds>(loadEnd - loadStart).count()
 		<< "ms";
 
 	if (bSuccess)
@@ -243,8 +235,7 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 			MikanObjectSystemPtr system= m_systems[i];
 
 			auto initStart= std::chrono::high_resolution_clock::now();
-			MikanObjectSystemDefinitionPtr systemDefinition=
-				m_projectConfig->getDefinitionForSystem(system);
+			MikanObjectSystemDefinitionPtr systemDefinition= m_projectConfig->getDefinitionForSystem(system);
 
 			if (!system->init(systemDefinition))
 			{
@@ -253,8 +244,8 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 			}
 			auto initEnd= std::chrono::high_resolution_clock::now();
 			MIKAN_LOG_INFO("ProjectManager::loadProject")
-				<< system->getObjectSystemClassName() << "::init: "
-				<< std::chrono::duration_cast<std::chrono::milliseconds>(initEnd - initStart).count()
+				<< system->getObjectSystemClassName()
+				<< "::init: " << std::chrono::duration_cast<std::chrono::milliseconds>(initEnd - initStart).count()
 				<< "ms";
 		}
 
@@ -270,8 +261,7 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 		auto postInitEnd= std::chrono::high_resolution_clock::now();
 		MIKAN_LOG_INFO("ProjectManager::loadProject")
 			<< "postInit (all systems): "
-			<< std::chrono::duration_cast<std::chrono::milliseconds>(postInitEnd - postInitStart).count()
-			<< "ms";
+			<< std::chrono::duration_cast<std::chrono::milliseconds>(postInitEnd - postInitStart).count() << "ms";
 	}
 
 	if (bSuccess)

@@ -30,8 +30,7 @@ const std::string VRDeviceDefinition::k_vrDeviceIndexTypePropertyId= "vr_device_
 const std::string VRDeviceDefinition::k_vrDeviceTypePropertyId= "vr_device_type";
 const std::string VRDeviceDefinition::k_vrDevicePathTypePropertyId= "vr_device_path";
 
-VRDeviceDefinition::VRDeviceDefinition(
-	MikanVRDeviceID vrDeviceId)
+VRDeviceDefinition::VRDeviceDefinition(MikanVRDeviceID vrDeviceId)
 	: TransformComponentDefinition(vrDeviceId)
 	, m_trackingRuntime(eTrackingRuntime::INVALID)
 	, m_vrDeviceIndex(0)
@@ -44,20 +43,11 @@ void VRDeviceDefinition::setTrackingRuntimeType(eTrackingRuntime trackingRuntime
 	m_trackingRuntime= trackingRuntime;
 }
 
-void VRDeviceDefinition::setVRDeviceIndex(size_t vrDeviceIndex)
-{
-	m_vrDeviceIndex= vrDeviceIndex;
-}
+void VRDeviceDefinition::setVRDeviceIndex(size_t vrDeviceIndex) { m_vrDeviceIndex= vrDeviceIndex; }
 
-void VRDeviceDefinition::setVRDeviceType(eVRDeviceType vrDeviceType)
-{
-	m_vrDeviceType= vrDeviceType;
-}
+void VRDeviceDefinition::setVRDeviceType(eVRDeviceType vrDeviceType) { m_vrDeviceType= vrDeviceType; }
 
-void VRDeviceDefinition::setVRDevicePath(const std::string& vrDevicePath)
-{
-	m_vrDevicePath= vrDevicePath;
-}
+void VRDeviceDefinition::setVRDevicePath(const std::string& vrDevicePath) { m_vrDevicePath= vrDevicePath; }
 
 // -- VRDeviceComponent -----
 VRDeviceComponent::VRDeviceComponent(MikanObjectWeakPtr owner)
@@ -80,10 +70,13 @@ void VRDeviceComponent::init()
 	if (selectionComponentPtr)
 	{
 		// Bind selection events
-		selectionComponentPtr->OnInteractionRayOverlapEnter+= MakeDelegate(this, &VRDeviceComponent::onInteractionRayOverlapEnter);
-		selectionComponentPtr->OnInteractionRayOverlapExit+= MakeDelegate(this, &VRDeviceComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionRayOverlapEnter+=
+			MakeDelegate(this, &VRDeviceComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit+=
+			MakeDelegate(this, &VRDeviceComponent::onInteractionRayOverlapExit);
 		selectionComponentPtr->OnInteractionSelected+= MakeDelegate(this, &VRDeviceComponent::onInteractionSelected);
-		selectionComponentPtr->OnInteractionUnselected+= MakeDelegate(this, &VRDeviceComponent::onInteractionUnselected);
+		selectionComponentPtr->OnInteractionUnselected+=
+			MakeDelegate(this, &VRDeviceComponent::onInteractionUnselected);
 
 		// Remember the selection component
 		m_selectionComponentWeakPtr= selectionComponentPtr;
@@ -188,9 +181,7 @@ bool VRDeviceComponent::getSocketRelativePoseByName(const std::string& socketNam
 	return false;
 }
 
-VRDevicePoseViewPtr VRDeviceComponent::makePoseView(
-	eVRDevicePoseSpace space,
-	const std::string& socketName) const
+VRDevicePoseViewPtr VRDeviceComponent::makePoseView(eVRDevicePoseSpace space, const std::string& socketName) const
 {
 	return std::make_shared<VRDevicePoseView>(this, space, socketName);
 }
@@ -232,17 +223,12 @@ void VRDeviceComponent::rebuildMeshComponents()
 			IMkWireframeMeshConstPtr wireframeMeshPtr= vrDeviceMesh->getWireframeMesh();
 
 			// Create a new static mesh instance from the mesh resources
-			IMkStaticMeshInstancePtr triMeshInstancePtr=
-				createMkStaticMeshInstance(
-					triMeshPtr->getName(),
-					triMeshPtr);
+			IMkStaticMeshInstancePtr triMeshInstancePtr= createMkStaticMeshInstance(triMeshPtr->getName(), triMeshPtr);
 			triMeshInstancePtr->setVisible(true);
 
 			// Create a new (hidden) static mesh instance from the mesh resources
 			IMkStaticMeshInstancePtr wireframeMeshInstancePtr=
-				createMkStaticMeshInstance(
-					"wireframe",
-					wireframeMeshPtr);
+				createMkStaticMeshInstance("wireframe", wireframeMeshPtr);
 			wireframeMeshInstancePtr->setVisible(false);
 
 			// Create a static mesh component to hold the mesh instance
@@ -307,8 +293,7 @@ void VRDeviceComponent::refreshDevicePose()
 {
 	const int vrFrameDelay= 0; // Use the latest pose for rendering
 	VRDevicePose vrDevicePose;
-	if (m_vrDeviceInterface != nullptr &&
-		m_vrDeviceInterface->getDevicePose(vrFrameDelay, vrDevicePose))
+	if (m_vrDeviceInterface != nullptr && m_vrDeviceInterface->getDevicePose(vrFrameDelay, vrDevicePose))
 	{
 		// Set the parent device transformToTargetSpace
 		setRelativeTransform(VRDevicePose_to_GlmTransform(vrDevicePose));
@@ -366,10 +351,8 @@ void VRDeviceComponent::refreshDevicePose()
 	}
 }
 
-void VRDeviceComponent::renderVRDeviceInfo(
-	IMkGraphicsContext* graphicsContext,
-	IMkCameraConstPtr camera,
-	const glm::mat4& transformToTargetSpace) const
+void VRDeviceComponent::renderVRDeviceInfo(IMkGraphicsContext* graphicsContext, IMkCameraConstPtr camera,
+										   const glm::mat4& transformToTargetSpace) const
 {
 	TextStyle style= getDefaultTextStyle();
 
@@ -429,9 +412,7 @@ void VRDeviceComponent::updateWireframeMeshDisplay()
 		VRDeviceMeshInfo& meshInfo= kvpair.second;
 		IMkStaticMeshInstancePtr meshPtr= meshInfo.wireStaticMeshComponent->getStaticMesh();
 
-		meshPtr->getMaterialInstance()->setVec4BySemantic(
-			eUniformSemantic::diffuseColorRGBA,
-			glm::vec4(newColor, 1.f));
+		meshPtr->getMaterialInstance()->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(newColor, 1.f));
 		meshPtr->setVisible(bNewVisibility);
 	}
 }
@@ -468,30 +449,23 @@ void VRDeviceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCon
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRDeviceDefinition::k_trackingRuntimeTypePropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(VRDeviceDefinition::k_trackingRuntimeTypePropertyId, MikanVariantType::INT)
 			->setReadOnly());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRDeviceDefinition::k_vrDeviceIndexTypePropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(VRDeviceDefinition::k_vrDeviceIndexTypePropertyId, MikanVariantType::INT)
 			->setReadOnly());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRDeviceDefinition::k_vrDeviceTypePropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(VRDeviceDefinition::k_vrDeviceTypePropertyId, MikanVariantType::INT)
 			->setReadOnly());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRDeviceDefinition::k_vrDevicePathTypePropertyId, MikanVariantType::STRING)
+		std::make_shared<PropertyDescriptor>(VRDeviceDefinition::k_vrDevicePathTypePropertyId, MikanVariantType::STRING)
 			->setReadOnly());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRDeviceComponent::k_socketNameListPropertyId, MikanVariantType::STRING_ARRAY)
-			->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(VRDeviceComponent::k_socketNameListPropertyId,
+																  MikanVariantType::STRING_ARRAY)
+								 ->setReadOnly());
 }
 
-bool VRDeviceComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool VRDeviceComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == VRDeviceDefinition::k_trackingRuntimeTypePropertyId)
 	{

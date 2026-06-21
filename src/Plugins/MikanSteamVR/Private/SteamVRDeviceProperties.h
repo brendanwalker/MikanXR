@@ -42,13 +42,9 @@ public:
 	bool updateReadyIconPath();
 	bool updateRenderModelComponents();
 
-	std::string fetchStringDeviceProperty(
-		vr::ETrackedDeviceProperty property,
-		const std::string& default_string);
-	std::string fetchStringSettingsProperty(
-		const char* sectionName,
-		const char* sectionKey,
-		const std::string& default_string);
+	std::string fetchStringDeviceProperty(vr::ETrackedDeviceProperty property, const std::string& default_string);
+	std::string fetchStringSettingsProperty(const char* sectionName, const char* sectionKey,
+											const std::string& default_string);
 
 private:
 	vr::TrackedDeviceIndex_t m_deviceIndex= 0;

@@ -24,10 +24,7 @@ class TransformComponentDefinition : public MikanComponentDefinition
 public:
 	TransformComponentDefinition();
 	TransformComponentDefinition(int componentId);
-	TransformComponentDefinition(
-		int componentId,
-		const std::string& componentName,
-		const MikanTransform& xform);
+	TransformComponentDefinition(int componentId, const std::string& componentName, const MikanTransform& xform);
 
 	virtual bool isAutoNotifyTransformPropertyChangeDisabled() { return false; }
 	void sendTransformPropertyChangeNotification();
@@ -37,9 +34,8 @@ public:
 
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	const glm::mat4 getRelativeMat4() const;
 	void setRelativeMat4(const glm::mat4& xform);
@@ -94,14 +90,8 @@ public:
 	{
 		return getTransformComponentDefinitionConst()->getParentTransformId();
 	}
-	inline TransformComponentPtr getParentTransformComponent() const
-	{
-		return m_parentComponent.lock();
-	}
-	inline const TransformComponentList& getChildTransformComponents() const
-	{
-		return m_childComponents;
-	}
+	inline TransformComponentPtr getParentTransformComponent() const { return m_parentComponent.lock(); }
+	inline const TransformComponentList& getChildTransformComponents() const { return m_childComponents; }
 
 	bool attachToComponent(TransformComponentPtr newParentComponent);
 	enum class eDetachReason : int
@@ -130,14 +120,8 @@ public:
 	void visitAllTransformComponents(TransformComponentVisitor visitor);
 	void visitAllTransformComponentsConst(TransformComponentConstVisitor visitor) const;
 
-	inline IMkSceneRenderablePtr getGlSceneRenderable() const
-	{
-		return m_sceneRenderable;
-	}
-	inline IMkSceneRenderableConstPtr getGlSceneRenderableConst() const
-	{
-		return m_sceneRenderable;
-	}
+	inline IMkSceneRenderablePtr getGlSceneRenderable() const { return m_sceneRenderable; }
+	inline IMkSceneRenderableConstPtr getGlSceneRenderableConst() const { return m_sceneRenderable; }
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

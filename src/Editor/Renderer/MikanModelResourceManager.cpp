@@ -19,15 +19,9 @@ MikanModelResourceManager::MikanModelResourceManager(IMkGraphicsContext* ownerGr
 	m_modelExporters.insert({".obj", std::make_shared<ObjModelExporter>(this)});
 }
 
-MikanModelResourceManager::~MikanModelResourceManager()
-{
-	shutdown();
-}
+MikanModelResourceManager::~MikanModelResourceManager() { shutdown(); }
 
-bool MikanModelResourceManager::startup()
-{
-	return m_shaderCache->startup();
-}
+bool MikanModelResourceManager::startup() { return m_shaderCache->startup(); }
 
 void MikanModelResourceManager::shutdown()
 {
@@ -35,9 +29,8 @@ void MikanModelResourceManager::shutdown()
 	m_shaderCache->shutdown();
 }
 
-MikanRenderModelResourcePtr MikanModelResourceManager::fetchRenderModel(
-	const std::filesystem::path& modelFilePath,
-	MkMaterialConstPtr overrideMaterial)
+MikanRenderModelResourcePtr MikanModelResourceManager::fetchRenderModel(const std::filesystem::path& modelFilePath,
+																		MkMaterialConstPtr overrideMaterial)
 {
 	if (!modelFilePath.empty())
 	{
@@ -71,7 +64,8 @@ MikanRenderModelResourcePtr MikanModelResourceManager::fetchRenderModel(
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GlModelResourceManager::fetchRenderModel") << "No model importer found for extension: " << extension << ", for file: " << modelPathString;
+				MIKAN_LOG_ERROR("GlModelResourceManager::fetchRenderModel")
+					<< "No model importer found for extension: " << extension << ", for file: " << modelPathString;
 			}
 		}
 	}
@@ -92,9 +86,8 @@ bool MikanModelResourceManager::flushModelByFilePathFromCache(const std::filesys
 	return false;
 }
 
-bool MikanModelResourceManager::exportModelToFile(
-	MikanRenderModelResourcePtr modelResource,
-	const std::filesystem::path& modelPath)
+bool MikanModelResourceManager::exportModelToFile(MikanRenderModelResourcePtr modelResource,
+												  const std::filesystem::path& modelPath)
 {
 	std::string modelPathString= modelPath.string();
 	std::string extension= modelPath.extension().string();
@@ -109,7 +102,8 @@ bool MikanModelResourceManager::exportModelToFile(
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("GlModelResourceManager::exportModelToFile") << "No model exporter found for extension: " << extension << ", for file: " << modelPathString;
+		MIKAN_LOG_ERROR("GlModelResourceManager::exportModelToFile")
+			<< "No model exporter found for extension: " << extension << ", for file: " << modelPathString;
 	}
 
 	return false;

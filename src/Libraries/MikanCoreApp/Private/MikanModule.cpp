@@ -16,10 +16,7 @@ MikanModule::MikanModule(const std::string& moduleName)
 {
 }
 
-MikanModule::~MikanModule()
-{
-	unload();
-}
+MikanModule::~MikanModule() { unload(); }
 
 bool MikanModule::load()
 {

@@ -17,9 +17,7 @@ public:
 	virtual bool startup(class MainWindow* mainWindow) override;
 	virtual void shutdown() override;
 
-	void sendRemoteControlEvent(
-		const std::string& event,
-		const std::vector<std::string>& parameters);
+	void sendRemoteControlEvent(const std::string& event, const std::vector<std::string>& parameters);
 
 protected:
 	void pushAppStageHandler(const ClientRequest& request, ClientResponse& response);

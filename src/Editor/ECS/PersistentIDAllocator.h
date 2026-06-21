@@ -5,8 +5,7 @@
 #include "IEntityIDAllocator.h"
 #include "memory"
 
-class PersistentIDAllocator : public CommonConfig,
-							  public IEntityIDAllocator
+class PersistentIDAllocator : public CommonConfig, public IEntityIDAllocator
 {
 public:
 	PersistentIDAllocator();

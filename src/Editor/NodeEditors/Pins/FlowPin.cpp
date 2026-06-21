@@ -31,11 +31,6 @@ std::shared_ptr<MkNodesScopedColorStyle> FlowPin::editorRenderMakeLinkStyle(floa
 	return style;
 }
 
-void FlowPin::editorRenderContextMenu(const NodeEditorState& editorState)
-{
-}
+void FlowPin::editorRenderContextMenu(const NodeEditorState& editorState) {}
 
-ImU32 FlowPin::editorGetLinkStyleColor() const
-{
-	return IM_COL32(225, 225, 225, 255);
-}
+ImU32 FlowPin::editorGetLinkStyleColor() const { return IM_COL32(225, 225, 225, 255); }

@@ -12,7 +12,8 @@
 #include "MikanShapeTypes.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanQuadShapeSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanQuadShapeSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
@@ -21,7 +22,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanQu
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanBoxShapeSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanBoxShapeSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
@@ -30,7 +32,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanBo
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanModelShapeSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanModelShapeSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
@@ -39,17 +42,18 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanMo
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanShapeComponentValues : public MikanTransformComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanShapeComponentValues
+	: public MikanTransformComponentValues
 {
-	FIELD()
-	Serialization::String shape_graph_path;
+	FIELD() Serialization::String shape_graph_path;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanShapeComponentValues_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanQuadShapeComponentValues : public MikanShapeComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanQuadShapeComponentValues
+	: public MikanShapeComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
@@ -63,7 +67,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanQu
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanBoxShapeComponentValues : public MikanShapeComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanBoxShapeComponentValues
+	: public MikanShapeComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
@@ -77,13 +82,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanBo
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanModelShapeComponentValues : public MikanShapeComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanModelShapeComponentValues
+	: public MikanShapeComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	Serialization::String model_path;
+	FIELD() Serialization::String model_path;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanModelShapeComponentValues_GENERATED

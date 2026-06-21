@@ -26,9 +26,7 @@ public:
 	static const std::string k_componentPoolPropertyId;
 	static const std::string k_componentIdListPropertyId;
 
-	MikanTypedObjectSystemDefinition(
-		const std::string& configName,
-		IDAllocatorPtr idAllocator)
+	MikanTypedObjectSystemDefinition(const std::string& configName, IDAllocatorPtr idAllocator)
 		: MikanObjectSystemDefinition(configName, idAllocator)
 	{
 		m_poolDefinition= std::make_shared<PoolDefinition>(idAllocator);
@@ -55,25 +53,16 @@ public:
 	// Pool accessors
 	inline PoolDefinitionPtr getPoolDefinition() const { return m_poolDefinition; }
 
-	inline bool hasDefinitions() const
-	{
-		return !m_poolDefinition->getAll().empty();
-	}
+	inline bool hasDefinitions() const { return !m_poolDefinition->getAll().empty(); }
 
-	inline ComponentDefinitionPtr getDefinitionById(TID id) const
-	{
-		return m_poolDefinition->getById(id);
-	}
+	inline ComponentDefinitionPtr getDefinitionById(TID id) const { return m_poolDefinition->getById(id); }
 
 	inline ComponentDefinitionPtr getDefinitionByName(const std::string& name) const
 	{
 		return m_poolDefinition->getByName(name);
 	}
 
-	inline const std::vector<ComponentDefinitionPtr>& getAllDefinitions() const
-	{
-		return m_poolDefinition->getAll();
-	}
+	inline const std::vector<ComponentDefinitionPtr>& getAllDefinitions() const { return m_poolDefinition->getAll(); }
 
 	void getAllComponentIds(std::vector<int>& outComponentIdList) const
 	{
@@ -84,10 +73,7 @@ public:
 	}
 
 	// Pool mutations
-	inline ComponentDefinitionPtr allocateNewDefinition()
-	{
-		return m_poolDefinition->allocateDefinition();
-	}
+	inline ComponentDefinitionPtr allocateNewDefinition() { return m_poolDefinition->allocateDefinition(); }
 
 	bool addDefinition(ComponentDefinitionPtr definition)
 	{
@@ -114,10 +100,9 @@ public:
 protected:
 	void notifyDefinitionsChanged()
 	{
-		notifyPropertyChanged(
-			ConfigPropertyChangeSet()
-				.addPropertyName(k_componentPoolPropertyId)
-				.addPropertyName(k_componentIdListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet()
+								  .addPropertyName(k_componentPoolPropertyId)
+								  .addPropertyName(k_componentIdListPropertyId));
 	}
 
 private:
@@ -126,7 +111,9 @@ private:
 
 // Static member definitions
 template <class TComponent, class TDefinition, typename TID>
-const std::string MikanTypedObjectSystemDefinition<TComponent, TDefinition, TID>::k_componentPoolPropertyId= TComponent::k_componentClassName + "Pool";
+const std::string MikanTypedObjectSystemDefinition<TComponent, TDefinition, TID>::k_componentPoolPropertyId=
+	TComponent::k_componentClassName + "Pool";
 
 template <class TComponent, class TDefinition, typename TID>
-const std::string MikanTypedObjectSystemDefinition<TComponent, TDefinition, TID>::k_componentIdListPropertyId= TComponent::k_componentClassName + "IdList";
+const std::string MikanTypedObjectSystemDefinition<TComponent, TDefinition, TID>::k_componentIdListPropertyId=
+	TComponent::k_componentClassName + "IdList";

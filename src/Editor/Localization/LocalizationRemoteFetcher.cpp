@@ -18,20 +18,15 @@
 #pragma comment(lib, "winhttp.lib")
 #endif
 
-LocalizationRemoteFetcher::LocalizationRemoteFetcher(
-	const std::string& baseUrl,
-	const std::filesystem::path& cacheDir,
-	std::chrono::hours cacheTTL)
+LocalizationRemoteFetcher::LocalizationRemoteFetcher(const std::string& baseUrl, const std::filesystem::path& cacheDir,
+													 std::chrono::hours cacheTTL)
 	: m_baseUrl(baseUrl)
 	, m_cacheDir(cacheDir)
 	, m_cacheTTL(cacheTTL)
 {
 }
 
-LocalizationRemoteFetcher::~LocalizationRemoteFetcher()
-{
-	cancelFetch();
-}
+LocalizationRemoteFetcher::~LocalizationRemoteFetcher() { cancelFetch(); }
 
 void LocalizationRemoteFetcher::startFetch(std::function<void(bool)> onComplete)
 {
@@ -88,12 +83,8 @@ bool LocalizationRemoteFetcher::httpGet(const std::string& url, std::string& out
 
 	bool success= false;
 
-	HINTERNET hSession= WinHttpOpen(
-		L"MikanXR/1.0",
-		WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-		WINHTTP_NO_PROXY_NAME,
-		WINHTTP_NO_PROXY_BYPASS,
-		0);
+	HINTERNET hSession= WinHttpOpen(L"MikanXR/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME,
+									WINHTTP_NO_PROXY_BYPASS, 0);
 	if (!hSession)
 	{
 		MIKAN_LOG_WARNING("LocalizationRemoteFetcher::httpGet") << "WinHttpOpen failed (" << GetLastError() << ")";
@@ -106,34 +97,23 @@ bool LocalizationRemoteFetcher::httpGet(const std::string& url, std::string& out
 	HINTERNET hConnect= WinHttpConnect(hSession, host.c_str(), INTERNET_DEFAULT_HTTPS_PORT, 0);
 	if (hConnect)
 	{
-		HINTERNET hRequest= WinHttpOpenRequest(
-			hConnect,
-			L"GET",
-			path.c_str(),
-			NULL,
-			WINHTTP_NO_REFERER,
-			WINHTTP_DEFAULT_ACCEPT_TYPES,
-			WINHTTP_FLAG_SECURE);
+		HINTERNET hRequest= WinHttpOpenRequest(hConnect, L"GET", path.c_str(), NULL, WINHTTP_NO_REFERER,
+											   WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
 		if (hRequest)
 		{
-			if (WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, NULL, 0, 0, 0) &&
-				WinHttpReceiveResponse(hRequest, NULL))
+			if (WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, NULL, 0, 0, 0)
+				&& WinHttpReceiveResponse(hRequest, NULL))
 			{
 				DWORD statusCode= 0;
 				DWORD statusCodeSize= sizeof(statusCode);
-				WinHttpQueryHeaders(
-					hRequest,
-					WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
-					WINHTTP_HEADER_NAME_BY_INDEX,
-					&statusCode, &statusCodeSize,
-					WINHTTP_NO_HEADER_INDEX);
+				WinHttpQueryHeaders(hRequest, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+									WINHTTP_HEADER_NAME_BY_INDEX, &statusCode, &statusCodeSize,
+									WINHTTP_NO_HEADER_INDEX);
 
 				if (statusCode == 200)
 				{
 					DWORD bytesAvailable= 0;
-					while (!m_cancelled &&
-						   WinHttpQueryDataAvailable(hRequest, &bytesAvailable) &&
-						   bytesAvailable > 0)
+					while (!m_cancelled && WinHttpQueryDataAvailable(hRequest, &bytesAvailable) && bytesAvailable > 0)
 					{
 						std::vector<char> buffer(bytesAvailable);
 						DWORD bytesRead= 0;
@@ -144,8 +124,7 @@ bool LocalizationRemoteFetcher::httpGet(const std::string& url, std::string& out
 				}
 				else
 				{
-					MIKAN_LOG_WARNING("LocalizationRemoteFetcher::httpGet")
-						<< "HTTP " << statusCode << " for " << url;
+					MIKAN_LOG_WARNING("LocalizationRemoteFetcher::httpGet") << "HTTP " << statusCode << " for " << url;
 				}
 			}
 			else
@@ -195,8 +174,7 @@ bool LocalizationRemoteFetcher::fetchManifest(std::vector<std::string>& outFiles
 	}
 	catch (const std::exception& e)
 	{
-		MIKAN_LOG_ERROR("LocalizationRemoteFetcher::fetchManifest")
-			<< "Failed to parse manifest JSON: " << e.what();
+		MIKAN_LOG_ERROR("LocalizationRemoteFetcher::fetchManifest") << "Failed to parse manifest JSON: " << e.what();
 
 		return false;
 	}
@@ -213,8 +191,7 @@ bool LocalizationRemoteFetcher::fetchFile(const std::string& filename)
 	std::ofstream out(filePath, std::ios::binary);
 	if (!out)
 	{
-		MIKAN_LOG_ERROR("LocalizationRemoteFetcher::fetchFile")
-			<< "Failed to write cache file: " << filePath;
+		MIKAN_LOG_ERROR("LocalizationRemoteFetcher::fetchFile") << "Failed to write cache file: " << filePath;
 		return false;
 	}
 	out << body;

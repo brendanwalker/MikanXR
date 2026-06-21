@@ -271,16 +271,10 @@ void DisableSpoutLog()
 }
 
 // Disable logs
-void DisableLogs()
-{
-	bDoLogs= false;
-}
+void DisableLogs() { bDoLogs= false; }
 
 // Enable logs
-void EnableLogs()
-{
-	bDoLogs= true;
-}
+void EnableLogs() { bDoLogs= true; }
 
 // Return the Spout log file as a single string
 std::string GetSpoutLog()
@@ -336,10 +330,7 @@ void ShowSpoutLogs()
 }
 
 // Set the current log level
-void SetSpoutLogLevel(SpoutLogLevel level)
-{
-	CurrentLogLevel= level;
-}
+void SetSpoutLogLevel(SpoutLogLevel level) { CurrentLogLevel= level; }
 
 void SpoutLog(const char* format, ...)
 {
@@ -504,7 +495,8 @@ bool WriteDwordToRegistry(HKEY hKey, const char* subkey, const char* valuename, 
 	if (regres != ERROR_SUCCESS)
 	{
 		// Create a new key
-		regres= RegCreateKeyExA(hKey, mySubKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hRegKey, NULL);
+		regres=
+			RegCreateKeyExA(hKey, mySubKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hRegKey, NULL);
 	}
 
 	if (regres == ERROR_SUCCESS && hRegKey != NULL)
@@ -575,13 +567,15 @@ bool WritePathToRegistry(HKEY hKey, const char* subkey, const char* valuename, c
 	if (regres != ERROR_SUCCESS)
 	{
 		// Create a new key
-		regres= RegCreateKeyExA(hKey, mySubKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hRegKey, NULL);
+		regres=
+			RegCreateKeyExA(hKey, mySubKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hRegKey, NULL);
 	}
 
 	if (regres == ERROR_SUCCESS && hRegKey != NULL)
 	{
 		// Write the path
-		regres= RegSetValueExA(hRegKey, valuename, 0, REG_SZ, (BYTE*)filepath, ((DWORD)strlen(filepath) + 1) * sizeof(unsigned char));
+		regres= RegSetValueExA(hRegKey, valuename, 0, REG_SZ, (BYTE*)filepath,
+							   ((DWORD)strlen(filepath) + 1) * sizeof(unsigned char));
 		RegCloseKey(hRegKey);
 	}
 
@@ -594,7 +588,8 @@ bool WritePathToRegistry(HKEY hKey, const char* subkey, const char* valuename, c
 	return true;
 }
 
-bool WriteBinaryToRegistry(HKEY hKey, const char* subkey, const char* valuename, const unsigned char* hexdata, DWORD nChars)
+bool WriteBinaryToRegistry(HKEY hKey, const char* subkey, const char* valuename, const unsigned char* hexdata,
+						   DWORD nChars)
 {
 	HKEY hRegKey= NULL;
 	LONG regres= 0;
@@ -614,7 +609,8 @@ bool WriteBinaryToRegistry(HKEY hKey, const char* subkey, const char* valuename,
 	if (regres != ERROR_SUCCESS)
 	{
 		// Create a new key
-		regres= RegCreateKeyExA(hKey, mySubKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hRegKey, NULL);
+		regres=
+			RegCreateKeyExA(hKey, mySubKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hRegKey, NULL);
 	}
 
 	if (regres == ERROR_SUCCESS && hRegKey != NULL)
@@ -713,10 +709,7 @@ double EndTiming()
 }
 
 // Get SDK version number string e.g. "2.007.000"
-std::string GetSDKversion()
-{
-	return SDKversion;
-}
+std::string GetSDKversion() { return SDKversion; }
 
 // Perform the log
 void _doLog(SpoutLogLevel level, const char* format, va_list args)
@@ -727,7 +720,8 @@ void _doLog(SpoutLogLevel level, const char* format, va_list args)
 	if (!bDoLogs)
 		return;
 
-	if (level != SPOUT_LOG_SILENT && CurrentLogLevel != SPOUT_LOG_SILENT && level >= CurrentLogLevel && format != nullptr)
+	if (level != SPOUT_LOG_SILENT && CurrentLogLevel != SPOUT_LOG_SILENT && level >= CurrentLogLevel
+		&& format != nullptr)
 	{
 
 		// Construct the current log

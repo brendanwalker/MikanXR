@@ -26,12 +26,6 @@ MkScopedState::~MkScopedState()
 	delete m_impl;
 }
 
-IMkState* MkScopedState::getStackState() const
-{
-	return m_impl->mkState;
-}
+IMkState* MkScopedState::getStackState() const { return m_impl->mkState; }
 
-int MkScopedState::getStackDepth() const
-{
-	return m_impl->mkState->getStackDepth();
-}
+int MkScopedState::getStackDepth() const { return m_impl->mkState->getStackDepth(); }

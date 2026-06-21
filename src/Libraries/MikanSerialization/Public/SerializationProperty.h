@@ -18,8 +18,8 @@ class EnumValue;
 
 namespace Serialization NAMESPACE()
 {
-class SERIALIZATION_API CLASS(rfk::PropertySettings(rfk::EEntityKind::EnumValue, false, true))
-EnumStringValue : public rfk::Property
+class SERIALIZATION_API CLASS(rfk::PropertySettings(rfk::EEntityKind::EnumValue, false, true)) EnumStringValue
+	: public rfk::Property
 {
 public:
 	EnumStringValue() noexcept= default;
@@ -35,8 +35,9 @@ Serialization_EnumStringValue_GENERATED
 	private : char* m_stringValue= nullptr;
 };
 
-class SERIALIZATION_API CLASS(rfk::PropertySettings(rfk::EEntityKind::Class | rfk::EEntityKind::Struct | rfk::EEntityKind::Enum, true, true))
-CodeGenModule : public rfk::Property
+class SERIALIZATION_API
+	CLASS(rfk::PropertySettings(rfk::EEntityKind::Class | rfk::EEntityKind::Struct | rfk::EEntityKind::Enum, true,
+								true)) CodeGenModule : public rfk::Property
 {
 public:
 	CodeGenModule() noexcept= default;

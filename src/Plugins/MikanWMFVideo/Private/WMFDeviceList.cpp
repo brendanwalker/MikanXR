@@ -23,7 +23,8 @@
 static bool FetchDeviceInfo(IMFActivate** wmfDeviceList, int device_index, WMFDeviceInfo& outDeviceInfo);
 static HRESULT BuildCaptureFormatList(IMFMediaSource* pSource, WMFDeviceInfo& deviceInfo);
 static WMFDeviceFormatInfo ParseWMFFormatType(int mediaTypeIndex, IMFMediaType* pWMFMediaType);
-static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes* pAttr, DWORD index, WMFDeviceFormatInfo& outFormatType);
+static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes* pAttr, DWORD index,
+												  WMFDeviceFormatInfo& outFormatType);
 static HRESULT GetGUIDNameCopy(const GUID& guid, std::wstring& out_guidName);
 static LPCWSTR GetGUIDNameConst(const GUID& guid);
 
@@ -31,10 +32,7 @@ static LPCWSTR GetGUIDNameConst(const GUID& guid);
 bool WMFDeviceList::isDevicePresent(const std::string& devicePath) const
 {
 	return std::any_of(m_deviceList.begin(), m_deviceList.end(),
-					   [&devicePath](const WMFDeviceInfo& device)
-					   {
-						   return device.deviceSymbolicLink == devicePath;
-					   });
+					   [&devicePath](const WMFDeviceInfo& device) { return device.deviceSymbolicLink == devicePath; });
 }
 
 const WMFDeviceInfo* WMFDeviceList::getDeviceByIndex(size_t index) const
@@ -54,9 +52,8 @@ bool WMFDeviceList::rebuild()
 
 	if (SUCCEEDED(hr))
 	{
-		hr= wmfAttributeTable->SetGUID(
-			MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-			MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+		hr= wmfAttributeTable->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+									   MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
 	}
 
 	if (SUCCEEDED(hr))
@@ -104,10 +101,7 @@ static bool FetchDeviceInfo(IMFActivate** wmfDeviceList, int wmfDeviceIndex, WMF
 	{
 		wchar_t* wszDeviceFriendlyName= nullptr;
 
-		hr= pActivate->GetAllocatedString(
-			MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
-			&wszDeviceFriendlyName,
-			NULL);
+		hr= pActivate->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME, &wszDeviceFriendlyName, NULL);
 
 		if (SUCCEEDED(hr))
 		{
@@ -122,10 +116,8 @@ static bool FetchDeviceInfo(IMFActivate** wmfDeviceList, int wmfDeviceIndex, WMF
 	{
 		wchar_t* wszDeviceSymbolicLink= nullptr;
 
-		hr= pActivate->GetAllocatedString(
-			MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK,
-			&wszDeviceSymbolicLink,
-			NULL);
+		hr= pActivate->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK,
+										  &wszDeviceSymbolicLink, NULL);
 
 		if (SUCCEEDED(hr))
 		{
@@ -137,32 +129,29 @@ static bool FetchDeviceInfo(IMFActivate** wmfDeviceList, int wmfDeviceIndex, WMF
 			char symLinkGuid[36 + 1];
 
 			// USB device symbolic link
-			if (sscanf_s(
-					szDeviceSymbolicLink, "\\\\?\\usb#vid_%x&pid_%x#",
-					&deviceInfo.usbVendorId, &deviceInfo.usbProductId) == 2)
+			if (sscanf_s(szDeviceSymbolicLink, "\\\\?\\usb#vid_%x&pid_%x#", &deviceInfo.usbVendorId,
+						 &deviceInfo.usbProductId)
+				== 2)
 			{
 				BYTE hash[8];
 
-				hr= HashData(
-					(BYTE*)deviceInfo.deviceSymbolicLink.c_str(),
-					(DWORD)deviceInfo.deviceSymbolicLink.length(),
-					hash, 8);
+				hr= HashData((BYTE*)deviceInfo.deviceSymbolicLink.c_str(),
+							 (DWORD)deviceInfo.deviceSymbolicLink.length(), hash, 8);
 
 				if (SUCCEEDED(hr))
 				{
 					char hash_string[32];
 
-					sprintf_s(hash_string, sizeof(hash_string), "%x%x%x%x%x%x%x%x",
-							  hash[0], hash[1], hash[2], hash[3],
+					sprintf_s(hash_string, sizeof(hash_string), "%x%x%x%x%x%x%x%x", hash[0], hash[1], hash[2], hash[3],
 							  hash[4], hash[5], hash[6], hash[7]);
 
 					deviceInfo.uniqueIdentifier= hash_string;
 				}
 			}
 			// Streamed camera symbolic link
-			else if (sscanf_s(
-						 szDeviceSymbolicLink, "\\\\?\\root#media#%x#{%36s}\\global",
-						 &symLinkIndex, symLinkGuid, (unsigned)_countof(symLinkGuid)) == 2)
+			else if (sscanf_s(szDeviceSymbolicLink, "\\\\?\\root#media#%x#{%36s}\\global", &symLinkIndex, symLinkGuid,
+							  (unsigned)_countof(symLinkGuid))
+					 == 2)
 			{
 				deviceInfo.usbProductId= -1;
 				deviceInfo.usbVendorId= -1;
@@ -171,9 +160,9 @@ static bool FetchDeviceInfo(IMFActivate** wmfDeviceList, int wmfDeviceIndex, WMF
 				hr= S_OK;
 			}
 			// Streamed camera symbolic link
-			else if (sscanf_s(
-						 szDeviceSymbolicLink, "\\\\?\\root#image#%x#{%36s}\\global",
-						 &symLinkIndex, symLinkGuid, (unsigned)_countof(symLinkGuid)) == 2)
+			else if (sscanf_s(szDeviceSymbolicLink, "\\\\?\\root#image#%x#{%36s}\\global", &symLinkIndex, symLinkGuid,
+							  (unsigned)_countof(symLinkGuid))
+					 == 2)
 			{
 				deviceInfo.usbProductId= -1;
 				deviceInfo.usbVendorId= -1;
@@ -193,9 +182,7 @@ static bool FetchDeviceInfo(IMFActivate** wmfDeviceList, int wmfDeviceIndex, WMF
 	IMFMediaSource* pSource= NULL;
 	if (SUCCEEDED(hr))
 	{
-		hr= pActivate->ActivateObject(
-			__uuidof(IMFMediaSource),
-			(void**)&pSource);
+		hr= pActivate->ActivateObject(__uuidof(IMFMediaSource), (void**)&pSource);
 	}
 
 	if (SUCCEEDED(hr))
@@ -268,8 +255,8 @@ static std::string makeVideoModeName(const WMFDeviceFormatInfo& result)
 	ss << result.width << "x" << result.height;
 
 	// Add interlace info if relevant
-	if (result.interlace_mode == MFVideoInterlace_FieldInterleavedUpperFirst ||
-		result.interlace_mode == MFVideoInterlace_FieldInterleavedLowerFirst)
+	if (result.interlace_mode == MFVideoInterlace_FieldInterleavedUpperFirst
+		|| result.interlace_mode == MFVideoInterlace_FieldInterleavedLowerFirst)
 	{
 		ss << "i";
 	}
@@ -424,8 +411,7 @@ static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes* pAttr, DWORD in
 					hr= GetGUIDNameCopy(*var.puuid, am_format_type_name);
 					if (hr == S_OK)
 					{
-						outMediaType.am_format_type_name=
-							StringUtils::convertWStringToUTF8String(am_format_type_name);
+						outMediaType.am_format_type_name= StringUtils::convertWStringToUTF8String(am_format_type_name);
 					}
 				}
 
@@ -435,8 +421,7 @@ static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes* pAttr, DWORD in
 					hr= GetGUIDNameCopy(*var.puuid, major_type_name);
 					if (hr == S_OK)
 					{
-						outMediaType.major_type_name=
-							StringUtils::convertWStringToUTF8String(major_type_name);
+						outMediaType.major_type_name= StringUtils::convertWStringToUTF8String(major_type_name);
 					}
 				}
 
@@ -446,8 +431,7 @@ static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes* pAttr, DWORD in
 					hr= GetGUIDNameCopy(*var.puuid, ws_sub_type_name);
 					if (hr == S_OK)
 					{
-						std::string sub_type_name=
-							StringUtils::convertWStringToUTF8String(ws_sub_type_name);
+						std::string sub_type_name= StringUtils::convertWStringToUTF8String(ws_sub_type_name);
 
 						// Strip "MFVideoFormat_" prefix if present
 						const std::string prefix= "MFVideoFormat_";
@@ -504,8 +488,8 @@ static HRESULT GetGUIDNameCopy(const GUID& guid, std::wstring& out_guidName)
 }
 
 #ifndef IF_EQUAL_RETURN
-#define IF_EQUAL_RETURN(param, val) \
-	if (val == param)               \
+#define IF_EQUAL_RETURN(param, val)                                                                                    \
+	if (val == param)                                                                                                  \
 	return L#val
 #endif
 

@@ -16,9 +16,7 @@ bool MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 
 	glm::vec2 pixelPos;
 	auto graphicsContext= evaluator.getCurrentGraphicsContext();
-	auto viewport=
-		std::static_pointer_cast<MikanViewport>(
-			graphicsContext->getRenderingViewport());
+	auto viewport= std::static_pointer_cast<MikanViewport>(graphicsContext->getRenderingViewport());
 	if (viewport && viewport->getCursorViewportPixelPos(pixelPos))
 	{
 		auto viewportSize= viewport->getViewportSize();
@@ -29,7 +27,8 @@ bool MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> MousePosNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> MousePosNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(160, 160, 40, 225))

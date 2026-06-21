@@ -19,6 +19,4 @@ bool StageRequestHandler::startup(MainWindow* mainWindow)
 	return true;
 }
 
-void StageRequestHandler::shutdown()
-{
-}
+void StageRequestHandler::shutdown() {}

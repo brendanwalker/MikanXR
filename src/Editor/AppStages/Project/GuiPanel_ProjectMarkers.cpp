@@ -21,16 +21,17 @@ bool GuiPanel_ProjectMarkers::init(ProjectGuiPanelContext* context)
 	m_defaultGuiStyle= getGuiStyleManager()->getStyle("default_component_panel");
 
 	auto pm= ownerAppStage->getProjectManager();
-	m_markerDataSource= std::make_unique<GuiDataSource_ComboBox>(pm,
-																 std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-																	 {MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName}});
-	m_markerDataSource->setDisplayStringBuilder([](MikanComponentPtr comp) -> std::string
-												{
-		auto marker = std::static_pointer_cast<MarkerComponent>(comp);
-		std::string name = comp->getName().empty()
-			? ("Marker " + std::to_string(comp->getComponentId()))
-			: comp->getName();
-		return name + " (Aruco:" + std::to_string(marker->getMarkerDefinition()->getArucoId()) + ")"; });
+	m_markerDataSource= std::make_unique<GuiDataSource_ComboBox>(
+		pm, std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+				{MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName}});
+	m_markerDataSource->setDisplayStringBuilder(
+		[](MikanComponentPtr comp) -> std::string
+		{
+			auto marker= std::static_pointer_cast<MarkerComponent>(comp);
+			std::string name=
+				comp->getName().empty() ? ("Marker " + std::to_string(comp->getComponentId())) : comp->getName();
+			return name + " (Aruco:" + std::to_string(marker->getMarkerDefinition()->getArucoId()) + ")";
+		});
 
 	// Auto-select first marker if available
 	MarkerObjectSystemPtr markerSystem= getMarkerSystem();
@@ -43,15 +44,9 @@ bool GuiPanel_ProjectMarkers::init(ProjectGuiPanelContext* context)
 	return true;
 }
 
-void GuiPanel_ProjectMarkers::dispose()
-{
-	GuiPanel::dispose();
-}
+void GuiPanel_ProjectMarkers::dispose() { GuiPanel::dispose(); }
 
-MarkerObjectSystemPtr GuiPanel_ProjectMarkers::getMarkerSystem() const
-{
-	return m_markerSystem.lock();
-}
+MarkerObjectSystemPtr GuiPanel_ProjectMarkers::getMarkerSystem() const { return m_markerSystem.lock(); }
 
 MarkerComponentPtr GuiPanel_ProjectMarkers::getSelectedMarker() const
 {
@@ -83,23 +78,22 @@ void GuiPanel_ProjectMarkers::onGui()
 	m_markerDataSource->refreshEntries();
 
 	// Validate selection
-	if (m_selectedMarkerId != INVALID_MIKAN_ID &&
-		m_markerDataSource->getEntryIndexByComponentId(m_selectedMarkerId) == -1)
+	if (m_selectedMarkerId != INVALID_MIKAN_ID
+		&& m_markerDataSource->getEntryIndexByComponentId(m_selectedMarkerId) == -1)
 	{
 		setSelectedMarkerId(INVALID_MIKAN_ID);
 	}
 
 	int markerIndex= m_markerDataSource->getEntryIndexByComponentId(m_selectedMarkerId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectMarker", "Marker",
-									m_markerDataSource.get(), markerIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectMarker", "Marker", m_markerDataSource.get(),
+									markerIndex))
 	{
 		if (markerIndex >= 0)
 		{
 			if (MikanComponentPtr sel= m_markerDataSource->getEntryAtIndex(markerIndex))
 			{
 				int newId= sel->getComponentId();
-				addDeferredGuiEvent([this, newId]()
-									{ setSelectedMarkerId((MikanMarkerID)newId); });
+				addDeferredGuiEvent([this, newId]() { setSelectedMarkerId((MikanMarkerID)newId); });
 			}
 		}
 	}
@@ -107,15 +101,17 @@ void GuiPanel_ProjectMarkers::onGui()
 	ImGui::SameLine();
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addMarker", "add_component"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			MarkerObjectSystemPtr sys = getMarkerSystem();
-			if (sys)
+		addDeferredGuiEvent(
+			[this]()
 			{
-				MarkerComponentPtr marker = sys->addNewObjectByTypedDefinition();
-				MikanMarkerID markerId = marker->getComponentId();
-				setSelectedMarkerId(markerId);
-			} });
+				MarkerObjectSystemPtr sys= getMarkerSystem();
+				if (sys)
+				{
+					MarkerComponentPtr marker= sys->addNewObjectByTypedDefinition();
+					MikanMarkerID markerId= marker->getComponentId();
+					setSelectedMarkerId(markerId);
+				}
+			});
 	}
 
 	if (m_selectedMarkerId != INVALID_MIKAN_ID)
@@ -123,11 +119,13 @@ void GuiPanel_ProjectMarkers::onGui()
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeMarker", "delete_component"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				MarkerObjectSystemPtr sys = getMarkerSystem();
-				if (sys)
-					sys->removeObjectByPrimaryComponentId(m_selectedMarkerId); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					MarkerObjectSystemPtr sys= getMarkerSystem();
+					if (sys)
+						sys->removeObjectByPrimaryComponentId(m_selectedMarkerId);
+				});
 		}
 
 		// Show selected marker component

@@ -33,9 +33,7 @@ public:
 	virtual void disconnect(uint16_t code, const std::string& reason)= 0;
 	virtual const bool getIsConnected() const= 0;
 
-	virtual MikanCoreResult fetchNextEvent(
-		size_t utf8BufferSize,
-		char* outUtf8Buffer,
-		size_t* outUtf8BufferSizeNeeded)= 0;
+	virtual MikanCoreResult fetchNextEvent(size_t utf8BufferSize, char* outUtf8Buffer,
+										   size_t* outUtf8BufferSizeNeeded)= 0;
 	virtual MikanCoreResult sendRequest(const std::string& utf8RequestString)= 0;
 };

@@ -18,10 +18,9 @@ MkScopedMaterialInstanceBinding::MkScopedMaterialInstanceBinding()
 	m_impl->bMaterialInstanceFailure= true;
 }
 
-MkScopedMaterialInstanceBinding::MkScopedMaterialInstanceBinding(
-	const MkMaterialInstance* materialInstance,
-	UniformNameSet unboundUniformNames,
-	bool bMaterialInstanceFailure)
+MkScopedMaterialInstanceBinding::MkScopedMaterialInstanceBinding(const MkMaterialInstance* materialInstance,
+																 UniformNameSet unboundUniformNames,
+																 bool bMaterialInstanceFailure)
 	: m_impl(new MkScopedMaterialInstanceBindingImpl)
 {
 	m_impl->boundMaterialInstance= materialInstance;
@@ -49,10 +48,7 @@ const UniformNameSet& MkScopedMaterialInstanceBinding::getUnboundUniforms() cons
 	return m_impl->unboundUniformNames;
 }
 
-MkScopedMaterialInstanceBinding::operator bool() const
-{
-	return !m_impl->bMaterialInstanceFailure;
-}
+MkScopedMaterialInstanceBinding::operator bool() const { return !m_impl->bMaterialInstanceFailure; }
 
 // -- MkMaterialInstance ------
 struct MkMaterialInstanceImpl
@@ -92,16 +88,13 @@ MkMaterialInstance::MkMaterialInstance(MkMaterialInstanceConstPtr materialInstan
 	m_impl->textureSources= materialInstance->m_impl->textureSources;
 }
 
-MkMaterialConstPtr MkMaterialInstance::getMaterial() const
-{
-	return m_impl->parentMaterial;
-}
+MkMaterialConstPtr MkMaterialInstance::getMaterial() const { return m_impl->parentMaterial; }
 
 bool MkMaterialInstance::setFloatBySemantic(eUniformSemantic semantic, float value)
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return setFloatByUniformName(uniformName, value);
 	}
@@ -112,8 +105,8 @@ bool MkMaterialInstance::setFloatBySemantic(eUniformSemantic semantic, float val
 bool MkMaterialInstance::getFloatBySemantic(eUniformSemantic semantic, float& outValue) const
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return getFloatByUniformName(uniformName, outValue);
 	}
@@ -124,9 +117,9 @@ bool MkMaterialInstance::getFloatBySemantic(eUniformSemantic semantic, float& ou
 bool MkMaterialInstance::setFloatByUniformName(const std::string uniformName, float value)
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_float)
 	{
 		m_impl->floatSources.setValue(uniformName, value);
 		return true;
@@ -138,9 +131,9 @@ bool MkMaterialInstance::setFloatByUniformName(const std::string uniformName, fl
 bool MkMaterialInstance::getFloatByUniformName(const std::string uniformName, float& outValue) const
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_float)
 	{
 		if (!m_impl->floatSources.tryGetValue(uniformName, outValue))
 			return m_impl->parentMaterial->getFloatByUniformName(uniformName, outValue);
@@ -154,8 +147,8 @@ bool MkMaterialInstance::getFloatByUniformName(const std::string uniformName, fl
 bool MkMaterialInstance::setVec2BySemantic(eUniformSemantic semantic, const glm::vec2& value)
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return setVec2ByUniformName(uniformName, value);
 	}
@@ -166,8 +159,8 @@ bool MkMaterialInstance::setVec2BySemantic(eUniformSemantic semantic, const glm:
 bool MkMaterialInstance::getVec2BySemantic(eUniformSemantic semantic, glm::vec2& outValue) const
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return getVec2ByUniformName(uniformName, outValue);
 	}
@@ -178,9 +171,9 @@ bool MkMaterialInstance::getVec2BySemantic(eUniformSemantic semantic, glm::vec2&
 bool MkMaterialInstance::setVec2ByUniformName(const std::string uniformName, const glm::vec2& value)
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float2)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_float2)
 	{
 		m_impl->float2Sources.setValue(uniformName, value);
 		return true;
@@ -192,9 +185,9 @@ bool MkMaterialInstance::setVec2ByUniformName(const std::string uniformName, con
 bool MkMaterialInstance::getVec2ByUniformName(const std::string uniformName, glm::vec2& outValue) const
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float2)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_float2)
 	{
 		if (!m_impl->float2Sources.tryGetValue(uniformName, outValue))
 			return m_impl->parentMaterial->getVec2ByUniformName(uniformName, outValue);
@@ -208,8 +201,8 @@ bool MkMaterialInstance::getVec2ByUniformName(const std::string uniformName, glm
 bool MkMaterialInstance::setVec3BySemantic(eUniformSemantic semantic, const glm::vec3& value)
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return setVec3ByUniformName(uniformName, value);
 	}
@@ -220,8 +213,8 @@ bool MkMaterialInstance::setVec3BySemantic(eUniformSemantic semantic, const glm:
 bool MkMaterialInstance::getVec3BySemantic(eUniformSemantic semantic, glm::vec3& outValue) const
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return getVec3ByUniformName(uniformName, outValue);
 	}
@@ -232,9 +225,9 @@ bool MkMaterialInstance::getVec3BySemantic(eUniformSemantic semantic, glm::vec3&
 bool MkMaterialInstance::setVec3ByUniformName(const std::string uniformName, const glm::vec3& value)
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float3)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_float3)
 	{
 		m_impl->float3Sources.setValue(uniformName, value);
 		return true;
@@ -246,9 +239,9 @@ bool MkMaterialInstance::setVec3ByUniformName(const std::string uniformName, con
 bool MkMaterialInstance::getVec3ByUniformName(const std::string uniformName, glm::vec3& outValue) const
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float3)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_float3)
 	{
 		if (!m_impl->float3Sources.tryGetValue(uniformName, outValue))
 			return m_impl->parentMaterial->getVec3ByUniformName(uniformName, outValue);
@@ -262,8 +255,8 @@ bool MkMaterialInstance::getVec3ByUniformName(const std::string uniformName, glm
 bool MkMaterialInstance::setVec4BySemantic(eUniformSemantic semantic, const glm::vec4& value)
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return setVec4ByUniformName(uniformName, value);
 	}
@@ -274,8 +267,8 @@ bool MkMaterialInstance::setVec4BySemantic(eUniformSemantic semantic, const glm:
 bool MkMaterialInstance::getVec4BySemantic(eUniformSemantic semantic, glm::vec4& outValue) const
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return getVec4ByUniformName(uniformName, outValue);
 	}
@@ -286,9 +279,9 @@ bool MkMaterialInstance::getVec4BySemantic(eUniformSemantic semantic, glm::vec4&
 bool MkMaterialInstance::setVec4ByUniformName(const std::string uniformName, const glm::vec4& value)
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float4)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_float4)
 	{
 		m_impl->float4Sources.setValue(uniformName, value);
 		return true;
@@ -300,9 +293,9 @@ bool MkMaterialInstance::setVec4ByUniformName(const std::string uniformName, con
 bool MkMaterialInstance::getVec4ByUniformName(const std::string uniformName, glm::vec4& outValue) const
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float4)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_float4)
 	{
 		if (!m_impl->float4Sources.tryGetValue(uniformName, outValue))
 			return m_impl->parentMaterial->getVec4ByUniformName(uniformName, outValue);
@@ -316,8 +309,8 @@ bool MkMaterialInstance::getVec4ByUniformName(const std::string uniformName, glm
 bool MkMaterialInstance::setMat4BySemantic(eUniformSemantic semantic, const glm::mat4& value)
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return setMat4ByUniformName(uniformName, value);
 	}
@@ -328,8 +321,8 @@ bool MkMaterialInstance::setMat4BySemantic(eUniformSemantic semantic, const glm:
 bool MkMaterialInstance::getMat4BySemantic(eUniformSemantic semantic, glm::mat4& outValue) const
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return getMat4ByUniformName(uniformName, outValue);
 	}
@@ -340,9 +333,9 @@ bool MkMaterialInstance::getMat4BySemantic(eUniformSemantic semantic, glm::mat4&
 bool MkMaterialInstance::setMat4ByUniformName(const std::string uniformName, const glm::mat4& value)
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_mat4)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_mat4)
 	{
 		m_impl->mat4Sources.setValue(uniformName, value);
 		return true;
@@ -354,9 +347,9 @@ bool MkMaterialInstance::setMat4ByUniformName(const std::string uniformName, con
 bool MkMaterialInstance::getMat4ByUniformName(const std::string uniformName, glm::mat4& outValue) const
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_mat4)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_mat4)
 	{
 		if (!m_impl->mat4Sources.tryGetValue(uniformName, outValue))
 			return m_impl->parentMaterial->getMat4ByUniformName(uniformName, outValue);
@@ -370,8 +363,8 @@ bool MkMaterialInstance::getMat4ByUniformName(const std::string uniformName, glm
 bool MkMaterialInstance::setTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr texture)
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return setTextureByUniformName(uniformName, texture);
 	}
@@ -382,8 +375,8 @@ bool MkMaterialInstance::setTextureBySemantic(eUniformSemantic semantic, IMkText
 bool MkMaterialInstance::getTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr& outTexture) const
 {
 	std::string uniformName;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getFirstUniformNameOfSemantic(semantic, uniformName))
 	{
 		return getTextureByUniformName(uniformName, outTexture);
 	}
@@ -403,7 +396,8 @@ bool MkMaterialInstance::getMutableTextureBySemantic(eUniformSemantic semantic, 
 	return false;
 }
 
-bool MkMaterialInstance::getMutableTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const
+bool MkMaterialInstance::getMutableTextureByUniformName(const std::string uniformName,
+														IMkTextureConstPtr& outTexture) const
 {
 	IMkTextureConstPtr constTexturePtr;
 	if (getTextureByUniformName(uniformName, constTexturePtr))
@@ -417,9 +411,9 @@ bool MkMaterialInstance::getMutableTextureByUniformName(const std::string unifor
 bool MkMaterialInstance::setTextureByUniformName(const std::string uniformName, IMkTextureConstPtr texture)
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_texture)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_texture)
 	{
 		m_impl->textureSources.setValue(uniformName, texture);
 		return true;
@@ -431,9 +425,9 @@ bool MkMaterialInstance::setTextureByUniformName(const std::string uniformName, 
 bool MkMaterialInstance::getTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const
 {
 	eUniformDataType datatype;
-	if (m_impl->parentMaterial != nullptr &&
-		m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_texture)
+	if (m_impl->parentMaterial != nullptr
+		&& m_impl->parentMaterial->getProgram()->getUniformDataType(uniformName, datatype)
+		&& datatype == eUniformDataType::datatype_texture)
 	{
 		if (!m_impl->textureSources.tryGetValue(uniformName, outTexture))
 			return m_impl->parentMaterial->getTextureByUniformName(uniformName, outTexture);
@@ -453,15 +447,13 @@ static void mark_uniform_as_bound(const std::string& uniformName, UniformNameSet
 	}
 }
 
-MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
-	const MkScopedMaterialBinding& materialBinding,
-	BindUniformCallback callback) const
+MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(const MkScopedMaterialBinding& materialBinding,
+																		 BindUniformCallback callback) const
 {
 	bool bMaterialInstanceFailure= false;
 	UniformNameSet unboundUniforms= materialBinding.getUnboundUniforms();
 
-	if (m_impl->parentMaterial != nullptr &&
-		materialBinding.getBoundMaterial() == m_impl->parentMaterial.get())
+	if (m_impl->parentMaterial != nullptr && materialBinding.getBoundMaterial() == m_impl->parentMaterial.get())
 	{
 		IMkShaderPtr program= m_impl->parentMaterial->getProgram();
 
@@ -558,10 +550,8 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 			IMkTextureConstPtr texture= it->second;
 			int textureUnit= 0;
 
-			if (texture &&
-				program->getUniformTextureUnit(uniformName, textureUnit) &&
-				program->setTextureUniform(uniformName) &&
-				texture->bindTexture(textureUnit))
+			if (texture && program->getUniformTextureUnit(uniformName, textureUnit)
+				&& program->setTextureUniform(uniformName) && texture->bindTexture(textureUnit))
 			{
 				mark_uniform_as_bound(it->first, unboundUniforms);
 			}

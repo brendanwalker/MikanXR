@@ -36,16 +36,13 @@ bool mikan_api_test_type_registry_build()
 	Serialization::TypeRegistry::buildFromRfkDatabase();
 
 	// After building, core Mikan types must be registered
-	rfk::Struct const* requestStruct=
-		Serialization::TypeRegistry::getStructByName("MikanRequest");
+	rfk::Struct const* requestStruct= Serialization::TypeRegistry::getStructByName("MikanRequest");
 	assert(requestStruct != nullptr);
 
-	rfk::Struct const* responseStruct=
-		Serialization::TypeRegistry::getStructByName("MikanResponse");
+	rfk::Struct const* responseStruct= Serialization::TypeRegistry::getStructByName("MikanResponse");
 	assert(responseStruct != nullptr);
 
-	rfk::Struct const* eventStruct=
-		Serialization::TypeRegistry::getStructByName("MikanEvent");
+	rfk::Struct const* eventStruct= Serialization::TypeRegistry::getStructByName("MikanEvent");
 	assert(eventStruct != nullptr);
 
 	UNIT_TEST_COMPLETE()
@@ -58,8 +55,7 @@ bool mikan_api_test_type_registry_lookup()
 	Serialization::TypeRegistry::buildFromRfkDatabase();
 
 	// Concrete request type must also be found
-	rfk::Struct const* cmdStruct=
-		Serialization::TypeRegistry::getStructByName("MikanRemoteControlCommand");
+	rfk::Struct const* cmdStruct= Serialization::TypeRegistry::getStructByName("MikanRemoteControlCommand");
 	assert(cmdStruct != nullptr);
 
 	// The returned struct's name must match what we queried
@@ -79,8 +75,7 @@ bool mikan_api_test_type_registry_unknown_returns_null()
 
 	Serialization::TypeRegistry::buildFromRfkDatabase();
 
-	rfk::Struct const* unknownStruct=
-		Serialization::TypeRegistry::getStructByName("ThisTypeDoesNotExist");
+	rfk::Struct const* unknownStruct= Serialization::TypeRegistry::getStructByName("ThisTypeDoesNotExist");
 	assert(unknownStruct == nullptr);
 
 	UNIT_TEST_COMPLETE()
@@ -154,13 +149,11 @@ bool mikan_api_test_response_round_trip()
 	json j= json::parse(jsonString);
 	MikanResponse header= {};
 	std::string headerError;
-	bool bHeader= Serialization::deserializeFromJson(
-		j, &header, MikanResponse::staticGetArchetype(), headerError);
+	bool bHeader= Serialization::deserializeFromJson(j, &header, MikanResponse::staticGetArchetype(), headerError);
 	assert(bHeader);
 
 	// Look up the concrete struct type by name and create an instance
-	rfk::Struct const* responseStruct=
-		Serialization::TypeRegistry::getStructByName(header.responseTypeName.getValue());
+	rfk::Struct const* responseStruct= Serialization::TypeRegistry::getStructByName(header.responseTypeName.getValue());
 	assert(responseStruct != nullptr);
 
 	auto instance= responseStruct->makeSharedInstance<MikanResponse>();
@@ -174,8 +167,7 @@ bool mikan_api_test_response_round_trip()
 	// Verify field values survived the round-trip
 	assert(instance->requestId == expected.requestId);
 	assert(instance->resultCode == expected.resultCode);
-	assert(std::string(instance->responseTypeName.getValue()) ==
-		   std::string(expected.responseTypeName.getValue()));
+	assert(std::string(instance->responseTypeName.getValue()) == std::string(expected.responseTypeName.getValue()));
 
 	UNIT_TEST_COMPLETE()
 }

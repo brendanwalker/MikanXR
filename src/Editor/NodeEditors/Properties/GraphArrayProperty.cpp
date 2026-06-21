@@ -21,14 +21,9 @@ void GraphArrayPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphArrayProperty -----
-std::string GraphArrayProperty::editorGetIcon() const
-{
-	return NodeEditorUI::getArrayIcon();
-}
+std::string GraphArrayProperty::editorGetIcon() const { return NodeEditorUI::getArrayIcon(); }
 
-bool GraphArrayProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphArrayProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	NodeGraphPtr graph= getOwnerGraph();
 
@@ -62,8 +57,7 @@ bool GraphArrayProperty::loadFromConfig(
 			else
 			{
 				MIKAN_LOG_ERROR("GraphArrayProperty::loadFromConfig")
-					<< "Invalid property id: " << childPropId
-					<< ", on array: " << getName();
+					<< "Invalid property id: " << childPropId << ", on array: " << getName();
 				loadedAllProps= false;
 			}
 		}

@@ -23,28 +23,26 @@ enum class ENUM(Serialization::CodeGenModule("MikanMarkerTypes")) MikanMarkerDic
 };
 
 // Structures
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerTypes")) MikanMarkerSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerTypes")) MikanMarkerSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
-	FIELD()
-	Serialization::List<int>
-		aruco_id_list;
-	FIELD()
-	MikanMarkerDictionaryType aruco_dictionary_type= MikanMarkerDictionaryType::INVALID;
+	FIELD() Serialization::List<int> aruco_id_list;
+	FIELD() MikanMarkerDictionaryType aruco_dictionary_type= MikanMarkerDictionaryType::INVALID;
 	FIELD() int charuco_rows= 0;
 	FIELD() int charuco_cols= 0;
 	FIELD() float charuco_square_length_mm= 0.f;
 	FIELD() float charuco_marker_length_mm= 0.f;
-	FIELD()
-	MikanMarkerDictionaryType charuco_dictionary_type= MikanMarkerDictionaryType::INVALID;
+	FIELD() MikanMarkerDictionaryType charuco_dictionary_type= MikanMarkerDictionaryType::INVALID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMarkerSystemValues_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerTypes")) MikanMarkerComponentValues : public MikanComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerTypes")) MikanMarkerComponentValues
+	: public MikanComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;

@@ -12,12 +12,8 @@ ModalDialog_Confirm::ModalDialog_Confirm(AppStage* appStage)
 {
 }
 
-bool ModalDialog_Confirm::confirmQuestion(
-	AppStage* appStage,
-	const std::string& title,
-	const std::string& question,
-	ConfirmCallback acceptCallback,
-	ConfirmCallback rejectCallback)
+bool ModalDialog_Confirm::confirmQuestion(AppStage* appStage, const std::string& title, const std::string& question,
+										  ConfirmCallback acceptCallback, ConfirmCallback rejectCallback)
 {
 	ModalDialog_Confirm* confirmModal= appStage->pushModalDialog<ModalDialog_Confirm>();
 
@@ -30,11 +26,8 @@ bool ModalDialog_Confirm::confirmQuestion(
 	return true;
 }
 
-bool ModalDialog_Confirm::init(
-	const std::string& title,
-	const std::string& question,
-	ConfirmCallback acceptCallback,
-	ConfirmCallback rejectCallback)
+bool ModalDialog_Confirm::init(const std::string& title, const std::string& question, ConfirmCallback acceptCallback,
+							   ConfirmCallback rejectCallback)
 {
 	m_title= title;
 	m_question= question;
@@ -52,8 +45,7 @@ void ModalDialog_Confirm::onGui()
 		m_bNeedsOpen= false;
 	}
 
-	ImGui::SetNextWindowPos(
-		ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::TextUnformatted(m_title.c_str());

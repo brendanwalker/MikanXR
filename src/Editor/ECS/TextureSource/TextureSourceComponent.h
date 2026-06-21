@@ -21,9 +21,8 @@ public:
 	TextureSourceDefinition();
 	TextureSourceDefinition(MikanTextureSourceID TextureSourceId);
 
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	inline MikanTextureSourceID getTextureSourceId() const { return getComponentId(); }
 };
@@ -44,8 +43,12 @@ public:
 
 	// Texture Source Interface
 	MikanTextureSourceID getTextureSourceId() const;
-	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const;
-	virtual IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex= -1) const;
+	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId,
+													  eTextureSourceColorType textureSourceColorType,
+													  int64_t frameIndex= -1) const;
+	virtual IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId,
+													  eTextureSourceDepthType textureSourceDepthType,
+													  int64_t frameIndex= -1) const;
 
 	// Video Source Events
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnOpened;

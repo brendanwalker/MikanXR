@@ -17,11 +17,8 @@ ModalDialog_SceneAddCompositor::ModalDialog_SceneAddCompositor(AppStage* appStag
 {
 }
 
-bool ModalDialog_SceneAddCompositor::selectNewCompositor(
-	AppStage* appStage,
-	SceneComponentPtr ownerScene,
-	SelectCallback selectCallback,
-	CancelCallback cancelCallback)
+bool ModalDialog_SceneAddCompositor::selectNewCompositor(AppStage* appStage, SceneComponentPtr ownerScene,
+														 SelectCallback selectCallback, CancelCallback cancelCallback)
 {
 	ModalDialog_SceneAddCompositor* dialog= appStage->pushModalDialog<ModalDialog_SceneAddCompositor>();
 
@@ -34,10 +31,8 @@ bool ModalDialog_SceneAddCompositor::selectNewCompositor(
 	return true;
 }
 
-bool ModalDialog_SceneAddCompositor::init(
-	SceneComponentPtr ownerScene,
-	SelectCallback selectCallback,
-	CancelCallback cancelCallback)
+bool ModalDialog_SceneAddCompositor::init(SceneComponentPtr ownerScene, SelectCallback selectCallback,
+										  CancelCallback cancelCallback)
 {
 	m_selectCallback= selectCallback;
 	m_cancelCallback= cancelCallback;
@@ -79,8 +74,7 @@ void ModalDialog_SceneAddCompositor::onGui()
 		m_bNeedsOpen= false;
 	}
 
-	ImGui::SetNextWindowPos(
-		ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::Text("Add Compositor To Scene");
@@ -94,7 +88,8 @@ void ModalDialog_SceneAddCompositor::onGui()
 			*out= (*names)[idx].c_str();
 			return true;
 		};
-		ImGui::ListBox("##compositors", &m_selectedIndex, itemGetter, &m_compositorNames, (int)m_compositorNames.size(), 8);
+		ImGui::ListBox("##compositors", &m_selectedIndex, itemGetter, &m_compositorNames, (int)m_compositorNames.size(),
+					   8);
 
 		ImGui::Spacing();
 

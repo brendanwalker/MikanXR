@@ -18,6 +18,4 @@ public:
 	virtual IMkMeshConstPtr getMesh() const= 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkStaticMeshInstancePtr) createMkStaticMeshInstance(
-	const std::string& name,
-	IMkMeshConstPtr mesh);
+MIKAN_RENDERER_FUNC(IMkStaticMeshInstancePtr) createMkStaticMeshInstance(const std::string& name, IMkMeshConstPtr mesh);

@@ -10,21 +10,14 @@
 #include <assert.h>
 
 // -- BoxShapeSystemDefinition -----
-BoxShapeSystemDefinition::BoxShapeSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+BoxShapeSystemDefinition::BoxShapeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 
-configuru::Config BoxShapeSystemDefinition::writeToJSON()
-{
-	return Super::writeToJSON();
-}
+configuru::Config BoxShapeSystemDefinition::writeToJSON() { return Super::writeToJSON(); }
 
-void BoxShapeSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	Super::readFromJSON(pt);
-}
+void BoxShapeSystemDefinition::readFromJSON(const configuru::Config& pt) { Super::readFromJSON(pt); }
 
 // -- BoxShapeSystem ----
 BoxShapeSystem::BoxShapeSystem(ProjectManagerPtr ownerObjectSystem)
@@ -49,23 +42,18 @@ void BoxShapeSystem::getBoxShapeComponentList(std::vector<BoxShapeComponentPtr>&
 	}
 }
 
-void BoxShapeSystem::additionalComponentFactory(
-	MikanObjectPtr ownerComponentObject,
-	ComponentDefinitionPtr componentDefinition)
+void BoxShapeSystem::additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+												ComponentDefinitionPtr componentDefinition)
 {
 	TransformComponentPtr rootComponent= ownerComponentObject->getRootComponent();
 	assert(rootComponent);
 
-	BoxShapeDefinitionPtr boxDef=
-		std::static_pointer_cast<BoxShapeDefinition>(componentDefinition);
+	BoxShapeDefinitionPtr boxDef= std::static_pointer_cast<BoxShapeDefinition>(componentDefinition);
 
 	// Attach box collider sized to the box shape
 	BoxColliderComponentPtr boxCollider= ownerComponentObject->addComponent<BoxColliderComponent>();
 	boxCollider->setHalfExtents(
-		glm::vec3(
-			boxDef->getBoxXSize() * 0.5f,
-			boxDef->getBoxYSize() * 0.5f,
-			boxDef->getBoxZSize() * 0.5f));
+		glm::vec3(boxDef->getBoxXSize() * 0.5f, boxDef->getBoxYSize() * 0.5f, boxDef->getBoxZSize() * 0.5f));
 	boxCollider->attachToComponent(rootComponent);
 
 	// Attach selection component
@@ -77,21 +65,12 @@ void BoxShapeSystem::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.beginClass<BoxShapeSystem>("BoxShapeSystem")
-		.addFunction("getBoxShapeById",
-					 [](BoxShapeSystem* s, int id) -> BoxShapeComponent*
-					 {
-						 return s->getBoxShapeById(static_cast<MikanShapeID>(id)).get();
-					 })
-		.addFunction("getBoxShapeByName",
-					 [](BoxShapeSystem* s, const std::string& name) -> BoxShapeComponent*
-					 {
-						 return s->getBoxShapeByName(name).get();
-					 })
+		.addFunction("getBoxShapeById", [](BoxShapeSystem* s, int id) -> BoxShapeComponent*
+					 { return s->getBoxShapeById(static_cast<MikanShapeID>(id)).get(); })
+		.addFunction("getBoxShapeByName", [](BoxShapeSystem* s, const std::string& name) -> BoxShapeComponent*
+					 { return s->getBoxShapeByName(name).get(); })
 		.addFunction("getBoxShapeCount",
-					 [](BoxShapeSystem* s) -> int
-					 {
-						 return static_cast<int>(s->getComponentMap().size());
-					 })
+					 [](BoxShapeSystem* s) -> int { return static_cast<int>(s->getComponentMap().size()); })
 		.addFunction("getBoxShapeAtIndex",
 					 [](BoxShapeSystem* s, int i) -> BoxShapeComponent*
 					 {

@@ -86,74 +86,48 @@ struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationTestSt
 {
 	FIELD() bool bool_field;
 
-	FIELD()
-	int8_t byte_field;
+	FIELD() int8_t byte_field;
 
-	FIELD()
-	uint8_t ubyte_field;
+	FIELD() uint8_t ubyte_field;
 
-	FIELD()
-	int16_t short_field;
+	FIELD() int16_t short_field;
 
-	FIELD()
-	uint16_t ushort_field;
+	FIELD() uint16_t ushort_field;
 
-	FIELD()
-	int32_t int_field;
+	FIELD() int32_t int_field;
 
-	FIELD()
-	uint32_t uint_field;
+	FIELD() uint32_t uint_field;
 
-	FIELD()
-	int64_t long_field;
+	FIELD() int64_t long_field;
 
 	FIELD() float float_field;
 
 	FIELD() double double_field;
 
-	FIELD()
-	Serialization::String string_field;
+	FIELD() Serialization::String string_field;
 
-	FIELD()
-	SerializationTestEnum enum_field;
+	FIELD() SerializationTestEnum enum_field;
 
-	FIELD()
-	SerializationPoint2dStruct point2d_field;
+	FIELD() SerializationPoint2dStruct point2d_field;
 
 	// SerializationPointStruct derived type
-	FIELD()
-	Serialization::PolymorphicObjectPtr point_ptr_field;
+	FIELD() Serialization::PolymorphicObjectPtr point_ptr_field;
 
-	FIELD()
-	Serialization::PolymorphicObjectPtr null_ptr_field;
+	FIELD() Serialization::PolymorphicObjectPtr null_ptr_field;
 
-	FIELD()
-	Serialization::List<bool>
-		bool_array;
+	FIELD() Serialization::List<bool> bool_array;
 
-	FIELD()
-	Serialization::List<int>
-		int_array;
+	FIELD() Serialization::List<int> int_array;
 
-	FIELD()
-	Serialization::List<float>
-		float_array;
+	FIELD() Serialization::List<float> float_array;
 
-	FIELD()
-	Serialization::List<Serialization::String>
-		string_array;
+	FIELD() Serialization::List<Serialization::String> string_array;
 
-	FIELD()
-	Serialization::List<SerializationPoint2dStruct>
-		point2d_array;
+	FIELD() Serialization::List<SerializationPoint2dStruct> point2d_array;
 
-	FIELD()
-	Serialization::Map<int, SerializationPoint2dStruct>
-		int_point_map;
+	FIELD() Serialization::Map<int, SerializationPoint2dStruct> int_point_map;
 
-	FIELD()
-	Serialization::Map<Serialization::String, SerializationPoint2dStruct>
-		string_point_map;
+	FIELD() Serialization::Map<Serialization::String, SerializationPoint2dStruct> string_point_map;
 
 #ifndef KODGEN_PARSING
 	SerializationTestStruct_GENERATED

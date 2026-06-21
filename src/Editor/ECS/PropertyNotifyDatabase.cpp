@@ -19,11 +19,9 @@ PropertyNotifyDatabase::PropertyNotifyDatabase(MikanPropertyDatabaseConstPtr pro
 	}
 }
 
-bool PropertyNotifyDatabase::setPropertyNotifyMode(
-	const std::string& systemFilter,
-	const std::string& componentFilter,
-	const std::string& propertyFilter,
-	MikanPropertyNotifyMode notifyMode)
+bool PropertyNotifyDatabase::setPropertyNotifyMode(const std::string& systemFilter, const std::string& componentFilter,
+												   const std::string& propertyFilter,
+												   MikanPropertyNotifyMode notifyMode)
 {
 	if (!m_propertyDatabase)
 		return false;
@@ -31,11 +29,7 @@ bool PropertyNotifyDatabase::setPropertyNotifyMode(
 	bool anyMatched= false;
 
 	// Use PropertyDatabaseEnumerator to iterate over all matching properties
-	PropertyDatabaseEnumerator enumerator(
-		m_propertyDatabase,
-		systemFilter,
-		componentFilter,
-		propertyFilter);
+	PropertyDatabaseEnumerator enumerator(m_propertyDatabase, systemFilter, componentFilter, propertyFilter);
 
 	while (enumerator.isValid())
 	{
@@ -60,9 +54,8 @@ MikanPropertyNotifyMode PropertyNotifyDatabase::getPropertyNotifyMode(int proper
 	return MikanPropertyNotifyMode::NONE;
 }
 
-MikanPropertyNotifyMode PropertyNotifyDatabase::getPropertyNotifyMode(
-	const MikanPropertyValue& propertyValue,
-	ProjectManagerPtr systemManager) const
+MikanPropertyNotifyMode PropertyNotifyDatabase::getPropertyNotifyMode(const MikanPropertyValue& propertyValue,
+																	  ProjectManagerPtr systemManager) const
 {
 	if (!m_propertyDatabase || !systemManager)
 		return MikanPropertyNotifyMode::NONE;
@@ -88,10 +81,7 @@ MikanPropertyNotifyMode PropertyNotifyDatabase::getPropertyNotifyMode(
 	}
 
 	// Look up the property index using the system name, component class name, and property name
-	int propertyIndex= m_propertyDatabase->findPropertyIndex(
-		systemName,
-		componentClassName,
-		propertyName);
+	int propertyIndex= m_propertyDatabase->findPropertyIndex(systemName, componentClassName, propertyName);
 
 	// Return the notify mode for this property index
 	return getPropertyNotifyMode(propertyIndex);

@@ -21,7 +21,8 @@ enum ENUM(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilCullMod
 	MikanStencilCullMode_X_AXIS ENUMVALUE_STRING("X_Axis"),
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanQuadStencilSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanQuadStencilSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
@@ -30,7 +31,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanBoxStencilSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanBoxStencilSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
@@ -39,7 +41,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanModelStencilSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanModelStencilSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
@@ -48,18 +51,19 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilComponentValues : public MikanTransformComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilComponentValues
+	: public MikanTransformComponentValues
 {
 	FIELD() bool is_disabled= false;
-	FIELD()
-	MikanStencilCullMode cull_mode= MikanStencilCullMode_NONE;
+	FIELD() MikanStencilCullMode cull_mode= MikanStencilCullMode_NONE;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilComponentValues_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanQuadStencilComponentValues : public MikanStencilComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanQuadStencilComponentValues
+	: public MikanStencilComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
@@ -73,7 +77,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanBoxStencilComponentValues : public MikanStencilComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanBoxStencilComponentValues
+	: public MikanStencilComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
@@ -87,13 +92,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanModelStencilComponentValues : public MikanStencilComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanModelStencilComponentValues
+	: public MikanStencilComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	Serialization::String model_path;
+	FIELD() Serialization::String model_path;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanModelStencilComponentValues_GENERATED
@@ -102,18 +107,10 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanTriagulatedMesh
 {
-	FIELD()
-	Serialization::List<MikanVector3f>
-		vertices;
-	FIELD()
-	Serialization::List<MikanVector3f>
-		normals;
-	FIELD()
-	Serialization::List<MikanVector2f>
-		texels;
-	FIELD()
-	Serialization::List<int>
-		indices;
+	FIELD() Serialization::List<MikanVector3f> vertices;
+	FIELD() Serialization::List<MikanVector3f> normals;
+	FIELD() Serialization::List<MikanVector2f> texels;
+	FIELD() Serialization::List<int> indices;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTriagulatedMesh_GENERATED
@@ -122,9 +119,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelRenderGeometry
 {
-	FIELD()
-	Serialization::List<MikanTriagulatedMesh>
-		meshes;
+	FIELD() Serialization::List<MikanTriagulatedMesh> meshes;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilModelRenderGeometry_GENERATED

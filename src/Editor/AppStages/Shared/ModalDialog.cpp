@@ -6,6 +6,4 @@ ModalDialog::ModalDialog(class AppStage* ownerAppStage)
 {
 }
 
-ModalDialog::~ModalDialog()
-{
-}
+ModalDialog::~ModalDialog() {}

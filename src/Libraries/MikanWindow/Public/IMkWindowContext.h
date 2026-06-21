@@ -54,6 +54,5 @@ public:
 	virtual bool hasKeyboardFocus() const= 0;
 };
 
-MIKAN_WINDOW_FUNC(IMkWindowContextPtr) createMkWindowContext(
-	IMkWindowContextManagerPtr ownerWindowManager,
-	IMkGraphicsContextPtr graphicsContext);
+MIKAN_WINDOW_FUNC(IMkWindowContextPtr) createMkWindowContext(IMkWindowContextManagerPtr ownerWindowManager,
+															 IMkGraphicsContextPtr graphicsContext);

@@ -86,9 +86,8 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	virtual void onDefinitionMarkedDirty(
-		CommonConfigPtr configPtr,
-		const ConfigPropertyChangeSet& changedPropertySet) override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
 
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 	void handleShapeNodeGraphChanged(const std::filesystem::path& newAssetRefPath);

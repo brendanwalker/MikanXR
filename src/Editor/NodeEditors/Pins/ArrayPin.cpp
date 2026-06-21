@@ -99,11 +99,6 @@ std::shared_ptr<MkNodesScopedColorStyle> ArrayPin::editorRenderMakeLinkStyle(flo
 	return style;
 }
 
-void ArrayPin::editorRenderContextMenu(const NodeEditorState& editorState)
-{
-}
+void ArrayPin::editorRenderContextMenu(const NodeEditorState& editorState) {}
 
-ImU32 ArrayPin::editorGetLinkStyleColor() const
-{
-	return IM_COL32(148, 0, 0, 255);
-}
+ImU32 ArrayPin::editorGetLinkStyleColor() const { return IM_COL32(148, 0, 0, 255); }

@@ -47,10 +47,7 @@ public:
 
 	int exec(int argc, char** argv);
 
-	inline void requestShutdown()
-	{
-		m_bShutdownRequested= true;
-	}
+	inline void requestShutdown() { m_bShutdownRequested= true; }
 
 	template <typename t_app_window>
 	t_app_window* createAppWindow()

@@ -117,14 +117,9 @@ struct CodeGenDatabase
 class MikanClientCodeGen
 {
 public:
-	MikanClientCodeGen()
-	{
-	}
+	MikanClientCodeGen() {}
 
-	virtual ~MikanClientCodeGen()
-	{
-		shutdown();
-	}
+	virtual ~MikanClientCodeGen() { shutdown(); }
 
 	int exec(int argc, char** argv)
 	{
@@ -205,10 +200,7 @@ protected:
 		return success;
 	}
 
-	void shutdown()
-	{
-		log_dispose();
-	}
+	void shutdown() { log_dispose(); }
 
 	bool parseConfig(const std::filesystem::path& configPath)
 	{
@@ -261,22 +253,26 @@ protected:
 	{
 		rfk::Database const& database= rfk::getDatabase();
 
-		database.foreachFileLevelStruct([](rfk::Struct const& entity, void* userData) -> bool
-										{
-			auto* codeGenDB = reinterpret_cast<CodeGenDatabase*>(userData);
-			codeGenDB->visitStruct(entity);
-			return true; }, &codeGenDatabase);
+		database.foreachFileLevelStruct(
+			[](rfk::Struct const& entity, void* userData) -> bool
+			{
+				auto* codeGenDB= reinterpret_cast<CodeGenDatabase*>(userData);
+				codeGenDB->visitStruct(entity);
+				return true;
+			},
+			&codeGenDatabase);
 
-		database.foreachFileLevelEnum([](rfk::Enum const& entity, void* userData) -> bool
-									  {
-			auto* codeGenDB = reinterpret_cast<CodeGenDatabase*>(userData);
-			codeGenDB->visitEnum(entity);
-			return true; }, &codeGenDatabase);
+		database.foreachFileLevelEnum(
+			[](rfk::Enum const& entity, void* userData) -> bool
+			{
+				auto* codeGenDB= reinterpret_cast<CodeGenDatabase*>(userData);
+				codeGenDB->visitEnum(entity);
+				return true;
+			},
+			&codeGenDatabase);
 	}
 
-	bool generateCodeForModules(
-		const std::filesystem::path& absOutputPath,
-		CodeGenDatabase const& codeGenDatabase)
+	bool generateCodeForModules(const std::filesystem::path& absOutputPath, CodeGenDatabase const& codeGenDatabase)
 	{
 		for (auto const& module : codeGenDatabase.modules)
 		{
@@ -316,8 +312,7 @@ protected:
 		return true;
 	}
 
-	bool generateTypeScriptSerializationTypesFile(
-		const std::filesystem::path& absOutputPath)
+	bool generateTypeScriptSerializationTypesFile(const std::filesystem::path& absOutputPath)
 	{
 		std::filesystem::path filePath= absOutputPath / "SerializationTypes.ts";
 
@@ -327,7 +322,8 @@ protected:
 			file << "// This file is auto generated. DO NOT EDIT." << std::endl;
 			file << std::endl;
 			file << "export type SerializationField = "
-				 << "{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string};"
+				 << "{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: "
+					"string};"
 				 << std::endl;
 			file.close();
 		}
@@ -340,9 +336,7 @@ protected:
 		return true;
 	}
 
-	bool generateTypeScriptIndexFile(
-		const std::filesystem::path& absOutputPath,
-		CodeGenDatabase const& codeGenDatabase)
+	bool generateTypeScriptIndexFile(const std::filesystem::path& absOutputPath, CodeGenDatabase const& codeGenDatabase)
 	{
 		std::filesystem::path indexFilePath= absOutputPath / "index.ts";
 
@@ -375,9 +369,8 @@ protected:
 		return true;
 	}
 
-	bool generateTypeScriptEnumRegistrationFile(
-		const std::filesystem::path& absOutputPath,
-		CodeGenDatabase const& codeGenDatabase)
+	bool generateTypeScriptEnumRegistrationFile(const std::filesystem::path& absOutputPath,
+												CodeGenDatabase const& codeGenDatabase)
 	{
 		std::filesystem::path filePath= absOutputPath / "EnumRegistration.ts";
 
@@ -425,7 +418,8 @@ protected:
 			file << std::endl;
 			file << "// Auto-register when this module is first imported." << std::endl;
 			file << "// Because this file is re-exported from types/index.ts -> bindings/index.ts," << std::endl;
-			file << "// this call runs automatically the moment any symbol from @mikanxr/client is imported." << std::endl;
+			file << "// this call runs automatically the moment any symbol from @mikanxr/client is imported."
+				 << std::endl;
 			file << "registerAllEnums();" << std::endl;
 
 			file.close();
@@ -439,9 +433,8 @@ protected:
 		return true;
 	}
 
-	bool generateTypeScriptTypeRegistrationFile(
-		const std::filesystem::path& absOutputPath,
-		CodeGenDatabase const& codeGenDatabase)
+	bool generateTypeScriptTypeRegistrationFile(const std::filesystem::path& absOutputPath,
+												CodeGenDatabase const& codeGenDatabase)
 	{
 		std::filesystem::path filePath= absOutputPath / "TypeRegistration.ts";
 
@@ -489,7 +482,8 @@ protected:
 			file << std::endl;
 			file << "// Auto-register when this module is first imported." << std::endl;
 			file << "// Because this file is re-exported from types/index.ts -> bindings/index.ts," << std::endl;
-			file << "// this call runs automatically the moment any symbol from @mikanxr/client is imported." << std::endl;
+			file << "// this call runs automatically the moment any symbol from @mikanxr/client is imported."
+				 << std::endl;
 			file << "registerAllTypes();" << std::endl;
 
 			file.close();
@@ -503,9 +497,7 @@ protected:
 		return true;
 	}
 
-	bool generateCodeForModule(
-		const std::filesystem::path& absOutputPath,
-		ClientModulePtr const& module)
+	bool generateCodeForModule(const std::filesystem::path& absOutputPath, ClientModulePtr const& module)
 	{
 		if (m_targetLanguage == TargetLanguage::TypeScript)
 		{
@@ -517,9 +509,7 @@ protected:
 		}
 	}
 
-	bool generateCSharpCodeForModule(
-		const std::filesystem::path& absOutputPath,
-		ClientModulePtr const& module)
+	bool generateCSharpCodeForModule(const std::filesystem::path& absOutputPath, ClientModulePtr const& module)
 	{
 		std::string moduleFileName= module->name + ".cs";
 		std::filesystem::path modulePath= absOutputPath / moduleFileName;
@@ -549,9 +539,7 @@ protected:
 		return true;
 	}
 
-	bool generateTypeScriptCodeForModule(
-		const std::filesystem::path& absOutputPath,
-		ClientModulePtr const& module)
+	bool generateTypeScriptCodeForModule(const std::filesystem::path& absOutputPath, ClientModulePtr const& module)
 	{
 		std::string moduleFileName= module->name + ".ts";
 		std::filesystem::path modulePath= absOutputPath / moduleFileName;
@@ -580,10 +568,7 @@ protected:
 		if (module->enums.size() > 0)
 		{
 			std::sort(module->enums.begin(), module->enums.end(),
-					  [](rfk::Enum const* a, rfk::Enum const* b)
-					  {
-						  return stricmp(a->getName(), b->getName()) < 0;
-					  });
+					  [](rfk::Enum const* a, rfk::Enum const* b) { return stricmp(a->getName(), b->getName()) < 0; });
 
 			for (rfk::Enum const* enumRef : module->enums)
 			{
@@ -596,9 +581,7 @@ protected:
 		{
 			std::sort(module->serializableStructs.begin(), module->serializableStructs.end(),
 					  [](rfk::Struct const* a, rfk::Struct const* b)
-					  {
-						  return stricmp(a->getName(), b->getName()) < 0;
-					  });
+					  { return stricmp(a->getName(), b->getName()) < 0; });
 
 			for (rfk::Struct const* structRef : module->serializableStructs)
 			{
@@ -658,10 +641,7 @@ protected:
 		if (module->enums.size() > 0)
 		{
 			std::sort(module->enums.begin(), module->enums.end(),
-					  [](rfk::Enum const* a, rfk::Enum const* b)
-					  {
-						  return stricmp(a->getName(), b->getName()) < 0;
-					  });
+					  [](rfk::Enum const* a, rfk::Enum const* b) { return stricmp(a->getName(), b->getName()) < 0; });
 
 			for (rfk::Enum const* enumRef : module->enums)
 			{
@@ -674,7 +654,8 @@ protected:
 		// Sort structs by inheritance hierarchy to avoid forward references
 		if (module->serializableStructs.size() > 0)
 		{
-			std::vector<rfk::Struct const*> sortedStructs= topologicalSortStructsByInheritance(module->serializableStructs);
+			std::vector<rfk::Struct const*> sortedStructs=
+				topologicalSortStructsByInheritance(module->serializableStructs);
 
 			for (rfk::Struct const* structRef : sortedStructs)
 			{
@@ -707,13 +688,16 @@ protected:
 		// Get a list of parent struct this struct inherits from
 		using ParentList= std::vector<std::string>;
 		ParentList parentStructNames;
-		structRef.foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool
-									  {
-			ParentList* parentStructNamesPtr = reinterpret_cast<ParentList*>(userData);
-			std::string parentStructName = parentStruct.getArchetype().getName();
+		structRef.foreachDirectParent(
+			[](rfk::ParentStruct const& parentStruct, void* userData) -> bool
+			{
+				ParentList* parentStructNamesPtr= reinterpret_cast<ParentList*>(userData);
+				std::string parentStructName= parentStruct.getArchetype().getName();
 
-			parentStructNamesPtr->push_back(parentStructName);
-			return true; }, &parentStructNames);
+				parentStructNamesPtr->push_back(parentStructName);
+				return true;
+			},
+			&parentStructNames);
 
 		// Generate struct inheritance string
 		std::string structInheritance;
@@ -739,17 +723,17 @@ protected:
 		// So we extract fields into a vector and sort them by memory offset
 		using FieldList= std::vector<rfk::Field const*>;
 		FieldList sortedFields;
-		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool
-							   {
-			FieldList* sortedFieldsPtr= reinterpret_cast<FieldList*>(userData);
-			sortedFieldsPtr->push_back(&field);
-			return true; }, &sortedFields);
+		structRef.foreachField(
+			[](rfk::Field const& field, void* userData) -> bool
+			{
+				FieldList* sortedFieldsPtr= reinterpret_cast<FieldList*>(userData);
+				sortedFieldsPtr->push_back(&field);
+				return true;
+			},
+			&sortedFields);
 
 		std::sort(sortedFields.begin(), sortedFields.end(),
-				  [](rfk::Field const* a, rfk::Field const* b)
-				  {
-					  return a->getMemoryOffset() < b->getMemoryOffset();
-				  });
+				  [](rfk::Field const* a, rfk::Field const* b) { return a->getMemoryOffset() < b->getMemoryOffset(); });
 
 		// Emit the fields
 		for (rfk::Field const* field : sortedFields)
@@ -778,21 +762,24 @@ protected:
 		moduleFile << "\tpublic enum " << enumRef.getName() << std::endl;
 		moduleFile << "\t{" << std::endl;
 
-		enumRef.foreachEnumValue([](rfk::EnumValue const& enumValue, void* userData) -> bool
-								 {
-			std::ofstream* moduleFilePtr = reinterpret_cast<std::ofstream*>(userData);
-
-			// Only emit enum values with a string property
-			auto const* property = enumValue.getProperty<Serialization::EnumStringValue>();
-			if (property != nullptr)
+		enumRef.foreachEnumValue(
+			[](rfk::EnumValue const& enumValue, void* userData) -> bool
 			{
-				const std::string enumValueString= property->getValue();
-				const int64_t enumInt64Value = enumValue.getValue();
+				std::ofstream* moduleFilePtr= reinterpret_cast<std::ofstream*>(userData);
 
-				(*moduleFilePtr) << "\t\t" << enumValueString << "= " << enumInt64Value << "," << std::endl;
-			}
+				// Only emit enum values with a string property
+				auto const* property= enumValue.getProperty<Serialization::EnumStringValue>();
+				if (property != nullptr)
+				{
+					const std::string enumValueString= property->getValue();
+					const int64_t enumInt64Value= enumValue.getValue();
 
-			return true; }, &moduleFile);
+					(*moduleFilePtr) << "\t\t" << enumValueString << "= " << enumInt64Value << "," << std::endl;
+				}
+
+				return true;
+			},
+			&moduleFile);
 
 		moduleFile << "\t};" << std::endl;
 	}
@@ -838,29 +825,24 @@ protected:
 				const auto* templateClassInstanceType= rfk::classTemplateInstantiationCast(classType);
 				std::string templateTypeName= templateClassInstanceType->getClassTemplate().getName();
 
-				if (templateTypeName == "List" &&
-					templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				if (templateTypeName == "List" && templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
-					auto const& templateArg=
-						static_cast<rfk::TypeTemplateArgument const&>(
-							templateClassInstanceType->getTemplateArgumentAt(0));
+					auto const& templateArg= static_cast<rfk::TypeTemplateArgument const&>(
+						templateClassInstanceType->getTemplateArgumentAt(0));
 					rfk::Type const& elementType= templateArg.getType();
 					std::string elementTypeString= getCSharpType(elementType);
 
 					return "List<" + elementTypeString + ">";
 				}
-				else if (templateTypeName == "Map" &&
-						 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+				else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
 				{
-					auto const& templateKeyArg=
-						static_cast<rfk::TypeTemplateArgument const&>(
-							templateClassInstanceType->getTemplateArgumentAt(0));
+					auto const& templateKeyArg= static_cast<rfk::TypeTemplateArgument const&>(
+						templateClassInstanceType->getTemplateArgumentAt(0));
 					rfk::Type const& keyType= templateKeyArg.getType();
 					std::string keyTypeString= getCSharpType(keyType);
 
-					auto const& templateValueArg=
-						static_cast<rfk::TypeTemplateArgument const&>(
-							templateClassInstanceType->getTemplateArgumentAt(1));
+					auto const& templateValueArg= static_cast<rfk::TypeTemplateArgument const&>(
+						templateClassInstanceType->getTemplateArgumentAt(1));
 					rfk::Type const& valueType= templateValueArg.getType();
 					std::string valueTypeString= getCSharpType(valueType);
 
@@ -982,20 +964,23 @@ protected:
 
 			// Visit all parent structs first (only those in the same module)
 			VisitContext ctx= {&nameToStruct, &visit};
-			s->foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool
-								   {
-				VisitContext* ctx = static_cast<VisitContext*>(userData);
-				rfk::Struct const& parentArchetype = parentStruct.getArchetype();
-				std::string parentName = parentArchetype.getName();
-
-				// Check if parent is in our list of structs to sort
-				auto it = ctx->nameToStruct->find(parentName);
-				if (it != ctx->nameToStruct->end())
+			s->foreachDirectParent(
+				[](rfk::ParentStruct const& parentStruct, void* userData) -> bool
 				{
-					(*ctx->visit)(it->second);
-				}
+					VisitContext* ctx= static_cast<VisitContext*>(userData);
+					rfk::Struct const& parentArchetype= parentStruct.getArchetype();
+					std::string parentName= parentArchetype.getName();
 
-				return true; }, &ctx);
+					// Check if parent is in our list of structs to sort
+					auto it= ctx->nameToStruct->find(parentName);
+					if (it != ctx->nameToStruct->end())
+					{
+						(*ctx->visit)(it->second);
+					}
+
+					return true;
+				},
+				&ctx);
 
 			visiting.erase(s);
 			visited.insert(s);
@@ -1020,57 +1005,66 @@ protected:
 		{
 			// Check parent structs
 			auto parentParams= std::make_pair(&imports, &currentModuleName);
-			structRef->foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool
-										   {
-				auto* params = reinterpret_cast<std::pair<std::set<std::string>*, std::string*>*>(userData);
-				std::set<std::string>* importsPtr = params->first;
-				std::string* currentModulePtr = params->second;
-
-				rfk::Struct const& parentArchetype = parentStruct.getArchetype();
-				std::string parentName = parentArchetype.getName();
-
-				// Get the module name of the parent
-				std::string parentModuleName;
-				Serialization::CodeGenModule const* property = parentArchetype.getProperty<Serialization::CodeGenModule>();
-				if (property != nullptr)
+			structRef->foreachDirectParent(
+				[](rfk::ParentStruct const& parentStruct, void* userData) -> bool
 				{
-					parentModuleName = property->getModuleName();
+					auto* params= reinterpret_cast<std::pair<std::set<std::string>*, std::string*>*>(userData);
+					std::set<std::string>* importsPtr= params->first;
+					std::string* currentModulePtr= params->second;
 
-					// Only add import if parent is from a different module
-					if (parentModuleName != *currentModulePtr)
+					rfk::Struct const& parentArchetype= parentStruct.getArchetype();
+					std::string parentName= parentArchetype.getName();
+
+					// Get the module name of the parent
+					std::string parentModuleName;
+					Serialization::CodeGenModule const* property=
+						parentArchetype.getProperty<Serialization::CodeGenModule>();
+					if (property != nullptr)
 					{
+						parentModuleName= property->getModuleName();
+
+						// Only add import if parent is from a different module
+						if (parentModuleName != *currentModulePtr)
+						{
+							importsPtr->insert(parentName);
+						}
+					}
+					else
+					{
+						// Parent doesn't have CodeGenModule property - it's probably a manual type like
+						// PolymorphicStruct Always add it to imports so findModuleForType can handle it
 						importsPtr->insert(parentName);
 					}
-				}
-				else
-				{
-					// Parent doesn't have CodeGenModule property - it's probably a manual type like PolymorphicStruct
-					// Always add it to imports so findModuleForType can handle it
-					importsPtr->insert(parentName);
-				}
 
-				return true; }, &parentParams);
+					return true;
+				},
+				&parentParams);
 
 			// Check field types
 			auto fieldParams= std::make_pair(&imports, &currentModuleName);
-			structRef->foreachField([](rfk::Field const& field, void* userData) -> bool
-									{
-				auto* params = reinterpret_cast<std::pair<std::set<std::string>*, std::string*>*>(userData);
-				std::set<std::string>* importsPtr = params->first;
-				std::string* currentModulePtr = params->second;
+			structRef->foreachField(
+				[](rfk::Field const& field, void* userData) -> bool
+				{
+					auto* params= reinterpret_cast<std::pair<std::set<std::string>*, std::string*>*>(userData);
+					std::set<std::string>* importsPtr= params->first;
+					std::string* currentModulePtr= params->second;
 
-				collectTypeScriptFieldImports(field, *importsPtr, *currentModulePtr);
-				return true; }, &fieldParams);
+					collectTypeScriptFieldImports(field, *importsPtr, *currentModulePtr);
+					return true;
+				},
+				&fieldParams);
 		}
 	}
 
-	static void collectTypeScriptFieldImports(rfk::Field const& field, std::set<std::string>& imports, const std::string& currentModule)
+	static void collectTypeScriptFieldImports(rfk::Field const& field, std::set<std::string>& imports,
+											  const std::string& currentModule)
 	{
 		rfk::Type const& fieldType= field.getType();
 		collectTypeScriptTypeImports(fieldType, imports, currentModule);
 	}
 
-	static void collectTypeScriptTypeImports(rfk::Type const& type, std::set<std::string>& imports, const std::string& currentModule)
+	static void collectTypeScriptTypeImports(rfk::Type const& type, std::set<std::string>& imports,
+											 const std::string& currentModule)
 	{
 		// Skip primitive types and built-in types
 		if (type == rfk::getType<std::string>())
@@ -1086,8 +1080,7 @@ protected:
 		std::string typeName= archetype->getName();
 
 		// Skip primitive types and built-in types
-		if (kind == rfk::EEntityKind::FundamentalArchetype ||
-			typeName == "String")
+		if (kind == rfk::EEntityKind::FundamentalArchetype || typeName == "String")
 		{
 			return;
 		}
@@ -1134,9 +1127,8 @@ protected:
 				{
 					for (uint8_t i= 0; i < templateClassInstanceType->getTemplateArgumentsCount(); ++i)
 					{
-						auto const& templateArg=
-							static_cast<rfk::TypeTemplateArgument const&>(
-								templateClassInstanceType->getTemplateArgumentAt(i));
+						auto const& templateArg= static_cast<rfk::TypeTemplateArgument const&>(
+							templateClassInstanceType->getTemplateArgumentAt(i));
 						collectTypeScriptTypeImports(templateArg.getType(), imports, currentModule);
 					}
 				}
@@ -1150,30 +1142,32 @@ protected:
 
 		bool first= true;
 		auto enumParams= std::make_pair(&moduleFile, &first);
-		enumRef.foreachEnumValue([](rfk::EnumValue const& enumValue, void* userData) -> bool
-								 {
-			auto* params = reinterpret_cast<std::pair<std::ofstream*, bool*>*>(userData);
-			std::ofstream* moduleFilePtr = params->first;
-			bool* firstPtr = params->second;
-
-			auto const* property = enumValue.getProperty<Serialization::EnumStringValue>();
-			if (property != nullptr)
+		enumRef.foreachEnumValue(
+			[](rfk::EnumValue const& enumValue, void* userData) -> bool
 			{
-				if (!*firstPtr)
+				auto* params= reinterpret_cast<std::pair<std::ofstream*, bool*>*>(userData);
+				std::ofstream* moduleFilePtr= params->first;
+				bool* firstPtr= params->second;
+
+				auto const* property= enumValue.getProperty<Serialization::EnumStringValue>();
+				if (property != nullptr)
 				{
-					(*moduleFilePtr) << "," << std::endl;
+					if (!*firstPtr)
+					{
+						(*moduleFilePtr) << "," << std::endl;
+					}
+					*firstPtr= false;
+
+					const std::string enumValueString= property->getValue();
+					const int64_t enumInt64Value= enumValue.getValue();
+					(*moduleFilePtr) << "  " << enumValueString << " = " << enumInt64Value;
 				}
-				*firstPtr = false;
 
-				const std::string enumValueString = property->getValue();
-				const int64_t enumInt64Value = enumValue.getValue();
-				(*moduleFilePtr) << "  " << enumValueString << " = " << enumInt64Value;
-			}
+				return true;
+			},
+			&enumParams);
 
-			return true; }, &enumParams);
-
-		moduleFile << std::endl
-				   << "}" << std::endl;
+		moduleFile << std::endl << "}" << std::endl;
 	}
 
 	static std::string getTypeScriptSerializationType(rfk::Type const& type)
@@ -1208,17 +1202,14 @@ protected:
 				const auto* templateClassInstanceType= rfk::classTemplateInstantiationCast(classType);
 				std::string templateTypeName= templateClassInstanceType->getClassTemplate().getName();
 
-				if (templateTypeName == "List" &&
-					templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				if (templateTypeName == "List" && templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
-					auto const& templateArg=
-						static_cast<rfk::TypeTemplateArgument const&>(
-							templateClassInstanceType->getTemplateArgumentAt(0));
+					auto const& templateArg= static_cast<rfk::TypeTemplateArgument const&>(
+						templateClassInstanceType->getTemplateArgumentAt(0));
 					rfk::Type const& elementType= templateArg.getType();
 					return getTypeScriptSerializationType(elementType);
 				}
-				else if (templateTypeName == "Map" &&
-						 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+				else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
 				{
 					return "Map";
 				}
@@ -1425,9 +1416,7 @@ protected:
 			if (enumValue != nullptr)
 			{
 				auto const* property= enumValue->getProperty<Serialization::EnumStringValue>();
-				std::string valueName= property
-										   ? std::string(property->getValue())
-										   : std::string(enumValue->getName());
+				std::string valueName= property ? std::string(property->getValue()) : std::string(enumValue->getName());
 				return std::string(enumType->getName()) + "." + valueName;
 			}
 		}
@@ -1446,12 +1435,15 @@ protected:
 		// Get parent classes
 		using ParentList= std::vector<std::string>;
 		ParentList parentStructNames;
-		structRef.foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool
-									  {
-			ParentList* parentStructNamesPtr = reinterpret_cast<ParentList*>(userData);
-			std::string parentStructName = parentStruct.getArchetype().getName();
-			parentStructNamesPtr->push_back(parentStructName);
-			return true; }, &parentStructNames);
+		structRef.foreachDirectParent(
+			[](rfk::ParentStruct const& parentStruct, void* userData) -> bool
+			{
+				ParentList* parentStructNamesPtr= reinterpret_cast<ParentList*>(userData);
+				std::string parentStructName= parentStruct.getArchetype().getName();
+				parentStructNamesPtr->push_back(parentStructName);
+				return true;
+			},
+			&parentStructNames);
 
 		// Generate class inheritance string
 		std::string classInheritance;
@@ -1474,17 +1466,17 @@ protected:
 		// Sort fields by memory offset
 		using FieldList= std::vector<rfk::Field const*>;
 		FieldList sortedFields;
-		structRef.foreachField([](rfk::Field const& field, void* userData) -> bool
-							   {
-			FieldList* sortedFieldsPtr = reinterpret_cast<FieldList*>(userData);
-			sortedFieldsPtr->push_back(&field);
-			return true; }, &sortedFields);
+		structRef.foreachField(
+			[](rfk::Field const& field, void* userData) -> bool
+			{
+				FieldList* sortedFieldsPtr= reinterpret_cast<FieldList*>(userData);
+				sortedFieldsPtr->push_back(&field);
+				return true;
+			},
+			&sortedFields);
 
 		std::sort(sortedFields.begin(), sortedFields.end(),
-				  [](rfk::Field const* a, rfk::Field const* b)
-				  {
-					  return a->getMemoryOffset() < b->getMemoryOffset();
-				  });
+				  [](rfk::Field const* a, rfk::Field const* b) { return a->getMemoryOffset() < b->getMemoryOffset(); });
 
 		// Allocate a default-constructed instance to read actual field defaults from.
 		// Falls back to type-based defaults if no known base class is available.
@@ -1671,10 +1663,10 @@ protected:
 			{
 				return type.isCArray() ? "[]" : "0n";
 			}
-			else if (type == rfk::getType<uint8_t>() || type == rfk::getType<int8_t>() ||
-					 type == rfk::getType<uint16_t>() || type == rfk::getType<int16_t>() ||
-					 type == rfk::getType<uint32_t>() || type == rfk::getType<int32_t>() ||
-					 type == rfk::getType<float>() || type == rfk::getType<double>())
+			else if (type == rfk::getType<uint8_t>() || type == rfk::getType<int8_t>()
+					 || type == rfk::getType<uint16_t>() || type == rfk::getType<int16_t>()
+					 || type == rfk::getType<uint32_t>() || type == rfk::getType<int32_t>()
+					 || type == rfk::getType<float>() || type == rfk::getType<double>())
 			{
 				return type.isCArray() ? "[]" : "0";
 			}
@@ -1721,29 +1713,24 @@ protected:
 				const auto* templateClassInstanceType= rfk::classTemplateInstantiationCast(classType);
 				std::string templateTypeName= templateClassInstanceType->getClassTemplate().getName();
 
-				if (templateTypeName == "List" &&
-					templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				if (templateTypeName == "List" && templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
-					auto const& templateArg=
-						static_cast<rfk::TypeTemplateArgument const&>(
-							templateClassInstanceType->getTemplateArgumentAt(0));
+					auto const& templateArg= static_cast<rfk::TypeTemplateArgument const&>(
+						templateClassInstanceType->getTemplateArgumentAt(0));
 					rfk::Type const& elementType= templateArg.getType();
 					std::string elementTypeString= getTypeScriptType(elementType);
 
 					return elementTypeString + "[]";
 				}
-				else if (templateTypeName == "Map" &&
-						 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+				else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
 				{
-					auto const& templateKeyArg=
-						static_cast<rfk::TypeTemplateArgument const&>(
-							templateClassInstanceType->getTemplateArgumentAt(0));
+					auto const& templateKeyArg= static_cast<rfk::TypeTemplateArgument const&>(
+						templateClassInstanceType->getTemplateArgumentAt(0));
 					rfk::Type const& keyType= templateKeyArg.getType();
 					std::string keyTypeString= getTypeScriptType(keyType);
 
-					auto const& templateValueArg=
-						static_cast<rfk::TypeTemplateArgument const&>(
-							templateClassInstanceType->getTemplateArgumentAt(1));
+					auto const& templateValueArg= static_cast<rfk::TypeTemplateArgument const&>(
+						templateClassInstanceType->getTemplateArgumentAt(1));
 					rfk::Type const& valueType= templateValueArg.getType();
 					std::string valueTypeString= getTypeScriptType(valueType);
 
@@ -1777,19 +1764,14 @@ protected:
 			{
 				tsType= "boolean";
 			}
-			else if (type == rfk::getType<uint8_t>() ||
-					 type == rfk::getType<int8_t>() ||
-					 type == rfk::getType<uint16_t>() ||
-					 type == rfk::getType<int16_t>() ||
-					 type == rfk::getType<uint32_t>() ||
-					 type == rfk::getType<int32_t>() ||
-					 type == rfk::getType<float>() ||
-					 type == rfk::getType<double>())
+			else if (type == rfk::getType<uint8_t>() || type == rfk::getType<int8_t>()
+					 || type == rfk::getType<uint16_t>() || type == rfk::getType<int16_t>()
+					 || type == rfk::getType<uint32_t>() || type == rfk::getType<int32_t>()
+					 || type == rfk::getType<float>() || type == rfk::getType<double>())
 			{
 				tsType= "number";
 			}
-			else if (type == rfk::getType<uint64_t>() ||
-					 type == rfk::getType<int64_t>())
+			else if (type == rfk::getType<uint64_t>() || type == rfk::getType<int64_t>())
 			{
 				tsType= "bigint";
 			}

@@ -14,8 +14,8 @@ void GuiPanel_AlignmentCameraSettings::setCameraDefinition(CameraDefinitionConst
 void GuiPanel_AlignmentCameraSettings::onGui()
 {
 	// Only show camera settings during capture and test states
-	if (m_menuState != eAlignmentCalibrationMenuState::verifySetup &&
-		m_menuState != eAlignmentCalibrationMenuState::testCalibration)
+	if (m_menuState != eAlignmentCalibrationMenuState::verifySetup
+		&& m_menuState != eAlignmentCalibrationMenuState::testCalibration)
 	{
 		return;
 	}
@@ -32,16 +32,13 @@ void GuiPanel_AlignmentCameraSettings::onGui()
 	{
 		ImGui::RadioButton(
 			k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::calibration].c_str(),
-			&modeInt,
-			(int)eAlignmentCalibrationViewpointMode::calibration);
+			&modeInt, (int)eAlignmentCalibrationViewpointMode::calibration);
 	}
 	ImGui::RadioButton(
 		k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::stageView].c_str(),
-		&modeInt,
-		(int)eAlignmentCalibrationViewpointMode::stageView);
+		&modeInt, (int)eAlignmentCalibrationViewpointMode::stageView);
 	ImGui::RadioButton(
-		k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::xrView].c_str(),
-		&modeInt,
+		k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::xrView].c_str(), &modeInt,
 		(int)eAlignmentCalibrationViewpointMode::xrView);
 
 	if ((eAlignmentCalibrationViewpointMode)modeInt != prevMode)

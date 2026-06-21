@@ -188,10 +188,8 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 		// Create a scoped binding for the video export framebuffer
 		IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
-		MkScopedObjectBinding compositorFramebufferBinding(
-			graphicsContext->getMkStateStack().getCurrentState(),
-			"Compositor Framebuffer Scope",
-			m_compositingFrameBuffer);
+		MkScopedObjectBinding compositorFramebufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+														   "Compositor Framebuffer Scope", m_compositingFrameBuffer);
 		if (compositorFramebufferBinding)
 		{
 			// Turn off depth testing for compositing
@@ -202,18 +200,13 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 		}
 		else
 		{
-			evaluator.addError(
-				NodeEvaluationError(
-					eNodeEvaluationErrorCode::evaluationError,
-					"Broken frame buffer"));
+			evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::evaluationError, "Broken frame buffer"));
 		}
 	}
 	else
 	{
 		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::invalidNode,
-				"Missing compositeFrame event node"));
+			NodeEvaluationError(eNodeEvaluationErrorCode::invalidNode, "Missing compositeFrame event node"));
 	}
 
 	return !evaluator.hasErrors();
@@ -270,8 +263,7 @@ VideoSourceComponentPtr CompositorNodeGraph::getBoundVideoSourceComponent() cons
 	return VideoSourceComponentPtr();
 }
 
-void CompositorNodeGraph::gatherAllReferencedClientSourceIDs(
-	std::set<std::string>& outClientSourceIds) const
+void CompositorNodeGraph::gatherAllReferencedClientSourceIDs(std::set<std::string>& outClientSourceIds) const
 {
 	visitAllNodes(
 		[&outClientSourceIds](NodeConstPtr node)
@@ -318,9 +310,8 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 		// Load the stencil model and render it using the flat textured material
 		auto stencilMaterial=
 			ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
-		auto renderModelPtr=
-			ownerWindow->getModelResourceManager()->fetchRenderModel(
-				stencilDefinition->getModelPath(), stencilMaterial);
+		auto renderModelPtr= ownerWindow->getModelResourceManager()->fetchRenderModel(stencilDefinition->getModelPath(),
+																					  stencilMaterial);
 
 		if (renderModelPtr)
 		{
@@ -348,8 +339,7 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(Model
 		auto depthMaterial=
 			ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
 		auto renderModelPtr=
-			ownerWindow->getModelResourceManager()->fetchRenderModel(
-				stencilDefinition->getModelPath(), depthMaterial);
+			ownerWindow->getModelResourceManager()->fetchRenderModel(stencilDefinition->getModelPath(), depthMaterial);
 
 		if (renderModelPtr)
 		{
@@ -381,9 +371,8 @@ void CompositorNodeGraph::flushStencilRenderModel(MikanStencilID stencilId)
 	}
 }
 
-void CompositorNodeGraph::onStencilSystemConfigMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void CompositorNodeGraph::onStencilSystemConfigMarkedDirty(CommonConfigPtr configPtr,
+														   const ConfigPropertyChangeSet& changedPropertySet)
 {
 	ModelStencilDefinitionPtr modelStencilConfig= std::dynamic_pointer_cast<ModelStencilDefinition>(configPtr);
 
@@ -402,7 +391,8 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 {
 	static uint16_t x_indices[]= {0, 1, 2, 0, 2, 3};
 
-	auto material= getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
+	auto material= getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(
+		INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
 	assert(material);
 
 	struct QuadVertex
@@ -422,20 +412,15 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 			{glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
 		};
 
-		m_layerMesh=
-			createMkTriangulatedMesh(
-				getOwnerWindow()->getGraphicsContext().get(),
-				"layer_quad_mesh",
-				(const uint8_t*)x_vertices,
-				vertexSize,
-				4, // 4 verts
-				(const uint8_t*)x_indices,
-				sizeof(uint16_t), // 2 bytes per index
-				2,                // 2 tris
-				false);           // mesh doesn't own quad vert data
+		m_layerMesh= createMkTriangulatedMesh(getOwnerWindow()->getGraphicsContext().get(), "layer_quad_mesh",
+											  (const uint8_t*)x_vertices, vertexSize,
+											  4, // 4 verts
+											  (const uint8_t*)x_indices,
+											  sizeof(uint16_t), // 2 bytes per index
+											  2,                // 2 tris
+											  false);           // mesh doesn't own quad vert data
 
-		if (!m_layerMesh->setMaterial(material) ||
-			!m_layerMesh->createResources())
+		if (!m_layerMesh->setMaterial(material) || !m_layerMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("CompositorNodeGraph::createLayerQuadMeshes()") << "Failed to create layer mesh";
 			return false;
@@ -454,19 +439,15 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 		};
 
 		m_layerVFlippedMesh=
-			createMkTriangulatedMesh(
-				getOwnerWindow()->getGraphicsContext().get(),
-				"layer_vflipped_quad_mesh",
-				(const uint8_t*)x_vertices,
-				vertexSize,
-				4, // 4 verts
-				(const uint8_t*)x_indices,
-				sizeof(uint16_t), // 2 bytes per index
-				2,                // 2 tris
-				false);           // mesh doesn't own quad vert data
+			createMkTriangulatedMesh(getOwnerWindow()->getGraphicsContext().get(), "layer_vflipped_quad_mesh",
+									 (const uint8_t*)x_vertices, vertexSize,
+									 4, // 4 verts
+									 (const uint8_t*)x_indices,
+									 sizeof(uint16_t), // 2 bytes per index
+									 2,                // 2 tris
+									 false);           // mesh doesn't own quad vert data
 
-		if (!m_layerVFlippedMesh->setMaterial(material) ||
-			!m_layerVFlippedMesh->createResources())
+		if (!m_layerVFlippedMesh->setMaterial(material) || !m_layerVFlippedMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("CompositorNodeGraph::createLayerQuadMeshes()") << "Failed to create vflipped layer mesh";
 			return false;
@@ -478,9 +459,11 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 
 bool CompositorNodeGraph::createQuadMeshes()
 {
-	auto stencilMaterial= getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+	auto stencilMaterial=
+		getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
 	assert(stencilMaterial);
-	auto depthMaterial= getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+	auto depthMaterial=
+		getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
 	assert(depthMaterial);
 
 	struct QuadlVertex
@@ -500,39 +483,29 @@ bool CompositorNodeGraph::createQuadMeshes()
 		};
 		static uint16_t x_indices[]= {0, 1, 2, 0, 2, 3};
 
-		m_stencilQuadMesh=
-			createMkTriangulatedMesh(
-				getOwnerWindow()->getGraphicsContext().get(),
-				"quad_stencil_mesh",
-				(const uint8_t*)x_vertices,
-				vertexSize,
-				4, // 4 verts in a quad
-				(const uint8_t*)x_indices,
-				sizeof(uint16_t), // 2 bytes per index
-				2,                // 2 tris in a quad
-				false);           // mesh doesn't own quad vertex data
+		m_stencilQuadMesh= createMkTriangulatedMesh(getOwnerWindow()->getGraphicsContext().get(), "quad_stencil_mesh",
+													(const uint8_t*)x_vertices, vertexSize,
+													4, // 4 verts in a quad
+													(const uint8_t*)x_indices,
+													sizeof(uint16_t), // 2 bytes per index
+													2,                // 2 tris in a quad
+													false);           // mesh doesn't own quad vertex data
 
-		if (!m_stencilQuadMesh->setMaterial(stencilMaterial) ||
-			!m_stencilQuadMesh->createResources())
+		if (!m_stencilQuadMesh->setMaterial(stencilMaterial) || !m_stencilQuadMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("CompositorNodeGraph::createQuadMeshes()") << "Failed to create quad stencil mesh";
 			return false;
 		}
 
-		m_depthQuadMesh=
-			createMkTriangulatedMesh(
-				getOwnerWindow()->getGraphicsContext().get(),
-				"quad_depth_mesh",
-				(const uint8_t*)x_vertices,
-				vertexSize,
-				4, // 4 verts in a quad
-				(const uint8_t*)x_indices,
-				sizeof(uint16_t), // 2 bytes per index
-				2,                // 2 tris in a quad
-				false);           // mesh doesn't own quad vertex data
+		m_depthQuadMesh= createMkTriangulatedMesh(getOwnerWindow()->getGraphicsContext().get(), "quad_depth_mesh",
+												  (const uint8_t*)x_vertices, vertexSize,
+												  4, // 4 verts in a quad
+												  (const uint8_t*)x_indices,
+												  sizeof(uint16_t), // 2 bytes per index
+												  2,                // 2 tris in a quad
+												  false);           // mesh doesn't own quad vertex data
 
-		if (!m_depthQuadMesh->setMaterial(depthMaterial) ||
-			!m_depthQuadMesh->createResources())
+		if (!m_depthQuadMesh->setMaterial(depthMaterial) || !m_depthQuadMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("CompositorNodeGraph::createQuadMeshes()") << "Failed to create quad depth mesh";
 			return false;
@@ -544,9 +517,11 @@ bool CompositorNodeGraph::createQuadMeshes()
 
 bool CompositorNodeGraph::createBoxMeshes()
 {
-	auto stencilMaterial= getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+	auto stencilMaterial=
+		getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
 	assert(stencilMaterial);
-	auto depthMaterial= getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+	auto depthMaterial=
+		getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
 	assert(depthMaterial);
 
 	struct BoxVertex
@@ -559,14 +534,9 @@ bool CompositorNodeGraph::createBoxMeshes()
 	{
 		static BoxVertex x_vertices[]= {
 			//   positions
-			{glm::vec3(-0.5f, 0.5f, -0.5f)},
-			{glm::vec3(-0.5f, 0.5f, 0.5f)},
-			{glm::vec3(0.5f, 0.5f, 0.5f)},
-			{glm::vec3(0.5f, 0.5f, -0.5f)},
-			{glm::vec3(-0.5f, -0.5f, -0.5f)},
-			{glm::vec3(-0.5f, -0.5f, 0.5f)},
-			{glm::vec3(0.5f, -0.5f, 0.5f)},
-			{glm::vec3(0.5f, -0.5f, -0.5f)},
+			{glm::vec3(-0.5f, 0.5f, -0.5f)}, {glm::vec3(-0.5f, 0.5f, 0.5f)},   {glm::vec3(0.5f, 0.5f, 0.5f)},
+			{glm::vec3(0.5f, 0.5f, -0.5f)},  {glm::vec3(-0.5f, -0.5f, -0.5f)}, {glm::vec3(-0.5f, -0.5f, 0.5f)},
+			{glm::vec3(0.5f, -0.5f, 0.5f)},  {glm::vec3(0.5f, -0.5f, -0.5f)},
 		};
 		static uint16_t x_indices[]= {
 			0, 4, 1, 1, 4, 5, // -X Face
@@ -577,37 +547,27 @@ bool CompositorNodeGraph::createBoxMeshes()
 			3, 0, 1, 1, 2, 3  // +Y Face
 		};
 
-		m_stencilBoxMesh=
-			createMkTriangulatedMesh(
-				getOwnerWindow()->getGraphicsContext().get(),
-				"box_stencil_mesh",
-				(const uint8_t*)x_vertices,
-				vertexSize,
-				8, // 8 verts in a cube
-				(const uint8_t*)x_indices,
-				sizeof(uint16_t), // 2 bytes per index
-				12,               // 12 tris in a cube (6 faces * 2 tris/face)
-				false);           // mesh doesn't own box vertex data
-		if (!m_stencilBoxMesh->setMaterial(stencilMaterial) ||
-			!m_stencilBoxMesh->createResources())
+		m_stencilBoxMesh= createMkTriangulatedMesh(getOwnerWindow()->getGraphicsContext().get(), "box_stencil_mesh",
+												   (const uint8_t*)x_vertices, vertexSize,
+												   8, // 8 verts in a cube
+												   (const uint8_t*)x_indices,
+												   sizeof(uint16_t), // 2 bytes per index
+												   12,               // 12 tris in a cube (6 faces * 2 tris/face)
+												   false);           // mesh doesn't own box vertex data
+		if (!m_stencilBoxMesh->setMaterial(stencilMaterial) || !m_stencilBoxMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("CompositorNodeGraph::createBoxMeshes()") << "Failed to create box stencil mesh";
 			return false;
 		}
 
-		m_depthBoxMesh=
-			createMkTriangulatedMesh(
-				getOwnerWindow()->getGraphicsContext().get(),
-				"box_depth_mesh",
-				(const uint8_t*)x_vertices,
-				vertexSize,
-				8, // 8 verts in a cube
-				(const uint8_t*)x_indices,
-				sizeof(uint16_t), // 2 bytes per index
-				12,               // 12 tris in a cube (6 faces * 2 tris/face)
-				false);           // mesh doesn't own box vertex data
-		if (!m_depthBoxMesh->setMaterial(depthMaterial) ||
-			!m_depthBoxMesh->createResources())
+		m_depthBoxMesh= createMkTriangulatedMesh(getOwnerWindow()->getGraphicsContext().get(), "box_depth_mesh",
+												 (const uint8_t*)x_vertices, vertexSize,
+												 8, // 8 verts in a cube
+												 (const uint8_t*)x_indices,
+												 sizeof(uint16_t), // 2 bytes per index
+												 12,               // 12 tris in a cube (6 faces * 2 tris/face)
+												 false);           // mesh doesn't own box vertex data
+		if (!m_depthBoxMesh->setMaterial(depthMaterial) || !m_depthBoxMesh->createResources())
 		{
 			MIKAN_LOG_ERROR("CompositorNodeGraph::createBoxMeshes()") << "Failed to create box stencil mesh";
 			return false;
@@ -621,8 +581,7 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 {
 	// Use the current video source's frame size
 	VideoSourceComponentPtr videoSource= getBoundVideoSourceComponent();
-	if (int frameWidth, frameHeight;
-		videoSource && videoSource->getVideoPixelDimensions(frameWidth, frameHeight))
+	if (int frameWidth, frameHeight; videoSource && videoSource->getVideoPixelDimensions(frameWidth, frameHeight))
 	{
 		// Does nothing if the frame buffer is already the correct size
 		m_compositingFrameBuffer->setSize(frameWidth, frameHeight);

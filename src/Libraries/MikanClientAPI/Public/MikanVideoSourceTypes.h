@@ -55,7 +55,8 @@ enum class ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVide
 // -- Structures -----
 
 /// Radial and tangential lens distortion coefficients computed during lens lens calibration
-/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
+/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html)
+/// for details
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistortionCoefficients
 {
 	FIELD() double k1= 0.0; ///< Radial Distortion Parameter 1 (r^2 numerator constant)
@@ -73,7 +74,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 };
 
 /// Camera intrinsic common properties
-/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
+/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html)
+/// for details
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanBaseIntrinsics
 	: public Serialization::PolymorphicStruct
 {
@@ -91,20 +93,18 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 };
 
 /// Camera intrinsic properties for a monoscopic camera
-/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
+/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html)
+/// for details
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanMonoIntrinsics
 	: public MikanBaseIntrinsics
 {
 	// Distortion coefficients computed for the physical camera lens
-	FIELD()
-	MikanDistortionCoefficients distortion_coefficients;
+	FIELD() MikanDistortionCoefficients distortion_coefficients;
 	// Intrinsic camera matrix containing focal lengths and principal point for the raw distorted image
-	FIELD()
-	MikanMatrix3d distorted_camera_matrix;
+	FIELD() MikanMatrix3d distorted_camera_matrix;
 	// Intrinsic camera matrix containing focal lengths and principal point for the undistorted image
 	// NOTE: The hfov and vfov are computed from this matrix
-	FIELD()
-	MikanMatrix3d undistorted_camera_matrix;
+	FIELD() MikanMatrix3d undistorted_camera_matrix;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMonoIntrinsics_GENERATED
@@ -112,37 +112,27 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 };
 
 /// Camera intrinsic properties for a stereoscopic camera
-/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
+/// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html)
+/// for details
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanStereoIntrinsics
 	: public MikanBaseIntrinsics
 {
-	FIELD()
-	MikanDistortionCoefficients left_distortion_coefficients; ///< Left lens distortion coefficients
-	FIELD()
-	MikanMatrix3d left_camera_matrix; ///< Intrinsic matrix for left camera containing focal lengths and principal point
+	FIELD() MikanDistortionCoefficients left_distortion_coefficients; ///< Left lens distortion coefficients
+	FIELD() MikanMatrix3d
+		left_camera_matrix; ///< Intrinsic matrix for left camera containing focal lengths and principal point
 
-	FIELD()
-	MikanDistortionCoefficients right_distortion_coefficients; ///< Right lens distortion coefficients
-	FIELD()
-	MikanMatrix3d right_camera_matrix; ///< Intrinsic matrix for rotation camera containing focal lengths and principal point
-	FIELD()
-	MikanMatrix3d left_rectification_rotation; ///< Rotation applied to left camera to rectify the image
-	FIELD()
-	MikanMatrix3d right_rectification_rotation; ///< Rotation applied to right camera to rectify the image
-	FIELD()
-	MikanMatrix4x3d left_rectification_projection; ///< Projection applied to left camera to rectify the image
-	FIELD()
-	MikanMatrix4x3d right_rectification_projection; ///< Projection applied to right camera to rectify the image
-	FIELD()
-	MikanMatrix3d rotation_between_cameras; ///< Rotation between the left and right cameras
-	FIELD()
-	MikanVector3d translation_between_cameras; ///< Translation between the left and right camera
-	FIELD()
-	MikanMatrix3d essential_matrix; ///< Transform relating points in unit coordinate space between cameras
-	FIELD()
-	MikanMatrix3d fundamental_matrix; ///< Transform relating points in pixel coordinates between cameras
-	FIELD()
-	MikanMatrix4d reprojection_matrix; ///< Transform relating pixel x,y + disparity to distance from cameras
+	FIELD() MikanDistortionCoefficients right_distortion_coefficients; ///< Right lens distortion coefficients
+	FIELD() MikanMatrix3d
+		right_camera_matrix; ///< Intrinsic matrix for rotation camera containing focal lengths and principal point
+	FIELD() MikanMatrix3d left_rectification_rotation;      ///< Rotation applied to left camera to rectify the image
+	FIELD() MikanMatrix3d right_rectification_rotation;     ///< Rotation applied to right camera to rectify the image
+	FIELD() MikanMatrix4x3d left_rectification_projection;  ///< Projection applied to left camera to rectify the image
+	FIELD() MikanMatrix4x3d right_rectification_projection; ///< Projection applied to right camera to rectify the image
+	FIELD() MikanMatrix3d rotation_between_cameras;         ///< Rotation between the left and right cameras
+	FIELD() MikanVector3d translation_between_cameras;      ///< Translation between the left and right camera
+	FIELD() MikanMatrix3d essential_matrix;    ///< Transform relating points in unit coordinate space between cameras
+	FIELD() MikanMatrix3d fundamental_matrix;  ///< Transform relating points in pixel coordinates between cameras
+	FIELD() MikanMatrix4d reprojection_matrix; ///< Transform relating pixel x,y + disparity to distance from cameras
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStereoIntrinsics_GENERATED
@@ -153,11 +143,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceIntrinsics
 {
 	// MikanBaseIntrinsics derived type
-	FIELD()
-	Serialization::PolymorphicObjectPtr intrinsics_ptr;
+	FIELD() Serialization::PolymorphicObjectPtr intrinsics_ptr;
 
-	FIELD()
-	MikanIntrinsicsType intrinsics_type;
+	FIELD() MikanIntrinsicsType intrinsics_type;
 
 	MikanVideoSourceIntrinsics()
 		: intrinsics_ptr()
@@ -172,10 +160,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 		return *monoIntrinsicsPtr;
 	}
 
-	MikanMonoIntrinsics& getMonoIntrinsicsMutable()
-	{
-		return const_cast<MikanMonoIntrinsics&>(getMonoIntrinsics());
-	}
+	MikanMonoIntrinsics& getMonoIntrinsicsMutable() { return const_cast<MikanMonoIntrinsics&>(getMonoIntrinsics()); }
 
 	const MikanStereoIntrinsics& getStereoIntrinsics() const
 	{
@@ -212,12 +197,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 #endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceValues : public MikanComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceValues
+	: public MikanComponentValues
 {
-	FIELD()
-	Serialization::PolymorphicObjectPtr intrinsics_ptr;
-	FIELD()
-	MikanIntrinsicsType intrinsics_type;
+	FIELD() Serialization::PolymorphicObjectPtr intrinsics_ptr;
+	FIELD() MikanIntrinsicsType intrinsics_type;
 	FIELD() bool is_frame_mirrored;
 	FIELD() bool is_buffer_mirrored;
 	FIELD() int video_frame_queue_size;
@@ -227,53 +211,41 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 #endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanNetworkVideoSourceValues : public MikanVideoSourceValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanNetworkVideoSourceValues
+	: public MikanVideoSourceValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	Serialization::String protocol; ///< e.g., "RTMP", "RTSP"
-	FIELD()
-	Serialization::String ip_address; ///< IP address of the network video source
-	FIELD() int port;                 ///< Port number of the network video source
-	FIELD()
-	Serialization::String path; ///< Path of the network video source on the server
+	FIELD() Serialization::String protocol;   ///< e.g., "RTMP", "RTSP"
+	FIELD() Serialization::String ip_address; ///< IP address of the network video source
+	FIELD() int port;                         ///< Port number of the network video source
+	FIELD() Serialization::String path;       ///< Path of the network video source on the server
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanNetworkVideoSourceValues_GENERATED
 #endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceValues : public MikanVideoSourceValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceValues
+	: public MikanVideoSourceValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	Serialization::String current_friendly_name; ///< Current device friendly name
-	FIELD()
-	Serialization::String current_device_path; ///< Current USB device path
-	FIELD()
-	Serialization::String video_mode; ///< Current video mode name
-	FIELD()
-	Serialization::String video_resolution; ///< Current video resolution in the format "WIDTHxHEIGHT" (e.g., "1920x1080")
-	FIELD()
-	Serialization::String video_fps; ///< Current video frame rate (e.g., "30")
-	FIELD()
-	Serialization::String video_format; ///< Current video format (e.g., "YUY2")
-	FIELD()
-	Serialization::List<float>
-		video_settings; ///< [0,1] Video Settings (See MikanVideoSettingType enum)
-	FIELD()
-	Serialization::List<Serialization::String>
+	FIELD() Serialization::String current_friendly_name; ///< Current device friendly name
+	FIELD() Serialization::String current_device_path;   ///< Current USB device path
+	FIELD() Serialization::String video_mode;            ///< Current video mode name
+	FIELD() Serialization::String
+		video_resolution; ///< Current video resolution in the format "WIDTHxHEIGHT" (e.g., "1920x1080")
+	FIELD() Serialization::String video_fps;           ///< Current video frame rate (e.g., "30")
+	FIELD() Serialization::String video_format;        ///< Current video format (e.g., "YUY2")
+	FIELD() Serialization::List<float> video_settings; ///< [0,1] Video Settings (See MikanVideoSettingType enum)
+	FIELD() Serialization::List<Serialization::String>
 		video_resolutions; ///< Current available video resolution options
-	FIELD()
-	Serialization::List<Serialization::String>
-		video_frame_rates; ///< Current available video frame rate options
-	FIELD()
-	Serialization::List<Serialization::String>
-		video_formats; ///< Current available video format options
+	FIELD() Serialization::List<Serialization::String>
+		video_frame_rates;                                            ///< Current available video frame rate options
+	FIELD() Serialization::List<Serialization::String> video_formats; ///< Current available video format options
 
 	// Video Setting Properties (All between [0,1])
 	FIELD() bool brightness_valid;
@@ -335,12 +307,12 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 #endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
-	FIELD()
-	Serialization::Map<Serialization::String, Serialization::String>
+	FIELD() Serialization::Map<Serialization::String, Serialization::String>
 		usb_device_map; ///< Map of device path -> friendly name
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

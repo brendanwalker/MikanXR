@@ -21,13 +21,17 @@ public:
 	ProjectManagerPtr getOwnerProject() const;
 	MikanComponentPtr getComponent() const;
 	virtual bool setComponent(MikanComponentPtr component);
-	virtual void onComponentPropertyChanged(
-		IEntityAccessorPtr accessorPtr,
-		const ConfigPropertyChangeSet& changedPropertySet) {}
+	virtual void onComponentPropertyChanged(IEntityAccessorPtr accessorPtr,
+											const ConfigPropertyChangeSet& changedPropertySet)
+	{
+	}
 
 	// IGuiPanel
 	virtual class AppStage* getOwnerAppStage() const override { return m_entityAccessor->getOwnerAppStage(); }
-	virtual class MkGuiStyleManager* getGuiStyleManager() const override { return m_entityAccessor->getGuiStyleManager(); }
+	virtual class MkGuiStyleManager* getGuiStyleManager() const override
+	{
+		return m_entityAccessor->getGuiStyleManager();
+	}
 	virtual void onGui() override;
 	virtual void dispose() override;
 	virtual void addDeferredGuiEvent(std::function<void()> callback) override;
@@ -37,20 +41,17 @@ protected:
 	template <class t_component_type>
 	bool initTypedPropertyInterface()
 	{
-		const bool bSuccess=
-			m_entityAccessor->init<t_component_type>(
-				t_component_type::k_componentClassName,
-				[this]() -> bool
-				{
-					onConstruct();
-					return true;
-				});
+		const bool bSuccess= m_entityAccessor->init<t_component_type>(t_component_type::k_componentClassName,
+																	  [this]() -> bool
+																	  {
+																		  onConstruct();
+																		  return true;
+																	  });
 
 		if (bSuccess)
 		{
-			m_entityAccessor->OnEntityPropertyChanged+= MakeDelegate(
-				this,
-				&GuiPanel_MikanComponent::onComponentPropertyChanged);
+			m_entityAccessor->OnEntityPropertyChanged+=
+				MakeDelegate(this, &GuiPanel_MikanComponent::onComponentPropertyChanged);
 		}
 
 		return bSuccess;

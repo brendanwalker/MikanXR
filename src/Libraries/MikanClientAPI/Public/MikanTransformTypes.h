@@ -11,16 +11,13 @@
 #include "MikanTransformTypes.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTransformTypes")) MikanTransformComponentValues : public MikanComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTransformTypes")) MikanTransformComponentValues
+	: public MikanComponentValues
 {
-	FIELD()
-	MikanTransformID parent_transform_id= INVALID_MIKAN_ID;
-	FIELD()
-	MikanVector3f relative_scale;
-	FIELD()
-	MikanQuatf relative_quaternion;
-	FIELD()
-	MikanVector3f relative_position;
+	FIELD() MikanTransformID parent_transform_id= INVALID_MIKAN_ID;
+	FIELD() MikanVector3f relative_scale;
+	FIELD() MikanQuatf relative_quaternion;
+	FIELD() MikanVector3f relative_position;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTransformComponentValues_GENERATED

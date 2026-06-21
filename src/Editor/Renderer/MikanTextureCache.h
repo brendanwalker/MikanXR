@@ -27,9 +27,8 @@ public:
 	virtual bool startup();
 	virtual void shutdown();
 	virtual IMkTexturePtr tryGetTextureByName(const std::string& textureName);
-	virtual IMkTexturePtr loadTexturePath(
-		const std::filesystem::path& texturePath,
-		const std::string& overrideName= "");
+	virtual IMkTexturePtr loadTexturePath(const std::filesystem::path& texturePath,
+										  const std::string& overrideName= "");
 	virtual bool removeTexureFromCache(IMkTexturePtr texture);
 
 private:

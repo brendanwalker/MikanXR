@@ -20,8 +20,7 @@ CEFTextureSourceDefinition::CEFTextureSourceDefinition()
 {
 }
 
-CEFTextureSourceDefinition::CEFTextureSourceDefinition(
-	MikanTextureSourceID textureSourceId)
+CEFTextureSourceDefinition::CEFTextureSourceDefinition(MikanTextureSourceID textureSourceId)
 	: TextureSourceDefinition(textureSourceId)
 {
 }
@@ -46,9 +45,8 @@ void CEFTextureSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_height= pt.get_or<int>("cef_height", m_height);
 }
 
-bool CEFTextureSourceDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool CEFTextureSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+													const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TextureSourceDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -111,9 +109,8 @@ void CEFTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr defini
 	openTextureSource();
 }
 
-void CEFTextureSourceComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void CEFTextureSourceComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+														const ConfigPropertyChangeSet& changedPropertySet)
 {
 	TextureSourceComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
@@ -131,8 +128,8 @@ void CEFTextureSourceComponent::onDefinitionMarkedDirty(
 			openTextureSource();
 		}
 	}
-	else if (changedPropertySet.hasPropertyName(CEFTextureSourceDefinition::k_widthPropertyId) ||
-			 changedPropertySet.hasPropertyName(CEFTextureSourceDefinition::k_heightPropertyId))
+	else if (changedPropertySet.hasPropertyName(CEFTextureSourceDefinition::k_widthPropertyId)
+			 || changedPropertySet.hasPropertyName(CEFTextureSourceDefinition::k_heightPropertyId))
 	{
 		// Size changes are handled by the browser sending a new OnPaint at the updated GetViewRect size
 		if (m_browser)
@@ -242,10 +239,9 @@ void CEFTextureSourceComponent::openTextureSource()
 }
 
 // -- Texture Source Interface ---
-IMkTexturePtr CEFTextureSourceComponent::getClientColorSourceTexture(
-	MikanCameraID cameraId,
-	eTextureSourceColorType textureSourceColorType,
-	int64_t frameIndex) const
+IMkTexturePtr CEFTextureSourceComponent::getClientColorSourceTexture(MikanCameraID cameraId,
+																	 eTextureSourceColorType textureSourceColorType,
+																	 int64_t frameIndex) const
 {
 	return m_colorTexture;
 }
@@ -276,15 +272,9 @@ void CEFTextureSourceComponent::onCefPaint(const void* buffer, int width, int he
 	m_dirty= true;
 }
 
-void CEFTextureSourceComponent::onCefBrowserCreated(CefRefPtr<CefBrowser> browser)
-{
-	m_browser= browser;
-}
+void CEFTextureSourceComponent::onCefBrowserCreated(CefRefPtr<CefBrowser> browser) { m_browser= browser; }
 
-void CEFTextureSourceComponent::onCefBrowserClosed()
-{
-	m_browser= nullptr;
-}
+void CEFTextureSourceComponent::onCefBrowserClosed() { m_browser= nullptr; }
 
 // -- IPropertyInterface ----
 void CEFTextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
@@ -292,19 +282,14 @@ void CEFTextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDescr
 	TextureSourceComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			CEFTextureSourceDefinition::k_urlPropertyId, MikanVariantType::STRING));
+		std::make_shared<PropertyDescriptor>(CEFTextureSourceDefinition::k_urlPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			CEFTextureSourceDefinition::k_widthPropertyId, MikanVariantType::INT));
+		std::make_shared<PropertyDescriptor>(CEFTextureSourceDefinition::k_widthPropertyId, MikanVariantType::INT));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			CEFTextureSourceDefinition::k_heightPropertyId, MikanVariantType::INT));
+		std::make_shared<PropertyDescriptor>(CEFTextureSourceDefinition::k_heightPropertyId, MikanVariantType::INT));
 }
 
-bool CEFTextureSourceComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool CEFTextureSourceComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	const auto def= getCEFTextureSourceDefinition();
 
@@ -327,9 +312,7 @@ bool CEFTextureSourceComponent::getPropertyValue(
 	return TextureSourceComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool CEFTextureSourceComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool CEFTextureSourceComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	const auto def= getCEFTextureSourceDefinition();
 

@@ -42,15 +42,13 @@ void GuiPanel_TrackingMountComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
-					mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_devicePathPropertyId),
-					"VR Device",
+					mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_devicePathPropertyId), "VR Device",
 					&m_devicePathDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
 					const std::string newPath= m_devicePathDataSource.getEntryDisplayString(selectedIndex);
-					addDeferredGuiEvent([this, newPath]()
-										{ setDevicePath(newPath); });
+					addDeferredGuiEvent([this, newPath]() { setDevicePath(newPath); });
 				}
 			}
 			return true;
@@ -75,8 +73,7 @@ void GuiPanel_TrackingMountComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
-					mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_socketNamePropertyId),
-					"Socket",
+					mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_socketNamePropertyId), "Socket",
 					&m_socketNameDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
@@ -90,10 +87,7 @@ void GuiPanel_TrackingMountComponent::onConstruct()
 		});
 }
 
-VRObjectSystemPtr GuiPanel_TrackingMountComponent::getVRObjectSystem() const
-{
-	return m_vrObjectSystem.lock();
-}
+VRObjectSystemPtr GuiPanel_TrackingMountComponent::getVRObjectSystem() const { return m_vrObjectSystem.lock(); }
 
 VRDeviceComponentPtr GuiPanel_TrackingMountComponent::getVRDeviceComponent() const
 {

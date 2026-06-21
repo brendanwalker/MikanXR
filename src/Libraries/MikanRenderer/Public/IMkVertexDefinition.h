@@ -43,13 +43,9 @@ public:
 	virtual bool isCompatibleProgram(const IMkShader* program) const= 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkVertexAttributePtr) createMkVertexAttribute(
-	const std::string& name,
-	eVertexDataType dataType,
-	eVertexSemantic semantic,
-	bool isNormalized= false);
+MIKAN_RENDERER_FUNC(IMkVertexAttributePtr) createMkVertexAttribute(const std::string& name, eVertexDataType dataType,
+																   eVertexSemantic semantic, bool isNormalized= false);
 
-MIKAN_RENDERER_FUNC(IMkVertexDefinitionPtr) createMkVertexDefinition(
-	IMkVertexDefinitionConstPtr vertexDefinition);
+MIKAN_RENDERER_FUNC(IMkVertexDefinitionPtr) createMkVertexDefinition(IMkVertexDefinitionConstPtr vertexDefinition);
 MIKAN_RENDERER_FUNC(IMkVertexDefinitionPtr) createMkVertexDefinition(
 	const std::vector<IMkVertexAttributeConstPtr>& attribtes);

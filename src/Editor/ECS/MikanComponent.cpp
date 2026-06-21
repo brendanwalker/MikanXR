@@ -39,9 +39,7 @@ MikanComponentDefinition::MikanComponentDefinition()
 {
 }
 
-MikanComponentDefinition::MikanComponentDefinition(
-	int componentId,
-	const std::string& componentName)
+MikanComponentDefinition::MikanComponentDefinition(int componentId, const std::string& componentName)
 	: m_componentId(componentId)
 	, m_componentName(componentName)
 	, m_componentScriptAssetRefConfig(ScriptAssetReferenceFactory().allocateAssetReferenceConfig())
@@ -75,9 +73,8 @@ void MikanComponentDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-bool MikanComponentDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool MikanComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	const auto* componentValues= initParams.getTypedPointer<MikanComponentValues>();
 	if (componentValues)
@@ -107,7 +104,8 @@ void MikanComponentDefinition::setComponentName(const std::string& name)
 	if (name != m_componentName)
 	{
 		m_componentName= name;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentNamePropertyId));
+		notifyPropertyChanged(
+			ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentNamePropertyId));
 	}
 }
 
@@ -126,7 +124,8 @@ void MikanComponentDefinition::setComponentScriptPath(const std::filesystem::pat
 	if (scriptPath.string() != m_componentScriptAssetRefConfig->assetPath)
 	{
 		m_componentScriptAssetRefConfig->assetPath= scriptPath.string();
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId));
+		notifyPropertyChanged(
+			ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId));
 	}
 }
 
@@ -174,9 +173,7 @@ void MikanComponent::init()
 	}
 }
 
-void MikanComponent::postInit()
-{
-}
+void MikanComponent::postInit() {}
 
 void MikanComponent::dispose()
 {
@@ -218,9 +215,8 @@ void MikanComponent::setDefinition(MikanComponentDefinitionPtr config)
 	m_name= config->getComponentName();
 }
 
-void MikanComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void MikanComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+											 const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId))
 	{
@@ -299,31 +295,16 @@ void MikanComponent::bindLuaFunctions(struct lua_State* L)
 		.beginClass<MikanComponent>("MikanComponent")
 		.addProperty("name", &MikanComponent::getName, &MikanComponent::setName)
 		.addProperty("className", &MikanComponent::getComponentClassName)
-		.addFunction("getCameraSystem",
-					 [](MikanComponent* c) -> CameraObjectSystem*
-					 {
-						 return c->getObjectSystemOfType<CameraObjectSystem>().get();
-					 })
-		.addFunction("getSceneSystem",
-					 [](MikanComponent* c) -> SceneObjectSystem*
-					 {
-						 return c->getObjectSystemOfType<SceneObjectSystem>().get();
-					 })
-		.addFunction("getDMXSystem",
-					 [](MikanComponent* c) -> DMXObjectSystem*
-					 {
-						 return c->getObjectSystemOfType<DMXObjectSystem>().get();
-					 })
-		.addFunction("getAnchorSystem",
-					 [](MikanComponent* c) -> AnchorObjectSystem*
-					 {
-						 return c->getObjectSystemOfType<AnchorObjectSystem>().get();
-					 })
-		.addFunction("getCompositorSystem",
-					 [](MikanComponent* c) -> CompositorObjectSystem*
-					 {
-						 return c->getObjectSystemOfType<CompositorObjectSystem>().get();
-					 })
+		.addFunction("getCameraSystem", [](MikanComponent* c) -> CameraObjectSystem*
+					 { return c->getObjectSystemOfType<CameraObjectSystem>().get(); })
+		.addFunction("getSceneSystem", [](MikanComponent* c) -> SceneObjectSystem*
+					 { return c->getObjectSystemOfType<SceneObjectSystem>().get(); })
+		.addFunction("getDMXSystem", [](MikanComponent* c) -> DMXObjectSystem*
+					 { return c->getObjectSystemOfType<DMXObjectSystem>().get(); })
+		.addFunction("getAnchorSystem", [](MikanComponent* c) -> AnchorObjectSystem*
+					 { return c->getObjectSystemOfType<AnchorObjectSystem>().get(); })
+		.addFunction("getCompositorSystem", [](MikanComponent* c) -> CompositorObjectSystem*
+					 { return c->getObjectSystemOfType<CompositorObjectSystem>().get(); })
 		.endClass();
 }
 
@@ -337,10 +318,8 @@ void MikanComponent::addNewComponentScript()
 	const std::filesystem::path scriptsDir= PathUtils::getResourceDirectory() / "scripts";
 	std::filesystem::create_directories(scriptsDir);
 
-	const std::string prefix=
-		getComponentClassName() + std::to_string(getDefinition()->getComponentId());
-	const std::filesystem::path scriptPath=
-		PathUtils::makeTimestampedFilePath(scriptsDir, prefix, ".lua");
+	const std::string prefix= getComponentClassName() + std::to_string(getDefinition()->getComponentId());
+	const std::filesystem::path scriptPath= PathUtils::makeTimestampedFilePath(scriptsDir, prefix, ".lua");
 
 	// Create an empty Lua file at the new path
 	std::ofstream(scriptPath).flush();
@@ -354,8 +333,7 @@ void MikanComponent::editComponentScript()
 	if (scriptPath.empty())
 		return;
 
-	const std::string editorCmd=
-		App::getInstance()->getAppSettings()->getScriptEditorCommand();
+	const std::string editorCmd= App::getInstance()->getAppSettings()->getScriptEditorCommand();
 	OSUtils::openFileWithApplication(scriptPath, editorCmd);
 }
 
@@ -377,14 +355,9 @@ void MikanComponent::removeComponentScript()
 void MikanComponent::selectComponentScript()
 {
 	ScriptAssetReferenceFactory assetRefFactory;
-	const char* picked=
-		tinyfd_openFileDialog(
-			assetRefFactory.getFileDialogTitle(),
-			assetRefFactory.getDefaultPath(),
-			assetRefFactory.getFilterPatternCount(),
-			assetRefFactory.getFilterPatterns(),
-			assetRefFactory.getFilterDescription(),
-			1);
+	const char* picked= tinyfd_openFileDialog(
+		assetRefFactory.getFileDialogTitle(), assetRefFactory.getDefaultPath(), assetRefFactory.getFilterPatternCount(),
+		assetRefFactory.getFilterPatterns(), assetRefFactory.getFilterDescription(), 1);
 
 	if (picked != nullptr && picked[0] != '\0')
 	{
@@ -469,19 +442,16 @@ rfk::Struct const* MikanComponent::getClientAPIValuesStructType() const
 void MikanComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MikanComponentDefinition::k_componentIdPropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(MikanComponentDefinition::k_componentIdPropertyId, MikanVariantType::INT)
 			->setReadOnly()
 			->setDefaultValue(-1)
 			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MikanComponentDefinition::k_componentNamePropertyId, MikanVariantType::STRING));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			MikanComponentDefinition::k_componentScriptPathPropertyId, MikanVariantType::STRING)
-			->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
-				AssetReferenceFactory::createFactory<ScriptAssetReferenceFactory>())));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(MikanComponentDefinition::k_componentNamePropertyId,
+																  MikanVariantType::STRING));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 MikanComponentDefinition::k_componentScriptPathPropertyId, MikanVariantType::STRING)
+								 ->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
+									 AssetReferenceFactory::createFactory<ScriptAssetReferenceFactory>())));
 }
 
 bool MikanComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
@@ -540,25 +510,15 @@ const std::string MikanComponent::k_selectScriptFunctionId= "select_script";
 void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_addNewScriptFunctionId, "Add New Script")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_addNewScriptFunctionId, "Add New Script")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_editScriptFunctionId, "Add New Script")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_editScriptFunctionId, "Add New Script")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_reloadScriptFunctionId, "Reload Script")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_reloadScriptFunctionId, "Reload Script")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_removeScriptFunctionId, "Remove Script")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_removeScriptFunctionId, "Remove Script")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_removeScriptFunctionId, "Select Script")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_removeScriptFunctionId, "Select Script")->setUIHidden());
 }
 
 bool MikanComponent::invokeFunction(const std::string& functionName)

@@ -34,10 +34,7 @@ void TextureSourceNodeConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- TextureSourceNode -----
-TextureSourceNode::~TextureSourceNode()
-{
-	setOwnerGraph(NodeGraphPtr());
-}
+TextureSourceNode::~TextureSourceNode() { setOwnerGraph(NodeGraphPtr()); }
 
 void TextureSourceNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 {
@@ -73,8 +70,7 @@ bool TextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("TextureSourceNode::loadFromConfig")
-				<< "Failed to find Stencil property: " << propId
-				<< ", on Stencil node";
+				<< "Failed to find Stencil property: " << propId << ", on Stencil node";
 		}
 	}
 
@@ -107,8 +103,7 @@ IMkTexturePtr TextureSourceNode::getTextureResource() const
 		// TODO: Not sure what to use for cameraId here (probably should come from NodeEvaluator context?)
 		// For now just pass an invalid ID and let the component decide what to do with it
 		MikanCameraID cameraId= INVALID_MIKAN_ID;
-		return textureSourceComponent->getClientColorSourceTexture(
-			cameraId, eTextureSourceColorType::colorRGBA);
+		return textureSourceComponent->getClientColorSourceTexture(cameraId, eTextureSourceColorType::colorRGBA);
 	}
 
 	return IMkTexturePtr();
@@ -130,19 +125,14 @@ bool TextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 
 	if (!textureSourceComponent)
 	{
-		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::missingInput,
-				StringUtils::stringify("Texture Source Component is not valid"),
-				this));
+		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::missingInput,
+											   StringUtils::stringify("Texture Source Component is not valid"), this));
 	}
 	else if (!textureResource || !textureResource->getIsValid())
 	{
-		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::missingInput,
-				StringUtils::stringify("TextureSource ", textureSourceComponent->getName(), " missing output"),
-				this));
+		evaluator.addError(NodeEvaluationError(
+			eNodeEvaluationErrorCode::missingInput,
+			StringUtils::stringify("TextureSource ", textureSourceComponent->getName(), " missing output"), this));
 	}
 
 	return true;

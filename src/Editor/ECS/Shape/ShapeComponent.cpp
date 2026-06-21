@@ -100,12 +100,10 @@ void ShapeComponent::init()
 	TransformComponent::init();
 
 	m_nodeGraphAssetRef=
-		std::static_pointer_cast<NodeGraphAssetReference>(
-			NodeGraphAssetReferenceFactory().allocateAssetReference());
+		std::static_pointer_cast<NodeGraphAssetReference>(NodeGraphAssetReferenceFactory().allocateAssetReference());
 
 	// Listen for changes to the shape definition
-	getShapeComponentDefinition()->OnPropertyChanged+=
-		MakeDelegate(this, &ShapeComponent::onDefinitionChanged);
+	getShapeComponentDefinition()->OnPropertyChanged+= MakeDelegate(this, &ShapeComponent::onDefinitionChanged);
 }
 
 void ShapeComponent::postInit()
@@ -118,8 +116,7 @@ void ShapeComponent::postInit()
 
 void ShapeComponent::dispose()
 {
-	getShapeComponentDefinition()->OnPropertyChanged-=
-		MakeDelegate(this, &ShapeComponent::onDefinitionChanged);
+	getShapeComponentDefinition()->OnPropertyChanged-= MakeDelegate(this, &ShapeComponent::onDefinitionChanged);
 
 	m_nodeGraph= nullptr;
 	m_nodeGraphAssetRef= nullptr;
@@ -127,9 +124,7 @@ void ShapeComponent::dispose()
 	TransformComponent::dispose();
 }
 
-void ShapeComponent::onDefinitionChanged(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void ShapeComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (changedPropertySet.hasPropertyName(ShapeComponentDefinition::k_shapeGraphPathPropertyId))
 	{
@@ -143,9 +138,8 @@ IMkTexturePtr ShapeComponent::getColorTexture() const
 	return textureCache->tryGetTextureByName(INTERNAL_MISSING_TEXTURE_RGBA);
 }
 
-void ShapeComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void ShapeComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+											 const ConfigPropertyChangeSet& changedPropertySet)
 {
 	TransformComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
@@ -153,15 +147,9 @@ void ShapeComponent::onDefinitionMarkedDirty(
 }
 
 // -- Shape Node Graph ----
-bool ShapeComponent::hasValidShapeGraph() const
-{
-	return m_nodeGraph != nullptr;
-}
+bool ShapeComponent::hasValidShapeGraph() const { return m_nodeGraph != nullptr; }
 
-void ShapeComponent::setEditorShapeNodeGraph(ShapeNodeGraphPtr editorNodeGraph)
-{
-	m_editorNodeGraph= editorNodeGraph;
-}
+void ShapeComponent::setEditorShapeNodeGraph(ShapeNodeGraphPtr editorNodeGraph) { m_editorNodeGraph= editorNodeGraph; }
 
 void ShapeComponent::addNewShapeGraph()
 {
@@ -175,27 +163,18 @@ void ShapeComponent::editShapeGraph()
 
 	if (!app->hasWindowOfType<ShapeNodeEditorWindow>())
 	{
-		app->createAppWindow<ShapeNodeEditorWindow>()
-			->bindShapeComponent(getSelfPtr<ShapeComponent>());
+		app->createAppWindow<ShapeNodeEditorWindow>()->bindShapeComponent(getSelfPtr<ShapeComponent>());
 	}
 }
 
-void ShapeComponent::removeShapeGraph()
-{
-	setShapeGraphAssetPath(std::filesystem::path());
-}
+void ShapeComponent::removeShapeGraph() { setShapeGraphAssetPath(std::filesystem::path()); }
 
 void ShapeComponent::selectShapeGraph()
 {
 	NodeGraphAssetReferenceFactory assetRefFactory;
-	const char* picked=
-		tinyfd_openFileDialog(
-			assetRefFactory.getFileDialogTitle(),
-			assetRefFactory.getDefaultPath(),
-			assetRefFactory.getFilterPatternCount(),
-			assetRefFactory.getFilterPatterns(),
-			assetRefFactory.getFilterDescription(),
-			1);
+	const char* picked= tinyfd_openFileDialog(
+		assetRefFactory.getFileDialogTitle(), assetRefFactory.getDefaultPath(), assetRefFactory.getFilterPatternCount(),
+		assetRefFactory.getFilterPatterns(), assetRefFactory.getFilterDescription(), 1);
 
 	if (picked != nullptr && picked[0] != '\0')
 	{
@@ -240,23 +219,20 @@ void ShapeComponent::handleShapeNodeGraphChanged(const std::filesystem::path& ne
 {
 	if (!m_nodeGraphAssetRef)
 	{
-		m_nodeGraphAssetRef=
-			std::static_pointer_cast<NodeGraphAssetReference>(
-				NodeGraphAssetReferenceFactory().allocateAssetReference());
+		m_nodeGraphAssetRef= std::static_pointer_cast<NodeGraphAssetReference>(
+			NodeGraphAssetReferenceFactory().allocateAssetReference());
 	}
 
 	m_nodeGraphAssetRef->setAssetPath(newAssetRefPath);
 
 	if (m_nodeGraphAssetRef->isValid())
 	{
-		m_nodeGraph=
-			std::dynamic_pointer_cast<ShapeNodeGraph>(
-				NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
+		m_nodeGraph= std::dynamic_pointer_cast<ShapeNodeGraph>(
+			NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
 
 		if (m_nodeGraph)
 		{
-			MIKAN_LOG_INFO("ShapeComponent::handleShapeNodeGraphChanged")
-				<< "Loaded shape graph: " << newAssetRefPath;
+			MIKAN_LOG_INFO("ShapeComponent::handleShapeNodeGraphChanged") << "Loaded shape graph: " << newAssetRefPath;
 
 			m_nodeGraph->bindToShapeComponent(getSelfPtr<ShapeComponent>());
 		}
@@ -279,16 +255,13 @@ void ShapeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			ShapeComponentDefinition::k_shapeGraphPathPropertyId, MikanVariantType::STRING)
-			->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
-				AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(ShapeComponentDefinition::k_shapeGraphPathPropertyId,
+																  MikanVariantType::STRING)
+								 ->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
+									 AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
 }
 
-bool ShapeComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool ShapeComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == ShapeComponentDefinition::k_shapeGraphPathPropertyId)
 	{
@@ -299,9 +272,7 @@ bool ShapeComponent::getPropertyValue(
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool ShapeComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool ShapeComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	return TransformComponent::setPropertyValue(propertyName, inValue);
 }
@@ -312,21 +283,13 @@ void ShapeComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 	TransformComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_addNewShapeGraphFunctionId, "Add Shape Graph")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_addNewShapeGraphFunctionId, "Add Shape Graph")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_editShapeGraphFunctionId, "Edit Shape Graph")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_editShapeGraphFunctionId, "Edit Shape Graph")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_removeShapeGraphFunctionId, "Remove Shape Graph")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_removeShapeGraphFunctionId, "Remove Shape Graph")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_selectShapeGraphFunctionId, "Select Shape Graph")
-			->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_selectShapeGraphFunctionId, "Select Shape Graph")->setUIHidden());
 }
 
 bool ShapeComponent::invokeFunction(const std::string& functionName)
@@ -358,7 +321,5 @@ bool ShapeComponent::invokeFunction(const std::string& functionName)
 // -- Lua Binding ----
 void ShapeComponent::bindLuaFunctions(lua_State* L)
 {
-	luabridge::getGlobalNamespace(L)
-		.deriveClass<ShapeComponent, TransformComponent>("ShapeComponent")
-		.endClass();
+	luabridge::getGlobalNamespace(L).deriveClass<ShapeComponent, TransformComponent>("ShapeComponent").endClass();
 }

@@ -82,12 +82,11 @@ struct MonoLensTrackerCalibrationState
 };
 
 //-- MonoDistortionCalibrator ----
-MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
-	CameraComponentPtr cameraComponent,
-	VRDevicePoseViewPtr cameraPuckPoseView,
-	VRDevicePoseViewPtr matTrackingPuckPoseView,
-	VideoFrameDistortionView* distortionView,
-	int desiredSampleCount)
+MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(CameraComponentPtr cameraComponent,
+															 VRDevicePoseViewPtr cameraPuckPoseView,
+															 VRDevicePoseViewPtr matTrackingPuckPoseView,
+															 VideoFrameDistortionView* distortionView,
+															 int desiredSampleCount)
 	: m_calibrationState(new MonoLensTrackerCalibrationState)
 	, m_cameraComponent(cameraComponent)
 	, m_cameraPuckPose_VRSystemSpace(cameraPuckPoseView)
@@ -98,18 +97,13 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 	assert(ownerStage != nullptr);
 	IEditorWindow* ownerWindow= ownerStage->getOwnerEditorWindow();
 	assert(ownerWindow != nullptr);
-	MarkerObjectSystemPtr markerSystem=
-		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
+	MarkerObjectSystemPtr markerSystem= ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 
 	auto markerConfig= markerSystem->getTypedDefinitionConst();
-	m_patternFinder=
-		new CalibrationPatternFinder_Charuco(
-			distortionView,
-			markerConfig->getCharucoRows(),
-			markerConfig->getCharucoCols(),
-			markerConfig->getCharucoSquareLengthMM(),
-			markerConfig->getCharucoMarkerLengthMM(),
-			markerConfig->getCharucoDictionaryType());
+	m_patternFinder= new CalibrationPatternFinder_Charuco(
+		distortionView, markerConfig->getCharucoRows(), markerConfig->getCharucoCols(),
+		markerConfig->getCharucoSquareLengthMM(), markerConfig->getCharucoMarkerLengthMM(),
+		markerConfig->getCharucoDictionaryType());
 
 	frameWidth= distortionView->getFrameWidth();
 	frameHeight= distortionView->getFrameHeight();
@@ -118,10 +112,9 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 	m_calibrationState->init(cameraComponent, desiredSampleCount);
 }
 
-MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
-	CalibrationPatternFinder* patternFinder,
-	const MikanMonoIntrinsics& cameraIntrinsics,
-	int desiredSampleCount)
+MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(CalibrationPatternFinder* patternFinder,
+															 const MikanMonoIntrinsics& cameraIntrinsics,
+															 int desiredSampleCount)
 	: m_calibrationState(new MonoLensTrackerCalibrationState)
 	, m_cameraComponent(nullptr)
 	, m_cameraPuckPose_VRSystemSpace(nullptr)
@@ -149,8 +142,7 @@ bool MonoLensTrackerPoseCalibrator::fetchMatPuckVRSpacePose(glm::dmat4& outPose)
 
 glm::dvec3 MonoLensTrackerPoseCalibrator::fetchMatPuckOffsetMM() const
 {
-	VRTrackingVolumeDefinitionConstPtr vrTrackingConfig=
-		m_cameraComponent->getVRTrackingVolumeDefinition();
+	VRTrackingVolumeDefinitionConstPtr vrTrackingConfig= m_cameraComponent->getVRTrackingVolumeDefinition();
 	const MikanVector3f off= vrTrackingConfig->getCharucoMountOffsetMM();
 	return glm::dvec3(off.x, off.y, off.z);
 }
@@ -174,10 +166,7 @@ float MonoLensTrackerPoseCalibrator::getCalibrationProgress() const
 	return samplePercentage;
 }
 
-void MonoLensTrackerPoseCalibrator::resetCalibrationState()
-{
-	m_calibrationState->resetCalibration();
-}
+void MonoLensTrackerPoseCalibrator::resetCalibrationState() { m_calibrationState->resetCalibration(); }
 
 bool MonoLensTrackerPoseCalibrator::computeCalibrationSample()
 {
@@ -207,12 +196,8 @@ bool MonoLensTrackerPoseCalibrator::computeCalibrationSample()
 	const glm::dvec3 puckOffsetMM= fetchMatPuckOffsetMM();
 
 	// Compute the camera-puck-to-aperture offset
-	computeCameraPuckToApertureXform(
-		cameraPuckXform_VRSpace,
-		matPuckXform_VRSpace,
-		apertureToPatternXform,
-		puckOffsetMM,
-		m_calibrationState->cameraPuckToApertureResults);
+	computeCameraPuckToApertureXform(cameraPuckXform_VRSpace, matPuckXform_VRSpace, apertureToPatternXform,
+									 puckOffsetMM, m_calibrationState->cameraPuckToApertureResults);
 
 	return true;
 }
@@ -234,8 +219,7 @@ bool MonoLensTrackerPoseCalibrator::getLastCameraPuckToApertureXform(glm::mat4& 
 	return false;
 }
 
-bool MonoLensTrackerPoseCalibrator::getLastCameraPuckToApertureResults(
-	CameraPuckToApertureResults& outResults) const
+bool MonoLensTrackerPoseCalibrator::getLastCameraPuckToApertureResults(CameraPuckToApertureResults& outResults) const
 {
 	if (m_calibrationState->cameraPuckToApertureResults.bIsValid)
 	{
@@ -265,20 +249,15 @@ void MonoLensTrackerPoseCalibrator::recordCalibrationSample()
 	m_calibrationState->capturedSampleCount++;
 }
 
-bool MonoLensTrackerPoseCalibrator::computeAverageCameraPuckToApertureOffset(
-	MikanQuatd& outRotationOffset,
-	MikanVector3d& outTranslationOffset)
+bool MonoLensTrackerPoseCalibrator::computeAverageCameraPuckToApertureOffset(MikanQuatd& outRotationOffset,
+																			 MikanVector3d& outTranslationOffset)
 {
 	cv::Vec3d cv_cameraOffsetPosition;
 	cv::Quatd cv_cameraOffsetQuat;
 
-	if (hasFinishedSampling() &&
-		opencv_quaternion_compute_average(
-			m_calibrationState->cv_apertureOffsetQuats,
-			cv_cameraOffsetQuat) &&
-		opencv_vec3d_compute_average(
-			m_calibrationState->cv_apertureOffsetPositions,
-			cv_cameraOffsetPosition))
+	if (hasFinishedSampling()
+		&& opencv_quaternion_compute_average(m_calibrationState->cv_apertureOffsetQuats, cv_cameraOffsetQuat)
+		&& opencv_vec3d_compute_average(m_calibrationState->cv_apertureOffsetPositions, cv_cameraOffsetPosition))
 	{
 		outRotationOffset= cv_quatd_to_MikanQuatd(cv_cameraOffsetQuat);
 		outTranslationOffset= cv_vec3d_to_MikanVector3d(cv_cameraOffsetPosition);
@@ -301,10 +280,8 @@ void MonoLensTrackerPoseCalibrator::renderApertureSpaceCalibrationState()
 	// and the mat puck location offset from the pattern origin
 	if (results.bIsValid)
 	{
-		const glm::mat4 apertureToPatternXform=
-			glm::mat4(results.apertureToPatternXform_CameraSpace);
-		const glm::mat4 apertureToMatPuckXform=
-			glm::mat4(results.apertureToMatPuckXform_CameraSpace);
+		const glm::mat4 apertureToPatternXform= glm::mat4(results.apertureToPatternXform_CameraSpace);
+		const glm::mat4 apertureToMatPuckXform= glm::mat4(results.apertureToMatPuckXform_CameraSpace);
 
 		m_patternFinder->renderSolvePnPPattern3D(apertureToPatternXform);
 
@@ -312,12 +289,10 @@ void MonoLensTrackerPoseCalibrator::renderApertureSpaceCalibrationState()
 		drawTransformedAxes(graphicsContext, apertureToMatPuckXform, 0.1f);
 
 		TextStyle style= getDefaultTextStyle();
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, glm_mat4_get_position(apertureToPatternXform), L"Pattern (Aperture Space)");
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, glm_mat4_get_position(apertureToMatPuckXform), L"Mat Puck (Aperture Space)");
+		drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(apertureToPatternXform),
+								L"Pattern (Aperture Space)");
+		drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(apertureToMatPuckXform),
+								L"Mat Puck (Aperture Space)");
 	}
 }
 
@@ -335,9 +310,8 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 	if (m_cameraPuckPose_VRSystemSpace->getPose(m_cameraComponent, cameraPuckXform_VRSpace))
 	{
 		drawTransformedAxes(graphicsContext, cameraPuckXform_VRSpace, 0.1f);
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, glm_mat4_get_position(cameraPuckXform_VRSpace), L"Camera Puck (VR Space)");
+		drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(cameraPuckXform_VRSpace),
+								L"Camera Puck (VR Space)");
 	}
 
 	// Draw the mat puck transform
@@ -345,9 +319,8 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 	if (m_matPuckPose_VRSystemSpace->getPose(m_cameraComponent, matPuckXform_VRSpace))
 	{
 		drawTransformedAxes(graphicsContext, matPuckXform_VRSpace, 0.1f);
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, glm_mat4_get_position(matPuckXform_VRSpace), L"Mat Puck (VR Space)");
+		drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(matPuckXform_VRSpace),
+								L"Mat Puck (VR Space)");
 	}
 
 	// Draw the most recently derived camera transform derived from the mat puck
@@ -355,16 +328,9 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 	const float vfov_radians= degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
 	const float zNear= fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
 	const float zFar= fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
-	drawTransformedFrustum(
-		graphicsContext,
-		results.apertureXform_VRSpace,
-		hfov_radians, vfov_radians,
-		zNear, zFar,
-		Colors::Yellow);
+	drawTransformedFrustum(graphicsContext, results.apertureXform_VRSpace, hfov_radians, vfov_radians, zNear, zFar,
+						   Colors::Yellow);
 	drawTransformedAxes(graphicsContext, results.apertureXform_VRSpace, 0.1f);
-	drawTextAtWorldPosition(
-		graphicsContext,
-		style,
-		glm_mat4_get_position(results.apertureXform_VRSpace),
-		L"Aperture (VR Space)");
+	drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(results.apertureXform_VRSpace),
+							L"Aperture (VR Space)");
 }

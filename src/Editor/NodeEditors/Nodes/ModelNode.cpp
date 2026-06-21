@@ -31,10 +31,7 @@ void ModelNodeConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- ModelNode -----
-ModelNode::~ModelNode()
-{
-	setOwnerGraph(NodeGraphPtr());
-}
+ModelNode::~ModelNode() { setOwnerGraph(NodeGraphPtr()); }
 
 void ModelNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 {
@@ -70,8 +67,7 @@ bool ModelNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("ModelNode::loadFromConfig")
-				<< "Failed to find model property: " << propId
-				<< ", on model node";
+				<< "Failed to find model property: " << propId << ", on model node";
 		}
 	}
 

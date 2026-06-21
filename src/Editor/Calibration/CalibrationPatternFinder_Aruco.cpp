@@ -38,19 +38,15 @@ public:
 };
 
 //-- CalibrationPatternFinder_Aruco -----
-static void initArucoBoardData(
-	ArucoBoardData* markerData,
-	OpenCVCalibrationGeometry& opencvSolvePnPGeometry,
-	OpenCVCalibrationGeometry& opencvLensCalibrationGeometry,
-	OpenGLCalibrationGeometry& openglSolvePnPGeometry,
-	MarkerObjectSystemPtr markerSystem,
-	MarkerDefinitionConstPtr markerDefinition)
+static void initArucoBoardData(ArucoBoardData* markerData, OpenCVCalibrationGeometry& opencvSolvePnPGeometry,
+							   OpenCVCalibrationGeometry& opencvLensCalibrationGeometry,
+							   OpenGLCalibrationGeometry& openglSolvePnPGeometry, MarkerObjectSystemPtr markerSystem,
+							   MarkerDefinitionConstPtr markerDefinition)
 {
 	const int desiredArucoId= markerDefinition->getArucoId();
 	const float markerLengthMM= markerDefinition->getLengthMM();
 	ArucoDictionaryPtr dictionary=
-		CalibrationPatternFinder::getArucoDictionary(
-			markerSystem->getTypedDefinition()->getArucoDictionaryType());
+		CalibrationPatternFinder::getArucoDictionary(markerSystem->getTypedDefinition()->getArucoDictionaryType());
 
 	// Use corner refinement to get the best possible corner locations
 	cv::aruco::DetectorParameters detectorParams;
@@ -77,25 +73,20 @@ static void initArucoBoardData(
 		const cv::Point3f& openCVSolvePnPPoint= opencvSolvePnPGeometry.points[index];
 
 		// Lens calibration points are on the XY Plane
-		cv::Point3f openCVLensCalibrationPoint(
-			openCVSolvePnPPoint.x,
-			openCVSolvePnPPoint.z,
-			0.f);
+		cv::Point3f openCVLensCalibrationPoint(openCVSolvePnPPoint.x, openCVSolvePnPPoint.z, 0.f);
 		opencvLensCalibrationGeometry.points.push_back(openCVLensCalibrationPoint);
 
 		// OpenCV -> OpenGL coordinate system transform
 		// Rendering world units in meters, not mm
-		glm::vec3 openGLPoint(
-			openCVSolvePnPPoint.x * k_millimeters_to_meters,
-			-openCVSolvePnPPoint.y * k_millimeters_to_meters,
-			-openCVSolvePnPPoint.z * k_millimeters_to_meters);
+		glm::vec3 openGLPoint(openCVSolvePnPPoint.x * k_millimeters_to_meters,
+							  -openCVSolvePnPPoint.y * k_millimeters_to_meters,
+							  -openCVSolvePnPPoint.z * k_millimeters_to_meters);
 		openglSolvePnPGeometry.points.push_back(openGLPoint);
 	}
 }
 
-CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
-	CameraComponentConstPtr cameraComponent,
-	VideoFrameDistortionView* distortionView)
+CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(CameraComponentConstPtr cameraComponent,
+															   VideoFrameDistortionView* distortionView)
 	: CalibrationPatternFinder(distortionView)
 	, m_markerData(new ArucoBoardData())
 {
@@ -103,24 +94,20 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	assert(ownerStage != nullptr);
 	IEditorWindow* ownerWindow= ownerStage->getOwnerEditorWindow();
 	assert(ownerWindow != nullptr);
-	MarkerObjectSystemPtr markerSystem=
-		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
+	MarkerObjectSystemPtr markerSystem= ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
 	TrackingVolumeDefinitionConstPtr trackingVolume= ownerStage->getTrackingVolumeDefinitionConst();
 	assert(trackingVolume != nullptr);
 	MarkerDefinitionConstPtr originMarker= trackingVolume->getOriginMarker();
 	assert(originMarker != nullptr);
 
-	initArucoBoardData(
-		m_markerData,
-		m_opencvSolvePnPGeometry, m_opencvLensCalibrationGeometry, m_openglSolvePnPGeometry,
-		markerSystem, originMarker);
+	initArucoBoardData(m_markerData, m_opencvSolvePnPGeometry, m_opencvLensCalibrationGeometry,
+					   m_openglSolvePnPGeometry, markerSystem, originMarker);
 }
 
-CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
-	CameraComponentConstPtr cameraComponent,
-	VideoFrameDistortionView* distortionView,
-	MarkerDefinitionConstPtr markerDefinition)
+CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(CameraComponentConstPtr cameraComponent,
+															   VideoFrameDistortionView* distortionView,
+															   MarkerDefinitionConstPtr markerDefinition)
 	: CalibrationPatternFinder(distortionView)
 	, m_markerData(new ArucoBoardData())
 {
@@ -128,21 +115,15 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	assert(ownerStage != nullptr);
 	IEditorWindow* ownerWindow= ownerStage->getOwnerEditorWindow();
 	assert(ownerWindow != nullptr);
-	MarkerObjectSystemPtr markerSystem=
-		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
+	MarkerObjectSystemPtr markerSystem= ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
 	assert(markerDefinition != nullptr);
 
-	initArucoBoardData(
-		m_markerData,
-		m_opencvSolvePnPGeometry, m_opencvLensCalibrationGeometry, m_openglSolvePnPGeometry,
-		markerSystem, markerDefinition);
+	initArucoBoardData(m_markerData, m_opencvSolvePnPGeometry, m_opencvLensCalibrationGeometry,
+					   m_openglSolvePnPGeometry, markerSystem, markerDefinition);
 }
 
-CalibrationPatternFinder_Aruco::~CalibrationPatternFinder_Aruco()
-{
-	delete m_markerData;
-}
+CalibrationPatternFinder_Aruco::~CalibrationPatternFinder_Aruco() { delete m_markerData; }
 
 bool CalibrationPatternFinder_Aruco::findNewCalibrationPattern(const float minSeperationDist)
 {
@@ -157,10 +138,7 @@ bool CalibrationPatternFinder_Aruco::findNewCalibrationPattern(const float minSe
 
 	// Find Arcuo marker corners on the small image
 	m_markerData->markerCorners.clear();
-	m_markerData->detector->detectMarkers(
-		*gsSourceBuffer,
-		m_markerData->markerCorners,
-		m_markerData->markerVisibleIds);
+	m_markerData->detector->detectMarkers(*gsSourceBuffer, m_markerData->markerCorners, m_markerData->markerVisibleIds);
 	const bool bFoundMarkers= m_markerData->markerVisibleIds.size() > 0;
 
 	// Re-clear out the image points if we decided the latest captured onces are invalid
@@ -183,10 +161,9 @@ bool CalibrationPatternFinder_Aruco::findNewCalibrationPattern(const float minSe
 	return bFoundMarkers;
 }
 
-bool CalibrationPatternFinder_Aruco::fetchLastFoundCalibrationPattern(
-	t_opencv_point2d_list& outImagePoints,
-	t_opencv_pointID_list& outImagePointIDs,
-	cv::Point2f outBoundingQuad[4])
+bool CalibrationPatternFinder_Aruco::fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints,
+																	  t_opencv_pointID_list& outImagePointIDs,
+																	  cv::Point2f outBoundingQuad[4])
 {
 	// If it's a valid new location, append it to the board list
 	if (areCurrentImagePointsValid())
@@ -236,12 +213,9 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 
 		const t_opencv_point2d_list& corners= m_markerData->markerCorners[quadIndex];
 
-		drawQuadList2d(
-			graphicsContext,
-			m_frameWidth, m_frameHeight,
-			(float*)corners.data(), // cv::point2f is just two floats
-			(int)corners.size(),
-			Colors::Yellow);
+		drawQuadList2d(graphicsContext, m_frameWidth, m_frameHeight,
+					   (float*)corners.data(), // cv::point2f is just two floats
+					   (int)corners.size(), Colors::Yellow);
 
 		if (quadIndex < m_markerData->markerVisibleIds.size())
 		{
@@ -250,12 +224,8 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 			cv::Point2f quadCenter;
 			opencv_point2f_compute_average(corners, quadCenter);
 
-			drawTextAtTrackerPosition(
-				graphicsContext,
-				style,
-				m_frameWidth, m_frameHeight,
-				glm::vec2(quadCenter.x, quadCenter.y),
-				L"%d", markerId);
+			drawTextAtTrackerPosition(graphicsContext, style, m_frameWidth, m_frameHeight,
+									  glm::vec2(quadCenter.x, quadCenter.y), L"%d", markerId);
 		}
 	}
 }

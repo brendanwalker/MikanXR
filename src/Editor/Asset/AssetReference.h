@@ -110,8 +110,5 @@ public:
 		return configPtr;
 	}
 
-	virtual AssetReferencePtr allocateAssetReference() const override
-	{
-		return std::make_shared<t_assetref_class>();
-	}
+	virtual AssetReferencePtr allocateAssetReference() const override { return std::make_shared<t_assetref_class>(); }
 };

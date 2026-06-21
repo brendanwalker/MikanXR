@@ -20,8 +20,8 @@
 #define USB_VIDEO_DEVICE_MODULE_NAME "MikanWMFVideo"
 
 // -- USBVideoSourceSystemDefinition -----
-USBVideoSourceSystemDefinition::USBVideoSourceSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+USBVideoSourceSystemDefinition::USBVideoSourceSystemDefinition(const std::string& configName,
+															   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -59,8 +59,7 @@ void USBVideoSourceSystem::update(float deltaTime)
 				m_usbVideoDeviceManager= result.manager;
 				m_usbVideoDeviceManager->addListener(this);
 				m_usbVideoManagerState= eUsbVideoManagerState::ready;
-				MIKAN_LOG_INFO("USBVideoSourceSystem::update")
-					<< "USB video device manager is ready";
+				MIKAN_LOG_INFO("USBVideoSourceSystem::update") << "USB video device manager is ready";
 
 				// Retry openVideoSource() on any components that were waiting
 				for (const auto& [id, weakComp] : Super::getComponentMap())
@@ -72,8 +71,7 @@ void USBVideoSourceSystem::update(float deltaTime)
 			else
 			{
 				m_usbVideoManagerState= eUsbVideoManagerState::failed;
-				MIKAN_LOG_ERROR("USBVideoSourceSystem::update")
-					<< "Async USB video device manager init failed";
+				MIKAN_LOG_ERROR("USBVideoSourceSystem::update") << "Async USB video device manager init failed";
 			}
 		}
 	}
@@ -121,15 +119,14 @@ bool USBVideoSourceSystem::ensureUsbVideoDeviceManager()
 	m_usbVideoManagerState= eUsbVideoManagerState::initializing;
 	auto promise= std::make_shared<std::promise<UsbVideoDeviceManagerInitResult>>();
 	m_usbVideoManagerFuture= promise->get_future();
-	std::thread([promise, moduleName]() mutable
-				{ promise->set_value(initUsbVideoDeviceManagerOnThread(moduleName)); })
+	std::thread([promise, moduleName]() mutable { promise->set_value(initUsbVideoDeviceManagerOnThread(moduleName)); })
 		.detach();
 
 	return false;
 }
 
-USBVideoSourceSystem::UsbVideoDeviceManagerInitResult
-USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread(const std::string& moduleName)
+USBVideoSourceSystem::UsbVideoDeviceManagerInitResult USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread(
+	const std::string& moduleName)
 {
 #ifdef _WIN32
 	// Initialize COM in MTA on this thread so that WMF device enumeration
@@ -144,8 +141,7 @@ USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread(const std::string& modul
 	result.module= getMikanModuleManager()->getModule<IUsbVideoDeviceModule>(moduleName);
 	if (result.module)
 	{
-		MIKAN_LOG_INFO("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread")
-			<< "Loaded module " << moduleName;
+		MIKAN_LOG_INFO("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread") << "Loaded module " << moduleName;
 
 		// Attempt to create a device manager
 		result.manager= result.module->createUsbVideoDeviceManager();
@@ -218,8 +214,7 @@ void USBVideoSourceSystem::disposeUsbVideoDeviceManager()
 	}
 }
 
-bool USBVideoSourceSystem::getConnectedUSBVideoSourcePaths(
-	USBVideoSourcePathList& outVideoSourcePathList) const
+bool USBVideoSourceSystem::getConnectedUSBVideoSourcePaths(USBVideoSourcePathList& outVideoSourcePathList) const
 {
 	outVideoSourcePathList.clear();
 
@@ -238,8 +233,7 @@ bool USBVideoSourceSystem::getConnectedUSBVideoSourcePaths(
 	return false;
 }
 
-bool USBVideoSourceSystem::getConnectedUSBVideoSourcePathMap(
-	USBVideoSourcePathMap& outVideoSourcePathMap) const
+bool USBVideoSourceSystem::getConnectedUSBVideoSourcePathMap(USBVideoSourcePathMap& outVideoSourcePathMap) const
 {
 	outVideoSourcePathMap.clear();
 
@@ -312,15 +306,17 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
 		if (usbVideoDevice)
 		{
 			// Use base class method with custom definition init
-			return Super::addNewObjectByTypedDefinition([usbVideoDevice](USBVideoSourceDefinitionPtr def)
-														{
-				const char* videoModeName = usbVideoDevice->getVideoModeName();
+			return Super::addNewObjectByTypedDefinition(
+				[usbVideoDevice](USBVideoSourceDefinitionPtr def)
+				{
+					const char* videoModeName= usbVideoDevice->getVideoModeName();
 
-				def->setComponentName(usbVideoDevice->getFriendlyName());
-				def->setDevicePath(usbVideoDevice->getDevicePath());
-				def->setVideoMode(videoModeName ? videoModeName : "<INVALID>");
+					def->setComponentName(usbVideoDevice->getFriendlyName());
+					def->setDevicePath(usbVideoDevice->getDevicePath());
+					def->setVideoMode(videoModeName ? videoModeName : "<INVALID>");
 
-				return true; });
+					return true;
+				});
 		}
 	}
 
@@ -349,15 +345,12 @@ void USBVideoSourceSystem::getPropertyDescriptors(std::vector<PropertyDescriptor
 {
 	Super::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceSystem::k_usbDeviceMapPropertyId, MikanVariantType::STRING_MAP)
-			->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(USBVideoSourceSystem::k_usbDeviceMapPropertyId,
+																  MikanVariantType::STRING_MAP)
+								 ->setReadOnly());
 }
 
-bool USBVideoSourceSystem::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool USBVideoSourceSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 
 	if (propertyName == USBVideoSourceSystem::k_usbDeviceMapPropertyId)

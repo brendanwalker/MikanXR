@@ -185,10 +185,7 @@ EventBindingSet* InputManager::getCurrentEventBindingSet()
 }
 
 // -- KeyEventBindings -----
-KeyEventBindings::~KeyEventBindings()
-{
-	clear();
-}
+KeyEventBindings::~KeyEventBindings() { clear(); }
 
 void KeyEventBindings::clear()
 {
@@ -198,10 +195,7 @@ void KeyEventBindings::clear()
 }
 
 // -- EventBindingSet -----
-EventBindingSet::~EventBindingSet()
-{
-	clear();
-}
+EventBindingSet::~EventBindingSet() { clear(); }
 
 void EventBindingSet::clear()
 {

@@ -31,9 +31,14 @@ public:
 
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 	bool hasClientSource(const std::string& clientId, MikanCameraID cameraId) const;
-	bool getClientSourceDimensions(const std::string& clientId, MikanCameraID cameraId, int& outWidth, int& outHeight) const;
-	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const;
-	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex= -1) const;
+	bool getClientSourceDimensions(const std::string& clientId, MikanCameraID cameraId, int& outWidth,
+								   int& outHeight) const;
+	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, MikanCameraID cameraId,
+											  eTextureSourceColorType textureSourceColorType,
+											  int64_t frameIndex= -1) const;
+	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, MikanCameraID cameraId,
+											  eTextureSourceDepthType textureSourceDepthType,
+											  int64_t frameIndex= -1) const;
 
 	MulticastDelegate<void(const std::string& clientId, MikanCameraID cameraId)> OnClientSourceConnected;
 	MulticastDelegate<void(const std::string& clientId, MikanCameraID cameraId)> OnClientSourceDisconnected;
@@ -41,11 +46,13 @@ public:
 protected:
 	static std::string makeClientSourceTableKey(const char* clientId, MikanCameraID cameraId);
 	ClientSource* getClientSource(const char* clientId, MikanCameraID cameraId) const;
-	bool addClientSource(const char* clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
+	bool addClientSource(const char* clientId, const MikanClientInfo& clientInfo,
+						 class SharedTextureReadAccessor* readAccessor);
 	bool removeClientSource(const char* clientId, class SharedTextureReadAccessor* readAccessor);
 
 	// MikanServer Events
-	void onClientRenderTargetAllocated(const char* clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
+	void onClientRenderTargetAllocated(const char* clientId, const MikanClientInfo& clientInfo,
+									   class SharedTextureReadAccessor* readAccessor);
 	void onClientRenderTargetReleased(const char* clientId, class SharedTextureReadAccessor* readAccessor);
 	void onClientRenderTargetUpdated(const char* clientId, MikanCameraID cameraId, int64_t frameIndex);
 

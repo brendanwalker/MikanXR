@@ -14,10 +14,7 @@ static TextStyle gDefaultTextStyle= {
 	0.7f             // shadowOpacity
 };
 
-const TextStyle& getDefaultTextStyle()
-{
-	return gDefaultTextStyle;
-}
+const TextStyle& getDefaultTextStyle() { return gDefaultTextStyle; }
 
 const std::filesystem::path getDefaultJapaneseFontPath()
 {

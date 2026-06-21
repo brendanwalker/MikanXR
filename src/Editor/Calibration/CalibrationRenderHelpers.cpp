@@ -6,10 +6,8 @@
 #include "MikanLineRenderer.h"
 #include "MathUtility.h"
 
-IMkLineRenderer* getLineRendererAndViewportBounds(
-	IMkGraphicsContext* graphicsContext,
-	float& outViewportX0, float& outViewportY0,
-	float& outViewportX1, float& outViewportY1)
+IMkLineRenderer* getLineRendererAndViewportBounds(IMkGraphicsContext* graphicsContext, float& outViewportX0,
+												  float& outViewportY0, float& outViewportX1, float& outViewportY1)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 	if (lineRenderer == nullptr)
@@ -18,8 +16,7 @@ IMkLineRenderer* getLineRendererAndViewportBounds(
 	glm::i32vec2 renderingOrigin;
 	glm::i32vec2 renderingSize;
 	IMkViewportConstPtr viewport= graphicsContext->getRenderingViewport();
-	if (viewport == nullptr ||
-		!viewport->getRenderingViewport(renderingOrigin, renderingSize))
+	if (viewport == nullptr || !viewport->getRenderingViewport(renderingOrigin, renderingSize))
 		return nullptr;
 
 	outViewportX0= renderingOrigin.x;
@@ -30,94 +27,62 @@ IMkLineRenderer* getLineRendererAndViewportBounds(
 	return lineRenderer;
 }
 
-glm::vec2 remapPointIntoTarget(
-	const float sourceWidth, const float sourceHeight,
-	const float targetX0, const float targetY0,
-	const float targetX1, const float targetY1,
-	const glm::vec2& sourcePoint)
+glm::vec2 remapPointIntoTarget(const float sourceWidth, const float sourceHeight, const float targetX0,
+							   const float targetY0, const float targetX1, const float targetY1,
+							   const glm::vec2& sourcePoint)
 {
 	const float u= sourcePoint.x / sourceWidth;
 	const float v= sourcePoint.y / sourceHeight;
 
-	return glm::vec2(
-		(1.f - u) * targetX0 + u * targetX1,
-		(1.f - v) * targetY0 + v * targetY1);
+	return glm::vec2((1.f - u) * targetX0 + u * targetX1, (1.f - v) * targetY0 + v * targetY1);
 }
 
-void drawSegment2d(
-	IMkGraphicsContext* graphicsContext,
-	const float cameraWidth, const float cameraHeight,
-	const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd,
-	const glm::vec3& colorStart, const glm::vec3& colorEnd)
+void drawSegment2d(IMkGraphicsContext* graphicsContext, const float cameraWidth, const float cameraHeight,
+				   const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd, const glm::vec3& colorStart,
+				   const glm::vec3& colorEnd)
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
-	IMkLineRenderer* lineRenderer= getLineRendererAndViewportBounds(
-		graphicsContext,
-		viewportX0, viewportY0,
-		viewportX1, viewportY1);
+	IMkLineRenderer* lineRenderer=
+		getLineRendererAndViewportBounds(graphicsContext, viewportX0, viewportY0, viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
 		return;
 
 	// Remaps the camera relative segment to window relative coordinates
-	const glm::vec2 windowSegmentStart=
-		remapPointIntoTarget(
-			cameraWidth, cameraHeight,
-			viewportX0, viewportY0,
-			viewportX1, viewportY1,
-			cameraSegmentStart);
-	const glm::vec2 windowSegmentEnd=
-		remapPointIntoTarget(
-			cameraWidth, cameraHeight,
-			viewportX0, viewportY0,
-			viewportX1, viewportY1,
-			cameraSegmentEnd);
+	const glm::vec2 windowSegmentStart= remapPointIntoTarget(cameraWidth, cameraHeight, viewportX0, viewportY0,
+															 viewportX1, viewportY1, cameraSegmentStart);
+	const glm::vec2 windowSegmentEnd= remapPointIntoTarget(cameraWidth, cameraHeight, viewportX0, viewportY0,
+														   viewportX1, viewportY1, cameraSegmentEnd);
 
 	lineRenderer->addSegment2d(windowSegmentStart, colorStart, windowSegmentEnd, colorEnd);
 }
 
-void drawPointList2d(
-	IMkGraphicsContext* graphicsContext,
-	const float trackerWidth, const float trackerHeight,
-	const glm::vec3* trackerPoints2D,
-	const int trackerPointCount,
-	const glm::vec3& color,
-	const float point_size)
+void drawPointList2d(IMkGraphicsContext* graphicsContext, const float trackerWidth, const float trackerHeight,
+					 const glm::vec3* trackerPoints2D, const int trackerPointCount, const glm::vec3& color,
+					 const float point_size)
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
-	IMkLineRenderer* lineRenderer= getLineRendererAndViewportBounds(
-		graphicsContext,
-		viewportX0, viewportY0,
-		viewportX1, viewportY1);
+	IMkLineRenderer* lineRenderer=
+		getLineRendererAndViewportBounds(graphicsContext, viewportX0, viewportY0, viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
 		return;
 
 	for (int point_index= 0; point_index < trackerPointCount; ++point_index)
 	{
-		glm::vec2 windowPoint=
-			remapPointIntoTarget(
-				trackerWidth, trackerHeight,
-				viewportX0, viewportY0,
-				viewportX1, viewportY1,
-				trackerPoints2D[point_index]);
+		glm::vec2 windowPoint= remapPointIntoTarget(trackerWidth, trackerHeight, viewportX0, viewportY0, viewportX1,
+													viewportY1, trackerPoints2D[point_index]);
 
 		lineRenderer->addPoint2d(windowPoint, color, point_size);
 	}
 }
 
-void drawQuadList2d(
-	IMkGraphicsContext* graphicsContext,
-	const float trackerWidth, const float trackerHeight,
-	const float* trackerPoints2D,
-	const int trackerPointCount,
-	const glm::vec3& color)
+void drawQuadList2d(IMkGraphicsContext* graphicsContext, const float trackerWidth, const float trackerHeight,
+					const float* trackerPoints2D, const int trackerPointCount, const glm::vec3& color)
 {
 	assert((trackerPointCount % 4) == 0);
 
 	float viewportX0, viewportY0, viewportX1, viewportY1;
-	IMkLineRenderer* lineRenderer= getLineRendererAndViewportBounds(
-		graphicsContext,
-		viewportX0, viewportY0,
-		viewportX1, viewportY1);
+	IMkLineRenderer* lineRenderer=
+		getLineRendererAndViewportBounds(graphicsContext, viewportX0, viewportY0, viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
 		return;
 
@@ -127,27 +92,17 @@ void drawQuadList2d(
 		int prev_vertex_index= 3;
 		for (int vertex_index= 0; vertex_index < 4; ++vertex_index)
 		{
-			const glm::vec3 prevTrackerPoint(
-				trackerPoints2D[2 * (point_index + prev_vertex_index)],     // x
-				trackerPoints2D[2 * (point_index + prev_vertex_index) + 1], // y
-				0.5f);
-			const glm::vec3 trackerPoint(
-				trackerPoints2D[2 * (point_index + vertex_index)],     // x
-				trackerPoints2D[2 * (point_index + vertex_index) + 1], // y
-				0.5f);
+			const glm::vec3 prevTrackerPoint(trackerPoints2D[2 * (point_index + prev_vertex_index)],     // x
+											 trackerPoints2D[2 * (point_index + prev_vertex_index) + 1], // y
+											 0.5f);
+			const glm::vec3 trackerPoint(trackerPoints2D[2 * (point_index + vertex_index)],     // x
+										 trackerPoints2D[2 * (point_index + vertex_index) + 1], // y
+										 0.5f);
 
-			glm::vec2 prevWindowPoint=
-				remapPointIntoTarget(
-					trackerWidth, trackerHeight,
-					viewportX0, viewportY0,
-					viewportX1, viewportY1,
-					prevTrackerPoint);
-			glm::vec2 windowPoint=
-				remapPointIntoTarget(
-					trackerWidth, trackerHeight,
-					viewportX0, viewportY0,
-					viewportX1, viewportY1,
-					trackerPoint);
+			glm::vec2 prevWindowPoint= remapPointIntoTarget(trackerWidth, trackerHeight, viewportX0, viewportY0,
+															viewportX1, viewportY1, prevTrackerPoint);
+			glm::vec2 windowPoint= remapPointIntoTarget(trackerWidth, trackerHeight, viewportX0, viewportY0, viewportX1,
+														viewportY1, trackerPoint);
 
 			lineRenderer->addSegment2d(prevWindowPoint, color, windowPoint, color);
 
@@ -156,17 +111,12 @@ void drawQuadList2d(
 	}
 }
 
-void drawOpenCVChessBoard2D(
-	IMkGraphicsContext* graphicsContext,
-	const float trackerWidth, const float trackerHeight,
-	const float* trackerPoints2d, const int trackerPointCount,
-	bool validPoints)
+void drawOpenCVChessBoard2D(IMkGraphicsContext* graphicsContext, const float trackerWidth, const float trackerHeight,
+							const float* trackerPoints2d, const int trackerPointCount, bool validPoints)
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
-	IMkLineRenderer* lineRenderer= getLineRendererAndViewportBounds(
-		graphicsContext,
-		viewportX0, viewportY0,
-		viewportX1, viewportY1);
+	IMkLineRenderer* lineRenderer=
+		getLineRendererAndViewportBounds(graphicsContext, viewportX0, viewportY0, viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
 		return;
 
@@ -187,15 +137,10 @@ void drawOpenCVChessBoard2D(
 			}
 			const glm::vec3 color(r, g, b);
 
-			const glm::vec2 trackerPoint= glm::vec2(
-				trackerPoints2d[sampleIndex * 2 + 0],
-				trackerPoints2d[sampleIndex * 2 + 1]);
-			const glm::vec2 windowPoint=
-				remapPointIntoTarget(
-					trackerWidth, trackerHeight,
-					viewportX0, viewportY0,
-					viewportX1, viewportY1,
-					trackerPoint);
+			const glm::vec2 trackerPoint=
+				glm::vec2(trackerPoints2d[sampleIndex * 2 + 0], trackerPoints2d[sampleIndex * 2 + 1]);
+			const glm::vec2 windowPoint= remapPointIntoTarget(trackerWidth, trackerHeight, viewportX0, viewportY0,
+															  viewportX1, viewportY1, trackerPoint);
 
 			if (sampleIndex > 0)
 			{
@@ -228,15 +173,10 @@ void drawOpenCVChessBoard2D(
 		glm::vec2 prevWindowPoint;
 		for (int index= 0; index <= subdiv; ++index)
 		{
-			glm::vec2 trackerPoint(
-				radius * cosf(angle) + trackerPoints2d[sampleIndex * 2 + 0],
-				radius * sinf(angle) + trackerPoints2d[sampleIndex * 2 + 1]);
-			glm::vec2 windowPoint=
-				remapPointIntoTarget(
-					trackerWidth, trackerHeight,
-					viewportX0, viewportY0,
-					viewportX1, viewportY1,
-					trackerPoint);
+			glm::vec2 trackerPoint(radius * cosf(angle) + trackerPoints2d[sampleIndex * 2 + 0],
+								   radius * sinf(angle) + trackerPoints2d[sampleIndex * 2 + 1]);
+			glm::vec2 windowPoint= remapPointIntoTarget(trackerWidth, trackerHeight, viewportX0, viewportY0, viewportX1,
+														viewportY1, trackerPoint);
 
 			if (index > 0)
 			{
@@ -249,12 +189,8 @@ void drawOpenCVChessBoard2D(
 	}
 }
 
-void drawOpenCVChessBoard3D(
-	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& xform,
-	const glm::vec3* points3d,
-	const int pointCount,
-	bool validPoints)
+void drawOpenCVChessBoard3D(IMkGraphicsContext* graphicsContext, const glm::mat4& xform, const glm::vec3* points3d,
+							const int pointCount, bool validPoints)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 	if (lineRenderer == nullptr)
@@ -314,8 +250,7 @@ void drawOpenCVChessBoard3D(
 		glm::vec3 prevCirclePoint;
 		for (int index= 0; index <= subdiv; ++index)
 		{
-			const glm::vec3 circlePoint=
-				center + x_axis * radius * cosf(angle) + z_axis * radius * sinf(angle);
+			const glm::vec3 circlePoint= center + x_axis * radius * cosf(angle) + z_axis * radius * sinf(angle);
 
 			if (index > 0)
 			{

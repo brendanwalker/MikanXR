@@ -24,7 +24,8 @@
 
 class GlmTransform;
 
-class VRObjectSystemDefinition : public MikanTypedObjectSystemDefinition<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID>
+class VRObjectSystemDefinition
+	: public MikanTypedObjectSystemDefinition<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID>;
@@ -35,17 +36,13 @@ public:
 	virtual bool wantsConfigSerialization() const override { return false; }
 };
 
-class VRObjectSystem : public MikanTypedObjectSystem<
-						   VRDeviceComponent, VRDeviceDefinition,
-						   MikanVRDeviceID,
-						   VRObjectSystem, VRObjectSystemDefinition>,
+class VRObjectSystem : public MikanTypedObjectSystem<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID,
+													 VRObjectSystem, VRObjectSystemDefinition>,
 					   public IVRDeviceManagerListener
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		VRDeviceComponent, VRDeviceDefinition,
-		MikanVRDeviceID,
-		VRObjectSystem, VRObjectSystemDefinition>;
+	using Super= MikanTypedObjectSystem<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID, VRObjectSystem,
+										VRObjectSystemDefinition>;
 
 	VRObjectSystem(ProjectManagerPtr ownerObjectSystem)
 		: Super::MikanTypedObjectSystem(ownerObjectSystem)
@@ -58,7 +55,10 @@ public:
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
-	virtual bool isLoading() const override { return !m_deferredRuntimeLaunches.empty() || !m_pendingRuntimeFutures.empty(); }
+	virtual bool isLoading() const override
+	{
+		return !m_deferredRuntimeLaunches.empty() || !m_pendingRuntimeFutures.empty();
+	}
 
 	bool createTrackingRuntime(eTrackingRuntime desiredRuntime);
 	void launchDeferredRuntimeThreads();
@@ -89,24 +89,18 @@ public:
 
 protected:
 	eTrackingRuntime findTrackingRuntimeForDeviceManager(const IVRDeviceManager* deviceManager) const;
-	bool findMikanDeviceIdForDeviceIndex(
-		const IVRDeviceManager* deviceManager,
-		const int deviceIndex,
-		eTrackingRuntime& outRuntime,
-		MikanVRDeviceID& outMikanDeviceId) const;
+	bool findMikanDeviceIdForDeviceIndex(const IVRDeviceManager* deviceManager, const int deviceIndex,
+										 eTrackingRuntime& outRuntime, MikanVRDeviceID& outMikanDeviceId) const;
 
 	VRDeviceComponentPtr addNewVRDevice(eTrackingRuntime trackingRuntime, class IVRDevice* vrDeviceInterface);
 	bool removeVRDevice(MikanVRDeviceID VRDeviceId);
 
 	// Project Config Events
-	void onProjectConfigMarkedDirty(
-		CommonConfigPtr configPtr,
-		const class ConfigPropertyChangeSet& changedPropertySet);
+	void onProjectConfigMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
 	// VRSystem Config Events
-	void onVRSystemConfigMarkedDirty(
-		CommonConfigPtr configPtr,
-		const class ConfigPropertyChangeSet& changedPropertySet);
+	void onVRSystemConfigMarkedDirty(CommonConfigPtr configPtr,
+									 const class ConfigPropertyChangeSet& changedPropertySet);
 
 	// IVRDeviceManagerListener
 	virtual void onActiveDeviceListChanged(IVRDeviceManager* deviceManager) override;
@@ -120,10 +114,9 @@ private:
 		class IVRDeviceModule* module= nullptr;
 		IVRDeviceManagerPtr manager;
 	};
-	static TrackingRuntimeInitResult initTrackingRuntimeOnThread(
-		eTrackingRuntime runtime,
-		const std::string& moduleName,
-		class IMkGraphicsContext* graphicsContext);
+	static TrackingRuntimeInitResult initTrackingRuntimeOnThread(eTrackingRuntime runtime,
+																 const std::string& moduleName,
+																 class IMkGraphicsContext* graphicsContext);
 
 	using VRTrackingRuntimePtr= std::shared_ptr<class VRTrackingRuntime>;
 	std::map<eTrackingRuntime, VRTrackingRuntimePtr> m_trackingRuntimes;
@@ -134,12 +127,7 @@ private:
 };
 
 // -- Utility Methods
-void addAllVRDevicesToMkScene(
-	VRObjectSystemPtr vrObjectSystem,
-	IMkScenePtr mkScenePtr,
-	const glm::mat4& vrSpaceToStageSpace= glm::mat4(1.f));
-void renderAllVRDeviceInfo(
-	VRObjectSystemPtr vrObjectSystem,
-	IMkGraphicsContext* graphicsContext,
-	IMkCameraConstPtr camera,
-	const glm::mat4& vrSpaceToStageSpace= glm::mat4(1.f));
+void addAllVRDevicesToMkScene(VRObjectSystemPtr vrObjectSystem, IMkScenePtr mkScenePtr,
+							  const glm::mat4& vrSpaceToStageSpace= glm::mat4(1.f));
+void renderAllVRDeviceInfo(VRObjectSystemPtr vrObjectSystem, IMkGraphicsContext* graphicsContext,
+						   IMkCameraConstPtr camera, const glm::mat4& vrSpaceToStageSpace= glm::mat4(1.f));

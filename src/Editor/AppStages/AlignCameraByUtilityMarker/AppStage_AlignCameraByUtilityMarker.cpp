@@ -50,13 +50,10 @@ AppStage_AlignCameraByUtilityMarker::AppStage_AlignCameraByUtilityMarker(IEditor
 {
 }
 
-AppStage_AlignCameraByUtilityMarker::~AppStage_AlignCameraByUtilityMarker()
-{
-}
+AppStage_AlignCameraByUtilityMarker::~AppStage_AlignCameraByUtilityMarker() {}
 
-bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(
-	AppStage* fromAppStage,
-	CameraComponentPtr targetCameraComponent)
+bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(AppStage* fromAppStage,
+															  CameraComponentPtr targetCameraComponent)
 {
 	IEditorWindow* ownerWindow= fromAppStage->getOwnerWindow();
 
@@ -65,8 +62,7 @@ bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(
 	if (!videoSource)
 	{
 		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Target camera has no video source. Please assign a video source before aligning.");
+			fromAppStage, "Target camera has no video source. Please assign a video source before aligning.");
 		return false;
 	}
 
@@ -88,8 +84,7 @@ bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(
 	}
 
 	// 3. Owner stage must have a VR tracking volume
-	VRTrackingVolumeComponentConstPtr trackingVolume=
-		targetCameraComponent->getVRTrackingVolumeComponent();
+	VRTrackingVolumeComponentConstPtr trackingVolume= targetCameraComponent->getVRTrackingVolumeComponent();
 	if (!trackingVolume)
 	{
 		ModalDialog_MessageBox::showMessageBox(
@@ -99,13 +94,12 @@ bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(
 	}
 
 	// 4. VR tracking volume must have a valid utility marker assigned
-	const MikanMarkerID utilityMarkerId=
-		trackingVolume->getVRTrackingVolumeDefinition()->getUtilityMarkerId();
+	const MikanMarkerID utilityMarkerId= trackingVolume->getVRTrackingVolumeDefinition()->getUtilityMarkerId();
 	if (utilityMarkerId == INVALID_MIKAN_ID)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"The stage's VR tracking volume has no Utility Marker assigned. Please assign a utility marker to the tracking volume.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage,
+											   "The stage's VR tracking volume has no Utility Marker assigned. Please "
+											   "assign a utility marker to the tracking volume.");
 		return false;
 	}
 
@@ -131,8 +125,7 @@ void AppStage_AlignCameraByUtilityMarker::enter()
 	mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Fetch the utility marker ID from the tracking volume
-	VRTrackingVolumeComponentConstPtr trackingVolume=
-		m_targetCameraComponent->getVRTrackingVolumeComponent();
+	VRTrackingVolumeComponentConstPtr trackingVolume= m_targetCameraComponent->getVRTrackingVolumeComponent();
 	assert(trackingVolume != nullptr);
 	m_utilityMarkerId= trackingVolume->getVRTrackingVolumeDefinition()->getUtilityMarkerId();
 
@@ -142,14 +135,10 @@ void AppStage_AlignCameraByUtilityMarker::enter()
 
 	// Create GUI panel
 	m_calibrationPanel= addGuiPanel<GuiPanel_AlignCameraByUtilityMarker>();
-	m_calibrationPanel->OnBeginEvent= [this]()
-	{ onBeginEvent(); };
-	m_calibrationPanel->OnRestartEvent= [this]()
-	{ onRestartEvent(); };
-	m_calibrationPanel->OnCancelEvent= [this]()
-	{ onCancelEvent(); };
-	m_calibrationPanel->OnReturnEvent= [this]()
-	{ onReturnEvent(); };
+	m_calibrationPanel->OnBeginEvent= [this]() { onBeginEvent(); };
+	m_calibrationPanel->OnRestartEvent= [this]() { onRestartEvent(); };
+	m_calibrationPanel->OnCancelEvent= [this]() { onCancelEvent(); };
+	m_calibrationPanel->OnReturnEvent= [this]() { onReturnEvent(); };
 
 	// Open the source camera selection dialog first
 	openSourceCameraDialog();
@@ -212,17 +201,15 @@ void AppStage_AlignCameraByUtilityMarker::update(float deltaSeconds)
 	{
 	case eAlignCameraByUtilityMarkerMenuState::pendingVideoStart:
 	{
-		const bool sourceFailed= !m_sourceVideoSource ||
-								 m_sourceVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed;
-		const bool targetFailed=
-			m_targetVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed;
+		const bool sourceFailed=
+			!m_sourceVideoSource || m_sourceVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed;
+		const bool targetFailed= m_targetVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed;
 
 		if (sourceFailed || targetFailed)
 		{
 			setMenuState(eAlignCameraByUtilityMarkerMenuState::failedVideoStart);
 		}
-		else if (m_sourceDistortionView->isReceivingFrames() &&
-				 m_targetDistortionView->isReceivingFrames())
+		else if (m_sourceDistortionView->isReceivingFrames() && m_targetDistortionView->isReceivingFrames())
 		{
 			setupCalibrators();
 			setMenuState(eAlignCameraByUtilityMarkerMenuState::verifySetup);
@@ -257,9 +244,8 @@ void AppStage_AlignCameraByUtilityMarker::onGui()
 
 	// Side-by-side video preview during active states
 	const eAlignCameraByUtilityMarkerMenuState state= m_calibrationPanel->getMenuState();
-	const bool bShowVideo=
-		state == eAlignCameraByUtilityMarkerMenuState::verifySetup ||
-		state == eAlignCameraByUtilityMarkerMenuState::capturing;
+	const bool bShowVideo= state == eAlignCameraByUtilityMarkerMenuState::verifySetup
+						   || state == eAlignCameraByUtilityMarkerMenuState::capturing;
 
 	if (bShowVideo)
 	{
@@ -267,12 +253,9 @@ void AppStage_AlignCameraByUtilityMarker::onGui()
 		constexpr float k_panelWidth= 415.f;
 		const float videoAreaWidth= displaySize.x - k_panelWidth;
 		const float halfH= displaySize.y * 0.5f;
-		constexpr ImGuiWindowFlags k_bgFlags=
-			ImGuiWindowFlags_NoDecoration |
-			ImGuiWindowFlags_NoInputs |
-			ImGuiWindowFlags_NoBringToFrontOnFocus |
-			ImGuiWindowFlags_NoFocusOnAppearing |
-			ImGuiWindowFlags_NoNav;
+		constexpr ImGuiWindowFlags k_bgFlags= ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoInputs
+											  | ImGuiWindowFlags_NoBringToFrontOnFocus
+											  | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
 		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
 		ImGui::SetNextWindowSize(ImVec2(videoAreaWidth, halfH));
@@ -280,15 +263,11 @@ void AppStage_AlignCameraByUtilityMarker::onGui()
 		if (ImGui::Begin("##VideoSourceBg", nullptr, k_bgFlags))
 		{
 			// Source video (top)
-			IMkTexturePtr srcTex= m_sourceDistortionView
-									  ? m_sourceDistortionView->getVideoTexture()
-									  : nullptr;
+			IMkTexturePtr srcTex= m_sourceDistortionView ? m_sourceDistortionView->getVideoTexture() : nullptr;
 			if (srcTex && srcTex->getGlTextureId() != 0)
 			{
-				ImGui::Image(
-					(void*)(intptr_t)srcTex->getGlTextureId(),
-					ImVec2(videoAreaWidth, halfH),
-					ImVec2(0, 0), ImVec2(1, 1));
+				ImGui::Image((void*)(intptr_t)srcTex->getGlTextureId(), ImVec2(videoAreaWidth, halfH), ImVec2(0, 0),
+							 ImVec2(1, 1));
 			}
 		}
 		ImGui::End();
@@ -299,15 +278,11 @@ void AppStage_AlignCameraByUtilityMarker::onGui()
 		if (ImGui::Begin("##VideoTargetBg", nullptr, k_bgFlags))
 		{
 			// Target video (Bottom)
-			IMkTexturePtr tgtTex= m_targetDistortionView
-									  ? m_targetDistortionView->getVideoTexture()
-									  : nullptr;
+			IMkTexturePtr tgtTex= m_targetDistortionView ? m_targetDistortionView->getVideoTexture() : nullptr;
 			if (tgtTex && tgtTex->getGlTextureId() != 0)
 			{
-				ImGui::Image(
-					(void*)(intptr_t)tgtTex->getGlTextureId(),
-					ImVec2(videoAreaWidth, halfH),
-					ImVec2(0, 0), ImVec2(1, 1));
+				ImGui::Image((void*)(intptr_t)tgtTex->getGlTextureId(), ImVec2(videoAreaWidth, halfH), ImVec2(0, 0),
+							 ImVec2(1, 1));
 			}
 		}
 		ImGui::End();
@@ -320,8 +295,7 @@ void AppStage_AlignCameraByUtilityMarker::onGui()
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, 0), ImGuiCond_Always);
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 	MkGuiScopedWindow panel("##AlignCameraByUtilityMarker", nullptr, k_flags);
 	if (!panel)
 		return;
@@ -343,8 +317,7 @@ void AppStage_AlignCameraByUtilityMarker::render(IMkViewportPtr targetViewport)
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
 			m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState(),
-			"AlignCameraByUtilityMarker Color Framebuffer Scope",
-			m_frameBuffer);
+			"AlignCameraByUtilityMarker Color Framebuffer Scope", m_frameBuffer);
 
 		if (colorFramebufferBinding)
 		{
@@ -358,11 +331,7 @@ void AppStage_AlignCameraByUtilityMarker::render(IMkViewportPtr targetViewport)
 			drawTransformedAxes(graphicsContext, markerXform, 0.1f);
 
 			TextStyle style= getDefaultTextStyle();
-			drawTextAtWorldPosition(
-				graphicsContext,
-				style,
-				glm_mat4_get_position(markerXform),
-				L"Utility Marker");
+			drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(markerXform), L"Utility Marker");
 		}
 
 		// Clear the depth buffer before drawing the scene
@@ -399,15 +368,9 @@ void AppStage_AlignCameraByUtilityMarker::openSourceCameraDialog()
 	setMenuState(eAlignCameraByUtilityMarkerMenuState::selectSourceCamera);
 
 	ModalDialog_SelectCamera::selectCamera(
-		this,
-		[this](MikanCameraID cameraId)
-		{ onSourceCameraSelected(cameraId); },
-		[this]()
-		{ onCancelEvent(); },
+		this, [this](MikanCameraID cameraId) { onSourceCameraSelected(cameraId); }, [this]() { onCancelEvent(); },
 		[](CameraComponentPtr c) -> bool
-		{
-			return c->hasValidTrackingMountComponent() && c->hasValidApertureOffsetXform();
-		});
+		{ return c->hasValidTrackingMountComponent() && c->hasValidApertureOffsetXform(); });
 }
 
 void AppStage_AlignCameraByUtilityMarker::onSourceCameraSelected(MikanCameraID cameraId)
@@ -418,9 +381,7 @@ void AppStage_AlignCameraByUtilityMarker::onSourceCameraSelected(MikanCameraID c
 	m_sourceCameraComponent= cameraSystem->getCameraById(cameraId);
 	if (!m_sourceCameraComponent)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			this,
-			"Failed to find selected source camera. Please try again.");
+		ModalDialog_MessageBox::showMessageBox(this, "Failed to find selected source camera. Please try again.");
 		openSourceCameraDialog();
 		return;
 	}
@@ -428,9 +389,7 @@ void AppStage_AlignCameraByUtilityMarker::onSourceCameraSelected(MikanCameraID c
 	VideoSourceComponentPtr sourceVideoSource= m_sourceCameraComponent->getVideoSourceComponent();
 	if (!sourceVideoSource || !sourceVideoSource->areCameraIntrinsicsValid())
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			this,
-			"Selected source camera has no valid video source or intrinsics.");
+		ModalDialog_MessageBox::showMessageBox(this, "Selected source camera has no valid video source or intrinsics.");
 		m_sourceCameraComponent= nullptr;
 		openSourceCameraDialog();
 		return;
@@ -470,26 +429,18 @@ void AppStage_AlignCameraByUtilityMarker::setupCalibrators()
 
 	// Set up source camera samplers (views already created in startVideoStreams)
 	// Use explicit utilityMarkerDef so we track the utility marker, not the stage origin marker
-	m_sourceMarkerSampler= new ArucoMarkerPoseSampler(
-		m_sourceCameraComponent,
-		m_sourceDistortionView,
-		ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT,
-		utilityMarkerDef);
+	m_sourceMarkerSampler= new ArucoMarkerPoseSampler(m_sourceCameraComponent, m_sourceDistortionView,
+													  ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT, utilityMarkerDef);
 
 	// Set up target camera samplers (views already created in startVideoStreams)
-	m_targetMarkerSampler= new ArucoMarkerPoseSampler(
-		m_targetCameraComponent,
-		m_targetDistortionView,
-		ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT,
-		utilityMarkerDef);
+	m_targetMarkerSampler= new ArucoMarkerPoseSampler(m_targetCameraComponent, m_targetDistortionView,
+													  ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT, utilityMarkerDef);
 
 	// Set up source puck sampler
 	VRDevicePoseViewPtr puckPoseView=
 		m_sourceCameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
-	m_sourcePuckSampler= new VRDevicePoseSampler(
-		puckPoseView,
-		m_sourceCameraComponent,
-		ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT);
+	m_sourcePuckSampler=
+		new VRDevicePoseSampler(puckPoseView, m_sourceCameraComponent, ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT);
 
 	// Set up framebuffer for testCalibration view
 	MikanVideoSourceIntrinsics cameraIntrinsics;
@@ -530,8 +481,7 @@ void AppStage_AlignCameraByUtilityMarker::updateCapturing()
 	m_targetDistortionView->readAndProcessVideoFrame();
 
 	// Sample from source camera: marker pose + puck pose
-	if (m_sourcePuckSampler->computeVRDeviceXform() &&
-		m_sourceMarkerSampler->computeApertureRelativeMarkerXform())
+	if (m_sourcePuckSampler->computeVRDeviceXform() && m_sourceMarkerSampler->computeApertureRelativeMarkerXform())
 	{
 		if (!m_sourcePuckSampler->hasFinishedSampling())
 		{
@@ -572,9 +522,7 @@ void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 	if (!m_sourcePuckSampler->computeCalibratedDevicePose(puckRot, puckPos))
 		return;
 	const glm::dmat4 avgSourcePuckXform_VRSpace=
-		glm_mat4_from_pose(
-			MikanQuatd_to_glm_dquat(puckRot),
-			MikanVector3d_to_glm_dvec3(puckPos));
+		glm_mat4_from_pose(MikanQuatd_to_glm_dquat(puckRot), MikanVector3d_to_glm_dvec3(puckPos));
 
 	// 2. Source aperture offset (fixed, not sampled)
 	glm::mat4 sourceApertureOffset;
@@ -586,15 +534,12 @@ void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 	if (!m_sourceMarkerSampler->computeCalibratedMarkerPose(srcMarkerRot, srcMarkerPos))
 		return;
 	const glm::dmat4 avgSrcApertureToMarker=
-		glm_mat4_from_pose(
-			MikanQuatd_to_glm_dquat(srcMarkerRot),
-			MikanVector3d_to_glm_dvec3(srcMarkerPos));
+		glm_mat4_from_pose(MikanQuatd_to_glm_dquat(srcMarkerRot), MikanVector3d_to_glm_dvec3(srcMarkerPos));
 
 	// 4. Compose to get marker in VR Tracking Space
 	glm::dmat4 srcApertureXform_VRSpace=
 		glm_composite_xform(glm::dmat4(sourceApertureOffset), avgSourcePuckXform_VRSpace);
-	glm::dmat4 markerXform_VRSpace=
-		glm_composite_xform(avgSrcApertureToMarker, srcApertureXform_VRSpace);
+	glm::dmat4 markerXform_VRSpace= glm_composite_xform(avgSrcApertureToMarker, srcApertureXform_VRSpace);
 
 	// 5. Averaged target aperture-to-marker transform
 	MikanQuatd targetMarkerRot;
@@ -602,30 +547,24 @@ void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 	if (!m_targetMarkerSampler->computeCalibratedMarkerPose(targetMarkerRot, targetMarkerPos))
 		return;
 	const glm::dmat4 avgTargetApertureToMarker=
-		glm_mat4_from_pose(
-			MikanQuatd_to_glm_dquat(targetMarkerRot),
-			MikanVector3d_to_glm_dvec3(targetMarkerPos));
+		glm_mat4_from_pose(MikanQuatd_to_glm_dquat(targetMarkerRot), MikanVector3d_to_glm_dvec3(targetMarkerPos));
 
 	// 6. Compute the target aperture transform in VRSpace
 	const glm::dmat4 avgMarkerToTargetAperture= glm::inverse(avgTargetApertureToMarker);
-	const glm::dmat4 targetApertureXform_VRSpace=
-		glm_composite_xform(avgMarkerToTargetAperture, markerXform_VRSpace);
+	const glm::dmat4 targetApertureXform_VRSpace= glm_composite_xform(avgMarkerToTargetAperture, markerXform_VRSpace);
 
 	// 7. Convert the target aperture transform from VRSpace to StageSpace
 	const auto stageComponent= m_targetCameraComponent->getOwnerStageComponent();
 	const auto trackingVolumeDefinition=
-		std::static_pointer_cast<const VRTrackingVolumeComponent>(
-			stageComponent->getTrackingVolumeConst());
+		std::static_pointer_cast<const VRTrackingVolumeComponent>(stageComponent->getTrackingVolumeConst());
 	const glm::mat4 vrSpaceToStageSpace= trackingVolumeDefinition->getVRSpaceToStageSpace();
 
 	// 8. Compute final target aperture pose in stage space and apply
-	m_targetApertureXform_StageSpace=
-		glm_composite_xform(targetApertureXform_VRSpace, vrSpaceToStageSpace);
+	m_targetApertureXform_StageSpace= glm_composite_xform(targetApertureXform_VRSpace, vrSpaceToStageSpace);
 	m_targetCameraComponent->setRelativeTransform(glm::mat4(m_targetApertureXform_StageSpace));
 
 	// (For Debug) Compute the marker transform in stage space
-	m_markerXform_StageSpace=
-		glm_composite_xform(avgTargetApertureToMarker, m_targetApertureXform_StageSpace);
+	m_markerXform_StageSpace= glm_composite_xform(avgTargetApertureToMarker, m_targetApertureXform_StageSpace);
 
 	setMenuState(eAlignCameraByUtilityMarkerMenuState::testCalibration);
 }
@@ -676,12 +615,6 @@ void AppStage_AlignCameraByUtilityMarker::onRestartEvent()
 	setMenuState(eAlignCameraByUtilityMarkerMenuState::verifySetup);
 }
 
-void AppStage_AlignCameraByUtilityMarker::onCancelEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_AlignCameraByUtilityMarker::onCancelEvent() { m_ownerWindow->popAppState(); }
 
-void AppStage_AlignCameraByUtilityMarker::onReturnEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_AlignCameraByUtilityMarker::onReturnEvent() { m_ownerWindow->popAppState(); }

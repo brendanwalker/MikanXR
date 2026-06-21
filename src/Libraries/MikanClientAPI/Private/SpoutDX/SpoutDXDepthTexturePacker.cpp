@@ -129,10 +129,7 @@ SpoutDXDepthTexturePacker::SpoutDXDepthTexturePacker(spoutDX& spout, const Mikan
 {
 }
 
-SpoutDXDepthTexturePacker::~SpoutDXDepthTexturePacker()
-{
-	dispose();
-}
+SpoutDXDepthTexturePacker::~SpoutDXDepthTexturePacker() { dispose(); }
 
 bool SpoutDXDepthTexturePacker::init()
 {
@@ -153,10 +150,7 @@ bool SpoutDXDepthTexturePacker::init()
 	return true;
 }
 
-ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(
-	ID3D11Texture2D* inDepthTexture,
-	float zNear,
-	float zFar)
+ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(ID3D11Texture2D* inDepthTexture, float zNear, float zFar)
 {
 	assert(inDepthTexture != nullptr);
 
@@ -185,8 +179,8 @@ ID3D11Texture2D* SpoutDXDepthTexturePacker::packDepthTexture(
 	// Make sure the render target resources are initialized
 	D3D11_TEXTURE2D_DESC inTextureDesc;
 	inDepthTexture->GetDesc(&inTextureDesc);
-	if (m_colorTargetTexture == nullptr ||
-		memcmp(&m_inFloatDepthTextureDesc, &inTextureDesc, sizeof(D3D11_TEXTURE2D_DESC)) != 0)
+	if (m_colorTargetTexture == nullptr
+		|| memcmp(&m_inFloatDepthTextureDesc, &inTextureDesc, sizeof(D3D11_TEXTURE2D_DESC)) != 0)
 	{
 		if (!initRenderTargetResources(d3dDevice, inDepthTexture))
 		{
@@ -338,10 +332,9 @@ bool SpoutDXDepthTexturePacker::initQuadGeometry(ID3D11Device* d3dDevice)
 
 bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 {
-	const std::string shaderCodeString=
-		m_mikanDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_SCENE_DEPTH
-			? SpoutDXDepthPackerShaderCode::packSceneDepthShaderCode
-			: SpoutDXDepthPackerShaderCode::pacDeviceDepthShaderCode;
+	const std::string shaderCodeString= m_mikanDescriptor.depth_buffer_type == MikanDepthBuffer_FLOAT_SCENE_DEPTH
+											? SpoutDXDepthPackerShaderCode::packSceneDepthShaderCode
+											: SpoutDXDepthPackerShaderCode::pacDeviceDepthShaderCode;
 
 	// Compile vertex shader
 	HRESULT hr= compileShaderFromString(shaderCodeString, "vs_main", "vs_4_0", &m_vertexShaderByteCode);
@@ -360,11 +353,8 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 	}
 
 	// Create vertex shader
-	hr= d3dDevice->CreateVertexShader(
-		m_vertexShaderByteCode->GetBufferPointer(),
-		m_vertexShaderByteCode->GetBufferSize(),
-		nullptr,
-		&m_vertexShader);
+	hr= d3dDevice->CreateVertexShader(m_vertexShaderByteCode->GetBufferPointer(),
+									  m_vertexShaderByteCode->GetBufferSize(), nullptr, &m_vertexShader);
 	if (FAILED(hr))
 	{
 		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create vertex shader";
@@ -372,11 +362,8 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 	}
 
 	// Create pixel shader
-	hr= d3dDevice->CreatePixelShader(
-		m_pixelShaderByteCode->GetBufferPointer(),
-		m_pixelShaderByteCode->GetBufferSize(),
-		nullptr,
-		&m_pixelShader);
+	hr= d3dDevice->CreatePixelShader(m_pixelShaderByteCode->GetBufferPointer(), m_pixelShaderByteCode->GetBufferSize(),
+									 nullptr, &m_pixelShader);
 	if (FAILED(hr))
 	{
 		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to create vertex shader";
@@ -403,12 +390,8 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, sizeof(DirectX::XMFLOAT3), D3D11_INPUT_PER_VERTEX_DATA, 0}};
 
-	d3dDevice->CreateInputLayout(
-		layout,
-		ARRAYSIZE(layout),
-		m_vertexShaderByteCode->GetBufferPointer(),
-		m_vertexShaderByteCode->GetBufferSize(),
-		&m_quadInputLayout);
+	d3dDevice->CreateInputLayout(layout, ARRAYSIZE(layout), m_vertexShaderByteCode->GetBufferPointer(),
+								 m_vertexShaderByteCode->GetBufferSize(), &m_quadInputLayout);
 	if (FAILED(hr))
 	{
 		MIKAN_LOG_ERROR("SpoutDXDepthTexturePacker") << "Failed to fetch vertex input layout";
@@ -444,18 +427,17 @@ HRESULT SpoutDXDepthTexturePacker::compileShaderFromString(
 	HRESULT hr= S_OK;
 	ID3DBlob* pErrorBlob= nullptr;
 
-	hr= D3DCompile(
-		shaderCode.c_str(),  // HLSL shader code
-		shaderCode.length(), // Length of the shader code
-		nullptr,             // Optional source name
-		nullptr,             // Optional macro definitions
-		nullptr,             // Optional include handler
-		szEntryPoint,        // Entry point function name
-		szShaderModel,       // Shader model
-		D3DCOMPILE_DEBUG,    // Shader compile options
-		0,                   // More compile options
-		ppBlobOut,           // Pointer to store compiled shader code
-		&pErrorBlob          // Pointer to store error messages
+	hr= D3DCompile(shaderCode.c_str(),  // HLSL shader code
+				   shaderCode.length(), // Length of the shader code
+				   nullptr,             // Optional source name
+				   nullptr,             // Optional macro definitions
+				   nullptr,             // Optional include handler
+				   szEntryPoint,        // Entry point function name
+				   szShaderModel,       // Shader model
+				   D3DCOMPILE_DEBUG,    // Shader compile options
+				   0,                   // More compile options
+				   ppBlobOut,           // Pointer to store compiled shader code
+				   &pErrorBlob          // Pointer to store error messages
 	);
 
 	if (FAILED(hr))

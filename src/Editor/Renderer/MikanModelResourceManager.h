@@ -21,14 +21,11 @@ public:
 	inline IMkGraphicsContext* getGraphicsContext() const { return m_ownerGraphicsContext; }
 	inline class MikanShaderCache* getShaderCache() const { return m_shaderCache.get(); }
 
-	MikanRenderModelResourcePtr fetchRenderModel(
-		const std::filesystem::path& modelFilePath,
-		MkMaterialConstPtr overrideMaterial= MkMaterialConstPtr());
+	MikanRenderModelResourcePtr fetchRenderModel(const std::filesystem::path& modelFilePath,
+												 MkMaterialConstPtr overrideMaterial= MkMaterialConstPtr());
 	bool flushModelByFilePathFromCache(const std::filesystem::path& modelFilePath);
 
-	bool exportModelToFile(
-		MikanRenderModelResourcePtr modelResource,
-		const std::filesystem::path& modelPath);
+	bool exportModelToFile(MikanRenderModelResourcePtr modelResource, const std::filesystem::path& modelPath);
 
 private:
 	class IMkGraphicsContext* m_ownerGraphicsContext= nullptr;

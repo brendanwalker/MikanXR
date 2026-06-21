@@ -27,10 +27,7 @@ AppStage_VideoSourceSettings::AppStage_VideoSourceSettings(IEditorWindow* ownerW
 {
 }
 
-AppStage_VideoSourceSettings::~AppStage_VideoSourceSettings()
-{
-	assert(m_videoBufferView == nullptr);
-}
+AppStage_VideoSourceSettings::~AppStage_VideoSourceSettings() { assert(m_videoBufferView == nullptr); }
 
 void AppStage_VideoSourceSettings::enter()
 {
@@ -43,8 +40,7 @@ void AppStage_VideoSourceSettings::enter()
 	{
 		auto* usbPanel= addGuiPanel<GuiPanel_USBVideoSourceComponent>();
 		usbPanel->init();
-		if (auto usbVideoSourceComponent=
-				std::dynamic_pointer_cast<USBVideoSourceComponent>(videoSourceComponent))
+		if (auto usbVideoSourceComponent= std::dynamic_pointer_cast<USBVideoSourceComponent>(videoSourceComponent))
 		{
 			usbPanel->setComponent(usbVideoSourceComponent);
 		}
@@ -61,9 +57,8 @@ void AppStage_VideoSourceSettings::enter()
 	if (videoSourceComponent)
 	{
 		// Create the video buffer view eagerly — it registers itself for OnFrameSizeChanged
-		m_videoBufferView= std::make_shared<VideoFrameDistortionView>(
-			videoSourceComponent,
-			eVideoFrameProcessorMode::COMPOSITOR);
+		m_videoBufferView=
+			std::make_shared<VideoFrameDistortionView>(videoSourceComponent, eVideoFrameProcessorMode::COMPOSITOR);
 
 		// Register as a stream consumer (VideoSourceComponent::update() drives the retry loop)
 		videoSourceComponent->startVideoStream(m_videoBufferView.get());
@@ -129,10 +124,7 @@ void AppStage_VideoSourceSettings::onGui()
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##VideoSourceSettings", nullptr, k_flags);
 	if (!panel)
@@ -157,23 +149,16 @@ void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 	TextStyle style= getDefaultTextStyle();
 	style.horizontalAlignment= eHorizontalTextAlignment::Left;
 	style.verticalAlignment= eVerticalTextAlignment::Bottom;
-	drawTextAtScreenPosition(
-		getGraphicsContext(),
-		style,
-		glm::vec2(0.f, m_ownerWindow->getHeight() - 1),
-		L"Camera %.1ffps", m_videoBufferView ? m_videoBufferView->getFPS() : 0.f);
+	drawTextAtScreenPosition(getGraphicsContext(), style, glm::vec2(0.f, m_ownerWindow->getHeight() - 1),
+							 L"Camera %.1ffps", m_videoBufferView ? m_videoBufferView->getFPS() : 0.f);
 }
 
-void AppStage_VideoSourceSettings::onReturnEvent()
-{
-	getOwnerWindow()->popAppState();
-}
+void AppStage_VideoSourceSettings::onReturnEvent() { getOwnerWindow()->popAppState(); }
 
 // Remote Control
-bool AppStage_VideoSourceSettings::handleRemoteControlCommand(
-	const std::string& command,
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage_VideoSourceSettings::handleRemoteControlCommand(const std::string& command,
+															  const std::vector<std::string>& parameters,
+															  std::vector<std::string>& outResults)
 {
 	if (command == "get_video_source_component_id")
 	{
@@ -187,8 +172,7 @@ bool AppStage_VideoSourceSettings::handleRemoteControlCommand(
 	return AppStage::handleRemoteControlCommand(command, parameters, outResults);
 }
 
-bool AppStage_VideoSourceSettings::handleGetVideoSourceComponentId(
-	std::vector<std::string>& outResults)
+bool AppStage_VideoSourceSettings::handleGetVideoSourceComponentId(std::vector<std::string>& outResults)
 {
 	VideoSourceComponentPtr videoSource= m_videoSourceComponent.lock();
 	MikanVideoSourceID videoSourceId= videoSource ? videoSource->getComponentId() : INVALID_MIKAN_ID;
@@ -198,8 +182,7 @@ bool AppStage_VideoSourceSettings::handleGetVideoSourceComponentId(
 	return true;
 }
 
-bool AppStage_VideoSourceSettings::handleReturnRequest(
-	std::vector<std::string>& outResults)
+bool AppStage_VideoSourceSettings::handleReturnRequest(std::vector<std::string>& outResults)
 {
 	getOwnerWindow()->popAppState();
 	outResults.push_back(IRemoteControllable::k_success);

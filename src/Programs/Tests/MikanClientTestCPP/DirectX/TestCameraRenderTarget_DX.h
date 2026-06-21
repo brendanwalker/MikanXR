@@ -10,10 +10,7 @@
 class TestCameraRenderTarget_DX : public TestCameraRenderTarget
 {
 public:
-	TestCameraRenderTarget_DX(
-		TestGraphicsContextPtr ownerContext,
-		ID3D11Device* d3dDevice,
-		int cameraId);
+	TestCameraRenderTarget_DX(TestGraphicsContextPtr ownerContext, ID3D11Device* d3dDevice, int cameraId);
 	virtual ~TestCameraRenderTarget_DX();
 
 	inline ID3D11Texture2D* getColorTexture() const { return m_colorTargetTexture; }

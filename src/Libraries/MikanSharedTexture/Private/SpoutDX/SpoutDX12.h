@@ -47,11 +47,8 @@ struct DX12_HEAP_PROPERTIES : public D3D12_HEAP_PROPERTIES
 		: D3D12_HEAP_PROPERTIES(o)
 	{
 	}
-	DX12_HEAP_PROPERTIES(
-		D3D12_CPU_PAGE_PROPERTY cpuPageProperty,
-		D3D12_MEMORY_POOL memoryPoolPreference,
-		UINT creationNodeMask= 1,
-		UINT nodeMask= 1) noexcept
+	DX12_HEAP_PROPERTIES(D3D12_CPU_PAGE_PROPERTY cpuPageProperty, D3D12_MEMORY_POOL memoryPoolPreference,
+						 UINT creationNodeMask= 1, UINT nodeMask= 1) noexcept
 	{
 		Type= D3D12_HEAP_TYPE_CUSTOM;
 		CPUPageProperty= cpuPageProperty;
@@ -59,10 +56,7 @@ struct DX12_HEAP_PROPERTIES : public D3D12_HEAP_PROPERTIES
 		CreationNodeMask= creationNodeMask;
 		VisibleNodeMask= nodeMask;
 	}
-	explicit DX12_HEAP_PROPERTIES(
-		D3D12_HEAP_TYPE type,
-		UINT creationNodeMask= 1,
-		UINT nodeMask= 1) noexcept
+	explicit DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE type, UINT creationNodeMask= 1, UINT nodeMask= 1) noexcept
 	{
 		Type= type;
 		CPUPageProperty= D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -72,7 +66,10 @@ struct DX12_HEAP_PROPERTIES : public D3D12_HEAP_PROPERTIES
 	}
 	bool IsCPUAccessible() const noexcept
 	{
-		return Type == D3D12_HEAP_TYPE_UPLOAD || Type == D3D12_HEAP_TYPE_READBACK || (Type == D3D12_HEAP_TYPE_CUSTOM && (CPUPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE || CPUPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_BACK));
+		return Type == D3D12_HEAP_TYPE_UPLOAD || Type == D3D12_HEAP_TYPE_READBACK
+			   || (Type == D3D12_HEAP_TYPE_CUSTOM
+				   && (CPUPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE
+					   || CPUPageProperty == D3D12_CPU_PAGE_PROPERTY_WRITE_BACK));
 	}
 };
 
@@ -100,17 +97,15 @@ public:
 	ID3D11On12Device* CreateDX11on12device(ID3D12Device* pDevice12, IUnknown** ppCommandQueue= nullptr);
 
 	// Wrap a D3D12 resource for use with D3D11
-	bool WrapDX12Resource(ID3D12Resource* pDX12Resource, ID3D11Resource** ppWrapped11Resource, D3D12_RESOURCE_STATES InitialState);
+	bool WrapDX12Resource(ID3D12Resource* pDX12Resource, ID3D11Resource** ppWrapped11Resource,
+						  D3D12_RESOURCE_STATES InitialState);
 
 	// Update a wrapped D3D11 texture resource with a D3D11 texture
 	void UpdateWrappedResource(ID3D11Resource* pWrappedResource, ID3D11Resource* pResource);
 
 	// Create a D3D12 texture resource
-	bool CreateDX12texture(ID3D12Device* pDevice12,
-						   unsigned int width, unsigned int height,
-						   D3D12_RESOURCE_STATES InitialState,
-						   DXGI_FORMAT format,
-						   ID3D12Resource** ppTexture);
+	bool CreateDX12texture(ID3D12Device* pDevice12, unsigned int width, unsigned int height,
+						   D3D12_RESOURCE_STATES InitialState, DXGI_FORMAT format, ID3D12Resource** ppTexture);
 
 	//
 	// Adapter functions
@@ -129,7 +124,8 @@ public:
 
 protected:
 	ID3D12Device* CreateDX12device();
-	void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter= false);
+	void GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter,
+							bool requestHighPerformanceAdapter= false);
 
 	ID3D12Device* m_pd3dDevice12;               // D3D12 device
 	ID3D11Device* m_pd3dDevice11;               // D3D11 device

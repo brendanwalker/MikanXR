@@ -12,10 +12,7 @@
 using namespace std::placeholders;
 
 // -- TextureSourceRequestHandler -- //
-bool TextureSourceRequestHandler::startup(MainWindow* mainWindow)
-{
-	return true;
-}
+bool TextureSourceRequestHandler::startup(MainWindow* mainWindow) { return true; }
 
 // Video Source Events
 void TextureSourceRequestHandler::publishTextureSourceOpenedEvent()

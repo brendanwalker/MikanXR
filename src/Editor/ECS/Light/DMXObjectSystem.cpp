@@ -30,12 +30,9 @@ void DMXObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanObjectSystemDefinition::readFromJSON(pt);
 
-	m_dmxConfig.networkInterfaceIP=
-		pt.get_or<std::string>(k_networkInterfaceIPPropertyId, "0.0.0.0");
-	m_dmxConfig.priority=
-		static_cast<uint8_t>(pt.get_or<int>(k_dmxPriorityPropertyId, 100));
-	m_dmxConfig.transmitRateHz=
-		pt.get_or<float>(k_transmitRateHzPropertyId, 44.0f);
+	m_dmxConfig.networkInterfaceIP= pt.get_or<std::string>(k_networkInterfaceIPPropertyId, "0.0.0.0");
+	m_dmxConfig.priority= static_cast<uint8_t>(pt.get_or<int>(k_dmxPriorityPropertyId, 100));
+	m_dmxConfig.transmitRateHz= pt.get_or<float>(k_transmitRateHzPropertyId, 44.0f);
 }
 
 void DMXObjectSystemDefinition::setNetworkInterfaceIP(const std::string& ip)
@@ -43,8 +40,7 @@ void DMXObjectSystemDefinition::setNetworkInterfaceIP(const std::string& ip)
 	if (m_dmxConfig.networkInterfaceIP != ip)
 	{
 		m_dmxConfig.networkInterfaceIP= ip;
-		notifyPropertyChanged(ConfigPropertyChangeSet()
-								  .addPropertyName(k_networkInterfaceIPPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_networkInterfaceIPPropertyId));
 	}
 }
 
@@ -53,8 +49,7 @@ void DMXObjectSystemDefinition::setDMXPriority(uint8_t priority)
 	if (m_dmxConfig.priority != priority)
 	{
 		m_dmxConfig.priority= priority;
-		notifyPropertyChanged(ConfigPropertyChangeSet()
-								  .addPropertyName(k_dmxPriorityPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_dmxPriorityPropertyId));
 	}
 }
 
@@ -63,8 +58,7 @@ void DMXObjectSystemDefinition::setTransmitRateHz(float hz)
 	if (m_dmxConfig.transmitRateHz != hz)
 	{
 		m_dmxConfig.transmitRateHz= hz;
-		notifyPropertyChanged(ConfigPropertyChangeSet()
-								  .addPropertyName(k_transmitRateHzPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_transmitRateHzPropertyId));
 	}
 }
 
@@ -122,26 +116,26 @@ MikanComponentPtr DMXObjectSystem::getComponentById(int componentId) const
 	return MikanComponentPtr();
 }
 
-bool DMXObjectSystem::getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const
+bool DMXObjectSystem::getComponentList(const std::string& componentClassName,
+									   std::vector<MikanComponentPtr>& outComponentList) const
 {
 	// DMXObjectSystem doesn't manage ownership of components
 	return false;
 }
 
-bool DMXObjectSystem::getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const
+bool DMXObjectSystem::getComponentIdList(const std::string& componentClassName,
+										 std::vector<int>& outComponentIdList) const
 {
 	// DMXObjectSystem doesn't manage ownership of components
 	return false;
 }
 
 // Project Config Events
-void DMXObjectSystem::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const class ConfigPropertyChangeSet& changeSet)
+void DMXObjectSystem::onDefinitionMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changeSet)
 {
-	if (changeSet.hasPropertyName(DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId) ||
-		changeSet.hasPropertyName(DMXObjectSystemDefinition::k_dmxPriorityPropertyId) ||
-		changeSet.hasPropertyName(DMXObjectSystemDefinition::k_transmitRateHzPropertyId))
+	if (changeSet.hasPropertyName(DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId)
+		|| changeSet.hasPropertyName(DMXObjectSystemDefinition::k_dmxPriorityPropertyId)
+		|| changeSet.hasPropertyName(DMXObjectSystemDefinition::k_transmitRateHzPropertyId))
 	{
 		if (m_dmxManager)
 			m_dmxManager->restart(getDMXManagerConfig());
@@ -171,10 +165,10 @@ void DMXObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 		DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId, MikanVariantType::STRING));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		DMXObjectSystemDefinition::k_dmxPriorityPropertyId, MikanVariantType::UBYTE));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		DMXObjectSystemDefinition::k_transmitRateHzPropertyId, MikanVariantType::FLOAT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(DMXObjectSystemDefinition::k_dmxPriorityPropertyId,
+																  MikanVariantType::UBYTE));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(DMXObjectSystemDefinition::k_transmitRateHzPropertyId,
+																  MikanVariantType::FLOAT));
 }
 
 bool DMXObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const

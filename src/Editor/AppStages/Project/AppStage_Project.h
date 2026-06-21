@@ -54,18 +54,12 @@ protected:
 	void renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
-	void renderCameraComponents(
-		IMkGraphicsContext* graphicsContext,
-		MikanCameraPtr viewportCamera,
-		StageComponentConstPtr stageComponent) const;
-	void renderVRTrackingVolume(
-		IMkGraphicsContext* graphicsContext,
-		MikanCameraPtr viewportCamera,
-		VRTrackingVolumeComponentConstPtr vrTrackingVolume) const;
-	void renderMarkerTrackingVolume(
-		IMkGraphicsContext* graphicsContext,
-		MikanCameraPtr viewportCamera,
-		MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const;
+	void renderCameraComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+								StageComponentConstPtr stageComponent) const;
+	void renderVRTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+								VRTrackingVolumeComponentConstPtr vrTrackingVolume) const;
+	void renderMarkerTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+									MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const;
 
 	// Panel Selection
 	void setActivePanel(eProjectAppStageActivePanel newPanel);
@@ -92,10 +86,8 @@ protected:
 	void debugRenderOrigin() const;
 
 	// -- IRemoteControllable Interface -- //
-	virtual bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults) override;
+	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+											std::vector<std::string>& outResults) override;
 
 protected:
 	ProjectConfigPtr m_project;

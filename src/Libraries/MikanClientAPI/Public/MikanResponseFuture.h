@@ -9,10 +9,7 @@ class MIKAN_API MikanResponseFuture
 public:
 	MikanResponseFuture();
 	MikanResponseFuture(MikanAPIResult result);
-	MikanResponseFuture(
-		class MikanRequestManager* owner,
-		MikanRequestID requestId,
-		MikanResponsePromise& promise);
+	MikanResponseFuture(class MikanRequestManager* owner, MikanRequestID requestId, MikanResponsePromise& promise);
 	MikanResponseFuture(MikanResponseFuture&& _Other) noexcept;
 	virtual ~MikanResponseFuture();
 

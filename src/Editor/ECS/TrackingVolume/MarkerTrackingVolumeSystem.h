@@ -14,10 +14,13 @@
 
 using MarkerTrackingVolumeIdList= std::vector<MikanTrackingVolumeID>;
 
-class MarkerTrackingVolumeSystemDefinition : public MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition, MikanTrackingVolumeID>
+class MarkerTrackingVolumeSystemDefinition
+	: public MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition,
+											  MikanTrackingVolumeID>
 {
 public:
-	using Super= MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition, MikanTrackingVolumeID>;
+	using Super= MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition,
+												  MikanTrackingVolumeID>;
 
 	MarkerTrackingVolumeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -25,16 +28,15 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class MarkerTrackingVolumeSystem : public MikanTypedObjectSystem<
-									   MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition,
-									   MikanTrackingVolumeID,
-									   MarkerTrackingVolumeSystem, MarkerTrackingVolumeSystemDefinition>
+class MarkerTrackingVolumeSystem
+	: public MikanTypedObjectSystem<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition,
+									MikanTrackingVolumeID, MarkerTrackingVolumeSystem,
+									MarkerTrackingVolumeSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition,
-		MikanTrackingVolumeID,
-		MarkerTrackingVolumeSystem, MarkerTrackingVolumeSystemDefinition>;
+	using Super=
+		MikanTypedObjectSystem<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition, MikanTrackingVolumeID,
+							   MarkerTrackingVolumeSystem, MarkerTrackingVolumeSystemDefinition>;
 
 	MarkerTrackingVolumeSystem(ProjectManagerPtr ownerObjectSystemManager);
 

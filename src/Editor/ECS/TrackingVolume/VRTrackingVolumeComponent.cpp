@@ -26,33 +26,22 @@ const std::string VRTrackingVolumeDefinition::k_vrSpaceToStageSpacePropertyId= "
 
 VRTrackingVolumeDefinition::VRTrackingVolumeDefinition()
 	: TrackingVolumeDefinition()
-	, m_vrSpaceToStageSpace({1.f, 0.f, 0.f, 0.f,
-							 0.f, 1.f, 0.f, 0.f,
-							 0.f, 0.f, 1.f, 0.f,
-							 0.f, 0.f, 0.f, 1.f})
+	, m_vrSpaceToStageSpace({1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f})
 {
 }
 
-VRTrackingVolumeDefinition::VRTrackingVolumeDefinition(
-	MikanTrackingVolumeID trackingVolumeId)
+VRTrackingVolumeDefinition::VRTrackingVolumeDefinition(MikanTrackingVolumeID trackingVolumeId)
 	: TrackingVolumeDefinition(trackingVolumeId)
 	, m_trackingRuntime(eTrackingRuntime::INVALID)
 	, m_charucoMountId(INVALID_MIKAN_ID)
 	, m_utilityMarkerId(INVALID_MIKAN_ID)
-	, m_charucoMountOffsetMM({DEFAULT_PUCK_HORIZONTAL_OFFSET_MM,
-							  DEFAULT_PUCK_VERTICAL_OFFSET_MM,
-							  DEFAULT_PUCK_DEPTH_OFFSET_MM})
-	, m_vrSpaceToStageSpace({1.f, 0.f, 0.f, 0.f,
-							 0.f, 1.f, 0.f, 0.f,
-							 0.f, 0.f, 1.f, 0.f,
-							 0.f, 0.f, 0.f, 1.f})
+	, m_charucoMountOffsetMM(
+		  {DEFAULT_PUCK_HORIZONTAL_OFFSET_MM, DEFAULT_PUCK_VERTICAL_OFFSET_MM, DEFAULT_PUCK_DEPTH_OFFSET_MM})
+	, m_vrSpaceToStageSpace({1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f})
 {
 }
 
-eTrackingVolumeType VRTrackingVolumeDefinition::getTrackingVolumeType() const
-{
-	return eTrackingVolumeType::vr;
-}
+eTrackingVolumeType VRTrackingVolumeDefinition::getTrackingVolumeType() const { return eTrackingVolumeType::vr; }
 
 configuru::Config VRTrackingVolumeDefinition::writeToJSON()
 {
@@ -75,8 +64,7 @@ void VRTrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 
 	const std::string trackingRuntimeString=
 		pt.get_or<std::string>(k_trackingRuntimePropertyId.c_str(), k_trackingRuntimeStrings[0]);
-	m_trackingRuntime=
-		StringUtils::FindEnumValue<eTrackingRuntime>(trackingRuntimeString, k_trackingRuntimeStrings);
+	m_trackingRuntime= StringUtils::FindEnumValue<eTrackingRuntime>(trackingRuntimeString, k_trackingRuntimeStrings);
 	m_charucoMountId= pt.get_or<MikanTrackingMountID>(k_charucoMountIdPropertyId.c_str(), INVALID_MIKAN_ID);
 	m_utilityMarkerId= pt.get_or<MikanMarkerID>(k_utilityMarkerIdPropertyId.c_str(), INVALID_MIKAN_ID);
 
@@ -85,9 +73,8 @@ void VRTrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 	readMatrix4f(pt, k_vrSpaceToStageSpacePropertyId.c_str(), m_vrSpaceToStageSpace);
 }
 
-bool VRTrackingVolumeDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool VRTrackingVolumeDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+													const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TrackingVolumeDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -200,10 +187,7 @@ rfk::Struct const* VRTrackingVolumeComponent::getClientAPIValuesStructType() con
 	return &MikanVRTrackingVolumeComponentValues::staticGetArchetype();
 }
 
-glm::mat4 VRTrackingVolumeComponent::getVRSpaceToStageSpace() const
-{
-	return m_vrSpaceToStageSpace.getMat4();
-}
+glm::mat4 VRTrackingVolumeComponent::getVRSpaceToStageSpace() const { return m_vrSpaceToStageSpace.getMat4(); }
 
 void VRTrackingVolumeComponent::setVRSpaceToStageSpace(const glm::mat4& poseOffset)
 {
@@ -218,8 +202,7 @@ bool VRTrackingVolumeComponent::ownsTrackingMount(MikanTrackingMountID mountId) 
 	return std::find(ownedIds.begin(), ownedIds.end(), mountId) != ownedIds.end();
 }
 
-VRDevicePoseViewPtr VRTrackingVolumeComponent::makeChArUcoTrackingMountPoseView(
-	eVRDevicePoseSpace space) const
+VRDevicePoseViewPtr VRTrackingVolumeComponent::makeChArUcoTrackingMountPoseView(eVRDevicePoseSpace space) const
 {
 	MikanTrackingMountID mountId= getVRTrackingVolumeDefinition()->getCharucoTrackingMountId();
 	if (mountId != INVALID_MIKAN_ID)
@@ -248,37 +231,28 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 {
 	TrackingVolumeComponent::getPropertyDescriptors(outDescriptors);
 
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 VRTrackingVolumeDefinition::k_trackingRuntimePropertyId, MikanVariantType::INT)
+								 ->setDefaultValue(-1)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 VRTrackingVolumeDefinition::k_charucoMountIdPropertyId, MikanVariantType::INT)
+								 ->setDefaultValue(-1));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId, MikanVariantType::VECTOR3F)
+								 ->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId, MikanVariantType::INT)
+								 ->setDefaultValue(-1));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId, MikanVariantType::INT_ARRAY)
+								 ->setReadOnly()
+								 ->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_trackingRuntimePropertyId, MikanVariantType::INT)
-			->setDefaultValue(-1)
-			->setReadOnly());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_charucoMountIdPropertyId, MikanVariantType::INT)
-			->setDefaultValue(-1));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId, MikanVariantType::VECTOR3F)
-			->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId, MikanVariantType::INT)
-			->setDefaultValue(-1));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId, MikanVariantType::INT_ARRAY)
-			->setReadOnly()
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_vrSpaceToStageSpacePropertyId, MikanVariantType::MATRIX4F)
+		std::make_shared<PropertyDescriptor>(VRTrackingVolumeDefinition::k_vrSpaceToStageSpacePropertyId,
+											 MikanVariantType::MATRIX4F)
 			->setDefaultValue(
-				MikanMatrix4f(
-					1.f, 0.f, 0.f, 0.f,
-					0.f, 1.f, 0.f, 0.f,
-					0.f, 0.f, 1.f, 0.f,
-					0.f, 0.f, 0.f, 1.f)));
+				MikanMatrix4f(1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f)));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(k_vrDevicePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
 			->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
@@ -292,13 +266,11 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(k_displayTrackingSpacePropertyId, MikanVariantType::INT)
 			->setDefaultValue(0)
-			->addMetaData(std::make_shared<EnumPropertyMetaData>(
-				k_trackingSpaceStrings, 2, eEnumDisplayStyle::RadioButtons)));
+			->addMetaData(
+				std::make_shared<EnumPropertyMetaData>(k_trackingSpaceStrings, 2, eEnumDisplayStyle::RadioButtons)));
 }
 
-bool VRTrackingVolumeComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool VRTrackingVolumeComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
 	{
@@ -357,9 +329,7 @@ bool VRTrackingVolumeComponent::getPropertyValue(
 	return TrackingVolumeComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool VRTrackingVolumeComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool VRTrackingVolumeComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
 	{
@@ -407,8 +377,7 @@ void VRTrackingVolumeComponent::getFunctionDescriptors(std::vector<FunctionDescr
 	TrackingVolumeComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_alignTrackingVolumeFunctionId, "Align Tracking Volume"));
+		std::make_shared<FunctionDescriptor>(k_alignTrackingVolumeFunctionId, "Align Tracking Volume"));
 }
 
 bool VRTrackingVolumeComponent::invokeFunction(const std::string& functionName)
@@ -431,12 +400,9 @@ void VRTrackingVolumeComponent::alignTrackingVolume()
 		[this, currentAppStage](MikanCameraID cameraId)
 		{
 			const MikanTrackingVolumeID volumeId= getTrackingVolumeDefinition()->getTrackingVolumeId();
-			CameraComponentPtr cameraComponent=
-				getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
+			CameraComponentPtr cameraComponent= getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
 
-			AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
-				currentAppStage,
-				cameraComponent,
-				getSelfPtr<VRTrackingVolumeComponent>());
+			AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(currentAppStage, cameraComponent,
+																	  getSelfPtr<VRTrackingVolumeComponent>());
 		});
 }

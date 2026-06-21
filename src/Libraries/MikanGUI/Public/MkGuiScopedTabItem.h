@@ -6,9 +6,7 @@
 class MIKAN_GUI_CLASS MkGuiScopedTabItem
 {
 public:
-	explicit MkGuiScopedTabItem(const char* label,
-								bool* p_open= nullptr,
-								ImGuiTabItemFlags flags= 0);
+	explicit MkGuiScopedTabItem(const char* label, bool* p_open= nullptr, ImGuiTabItemFlags flags= 0);
 	~MkGuiScopedTabItem();
 
 	MkGuiScopedTabItem(const MkGuiScopedTabItem&)= delete;

@@ -19,21 +19,12 @@ static void generateRandomCID(uint8_t cid[16])
 	cid[8]= (cid[8] & 0x3F) | 0x80;
 }
 
-DMXSendThread::DMXSendThread()
-{
-	generateRandomCID(m_cid);
-}
+DMXSendThread::DMXSendThread() { generateRandomCID(m_cid); }
 
-DMXSendThread::~DMXSendThread()
-{
-	stop();
-}
+DMXSendThread::~DMXSendThread() { stop(); }
 
-bool DMXSendThread::start(
-	const std::string& bindIP,
-	const std::string& sourceName,
-	uint8_t priority,
-	float transmitRateHz)
+bool DMXSendThread::start(const std::string& bindIP, const std::string& sourceName, uint8_t priority,
+						  float transmitRateHz)
 {
 	if (m_running.load())
 		return true;
@@ -66,11 +57,7 @@ void DMXSendThread::stop()
 	m_running.store(false);
 }
 
-void DMXSendThread::setChannels(
-	uint16_t universe,
-	uint16_t startChannel,
-	const uint8_t* values,
-	uint16_t count)
+void DMXSendThread::setChannels(uint16_t universe, uint16_t startChannel, const uint8_t* values, uint16_t count)
 {
 	assert(startChannel >= 1 && startChannel <= 512);
 
@@ -86,10 +73,7 @@ void DMXSendThread::setChannels(
 	}
 }
 
-void DMXSendThread::setUniverseData(
-	uint16_t universe,
-	const uint8_t* slotData,
-	uint16_t slotCount)
+void DMXSendThread::setUniverseData(uint16_t universe, const uint8_t* slotData, uint16_t slotCount)
 {
 	const uint16_t clampedCount= std::min<uint16_t>(slotCount, 512);
 
@@ -118,8 +102,8 @@ void DMXSendThread::transmitUniverse(uint16_t universe, UniverseBuffer& buf)
 	uint8_t destIPBytes[4];
 	e131_multicast_address(universe, destIPBytes);
 	char destIP[16];
-	std::snprintf(destIP, sizeof(destIP), "%u.%u.%u.%u",
-				  destIPBytes[0], destIPBytes[1], destIPBytes[2], destIPBytes[3]);
+	std::snprintf(destIP, sizeof(destIP), "%u.%u.%u.%u", destIPBytes[0], destIPBytes[1], destIPBytes[2],
+				  destIPBytes[3]);
 
 	m_socket.sendTo(destIP, E131_PORT, &pkt, sizeof(pkt));
 	buf.dirty= false;

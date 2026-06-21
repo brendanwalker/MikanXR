@@ -41,9 +41,7 @@ public:
 		auto derivedObjectPtr= std::make_shared<t_derived_class>();
 		auto baseObjectPtr= std::static_pointer_cast<PolymorphicStruct>(derivedObjectPtr);
 
-		setPolymorphicStructPtrInternal(
-			baseObjectPtr,
-			t_derived_class::staticGetArchetype());
+		setPolymorphicStructPtrInternal(baseObjectPtr, t_derived_class::staticGetArchetype());
 
 		return getTypedPointerMutable<t_derived_class>();
 	}
@@ -78,15 +76,11 @@ public:
 	// Methods invoked by reflection (serialization code)
 	METHOD() void* allocateByClassName(const std::string& className);
 
-	METHOD()
-	const void*
-	getRawPtr() const;
+	METHOD() const void* getRawPtr() const;
 
 	METHOD() void* getRawPtrMutable();
 
-	METHOD()
-	std::string
-	getRuntimeClassName() const;
+	METHOD() std::string getRuntimeClassName() const;
 
 #ifdef SERIALIZATION_REFLECTION_ENABLED
 Serialization_PolymorphicObjectPtr_GENERATED
@@ -94,9 +88,7 @@ Serialization_PolymorphicObjectPtr_GENERATED
 
 	protected : bool
 				isTypeCompatibleWith(rfk::Struct const& objectClass) const;
-	void setPolymorphicStructPtrInternal(
-		std::shared_ptr<PolymorphicStruct> objPtr,
-		rfk::Struct const& objectClass);
+	void setPolymorphicStructPtrInternal(std::shared_ptr<PolymorphicStruct> objPtr, rfk::Struct const& objectClass);
 
 	struct PolymorphicObjectPtrImpl* m_impl= nullptr;
 };

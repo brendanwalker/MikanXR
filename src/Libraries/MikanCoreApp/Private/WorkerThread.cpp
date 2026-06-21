@@ -29,20 +29,11 @@ WorkerThread::WorkerThread(const std::string thread_name)
 {
 }
 
-WorkerThread::~WorkerThread()
-{
-	delete m_impl;
-}
+WorkerThread::~WorkerThread() { delete m_impl; }
 
-bool WorkerThread::hasThreadStarted() const
-{
-	return m_impl->threadStarted;
-}
+bool WorkerThread::hasThreadStarted() const { return m_impl->threadStarted; }
 
-bool WorkerThread::hasThreadEnded() const
-{
-	return m_impl->threadEnded.load();
-}
+bool WorkerThread::hasThreadEnded() const { return m_impl->threadEnded.load(); }
 
 void WorkerThread::startThread()
 {

@@ -18,9 +18,8 @@ public:
 	}
 	virtual ~IModelExporter() {}
 
-	virtual bool exportModelToFile(
-		MikanRenderModelResourcePtr modelResource,
-		const std::filesystem::path& modelPath)= 0;
+	virtual bool exportModelToFile(MikanRenderModelResourcePtr modelResource,
+								   const std::filesystem::path& modelPath)= 0;
 
 protected:
 	class MikanModelResourceManager* m_ownerManager;

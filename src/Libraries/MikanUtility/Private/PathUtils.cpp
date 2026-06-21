@@ -106,9 +106,8 @@ std::filesystem::path getHomeDirectory()
 	return home_dir;
 }
 
-std::vector<std::string> listFilenamesInDirectory(
-	const std::filesystem::path& path,
-	const std::string& extension_filter)
+std::vector<std::string> listFilenamesInDirectory(const std::filesystem::path& path,
+												  const std::string& extension_filter)
 {
 	std::vector<std::string> filenames;
 
@@ -128,8 +127,7 @@ std::vector<std::string> listFilenamesInDirectory(
 	return filenames;
 }
 
-std::vector<std::string> listDirectoriesInDirectory(
-	const std::filesystem::path& path)
+std::vector<std::string> listDirectoriesInDirectory(const std::filesystem::path& path)
 {
 	std::vector<std::string> dirnames;
 
@@ -172,10 +170,8 @@ std::vector<std::string> listVolumes()
 	return result;
 }
 
-std::filesystem::path makeTimestampedFilePath(
-	const std::filesystem::path& parentDir,
-	const std::string& prefix,
-	const std::string& suffix)
+std::filesystem::path makeTimestampedFilePath(const std::filesystem::path& parentDir, const std::string& prefix,
+											  const std::string& suffix)
 {
 	time_t t= time(0);
 	struct tm* now= localtime(&t);
@@ -192,9 +188,7 @@ std::filesystem::path makeTimestampedFilePath(
 	return result;
 }
 
-std::string createTrimmedPathString(
-	const std::filesystem::path& path,
-	const size_t maxLength)
+std::string createTrimmedPathString(const std::filesystem::path& path, const size_t maxLength)
 {
 	const std::string pathString= path.string();
 

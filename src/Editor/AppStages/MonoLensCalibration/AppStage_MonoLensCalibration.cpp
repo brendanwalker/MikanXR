@@ -18,12 +18,8 @@
 const char* AppStage_MonoLensCalibration::APP_STAGE_NAME= "MonoCalibration";
 
 const std::string g_monoLensCalibrationMenuStateStrings[(int)eMonoLensCalibrationMenuState::COUNT]= {
-	"inactive",
-	"capture",
-	"processingCalibration",
-	"testCalibration",
-	"failedCalibration",
-	"failedVideoStartStreamRequest",
+	"inactive",          "capture",           "processingCalibration",
+	"testCalibration",   "failedCalibration", "failedVideoStartStreamRequest",
 	"pendingVideoStart",
 };
 
@@ -36,9 +32,7 @@ AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(IEditorWindow* ownerW
 {
 }
 
-AppStage_MonoLensCalibration::~AppStage_MonoLensCalibration()
-{
-}
+AppStage_MonoLensCalibration::~AppStage_MonoLensCalibration() {}
 
 void AppStage_MonoLensCalibration::setBypassCalibrationFlag(bool flag)
 {
@@ -62,9 +56,7 @@ void AppStage_MonoLensCalibration::enter()
 		MakeDelegate(this, &AppStage_MonoLensCalibration::onCaptureKeyPressed);
 
 	// Create the distortion view eagerly — it is the stream ownership token
-	m_monoDistortionView= new VideoFrameDistortionView(
-		m_videoSourceComponent,
-		eVideoFrameProcessorMode::CALIBRATION);
+	m_monoDistortionView= new VideoFrameDistortionView(m_videoSourceComponent, eVideoFrameProcessorMode::CALIBRATION);
 
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
 	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
@@ -76,19 +68,14 @@ void AppStage_MonoLensCalibration::enter()
 	{
 		m_calibrationPanel= addGuiPanel<GuiPanel_MonoLensCalibration>();
 		m_calibrationPanel->setBypassCalibrationFlag(m_bypassCalibrationFlag);
-		m_calibrationPanel->OnCancelEvent= [this]()
-		{ onCancelEvent(); };
-		m_calibrationPanel->OnRestartEvent= [this]()
-		{ onRestartEvent(); };
-		m_calibrationPanel->OnReturnEvent= [this]()
-		{ onReturnEvent(); };
-		m_calibrationPanel->OnImagePointStabilityChangedEvent=
-			[this](bool bIsStable)
+		m_calibrationPanel->OnCancelEvent= [this]() { onCancelEvent(); };
+		m_calibrationPanel->OnRestartEvent= [this]() { onRestartEvent(); };
+		m_calibrationPanel->OnReturnEvent= [this]() { onReturnEvent(); };
+		m_calibrationPanel->OnImagePointStabilityChangedEvent= [this](bool bIsStable)
 		{ onImagePointStabilityChangedEvent(bIsStable); };
 
 		m_cameraSettingsPanel= addGuiPanel<GuiPanel_MonoCameraSettings>();
-		m_cameraSettingsPanel->OnVideoDisplayModeChanged=
-			[this](eVideoDisplayMode mode)
+		m_cameraSettingsPanel->OnVideoDisplayModeChanged= [this](eVideoDisplayMode mode)
 		{ onVideoDisplayModeChanged(mode); };
 	}
 
@@ -247,10 +234,7 @@ void AppStage_MonoLensCalibration::render(IMkViewportPtr targetViewport)
 	}
 }
 
-void AppStage_MonoLensCalibration::onCaptureKeyPressed()
-{
-	tryCapture();
-}
+void AppStage_MonoLensCalibration::onCaptureKeyPressed() { tryCapture(); }
 
 bool AppStage_MonoLensCalibration::tryCapture()
 {
@@ -270,11 +254,8 @@ bool AppStage_MonoLensCalibration::tryCapture()
 
 void AppStage_MonoLensCalibration::setupMonoLensCalibrator()
 {
-	m_monoLensCalibrator=
-		new MonoLensDistortionCalibrator(
-			getSystemOfType<MarkerObjectSystem>(),
-			m_monoDistortionView,
-			DESIRED_CAPTURE_BOARD_COUNT);
+	m_monoLensCalibrator= new MonoLensDistortionCalibrator(getSystemOfType<MarkerObjectSystem>(), m_monoDistortionView,
+														   DESIRED_CAPTURE_BOARD_COUNT);
 
 	if (m_bypassCalibrationFlag)
 	{
@@ -327,15 +308,9 @@ void AppStage_MonoLensCalibration::onRestartEvent()
 	setMenuState(eMonoLensCalibrationMenuState::capture);
 }
 
-void AppStage_MonoLensCalibration::onReturnEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_MonoLensCalibration::onReturnEvent() { m_ownerWindow->popAppState(); }
 
-void AppStage_MonoLensCalibration::onCancelEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_MonoLensCalibration::onCancelEvent() { m_ownerWindow->popAppState(); }
 
 void AppStage_MonoLensCalibration::onImagePointStabilityChangedEvent(bool bIsStable)
 {
@@ -351,10 +326,9 @@ void AppStage_MonoLensCalibration::onVideoDisplayModeChanged(eVideoDisplayMode n
 	m_monoDistortionView->setVideoDisplayMode(newDisplayMode);
 }
 
-bool AppStage_MonoLensCalibration::handleRemoteControlCommand(
-	const std::string& command,
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage_MonoLensCalibration::handleRemoteControlCommand(const std::string& command,
+															  const std::vector<std::string>& parameters,
+															  std::vector<std::string>& outResults)
 {
 	if (!IRemoteControllable::handleRemoteControlCommand(command, parameters, outResults))
 	{
@@ -379,8 +353,7 @@ bool AppStage_MonoLensCalibration::handleRemoteControlCommand(
 	return false;
 }
 
-bool AppStage_MonoLensCalibration::handleGetStateCommand(
-	std::vector<std::string>& outResults)
+bool AppStage_MonoLensCalibration::handleGetStateCommand(std::vector<std::string>& outResults)
 {
 	const eMonoLensCalibrationMenuState menuState= m_calibrationPanel->getMenuState();
 	const std::string& stateName= g_monoLensCalibrationMenuStateStrings[(int)menuState];
@@ -390,8 +363,7 @@ bool AppStage_MonoLensCalibration::handleGetStateCommand(
 	return true;
 }
 
-bool AppStage_MonoLensCalibration::handleGetImagePointStabilityCommand(
-	std::vector<std::string>& outResults)
+bool AppStage_MonoLensCalibration::handleGetImagePointStabilityCommand(std::vector<std::string>& outResults)
 {
 	const bool bIsStable= m_monoLensCalibrator->getIsCameraCalibrationComplete();
 	outResults.push_back(bIsStable ? IRemoteControllable::k_true : IRemoteControllable::k_false);
@@ -399,8 +371,7 @@ bool AppStage_MonoLensCalibration::handleGetImagePointStabilityCommand(
 	return true;
 }
 
-bool AppStage_MonoLensCalibration::handleGetSamplesNeededCommand(
-	std::vector<std::string>& outResults)
+bool AppStage_MonoLensCalibration::handleGetSamplesNeededCommand(std::vector<std::string>& outResults)
 {
 	const int samplesNeeded= m_monoLensCalibrator->getDesiredPatternCount();
 	outResults.push_back(std::to_string(samplesNeeded));
@@ -436,8 +407,7 @@ void AppStage_MonoLensCalibration::onGui()
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 	MkGuiScopedWindow panel("##MonoLensCalibration", nullptr, k_flags);
 	if (!panel)
 		return;

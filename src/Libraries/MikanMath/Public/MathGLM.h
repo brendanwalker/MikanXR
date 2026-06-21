@@ -25,15 +25,12 @@ MIKAN_MATH_FUNC(bool) glm_vec3_is_nearly_equal(const glm::vec3& a, const glm::ve
 MIKAN_MATH_FUNC(float) glm_vec3_normalize_with_default(glm::vec3& v, const glm::vec3& default_result);
 MIKAN_MATH_FUNC(glm::vec3) glm_vec3_lerp(const glm::vec3& a, const glm::vec3& b, const float u);
 MIKAN_MATH_FUNC(glm::mat4) glm_scale_along_axis(const glm::vec3& axis, const float scale);
-MIKAN_MATH_FUNC(void) glm_quat_to_euler_angles(
-	const glm::quat& orientation,
-	float& out_x_radians, float& out_y_radians, float& out_z_radians);
-MIKAN_MATH_FUNC(void) glm_euler_angles_to_mat3(
-	float x_radians, float y_radians, float z_radians,
-	glm::mat3& out_orientation);
-MIKAN_MATH_FUNC(void) glm_euler_angles_to_quat(
-	float x_radians, float y_radians, float z_radians,
-	glm::quat& out_orientation);
+MIKAN_MATH_FUNC(void) glm_quat_to_euler_angles(const glm::quat& orientation, float& out_x_radians, float& out_y_radians,
+											   float& out_z_radians);
+MIKAN_MATH_FUNC(void) glm_euler_angles_to_mat3(float x_radians, float y_radians, float z_radians,
+											   glm::mat3& out_orientation);
+MIKAN_MATH_FUNC(void) glm_euler_angles_to_quat(float x_radians, float y_radians, float z_radians,
+											   glm::quat& out_orientation);
 MIKAN_MATH_FUNC(glm::mat4) glm_composite_xform(const glm::mat4& first, const glm::mat4& second);
 MIKAN_MATH_FUNC(glm::quat) glm_composite_rotation(const glm::quat& first, const glm::quat& second);
 MIKAN_MATH_FUNC(glm::mat4) glm_relative_xform(const glm::mat4& parentWorldXform, const glm::mat4& childWorldXform);
@@ -52,27 +49,18 @@ MIKAN_MATH_FUNC(void) glm_mat4_set_position(glm::mat4& xform, const glm::vec3& v
 
 MIKAN_MATH_FUNC(void) glm_xform_points(const glm::mat4& xform, glm::vec3* points, size_t point_count);
 MIKAN_MATH_FUNC(void) glm_xform_vectors(const glm::mat4& xform, glm::vec3* points, size_t point_count);
-MIKAN_MATH_FUNC(bool) glm_closest_point_on_ray_to_point(
-	const glm::vec3& ray_start,
-	const glm::vec3& ray_direction,
-	const glm::vec3& point,
-	float& out_ray_closest_time,
-	glm::vec3& out_ray_closest_point);
-MIKAN_MATH_FUNC(bool) glm_closest_point_on_ray_to_ray(
-	const glm::vec3& ray1_start,
-	const glm::vec3& ray1_direction,
-	const glm::vec3& ray2_start,
-	const glm::vec3& ray2_direction,
-	float& out_ray1_closest_time,
-	glm::vec3& out_ray1_closest_point);
-MIKAN_MATH_FUNC(bool) glm_intersect_plane_with_ray(
-	const glm::vec3& point_on_plane, const glm::vec3& plane_normal,
-	const glm::vec3& ray_start, const glm::vec3& ray_direction,
-	float& outIntDistance, glm::vec3& outIntPoint);
-MIKAN_MATH_FUNC(bool) glm_intersect_tri_with_ray(
-	const GlmTriangle& tri,
-	const glm::vec3& ray_start, const glm::vec3& ray_direction,
-	float& outIntDistance, glm::vec3& outIntPoint, glm::vec3& outIntNormal);
+MIKAN_MATH_FUNC(bool) glm_closest_point_on_ray_to_point(const glm::vec3& ray_start, const glm::vec3& ray_direction,
+														const glm::vec3& point, float& out_ray_closest_time,
+														glm::vec3& out_ray_closest_point);
+MIKAN_MATH_FUNC(bool) glm_closest_point_on_ray_to_ray(const glm::vec3& ray1_start, const glm::vec3& ray1_direction,
+													  const glm::vec3& ray2_start, const glm::vec3& ray2_direction,
+													  float& out_ray1_closest_time, glm::vec3& out_ray1_closest_point);
+MIKAN_MATH_FUNC(bool) glm_intersect_plane_with_ray(const glm::vec3& point_on_plane, const glm::vec3& plane_normal,
+												   const glm::vec3& ray_start, const glm::vec3& ray_direction,
+												   float& outIntDistance, glm::vec3& outIntPoint);
+MIKAN_MATH_FUNC(bool) glm_intersect_tri_with_ray(const GlmTriangle& tri, const glm::vec3& ray_start,
+												 const glm::vec3& ray_direction, float& outIntDistance,
+												 glm::vec3& outIntPoint, glm::vec3& outIntNormal);
 MIKAN_MATH_FUNC(bool) glm_intersect_disk_with_ray(
 	const glm::vec3& ray_start,     // Ray origin, in world space
 	const glm::vec3& ray_direction, // Ray direction, in world space.
@@ -86,19 +74,19 @@ MIKAN_MATH_FUNC(bool) glm_intersect_obb_with_ray(
 	const glm::vec3& ray_start,     // Ray origin, in world space
 	const glm::vec3& ray_direction, // Ray direction, in world space.
 	const glm::vec3& aabb_min,      // Minimum X,Y,Z coords of the mesh when not transformed at all.
-	const glm::vec3& aabb_max,      // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
-	const glm::mat4& xform,         // Transformation applied to the mesh (which will thus be also applied to its bounding box)
-	float& outIntDistance,          // Output: distance between ray_origin and the intersection with the OBB
-	glm::vec3& outIntPoint,         // Output: intersection point on the surface of the OBB
-	glm::vec3& outIntNormal);       // Output: intersection normal on the surface of the OBB
+	const glm::vec3&
+		aabb_max, // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+	const glm::mat4& xform, // Transformation applied to the mesh (which will thus be also applied to its bounding box)
+	float& outIntDistance,  // Output: distance between ray_origin and the intersection with the OBB
+	glm::vec3& outIntPoint, // Output: intersection point on the surface of the OBB
+	glm::vec3& outIntNormal); // Output: intersection normal on the surface of the OBB
 MIKAN_MATH_FUNC(bool) glm_intersect_aabb_with_ray(
 	const glm::vec3& ray_start,     // Ray origin, in world space
 	const glm::vec3& ray_direction, // Ray direction, in world space.
 	const glm::vec3& aabb_min,      // Minimum X,Y,Z coords of the aabb
-	const glm::vec3& aabb_max,      // Maximum X,Y,Z coords of the aabb. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
-	float& outIntDistance);         // Output: distance between ray_origin and the intersection with the AABB
+	const glm::vec3& aabb_max, // Maximum X,Y,Z coords of the aabb. Often aabb_min*-1 if your mesh is centered, but it's
+							   // not always the case.
+	float& outIntDistance);    // Output: distance between ray_origin and the intersection with the AABB
 
-MIKAN_MATH_FUNC(void) glm_sphere_union(
-	const glm::vec3& c1, const float r1,
-	const glm::vec3& c2, const float r2,
-	glm::vec3& outC, float& outR);
+MIKAN_MATH_FUNC(void) glm_sphere_union(const glm::vec3& c1, const float r1, const glm::vec3& c2, const float r2,
+									   glm::vec3& outC, float& outR);

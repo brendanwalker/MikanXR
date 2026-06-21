@@ -21,8 +21,7 @@ private:
 class MIKAN_GUI_CLASS MkGuiScopedPopupContextItem
 {
 public:
-	explicit MkGuiScopedPopupContextItem(const char* str_id= nullptr,
-										 ImGuiPopupFlags popup_flags= 1);
+	explicit MkGuiScopedPopupContextItem(const char* str_id= nullptr, ImGuiPopupFlags popup_flags= 1);
 	~MkGuiScopedPopupContextItem();
 
 	MkGuiScopedPopupContextItem(const MkGuiScopedPopupContextItem&)= delete;

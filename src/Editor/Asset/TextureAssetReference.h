@@ -26,10 +26,7 @@ public:
 
 	virtual std::string getAssetTypeName() const { return "Texture"; }
 	virtual char const* getFileDialogTitle() const { return "Load Texture"; }
-	virtual char const* const* getFilterPatterns() const
-	{
-		return getTextureFilterPatterns();
-	}
+	virtual char const* const* getFilterPatterns() const { return getTextureFilterPatterns(); }
 	virtual int getFilterPatternCount() const { return 5; }
 	virtual char const* getFilterDescription() const { return getTextureFilterDescription(); }
 
@@ -42,8 +39,5 @@ public:
 		return filterItems;
 	}
 	static int getTextureFilterPatternCount() { return 5; }
-	static char const* getTextureFilterDescription()
-	{
-		return "Image Files (*.jpg;*.jpeg;*.png;*.bmp;*.tga)";
-	}
+	static char const* getTextureFilterDescription() { return "Image Files (*.jpg;*.jpeg;*.png;*.bmp;*.tga)"; }
 };

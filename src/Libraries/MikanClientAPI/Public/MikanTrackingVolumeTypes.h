@@ -35,17 +35,19 @@ enum ENUM(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanTrackin
 };
 
 // Structures
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanTrackingVolumeComponentValues : public MikanComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanTrackingVolumeComponentValues
+	: public MikanComponentValues
 {
-	FIELD()
-	MikanMarkerID origin_marker_id= INVALID_MIKAN_ID;
+	FIELD() MikanMarkerID origin_marker_id= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTrackingVolumeComponentValues_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanMarkerTrackingVolumeComponentValues : public MikanTrackingVolumeComponentValues
+struct MIKAN_API
+	STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanMarkerTrackingVolumeComponentValues
+	: public MikanTrackingVolumeComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
@@ -55,26 +57,19 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanVRTrackingVolumeComponentValues : public MikanTrackingVolumeComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanVRTrackingVolumeComponentValues
+	: public MikanTrackingVolumeComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	MikanTrackingRuntime tracking_runtime= MikanTrackingRuntime_INVALID;
-	FIELD()
-	MikanTrackingMountID charuco_mount_id= INVALID_MIKAN_ID;
-	FIELD()
-	MikanVector3f charuco_mount_offset_mm;
-	FIELD()
-	MikanMarkerID utility_marker_id= INVALID_MIKAN_ID;
-	FIELD()
-	Serialization::List<MikanTrackingMountID>
-		tracking_mount_ids;
-	FIELD()
-	MikanMatrix4f vr_space_to_stage_space;
-	FIELD()
-	MikanTrackingSpace display_tracking_space= MikanTrackingSpace_INVALID;
+	FIELD() MikanTrackingRuntime tracking_runtime= MikanTrackingRuntime_INVALID;
+	FIELD() MikanTrackingMountID charuco_mount_id= INVALID_MIKAN_ID;
+	FIELD() MikanVector3f charuco_mount_offset_mm;
+	FIELD() MikanMarkerID utility_marker_id= INVALID_MIKAN_ID;
+	FIELD() Serialization::List<MikanTrackingMountID> tracking_mount_ids;
+	FIELD() MikanMatrix4f vr_space_to_stage_space;
+	FIELD() MikanTrackingSpace display_tracking_space= MikanTrackingSpace_INVALID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRTrackingVolumeComponentValues_GENERATED

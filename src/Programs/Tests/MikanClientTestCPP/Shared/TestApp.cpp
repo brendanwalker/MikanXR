@@ -25,10 +25,7 @@ TestApp::TestApp()
 {
 }
 
-TestApp::~TestApp()
-{
-	shutdown();
-}
+TestApp::~TestApp() { shutdown(); }
 
 int TestApp::exec(int argc, char** argv)
 {
@@ -145,10 +142,7 @@ void TestApp::shutdown()
 	SDL_Quit();
 }
 
-IMikanAPIPtr TestApp::getMikanAPI() const
-{
-	return m_mikanClient->getMikanAPI();
-}
+IMikanAPIPtr TestApp::getMikanAPI() const { return m_mikanClient->getMikanAPI(); }
 
 void TestApp::onSDLEvent(SDL_Event& e)
 {
@@ -164,16 +158,14 @@ void TestApp::onSDLEvent(SDL_Event& e)
 		MIKAN_LOG_INFO("exec") << "ESC key press. Closing.";
 		requestShutdown();
 	}
-	else if (e.type == SDL_WINDOWEVENT &&
-			 e.window.event == SDL_WINDOWEVENT_CLOSE &&
-			 e.window.windowID == SDL_GetWindowID(sdlWindow))
+	else if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_CLOSE
+			 && e.window.windowID == SDL_GetWindowID(sdlWindow))
 	{
 		MIKAN_LOG_INFO("exec") << "Window close message received.";
 		requestShutdown();
 	}
-	else if (e.type == SDL_WINDOWEVENT &&
-			 e.window.event == SDL_WINDOWEVENT_RESIZED &&
-			 e.window.windowID == SDL_GetWindowID(sdlWindow))
+	else if (e.type == SDL_WINDOWEVENT && e.window.event == SDL_WINDOWEVENT_RESIZED
+			 && e.window.windowID == SDL_GetWindowID(sdlWindow))
 	{
 		MIKAN_LOG_INFO("exec") << "Window resize event received.";
 		m_graphicsContext->recreateMainRenderTarget();
@@ -219,12 +211,6 @@ void TestApp::onSDLEvent(SDL_Event& e)
 	}
 }
 
-void TestApp::update(float deltaSeconds)
-{
-	m_mikanClient->update(deltaSeconds);
-}
+void TestApp::update(float deltaSeconds) { m_mikanClient->update(deltaSeconds); }
 
-void TestApp::render()
-{
-	m_graphicsContext->renderMainTarget();
-}
+void TestApp::render() { m_graphicsContext->renderMainTarget(); }

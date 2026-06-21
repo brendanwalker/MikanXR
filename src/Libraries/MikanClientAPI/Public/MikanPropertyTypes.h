@@ -23,14 +23,10 @@ enum class ENUM(Serialization::CodeGenModule("MikanPropertyRequests")) MikanProp
 /// Structure representing a component property value
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyTypes")) MikanPropertyDescriptor
 {
-	FIELD()
-	Serialization::String ownerSystemClass;
-	FIELD()
-	Serialization::String ownerComponentClass;
-	FIELD()
-	Serialization::String fieldName;
-	FIELD()
-	MikanVariantType fieldType= MikanVariantType::INVALID;
+	FIELD() Serialization::String ownerSystemClass;
+	FIELD() Serialization::String ownerComponentClass;
+	FIELD() Serialization::String fieldName;
+	FIELD() MikanVariantType fieldType= MikanVariantType::INVALID;
 	FIELD() bool isReadOnly= false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
@@ -41,15 +37,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyTypes")) Mika
 /// Structure representing a component property value
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyTypes")) MikanPropertyValue
 {
-	FIELD()
-	Serialization::String ownerSystem;
-	FIELD()
-	Serialization::String ownerComponentClass;
+	FIELD() Serialization::String ownerSystem;
+	FIELD() Serialization::String ownerComponentClass;
 	FIELD() int componentId= INVALID_MIKAN_ID;
-	FIELD()
-	Serialization::String fieldName;
-	FIELD()
-	MikanVariant fieldValue;
+	FIELD() Serialization::String fieldName;
+	FIELD() MikanVariant fieldValue;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanPropertyValue_GENERATED

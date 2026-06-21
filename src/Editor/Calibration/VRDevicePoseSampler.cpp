@@ -34,10 +34,8 @@ struct VRDevicePoseSamplerState
 };
 
 //-- VRDevicePoseSampler -----
-VRDevicePoseSampler::VRDevicePoseSampler(
-	VRDevicePoseViewPtr poseView,
-	CameraComponentConstPtr cameraContext,
-	int desiredSampleCount)
+VRDevicePoseSampler::VRDevicePoseSampler(VRDevicePoseViewPtr poseView, CameraComponentConstPtr cameraContext,
+										 int desiredSampleCount)
 	: m_state(new VRDevicePoseSamplerState)
 	, m_poseView(poseView)
 	, m_cameraContext(cameraContext)
@@ -45,10 +43,7 @@ VRDevicePoseSampler::VRDevicePoseSampler(
 	m_state->init(desiredSampleCount);
 }
 
-VRDevicePoseSampler::~VRDevicePoseSampler()
-{
-	delete m_state;
-}
+VRDevicePoseSampler::~VRDevicePoseSampler() { delete m_state; }
 
 bool VRDevicePoseSampler::hasFinishedSampling() const
 {
@@ -60,10 +55,7 @@ float VRDevicePoseSampler::getCalibrationProgress() const
 	return (float)m_state->capturedSampleCount / (float)m_state->desiredSampleCount;
 }
 
-void VRDevicePoseSampler::resetCalibrationState()
-{
-	m_state->reset();
-}
+void VRDevicePoseSampler::resetCalibrationState() { m_state->reset(); }
 
 bool VRDevicePoseSampler::computeVRDeviceXform()
 {
@@ -83,10 +75,7 @@ bool VRDevicePoseSampler::computeVRDeviceXform()
 	return true;
 }
 
-bool VRDevicePoseSampler::hasValidVRDeviceXform() const
-{
-	return m_state->bHasValidXform;
-}
+bool VRDevicePoseSampler::hasValidVRDeviceXform() const { return m_state->bHasValidXform; }
 
 bool VRDevicePoseSampler::sampleLastVRDeviceXform()
 {
@@ -103,16 +92,13 @@ bool VRDevicePoseSampler::sampleLastVRDeviceXform()
 	return true;
 }
 
-bool VRDevicePoseSampler::computeCalibratedDevicePose(
-	MikanQuatd& outRotation,
-	MikanVector3d& outTranslation)
+bool VRDevicePoseSampler::computeCalibratedDevicePose(MikanQuatd& outRotation, MikanVector3d& outTranslation)
 {
 	cv::Vec3d cv_avgPosition;
 	cv::Quatd cv_avgQuat;
 
-	if (hasFinishedSampling() &&
-		opencv_quaternion_compute_average(m_state->cv_poseQuats, cv_avgQuat) &&
-		opencv_vec3d_compute_average(m_state->cv_posePositions, cv_avgPosition))
+	if (hasFinishedSampling() && opencv_quaternion_compute_average(m_state->cv_poseQuats, cv_avgQuat)
+		&& opencv_vec3d_compute_average(m_state->cv_posePositions, cv_avgPosition))
 	{
 		outRotation= cv_quatd_to_MikanQuatd(cv_avgQuat);
 		outTranslation= cv_vec3d_to_MikanVector3d(cv_avgPosition);

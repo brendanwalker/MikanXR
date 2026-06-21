@@ -27,9 +27,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystemDefinition,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystemDefinition,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_ownerStageIdPropertyId;
 	inline MikanStageID getOwnerStageId() const { return m_stageId; }
@@ -117,10 +116,8 @@ public:
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip= false) const;
 
 	// Helper function to populate a new frame event with the current camera properties
-	bool makeNewCameraFrameEvent(
-		int64_t frameIndex,
-		int defaultWidth, int defaultHeight,
-		struct MikanCameraNewFrameEvent& newFrameEvent) const;
+	bool makeNewCameraFrameEvent(int64_t frameIndex, int defaultWidth, int defaultHeight,
+								 struct MikanCameraNewFrameEvent& newFrameEvent) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

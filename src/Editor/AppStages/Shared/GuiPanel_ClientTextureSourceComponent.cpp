@@ -18,9 +18,8 @@ void GuiPanel_ClientTextureSourceComponent::onGui()
 
 	// Display buffer type selector
 	int selectedIndex= (int)m_displayBufferType;
-	if (MkGui::drawComboBoxProperty(
-			m_defaultGuiStyle, "displayBufferType", "Display Buffer",
-			&m_displayBufferDataSource, selectedIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "displayBufferType", "Display Buffer",
+									&m_displayBufferDataSource, selectedIndex))
 	{
 		m_displayBufferType= (eTextureSourceDisplayBufferType)selectedIndex;
 	}

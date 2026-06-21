@@ -29,19 +29,17 @@ public:
 	MikanCoreResult sendRequestJSON(const char* utf8_request_json);
 	MikanCoreResult shutdown();
 
-	MikanCoreResult allocateCameraRenderTargetTextures(MikanCameraID cameraId, const MikanRenderTargetDescriptor& descriptor);
+	MikanCoreResult allocateCameraRenderTargetTextures(MikanCameraID cameraId,
+													   const MikanRenderTargetDescriptor& descriptor);
 	MikanCoreResult getCameraRenderTargetDescriptor(MikanCameraID cameraId, MikanRenderTargetDescriptor& outDescriptor);
 	MikanCoreResult freeCameraRenderTargetTextures(MikanCameraID cameraId);
 	MikanCoreResult freeAllCameraRenderTargetTextures();
 	MikanCoreResult writeCameraColorRenderTargetTexture(MikanCameraID cameraId, void* ApiColorTexturePtr);
-	MikanCoreResult writeCameraDepthRenderTargetTexture(MikanCameraID cameraId, void* ApiDepthTexturePtr, float zNear, float zFar);
+	MikanCoreResult writeCameraDepthRenderTargetTexture(MikanCameraID cameraId, void* ApiDepthTexturePtr, float zNear,
+														float zFar);
 	void* getCameraPackDepthTextureResourcePtr(MikanCameraID cameraId) const;
-	MikanCoreResult setGraphicsDeviceInterface(
-		MikanClientGraphicsApi api,
-		void* graphicsDeviceInterface);
-	MikanCoreResult getGraphicsDeviceInterface(
-		MikanClientGraphicsApi api,
-		void** outGraphicsDeviceInterface);
+	MikanCoreResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
+	MikanCoreResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
 
 protected:
 	ISharedTextureWriteAccessorPtr getSharedTextureWriteAccessor(MikanCameraID camera_id) const;

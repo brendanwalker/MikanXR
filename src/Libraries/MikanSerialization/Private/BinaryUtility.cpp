@@ -14,10 +14,7 @@ Endian get_system_endianness()
 	return (*least_significant_address == 0x01) ? Endian::Little : Endian::Big;
 }
 
-bool wants_byte_flip(Endian desired)
-{
-	return desired != get_system_endianness();
-}
+bool wants_byte_flip(Endian desired) { return desired != get_system_endianness(); }
 
 template <typename T>
 T read_bytes(const uint8_t* inData, Endian desired)
@@ -43,10 +40,7 @@ T read_bytes(const uint8_t* inData, Endian desired)
 	return result;
 }
 
-int16_t read_int16(const uint8_t* inData, Endian desired)
-{
-	return read_bytes<int16_t>(inData, desired);
-}
+int16_t read_int16(const uint8_t* inData, Endian desired) { return read_bytes<int16_t>(inData, desired); }
 
 int32_t read_int24(const uint8_t* inData, Endian desired)
 {
@@ -68,25 +62,13 @@ int32_t read_int24(const uint8_t* inData, Endian desired)
 	return result;
 }
 
-int32_t read_int32(const uint8_t* inData, Endian desired)
-{
-	return read_bytes<int32_t>(inData, desired);
-}
+int32_t read_int32(const uint8_t* inData, Endian desired) { return read_bytes<int32_t>(inData, desired); }
 
-int64_t read_int64(const uint8_t* inData, Endian desired)
-{
-	return read_bytes<int64_t>(inData, desired);
-}
+int64_t read_int64(const uint8_t* inData, Endian desired) { return read_bytes<int64_t>(inData, desired); }
 
-float read_float(const uint8_t* inData, Endian desired)
-{
-	return read_bytes<float>(inData, desired);
-}
+float read_float(const uint8_t* inData, Endian desired) { return read_bytes<float>(inData, desired); }
 
-double read_double(const uint8_t* inData, Endian desired)
-{
-	return read_bytes<double>(inData, desired);
-}
+double read_double(const uint8_t* inData, Endian desired) { return read_bytes<double>(inData, desired); }
 
 template <typename T>
 void write_bytes(uint8_t* outData, const T& value, Endian desired)
@@ -109,25 +91,13 @@ void write_bytes(uint8_t* outData, const T& value, Endian desired)
 	}
 }
 
-void write_float(uint8_t* data, float inValue, Endian desired)
-{
-	write_bytes<float>(data, inValue, desired);
-}
+void write_float(uint8_t* data, float inValue, Endian desired) { write_bytes<float>(data, inValue, desired); }
 
-void write_double(uint8_t* data, double inValue, Endian desired)
-{
-	write_bytes<double>(data, inValue, desired);
-}
+void write_double(uint8_t* data, double inValue, Endian desired) { write_bytes<double>(data, inValue, desired); }
 
-void write_int64(uint8_t* data, int64_t inValue, Endian desired)
-{
-	write_bytes<int64_t>(data, inValue, desired);
-}
+void write_int64(uint8_t* data, int64_t inValue, Endian desired) { write_bytes<int64_t>(data, inValue, desired); }
 
-void write_int32(uint8_t* data, int32_t inValue, Endian desired)
-{
-	write_bytes<int32_t>(data, inValue, desired);
-}
+void write_int32(uint8_t* data, int32_t inValue, Endian desired) { write_bytes<int32_t>(data, inValue, desired); }
 
 void write_int24(uint8_t* outData, int32_t inValue, Endian desired)
 {
@@ -143,10 +113,7 @@ void write_int24(uint8_t* outData, int32_t inValue, Endian desired)
 	}
 }
 
-void write_int16(uint8_t* data, int16_t inValue, Endian desired)
-{
-	write_bytes<int16_t>(data, inValue, desired);
-}
+void write_int16(uint8_t* data, int16_t inValue, Endian desired) { write_bytes<int16_t>(data, inValue, desired); }
 
 }; // namespace Serialization
 
@@ -156,10 +123,7 @@ BinaryWriter::BinaryWriter(std::vector<uint8_t>& inBuffer)
 {
 }
 
-void BinaryWriter::appendByte(uint8_t value)
-{
-	m_buffer.push_back(value);
-}
+void BinaryWriter::appendByte(uint8_t value) { m_buffer.push_back(value); }
 
 void BinaryWriter::appendBytes(const uint8_t* byteArray, size_t byteCount)
 {
@@ -167,15 +131,9 @@ void BinaryWriter::appendBytes(const uint8_t* byteArray, size_t byteCount)
 		m_buffer.insert(m_buffer.end(), byteArray, byteArray + byteCount);
 }
 
-void to_binary(BinaryWriter& writer, bool inValue)
-{
-	writer.appendByte(inValue ? 1 : 0);
-}
+void to_binary(BinaryWriter& writer, bool inValue) { writer.appendByte(inValue ? 1 : 0); }
 
-void to_binary(BinaryWriter& writer, uint8_t inValue)
-{
-	writer.appendBytes((const uint8_t*)&inValue, 1);
-}
+void to_binary(BinaryWriter& writer, uint8_t inValue) { writer.appendBytes((const uint8_t*)&inValue, 1); }
 
 void to_binary(BinaryWriter& writer, uint16_t inValue)
 {
@@ -201,10 +159,7 @@ void to_binary(BinaryWriter& writer, uint64_t inValue)
 	writer.appendBytes(outValue);
 }
 
-void to_binary(BinaryWriter& writer, int8_t inValue)
-{
-	writer.appendBytes((const uint8_t*)&inValue, 1);
-}
+void to_binary(BinaryWriter& writer, int8_t inValue) { writer.appendBytes((const uint8_t*)&inValue, 1); }
 
 void to_binary(BinaryWriter& writer, int16_t inValue)
 {
@@ -296,15 +251,9 @@ uint8_t* BinaryReader::readBytesNoCopy(size_t byteCount)
 	return result;
 }
 
-void from_binary(BinaryReader& reader, bool& outValue)
-{
-	outValue= reader.readByte() != 0;
-}
+void from_binary(BinaryReader& reader, bool& outValue) { outValue= reader.readByte() != 0; }
 
-void from_binary(BinaryReader& reader, uint8_t& outValue)
-{
-	outValue= reader.readByte();
-}
+void from_binary(BinaryReader& reader, uint8_t& outValue) { outValue= reader.readByte(); }
 
 void from_binary(BinaryReader& reader, uint16_t& outValue)
 {
@@ -327,10 +276,7 @@ void from_binary(BinaryReader& reader, uint64_t& outValue)
 	outValue= Serialization::read_int64(value.data(), Serialization::Endian::Little);
 }
 
-void from_binary(BinaryReader& reader, int8_t& outValue)
-{
-	reader.readBytes((uint8_t*)&outValue, 1);
-}
+void from_binary(BinaryReader& reader, int8_t& outValue) { reader.readBytes((uint8_t*)&outValue, 1); }
 
 void from_binary(BinaryReader& reader, int16_t& outValue)
 {

@@ -64,10 +64,9 @@ public:
 	virtual void render()= 0;
 	virtual void shutdown()= 0;
 
-	virtual void addTextAtScreenPosition(
-		const TextStyle& style,
-		const glm::vec2& screenCoords,
-		const std::wstring& text)= 0;
+	virtual void addTextAtScreenPosition(const TextStyle& style, const glm::vec2& screenCoords,
+										 const std::wstring& text)= 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkTextRendererPtr) createMkTextRenderer(IMkGraphicsContext* ownerContext, IMkFontManager* fontManager);
+MIKAN_RENDERER_FUNC(IMkTextRendererPtr) createMkTextRenderer(IMkGraphicsContext* ownerContext,
+															 IMkFontManager* fontManager);

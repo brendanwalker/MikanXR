@@ -31,18 +31,16 @@ static bool dmat4_is_nearly_equal(const glm::dmat4& a, const glm::dmat4& b, doub
 		fprintf(stdout, "    dmat4_is_nearly_equal FAILED (eps=%.2e)\n", eps);
 		fprintf(stdout, "    Matrix A:\n");
 		for (int row= 0; row < 4; ++row)
-			fprintf(stdout, "      [%10.6f, %10.6f, %10.6f, %10.6f]\n",
-					a[0][row], a[1][row], a[2][row], a[3][row]);
+			fprintf(stdout, "      [%10.6f, %10.6f, %10.6f, %10.6f]\n", a[0][row], a[1][row], a[2][row], a[3][row]);
 		fprintf(stdout, "    Matrix B:\n");
 		for (int row= 0; row < 4; ++row)
-			fprintf(stdout, "      [%10.6f, %10.6f, %10.6f, %10.6f]\n",
-					b[0][row], b[1][row], b[2][row], b[3][row]);
+			fprintf(stdout, "      [%10.6f, %10.6f, %10.6f, %10.6f]\n", b[0][row], b[1][row], b[2][row], b[3][row]);
 		fprintf(stdout, "    Differing elements [col][row]:\n");
 		for (int col= 0; col < 4; ++col)
 			for (int row= 0; row < 4; ++row)
 				if (fabs(a[col][row] - b[col][row]) > eps)
-					fprintf(stdout, "      [%d][%d]: A=%.10f  B=%.10f  diff=%.2e\n",
-							col, row, a[col][row], b[col][row], fabs(a[col][row] - b[col][row]));
+					fprintf(stdout, "      [%d][%d]: A=%.10f  B=%.10f  diff=%.2e\n", col, row, a[col][row], b[col][row],
+							fabs(a[col][row] - b[col][row]));
 	}
 
 	return equal;
@@ -71,12 +69,8 @@ bool tracker_pose_calibrator_test_identity()
 	const glm::dvec3 matPuckOffsetMM= glm::dvec3(0.0, 0.0, 0.0);
 
 	CameraPuckToApertureResults results;
-	computeCameraPuckToApertureXform(
-		cameraPuckXform_VRSpace,
-		matPuckXform_VRSpace,
-		apertureToPatternXform,
-		matPuckOffsetMM,
-		results);
+	computeCameraPuckToApertureXform(cameraPuckXform_VRSpace, matPuckXform_VRSpace, apertureToPatternXform,
+									 matPuckOffsetMM, results);
 	assert(success);
 
 	success= dmat4_is_nearly_equal(results.cameraPuckToApertureXform, glm::dmat4(1.0));
@@ -92,23 +86,17 @@ bool tracker_pose_calibrator_test_known_translation()
 {
 	UNIT_TEST_BEGIN("known translation: camera 1m behind puck in X")
 
-	const glm::dmat4 cameraPuckXform_VRSpace=
-		glm::translate(glm::dmat4(1.0), glm::dvec3(1.0, 0.0, 0.0));
+	const glm::dmat4 cameraPuckXform_VRSpace= glm::translate(glm::dmat4(1.0), glm::dvec3(1.0, 0.0, 0.0));
 	const glm::dmat4 matPuckXform_VRSpace= glm::dmat4(1.0);
 	const glm::dmat4 apertureToPatternXform= make_puck_yaw_rot180();
 	const glm::dvec3 matPuckOffsetMM= glm::dvec3(0.0, 0.0, 0.0);
 
 	CameraPuckToApertureResults results;
-	computeCameraPuckToApertureXform(
-		cameraPuckXform_VRSpace,
-		matPuckXform_VRSpace,
-		apertureToPatternXform,
-		matPuckOffsetMM,
-		results);
+	computeCameraPuckToApertureXform(cameraPuckXform_VRSpace, matPuckXform_VRSpace, apertureToPatternXform,
+									 matPuckOffsetMM, results);
 	assert(success);
 
-	const glm::dmat4 expected=
-		glm::translate(glm::dmat4(1.0), glm::dvec3(-1.0, 0.0, 0.0));
+	const glm::dmat4 expected= glm::translate(glm::dmat4(1.0), glm::dvec3(-1.0, 0.0, 0.0));
 	success= dmat4_is_nearly_equal(results.cameraPuckToApertureXform, expected);
 	assert(success);
 
@@ -133,16 +121,11 @@ bool tracker_pose_calibrator_test_puck_offset()
 	const glm::dvec3 matPuckOffsetMM= glm::dvec3(100.0, 0.0, 0.0);
 
 	CameraPuckToApertureResults results;
-	computeCameraPuckToApertureXform(
-		cameraPuckXform_VRSpace,
-		matPuckXform_VRSpace,
-		apertureToPatternXform,
-		matPuckOffsetMM,
-		results);
+	computeCameraPuckToApertureXform(cameraPuckXform_VRSpace, matPuckXform_VRSpace, apertureToPatternXform,
+									 matPuckOffsetMM, results);
 	assert(success);
 
-	const glm::dmat4 expected=
-		glm::translate(glm::dmat4(1.0), glm::dvec3(0.1, 0.0, 0.0));
+	const glm::dmat4 expected= glm::translate(glm::dmat4(1.0), glm::dvec3(0.1, 0.0, 0.0));
 	success= dmat4_is_nearly_equal(results.cameraPuckToApertureXform, expected);
 	assert(success);
 
@@ -176,13 +159,9 @@ bool tracker_pose_calibrator_integration_test_identity()
 	const glm::dvec3 matPuckOffsetMM= glm::dvec3(0.0, 0.0, 0.0);
 	const glm::dmat4 apertureToPatternXform= make_puck_yaw_rot180();
 
-	TestMonoLensTrackerPoseCalibrator calibrator(
-		cameraPuckXform_VRSpace,
-		matPuckXform_VRSpace,
-		matPuckOffsetMM,
-		new TestCalibrationPatternFinder(1920, 1080, apertureToPatternXform),
-		make_default_mono_intrinsics(),
-		1);
+	TestMonoLensTrackerPoseCalibrator calibrator(cameraPuckXform_VRSpace, matPuckXform_VRSpace, matPuckOffsetMM,
+												 new TestCalibrationPatternFinder(1920, 1080, apertureToPatternXform),
+												 make_default_mono_intrinsics(), 1);
 
 	success= calibrator.computeCalibrationSample();
 	assert(success);
@@ -197,11 +176,13 @@ bool tracker_pose_calibrator_integration_test_identity()
 	assert(success);
 
 	// Identity rotation: (w=1, x=0, y=0, z=0)
-	success= fabs(outRotation.w - 1.0) < k_test_epsilon && fabs(outRotation.x) < k_test_epsilon && fabs(outRotation.y) < k_test_epsilon && fabs(outRotation.z) < k_test_epsilon;
+	success= fabs(outRotation.w - 1.0) < k_test_epsilon && fabs(outRotation.x) < k_test_epsilon
+			 && fabs(outRotation.y) < k_test_epsilon && fabs(outRotation.z) < k_test_epsilon;
 	assert(success);
 
 	// Zero translation
-	success= fabs(outTranslation.x) < k_test_epsilon && fabs(outTranslation.y) < k_test_epsilon && fabs(outTranslation.z) < k_test_epsilon;
+	success= fabs(outTranslation.x) < k_test_epsilon && fabs(outTranslation.y) < k_test_epsilon
+			 && fabs(outTranslation.z) < k_test_epsilon;
 	assert(success);
 
 	UNIT_TEST_COMPLETE()
@@ -213,19 +194,14 @@ bool tracker_pose_calibrator_integration_test_known_translation()
 {
 	UNIT_TEST_BEGIN("integration known translation: full pipeline produces (-1,0,0) offset")
 
-	const glm::dmat4 cameraPuckXform_VRSpace=
-		glm::translate(glm::dmat4(1.0), glm::dvec3(1.0, 0.0, 0.0));
+	const glm::dmat4 cameraPuckXform_VRSpace= glm::translate(glm::dmat4(1.0), glm::dvec3(1.0, 0.0, 0.0));
 	const glm::dmat4 matPuckXform_VRSpace= glm::dmat4(1.0);
 	const glm::dvec3 matPuckOffsetMM= glm::dvec3(0.0, 0.0, 0.0);
 	const glm::dmat4 apertureToPatternXform= make_puck_yaw_rot180();
 
-	TestMonoLensTrackerPoseCalibrator calibrator(
-		cameraPuckXform_VRSpace,
-		matPuckXform_VRSpace,
-		matPuckOffsetMM,
-		new TestCalibrationPatternFinder(1920, 1080, apertureToPatternXform),
-		make_default_mono_intrinsics(),
-		1);
+	TestMonoLensTrackerPoseCalibrator calibrator(cameraPuckXform_VRSpace, matPuckXform_VRSpace, matPuckOffsetMM,
+												 new TestCalibrationPatternFinder(1920, 1080, apertureToPatternXform),
+												 make_default_mono_intrinsics(), 1);
 
 	success= calibrator.computeCalibrationSample();
 	assert(success);
@@ -238,7 +214,8 @@ bool tracker_pose_calibrator_integration_test_known_translation()
 	success= calibrator.computeAverageCameraPuckToApertureOffset(outRotation, outTranslation);
 	assert(success);
 
-	success= fabs(outTranslation.x - (-1.0)) < k_test_epsilon && fabs(outTranslation.y) < k_test_epsilon && fabs(outTranslation.z) < k_test_epsilon;
+	success= fabs(outTranslation.x - (-1.0)) < k_test_epsilon && fabs(outTranslation.y) < k_test_epsilon
+			 && fabs(outTranslation.z) < k_test_epsilon;
 	assert(success);
 
 	UNIT_TEST_COMPLETE()
@@ -253,13 +230,9 @@ bool tracker_pose_calibrator_integration_test_puck_offset()
 	const glm::dmat4 matPuckXform_VRSpace= glm::dmat4(1.0);
 	const glm::dvec3 matPuckOffsetMM= glm::dvec3(100.0, 0.0, 0.0);
 	const glm::dmat4 apertureToPatternXform= make_puck_yaw_rot180();
-	TestMonoLensTrackerPoseCalibrator calibrator(
-		cameraPuckXform_VRSpace,
-		matPuckXform_VRSpace,
-		matPuckOffsetMM,
-		new TestCalibrationPatternFinder(1920, 1080, apertureToPatternXform),
-		make_default_mono_intrinsics(),
-		1);
+	TestMonoLensTrackerPoseCalibrator calibrator(cameraPuckXform_VRSpace, matPuckXform_VRSpace, matPuckOffsetMM,
+												 new TestCalibrationPatternFinder(1920, 1080, apertureToPatternXform),
+												 make_default_mono_intrinsics(), 1);
 
 	success= calibrator.computeCalibrationSample();
 	assert(success);
@@ -272,7 +245,8 @@ bool tracker_pose_calibrator_integration_test_puck_offset()
 	success= calibrator.computeAverageCameraPuckToApertureOffset(outRotation, outTranslation);
 	assert(success);
 
-	success= fabs(outTranslation.x - 0.1) < k_test_epsilon && fabs(outTranslation.y) < k_test_epsilon && fabs(outTranslation.z) < k_test_epsilon;
+	success= fabs(outTranslation.x - 0.1) < k_test_epsilon && fabs(outTranslation.y) < k_test_epsilon
+			 && fabs(outTranslation.z) < k_test_epsilon;
 	assert(success);
 
 	UNIT_TEST_COMPLETE()

@@ -10,14 +10,9 @@
 #include <assert.h>
 
 // -- GL Debug Callback --
-static void APIENTRY GLDebugMessageCallback(
-	GLenum glMesgSource,
-	GLenum glMesgType,
-	GLuint glMesgId,
-	GLenum glMesgSeverity,
-	GLsizei length,
-	const GLchar* szGlMessage,
-	const void* userParam);
+static void APIENTRY GLDebugMessageCallback(GLenum glMesgSource, GLenum glMesgType, GLuint glMesgId,
+											GLenum glMesgSeverity, GLsizei length, const GLchar* szGlMessage,
+											const void* userParam);
 
 // -- GlGraphicsContext --
 GlGraphicsContext::GlGraphicsContext(class IMkFontManager* fontManager)
@@ -33,10 +28,7 @@ GlGraphicsContext::~GlGraphicsContext()
 	}
 }
 
-void GlGraphicsContext::onNativeContextCreated(void* nativeContext)
-{
-	m_glContext= nativeContext;
-}
+void GlGraphicsContext::onNativeContextCreated(void* nativeContext) { m_glContext= nativeContext; }
 
 void GlGraphicsContext::onWindowSizeChanged(int width, int height)
 {
@@ -60,7 +52,8 @@ bool GlGraphicsContext::startup()
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("GlGraphicsContext::startup") << "Unable to initialize glew openGL backend: " << glewGetErrorString(err);
+		MIKAN_LOG_ERROR("GlGraphicsContext::startup")
+			<< "Unable to initialize glew openGL backend: " << glewGetErrorString(err);
 		return false;
 	}
 
@@ -111,10 +104,7 @@ bool GlGraphicsContext::renderBegin()
 	return true;
 }
 
-bool GlGraphicsContext::renderEnd()
-{
-	return true;
-}
+bool GlGraphicsContext::renderEnd() { return true; }
 
 void GlGraphicsContext::shutdown()
 {
@@ -152,25 +142,13 @@ MkStateStack& GlGraphicsContext::getMkStateStack()
 	return *m_stateStack;
 }
 
-IMkLineRenderer* GlGraphicsContext::getLineRenderer()
-{
-	return m_lineRenderer.get();
-}
+IMkLineRenderer* GlGraphicsContext::getLineRenderer() { return m_lineRenderer.get(); }
 
-IMkTextRenderer* GlGraphicsContext::getTextRenderer()
-{
-	return m_textRenderer.get();
-}
+IMkTextRenderer* GlGraphicsContext::getTextRenderer() { return m_textRenderer.get(); }
 
-IMkShaderCache* GlGraphicsContext::getShaderCache()
-{
-	return m_shaderCache.get();
-}
+IMkShaderCache* GlGraphicsContext::getShaderCache() { return m_shaderCache.get(); }
 
-IMkTextureCache* GlGraphicsContext::getTextureCache()
-{
-	return m_textureCache.get();
-}
+IMkTextureCache* GlGraphicsContext::getTextureCache() { return m_textureCache.get(); }
 
 // -- Factory function --
 IMkGraphicsContextPtr createMkGraphicsContext(eGraphicsAPI api, class IMkFontManager* fontManager)
@@ -190,21 +168,12 @@ enum class eGLErrorSeverity : int
 	high,
 };
 static const char* g_szGLErrorSeverityNames[]= {
-	"UNKNOWN",
-	"NOTIFICATION",
-	"LOW",
-	"MEDIUM",
-	"HIGH",
+	"UNKNOWN", "NOTIFICATION", "LOW", "MEDIUM", "HIGH",
 };
 
-static void APIENTRY GLDebugMessageCallback(
-	GLenum glMesgSource,
-	GLenum glMesgType,
-	GLuint glMesgId,
-	GLenum glMesgSeverity,
-	GLsizei length,
-	const GLchar* szGlMessage,
-	const void* userParam)
+static void APIENTRY GLDebugMessageCallback(GLenum glMesgSource, GLenum glMesgType, GLuint glMesgId,
+											GLenum glMesgSeverity, GLsizei length, const GLchar* szGlMessage,
+											const void* userParam)
 {
 	std::string glErrorSourceStr;
 	std::string glErrorTypeStr;
@@ -294,26 +263,21 @@ static void APIENTRY GLDebugMessageCallback(
 		{
 		case eGLErrorSeverity::high:
 		case eGLErrorSeverity::unknown:
-			MIKAN_LOG_ERROR("GlDebugCallback") << "OpenGL debug event [" << glMesgId << "]: "
-											   << glErrorTypeStr << " of "
-											   << g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
-											   << glErrorSourceStr << ": "
-											   << szGlMessage;
+			MIKAN_LOG_ERROR("GlDebugCallback") << "OpenGL debug event [" << glMesgId << "]: " << glErrorTypeStr
+											   << " of " << g_szGLErrorSeverityNames[(int)eventSeverity]
+											   << " severity, raised from " << glErrorSourceStr << ": " << szGlMessage;
 			break;
 		case eGLErrorSeverity::medium:
-			MIKAN_LOG_WARNING("GlDebugCallback") << "OpenGL debug event [" << glMesgId << "]: "
-												 << glErrorTypeStr << " of "
-												 << g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
-												 << glErrorSourceStr << ": "
-												 << szGlMessage;
+			MIKAN_LOG_WARNING("GlDebugCallback")
+				<< "OpenGL debug event [" << glMesgId << "]: " << glErrorTypeStr << " of "
+				<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from " << glErrorSourceStr << ": "
+				<< szGlMessage;
 			break;
 		case eGLErrorSeverity::low:
 		case eGLErrorSeverity::notification:
-			MIKAN_LOG_INFO("GlDebugCallback") << "OpenGL debug event [" << glMesgId << "]: "
-											  << glErrorTypeStr << " of "
-											  << g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
-											  << glErrorSourceStr << ": "
-											  << szGlMessage;
+			MIKAN_LOG_INFO("GlDebugCallback") << "OpenGL debug event [" << glMesgId << "]: " << glErrorTypeStr << " of "
+											  << g_szGLErrorSeverityNames[(int)eventSeverity]
+											  << " severity, raised from " << glErrorSourceStr << ": " << szGlMessage;
 			break;
 		default:
 			assert(false);

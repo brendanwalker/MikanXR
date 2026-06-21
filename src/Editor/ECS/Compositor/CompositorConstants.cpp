@@ -1,11 +1,8 @@
 #include "CompositorConstants.h"
 #include "opencv2/opencv.hpp"
 
-const std::string g_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::COUNT]= {
-	"NoAlpha",
-	"ColorKey",
-	"AlphaChannel",
-	"MagicPortal"};
+const std::string g_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::COUNT]= {"NoAlpha", "ColorKey",
+																						 "AlphaChannel", "MagicPortal"};
 const std::string* k_compositorLayerAlphaStrings= g_compositorLayerAlphaStrings;
 
 const std::string g_supportedCodecName[(int)eSupportedCodec::COUNT]= {
@@ -29,15 +26,11 @@ const int g_supportedCodecFourCC[(int)eSupportedCodec::COUNT]= {
 };
 const int* k_supportedCodecFourCC= g_supportedCodecFourCC;
 
-const std::string g_compositorStencilModeStrings[(int)eCompositorStencilMode::COUNT]= {
-	"noStencil",
-	"insideStencil",
-	"outsideStencil"};
+const std::string g_compositorStencilModeStrings[(int)eCompositorStencilMode::COUNT]= {"noStencil", "insideStencil",
+																					   "outsideStencil"};
 const std::string* k_compositorStencilModeStrings= g_compositorStencilModeStrings;
 
-const std::string g_compositorBlendModeStrings[(int)eCompositorBlendMode::COUNT]= {
-	"blendOff",
-	"blendOn"};
+const std::string g_compositorBlendModeStrings[(int)eCompositorBlendMode::COUNT]= {"blendOff", "blendOn"};
 const std::string* k_compositorBlendModeStrings= g_compositorBlendModeStrings;
 
 const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT]= {
@@ -48,16 +41,11 @@ const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT]= {
 };
 const std::string* k_stencilCullModeStrings= g_stencilCullModeStrings;
 
-const std::string g_textureSourceColorTypeStrings[(int)eTextureSourceColorType::COUNT]= {
-	"colorRGB",
-	"colorRGBA"};
+const std::string g_textureSourceColorTypeStrings[(int)eTextureSourceColorType::COUNT]= {"colorRGB", "colorRGBA"};
 const std::string* k_textureSourceColorTypeStrings= g_textureSourceColorTypeStrings;
 
-const std::string g_textureSourceDepthTypeStrings[(int)eTextureSourceDepthType::COUNT]= {
-	"depthPackRGBA"};
+const std::string g_textureSourceDepthTypeStrings[(int)eTextureSourceDepthType::COUNT]= {"depthPackRGBA"};
 const std::string* k_textureSourceDepthTypeStrings= g_textureSourceDepthTypeStrings;
 
-const std::string g_compositorEvaluatorWindow[(int)eCompositorEvaluatorWindow::COUNT]= {
-	"mainWindow",
-	"editorWindow"};
+const std::string g_compositorEvaluatorWindow[(int)eCompositorEvaluatorWindow::COUNT]= {"mainWindow", "editorWindow"};
 const std::string* k_compositorEvaluatorWindow= g_compositorEvaluatorWindow;

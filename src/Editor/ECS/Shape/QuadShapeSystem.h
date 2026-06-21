@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-class QuadShapeSystemDefinition : public MikanTypedObjectSystemDefinition<QuadShapeComponent, QuadShapeDefinition, MikanShapeID>
+class QuadShapeSystemDefinition
+	: public MikanTypedObjectSystemDefinition<QuadShapeComponent, QuadShapeDefinition, MikanShapeID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<QuadShapeComponent, QuadShapeDefinition, MikanShapeID>;
@@ -21,16 +22,12 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class QuadShapeSystem : public MikanTypedObjectSystem<
-							QuadShapeComponent, QuadShapeDefinition,
-							MikanShapeID,
-							QuadShapeSystem, QuadShapeSystemDefinition>
+class QuadShapeSystem : public MikanTypedObjectSystem<QuadShapeComponent, QuadShapeDefinition, MikanShapeID,
+													  QuadShapeSystem, QuadShapeSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		QuadShapeComponent, QuadShapeDefinition,
-		MikanShapeID,
-		QuadShapeSystem, QuadShapeSystemDefinition>;
+	using Super= MikanTypedObjectSystem<QuadShapeComponent, QuadShapeDefinition, MikanShapeID, QuadShapeSystem,
+										QuadShapeSystemDefinition>;
 
 	QuadShapeSystem(ProjectManagerPtr ownerObjectSystem);
 
@@ -56,9 +53,8 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		ComponentDefinitionPtr componentDefinition) override;
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											ComponentDefinitionPtr componentDefinition) override;
 };
 
 using QuadShapeSystemPtr= std::shared_ptr<QuadShapeSystem>;

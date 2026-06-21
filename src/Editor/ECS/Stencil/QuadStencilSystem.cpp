@@ -14,8 +14,8 @@
 #include <assert.h>
 
 // -- QuadStencilSystemDefinition -----
-QuadStencilSystemDefinition::QuadStencilSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+QuadStencilSystemDefinition::QuadStencilSystemDefinition(const std::string& configName,
+														 IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -27,10 +27,7 @@ configuru::Config QuadStencilSystemDefinition::writeToJSON()
 	return pt;
 }
 
-void QuadStencilSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	Super::readFromJSON(pt);
-}
+void QuadStencilSystemDefinition::readFromJSON(const configuru::Config& pt) { Super::readFromJSON(pt); }
 
 // -- QuadStencilSystem ----
 QuadStencilSystem::QuadStencilSystem(ProjectManagerPtr ownerObjectSystem)
@@ -38,11 +35,9 @@ QuadStencilSystem::QuadStencilSystem(ProjectManagerPtr ownerObjectSystem)
 {
 }
 
-void QuadStencilSystem::getRelevantQuadStencilList(
-	const std::vector<MikanStencilID>* allowedStencilIds,
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraForward,
-	std::vector<QuadStencilComponentPtr>& outStencilList) const
+void QuadStencilSystem::getRelevantQuadStencilList(const std::vector<MikanStencilID>* allowedStencilIds,
+												   const glm::vec3& cameraPosition, const glm::vec3& cameraForward,
+												   std::vector<QuadStencilComponentPtr>& outStencilList) const
 {
 	outStencilList.clear();
 	for (const auto& stencilPair : Super::getComponentMap())
@@ -73,8 +68,9 @@ void QuadStencilSystem::getRelevantQuadStencilList(
 
 			// Stencil is in front of the camera
 			// Stencil is facing the camera (or double sided)
-			if (glm::dot(cameraToStencil, cameraForward) > 0.f &&
-				(componentPtr->getQuadStencilDefinition()->getIsDoubleSided() || glm::dot(stencilForward, cameraForward) < 0.f))
+			if (glm::dot(cameraToStencil, cameraForward) > 0.f
+				&& (componentPtr->getQuadStencilDefinition()->getIsDoubleSided()
+					|| glm::dot(stencilForward, cameraForward) < 0.f))
 			{
 				outStencilList.push_back(componentPtr);
 			}
@@ -82,9 +78,8 @@ void QuadStencilSystem::getRelevantQuadStencilList(
 	}
 }
 
-void QuadStencilSystem::additionalComponentFactory(
-	MikanObjectPtr ownerComponentObject,
-	ComponentDefinitionPtr componentDefinition)
+void QuadStencilSystem::additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+												   ComponentDefinitionPtr componentDefinition)
 {
 	TransformComponentPtr rootComponent= ownerComponentObject->getRootComponent();
 	assert(rootComponent);
@@ -93,16 +88,16 @@ void QuadStencilSystem::additionalComponentFactory(
 
 	// Attach a box collider to quad stencil component
 	BoxColliderComponentPtr boxColliderPtr= ownerComponentObject->addComponent<BoxColliderComponent>();
-	boxColliderPtr->setHalfExtents(glm::vec3(quadDefinition->getQuadWidth() * 0.5f, quadDefinition->getQuadHeight() * 0.5f, 0.01f));
+	boxColliderPtr->setHalfExtents(
+		glm::vec3(quadDefinition->getQuadWidth() * 0.5f, quadDefinition->getQuadHeight() * 0.5f, 0.01f));
 	boxColliderPtr->attachToComponent(rootComponent);
 
 	// Add a selection component
 	ownerComponentObject->addComponent<SelectionComponent>();
 }
 
-bool QuadStencilSystem::isStencilFacingCamera(
-	StencilComponentConstPtr stencil,
-	const glm::vec3& cameraPosition, const glm::vec3& cameraForward)
+bool QuadStencilSystem::isStencilFacingCamera(StencilComponentConstPtr stencil, const glm::vec3& cameraPosition,
+											  const glm::vec3& cameraForward)
 {
 	StencilComponentConfigConstPtr configPtr= stencil->getStencilComponentDefinition();
 	eStencilCullMode cullMode= configPtr->getCullMode();
@@ -129,8 +124,7 @@ bool QuadStencilSystem::isStencilFacingCamera(
 	const glm::vec3 cameraToStencil= stencilCenter - cameraPosition;
 	const glm::vec3 stencilToCamera= -cameraToStencil;
 
-	return glm::dot(cameraToStencil, cameraForward) > 0.f &&
-		   glm::dot(stencilToCamera, stencilForward) > 0.f;
+	return glm::dot(cameraToStencil, cameraForward) > 0.f && glm::dot(stencilToCamera, stencilForward) > 0.f;
 }
 
 // -- IPropertyInterface ----
@@ -154,21 +148,12 @@ void QuadStencilSystem::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.beginClass<QuadStencilSystem>("QuadStencilSystem")
-		.addFunction("getQuadStencilById",
-					 [](QuadStencilSystem* s, int id) -> QuadStencilComponent*
-					 {
-						 return s->getQuadStencilById(static_cast<MikanStencilID>(id)).get();
-					 })
-		.addFunction("getQuadStencilByName",
-					 [](QuadStencilSystem* s, const std::string& name) -> QuadStencilComponent*
-					 {
-						 return s->getQuadStencilByName(name).get();
-					 })
+		.addFunction("getQuadStencilById", [](QuadStencilSystem* s, int id) -> QuadStencilComponent*
+					 { return s->getQuadStencilById(static_cast<MikanStencilID>(id)).get(); })
+		.addFunction("getQuadStencilByName", [](QuadStencilSystem* s, const std::string& name) -> QuadStencilComponent*
+					 { return s->getQuadStencilByName(name).get(); })
 		.addFunction("getQuadStencilCount",
-					 [](QuadStencilSystem* s) -> int
-					 {
-						 return static_cast<int>(s->getComponentMap().size());
-					 })
+					 [](QuadStencilSystem* s) -> int { return static_cast<int>(s->getComponentMap().size()); })
 		.addFunction("getQuadStencilAtIndex",
 					 [](QuadStencilSystem* s, int i) -> QuadStencilComponent*
 					 {

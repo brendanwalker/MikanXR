@@ -26,9 +26,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	inline MikanVideoSourceID getVideoSourceId() const { return getComponentId(); }
 
@@ -136,16 +135,10 @@ protected:
 
 	// Called by derived classes when raw video source frame is received in video receive thread
 	size_t getActiveViews(class VideoFrameDistortionView** outActiveViewsList, size_t activeViewsMaxListSize);
-	void writeVideoFrame(
-		const unsigned char* videoBuffer,
-		const cv::Size& bufferDimensions,
-		const bool bIsFlipped);
-	void writeStereoVideoFrameSection(
-		const unsigned char* videoBuffer,
-		const cv::Size& bufferDimensions,
-		const bool bIsFlipped,
-		const VideoFrameSection section,
-		const cv::Rect& bufferBounds);
+	void writeVideoFrame(const unsigned char* videoBuffer, const cv::Size& bufferDimensions, const bool bIsFlipped);
+	void writeStereoVideoFrameSection(const unsigned char* videoBuffer, const cv::Size& bufferDimensions,
+									  const bool bIsFlipped, const VideoFrameSection section,
+									  const cv::Rect& bufferBounds);
 
 protected:
 	std::mutex m_activeViewMutex;

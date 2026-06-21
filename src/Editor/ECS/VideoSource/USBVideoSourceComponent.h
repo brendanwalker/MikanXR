@@ -16,9 +16,8 @@ public:
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const;
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_desiredDevicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }
@@ -34,12 +33,8 @@ public:
 	static const std::string k_videoFormatPropertyId;
 
 	static const std::string k_videoSettingsPropertyId;
-	bool getVideoSettingsForMode(
-		const std::string& modeName,
-		USBVideoSettingsArray& outSettings) const;
-	void setCameraSettingsForMode(
-		const std::string& modeName,
-		const USBVideoSettingsArray& settings);
+	bool getVideoSettingsForMode(const std::string& modeName, USBVideoSettingsArray& outSettings) const;
+	void setCameraSettingsForMode(const std::string& modeName, const USBVideoSettingsArray& settings);
 	bool hasVideoSettingsForMode(const std::string& videoModeName) const;
 	void notifyCameraSettingsChanged();
 
@@ -101,7 +96,8 @@ public:
 	bool getVideoResolutionNames(std::vector<std::string>& outVideoResolutionNames) const;
 	bool getVideoFrameRateNames(std::vector<std::string>& outVideoFrameRateNames) const;
 	bool getVideoFormatNames(std::vector<std::string>& outVideoFormatNames) const;
-	bool setVideoModeToBestMatch(const std::string& resolution, const std::string& frameRate, const std::string& format);
+	bool setVideoModeToBestMatch(const std::string& resolution, const std::string& frameRate,
+								 const std::string& format);
 
 	// -- IUsbVideoDeviceListener ----
 	virtual void notifyVideoDeviceDisconnected(const IUsbVideoDevice* device) override;

@@ -62,5 +62,6 @@ protected:
 	void onSelectionRotationRequested(const glm::quat& worldSpaceRotation);
 	void onSelectionScaleRequested(const glm::vec3& objectSpaceScale);
 
-	void onTransformTargetConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+	void onTransformTargetConfigChange(CommonConfigPtr configPtr,
+									   const class ConfigPropertyChangeSet& changedPropertySet);
 };

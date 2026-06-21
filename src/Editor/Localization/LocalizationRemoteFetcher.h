@@ -15,10 +15,8 @@
 class LocalizationRemoteFetcher
 {
 public:
-	LocalizationRemoteFetcher(
-		const std::string& baseUrl,
-		const std::filesystem::path& cacheDir,
-		std::chrono::hours cacheTTL= std::chrono::hours(24));
+	LocalizationRemoteFetcher(const std::string& baseUrl, const std::filesystem::path& cacheDir,
+							  std::chrono::hours cacheTTL= std::chrono::hours(24));
 	~LocalizationRemoteFetcher();
 
 	// Starts a background fetch. Optional callback fires when the fetch completes.

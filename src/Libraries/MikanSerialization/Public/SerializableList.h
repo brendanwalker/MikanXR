@@ -89,9 +89,7 @@ public:
 		return *this;
 	}
 
-	METHOD()
-	std::size_t
-	size() const noexcept { return m_size; }
+	METHOD() std::size_t size() const noexcept { return m_size; }
 
 	METHOD() void resize(const std::size_t& newSize) noexcept
 	{
@@ -100,19 +98,14 @@ public:
 		m_size= newSize;
 	}
 
-	METHOD()
-	const void*
-	getRawElement(const std::size_t& index) const
+	METHOD() const void* getRawElement(const std::size_t& index) const
 	{
 		if (index < m_size)
 			return &m_data[index];
 		return nullptr;
 	}
 
-	METHOD() void* getRawElementMutable(const std::size_t& index)
-	{
-		return const_cast<void*>(getRawElement(index));
-	}
+	METHOD() void* getRawElementMutable(const std::size_t& index) { return const_cast<void*>(getRawElement(index)); }
 
 	void push_back(const T& value)
 	{

@@ -5,39 +5,28 @@
 
 #include "openvr.h"
 
-MikanSteamVRDeviceSocket::MikanSteamVRDeviceSocket(
-	MikanSteamVRDevice* ownerDevice,
-	const std::string& socketName)
+MikanSteamVRDeviceSocket::MikanSteamVRDeviceSocket(MikanSteamVRDevice* ownerDevice, const std::string& socketName)
 	: m_ownerDevice(ownerDevice)
 	, m_socketName(socketName)
 {
 }
 
-const char* MikanSteamVRDeviceSocket::getName() const
-{
-	return m_socketName.c_str();
-}
+const char* MikanSteamVRDeviceSocket::getName() const { return m_socketName.c_str(); }
 
 bool MikanSteamVRDeviceSocket::getSocketState(VRDevicePose& outRelativePose) const
 {
 	vr::IVRRenderModels* renderModelInterface= vr::VRRenderModels();
-	const std::string ownerRenderModelName=
-		m_ownerDevice->getProperties()->getRenderModelName();
+	const std::string ownerRenderModelName= m_ownerDevice->getProperties()->getRenderModelName();
 
 	vr::VRControllerState_t* controllerState= nullptr;
 	vr::RenderModel_ComponentState_t componentState= {};
 	vr::RenderModel_ControllerMode_State_t componentModeState= {};
 
-	if (renderModelInterface != nullptr &&
-		renderModelInterface->GetComponentState(
-			ownerRenderModelName.c_str(),
-			m_socketName.c_str(),
-			controllerState,
-			&componentModeState,
-			&componentState))
+	if (renderModelInterface != nullptr
+		&& renderModelInterface->GetComponentState(ownerRenderModelName.c_str(), m_socketName.c_str(), controllerState,
+												   &componentModeState, &componentState))
 	{
-		const glm::mat4 componentToRenderMat=
-			vr_HmdMatrix34_to_glm_mat4(componentState.mTrackingToComponentLocal);
+		const glm::mat4 componentToRenderMat= vr_HmdMatrix34_to_glm_mat4(componentState.mTrackingToComponentLocal);
 
 		outRelativePose= glm_mat4_to_VRDevicePose(componentToRenderMat);
 		return true;

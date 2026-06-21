@@ -31,13 +31,12 @@ enum class ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDevic
 };
 
 // VR System Response Types
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRObjectSystemValues : public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRObjectSystemValues
+	: public MikanSystemValues
 {
 	static const char* k_systemName;
 
-	FIELD()
-	Serialization::List<Serialization::String>
-		vr_device_path_list;
+	FIELD() Serialization::List<Serialization::String> vr_device_path_list;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRObjectSystemValues_GENERATED
@@ -45,21 +44,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) Mika
 };
 
 // VR Device Response Types
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceComponentValues : public MikanTransformComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceComponentValues
+	: public MikanTransformComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	MikanVRDeviceApi vr_device_api= MikanVRDeviceApi::INVALID;
-	FIELD()
-	MikanVRDeviceType vr_device_type= MikanVRDeviceType::INVALID;
+	FIELD() MikanVRDeviceApi vr_device_api= MikanVRDeviceApi::INVALID;
+	FIELD() MikanVRDeviceType vr_device_type= MikanVRDeviceType::INVALID;
 	FIELD() int vr_device_index= -1;
-	FIELD()
-	Serialization::String vr_device_path;
-	FIELD()
-	Serialization::List<Serialization::String>
-		socket_names;
+	FIELD() Serialization::String vr_device_path;
+	FIELD() Serialization::List<Serialization::String> socket_names;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceComponentValues_GENERATED

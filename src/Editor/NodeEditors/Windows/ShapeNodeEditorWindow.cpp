@@ -44,8 +44,7 @@ bool ShapeNodeEditorWindow::bindShapeComponent(ShapeComponentPtr shapeComponent)
 	}
 
 	// Tell the new node graph about the shape component it's bound to
-	auto shapeNodeGraph=
-		std::static_pointer_cast<ShapeNodeGraph>(m_editorState.nodeGraph);
+	auto shapeNodeGraph= std::static_pointer_cast<ShapeNodeGraph>(m_editorState.nodeGraph);
 	shapeNodeGraph->bindToShapeComponent(m_shapeComponent);
 
 	// Tell the shape component about the node graph it's bound to
@@ -100,9 +99,7 @@ void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& 
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef=
-				NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
-					factory->getAssetRefClassName()))
+		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleGraphVariablesDragDrop(editorState);
 			return;
@@ -117,8 +114,7 @@ void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& edito
 	for (auto factory : validPropertyFactories)
 	{
 		if (auto property=
-				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(
-					factory->getGraphPropertyClassName()))
+				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -129,9 +125,7 @@ void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& edito
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef=
-				NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
-					factory->getAssetRefClassName()))
+		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleMainFrameDragDrop(editorState);
 			return;

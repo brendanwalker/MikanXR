@@ -215,27 +215,19 @@ public:
 
 	METHOD() void clear() noexcept { m_size= 0; }
 
-	METHOD()
-	std::size_t
-	size() const noexcept { return m_size; }
+	METHOD() std::size_t size() const noexcept { return m_size; }
 
-	METHOD()
-	std::shared_ptr<IMapEnumerator>
-	getEnumerator()
+	METHOD() std::shared_ptr<IMapEnumerator> getEnumerator()
 	{
 		return std::make_shared<MapEnumerator<t_key, t_value>>(*this);
 	}
 
-	METHOD()
-	std::shared_ptr<IMapConstEnumerator>
-	getConstEnumerator() const
+	METHOD() std::shared_ptr<IMapConstEnumerator> getConstEnumerator() const
 	{
 		return std::make_shared<MapConstEnumerator<t_key, t_value>>(*this);
 	}
 
-	METHOD()
-	const void*
-	getOrAddRawValueMutable(const t_key& key)
+	METHOD() const void* getOrAddRawValueMutable(const t_key& key)
 	{
 		std::size_t idx= findIndex(key);
 		if (idx < m_size)
@@ -246,18 +238,13 @@ public:
 		return &m_entries[m_size++].value;
 	}
 
-	METHOD()
-	const void*
-	getRawValue(const t_key& key) const
+	METHOD() const void* getRawValue(const t_key& key) const
 	{
 		std::size_t idx= findIndex(key);
 		return idx < m_size ? &m_entries[idx].value : nullptr;
 	}
 
-	METHOD() void* getRawValueMutable(const t_key& key)
-	{
-		return const_cast<void*>(getRawValue(key));
-	}
+	METHOD() void* getRawValueMutable(const t_key& key) { return const_cast<void*>(getRawValue(key)); }
 
 	t_value& operator[](const t_key& key)
 	{
@@ -288,15 +275,9 @@ public:
 	}
 
 	// Entry access for iterating and for MapEnumerator
-	const Entry* getEntryAt(std::size_t index) const
-	{
-		return index < m_size ? &m_entries[index] : nullptr;
-	}
+	const Entry* getEntryAt(std::size_t index) const { return index < m_size ? &m_entries[index] : nullptr; }
 
-	Entry* getEntryAtMutable(std::size_t index)
-	{
-		return index < m_size ? &m_entries[index] : nullptr;
-	}
+	Entry* getEntryAtMutable(std::size_t index) { return index < m_size ? &m_entries[index] : nullptr; }
 
 	// Range iteration (for range-based for and DLL-internal copy loops)
 	Entry* begin() noexcept { return m_entries; }
@@ -337,10 +318,7 @@ Serialization_Map_GENERATED
 		return m_size;
 	}
 
-	void grow()
-	{
-		reserve(m_capacity == 0 ? 4 : m_capacity * 2);
-	}
+	void grow() { reserve(m_capacity == 0 ? 4 : m_capacity * 2); }
 
 	void reserve(std::size_t newCapacity)
 	{

@@ -14,10 +14,7 @@ MikanObjectSystem::MikanObjectSystem(ProjectManagerPtr ownerObjectSystem)
 {
 }
 
-MikanObjectSystem::~MikanObjectSystem()
-{
-	assert(m_objects.empty());
-}
+MikanObjectSystem::~MikanObjectSystem() { assert(m_objects.empty()); }
 
 bool MikanObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
@@ -54,15 +51,9 @@ void MikanObjectSystem::update(float deltaSeconds)
 		onUpdate(deltaSeconds);
 }
 
-ProjectConfigPtr MikanObjectSystem::getProjectConfig() const
-{
-	return getOwnerProjectManager()->getProjectConfig();
-}
+ProjectConfigPtr MikanObjectSystem::getProjectConfig() const { return getOwnerProjectManager()->getProjectConfig(); }
 
-IEditorWindow* MikanObjectSystem::getOwnerWindow() const
-{
-	return getOwnerProjectManager()->getOwnerWindow();
-}
+IEditorWindow* MikanObjectSystem::getOwnerWindow() const { return getOwnerProjectManager()->getOwnerWindow(); }
 
 IMkGraphicsContext* MikanObjectSystem::getGraphicsContext() const
 {
@@ -83,17 +74,13 @@ MikanObjectPtr MikanObjectSystem::newEmptyObject()
 	return objectPtr;
 }
 
-MikanComponentPtr MikanObjectSystem::addNewObjectByUntypedDefinition(
-	const std::string& primaryComponentClass,
-	Serialization::PolymorphicObjectPtr initParams)
+MikanComponentPtr MikanObjectSystem::addNewObjectByUntypedDefinition(const std::string& primaryComponentClass,
+																	 Serialization::PolymorphicObjectPtr initParams)
 {
 	return MikanComponentPtr();
 }
 
-bool MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr)
-{
-	return disposeObjectInternal(objectPtr);
-}
+bool MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr) { return disposeObjectInternal(objectPtr); }
 
 bool MikanObjectSystem::disposeObjectInternal(MikanObjectPtr objectPtr)
 {

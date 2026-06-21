@@ -21,8 +21,8 @@
 #define NETWORK_VIDEO_DEVICE_MODULE_NAME GSTREAMER_VIDEO_DEVICE_MODULE_NAME
 
 // -- NetworkVideoSourceSystemDefinition -----
-NetworkVideoSourceSystemDefinition::NetworkVideoSourceSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+NetworkVideoSourceSystemDefinition::NetworkVideoSourceSystemDefinition(const std::string& configName,
+																	   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -34,10 +34,7 @@ configuru::Config NetworkVideoSourceSystemDefinition::writeToJSON()
 	return pt;
 }
 
-void NetworkVideoSourceSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	Super::readFromJSON(pt);
-}
+void NetworkVideoSourceSystemDefinition::readFromJSON(const configuru::Config& pt) { Super::readFromJSON(pt); }
 
 // -- NetworkVideoSourceSystem -----
 NetworkVideoSourceSystem::NetworkVideoSourceSystem(ProjectManagerPtr ownerObjectSystem)
@@ -61,8 +58,7 @@ void NetworkVideoSourceSystem::update(float deltaTime)
 				m_networkVideoDeviceModule= result.module;
 				m_networkVideoDeviceManager= result.manager;
 				m_networkVideoManagerState= eNetworkVideoManagerState::ready;
-				MIKAN_LOG_INFO("NetworkVideoSourceSystem::update")
-					<< "Network video device manager is ready";
+				MIKAN_LOG_INFO("NetworkVideoSourceSystem::update") << "Network video device manager is ready";
 
 				// Retry openVideoSource() on any components that were waiting
 				for (const auto& [id, weakComp] : Super::getComponentMap())
@@ -74,8 +70,7 @@ void NetworkVideoSourceSystem::update(float deltaTime)
 			else
 			{
 				m_networkVideoManagerState= eNetworkVideoManagerState::failed;
-				MIKAN_LOG_ERROR("NetworkVideoSourceSystem::update")
-					<< "Async network video device manager init failed";
+				MIKAN_LOG_ERROR("NetworkVideoSourceSystem::update") << "Async network video device manager init failed";
 			}
 		}
 	}
@@ -166,8 +161,8 @@ bool NetworkVideoSourceSystem::ensureNetworkDeviceManager()
 	return false;
 }
 
-NetworkVideoSourceSystem::NetworkVideoDeviceManagerInitResult
-NetworkVideoSourceSystem::initNetworkVideoDeviceManagerOnThread(const std::string& moduleName)
+NetworkVideoSourceSystem::NetworkVideoDeviceManagerInitResult NetworkVideoSourceSystem::
+	initNetworkVideoDeviceManagerOnThread(const std::string& moduleName)
 {
 #ifdef _WIN32
 	// Initialize COM in MTA on this thread to prevent any COM-based operations

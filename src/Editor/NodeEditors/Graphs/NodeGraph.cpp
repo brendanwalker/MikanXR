@@ -86,11 +86,9 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 }
 
 template <class t_object_type>
-static bool readNodeGraphConfigArray(
-	const configuru::Config& arrayConfigObject,
-	const std::string& arrayName,
-	std::vector<std::shared_ptr<t_object_type>>& vector,
-	std::function<CommonConfigPtr(const std::string& className)> allocateConfig)
+static bool readNodeGraphConfigArray(const configuru::Config& arrayConfigObject, const std::string& arrayName,
+									 std::vector<std::shared_ptr<t_object_type>>& vector,
+									 std::function<CommonConfigPtr(const std::string& className)> allocateConfig)
 {
 	const auto& configArray= arrayConfigObject.as_array();
 	bool success= true;
@@ -111,7 +109,8 @@ static bool readNodeGraphConfigArray(
 		CommonConfigPtr config= allocateConfig(className);
 		if (!config)
 		{
-			MIKAN_LOG_ERROR("readNodeGraphConfigVector") << "Failed to allocate config for class name: " << className << ", in array: " << arrayName;
+			MIKAN_LOG_ERROR("readNodeGraphConfigVector")
+				<< "Failed to allocate config for class name: " << className << ", in array: " << arrayName;
 			success= false;
 			continue;
 		}
@@ -132,29 +131,15 @@ bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 
 	// Use factories to create the config of the appropriate type
 	success&= readNodeGraphConfigArray(
-		_assetRefsConfigObject, "assetReferences", assetRefConfigs,
-		[graph](const std::string& className)
-		{
-			return graph->getAssetReferenceFactory(className)->allocateAssetReferenceConfig();
-		});
-	success&= readNodeGraphConfigArray(
-		_propertiesConfigObject, "properties", propertyConfigs,
-		[graph](const std::string& className)
-		{
-			return graph->getPropertyFactory(className)->allocatePropertyConfig();
-		});
-	success&= readNodeGraphConfigArray(
-		_nodesConfigObject, "nodes", nodeConfigs,
-		[graph](const std::string& className)
-		{
-			return graph->getNodeFactory(className)->allocateNodeConfig();
-		});
-	success&= readNodeGraphConfigArray(
-		_pinsConfigObject, "pins", pinConfigs,
-		[graph](const std::string& className)
-		{
-			return graph->getPinFactory(className)->allocatePinConfig();
-		});
+		_assetRefsConfigObject, "assetReferences", assetRefConfigs, [graph](const std::string& className)
+		{ return graph->getAssetReferenceFactory(className)->allocateAssetReferenceConfig(); });
+	success&= readNodeGraphConfigArray(_propertiesConfigObject, "properties", propertyConfigs,
+									   [graph](const std::string& className)
+									   { return graph->getPropertyFactory(className)->allocatePropertyConfig(); });
+	success&= readNodeGraphConfigArray(_nodesConfigObject, "nodes", nodeConfigs, [graph](const std::string& className)
+									   { return graph->getNodeFactory(className)->allocateNodeConfig(); });
+	success&= readNodeGraphConfigArray(_pinsConfigObject, "pins", pinConfigs, [graph](const std::string& className)
+									   { return graph->getPinFactory(className)->allocatePinConfig(); });
 
 	// For graph properties, we actually need to use a map
 	// so that we can look up property config by id
@@ -192,10 +177,7 @@ NodeGraph::NodeGraph()
 	addNodeFactory<VariableNodeFactory>();
 }
 
-NodeGraph::~NodeGraph()
-{
-	disposeResources();
-}
+NodeGraph::~NodeGraph() { disposeResources(); }
 
 bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 {
@@ -287,15 +269,13 @@ bool NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig)
 
 	MIKAN_LOG_INFO("NodeGraph::loadAssetRefFromConfig")
 		<< "Failed to load AssetReference from config"
-		<< ", class: " << assetRefConfig->className
-		<< ", path: " << assetRefConfig->assetPath;
+		<< ", class: " << assetRefConfig->className << ", path: " << assetRefConfig->assetPath;
 
 	return false;
 }
 
-GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(
-	GraphPropertyConfigPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig,
+														const NodeGraphConfig& graphConfig)
 {
 	GraphPropertyPtr property= getPropertyById(propConfig->id);
 
@@ -337,8 +317,7 @@ GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(
 
 	MIKAN_LOG_INFO("NodeGraph::loadGraphPropertyFromConfig")
 		<< "Failed to load GraphProperty from config"
-		<< ", property id: " << propConfig->id
-		<< ", parent property id: " << propConfig->parentId
+		<< ", property id: " << propConfig->id << ", parent property id: " << propConfig->parentId
 		<< ", property class: " << propConfig->className;
 
 	return GraphPropertyPtr();
@@ -370,8 +349,7 @@ bool NodeGraph::allocateNodeFromConfig(NodeConfigPtr nodeConfig)
 
 	MIKAN_LOG_INFO("NodeGraph::allocateNodeFromConfig")
 		<< "Failed to load node from config"
-		<< ", node id: " << nodeConfig->id
-		<< ", node class: " << nodeConfig->className;
+		<< ", node id: " << nodeConfig->id << ", node class: " << nodeConfig->className;
 
 	return false;
 }
@@ -385,8 +363,7 @@ bool NodeGraph::loadNodeFromConfig(NodeConfigPtr nodeConfig)
 	{
 		MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig")
 			<< "Failed to load node from config"
-			<< ", node id: " << nodeConfig->id
-			<< ", node class: " << nodeConfig->className;
+			<< ", node id: " << nodeConfig->id << ", node class: " << nodeConfig->className;
 		return false;
 	}
 
@@ -418,8 +395,7 @@ bool NodeGraph::allocatePinFromConfig(NodePinConfigPtr pinConfig)
 
 	MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig")
 		<< "Failed to load pin from config"
-		<< ", parent node id: " << pinConfig->ownerNodeId
-		<< ", pin id: " << pinConfig->id
+		<< ", parent node id: " << pinConfig->ownerNodeId << ", pin id: " << pinConfig->id
 		<< ", pin class: " << pinConfig->className;
 
 	return false;
@@ -434,8 +410,7 @@ bool NodeGraph::loadPinFromConfig(NodePinConfigPtr pinConfig)
 	{
 		MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig")
 			<< "Failed to load pin from config"
-			<< ", parent node id: " << pinConfig->ownerNodeId
-			<< ", pin id: " << pinConfig->id
+			<< ", parent node id: " << pinConfig->ownerNodeId << ", pin id: " << pinConfig->id
 			<< ", pin class: " << pinConfig->className;
 		return false;
 	}
@@ -461,8 +436,7 @@ bool NodeGraph::allocateLinkFromConfig(NodeLinkConfigPtr linkConfig)
 
 	MIKAN_LOG_INFO("NodeGraph::allocateLinkFromConfig")
 		<< "Failed to load link from config"
-		<< ", start pin id: " << linkConfig->start_pin_id
-		<< ", end pin id: " << linkConfig->end_pin_id
+		<< ", start pin id: " << linkConfig->start_pin_id << ", end pin id: " << linkConfig->end_pin_id
 		<< ", link id: " << linkConfig->id;
 
 	return false;
@@ -477,8 +451,7 @@ bool NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
 	{
 		MIKAN_LOG_INFO("NodeGraph::loadLinkFromConfig")
 			<< "Failed to load link from config"
-			<< ", start pin id: " << linkConfig->start_pin_id
-			<< ", end pin id: " << linkConfig->end_pin_id
+			<< ", start pin id: " << linkConfig->start_pin_id << ", end pin id: " << linkConfig->end_pin_id
 			<< ", link id: " << linkConfig->id;
 		return false;
 	}
@@ -696,11 +669,8 @@ GraphPropertyPtr NodeGraph::getPropertyById(t_graph_property_id id) const
 
 GraphPropertyPtr NodeGraph::getPropertyByName(const std::string& name) const
 {
-	auto it= std::find_if(
-		m_properties.begin(),
-		m_properties.end(),
-		[name](const auto& elem)
-		{ return elem.second->getName() == name; });
+	auto it= std::find_if(m_properties.begin(), m_properties.end(),
+						  [name](const auto& elem) { return elem.second->getName() == name; });
 	if (it != m_properties.end())
 	{
 		return it->second;
@@ -997,12 +967,9 @@ void NodeGraph::editorRender(const NodeEditorState& editorState)
 
 		const bool bNodeSelected= ImNodes::IsNodeSelected(node->getId());
 		MkNodesScopedColorStyle nodeOutlineStyle;
-		nodeOutlineStyle.push(
-			ImNodesCol_NodeOutline,
-			bNodeSelected ? IM_COL32(220, 140, 0, 255) : IM_COL32(24, 24, 24, 255));
-		ImNodes::PushStyleVar(
-			ImNodesStyleVar_NodeBorderThickness,
-			bNodeSelected ? 2.6f : 2.0f);
+		nodeOutlineStyle.push(ImNodesCol_NodeOutline,
+							  bNodeSelected ? IM_COL32(220, 140, 0, 255) : IM_COL32(24, 24, 24, 255));
+		ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, bNodeSelected ? 2.6f : 2.0f);
 
 		node->editorRenderNode(editorState);
 
@@ -1042,9 +1009,7 @@ int NodeGraph::allocateId()
 // -- NodeGraphFactory -----
 std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
 
-NodeGraphPtr NodeGraphFactory::loadNodeGraph(
-	IEditorWindow* ownerWindow,
-	const std::filesystem::path& path)
+NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const std::filesystem::path& path)
 {
 	// Load the node graph config from the file path
 	NodeGraphConfig config;
@@ -1067,7 +1032,8 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(
 	NodeGraphPtr nodeGraph= it->second->allocateNodeGraph();
 	if (!nodeGraph)
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to allocate node graph class: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+			<< "Failed to allocate node graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
@@ -1079,14 +1045,16 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(
 	// we can actually create the graph object configs using the factories from the graph
 	if (!config.postReadFromJSON(nodeGraph))
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+			<< "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
 	// Init node graph from the parsed config
 	if (!nodeGraph->loadFromConfig(config))
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to init all graph objects in graph class: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+			<< "Failed to init all graph objects in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
@@ -1101,10 +1069,7 @@ void NodeGraphFactory::saveNodeGraph(const std::filesystem::path& path, NodeGrap
 	config.save(path);
 }
 
-NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
-{
-	return std::make_shared<NodeGraph>();
-}
+NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const { return std::make_shared<NodeGraph>(); }
 
 NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IEditorWindow* ownerWindow) const
 {

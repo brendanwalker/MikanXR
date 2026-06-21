@@ -20,7 +20,8 @@ public:
 protected:
 	// Property Events
 	void onProjectConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
-	void onObjectSystemDefinitionChanged(MikanObjectSystemDefinitionPtr systemDefinition, const std::string& propertyName);
+	void onObjectSystemDefinitionChanged(MikanObjectSystemDefinitionPtr systemDefinition,
+										 const std::string& propertyName);
 	void onComponentDefinitionChanged(MikanComponentDefinitionPtr componentDefinition, const std::string& propertyName);
 
 	// Property Request Handlers

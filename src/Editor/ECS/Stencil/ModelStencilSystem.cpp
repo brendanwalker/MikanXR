@@ -13,8 +13,8 @@
 #include <assert.h>
 
 // -- ModelStencilSystemDefinition -----
-ModelStencilSystemDefinition::ModelStencilSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+ModelStencilSystemDefinition::ModelStencilSystemDefinition(const std::string& configName,
+														   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -26,10 +26,7 @@ configuru::Config ModelStencilSystemDefinition::writeToJSON()
 	return pt;
 }
 
-void ModelStencilSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	Super::readFromJSON(pt);
-}
+void ModelStencilSystemDefinition::readFromJSON(const configuru::Config& pt) { Super::readFromJSON(pt); }
 
 // -- ModelStencilSystem ----
 ModelStencilSystem::ModelStencilSystem(ProjectManagerPtr ownerObjectSystem)
@@ -37,11 +34,9 @@ ModelStencilSystem::ModelStencilSystem(ProjectManagerPtr ownerObjectSystem)
 {
 }
 
-void ModelStencilSystem::getRelevantModelStencilList(
-	const std::vector<MikanStencilID>* allowedStencilIds,
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraForward,
-	std::vector<ModelStencilComponentPtr>& outStencilList) const
+void ModelStencilSystem::getRelevantModelStencilList(const std::vector<MikanStencilID>* allowedStencilIds,
+													 const glm::vec3& cameraPosition, const glm::vec3& cameraForward,
+													 std::vector<ModelStencilComponentPtr>& outStencilList) const
 {
 	outStencilList.clear();
 	for (const auto& stencilPair : Super::getComponentMap())
@@ -71,9 +66,8 @@ void ModelStencilSystem::getRelevantModelStencilList(
 	}
 }
 
-void ModelStencilSystem::additionalComponentFactory(
-	MikanObjectPtr ownerComponentObject,
-	ComponentDefinitionPtr componentDefinition)
+void ModelStencilSystem::additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+													ComponentDefinitionPtr componentDefinition)
 {
 	// Add a selection component
 	ownerComponentObject->addComponent<SelectionComponent>();
@@ -89,9 +83,8 @@ void ModelStencilSystem::additionalComponentFactory(
 	}
 }
 
-bool ModelStencilSystem::isStencilFacingCamera(
-	StencilComponentConstPtr stencil,
-	const glm::vec3& cameraPosition, const glm::vec3& cameraForward)
+bool ModelStencilSystem::isStencilFacingCamera(StencilComponentConstPtr stencil, const glm::vec3& cameraPosition,
+											   const glm::vec3& cameraForward)
 {
 	StencilComponentConfigConstPtr configPtr= stencil->getStencilComponentDefinition();
 	eStencilCullMode cullMode= configPtr->getCullMode();
@@ -118,8 +111,7 @@ bool ModelStencilSystem::isStencilFacingCamera(
 	const glm::vec3 cameraToStencil= stencilCenter - cameraPosition;
 	const glm::vec3 stencilToCamera= -cameraToStencil;
 
-	return glm::dot(cameraToStencil, cameraForward) > 0.f &&
-		   glm::dot(stencilToCamera, stencilForward) > 0.f;
+	return glm::dot(cameraToStencil, cameraForward) > 0.f && glm::dot(stencilToCamera, stencilForward) > 0.f;
 }
 
 // -- IPropertyInterface ----
@@ -143,21 +135,13 @@ void ModelStencilSystem::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.beginClass<ModelStencilSystem>("ModelStencilSystem")
-		.addFunction("getModelStencilById",
-					 [](ModelStencilSystem* s, int id) -> ModelStencilComponent*
-					 {
-						 return s->getModelStencilById(static_cast<MikanStencilID>(id)).get();
-					 })
+		.addFunction("getModelStencilById", [](ModelStencilSystem* s, int id) -> ModelStencilComponent*
+					 { return s->getModelStencilById(static_cast<MikanStencilID>(id)).get(); })
 		.addFunction("getModelStencilByName",
 					 [](ModelStencilSystem* s, const std::string& name) -> ModelStencilComponent*
-					 {
-						 return s->getModelStencilByName(name).get();
-					 })
+					 { return s->getModelStencilByName(name).get(); })
 		.addFunction("getModelStencilCount",
-					 [](ModelStencilSystem* s) -> int
-					 {
-						 return static_cast<int>(s->getComponentMap().size());
-					 })
+					 [](ModelStencilSystem* s) -> int { return static_cast<int>(s->getComponentMap().size()); })
 		.addFunction("getModelStencilAtIndex",
 					 [](ModelStencilSystem* s, int i) -> ModelStencilComponent*
 					 {

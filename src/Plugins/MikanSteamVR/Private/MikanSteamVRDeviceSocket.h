@@ -8,9 +8,7 @@
 class MikanSteamVRDeviceSocket : public IVRDeviceSocket
 {
 public:
-	MikanSteamVRDeviceSocket(
-		MikanSteamVRDevice* ownerDevice,
-		const std::string& socketName);
+	MikanSteamVRDeviceSocket(MikanSteamVRDevice* ownerDevice, const std::string& socketName);
 
 	virtual const char* getName() const override;
 	virtual bool getSocketState(VRDevicePose& outRelativePose) const override;

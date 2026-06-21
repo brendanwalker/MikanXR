@@ -47,10 +47,9 @@ bool ClientTextureFrameQueue::initialize(const MikanRenderTargetDescriptor& desc
 		{
 			entry.colorTexture->setSize(desc.width, desc.height);
 			entry.colorTexture->setGenerateMipMap(false);
-			entry.colorTexture->setPixelBufferObjectMode(
-				desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
-					? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
-					: IMkTexture::PixelBufferObjectMode::NoPBO);
+			entry.colorTexture->setPixelBufferObjectMode(desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
+															 ? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
+															 : IMkTexture::PixelBufferObjectMode::NoPBO);
 			bSuccess&= entry.colorTexture->createTexture();
 		}
 
@@ -74,10 +73,9 @@ bool ClientTextureFrameQueue::initialize(const MikanRenderTargetDescriptor& desc
 		{
 			entry.depthTexture->setSize(desc.width, desc.height);
 			entry.depthTexture->setGenerateMipMap(false);
-			entry.depthTexture->setPixelBufferObjectMode(
-				desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
-					? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
-					: IMkTexture::PixelBufferObjectMode::NoPBO);
+			entry.depthTexture->setPixelBufferObjectMode(desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
+															 ? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
+															 : IMkTexture::PixelBufferObjectMode::NoPBO);
 			bSuccess&= entry.depthTexture->createTexture();
 		}
 

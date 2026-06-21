@@ -16,25 +16,24 @@
 using USBVideoSourcePathList= std::vector<std::string>;
 using USBVideoSourcePathMap= std::map<std::string, std::string>; // path -> friendly name
 
-class USBVideoSourceSystemDefinition : public MikanTypedObjectSystemDefinition<USBVideoSourceComponent, USBVideoSourceDefinition, MikanVideoSourceID>
+class USBVideoSourceSystemDefinition
+	: public MikanTypedObjectSystemDefinition<USBVideoSourceComponent, USBVideoSourceDefinition, MikanVideoSourceID>
 {
 public:
-	using Super= MikanTypedObjectSystemDefinition<USBVideoSourceComponent, USBVideoSourceDefinition, MikanVideoSourceID>;
+	using Super=
+		MikanTypedObjectSystemDefinition<USBVideoSourceComponent, USBVideoSourceDefinition, MikanVideoSourceID>;
 
 	USBVideoSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class USBVideoSourceSystem : public MikanTypedObjectSystem<
-								 USBVideoSourceComponent, USBVideoSourceDefinition,
-								 MikanVideoSourceID,
-								 USBVideoSourceSystem, USBVideoSourceSystemDefinition>,
-							 public IUsbVideoDeviceManagerListener
+class USBVideoSourceSystem
+	: public MikanTypedObjectSystem<USBVideoSourceComponent, USBVideoSourceDefinition, MikanVideoSourceID,
+									USBVideoSourceSystem, USBVideoSourceSystemDefinition>,
+	  public IUsbVideoDeviceManagerListener
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		USBVideoSourceComponent, USBVideoSourceDefinition,
-		MikanVideoSourceID,
-		USBVideoSourceSystem, USBVideoSourceSystemDefinition>;
+	using Super= MikanTypedObjectSystem<USBVideoSourceComponent, USBVideoSourceDefinition, MikanVideoSourceID,
+										USBVideoSourceSystem, USBVideoSourceSystemDefinition>;
 
 	USBVideoSourceSystem(ProjectManagerPtr ownerObjectSystem);
 

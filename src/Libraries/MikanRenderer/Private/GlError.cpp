@@ -45,10 +45,8 @@ bool checkHasAnyMkError(const char* context, const char* file, const int line)
 
 	while ((err= glGetError()) != GL_NO_ERROR && errCount < 32)
 	{
-		MIKAN_LOG_ERROR("checkGLError")
-			<< context << " - " << file << "(" << line << ") : "
-			<< "GL_CORE_ERROR=" << err << " - "
-			<< errorToString(err);
+		MIKAN_LOG_ERROR("checkGLError") << context << " - " << file << "(" << line << ") : "
+										<< "GL_CORE_ERROR=" << err << " - " << errorToString(err);
 		++errCount;
 	}
 

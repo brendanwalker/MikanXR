@@ -21,7 +21,10 @@ public:
 	// Unused pure-virtual stubs
 	eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_charuco; }
 	bool findNewCalibrationPattern(float) override { return false; }
-	bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list&, t_opencv_pointID_list&, cv::Point2f[4]) override { return false; }
+	bool fetchLastFoundCalibrationPattern(t_opencv_point2d_list&, t_opencv_pointID_list&, cv::Point2f[4]) override
+	{
+		return false;
+	}
 
 private:
 	glm::dmat4 m_cameraToPatternXform;

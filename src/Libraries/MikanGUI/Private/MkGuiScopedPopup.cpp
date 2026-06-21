@@ -17,9 +17,7 @@ MkGuiScopedPopup::~MkGuiScopedPopup()
 
 // -- MkGuiScopedPopupContextItem --
 
-MkGuiScopedPopupContextItem::MkGuiScopedPopupContextItem(
-	const char* str_id,
-	ImGuiPopupFlags popup_flags)
+MkGuiScopedPopupContextItem::MkGuiScopedPopupContextItem(const char* str_id, ImGuiPopupFlags popup_flags)
 {
 	m_open= ImGui::BeginPopupContextItem(str_id, popup_flags);
 }

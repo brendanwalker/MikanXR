@@ -12,11 +12,8 @@ ModalDialog_MessageBox::ModalDialog_MessageBox(AppStage* appStage)
 {
 }
 
-bool ModalDialog_MessageBox::showMessageBox(
-	AppStage* appStage,
-	const std::string& message,
-	const std::string& buttonLabel,
-	DismissCallback dismissCallback)
+bool ModalDialog_MessageBox::showMessageBox(AppStage* appStage, const std::string& message,
+											const std::string& buttonLabel, DismissCallback dismissCallback)
 {
 	ModalDialog_MessageBox* messageBoxModal= appStage->pushModalDialog<ModalDialog_MessageBox>();
 
@@ -29,10 +26,8 @@ bool ModalDialog_MessageBox::showMessageBox(
 	return true;
 }
 
-bool ModalDialog_MessageBox::init(
-	const std::string& message,
-	const std::string& buttonLabel,
-	DismissCallback dismissCallback)
+bool ModalDialog_MessageBox::init(const std::string& message, const std::string& buttonLabel,
+								  DismissCallback dismissCallback)
 {
 	m_message= message;
 	m_buttonLabel= buttonLabel.empty() ? "OK" : buttonLabel;
@@ -49,8 +44,7 @@ void ModalDialog_MessageBox::onGui()
 		m_bNeedsOpen= false;
 	}
 
-	ImGui::SetNextWindowPos(
-		ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::TextUnformatted(m_message.c_str());

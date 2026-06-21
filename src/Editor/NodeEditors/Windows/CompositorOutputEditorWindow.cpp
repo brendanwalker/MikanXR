@@ -60,9 +60,7 @@ CompositorOutputEditorWindow::CompositorOutputEditorWindow(App* ownerApp)
 	m_graphicsContext= ownerApp->getMainWindow()->getGraphicsContext();
 	m_mkWindowContext= createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
 	m_mkWindowContext->useExistingGLContext(); // attach to main window's context, don't create a new one
-	m_modelResourceManager=
-		MikanModelResourceManagerUniquePtr(
-			new MikanModelResourceManager(m_graphicsContext.get()));
+	m_modelResourceManager= MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(m_graphicsContext.get()));
 }
 
 bool CompositorOutputEditorWindow::startup()
@@ -71,7 +69,8 @@ bool CompositorOutputEditorWindow::startup()
 
 	bool success= true;
 
-	if (success && !startupWindow("Compositor Output", k_compositor_output_window_width, k_compositor_output_window_height))
+	if (success
+		&& !startupWindow("Compositor Output", k_compositor_output_window_width, k_compositor_output_window_height))
 	{
 		success= false;
 	}
@@ -106,14 +105,9 @@ bool CompositorOutputEditorWindow::startup()
 	if (success)
 	{
 		MkMaterialConstPtr backgroundMaterial=
-			m_graphicsContext->getShaderCache()->getMaterialByName(
-				INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
+			m_graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
 
-		m_backgroundQuad=
-			createFullscreenQuadMesh(
-				m_graphicsContext.get(),
-				backgroundMaterial,
-				false);
+		m_backgroundQuad= createFullscreenQuadMesh(m_graphicsContext.get(), backgroundMaterial, false);
 	}
 
 	// Create a standalone stationary camera for scene rendering
@@ -131,10 +125,8 @@ bool CompositorOutputEditorWindow::startup()
 	auto sceneSystem= getProjectManager()->getSystemOfType<SceneObjectSystem>();
 	if (sceneSystem)
 	{
-		sceneSystem->OnSceneActivated+=
-			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneActivated);
-		sceneSystem->OnComponentDisposed+=
-			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
+		sceneSystem->OnSceneActivated+= MakeDelegate(this, &CompositorOutputEditorWindow::onSceneActivated);
+		sceneSystem->OnComponentDisposed+= MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
 	}
 	auto compositorSystem= getProjectManager()->getSystemOfType<CompositorObjectSystem>();
 	if (compositorSystem)
@@ -180,8 +172,7 @@ void CompositorOutputEditorWindow::rebindCompositorFromScene()
 	if (!sceneComponent)
 		return;
 
-	MikanCompositorID compositorId=
-		sceneComponent->getSceneComponentDefinition()->getDisplayCompositorId();
+	MikanCompositorID compositorId= sceneComponent->getSceneComponentDefinition()->getDisplayCompositorId();
 
 	CompositorComponentPtr compositor;
 	if (compositorId != INVALID_MIKAN_ID)
@@ -210,14 +201,10 @@ void CompositorOutputEditorWindow::rebindCompositorFromScene()
 	setTitle(compositorName + " - Compositor Output");
 }
 
-void CompositorOutputEditorWindow::onSceneActivated(SceneComponentPtr newScene)
-{
-	bindSceneComponent(newScene);
-}
+void CompositorOutputEditorWindow::onSceneActivated(SceneComponentPtr newScene) { bindSceneComponent(newScene); }
 
-void CompositorOutputEditorWindow::onSceneDefinitionChanged(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void CompositorOutputEditorWindow::onSceneDefinitionChanged(CommonConfigPtr configPtr,
+															const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_displayCompositorIdPropertyId))
 	{
@@ -225,9 +212,8 @@ void CompositorOutputEditorWindow::onSceneDefinitionChanged(
 	}
 }
 
-void CompositorOutputEditorWindow::onSceneComponentDisposed(
-	MikanObjectSystemPtr objectSystem,
-	MikanComponentConstPtr component)
+void CompositorOutputEditorWindow::onSceneComponentDisposed(MikanObjectSystemPtr objectSystem,
+															MikanComponentConstPtr component)
 {
 	SceneComponentPtr sceneComponent= m_sceneComponent.lock();
 	if (sceneComponent && component->getComponentId() == sceneComponent->getComponentId())
@@ -236,12 +222,10 @@ void CompositorOutputEditorWindow::onSceneComponentDisposed(
 	}
 }
 
-void CompositorOutputEditorWindow::onCompositorComponentDisposed(
-	MikanObjectSystemPtr objectSystem,
-	MikanComponentConstPtr component)
+void CompositorOutputEditorWindow::onCompositorComponentDisposed(MikanObjectSystemPtr objectSystem,
+																 MikanComponentConstPtr component)
 {
-	if (m_compositorComponent.lock() &&
-		component->getComponentId() == m_compositorComponent.lock()->getComponentId())
+	if (m_compositorComponent.lock() && component->getComponentId() == m_compositorComponent.lock()->getComponentId())
 	{
 		m_mkWindowContext->requestClose();
 	}
@@ -413,13 +397,8 @@ void CompositorOutputEditorWindow::render()
 					videoSourceName= vs->getName();
 			}
 
-			drawTextAtScreenPosition(
-				gfx,
-				style,
-				glm::vec2(1.f, 1.f),
-				L"%hs | %hs",
-				compositorName.c_str(),
-				videoSourceName.c_str());
+			drawTextAtScreenPosition(gfx, style, glm::vec2(1.f, 1.f), L"%hs | %hs", compositorName.c_str(),
+									 videoSourceName.c_str());
 		}
 
 		// Lower right: FPS
@@ -429,11 +408,8 @@ void CompositorOutputEditorWindow::render()
 			style.verticalAlignment= eVerticalTextAlignment::Bottom;
 
 			drawTextAtScreenPosition(
-				gfx,
-				style,
-				glm::vec2(m_mkWindowContext->getWidth() - 1.f, m_mkWindowContext->getHeight() - 1.f),
-				L"%.1ffps",
-				App::getInstance()->getFPS());
+				gfx, style, glm::vec2(m_mkWindowContext->getWidth() - 1.f, m_mkWindowContext->getHeight() - 1.f),
+				L"%.1ffps", App::getInstance()->getFPS());
 		}
 
 		// Submit ImGui draw data
@@ -467,10 +443,8 @@ void CompositorOutputEditorWindow::shutdown()
 	auto sceneSystem= getProjectManager()->getSystemOfType<SceneObjectSystem>();
 	if (sceneSystem)
 	{
-		sceneSystem->OnSceneActivated-=
-			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneActivated);
-		sceneSystem->OnComponentDisposed-=
-			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
+		sceneSystem->OnSceneActivated-= MakeDelegate(this, &CompositorOutputEditorWindow::onSceneActivated);
+		sceneSystem->OnComponentDisposed-= MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
 	}
 	auto compositorSystem= getProjectManager()->getSystemOfType<CompositorObjectSystem>();
 	if (compositorSystem)
@@ -501,35 +475,20 @@ bool CompositorOutputEditorWindow::onWindowEvent(const MkWindowEvent& event)
 }
 
 // -- IEditorWindow service delegation --
-MainWindow* CompositorOutputEditorWindow::getMainWindow() const
-{
-	return getOwnerApp()->getMainWindow();
-}
+MainWindow* CompositorOutputEditorWindow::getMainWindow() const { return getOwnerApp()->getMainWindow(); }
 
 ProjectManagerPtr CompositorOutputEditorWindow::getProjectManager() const
 {
 	return getMainWindow()->getProjectManager();
 }
 
-MikanServer* CompositorOutputEditorWindow::getMikanServer() const
-{
-	return getMainWindow()->getMikanServer();
-}
+MikanServer* CompositorOutputEditorWindow::getMikanServer() const { return getMainWindow()->getMikanServer(); }
 
-IMkFontManager* CompositorOutputEditorWindow::getFontManager() const
-{
-	return getMainWindow()->getFontManager();
-}
+IMkFontManager* CompositorOutputEditorWindow::getFontManager() const { return getMainWindow()->getFontManager(); }
 
-InputManager* CompositorOutputEditorWindow::getInputManager() const
-{
-	return getMainWindow()->getInputManager();
-}
+InputManager* CompositorOutputEditorWindow::getInputManager() const { return getMainWindow()->getInputManager(); }
 
-OpenCVManager* CompositorOutputEditorWindow::getOpenCVManager() const
-{
-	return getMainWindow()->getOpenCVManager();
-}
+OpenCVManager* CompositorOutputEditorWindow::getOpenCVManager() const { return getMainWindow()->getOpenCVManager(); }
 
 ClientSourceManager* CompositorOutputEditorWindow::getClientSourceManager() const
 {
@@ -541,27 +500,15 @@ LocalizationManager* CompositorOutputEditorWindow::getLocalizationManager() cons
 	return getMainWindow()->getLocalizationManager();
 }
 
-EventBus* CompositorOutputEditorWindow::getEventBus() const
-{
-	return getMainWindow()->getEventBus();
-}
+EventBus* CompositorOutputEditorWindow::getEventBus() const { return getMainWindow()->getEventBus(); }
 
-AppStage* CompositorOutputEditorWindow::getCurrentAppStage() const
-{
-	return getMainWindow()->getCurrentAppStage();
-}
+AppStage* CompositorOutputEditorWindow::getCurrentAppStage() const { return getMainWindow()->getCurrentAppStage(); }
 
-AppStage* CompositorOutputEditorWindow::getParentAppStage() const
-{
-	return getMainWindow()->getParentAppStage();
-}
+AppStage* CompositorOutputEditorWindow::getParentAppStage() const { return getMainWindow()->getParentAppStage(); }
 
 AppStage* CompositorOutputEditorWindow::pushAppStage(const std::string& appStageName)
 {
 	return getMainWindow()->pushAppStage(appStageName);
 }
 
-void CompositorOutputEditorWindow::popAppState()
-{
-	return getMainWindow()->popAppState();
-}
+void CompositorOutputEditorWindow::popAppState() { return getMainWindow()->popAppState(); }

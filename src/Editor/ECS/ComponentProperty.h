@@ -22,10 +22,7 @@ public:
 	{
 	}
 
-	const t_property_type& getValue() const
-	{
-		return m_propertyValue;
-	}
+	const t_property_type& getValue() const { return m_propertyValue; }
 
 private:
 	t_property_type& m_propertyValue;
@@ -34,11 +31,8 @@ private:
 class ComponentProperty
 {
 public:
-	ComponentProperty(
-		MikanComponent& ownerComponent,
-		const std::string& propertyTypeString,
-		const std::string& propertyName,
-		ComponentPropertyAccessorPtr valueAccessor);
+	ComponentProperty(MikanComponent& ownerComponent, const std::string& propertyTypeString,
+					  const std::string& propertyName, ComponentPropertyAccessorPtr valueAccessor);
 
 	inline MikanComponent& getOwnerComponent() const { return m_ownerComponent; }
 	inline const std::string& getPropertyTypeString() const { return m_propertyTypeString; }
@@ -60,15 +54,11 @@ private:
 	ComponentPropertyAccessorPtr m_valueAccessor;
 };
 
-#define COMPONENT_PROPERTY(PROPERTY_TYPE, PROPERTY_NAME)                                           \
-	PROPERTY_TYPE PROPERTY_NAME;                                                                   \
-	void notify##PROPERTY_NAME##Changed()                                                          \
-	{                                                                                              \
-		auto accessor= std::make_shared<TComponentPropertyAccessor<PROPERTY_TYPE>>(PROPERTY_NAME); \
-		ComponentProperty componentProperty(                                                       \
-			*this,                                                                                 \
-			#PROPERTY_TYPE,                                                                        \
-			#PROPERTY_NAME,                                                                        \
-			accessor);                                                                             \
-		notifyComponentPropertyChanged(componentProperty);                                         \
+#define COMPONENT_PROPERTY(PROPERTY_TYPE, PROPERTY_NAME)                                                               \
+	PROPERTY_TYPE PROPERTY_NAME;                                                                                       \
+	void notify##PROPERTY_NAME##Changed()                                                                              \
+	{                                                                                                                  \
+		auto accessor= std::make_shared<TComponentPropertyAccessor<PROPERTY_TYPE>>(PROPERTY_NAME);                     \
+		ComponentProperty componentProperty(*this, #PROPERTY_TYPE, #PROPERTY_NAME, accessor);                          \
+		notifyComponentPropertyChanged(componentProperty);                                                             \
 	}\

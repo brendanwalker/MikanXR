@@ -11,10 +11,7 @@ MikanWMFVideoDeviceManager::MikanWMFVideoDeviceManager()
 {
 }
 
-MikanWMFVideoDeviceManager::~MikanWMFVideoDeviceManager()
-{
-	delete m_wmfDeviceList;
-}
+MikanWMFVideoDeviceManager::~MikanWMFVideoDeviceManager() { delete m_wmfDeviceList; }
 
 void MikanWMFVideoDeviceManager::addListener(IUsbVideoDeviceManagerListener* eventListener)
 {
@@ -47,20 +44,11 @@ bool MikanWMFVideoDeviceManager::startup()
 	return true;
 }
 
-void MikanWMFVideoDeviceManager::update(float deltaTime)
-{
-	m_deviceHotplugNotifier->update();
-}
+void MikanWMFVideoDeviceManager::update(float deltaTime) { m_deviceHotplugNotifier->update(); }
 
-void MikanWMFVideoDeviceManager::shutdown()
-{
-	m_deviceHotplugNotifier->shutdown();
-}
+void MikanWMFVideoDeviceManager::shutdown() { m_deviceHotplugNotifier->shutdown(); }
 
-size_t MikanWMFVideoDeviceManager::getDeviceCount() const
-{
-	return m_deviceMap.size();
-}
+size_t MikanWMFVideoDeviceManager::getDeviceCount() const { return m_deviceMap.size(); }
 
 IUsbVideoDevice* MikanWMFVideoDeviceManager::getDeviceByIndex(size_t index)
 {

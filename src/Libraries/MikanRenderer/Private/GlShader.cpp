@@ -27,29 +27,15 @@ public:
 	{
 	}
 
-	~GlShader()
-	{
-		deleteProgram();
-	}
+	~GlShader() { deleteProgram(); }
 
-	virtual IMkVertexDefinitionConstPtr getVertexDefinition() const override
-	{
-		return m_vertexDefinition;
-	}
+	virtual IMkVertexDefinitionConstPtr getVertexDefinition() const override { return m_vertexDefinition; }
 
-	virtual IMkShaderCodeConstPtr getProgramCode() const override
-	{
-		return m_code;
-	}
+	virtual IMkShaderCodeConstPtr getProgramCode() const override { return m_code; }
 
-	virtual IMkShaderCodePtr getProgramCodeMutable() override
-	{
-		return std::const_pointer_cast<IMkShaderCode>(m_code);
-	}
+	virtual IMkShaderCodePtr getProgramCodeMutable() override { return std::const_pointer_cast<IMkShaderCode>(m_code); }
 
-	virtual bool getUniformSemantic(
-		const std::string uniformName,
-		eUniformSemantic& outSemantic) const override
+	virtual bool getUniformSemantic(const std::string uniformName, eUniformSemantic& outSemantic) const override
 	{
 		auto it= m_uniformLocationMap.find(uniformName);
 		if (it != m_uniformLocationMap.end())
@@ -61,9 +47,7 @@ public:
 		return false;
 	}
 
-	virtual bool getUniformDataType(
-		const std::string uniformName,
-		eUniformDataType& outDataType) const override
+	virtual bool getUniformDataType(const std::string uniformName, eUniformDataType& outDataType) const override
 	{
 		eUniformSemantic semantic= eUniformSemantic::INVALID;
 		if (getUniformSemantic(uniformName, semantic))
@@ -75,8 +59,7 @@ public:
 		return false;
 	}
 
-	virtual std::vector<std::string> getUniformNamesOfDataType(
-		const eUniformDataType dataType) const override
+	virtual std::vector<std::string> getUniformNamesOfDataType(const eUniformDataType dataType) const override
 	{
 		std::vector<std::string> uniformNames;
 
@@ -94,9 +77,7 @@ public:
 		return uniformNames;
 	}
 
-	virtual bool getFirstUniformNameOfSemantic(
-		eUniformSemantic semantic,
-		std::string& outUniformName) const override
+	virtual bool getFirstUniformNameOfSemantic(eUniformSemantic semantic, std::string& outUniformName) const override
 	{
 		for (auto it= getUniformBegin(); it != getUniformEnd(); ++it)
 		{
@@ -110,29 +91,19 @@ public:
 		return false;
 	}
 
-	virtual MkShaderUniformIter getUniformBegin() const override
-	{
-		return m_uniformLocationMap.begin();
-	}
+	virtual MkShaderUniformIter getUniformBegin() const override { return m_uniformLocationMap.begin(); }
 
-	virtual MkShaderUniformIter getUniformEnd() const override
-	{
-		return m_uniformLocationMap.end();
-	}
+	virtual MkShaderUniformIter getUniformEnd() const override { return m_uniformLocationMap.end(); }
 
-	virtual bool getFirstTextureUnitOfSemantic(
-		eUniformSemantic semantic,
-		int& outTextureUnit) const override
+	virtual bool getFirstTextureUnitOfSemantic(eUniformSemantic semantic, int& outTextureUnit) const override
 	{
 		std::string uniformName;
 
-		return getFirstUniformNameOfSemantic(semantic, uniformName) &&
-			   getUniformTextureUnit(uniformName, outTextureUnit);
+		return getFirstUniformNameOfSemantic(semantic, uniformName)
+			   && getUniformTextureUnit(uniformName, outTextureUnit);
 	}
 
-	virtual bool getUniformTextureUnit(
-		const std::string uniformName,
-		int& outTextureUnit) const override
+	virtual bool getUniformTextureUnit(const std::string uniformName, int& outTextureUnit) const override
 	{
 		auto it= m_textureUnitMap.find(uniformName);
 		if (it != m_textureUnitMap.end())
@@ -144,9 +115,7 @@ public:
 		return false;
 	}
 
-	virtual bool setMatrix4x4Uniform(
-		const std::string uniformName,
-		const glm::mat4& mat) override
+	virtual bool setMatrix4x4Uniform(const std::string uniformName, const glm::mat4& mat) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -158,9 +127,7 @@ public:
 		return false;
 	}
 
-	virtual bool setIntUniform(
-		const std::string uniformName,
-		const int value) override
+	virtual bool setIntUniform(const std::string uniformName, const int value) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -172,9 +139,7 @@ public:
 		return false;
 	}
 
-	virtual bool setInt2Uniform(
-		const std::string uniformName,
-		const glm::ivec2& vec) override
+	virtual bool setInt2Uniform(const std::string uniformName, const glm::ivec2& vec) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -186,9 +151,7 @@ public:
 		return false;
 	}
 
-	virtual bool setInt3Uniform(
-		const std::string uniformName,
-		const glm::ivec3& vec) override
+	virtual bool setInt3Uniform(const std::string uniformName, const glm::ivec3& vec) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -200,9 +163,7 @@ public:
 		return false;
 	}
 
-	virtual bool setInt4Uniform(
-		const std::string uniformName,
-		const glm::ivec4& vec) override
+	virtual bool setInt4Uniform(const std::string uniformName, const glm::ivec4& vec) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -214,9 +175,7 @@ public:
 		return false;
 	}
 
-	virtual bool setFloatUniform(
-		const std::string uniformName,
-		const float value) override
+	virtual bool setFloatUniform(const std::string uniformName, const float value) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -228,9 +187,7 @@ public:
 		return false;
 	}
 
-	virtual bool setVector2Uniform(
-		const std::string uniformName,
-		const glm::vec2& vec) override
+	virtual bool setVector2Uniform(const std::string uniformName, const glm::vec2& vec) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -242,9 +199,7 @@ public:
 		return false;
 	}
 
-	virtual bool setVector3Uniform(
-		const std::string uniformName,
-		const glm::vec3& vec) override
+	virtual bool setVector3Uniform(const std::string uniformName, const glm::vec3& vec) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -256,9 +211,7 @@ public:
 		return false;
 	}
 
-	virtual bool setVector4Uniform(
-		const std::string uniformName,
-		const glm::vec4& vec) override
+	virtual bool setVector4Uniform(const std::string uniformName, const glm::vec4& vec) override
 	{
 		auto iter= m_uniformLocationMap.find(uniformName);
 		if (iter != m_uniformLocationMap.end())
@@ -270,13 +223,11 @@ public:
 		return false;
 	}
 
-	virtual bool setTextureUniform(
-		const std::string uniformName) override
+	virtual bool setTextureUniform(const std::string uniformName) override
 	{
 		GLint textureUnit= 0;
 		auto iter= m_uniformLocationMap.find(uniformName);
-		if (iter != m_uniformLocationMap.end() &&
-			getUniformTextureUnit(uniformName, textureUnit))
+		if (iter != m_uniformLocationMap.end() && getUniformTextureUnit(uniformName, textureUnit))
 		{
 			const GLint uniformId= iter->second.locationId;
 
@@ -342,9 +293,7 @@ public:
 			if (vShaderCompiled != 1)
 			{
 				MIKAN_LOG_ERROR("IMkShader::createProgram")
-					<< m_code->getProgramName()
-					<< " - Unable to compile vertex shader "
-					<< nSceneVertexShader;
+					<< m_code->getProgramName() << " - Unable to compile vertex shader " << nSceneVertexShader;
 
 				GLchar strInfoLog[1024]= {0};
 				glGetShaderInfoLog(nSceneVertexShader, sizeof(strInfoLog) - 1, nullptr, strInfoLog);
@@ -377,9 +326,7 @@ public:
 			if (fShaderCompiled != 1)
 			{
 				MIKAN_LOG_ERROR("IMkShader::CreateGLResources")
-					<< m_code->getProgramName()
-					<< " - Unable to compile fragment shader "
-					<< nSceneFragmentShader;
+					<< m_code->getProgramName() << " - Unable to compile fragment shader " << nSceneFragmentShader;
 
 				GLchar strInfoLog[1024]= {0};
 				glGetShaderInfoLog(nSceneFragmentShader, sizeof(strInfoLog) - 1, nullptr, strInfoLog);
@@ -404,9 +351,7 @@ public:
 			if (programSuccess != 1)
 			{
 				MIKAN_LOG_ERROR("IMkShader::CreateGLResources")
-					<< m_code->getProgramName()
-					<< " - Error linking program "
-					<< m_programID;
+					<< m_code->getProgramName() << " - Error linking program " << m_programID;
 
 				GLchar strInfoLog[1024]= {0};
 				glGetProgramInfoLog(m_programID, sizeof(strInfoLog) - 1, nullptr, strInfoLog);
@@ -443,8 +388,7 @@ public:
 				else
 				{
 					MIKAN_LOG_WARNING("IMkShader::compileProgram")
-						<< m_code->getProgramName()
-						<< " - Unable to find " << codeUniform.name << " uniform!";
+						<< m_code->getProgramName() << " - Unable to find " << codeUniform.name << " uniform!";
 				}
 			}
 
@@ -461,15 +405,9 @@ public:
 		return false;
 	}
 
-	virtual bool isProgramCompiled() const override
-	{
-		return m_programID != 0;
-	}
+	virtual bool isProgramCompiled() const override { return m_programID != 0; }
 
-	virtual uint32_t getIMkShaderId() const override
-	{
-		return m_programID;
-	}
+	virtual uint32_t getIMkShaderId() const override { return m_programID; }
 
 	virtual void deleteProgram() override
 	{
@@ -509,17 +447,8 @@ protected:
 	IMkVertexDefinitionPtr m_vertexDefinition;
 };
 
-IMkShaderPtr createIMkShader()
-{
-	return std::make_shared<GlShader>();
-}
+IMkShaderPtr createIMkShader() { return std::make_shared<GlShader>(); }
 
-IMkShaderPtr createIMkShader(const std::string& programName)
-{
-	return std::make_shared<GlShader>(programName);
-}
+IMkShaderPtr createIMkShader(const std::string& programName) { return std::make_shared<GlShader>(programName); }
 
-IMkShaderPtr createIMkShader(IMkShaderCodeConstPtr shaderCode)
-{
-	return std::make_shared<GlShader>(shaderCode);
-}
+IMkShaderPtr createIMkShader(IMkShaderCodeConstPtr shaderCode) { return std::make_shared<GlShader>(shaderCode); }

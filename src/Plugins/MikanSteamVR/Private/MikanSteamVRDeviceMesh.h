@@ -7,10 +7,8 @@
 class MikanSteamVRDeviceMesh : public IVRDeviceMesh
 {
 public:
-	MikanSteamVRDeviceMesh(
-		MikanSteamVRDevice* ownerDevice,
-		const std::string& componentName,
-		const std::string& renderModelName);
+	MikanSteamVRDeviceMesh(MikanSteamVRDevice* ownerDevice, const std::string& componentName,
+						   const std::string& renderModelName);
 
 	virtual const char* getName() const override;
 	virtual bool getMeshState(VRDevicePose& outRelativePose, bool& outIsVisible) const override;

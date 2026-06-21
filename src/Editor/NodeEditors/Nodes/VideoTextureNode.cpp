@@ -35,12 +35,8 @@ void VideoTextureNodeConfig::readFromJSON(const configuru::Config& pt)
 	NodeConfig::readFromJSON(pt);
 
 	const std::string textureSourceString=
-		pt.get_or<std::string>(
-			"video_texture_source",
-			k_videoTextureStrings[(int)eVideoTextureSource::video_texture]);
-	videoTextureSource=
-		StringUtils::FindEnumValue<eVideoTextureSource>(
-			textureSourceString, k_videoTextureStrings);
+		pt.get_or<std::string>("video_texture_source", k_videoTextureStrings[(int)eVideoTextureSource::video_texture]);
+	videoTextureSource= StringUtils::FindEnumValue<eVideoTextureSource>(textureSourceString, k_videoTextureStrings);
 }
 
 // -- VideoTextureNode -----
@@ -103,25 +99,22 @@ bool VideoTextureNode::evaluateNode(NodeEvaluator& evaluator)
 
 	if (!compositorComponent->getIsRunning())
 	{
-		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::missingInput,
-				StringUtils::stringify("Compositor ", compositorComponent->getName(), " is not active"),
-				this));
+		evaluator.addError(NodeEvaluationError(
+			eNodeEvaluationErrorCode::missingInput,
+			StringUtils::stringify("Compositor ", compositorComponent->getName(), " is not active"), this));
 	}
 	else if (!textureResource || !textureResource->getIsValid())
 	{
-		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::missingInput,
-				StringUtils::stringify("Compositor ", compositorComponent->getName(), " missing output"),
-				this));
+		evaluator.addError(NodeEvaluationError(
+			eNodeEvaluationErrorCode::missingInput,
+			StringUtils::stringify("Compositor ", compositorComponent->getName(), " missing output"), this));
 	}
 
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> VideoTextureNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> VideoTextureNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
@@ -159,12 +152,8 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 
 		// Texture Source
 		int iTextureSource= (int)m_videoTextureSource;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-				"videoTextureNodeSource",
-				"Source",
-				k_videoSourceOptions,
-				iTextureSource,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("videoTextureNodeSource", "Source", k_videoSourceOptions,
+													 iTextureSource, editorState.styleManager))
 		{
 			m_videoTextureSource= (eVideoTextureSource)iTextureSource;
 		}

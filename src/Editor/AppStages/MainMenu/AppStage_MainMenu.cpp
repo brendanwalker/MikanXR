@@ -42,13 +42,11 @@ void AppStage_MainMenu::enter()
 	if (!m_fullscreenRGBQuad)
 	{
 		MkMaterialConstPtr backgroundMaterial=
-			getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
+			getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(
+				INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
 
 		m_fullscreenRGBQuad=
-			createFullscreenQuadMesh(
-				getOwnerWindow()->getGraphicsContext().get(),
-				backgroundMaterial,
-				false);
+			createFullscreenQuadMesh(getOwnerWindow()->getGraphicsContext().get(), backgroundMaterial, false);
 	}
 }
 
@@ -63,13 +61,8 @@ void AppStage_MainMenu::onOpenProject()
 	std::string defaultPath= (PathUtils::getHomeDirectory() / "").string();
 	static const char* filterItems[1]= {"*.mikanproj"};
 
-	const char* picked= tinyfd_openFileDialog(
-		"Open Project",
-		defaultPath.c_str(),
-		1,
-		filterItems,
-		"Project Files (*.mikanproj)",
-		1);
+	const char* picked=
+		tinyfd_openFileDialog("Open Project", defaultPath.c_str(), 1, filterItems, "Project Files (*.mikanproj)", 1);
 
 	if (picked == nullptr || picked[0] == '\0')
 		return;
@@ -86,12 +79,8 @@ void AppStage_MainMenu::onNewProject()
 	std::string defaultPath= (PathUtils::getHomeDirectory() / "").string();
 	static const char* filterItems[1]= {"*.mikanproj"};
 
-	const char* picked= tinyfd_saveFileDialog(
-		"New Project",
-		defaultPath.c_str(),
-		1,
-		filterItems,
-		"Project Files (*.mikanproj)");
+	const char* picked=
+		tinyfd_saveFileDialog("New Project", defaultPath.c_str(), 1, filterItems, "Project Files (*.mikanproj)");
 
 	if (picked == nullptr || picked[0] == '\0')
 		return;
@@ -119,10 +108,7 @@ void AppStage_MainMenu::onGui()
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, 0), ImGuiCond_Always);
 
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##MainMenu", nullptr, k_flags);
 	if (!panel)
@@ -172,8 +158,8 @@ void AppStage_MainMenu::render(IMkViewportPtr targetViewport)
 
 			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
-				MkScopedState scopedState=
-					getOwnerWindow()->getGraphicsContext()->getMkStateStack().createScopedState("MainTargetDepthRender");
+				MkScopedState scopedState= getOwnerWindow()->getGraphicsContext()->getMkStateStack().createScopedState(
+					"MainTargetDepthRender");
 				IMkState* mkState= scopedState.getStackState();
 
 				mkState->disableFlag(eMkStateFlagType::depthTest);
@@ -186,10 +172,9 @@ void AppStage_MainMenu::render(IMkViewportPtr targetViewport)
 }
 
 // -- IRemoteControllableAppStage Interface -- //
-bool AppStage_MainMenu::handleRemoteControlCommand(
-	const std::string& command,
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage_MainMenu::handleRemoteControlCommand(const std::string& command,
+												   const std::vector<std::string>& parameters,
+												   std::vector<std::string>& outResults)
 {
 	if (command == "resume_project")
 	{
@@ -233,9 +218,8 @@ bool AppStage_MainMenu::handleResumeProjectCommand(std::vector<std::string>& out
 	return true;
 }
 
-bool AppStage_MainMenu::handleOpenProjectCommand(
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage_MainMenu::handleOpenProjectCommand(const std::vector<std::string>& parameters,
+												 std::vector<std::string>& outResults)
 {
 	std::string projectFilePathStr= !parameters.empty() ? parameters[0] : "";
 
@@ -262,9 +246,8 @@ bool AppStage_MainMenu::handleOpenProjectCommand(
 	return false;
 }
 
-bool AppStage_MainMenu::handleNewProjectCommand(
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage_MainMenu::handleNewProjectCommand(const std::vector<std::string>& parameters,
+												std::vector<std::string>& outResults)
 {
 	if (!parameters.empty())
 	{

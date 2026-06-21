@@ -75,15 +75,11 @@ void DrawLayerNodeConfig::readFromJSON(const configuru::Config& pt)
 	NodeConfig::readFromJSON(pt);
 
 	const std::string blendModeString=
-		pt.get_or<std::string>(
-			"blend_mode",
-			k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOff]);
+		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOff]);
 	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
 	const std::string stencilModeString=
-		pt.get_or<std::string>(
-			"stencil_mode",
-			k_stencilTypeStrings[(int)eCompositorStencilMode::insideStencil]);
+		pt.get_or<std::string>("stencil_mode", k_stencilTypeStrings[(int)eCompositorStencilMode::insideStencil]);
 	stencilMode= StringUtils::FindEnumValue<eCompositorStencilMode>(stencilModeString, k_compositorStencilModeStrings);
 
 	bVerticalFlip= pt.get_or<bool>("vertical_flip", false);
@@ -212,23 +208,14 @@ void DrawLayerNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	}
 }
 
-void DrawLayerNode::setMaterialPin(PropertyPinPtr inPin)
-{
-	m_materialPin= inPin;
-}
+void DrawLayerNode::setMaterialPin(PropertyPinPtr inPin) { m_materialPin= inPin; }
 
-void DrawLayerNode::setStencilsPin(ArrayPinPtr inPin)
-{
-	m_stencilsPin= inPin;
-}
+void DrawLayerNode::setStencilsPin(ArrayPinPtr inPin) { m_stencilsPin= inPin; }
 
 void DrawLayerNode::setMaterial(MkMaterialConstPtr inMaterial)
 {
 	m_material= inMaterial;
-	m_materialInstance=
-		m_material
-			? createMkMaterialInstance(inMaterial)
-			: MkMaterialInstancePtr();
+	m_materialInstance= m_material ? createMkMaterialInstance(inMaterial) : MkMaterialInstancePtr();
 }
 
 bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
@@ -311,8 +298,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 
 		{
 			IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
-			MkScopedState mkStateScope=
-				graphicsContext->getMkStateStack().createScopedState("Draw Layer Node");
+			MkScopedState mkStateScope= graphicsContext->getMkStateStack().createScopedState("Draw Layer Node");
 			IMkState* mkState= mkStateScope.getStackState();
 
 			// Set the blend mode
@@ -366,35 +352,26 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 				else
 				{
 					evaluator.addError(
-						NodeEvaluationError(
-							eNodeEvaluationErrorCode::materialError,
-							StringUtils::stringify("Unable to bind ", m_material->getName()),
-							this));
+						NodeEvaluationError(eNodeEvaluationErrorCode::materialError,
+											StringUtils::stringify("Unable to bind ", m_material->getName()), this));
 					for (const auto& iter : materialInstanceBinding.getUnboundUniforms())
 					{
-						evaluator.addError(
-							NodeEvaluationError(
-								eNodeEvaluationErrorCode::materialError,
-								StringUtils::stringify("Missing uniform: ", iter),
-								this));
+						evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::materialError,
+															   StringUtils::stringify("Missing uniform: ", iter),
+															   this));
 					}
 					bSuccess= false;
 				}
 			}
 			else
 			{
-				evaluator.addError(
-					NodeEvaluationError(
-						eNodeEvaluationErrorCode::materialError,
-						StringUtils::stringify("Unable to bind ", m_material->getName()),
-						this));
+				evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::materialError,
+													   StringUtils::stringify("Unable to bind ", m_material->getName()),
+													   this));
 				for (const auto& iter : materialBinding.getUnboundUniforms())
 				{
-					evaluator.addError(
-						NodeEvaluationError(
-							eNodeEvaluationErrorCode::materialError,
-							StringUtils::stringify("Missing uniform: ", iter),
-							this));
+					evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::materialError,
+														   StringUtils::stringify("Missing uniform: ", iter), this));
 				}
 				bSuccess= false;
 			}
@@ -404,10 +381,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 	return bSuccess;
 }
 
-FlowPinPtr DrawLayerNode::getOutputFlowPin() const
-{
-	return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT);
-}
+FlowPinPtr DrawLayerNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
 
 void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
@@ -420,39 +394,26 @@ void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState
 
 		// Blend Mode
 		int iBlendMode= (int)m_blendMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-				"drawLayerNodeBlendMode",
-				"Blend Mode",
-				"Blend Off\0Blend On\0",
-				iBlendMode,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawLayerNodeBlendMode", "Blend Mode", "Blend Off\0Blend On\0",
+													 iBlendMode, editorState.styleManager))
 		{
 			m_blendMode= (eCompositorBlendMode)iBlendMode;
 		}
 
 		// Stencil Mode
 		int iStencilMode= (int)m_stencilMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-				"drawLayerNodeStencilMode",
-				"Stencil Mode",
-				"None\0Inside\0Outside\0",
-				iStencilMode,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawLayerNodeStencilMode", "Stencil Mode",
+													 "None\0Inside\0Outside\0", iStencilMode, editorState.styleManager))
 		{
 			m_stencilMode= (eCompositorStencilMode)iStencilMode;
 		}
 
 		// Invert when camera inside stencil options
-		NodeEditorUI::DrawCheckBoxProperty(
-			"drawLayerNodeNodeStencilInvert",
-			"Cam Inside Invert",
-			m_bInvertWhenCameraInside);
+		NodeEditorUI::DrawCheckBoxProperty("drawLayerNodeNodeStencilInvert", "Cam Inside Invert",
+										   m_bInvertWhenCameraInside);
 
 		// Vertical Flip
-		NodeEditorUI::DrawCheckBoxProperty(
-			"drawLayerNodeNodeVerticalflip",
-			"Vertical Flip",
-			m_bVerticalFlip);
+		NodeEditorUI::DrawCheckBoxProperty("drawLayerNodeNodeVerticalflip", "Vertical Flip", m_bVerticalFlip);
 	}
 }
 
@@ -661,9 +622,7 @@ void DrawLayerNode::rebuildStencilLists()
 	}
 }
 
-void DrawLayerNode::evaluateQuadStencils(
-	CameraComponentPtr cameraComponent,
-	IMkState* glParentState)
+void DrawLayerNode::evaluateQuadStencils(CameraComponentPtr cameraComponent, IMkState* glParentState)
 {
 	EASY_FUNCTION();
 
@@ -686,11 +645,8 @@ void DrawLayerNode::evaluateQuadStencils(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<QuadStencilComponentPtr> quadStencilList;
-	getObjectSystemOfType<QuadStencilSystem>()->getRelevantQuadStencilList(
-		&m_quadStencilIds,
-		cameraPosition,
-		cameraForward,
-		quadStencilList);
+	getObjectSystemOfType<QuadStencilSystem>()->getRelevantQuadStencilList(&m_quadStencilIds, cameraPosition,
+																		   cameraForward, quadStencilList);
 
 	if (quadStencilList.size() == 0)
 		return;
@@ -722,9 +678,7 @@ void DrawLayerNode::evaluateQuadStencils(
 				doubleSidedStencilCount++;
 			}
 		}
-		bInvertStencils=
-			cameraBehindStencilCount > 0 &&
-			cameraBehindStencilCount == doubleSidedStencilCount;
+		bInvertStencils= cameraBehindStencilCount > 0 && cameraBehindStencilCount == doubleSidedStencilCount;
 	}
 
 	{
@@ -760,17 +714,12 @@ void DrawLayerNode::evaluateQuadStencils(
 				const glm::vec3 y_axis= glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
 				const glm::vec3 z_axis= glm::vec3(xform[2]);
 				const glm::vec3 position= glm::vec3(xform[3]);
-				const glm::mat4 modelMatrix=
-					glm::mat4(
-						glm::vec4(x_axis, 0.f),
-						glm::vec4(y_axis, 0.f),
-						glm::vec4(z_axis, 0.f),
-						glm::vec4(position, 1.f));
+				const glm::mat4 modelMatrix= glm::mat4(glm::vec4(x_axis, 0.f), glm::vec4(y_axis, 0.f),
+													   glm::vec4(z_axis, 0.f), glm::vec4(position, 1.f));
 
 				// Set the model-view-projection matrix on the stencil shader
-				materialInstance->setMat4BySemantic(
-					eUniformSemantic::modelViewProjectionMatrix,
-					vpMatrix * modelMatrix);
+				materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix,
+													vpMatrix * modelMatrix);
 
 				if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 				{
@@ -782,9 +731,7 @@ void DrawLayerNode::evaluateQuadStencils(
 	}
 }
 
-void DrawLayerNode::evaluateBoxStencils(
-	CameraComponentPtr cameraComponent,
-	IMkState* glParentState)
+void DrawLayerNode::evaluateBoxStencils(CameraComponentPtr cameraComponent, IMkState* glParentState)
 {
 	EASY_FUNCTION();
 
@@ -807,11 +754,8 @@ void DrawLayerNode::evaluateBoxStencils(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<BoxStencilComponentPtr> boxStencilList;
-	getObjectSystemOfType<BoxStencilSystem>()->getRelevantBoxStencilList(
-		&m_boxStencilIds,
-		cameraPosition,
-		cameraForward,
-		boxStencilList);
+	getObjectSystemOfType<BoxStencilSystem>()->getRelevantBoxStencilList(&m_boxStencilIds, cameraPosition,
+																		 cameraForward, boxStencilList);
 
 	if (boxStencilList.size() == 0)
 		return;
@@ -849,17 +793,12 @@ void DrawLayerNode::evaluateBoxStencils(
 				const glm::vec3 y_axis= glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
 				const glm::vec3 z_axis= glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
 				const glm::vec3 position= glm::vec3(xform[3]);
-				const glm::mat4 modelMatrix=
-					glm::mat4(
-						glm::vec4(x_axis, 0.f),
-						glm::vec4(y_axis, 0.f),
-						glm::vec4(z_axis, 0.f),
-						glm::vec4(position, 1.f));
+				const glm::mat4 modelMatrix= glm::mat4(glm::vec4(x_axis, 0.f), glm::vec4(y_axis, 0.f),
+													   glm::vec4(z_axis, 0.f), glm::vec4(position, 1.f));
 
 				// Set the model-view-projection matrix on the stencil shader
-				materialInstance->setMat4BySemantic(
-					eUniformSemantic::modelViewProjectionMatrix,
-					vpMatrix * modelMatrix);
+				materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix,
+													vpMatrix * modelMatrix);
 
 				if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 				{
@@ -871,9 +810,7 @@ void DrawLayerNode::evaluateBoxStencils(
 	}
 }
 
-void DrawLayerNode::evaluateModelStencils(
-	CameraComponentPtr cameraComponent,
-	IMkState* glParentState)
+void DrawLayerNode::evaluateModelStencils(CameraComponentPtr cameraComponent, IMkState* glParentState)
 {
 	EASY_FUNCTION();
 
@@ -895,11 +832,8 @@ void DrawLayerNode::evaluateModelStencils(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<ModelStencilComponentPtr> modelStencilList;
-	getObjectSystemOfType<ModelStencilSystem>()->getRelevantModelStencilList(
-		&m_modelStencilIds,
-		cameraPosition,
-		cameraForward,
-		modelStencilList);
+	getObjectSystemOfType<ModelStencilSystem>()->getRelevantModelStencilList(&m_modelStencilIds, cameraPosition,
+																			 cameraForward, modelStencilList);
 
 	if (modelStencilList.size() == 0)
 		return;

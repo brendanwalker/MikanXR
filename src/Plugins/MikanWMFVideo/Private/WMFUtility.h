@@ -17,13 +17,9 @@ bool isCompressedFormat(const WMFDeviceFormatInfo& deviceFormat);
 const char* getWMFVideoFormatName(const GUID& format);
 const char* getUSBVideoFormatName(eUSBVideoFrameBufferFormat format);
 std::string getHresultMessage(HRESULT hr);
-IMFMediaType* makeWMFMediaTypeFromSourceReader(
-	IMFSourceReader* pSourceReader,
-	DWORD deviceFormatIndex,
-	GUID wmfOutputFormat);
-IMFMediaType* makeWMFMediaTypeFromDeviceFormatInfo(
-	const WMFDeviceFormatInfo& deviceFormat,
-	GUID wmfOutputFormat);
+IMFMediaType* makeWMFMediaTypeFromSourceReader(IMFSourceReader* pSourceReader, DWORD deviceFormatIndex,
+											   GUID wmfOutputFormat);
+IMFMediaType* makeWMFMediaTypeFromDeviceFormatInfo(const WMFDeviceFormatInfo& deviceFormat, GUID wmfOutputFormat);
 void logNativeMediaType(const std::string& function, IMFMediaType* pMediaType);
 HRESULT findBestH264Decoder(CLSID* pDecoderCLSID);
 }; // namespace WMFUtility

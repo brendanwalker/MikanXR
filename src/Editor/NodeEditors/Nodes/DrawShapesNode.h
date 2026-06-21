@@ -54,10 +54,8 @@ protected:
 
 	void setShapesPin(ArrayPinPtr inPin);
 
-	void drawShapeRenderable(
-		IMkSceneRenderableConstPtr renderable,
-		const glm::mat4& vpMatrix,
-		IMkTexturePtr colorTexture);
+	void drawShapeRenderable(IMkSceneRenderableConstPtr renderable, const glm::mat4& vpMatrix,
+							 IMkTexturePtr colorTexture);
 
 	virtual std::string editorGetTitle() const override { return "Draw Shapes"; }
 

@@ -17,11 +17,8 @@ public:
 	virtual ~ModalDialog_MessageBox()= default;
 
 	using DismissCallback= std::function<void()>;
-	static bool showMessageBox(
-		AppStage* appStage,
-		const std::string& message,
-		const std::string& buttonLabel= "OK",
-		DismissCallback dismissCallback= {});
+	static bool showMessageBox(AppStage* appStage, const std::string& message, const std::string& buttonLabel= "OK",
+							   DismissCallback dismissCallback= {});
 
 	virtual void onGui() override;
 
@@ -31,9 +28,6 @@ protected:
 	std::string m_message;
 	std::string m_buttonLabel;
 
-	bool init(
-		const std::string& message,
-		const std::string& buttonLabel,
-		DismissCallback dismissCallback);
+	bool init(const std::string& message, const std::string& buttonLabel, DismissCallback dismissCallback);
 	void onDismiss();
 };

@@ -18,11 +18,9 @@ class GLVideoFrameProcessor;
 class VideoFrameDistortionView
 {
 public:
-	VideoFrameDistortionView(
-		VideoSourceComponentPtr view,
-		eVideoFrameProcessorMode processorMode,
-		unsigned int frameQueueSize= 1,
-		VideoFrameSection videoFramesection= VideoFrameSection::Primary);
+	VideoFrameDistortionView(VideoSourceComponentPtr view, eVideoFrameProcessorMode processorMode,
+							 unsigned int frameQueueSize= 1,
+							 VideoFrameSection videoFramesection= VideoFrameSection::Primary);
 	virtual ~VideoFrameDistortionView();
 
 	inline VideoSourceComponentPtr getVideoSourceComponent() const { return m_videoSourceComponent; }
@@ -51,15 +49,9 @@ public:
 	cv::Mat* getBGRGsDisplayBuffer() const;
 	inline IMkTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
 
-	void writeVideoFrame(
-		const unsigned char* videoBuffer,
-		const cv::Size& bufferDimensions,
-		bool bIsFlipped);
-	void writeStereoVideoFrameSection(
-		const unsigned char* videoBuffer,
-		const cv::Size& bufferDimensions,
-		const bool bIsFlipped,
-		const cv::Rect& bufferBounds);
+	void writeVideoFrame(const unsigned char* videoBuffer, const cv::Size& bufferDimensions, bool bIsFlipped);
+	void writeStereoVideoFrameSection(const unsigned char* videoBuffer, const cv::Size& bufferDimensions,
+									  const bool bIsFlipped, const cv::Rect& bufferBounds);
 
 	bool hasNewVideoFrame() const;
 	int64_t readAndProcessVideoFrame();

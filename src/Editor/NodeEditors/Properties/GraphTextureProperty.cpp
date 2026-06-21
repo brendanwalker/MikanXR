@@ -32,9 +32,7 @@ public:
 					selectedAssetRefIndex= listIndex;
 				}
 
-				ComboEntry entry= {
-					textureAssetRef,
-					textureAssetRef ? assetRef->getShortName() : "<No Asset Ref>"};
+				ComboEntry entry= {textureAssetRef, textureAssetRef ? assetRef->getShortName() : "<No Asset Ref>"};
 
 				comboEntries.push_back(entry);
 				listIndex++;
@@ -42,25 +40,13 @@ public:
 		}
 	}
 
-	inline int getCurrentAssetIndex() const
-	{
-		return selectedAssetRefIndex;
-	}
+	inline int getCurrentAssetIndex() const { return selectedAssetRefIndex; }
 
-	inline TextureAssetReferencePtr getEntryAssetRef(int index)
-	{
-		return comboEntries[index].assetReference;
-	}
+	inline TextureAssetReferencePtr getEntryAssetRef(int index) { return comboEntries[index].assetReference; }
 
-	virtual int getEntryCount() override
-	{
-		return (int)comboEntries.size();
-	}
+	virtual int getEntryCount() override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override
-	{
-		return comboEntries[index].entryString;
-	}
+	virtual const std::string& getEntryDisplayString(int index) override { return comboEntries[index].entryString; }
 
 private:
 	struct ComboEntry
@@ -92,9 +78,7 @@ void GraphTexturePropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphModelProperty -----
-bool GraphTextureProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphTextureProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
@@ -141,8 +125,7 @@ void GraphTextureProperty::saveToConfig(GraphPropertyConfigPtr config) const
 		if (propConfig->assetRefIndex == -1)
 		{
 			MIKAN_LOG_ERROR("GraphTextureProperty::saveToConfig")
-				<< "Texture property has orphaned asset reference: "
-				<< m_textureAssetRef->getAssetPath();
+				<< "Texture property has orphaned asset reference: " << m_textureAssetRef->getAssetPath();
 		}
 	}
 
@@ -189,20 +172,15 @@ void GraphTextureProperty::editorRenderPropertySheet(const NodeEditorState& edit
 		// Texture Asset
 		TextureAssetComboDataSource dataSource(std::static_pointer_cast<GraphTextureProperty>(shared_from_this()));
 		int selectedIndex= dataSource.getCurrentAssetIndex();
-		if (NodeEditorUI::DrawComboBoxProperty(
-				"textureSelection",
-				"Texture",
-				&dataSource,
-				selectedIndex,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawComboBoxProperty("textureSelection", "Texture", &dataSource, selectedIndex,
+											   editorState.styleManager))
 		{
 			setTextureAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}
 
 		// Drag-Drop Handling
 		auto textureAssetRef=
-			NodeEditorUI::receiveTypedDragDropPayload<TextureAssetReference>(
-				TextureAssetReference::k_assetClassName);
+			NodeEditorUI::receiveTypedDragDropPayload<TextureAssetReference>(TextureAssetReference::k_assetClassName);
 		if (textureAssetRef)
 		{
 			setTextureAssetReference(textureAssetRef);
@@ -214,7 +192,4 @@ void GraphTextureProperty::editorRenderPropertySheet(const NodeEditorState& edit
 	}
 }
 
-const ImVec4 GraphTextureProperty::editorGetIconColor() const
-{
-	return NodeEditorUI::getTextureColor();
-}
+const ImVec4 GraphTextureProperty::editorGetIconColor() const { return NodeEditorUI::getTextureColor(); }

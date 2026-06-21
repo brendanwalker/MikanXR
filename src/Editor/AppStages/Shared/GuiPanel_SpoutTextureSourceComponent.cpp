@@ -23,21 +23,20 @@ void GuiPanel_SpoutTextureSourceComponent::onConstruct()
 
 			m_spoutSenderDataSource.setEntries(m_spoutSenderNames);
 
-			const std::string& currentSource=
-				textureSourceComp->getSpoutTextureSourceDefinition()->getSpoutSource();
+			const std::string& currentSource= textureSourceComp->getSpoutTextureSourceDefinition()->getSpoutSource();
 			int selectedIndex= m_spoutSenderDataSource.getEntryIndexByString(currentSource);
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					textureSourceComp->makePropertyUIIdentifier(SpoutTextureSourceDefinition::k_spoutSourcePropertyId),
-					"Spout Source",
-					&m_spoutSenderDataSource, selectedIndex))
+					"Spout Source", &m_spoutSenderDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
 					const std::string newSource= m_spoutSenderDataSource.getEntryDisplayString(selectedIndex);
-					addDeferredGuiEvent([textureSourceComp, newSource]()
-										{ textureSourceComp->getSpoutTextureSourceDefinition()->setSpoutSource(newSource); });
+					addDeferredGuiEvent(
+						[textureSourceComp, newSource]()
+						{ textureSourceComp->getSpoutTextureSourceDefinition()->setSpoutSource(newSource); });
 				}
 			}
 			return true;

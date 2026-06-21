@@ -1,8 +1,6 @@
 #include "MikanPropertyDatabase.h"
 
-MikanPropertyDatabase::MikanPropertyDatabase()
-{
-}
+MikanPropertyDatabase::MikanPropertyDatabase() {}
 
 void MikanPropertyDatabase::clear()
 {
@@ -10,10 +8,8 @@ void MikanPropertyDatabase::clear()
 	m_propertyKeyToIndexMap.clear();
 }
 
-void MikanPropertyDatabase::registerProperty(
-	const std::string& systemName,
-	const std::string& componentClassName,
-	PropertyDescriptorConstPtr descriptor)
+void MikanPropertyDatabase::registerProperty(const std::string& systemName, const std::string& componentClassName,
+											 PropertyDescriptorConstPtr descriptor)
 {
 	const int propertyIndex= (int)m_properties.size();
 	m_properties.push_back(MikanPropertyEntry(propertyIndex, systemName, componentClassName, descriptor));
@@ -23,10 +19,8 @@ void MikanPropertyDatabase::registerProperty(
 	m_propertyKeyToIndexMap[key]= propertyIndex;
 }
 
-int MikanPropertyDatabase::findPropertyIndex(
-	const std::string& systemName,
-	const std::string& componentClassName,
-	const std::string& propertyName) const
+int MikanPropertyDatabase::findPropertyIndex(const std::string& systemName, const std::string& componentClassName,
+											 const std::string& propertyName) const
 {
 	// Use the hash map for O(1) lookup
 	const std::string key= makePropertyKey(systemName, componentClassName, propertyName);
@@ -40,10 +34,8 @@ int MikanPropertyDatabase::findPropertyIndex(
 	return -1;
 }
 
-std::string MikanPropertyDatabase::makePropertyKey(
-	const std::string& systemName,
-	const std::string& componentClassName,
-	const std::string& propertyName)
+std::string MikanPropertyDatabase::makePropertyKey(const std::string& systemName, const std::string& componentClassName,
+												   const std::string& propertyName)
 {
 	// Create a composite key using delimiter that won't appear in names
 	// Format: "systemName|componentClassName|propertyName"
@@ -60,10 +52,9 @@ const MikanPropertyEntry* MikanPropertyDatabase::getPropertyByIndex(int property
 	return nullptr;
 }
 
-PropertyDescriptorConstPtr MikanPropertyDatabase::findPropertyDescriptor(
-	const std::string& systemName,
-	const std::string& componentClassName,
-	const std::string& propertyName) const
+PropertyDescriptorConstPtr MikanPropertyDatabase::findPropertyDescriptor(const std::string& systemName,
+																		 const std::string& componentClassName,
+																		 const std::string& propertyName) const
 {
 	int propertyIndex= findPropertyIndex(systemName, componentClassName, propertyName);
 	if (propertyIndex != -1)

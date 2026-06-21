@@ -21,9 +21,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_urlPropertyId;
 	static const std::string k_widthPropertyId;
@@ -63,7 +62,9 @@ public:
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// Texture Source Interface
-	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const override;
+	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId,
+													  eTextureSourceColorType textureSourceColorType,
+													  int64_t frameIndex= -1) const override;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -87,7 +88,8 @@ public:
 	void onCefBrowserClosed();
 
 protected:
-	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
 	void closeTextureSource();
 	void openTextureSource();
 

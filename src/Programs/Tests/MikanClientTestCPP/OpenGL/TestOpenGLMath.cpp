@@ -14,20 +14,12 @@ glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& xform)
 	return mat;
 }
 
-glm::vec3 MikanVector3f_to_glm_vec3(const MikanVector3f& in)
-{
-	return glm::vec3(in.x, in.y, in.z);
-}
+glm::vec3 MikanVector3f_to_glm_vec3(const MikanVector3f& in) { return glm::vec3(in.x, in.y, in.z); }
 
-MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in)
-{
-	return {in.x, in.y, in.z};
-}
+MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in) { return {in.x, in.y, in.z}; }
 
-glm::mat4 mikan_camera_pose_to_glm_view_matrix(
-	const MikanVector3f& inForward,
-	const MikanVector3f& inUp,
-	const MikanVector3f& inPosition)
+glm::mat4 mikan_camera_pose_to_glm_view_matrix(const MikanVector3f& inForward, const MikanVector3f& inUp,
+											   const MikanVector3f& inPosition)
 {
 	const glm::vec3& cameraForward= MikanVector3f_to_glm_vec3(inForward);
 	const glm::vec3& cameraUp= MikanVector3f_to_glm_vec3(inUp);
@@ -40,11 +32,8 @@ glm::mat4 mikan_camera_pose_to_glm_view_matrix(
 // cx, cy - principal point in pixels
 // width, height - image dimensions in pixels
 // zNear, zFar - near and far clipping planes
-glm::mat4 mikan_camera_intrinsics_to_glm_projection_matrix(
-	float fx, float fy,
-	float cx, float cy,
-	float width, float height,
-	float zNear, float zFar)
+glm::mat4 mikan_camera_intrinsics_to_glm_projection_matrix(float fx, float fy, float cx, float cy, float width,
+														   float height, float zNear, float zFar)
 {
 	// Convert to frustum parameters
 	float left= -cx * zNear / fx;

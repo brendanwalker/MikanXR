@@ -47,15 +47,9 @@ public:
 		m_clearColor= glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 
-	virtual ~GlFrameBuffer()
-	{
-		disposeResources();
-	}
+	virtual ~GlFrameBuffer() { disposeResources(); }
 
-	virtual bool isValid() const override
-	{
-		return m_bIsValid;
-	}
+	virtual bool isValid() const override { return m_bIsValid; }
 
 	virtual bool createResources() override
 	{
@@ -105,7 +99,8 @@ public:
 			m_colorTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBORead);
 			m_colorTexture->createTexture();
 		}
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(),
+							   0);
 
 		// Create depth render buffer attachment for the depth (don't need to read back the depth buffer)
 		glGenRenderbuffers(1, &m_glRenderBufferID);
@@ -208,7 +203,8 @@ public:
 			m_colorTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBORead);
 			m_colorTexture->createTexture();
 		}
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(),
+							   0);
 
 		// Create a depth attachment texture with a double buffered pixel-buffer-object for reading
 		if (!m_depthTexture)
@@ -259,10 +255,7 @@ public:
 		m_bIsValid= false;
 	}
 
-	virtual void setName(const std::string& name) override
-	{
-		m_name= name;
-	}
+	virtual void setName(const std::string& name) override { m_name= name; }
 
 	virtual void setFrameBufferType(IMkFrameBuffer::eFrameBufferType frameBufferType) override
 	{
@@ -292,10 +285,7 @@ public:
 		}
 	}
 
-	virtual void setClearColor(const glm::vec4& clearColor) override
-	{
-		m_clearColor= clearColor;
-	}
+	virtual void setClearColor(const glm::vec4& clearColor) override { m_clearColor= clearColor; }
 
 	virtual void attachColorTexture(IMkTexturePtr texture) override
 	{
@@ -313,40 +303,19 @@ public:
 		}
 	}
 
-	virtual std::string getName() const override
-	{
-		return m_name;
-	}
+	virtual std::string getName() const override { return m_name; }
 
-	virtual uint32_t getMkFrameBufferId() const override
-	{
-		return m_glFrameBufferId;
-	}
+	virtual uint32_t getMkFrameBufferId() const override { return m_glFrameBufferId; }
 
-	virtual int getWidth() const override
-	{
-		return m_width;
-	}
+	virtual int getWidth() const override { return m_width; }
 
-	virtual int getHeight() const override
-	{
-		return m_height;
-	}
+	virtual int getHeight() const override { return m_height; }
 
-	virtual IMkFrameBuffer::eColorFormat getColorFormat() const override
-	{
-		return m_colorFormat;
-	}
+	virtual IMkFrameBuffer::eColorFormat getColorFormat() const override { return m_colorFormat; }
 
-	virtual IMkTexturePtr getColorTexture() const override
-	{
-		return m_colorTexture;
-	}
+	virtual IMkTexturePtr getColorTexture() const override { return m_colorTexture; }
 
-	virtual IMkTexturePtr getDepthTexture() const override
-	{
-		return m_depthTexture;
-	}
+	virtual IMkTexturePtr getDepthTexture() const override { return m_depthTexture; }
 
 	virtual void bindObject(IMkState* mkState) override
 	{
@@ -408,10 +377,7 @@ public:
 		}
 	}
 
-	virtual bool getIsBound() const override
-	{
-		return m_bIsBound;
-	}
+	virtual bool getIsBound() const override { return m_bIsBound; }
 
 private:
 	std::string m_name;
@@ -435,12 +401,6 @@ private:
 	bool m_bIsValid= false;
 };
 
-IMkFrameBufferPtr createMkFrameBuffer()
-{
-	return std::make_shared<GlFrameBuffer>();
-}
+IMkFrameBufferPtr createMkFrameBuffer() { return std::make_shared<GlFrameBuffer>(); }
 
-IMkFrameBufferPtr createMkFrameBuffer(const std::string& name)
-{
-	return std::make_shared<GlFrameBuffer>(name);
-}
+IMkFrameBufferPtr createMkFrameBuffer(const std::string& name) { return std::make_shared<GlFrameBuffer>(name); }

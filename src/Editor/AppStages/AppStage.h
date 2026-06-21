@@ -23,9 +23,7 @@ using MikanViewportList= std::vector<MikanViewportPtr>;
 class AppStage : public IRemoteControllable
 {
 public:
-	AppStage(
-		IEditorWindow* ownerWindow,
-		const std::string& stageName);
+	AppStage(IEditorWindow* ownerWindow, const std::string& stageName);
 	virtual ~AppStage();
 
 	IEditorWindow* getOwnerWindow() const { return m_ownerWindow; }
@@ -96,10 +94,8 @@ public:
 	}
 
 	// -- IRemoteControllable Interface -- //
-	virtual bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults) override;
+	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+											std::vector<std::string>& outResults) override;
 
 protected:
 	IEditorWindow* m_ownerWindow;
@@ -138,9 +134,7 @@ public:
 		const std::string stageName= t_app_stage_factory_class::APP_STAGE_NAME;
 
 		const auto constructorFunc= [this]() -> AppStagePtr
-		{
-			return std::make_shared<t_app_stage_factory_class>(m_ownerWindow);
-		};
+		{ return std::make_shared<t_app_stage_factory_class>(m_ownerWindow); };
 
 		m_appStageConstructors.insert({stageName, constructorFunc});
 	}

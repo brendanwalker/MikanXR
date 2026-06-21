@@ -7,11 +7,8 @@
 
 namespace Serialization
 {
-SERIALIZATION_API bool serializeToBytes(
-	const void* instance,
-	rfk::Struct const& structType,
-	std::vector<uint8_t>& outBytes,
-	std::string& outErrorMsg);
+SERIALIZATION_API bool serializeToBytes(const void* instance, rfk::Struct const& structType,
+										std::vector<uint8_t>& outBytes, std::string& outErrorMsg);
 
 #ifdef SERIALIZATION_REFLECTION_ENABLED
 template <typename t_object_type>

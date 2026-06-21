@@ -11,7 +11,6 @@ public:
 	{
 	}
 
-	virtual bool exportModelToFile(
-		MikanRenderModelResourcePtr modelResource,
-		const std::filesystem::path& modelPath) override;
+	virtual bool exportModelToFile(MikanRenderModelResourcePtr modelResource,
+								   const std::filesystem::path& modelPath) override;
 };

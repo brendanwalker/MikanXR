@@ -7,9 +7,7 @@
 #include "ObjectSystemRenderQueries.h"
 #include "TransformComponent.h"
 
-void addAllRenderablesToMkScene(
-	std::set<const MikanObjectSystem*> objectSystems,
-	IMkScenePtr mkScene)
+void addAllRenderablesToMkScene(std::set<const MikanObjectSystem*> objectSystems, IMkScenePtr mkScene)
 {
 	for (const MikanObjectSystem* objectSystem : objectSystems)
 	{
@@ -17,20 +15,23 @@ void addAllRenderablesToMkScene(
 	}
 }
 
-void addAllRenderablesToMkScene(
-	MikanObjectSystemConstPtr objectSystem,
-	IMkScenePtr mkScene)
+void addAllRenderablesToMkScene(MikanObjectSystemConstPtr objectSystem, IMkScenePtr mkScene)
 {
-	objectSystem->visitAllObjects([mkScene](MikanObjectPtr objectPtr)
-								  { objectPtr->visitAllComponents([mkScene](MikanComponentPtr componentPtr)
-																  {
-			auto transformComponent = std::dynamic_pointer_cast<TransformComponent>(componentPtr);
-			if (transformComponent)
-			{
-				auto renderable= transformComponent->getGlSceneRenderableConst();
-				if (renderable)
+	objectSystem->visitAllObjects(
+		[mkScene](MikanObjectPtr objectPtr)
+		{
+			objectPtr->visitAllComponents(
+				[mkScene](MikanComponentPtr componentPtr)
 				{
-					mkScene->addInstance(renderable);
-				}
-			} }); });
+					auto transformComponent= std::dynamic_pointer_cast<TransformComponent>(componentPtr);
+					if (transformComponent)
+					{
+						auto renderable= transformComponent->getGlSceneRenderableConst();
+						if (renderable)
+						{
+							mkScene->addInstance(renderable);
+						}
+					}
+				});
+		});
 }

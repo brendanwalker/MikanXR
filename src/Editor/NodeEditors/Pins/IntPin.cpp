@@ -33,9 +33,7 @@ std::shared_ptr<MkNodesScopedColorStyle> IntPinBase::editorRenderMakePinStyle(fl
 	return style;
 }
 
-void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState)
-{
-}
+void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState) {}
 
 // -- IntPin -----
 void IntPin::copyValueFromSourcePin()

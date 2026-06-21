@@ -30,9 +30,7 @@ AppStage_LightFixtureCalibration::AppStage_LightFixtureCalibration(IEditorWindow
 {
 }
 
-AppStage_LightFixtureCalibration::~AppStage_LightFixtureCalibration()
-{
-}
+AppStage_LightFixtureCalibration::~AppStage_LightFixtureCalibration() {}
 
 void AppStage_LightFixtureCalibration::setTargetFixture(DMXFixtureComponentPtr targetFixture)
 {
@@ -60,8 +58,7 @@ void AppStage_LightFixtureCalibration::enter()
 	flashFixtureWhite();
 
 	// Create the distortion view eagerly — it is the stream ownership token
-	m_monoDistortionView=
-		new VideoFrameDistortionView(m_videoSourceComponent, eVideoFrameProcessorMode::CALIBRATION);
+	m_monoDistortionView= new VideoFrameDistortionView(m_videoSourceComponent, eVideoFrameProcessorMode::CALIBRATION);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
@@ -72,25 +69,20 @@ void AppStage_LightFixtureCalibration::enter()
 	// Create GUI panel
 	m_calibrationPanel= addGuiPanel<GuiPanel_LightFixtureCalibration>();
 	m_calibrationPanel->setFixtureName(m_targetFixture->getName());
-	m_calibrationPanel->OnOkEvent= [this]()
-	{ onOkEvent(); };
-	m_calibrationPanel->OnRedoEvent= [this]()
-	{ onRedoEvent(); };
-	m_calibrationPanel->OnCancelEvent= [this]()
-	{ onCancelEvent(); };
+	m_calibrationPanel->OnOkEvent= [this]() { onOkEvent(); };
+	m_calibrationPanel->OnRedoEvent= [this]() { onRedoEvent(); };
+	m_calibrationPanel->OnCancelEvent= [this]() { onCancelEvent(); };
 
 	// Bind mouse input
 	EventBindingSet* bindingSet= getOwnerWindow()->getInputManager()->getCurrentEventBindingSet();
-	bindingSet->OnMouseButtonReleasedEvent+=
-		MakeDelegate(this, &AppStage_LightFixtureCalibration::onMouseButtonUp);
+	bindingSet->OnMouseButtonReleasedEvent+= MakeDelegate(this, &AppStage_LightFixtureCalibration::onMouseButtonUp);
 
 	setMenuState(newState);
 }
 
 void AppStage_LightFixtureCalibration::setupDistortionView()
 {
-	m_triangulator=
-		new LightFixtureTriangulator(m_currentSceneCameraComponent, m_monoDistortionView);
+	m_triangulator= new LightFixtureTriangulator(m_currentSceneCameraComponent, m_monoDistortionView);
 }
 
 void AppStage_LightFixtureCalibration::exit()
@@ -281,10 +273,7 @@ void AppStage_LightFixtureCalibration::onRedoEvent()
 	setMenuState(eLightFixtureCalibrationMenuState::verifyInitialCameraSetup);
 }
 
-void AppStage_LightFixtureCalibration::onCancelEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_LightFixtureCalibration::onCancelEvent() { m_ownerWindow->popAppState(); }
 
 void AppStage_LightFixtureCalibration::onGui()
 {
@@ -297,8 +286,7 @@ void AppStage_LightFixtureCalibration::onGui()
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 	MkGuiScopedWindow panel("##LightFixtureCalibration", nullptr, k_flags);
 	if (!panel)
 		return;

@@ -17,10 +17,7 @@ public:
 	{
 	}
 
-	virtual ~SpoutTextureReader()
-	{
-		dispose();
-	}
+	virtual ~SpoutTextureReader() { dispose(); }
 
 	bool init(const MikanRenderTargetDescriptor* descriptor)
 	{
@@ -163,11 +160,7 @@ bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* de
 	m_lastFrameRenderedIndex= 0;
 
 	// Make a spout sender name for the color buffer
-	if (!makeSpoutSenderName(
-			m_senderPrefix,
-			m_cameraId,
-			SharedTextureType::COLOR,
-			m_colorSenderName))
+	if (!makeSpoutSenderName(m_senderPrefix, m_cameraId, SharedTextureType::COLOR, m_colorSenderName))
 	{
 		MIKAN_LOG_ERROR("SharedTextureReadAccessor") << "Failed to create spout color texture sender name.";
 		return false;
@@ -176,11 +169,7 @@ bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* de
 	// Make a spout sender name for the depth buffer
 	if (descriptor->depth_buffer_type != MikanDepthBuffer_NODEPTH)
 	{
-		if (!makeSpoutSenderName(
-				m_senderPrefix,
-				m_cameraId,
-				SharedTextureType::DEPTH,
-				m_depthSenderName))
+		if (!makeSpoutSenderName(m_senderPrefix, m_cameraId, SharedTextureType::DEPTH, m_depthSenderName))
 		{
 			MIKAN_LOG_ERROR("SharedTextureReadAccessor") << "Failed to create spout depth texture sender name.";
 			return false;
@@ -192,10 +181,10 @@ bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* de
 	}
 
 	// Allocate a reader implementation
-	if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
-		descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
-		descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
-		descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
+	if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D9
+		|| descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11
+		|| descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D12
+		|| descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		m_readerImpl->readerApi.spoutTextureReader= new SpoutTextureReader(this);
 		m_readerImpl->graphicsAPI= descriptor->graphicsAPI;
@@ -209,10 +198,10 @@ bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* de
 void SharedTextureReadAccessor::dispose()
 {
 	assert(m_readerImpl != nullptr);
-	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
+	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9
+		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11
+		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12
+		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		if (m_readerImpl->readerApi.spoutTextureReader != nullptr)
 		{
@@ -226,20 +215,19 @@ void SharedTextureReadAccessor::dispose()
 	m_descriptor= {};
 }
 
-bool SharedTextureReadAccessor::readRenderTargetTextures(
-	const int64_t newFrameIndex)
+bool SharedTextureReadAccessor::readRenderTargetTextures(const int64_t newFrameIndex)
 {
 	bool bSuccess= false;
 
-	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
-		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
+	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9
+		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11
+		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12
+		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
 		m_lastFrameRenderedIndex= newFrameIndex;
 
-		if (m_readerImpl->readerApi.spoutTextureReader != nullptr &&
-			m_readerImpl->readerApi.spoutTextureReader->readRenderTargetTexture())
+		if (m_readerImpl->readerApi.spoutTextureReader != nullptr
+			&& m_readerImpl->readerApi.spoutTextureReader->readRenderTargetTexture())
 		{
 			bSuccess= true;
 		}

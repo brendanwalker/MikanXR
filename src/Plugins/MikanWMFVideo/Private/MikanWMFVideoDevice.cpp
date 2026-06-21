@@ -12,46 +12,27 @@
 using namespace WMFUtility;
 
 // -- MikanUsbVideoDevice -----
-MikanWMFVideoDevice::MikanWMFVideoDevice(
-	MikanWMFVideoDeviceManager* ownerDeviceManager,
-	const WMFDeviceInfo& deviceInfo)
+MikanWMFVideoDevice::MikanWMFVideoDevice(MikanWMFVideoDeviceManager* ownerDeviceManager,
+										 const WMFDeviceInfo& deviceInfo)
 	: m_ownerDeviceManager(ownerDeviceManager)
 	, m_deviceInfo(deviceInfo)
 {
 }
 
-MikanWMFVideoDevice::~MikanWMFVideoDevice()
-{
-	close();
-}
+MikanWMFVideoDevice::~MikanWMFVideoDevice() { close(); }
 
 // -- Device Listener
-void MikanWMFVideoDevice::addListener(IUsbVideoDeviceListener* listener)
-{
-	m_listeners.insert(listener);
-}
+void MikanWMFVideoDevice::addListener(IUsbVideoDeviceListener* listener) { m_listeners.insert(listener); }
 
-void MikanWMFVideoDevice::removeListener(IUsbVideoDeviceListener* listener)
-{
-	m_listeners.erase(listener);
-}
+void MikanWMFVideoDevice::removeListener(IUsbVideoDeviceListener* listener) { m_listeners.erase(listener); }
 
 // -- Device Properties
-const char* MikanWMFVideoDevice::getDevicePath() const
-{
-	return m_deviceInfo.deviceSymbolicLink.c_str();
-}
+const char* MikanWMFVideoDevice::getDevicePath() const { return m_deviceInfo.deviceSymbolicLink.c_str(); }
 
-const char* MikanWMFVideoDevice::getFriendlyName() const
-{
-	return m_deviceInfo.deviceFriendlyName.c_str();
-}
+const char* MikanWMFVideoDevice::getFriendlyName() const { return m_deviceInfo.deviceFriendlyName.c_str(); }
 
 // -- Device Activation
-bool MikanWMFVideoDevice::getIsOpen() const
-{
-	return m_mediaSource != nullptr;
-}
+bool MikanWMFVideoDevice::getIsOpen() const { return m_mediaSource != nullptr; }
 
 bool MikanWMFVideoDevice::open()
 {
@@ -72,9 +53,8 @@ bool MikanWMFVideoDevice::open()
 
 		if (SUCCEEDED(hr))
 		{
-			hr= pAttributes->SetGUID(
-				MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
-				MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
+			hr= pAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+									 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
 		}
 
 		IMFActivate* deviceActivationInterface= nullptr;
@@ -100,9 +80,7 @@ bool MikanWMFVideoDevice::open()
 
 		if (SUCCEEDED(hr))
 		{
-			hr= deviceActivationInterface->ActivateObject(
-				__uuidof(IMFMediaSource),
-				(void**)&m_mediaSource);
+			hr= deviceActivationInterface->ActivateObject(__uuidof(IMFMediaSource), (void**)&m_mediaSource);
 		}
 
 		IMFPresentationDescriptor* pPD= nullptr;
@@ -131,12 +109,9 @@ bool MikanWMFVideoDevice::open()
 
 		if (SUCCEEDED(hr))
 		{
-			const WMFDeviceFormatInfo& deviceFormat=
-				m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex];
+			const WMFDeviceFormatInfo& deviceFormat= m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex];
 
-			m_videoFrameProcessor=
-				new WMFVideoFrameProcessor(
-					m_deviceInfo.wmfDeviceIndex, deviceFormat, this);
+			m_videoFrameProcessor= new WMFVideoFrameProcessor(m_deviceInfo.wmfDeviceIndex, deviceFormat, this);
 			hr= m_videoFrameProcessor->init(m_mediaSource);
 		}
 
@@ -145,9 +120,7 @@ bool MikanWMFVideoDevice::open()
 			// Update the property constraints for the current video format
 			for (int prop_index= 0; prop_index < (int)eVideoSettingType::COUNT; ++prop_index)
 			{
-				getVideoSettingConstraint(
-					(eVideoSettingType)prop_index,
-					m_videoPropertyConstraints[prop_index]);
+				getVideoSettingConstraint((eVideoSettingType)prop_index, m_videoPropertyConstraints[prop_index]);
 			}
 		}
 
@@ -187,10 +160,7 @@ void MikanWMFVideoDevice::close()
 }
 
 // -- Video Mode
-size_t MikanWMFVideoDevice::getAvailableVideoModesCount() const
-{
-	return m_deviceInfo.deviceAvailableFormats.size();
-}
+size_t MikanWMFVideoDevice::getAvailableVideoModesCount() const { return m_deviceInfo.deviceAvailableFormats.size(); }
 
 bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const
 {
@@ -211,15 +181,11 @@ bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModePrope
 	return false;
 }
 
-int MikanWMFVideoDevice::getVideoModeIndex() const
-{
-	return m_currentVideoModeIndex;
-}
+int MikanWMFVideoDevice::getVideoModeIndex() const { return m_currentVideoModeIndex; }
 
 const char* MikanWMFVideoDevice::getVideoModeName() const
 {
-	if (m_currentVideoModeIndex >= 0 &&
-		m_currentVideoModeIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
+	if (m_currentVideoModeIndex >= 0 && m_currentVideoModeIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
 	{
 		return m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex].format_friendly_name.c_str();
 	}
@@ -241,9 +207,8 @@ bool MikanWMFVideoDevice::setVideoModeByName(const char* szVideoModeName)
 
 bool MikanWMFVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 {
-	if (m_currentVideoModeIndex != desiredFormatIndex &&
-		desiredFormatIndex >= 0 &&
-		desiredFormatIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
+	if (m_currentVideoModeIndex != desiredFormatIndex && desiredFormatIndex >= 0
+		&& desiredFormatIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
 	{
 		// Stop streaming and close device
 		close();
@@ -265,9 +230,8 @@ bool MikanWMFVideoDevice::isVideoSettingSupported(const eVideoSettingType proper
 	return getVideoSettingConstraint(property_type, constraint);
 }
 
-bool MikanWMFVideoDevice::getVideoSettingConstraint(
-	const eVideoSettingType property_type,
-	VideoSettingConstraint& outConstraint) const
+bool MikanWMFVideoDevice::getVideoSettingConstraint(const eVideoSettingType property_type,
+													VideoSettingConstraint& outConstraint) const
 {
 	if (!getIsOpen())
 	{
@@ -632,8 +596,7 @@ long MikanWMFVideoDevice::getCameraControlProperty(CameraControlProperty propId,
 	return intValue;
 }
 
-bool MikanWMFVideoDevice::getCameraControlRange(
-	CameraControlProperty propId, VideoSettingConstraint& constraint) const
+bool MikanWMFVideoDevice::getCameraControlRange(CameraControlProperty propId, VideoSettingConstraint& constraint) const
 {
 	double unitValue= 0;
 	IAMCameraControl* pCameraControl= NULL;

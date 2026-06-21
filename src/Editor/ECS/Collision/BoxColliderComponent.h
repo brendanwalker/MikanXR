@@ -17,9 +17,8 @@ public:
 	const glm::vec3 getHalfExtents() const { return m_halfExtents; }
 	void setHalfExtents(const glm::vec3 halfExtents) { m_halfExtents= halfExtents; }
 
-	virtual bool computeRayIntersection(
-		const ColliderRaycastHitRequest& request,
-		ColliderRaycastHitResult& outResult) const override;
+	virtual bool computeRayIntersection(const ColliderRaycastHitRequest& request,
+										ColliderRaycastHitResult& outResult) const override;
 
 private:
 	glm::vec3 m_halfExtents;

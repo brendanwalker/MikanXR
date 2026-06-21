@@ -64,9 +64,8 @@ void QuadStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_bIsDoubleSided= pt.get_or<bool>("is_double_sided", false);
 }
 
-bool QuadStencilDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool QuadStencilDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+											   const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!StencilComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -134,9 +133,7 @@ void QuadStencilComponent::init()
 	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 }
 
-void QuadStencilComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void QuadStencilComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
 
@@ -157,14 +154,11 @@ void QuadStencilComponent::customRender(
 				color= Colors::LightGray;
 		}
 
-		drawTransformedQuad(
-			graphicsContext,
-			xform, quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), color);
+		drawTransformedQuad(graphicsContext, xform, quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(),
+							color);
 		if (!selectionComponent || !selectionComponent->getIsSelected())
 			drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, position, L"Stencil %d", quadDefinition->getComponentId());
+		drawTextAtWorldPosition(graphicsContext, style, position, L"Stencil %d", quadDefinition->getComponentId());
 	}
 }
 
@@ -174,7 +168,8 @@ void QuadStencilComponent::updateBoxColliderExtents()
 	BoxColliderComponentPtr boxCollider= m_boxCollider.lock();
 	if (boxCollider)
 	{
-		boxCollider->setHalfExtents(glm::vec3(quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), 0.01f) * 0.5f);
+		boxCollider->setHalfExtents(glm::vec3(quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), 0.01f)
+									* 0.5f);
 	}
 }
 
@@ -183,20 +178,15 @@ void QuadStencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptor
 {
 	StencilComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			QuadStencilDefinition::k_quadStencilWidthPropertyId, MikanVariantType::FLOAT));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			QuadStencilDefinition::k_quadStencilHeightPropertyId, MikanVariantType::FLOAT));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(QuadStencilDefinition::k_quadStencilWidthPropertyId,
+																  MikanVariantType::FLOAT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(QuadStencilDefinition::k_quadStencilHeightPropertyId,
+																  MikanVariantType::FLOAT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId, MikanVariantType::BOOL));
 }
 
-bool QuadStencilComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool QuadStencilComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
@@ -217,9 +207,7 @@ bool QuadStencilComponent::getPropertyValue(
 	return StencilComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool QuadStencilComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool QuadStencilComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
@@ -251,14 +239,20 @@ void QuadStencilComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<QuadStencilComponent, StencilComponent>(QuadStencilComponent::k_componentClassName.c_str())
-		.addProperty("quadWidth", [](QuadStencilComponent* component) -> float
-					 { return component->getQuadStencilDefinition()->getQuadWidth(); }, [](QuadStencilComponent* component, float value)
-					 { component->getQuadStencilDefinition()->setQuadWidth(value); })
-		.addProperty("quadHeight", [](QuadStencilComponent* component) -> float
-					 { return component->getQuadStencilDefinition()->getQuadHeight(); }, [](QuadStencilComponent* component, float value)
-					 { component->getQuadStencilDefinition()->setQuadHeight(value); })
-		.addProperty("isDoubleSided", [](QuadStencilComponent* component) -> bool
-					 { return component->getQuadStencilDefinition()->getIsDoubleSided(); }, [](QuadStencilComponent* component, bool isDoubleSided)
-					 { component->getQuadStencilDefinition()->setIsDoubleSided(isDoubleSided); })
+		.addProperty(
+			"quadWidth", [](QuadStencilComponent* component) -> float
+			{ return component->getQuadStencilDefinition()->getQuadWidth(); },
+			[](QuadStencilComponent* component, float value)
+			{ component->getQuadStencilDefinition()->setQuadWidth(value); })
+		.addProperty(
+			"quadHeight", [](QuadStencilComponent* component) -> float
+			{ return component->getQuadStencilDefinition()->getQuadHeight(); },
+			[](QuadStencilComponent* component, float value)
+			{ component->getQuadStencilDefinition()->setQuadHeight(value); })
+		.addProperty(
+			"isDoubleSided", [](QuadStencilComponent* component) -> bool
+			{ return component->getQuadStencilDefinition()->getIsDoubleSided(); },
+			[](QuadStencilComponent* component, bool isDoubleSided)
+			{ component->getQuadStencilDefinition()->setIsDoubleSided(isDoubleSided); })
 		.endClass();
 }

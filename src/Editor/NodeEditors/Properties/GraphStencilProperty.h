@@ -26,8 +26,7 @@ public:
 	inline static const std::string k_propertyClassName= "GraphStencilProperty";
 	virtual std::string getClassName() const override { return k_propertyClassName; }
 
-	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
-								const NodeGraphConfig& graphConfig) override;
+	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig) override;
 	virtual void saveToConfig(GraphPropertyConfigPtr config) const override;
 
 	inline void setStencilComponent(StencilComponentPtr inComponent) { m_stencilComponent= inComponent; }

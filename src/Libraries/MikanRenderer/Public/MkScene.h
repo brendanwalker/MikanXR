@@ -28,19 +28,13 @@ public:
 	virtual void render(IMkCameraConstPtr camera, class MkStateStack& MkStateStack) const override;
 
 protected:
-	eUniformBindResult materialBindCallback(
-		IMkCameraConstPtr camera,
-		IMkShaderPtr program,
-		eUniformDataType uniformDataType,
-		eUniformSemantic uniformSemantic,
-		const std::string& uniformName) const;
-	eUniformBindResult materialInstanceBindCallback(
-		IMkCameraConstPtr camera,
-		IMkSceneRenderableConstPtr renderableInstance,
-		IMkShaderPtr program,
-		eUniformDataType uniformDataType,
-		eUniformSemantic uniformSemantic,
-		const std::string& uniformName) const;
+	eUniformBindResult materialBindCallback(IMkCameraConstPtr camera, IMkShaderPtr program,
+											eUniformDataType uniformDataType, eUniformSemantic uniformSemantic,
+											const std::string& uniformName) const;
+	eUniformBindResult materialInstanceBindCallback(IMkCameraConstPtr camera,
+													IMkSceneRenderableConstPtr renderableInstance, IMkShaderPtr program,
+													eUniformDataType uniformDataType, eUniformSemantic uniformSemantic,
+													const std::string& uniformName) const;
 
 private:
 	struct MkSceneImpl* m_impl;

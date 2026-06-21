@@ -17,12 +17,8 @@ public:
 	virtual ~ModalDialog_Confirm()= default;
 
 	using ConfirmCallback= std::function<void()>;
-	static bool confirmQuestion(
-		AppStage* appStage,
-		const std::string& title,
-		const std::string& question,
-		ConfirmCallback acceptCallback= {},
-		ConfirmCallback rejectCallback= {});
+	static bool confirmQuestion(AppStage* appStage, const std::string& title, const std::string& question,
+								ConfirmCallback acceptCallback= {}, ConfirmCallback rejectCallback= {});
 
 	virtual void onGui() override;
 
@@ -33,11 +29,8 @@ protected:
 	std::string m_title;
 	std::string m_question;
 
-	bool init(
-		const std::string& title,
-		const std::string& question,
-		ConfirmCallback acceptCallback,
-		ConfirmCallback rejectCallback);
+	bool init(const std::string& title, const std::string& question, ConfirmCallback acceptCallback,
+			  ConfirmCallback rejectCallback);
 	void onAcceptQuestion();
 	void onRejectQuestion();
 };

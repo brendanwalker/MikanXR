@@ -10,9 +10,7 @@
 class LightFixtureTriangulator
 {
 public:
-	LightFixtureTriangulator(
-		CameraComponentPtr cameraComponent,
-		class VideoFrameDistortionView* distortionView);
+	LightFixtureTriangulator(CameraComponentPtr cameraComponent, class VideoFrameDistortionView* distortionView);
 	virtual ~LightFixtureTriangulator();
 
 	bool hasInitialSample() const;

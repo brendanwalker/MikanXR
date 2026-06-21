@@ -15,10 +15,7 @@ public:
 	{
 	}
 
-	virtual ~MikanGStreamerVideoModule()
-	{
-		shutdown();
-	}
+	virtual ~MikanGStreamerVideoModule() { shutdown(); }
 
 	bool startup() override
 	{
@@ -65,12 +62,6 @@ private:
 };
 
 // C-API
-INetworkVideoDeviceModule* AllocatePluginModule()
-{
-	return new MikanGStreamerVideoModule();
-}
+INetworkVideoDeviceModule* AllocatePluginModule() { return new MikanGStreamerVideoModule(); }
 
-void FreePluginModule(INetworkVideoDeviceModule* module)
-{
-	delete module;
-}
+void FreePluginModule(INetworkVideoDeviceModule* module) { delete module; }

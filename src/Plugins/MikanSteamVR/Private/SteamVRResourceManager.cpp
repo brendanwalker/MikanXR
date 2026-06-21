@@ -1,19 +1,11 @@
 #include "SteamVRResourceManager.h"
 #include "SteamVRRenderModelResource.h"
 
-SteamVRResourceManager::SteamVRResourceManager()
-{
-}
+SteamVRResourceManager::SteamVRResourceManager() {}
 
-SteamVRResourceManager::~SteamVRResourceManager()
-{
-	cleanup();
-}
+SteamVRResourceManager::~SteamVRResourceManager() { cleanup(); }
 
-void SteamVRResourceManager::init(IMkGraphicsContext* ownerWindow)
-{
-	m_ownerContext= ownerWindow;
-}
+void SteamVRResourceManager::init(IMkGraphicsContext* ownerWindow) { m_ownerContext= ownerWindow; }
 
 void SteamVRResourceManager::cleanup()
 {
@@ -28,8 +20,7 @@ void SteamVRResourceManager::cleanup()
 	m_renderModelCache.clear();
 }
 
-SteamVRRenderModelResource* SteamVRResourceManager::fetchRenderModel(
-	const std::string& renderModelName)
+SteamVRRenderModelResource* SteamVRResourceManager::fetchRenderModel(const std::string& renderModelName)
 {
 	auto it= m_renderModelCache.find(renderModelName);
 	if (it != m_renderModelCache.end())

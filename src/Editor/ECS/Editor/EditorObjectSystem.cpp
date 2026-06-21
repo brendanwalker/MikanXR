@@ -61,13 +61,20 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	MikanObjectSystemDefinition::readFromJSON(pt);
 
 	m_editorSettings.bRenderOrigin= pt.get_or<bool>(k_renderOriginFlagPropertyId, m_editorSettings.bRenderOrigin);
-	m_editorSettings.bDebugRenderAnchors= pt.get_or<bool>(k_renderAnchorsPropertyId, m_editorSettings.bDebugRenderAnchors);
-	m_editorSettings.bDebugRenderQuadStencils= pt.get_or<bool>(k_renderQuadStencilsPropertyId, m_editorSettings.bDebugRenderQuadStencils);
-	m_editorSettings.bDebugRenderBoxStencils= pt.get_or<bool>(k_renderBoxStencilsPropertyId, m_editorSettings.bDebugRenderBoxStencils);
-	m_editorSettings.bDebugRenderModelStencils= pt.get_or<bool>(k_renderModelStencilsPropertyId, m_editorSettings.bDebugRenderModelStencils);
-	m_editorSettings.bDebugRenderQuadShapes= pt.get_or<bool>(k_renderQuadShapesPropertyId, m_editorSettings.bDebugRenderQuadShapes);
-	m_editorSettings.bDebugRenderBoxShapes= pt.get_or<bool>(k_renderBoxShapesPropertyId, m_editorSettings.bDebugRenderBoxShapes);
-	m_editorSettings.bDebugRenderModelShapes= pt.get_or<bool>(k_renderModelShapesPropertyId, m_editorSettings.bDebugRenderModelShapes);
+	m_editorSettings.bDebugRenderAnchors=
+		pt.get_or<bool>(k_renderAnchorsPropertyId, m_editorSettings.bDebugRenderAnchors);
+	m_editorSettings.bDebugRenderQuadStencils=
+		pt.get_or<bool>(k_renderQuadStencilsPropertyId, m_editorSettings.bDebugRenderQuadStencils);
+	m_editorSettings.bDebugRenderBoxStencils=
+		pt.get_or<bool>(k_renderBoxStencilsPropertyId, m_editorSettings.bDebugRenderBoxStencils);
+	m_editorSettings.bDebugRenderModelStencils=
+		pt.get_or<bool>(k_renderModelStencilsPropertyId, m_editorSettings.bDebugRenderModelStencils);
+	m_editorSettings.bDebugRenderQuadShapes=
+		pt.get_or<bool>(k_renderQuadShapesPropertyId, m_editorSettings.bDebugRenderQuadShapes);
+	m_editorSettings.bDebugRenderBoxShapes=
+		pt.get_or<bool>(k_renderBoxShapesPropertyId, m_editorSettings.bDebugRenderBoxShapes);
+	m_editorSettings.bDebugRenderModelShapes=
+		pt.get_or<bool>(k_renderModelShapesPropertyId, m_editorSettings.bDebugRenderModelShapes);
 	m_editorSettings.cameraSpeed= pt.get_or<float>(k_cameraSpeedPropertyId, m_editorSettings.cameraSpeed);
 }
 
@@ -208,10 +215,14 @@ void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 	createGizmoBoxCollider(gizmoObjectPtr, "xyTranslateHandle", glm::vec3(P, P, 0.f), glm::vec3(P, P, W * 0.1f), 3);
 	createGizmoBoxCollider(gizmoObjectPtr, "xzTranslateHandle", glm::vec3(P, 0.f, P), glm::vec3(P, W * 0.1f, P), 3);
 	createGizmoBoxCollider(gizmoObjectPtr, "yzTranslateHandle", glm::vec3(0.f, P, P), glm::vec3(W * 0.1f, P, P), 3);
-	createGizmoDiskCollider(gizmoObjectPtr, "viewPlaneTranslateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), W * 2.5f, 2);
-	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R / 2.f, 0.f, 0.f), glm::vec3(R / 2.f, W, W), 1);
-	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R / 2.f, 0.f), glm::vec3(W, R / 2.f, W), 1);
-	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R / 2.f), glm::vec3(W, W, R / 2.f), 1);
+	createGizmoDiskCollider(gizmoObjectPtr, "viewPlaneTranslateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f),
+							W * 2.5f, 2);
+	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R / 2.f, 0.f, 0.f),
+						   glm::vec3(R / 2.f, W, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R / 2.f, 0.f),
+						   glm::vec3(W, R / 2.f, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R / 2.f),
+						   glm::vec3(W, W, R / 2.f), 1);
 
 	GizmoRotateComponentPtr rotateComponentPtr= gizmoObjectPtr->addComponent<GizmoRotateComponent>();
 	createGizmoDiskCollider(gizmoObjectPtr, "xAxisRotateHandle", glm::vec3(0.f), glm::vec3(1.f, 0.f, 0.f), R, 1);
@@ -242,12 +253,9 @@ void EditorObjectSystem::disposeSceneTransformGizmo()
 	m_gizmoComponentWeakPtr.reset();
 }
 
-void EditorObjectSystem::createGizmoBoxCollider(
-	MikanObjectPtr gizmoObjectPtr,
-	const std::string& name,
-	const glm::vec3& center,
-	const glm::vec3& halfExtents,
-	const int priority)
+void EditorObjectSystem::createGizmoBoxCollider(MikanObjectPtr gizmoObjectPtr, const std::string& name,
+												const glm::vec3& center, const glm::vec3& halfExtents,
+												const int priority)
 {
 	BoxColliderComponentPtr colliderPtr= gizmoObjectPtr->addComponent<BoxColliderComponent>(name);
 
@@ -259,13 +267,9 @@ void EditorObjectSystem::createGizmoBoxCollider(
 	colliderPtr->setPriority(priority);
 }
 
-void EditorObjectSystem::createGizmoDiskCollider(
-	MikanObjectPtr gizmoObjectPtr,
-	const std::string& name,
-	const glm::vec3& center,
-	const glm::vec3& normal,
-	const float radius,
-	const int priority)
+void EditorObjectSystem::createGizmoDiskCollider(MikanObjectPtr gizmoObjectPtr, const std::string& name,
+												 const glm::vec3& center, const glm::vec3& normal, const float radius,
+												 const int priority)
 {
 	DiskColliderComponentPtr colliderPtr= gizmoObjectPtr->addComponent<DiskColliderComponent>(name);
 
@@ -329,13 +333,15 @@ MikanComponentPtr EditorObjectSystem::getComponentById(int componentId) const
 	return MikanComponentPtr();
 }
 
-bool EditorObjectSystem::getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const
+bool EditorObjectSystem::getComponentList(const std::string& componentClassName,
+										  std::vector<MikanComponentPtr>& outComponentList) const
 {
 	// EditorObjectSystem doesn't manage ownership of components
 	return false;
 }
 
-bool EditorObjectSystem::getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const
+bool EditorObjectSystem::getComponentIdList(const std::string& componentClassName,
+											std::vector<int>& outComponentIdList) const
 {
 	// EditorObjectSystem doesn't manage ownership of components
 	return false;
@@ -354,12 +360,9 @@ void EditorObjectSystem::bindViewport(MikanViewportWeakPtr viewportWeakPtr)
 	MikanViewportPtr viewportPtr= viewportWeakPtr.lock();
 	if (viewportPtr)
 	{
-		const auto it= std::find_if(
-			m_viewports.begin(), m_viewports.end(),
-			[viewportPtr](const MikanViewportWeakPtr& entry)
-			{
-				return entry.lock() == viewportPtr;
-			});
+		const auto it=
+			std::find_if(m_viewports.begin(), m_viewports.end(),
+						 [viewportPtr](const MikanViewportWeakPtr& entry) { return entry.lock() == viewportPtr; });
 		if (it == m_viewports.end())
 		{
 			viewportPtr->OnMouseExited+= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
@@ -377,12 +380,9 @@ void EditorObjectSystem::unbindViewport(MikanViewportWeakPtr viewportWeakPtr)
 	MikanViewportPtr viewportPtr= viewportWeakPtr.lock();
 	if (viewportPtr)
 	{
-		const auto it= std::find_if(
-			m_viewports.begin(), m_viewports.end(),
-			[viewportPtr](const MikanViewportWeakPtr& entry)
-			{
-				return entry.lock() == viewportPtr;
-			});
+		const auto it=
+			std::find_if(m_viewports.begin(), m_viewports.end(),
+						 [viewportPtr](const MikanViewportWeakPtr& entry) { return entry.lock() == viewportPtr; });
 		if (it != m_viewports.end())
 		{
 			viewportPtr->OnMouseExited-= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
@@ -438,10 +438,7 @@ void EditorObjectSystem::onDeletePressed()
 }
 
 // Object System Events
-void EditorObjectSystem::onSceneActivated(SceneComponentPtr newScene)
-{
-	createSceneTransformGizmo(newScene);
-}
+void EditorObjectSystem::onSceneActivated(SceneComponentPtr newScene) { createSceneTransformGizmo(newScene); }
 
 void EditorObjectSystem::onSceneDeactivated(SceneComponentPtr oldScene)
 {
@@ -512,8 +509,7 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 	m_lastestRaycastResult= ColliderRaycastHitResult();
 
 	SelectionComponentPtr oldHoverComponentPtr= m_hoverComponentWeakPtr.lock();
-	SelectionComponentPtr newHoverComponentPtr=
-		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
+	SelectionComponentPtr newHoverComponentPtr= findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
 
 	ColliderComponentPtr oldHoverColliderPtr= m_hoverColliderWeakPtr.lock();
 	ColliderComponentPtr newHoverColliderPtr= m_lastestRaycastResult.hitComponent.lock();
@@ -553,9 +549,8 @@ void EditorObjectSystem::onMouseRayButtonUp(const glm::vec3& rayOrigin, const gl
 	}
 }
 
-void EditorObjectSystem::onSelectionChanged(
-	SelectionComponentPtr oldSelectedComponentPtr,
-	SelectionComponentPtr newSelectedComponentPtr)
+void EditorObjectSystem::onSelectionChanged(SelectionComponentPtr oldSelectedComponentPtr,
+											SelectionComponentPtr newSelectedComponentPtr)
 {
 	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
 
@@ -596,8 +591,7 @@ void EditorObjectSystem::onSelectionChanged(
 		OnSelectionChanged();
 }
 
-void EditorObjectSystem::setObjectSystemSelectionFilter(
-	const std::set<const MikanObjectSystem*>& objectSystemFilter)
+void EditorObjectSystem::setObjectSystemSelectionFilter(const std::set<const MikanObjectSystem*>& objectSystemFilter)
 {
 	if (m_objectSystemSelectionFilter != objectSystemFilter)
 	{
@@ -642,10 +636,9 @@ void EditorObjectSystem::setSelection(SelectionComponentPtr newSelectedComponent
 	}
 }
 
-SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
-	const glm::vec3& rayOrigin,
-	const glm::vec3& rayDir,
-	ColliderRaycastHitResult& outRaycastResult) const
+SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(const glm::vec3& rayOrigin,
+																	 const glm::vec3& rayDir,
+																	 ColliderRaycastHitResult& outRaycastResult) const
 {
 	ColliderRaycastHitRequest request= {};
 	request.rayOrigin= rayOrigin;
@@ -714,31 +707,23 @@ void EditorObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 {
 	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			EditorObjectSystemDefinition::k_renderOriginFlagPropertyId, MikanVariantType::BOOL));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			EditorObjectSystemDefinition::k_renderAnchorsPropertyId, MikanVariantType::BOOL));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId, MikanVariantType::BOOL));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId, MikanVariantType::BOOL));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			EditorObjectSystemDefinition::k_renderModelStencilsPropertyId, MikanVariantType::BOOL));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			EditorObjectSystemDefinition::k_cameraSpeedPropertyId, MikanVariantType::FLOAT));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			EditorObjectSystem::k_selectedLanguagePropertyId, MikanVariantType::STRING));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			EditorObjectSystem::k_availableLanguageListPropertyId, MikanVariantType::STRING_ARRAY)
-			->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		EditorObjectSystemDefinition::k_renderOriginFlagPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		EditorObjectSystemDefinition::k_renderAnchorsPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		EditorObjectSystemDefinition::k_renderModelStencilsPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(EditorObjectSystemDefinition::k_cameraSpeedPropertyId,
+																  MikanVariantType::FLOAT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(EditorObjectSystem::k_selectedLanguagePropertyId,
+																  MikanVariantType::STRING));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(EditorObjectSystem::k_availableLanguageListPropertyId,
+																  MikanVariantType::STRING_ARRAY)
+								 ->setReadOnly());
 }
 
 bool EditorObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const

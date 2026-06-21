@@ -2,8 +2,8 @@
 #include "CEFTextureSourceComponent.h"
 
 // -- CEFTextureSourceSystemDefinition -----
-CEFTextureSourceSystemDefinition::CEFTextureSourceSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+CEFTextureSourceSystemDefinition::CEFTextureSourceSystemDefinition(const std::string& configName,
+																   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }

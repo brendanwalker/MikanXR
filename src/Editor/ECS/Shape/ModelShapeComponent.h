@@ -47,10 +47,7 @@ public:
 	inline static const std::string k_componentClassName= "ModelShapeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
-	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const
-	{
-		return m_triMeshComponents;
-	}
+	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const { return m_triMeshComponents; }
 
 	void setModelPath(const std::filesystem::path& path);
 	void disposeMeshComponents();
@@ -75,9 +72,8 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	virtual void onDefinitionMarkedDirty(
-		CommonConfigPtr configPtr,
-		const ConfigPropertyChangeSet& changedPropertySet) override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
 
 protected:
 	AssetReferencePtr m_modelAssetRef;

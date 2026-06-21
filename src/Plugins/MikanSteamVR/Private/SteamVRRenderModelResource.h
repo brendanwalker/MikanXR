@@ -34,16 +34,13 @@ public:
 protected:
 	void disposeSteamVRResources();
 
-	IMkTexturePtr createTextureResource(
-		const struct vr::RenderModel_TextureMap_t* steamvrTexture);
+	IMkTexturePtr createTextureResource(const struct vr::RenderModel_TextureMap_t* steamvrTexture);
 	MkMaterialInstancePtr createMaterialInstance(IMkTexturePtr texture);
-	IMkTriangulatedMeshPtr createTriangulatedMeshResource(
-		const std::string& meshName,
-		MkMaterialInstancePtr materialInstance,
-		const struct vr::RenderModel_t* steamVRRenderModel);
-	IMkWireframeMeshPtr createWireframeMeshResource(
-		const std::string& meshName,
-		const vr::RenderModel_t* steamVRRenderModel);
+	IMkTriangulatedMeshPtr createTriangulatedMeshResource(const std::string& meshName,
+														  MkMaterialInstancePtr materialInstance,
+														  const struct vr::RenderModel_t* steamVRRenderModel);
+	IMkWireframeMeshPtr createWireframeMeshResource(const std::string& meshName,
+													const vr::RenderModel_t* steamVRRenderModel);
 
 	IMkGraphicsContext* m_ownerContext= nullptr;
 	std::string m_renderModelName;

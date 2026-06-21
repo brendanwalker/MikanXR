@@ -54,8 +54,7 @@ CameraDefinition::CameraDefinition()
 	m_aperturePositionOffset= MikanVector3d{0, 0, 0};
 }
 
-CameraDefinition::CameraDefinition(
-	MikanCameraID cameraId)
+CameraDefinition::CameraDefinition(MikanCameraID cameraId)
 	: TransformComponentDefinition(cameraId)
 	, m_stageId(INVALID_MIKAN_ID)
 	, m_trackingMountId(INVALID_MIKAN_ID)
@@ -91,13 +90,11 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 
 	readQuaterniond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
 	readVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
-	m_bHasValidApertureOffset=
-		pt.get_or<bool>("has_valid_aperture_offset", m_bHasValidApertureOffset);
+	m_bHasValidApertureOffset= pt.get_or<bool>("has_valid_aperture_offset", m_bHasValidApertureOffset);
 }
 
-bool CameraDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool CameraDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+										  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -259,9 +256,7 @@ void CameraComponent::updateAperturePoseFromTrackingMount()
 	}
 }
 
-void CameraComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void CameraComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	CameraDefinitionPtr cameraDefinition= getCameraDefinition();
 	const glm::mat4 glmCameraXform= getRelativeTransform().getMat4();
@@ -285,12 +280,8 @@ void CameraComponent::customRender(
 		const float zNear= fmaxf(monoIntrinsics.znear, 0.1f);
 		const float zFar= fminf(monoIntrinsics.zfar, 2.0f);
 
-		drawTransformedFrustum(
-			graphicsContext,
-			glmCameraXform,
-			hfov_radians, vfov_radians,
-			zNear, zFar,
-			Colors::Yellow);
+		drawTransformedFrustum(graphicsContext, glmCameraXform, hfov_radians, vfov_radians, zNear, zFar,
+							   Colors::Yellow);
 	}
 
 	// Draw the camera transform
@@ -324,8 +315,7 @@ VRTrackingVolumeComponentConstPtr CameraComponent::getVRTrackingVolumeComponent(
 	if (ownerStage != nullptr)
 	{
 		TrackingVolumeComponentConstPtr trackingVolume= ownerStage->getTrackingVolumeConst();
-		if (trackingVolume != nullptr &&
-			trackingVolume->getTrackingVolumeType() == eTrackingVolumeType::vr)
+		if (trackingVolume != nullptr && trackingVolume->getTrackingVolumeType() == eTrackingVolumeType::vr)
 		{
 			return std::static_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume);
 		}
@@ -414,10 +404,7 @@ void CameraComponent::setVideoSourceById(MikanVideoSourceID videoSourceId)
 	cameraDefinition->setVideoSourceId(videoSourceId);
 }
 
-bool CameraComponent::hasValidTrackingMountPoseView() const
-{
-	return m_trackingMountPoseView_StageSpace != nullptr;
-}
+bool CameraComponent::hasValidTrackingMountPoseView() const { return m_trackingMountPoseView_StageSpace != nullptr; }
 
 bool CameraComponent::getAperturePixelDimensions(int& outWidth, int& outHeight) const
 {
@@ -451,10 +438,7 @@ bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntri
 	return false;
 }
 
-bool CameraComponent::hasValidApertureOffsetXform() const
-{
-	return getCameraDefinition()->hasValidApertureOffset();
-}
+bool CameraComponent::hasValidApertureOffsetXform() const { return getCameraDefinition()->hasValidApertureOffset(); }
 
 bool CameraComponent::getApertureOffsetXform(glm::mat4& outTrackingMountToApertureXform) const
 {
@@ -463,13 +447,10 @@ bool CameraComponent::getApertureOffsetXform(glm::mat4& outTrackingMountToApertu
 
 	if (cameraDefinition->hasValidApertureOffset())
 	{
-		const glm::vec3 apertureOffsetPos=
-			MikanVector3d_to_glm_dvec3(cameraDefinition->getApertureOffsetPosition());
-		const glm::quat apertureOffsetQuat=
-			MikanQuatd_to_glm_dquat(cameraDefinition->getApertureOffsetOrientation());
+		const glm::vec3 apertureOffsetPos= MikanVector3d_to_glm_dvec3(cameraDefinition->getApertureOffsetPosition());
+		const glm::quat apertureOffsetQuat= MikanQuatd_to_glm_dquat(cameraDefinition->getApertureOffsetOrientation());
 
-		outTrackingMountToApertureXform=
-			glm_mat4_from_pose(apertureOffsetQuat, apertureOffsetPos);
+		outTrackingMountToApertureXform= glm_mat4_from_pose(apertureOffsetQuat, apertureOffsetPos);
 
 		return true;
 	}
@@ -482,15 +463,12 @@ bool CameraComponent::getStageSpaceAperturePose(glm::mat4& outCameraPose) const
 	// Compute the aperture pose in stage space
 	glm::mat4 trackingMountPose_StageSpace;
 	glm::mat4 trackingMountToApertureXform;
-	if (m_trackingMountPoseView_StageSpace &&
-		m_trackingMountPoseView_StageSpace->getPose(
-			getSelfPtr<const CameraComponent>(),
-			trackingMountPose_StageSpace) &&
-		getApertureOffsetXform(trackingMountToApertureXform))
+	if (m_trackingMountPoseView_StageSpace
+		&& m_trackingMountPoseView_StageSpace->getPose(getSelfPtr<const CameraComponent>(),
+													   trackingMountPose_StageSpace)
+		&& getApertureOffsetXform(trackingMountToApertureXform))
 	{
-		outCameraPose=
-			glm_composite_xform(
-				trackingMountToApertureXform, trackingMountPose_StageSpace);
+		outCameraPose= glm_composite_xform(trackingMountToApertureXform, trackingMountPose_StageSpace);
 
 		return true;
 	}
@@ -515,9 +493,7 @@ bool CameraComponent::getStageSpaceAperturePose(glm::dmat4& outCameraPose) const
 	return false;
 }
 
-bool CameraComponent::getApertureProjectionMatrix(
-	glm::mat4& outProjectionMatrix,
-	bool bVerticalFlip) const
+bool CameraComponent::getApertureProjectionMatrix(glm::mat4& outProjectionMatrix, bool bVerticalFlip) const
 {
 	VideoSourceComponentPtr videoSourceComponent= getVideoSourceComponent();
 	if (videoSourceComponent)
@@ -527,9 +503,7 @@ bool CameraComponent::getApertureProjectionMatrix(
 		if (bVerticalFlip)
 		{
 			// Flip the projection matrix to account for OpenGL's inverted Y-axis
-			outProjectionMatrix=
-				glm::scale(glm::mat4(1.0), glm::vec3(1.f, -1.f, 1.f)) *
-				outProjectionMatrix;
+			outProjectionMatrix= glm::scale(glm::mat4(1.0), glm::vec3(1.f, -1.f, 1.f)) * outProjectionMatrix;
 		}
 
 		return true;
@@ -550,9 +524,7 @@ bool CameraComponent::getApertureViewMatrix(glm::mat4& outViewMatrix) const
 	return false;
 }
 
-bool CameraComponent::getApertureViewProjectionMatrix(
-	glm::mat4& outVPMatrix,
-	bool bVerticalFlip) const
+bool CameraComponent::getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip) const
 {
 	glm::mat4 projMatrix;
 	glm::mat4 viewMatrix;
@@ -565,10 +537,8 @@ bool CameraComponent::getApertureViewProjectionMatrix(
 	return false;
 }
 
-bool CameraComponent::makeNewCameraFrameEvent(
-	int64_t frameIndex,
-	int defaultWidth, int defaultHeight,
-	MikanCameraNewFrameEvent& outNewFrameEvent) const
+bool CameraComponent::makeNewCameraFrameEvent(int64_t frameIndex, int defaultWidth, int defaultHeight,
+											  MikanCameraNewFrameEvent& outNewFrameEvent) const
 {
 	outNewFrameEvent= {};
 	outNewFrameEvent.camera_id= getCameraId();
@@ -652,10 +622,7 @@ void CameraComponent::onDefinitionChanged(CommonConfigPtr configPtr, const Confi
 	}
 }
 
-void CameraComponent::onActiveDeviceListChanged(eTrackingRuntime runtime)
-{
-	rebuildStageSpacePoseView();
-}
+void CameraComponent::onActiveDeviceListChanged(eTrackingRuntime runtime) { rebuildStageSpacePoseView(); }
 
 void CameraComponent::rebuildStageSpacePoseView()
 {
@@ -667,16 +634,13 @@ void CameraComponent::rebuildStageSpacePoseView()
 	if (trackingMount)
 	{
 		auto vrObjectSystem= getObjectSystemOfType<VRObjectSystem>();
-		VRDeviceComponentPtr vrDeviceComponent=
-			vrObjectSystem->getVRDeviceByPath(trackingMount->getDevicePath());
+		VRDeviceComponentPtr vrDeviceComponent= vrObjectSystem->getVRDeviceByPath(trackingMount->getDevicePath());
 
 		if (vrDeviceComponent)
 		{
 			// Tracking mount pose in the space of the stage the camera is in
-			m_trackingMountPoseView_StageSpace=
-				vrDeviceComponent->makePoseView(
-					eVRDevicePoseSpace::MikanTrackingVolumePose,
-					trackingMount->getSocketName());
+			m_trackingMountPoseView_StageSpace= vrDeviceComponent->makePoseView(
+				eVRDevicePoseSpace::MikanTrackingVolumePose, trackingMount->getSocketName());
 
 			// Recompute the aperture pose since the tracking mount pose view has changed
 			updateAperturePoseFromTrackingMount();
@@ -705,26 +669,24 @@ void CameraComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId, MikanVariantType::INT)
 			->setDefaultValue(0));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::QUATERNIOND)
-			->setDefaultValue(MikanQuatd())
-			->setReadOnly()
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId, MikanVariantType::VECTOR3D)
-			->setDefaultValue(MikanVector3d())
-			->setReadOnly()
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(CameraDefinition::k_hasValidApertureOffsetPropertyId, MikanVariantType::BOOL)
-			->setDefaultValue(false)
-			->setReadOnly()
-			->setUIHidden());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::QUATERNIOND)
+								 ->setDefaultValue(MikanQuatd())
+								 ->setReadOnly()
+								 ->setUIHidden());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId,
+																  MikanVariantType::VECTOR3D)
+								 ->setDefaultValue(MikanVector3d())
+								 ->setReadOnly()
+								 ->setUIHidden());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(CameraDefinition::k_hasValidApertureOffsetPropertyId,
+																  MikanVariantType::BOOL)
+								 ->setDefaultValue(false)
+								 ->setReadOnly()
+								 ->setUIHidden());
 }
 
-bool CameraComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool CameraComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == CameraDefinition::k_ownerStageIdPropertyId)
 	{
@@ -765,9 +727,7 @@ bool CameraComponent::getPropertyValue(
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool CameraComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool CameraComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == CameraDefinition::k_trackingMountIdPropertyId)
 	{
@@ -796,9 +756,7 @@ void CameraComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 {
 	MikanComponent::getFunctionDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_alignCameraFunctionId, "Align Camera"));
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_alignCameraFunctionId, "Align Camera"));
 }
 
 bool CameraComponent::invokeFunction(const std::string& functionName)
@@ -820,21 +778,15 @@ void CameraComponent::alignCamera()
 	case eTrackingVolumeType::vr:
 		if (hasValidTrackingMountComponent())
 		{
-			AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(
-				currentAppStage,
-				getSelfPtr<CameraComponent>());
+			AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(currentAppStage, getSelfPtr<CameraComponent>());
 		}
 		else
 		{
-			AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(
-				currentAppStage,
-				getSelfPtr<CameraComponent>());
+			AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(currentAppStage, getSelfPtr<CameraComponent>());
 		}
 		break;
 	case eTrackingVolumeType::marker:
-		AppStage_AlignCameraByOriginMarker::tryEnterCalibration(
-			currentAppStage,
-			getSelfPtr<CameraComponent>());
+		AppStage_AlignCameraByOriginMarker::tryEnterCalibration(currentAppStage, getSelfPtr<CameraComponent>());
 		break;
 	default:
 		ModalDialog_MessageBox::showMessageBox(
@@ -848,29 +800,32 @@ void CameraComponent::alignCamera()
 void CameraComponent::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<CameraComponent, TransformComponent>(
-			CameraComponent::k_componentClassName.c_str())
-		.addProperty("trackingFrameDelay", [](CameraComponent* c) -> int
-					 { return c->getCameraDefinition()->getTrackingFrameDelay(); }, [](CameraComponent* c, int v)
-					 { c->getCameraDefinition()->setTrackingFrameDelay(v); })
-		.addFunction("alignCamera", [](CameraComponent* c)
-					 { c->alignCamera(); })
-		.addProperty("ownerStageId", [](CameraComponent* c) -> int
-					 { return c->getCameraDefinition()->getOwnerStageId(); })
-		.addProperty("trackingMountId", [](CameraComponent* c) -> int
-					 { return c->getCameraDefinition()->getTrackingMountId(); })
-		.addProperty("videoSourceId", [](CameraComponent* c) -> int
-					 { return c->getCameraDefinition()->getVideoSourceId(); })
-		.addProperty("hasValidApertureOffset", [](CameraComponent* c) -> bool
-					 { return c->getCameraDefinition()->hasValidApertureOffset(); })
-		.addProperty("aperturePositionOffset", [](CameraComponent* c) -> LuaVec3f
+		.deriveClass<CameraComponent, TransformComponent>(CameraComponent::k_componentClassName.c_str())
+		.addProperty(
+			"trackingFrameDelay",
+			[](CameraComponent* c) -> int { return c->getCameraDefinition()->getTrackingFrameDelay(); },
+			[](CameraComponent* c, int v) { c->getCameraDefinition()->setTrackingFrameDelay(v); })
+		.addFunction("alignCamera", [](CameraComponent* c) { c->alignCamera(); })
+		.addProperty("ownerStageId",
+					 [](CameraComponent* c) -> int { return c->getCameraDefinition()->getOwnerStageId(); })
+		.addProperty("trackingMountId",
+					 [](CameraComponent* c) -> int { return c->getCameraDefinition()->getTrackingMountId(); })
+		.addProperty("videoSourceId",
+					 [](CameraComponent* c) -> int { return c->getCameraDefinition()->getVideoSourceId(); })
+		.addProperty("hasValidApertureOffset",
+					 [](CameraComponent* c) -> bool { return c->getCameraDefinition()->hasValidApertureOffset(); })
+		.addProperty("aperturePositionOffset",
+					 [](CameraComponent* c) -> LuaVec3f
 					 {
-				MikanVector3d p = c->getCameraDefinition()->getApertureOffsetPosition();
-				return LuaVec3f((float)p.x, (float)p.y, (float)p.z); })
-		.addProperty("apertureOrientationOffset", [](CameraComponent* c) -> LuaVec3f
+						 MikanVector3d p= c->getCameraDefinition()->getApertureOffsetPosition();
+						 return LuaVec3f((float)p.x, (float)p.y, (float)p.z);
+					 })
+		.addProperty("apertureOrientationOffset",
+					 [](CameraComponent* c) -> LuaVec3f
 					 {
-				MikanQuatd q = c->getCameraDefinition()->getApertureOffsetOrientation();
-				return LuaVec3f(glm_quat_to_MikanRotator3f(MikanQuatd_to_glm_quat(q))); })
+						 MikanQuatd q= c->getCameraDefinition()->getApertureOffsetOrientation();
+						 return LuaVec3f(glm_quat_to_MikanRotator3f(MikanQuatd_to_glm_quat(q)));
+					 })
 		.addFunction("getOwnerStage", [](CameraComponent* c) -> StageComponent*
 					 { return const_cast<StageComponent*>(c->getOwnerStageComponent().get()); })
 		.endClass();

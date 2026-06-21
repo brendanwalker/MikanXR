@@ -193,16 +193,11 @@ public:
 	{
 	}
 
-	virtual ~MikanAPI()
-	{
-		shutdown();
-	}
+	virtual ~MikanAPI() { shutdown(); }
 
 	// Initialize the Mikan API
-	virtual MikanAPIResult init(
-		const char* client_name,
-		MikanLogLevel min_log_level,
-		MikanLogCallback log_callback) override
+	virtual MikanAPIResult init(const char* client_name, MikanLogLevel min_log_level,
+								MikanLogCallback log_callback) override
 	{
 		MikanAPIResult result= (MikanAPIResult)Mikan_Initialize(client_name, min_log_level, log_callback, &m_context);
 		if (result != MikanAPIResult::Success)
@@ -229,20 +224,11 @@ public:
 		return MikanAPIResult::Success;
 	}
 
-	virtual bool getIsInitialized() override
-	{
-		return Mikan_GetIsInitialized(m_context);
-	}
+	virtual bool getIsInitialized() override { return Mikan_GetIsInitialized(m_context); }
 
-	virtual int getClientAPIVersion() const override
-	{
-		return MikanConstants_ClientAPIVersion;
-	}
+	virtual int getClientAPIVersion() const override { return MikanConstants_ClientAPIVersion; }
 
-	virtual std::string getClientName() const override
-	{
-		return Mikan_GetClientName(m_context);
-	}
+	virtual std::string getClientName() const override { return Mikan_GetClientName(m_context); }
 
 	virtual MikanClientInfo allocateClientInfo() const override
 	{
@@ -272,11 +258,13 @@ public:
 	}
 
 	// Set client properties before calling connect
-	virtual MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) override
+	virtual MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api,
+													  void* graphicsDeviceInterface) override
 	{
 		return m_renderTargetAPI->setGraphicsDeviceInterface(api, graphicsDeviceInterface);
 	}
-	virtual MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) override
+	virtual MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api,
+													  void** outGraphicsDeviceInterface) override
 	{
 		return m_renderTargetAPI->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 	}
@@ -286,32 +274,21 @@ public:
 		return m_renderTargetAPI->getCameraPackDepthTextureResourcePtr(cameraId, outResourcePtr);
 	}
 
-	virtual MikanAPIResult connect() override
-	{
-		return (MikanAPIResult)Mikan_Connect(m_context, "", "");
-	}
+	virtual MikanAPIResult connect() override { return (MikanAPIResult)Mikan_Connect(m_context, "", ""); }
 
-	virtual MikanAPIResult connect(
-		const std::string& host,
-		const std::string& port) override
+	virtual MikanAPIResult connect(const std::string& host, const std::string& port) override
 	{
 		return (MikanAPIResult)Mikan_Connect(m_context, host.c_str(), port.c_str());
 	}
 
-	virtual bool getIsConnected() override
-	{
-		return Mikan_GetIsConnected(m_context);
-	}
+	virtual bool getIsConnected() override { return Mikan_GetIsConnected(m_context); }
 
 	virtual MikanAPIResult fetchNextEvent(MikanEventPtr& out_event) override
 	{
 		return m_eventManager->fetchNextEvent(out_event);
 	}
 
-	virtual MikanAPIResult disconnect() override
-	{
-		return (MikanAPIResult)Mikan_Disconnect(m_context, 0, "");
-	}
+	virtual MikanAPIResult disconnect() override { return (MikanAPIResult)Mikan_Disconnect(m_context, 0, ""); }
 
 	virtual MikanAPIResult disconnect(uint16_t code, const std::string& reason) override
 	{
@@ -333,7 +310,4 @@ private:
 };
 
 // -- Mikan API Factory -----
-IMikanAPIPtr IMikanAPI::createMikanAPI()
-{
-	return std::make_shared<MikanAPI>();
-}
+IMikanAPIPtr IMikanAPI::createMikanAPI() { return std::make_shared<MikanAPI>(); }

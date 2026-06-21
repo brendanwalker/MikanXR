@@ -8,9 +8,7 @@
 
 #include <filesystem>
 
-AppStage::AppStage(
-	IEditorWindow* ownerWindow,
-	const std::string& stageName)
+AppStage::AppStage(IEditorWindow* ownerWindow, const std::string& stageName)
 	: m_ownerWindow(ownerWindow)
 	, m_bIsEntered(false)
 	, m_bIsPaused(false)
@@ -18,24 +16,13 @@ AppStage::AppStage(
 {
 }
 
-AppStage::~AppStage()
-{
-}
+AppStage::~AppStage() {}
 
-ProjectManagerPtr AppStage::getProjectManager() const
-{
-	return m_ownerWindow->getProjectManager();
-}
+ProjectManagerPtr AppStage::getProjectManager() const { return m_ownerWindow->getProjectManager(); }
 
-IMkGraphicsContext* AppStage::getGraphicsContext() const
-{
-	return m_ownerWindow->getGraphicsContext().get();
-}
+IMkGraphicsContext* AppStage::getGraphicsContext() const { return m_ownerWindow->getGraphicsContext().get(); }
 
-ProjectConfigPtr AppStage::getProjectConfig() const
-{
-	return getProjectManager()->getProjectConfig();
-}
+ProjectConfigPtr AppStage::getProjectConfig() const { return getProjectManager()->getProjectConfig(); }
 
 const EditorSettings& AppStage::getEditorSettings() const
 {
@@ -44,10 +31,8 @@ const EditorSettings& AppStage::getEditorSettings() const
 
 MikanViewportPtr AppStage::addViewport()
 {
-	auto viewport=
-		std::make_shared<MikanViewport>(
-			m_ownerWindow,
-			glm::i32vec2(m_ownerWindow->getWidth(), m_ownerWindow->getHeight()));
+	auto viewport= std::make_shared<MikanViewport>(m_ownerWindow,
+												   glm::i32vec2(m_ownerWindow->getWidth(), m_ownerWindow->getHeight()));
 	m_viewports.push_back(viewport);
 
 	// Start listing to mouse input
@@ -101,9 +86,7 @@ void AppStage::exit()
 	}
 }
 
-void AppStage::onWindowEvent(const MkWindowEvent& event)
-{
-}
+void AppStage::onWindowEvent(const MkWindowEvent& event) {}
 
 void AppStage::pause()
 {
@@ -164,10 +147,8 @@ void AppStage::popModalDialog()
 }
 
 // -- IRemoteControllable Interface -- //
-bool AppStage::handleRemoteControlCommand(
-	const std::string& command,
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage::handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+										  std::vector<std::string>& outResults)
 {
 	// by default, we don't handle any commands
 	return false;

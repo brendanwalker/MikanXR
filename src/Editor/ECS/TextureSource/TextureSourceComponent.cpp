@@ -12,15 +12,13 @@ TextureSourceDefinition::TextureSourceDefinition()
 {
 }
 
-TextureSourceDefinition::TextureSourceDefinition(
-	MikanTextureSourceID textureSourceId)
+TextureSourceDefinition::TextureSourceDefinition(MikanTextureSourceID textureSourceId)
 	: MikanComponentDefinition(textureSourceId, "")
 {
 }
 
-bool TextureSourceDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool TextureSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												 const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -53,12 +51,16 @@ MikanTextureSourceID TextureSourceComponent::getTextureSourceId() const
 	return getTextureSourceDefinition()->getTextureSourceId();
 }
 
-IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex) const
+IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(MikanCameraID cameraId,
+																  eTextureSourceColorType textureSourceColorType,
+																  int64_t frameIndex) const
 {
 	return IMkTexturePtr();
 }
 
-IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex) const
+IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(MikanCameraID cameraId,
+																  eTextureSourceDepthType textureSourceDepthType,
+																  int64_t frameIndex) const
 {
 	return IMkTexturePtr();
 }
@@ -71,8 +73,7 @@ void TextureSourceComponent::getFunctionDescriptors(std::vector<FunctionDescript
 	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_showTextureSourceSettingsFunctionId, "Show Texture Source Settings"));
+		std::make_shared<FunctionDescriptor>(k_showTextureSourceSettingsFunctionId, "Show Texture Source Settings"));
 }
 
 bool TextureSourceComponent::invokeFunction(const std::string& functionName)

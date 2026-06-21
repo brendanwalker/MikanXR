@@ -11,8 +11,8 @@
 // -- SceneObjectSystemDefinition -----
 const std::string SceneObjectSystemDefinition::k_currentSceneIdPropertyId= "current_scene_id";
 
-SceneObjectSystemDefinition::SceneObjectSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+SceneObjectSystemDefinition::SceneObjectSystemDefinition(const std::string& configName,
+														 IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -31,8 +31,7 @@ void SceneObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	Super::readFromJSON(pt);
 
 	m_currentSceneId=
-		pt.get_or<MikanSceneID>(
-			SceneObjectSystemDefinition::k_currentSceneIdPropertyId, m_currentSceneId);
+		pt.get_or<MikanSceneID>(SceneObjectSystemDefinition::k_currentSceneIdPropertyId, m_currentSceneId);
 }
 
 void SceneObjectSystemDefinition::setCurrentSceneId(MikanSceneID sceneId)
@@ -110,15 +109,9 @@ MikanSceneID SceneObjectSystem::getCurrentSceneId() const
 	return INVALID_MIKAN_ID;
 }
 
-SceneComponentPtr SceneObjectSystem::getCurrentScene() const
-{
-	return getSceneById(getCurrentSceneId());
-}
+SceneComponentPtr SceneObjectSystem::getCurrentScene() const { return getSceneById(getCurrentSceneId()); }
 
-void SceneObjectSystem::setCurrentScene(SceneComponentPtr newScene)
-{
-	setCurrentSceneById(newScene->getSceneId());
-}
+void SceneObjectSystem::setCurrentScene(SceneComponentPtr newScene) { setCurrentSceneById(newScene->getSceneId()); }
 
 void SceneObjectSystem::setCurrentSceneById(MikanSceneID newSceneId)
 {
@@ -159,9 +152,8 @@ void SceneObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorCon
 {
 	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			SceneObjectSystemDefinition::k_currentSceneIdPropertyId, MikanVariantType::INT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		SceneObjectSystemDefinition::k_currentSceneIdPropertyId, MikanVariantType::INT));
 }
 
 bool SceneObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
@@ -192,25 +184,13 @@ void SceneObjectSystem::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.beginClass<SceneObjectSystem>("SceneObjectSystem")
 		.addFunction("getCurrentScene",
-					 [](SceneObjectSystem* s) -> SceneComponent*
-					 {
-						 return s->getCurrentScene().get();
-					 })
-		.addFunction("getSceneById",
-					 [](SceneObjectSystem* s, int id) -> SceneComponent*
-					 {
-						 return s->getSceneById(static_cast<MikanSceneID>(id)).get();
-					 })
-		.addFunction("getSceneByName",
-					 [](SceneObjectSystem* s, const std::string& name) -> SceneComponent*
-					 {
-						 return s->getSceneByName(name).get();
-					 })
+					 [](SceneObjectSystem* s) -> SceneComponent* { return s->getCurrentScene().get(); })
+		.addFunction("getSceneById", [](SceneObjectSystem* s, int id) -> SceneComponent*
+					 { return s->getSceneById(static_cast<MikanSceneID>(id)).get(); })
+		.addFunction("getSceneByName", [](SceneObjectSystem* s, const std::string& name) -> SceneComponent*
+					 { return s->getSceneByName(name).get(); })
 		.addFunction("getSceneCount",
-					 [](SceneObjectSystem* s) -> int
-					 {
-						 return static_cast<int>(s->getComponentMap().size());
-					 })
+					 [](SceneObjectSystem* s) -> int { return static_cast<int>(s->getComponentMap().size()); })
 		.addFunction("getSceneAtIndex",
 					 [](SceneObjectSystem* s, int i) -> SceneComponent*
 					 {

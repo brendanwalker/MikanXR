@@ -21,10 +21,7 @@ CommonScriptContext::CommonScriptContext()
 {
 }
 
-CommonScriptContext::~CommonScriptContext()
-{
-	disposeScriptState();
-}
+CommonScriptContext::~CommonScriptContext() { disposeScriptState(); }
 
 int CommonScriptContext::panicHandler(lua_State* state)
 {
@@ -115,11 +112,8 @@ bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 	// sides must agree on the same relative form for breakpoint matching to work.
 	std::filesystem::path cwd= std::filesystem::current_path();
 	std::filesystem::path relPath= scriptPath.lexically_relative(cwd);
-	bool isUnderCwd= !relPath.empty() &&
-					 relPath.native().substr(0, 2) != L".." &&
-					 relPath.native().front() != L'/';
-	std::string chunkName= "@" + (isUnderCwd ? relPath.generic_string()
-											 : scriptPath.generic_string());
+	bool isUnderCwd= !relPath.empty() && relPath.native().substr(0, 2) != L".." && relPath.native().front() != L'/';
+	std::string chunkName= "@" + (isUnderCwd ? relPath.generic_string() : scriptPath.generic_string());
 
 	// Read the file ourselves so we can supply the custom chunk name to lua_load.
 	std::ifstream scriptFile(scriptPath, std::ios::binary);
@@ -331,17 +325,14 @@ bool CommonScriptContext::addLuaCoroutineScheduler()
 }
 
 template <typename t_enum_class>
-static void addEnumToLua(
-	luabridge::Namespace& globalNamespace,
-	const std::string& enumName,
-	const std::string* enumStrings)
+static void addEnumToLua(luabridge::Namespace& globalNamespace, const std::string& enumName,
+						 const std::string* enumStrings)
 {
 	for (int enumIntValue= 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
 	{
 		const std::string enumString= enumStrings[enumIntValue];
 
-		globalNamespace.addProperty(enumString.c_str(), [enumIntValue]()
-									{ return enumIntValue; });
+		globalNamespace.addProperty(enumString.c_str(), [enumIntValue]() { return enumIntValue; });
 	}
 }
 
@@ -350,16 +341,18 @@ void CommonScriptContext::bindCommonScriptFunctions()
 	auto globalNamespace= luabridge::getGlobalNamespace(m_luaState);
 	auto contextNamespace= globalNamespace.beginNamespace("ScriptContext");
 
-	contextNamespace.addFunction("registerTrigger", [this](const char* functionName)
-								 { m_triggers.push_back(functionName); });
+	contextNamespace.addFunction("registerTrigger",
+								 [this](const char* functionName) { m_triggers.push_back(functionName); });
 
-	contextNamespace.addFunction("registerMessageHandler", [this](const char* functionName)
-								 { m_messageHandlers.push_back(functionName); });
+	contextNamespace.addFunction("registerMessageHandler",
+								 [this](const char* functionName) { m_messageHandlers.push_back(functionName); });
 
-	contextNamespace.addFunction("broadcastMessage", [this](const char* message)
+	contextNamespace.addFunction("broadcastMessage",
+								 [this](const char* message)
 								 {
-		if (OnScriptMessage)
-			OnScriptMessage(message); });
+									 if (OnScriptMessage)
+										 OnScriptMessage(message);
+								 });
 
 	// Register enums
 	addEnumToLua<eStencilCullMode>(contextNamespace, "CullMode", k_stencilCullModeStrings);
@@ -369,8 +362,7 @@ void CommonScriptContext::bindCommonScriptFunctions()
 	// Programmatic breakpoint helper: call lrdb_break() anywhere in a script to
 	// force a pause on the next line event, without needing gutter breakpoints.
 	luabridge::getGlobalNamespace(m_luaState)
-		.addFunction("lrdb_break", []()
-					 { LuaDebugServer::getInstance()->pauseOnNextLine(); });
+		.addFunction("lrdb_break", []() { LuaDebugServer::getInstance()->pauseOnNextLine(); });
 }
 
 void CommonScriptContext::disposeScriptState()

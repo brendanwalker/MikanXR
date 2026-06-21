@@ -8,8 +8,8 @@
 #include "StringUtils.h"
 
 // -- MarkerTrackingVolumeSystemDefinition -----
-MarkerTrackingVolumeSystemDefinition::MarkerTrackingVolumeSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+MarkerTrackingVolumeSystemDefinition::MarkerTrackingVolumeSystemDefinition(const std::string& configName,
+																		   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -21,10 +21,7 @@ configuru::Config MarkerTrackingVolumeSystemDefinition::writeToJSON()
 	return pt;
 }
 
-void MarkerTrackingVolumeSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	Super::readFromJSON(pt);
-}
+void MarkerTrackingVolumeSystemDefinition::readFromJSON(const configuru::Config& pt) { Super::readFromJSON(pt); }
 
 // -- MarkerTrackingVolumeSystem -----
 MarkerTrackingVolumeSystem::MarkerTrackingVolumeSystem(ProjectManagerPtr ownerObjectSystemManager)

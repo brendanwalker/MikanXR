@@ -82,8 +82,7 @@ public:
 	template <class t_pin_type>
 	std::shared_ptr<t_pin_type> getFirstPinOfType(eNodePinDirection direction) const
 	{
-		const std::vector<NodePinPtr>& pinArray=
-			(direction == eNodePinDirection::INPUT) ? m_pinsIn : m_pinsOut;
+		const std::vector<NodePinPtr>& pinArray= (direction == eNodePinDirection::INPUT) ? m_pinsIn : m_pinsOut;
 		for (NodePinPtr pin : pinArray)
 		{
 			std::shared_ptr<t_pin_type> derivedPin= std::dynamic_pointer_cast<t_pin_type>(pin);
@@ -123,7 +122,8 @@ protected:
 
 	virtual void editorRenderTitle(const NodeEditorState& editorState) const;
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(const NodeEditorState& editorState) const;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
+		const NodeEditorState& editorState) const;
 	virtual void editorRenderInputPins(const NodeEditorState& editorState);
 	virtual void editorRenderOutputPins(const NodeEditorState& editorState) const;
 
@@ -182,13 +182,7 @@ class TypedNodeFactory : public NodeFactory
 public:
 	TypedNodeFactory()= default;
 
-	virtual NodeConfigPtr allocateNodeConfig() const override
-	{
-		return std::make_shared<t_node_config_class>();
-	}
+	virtual NodeConfigPtr allocateNodeConfig() const override { return std::make_shared<t_node_config_class>(); }
 
-	virtual NodePtr allocateNode() const override
-	{
-		return std::make_shared<t_node_class>();
-	}
+	virtual NodePtr allocateNode() const override { return std::make_shared<t_node_class>(); }
 };

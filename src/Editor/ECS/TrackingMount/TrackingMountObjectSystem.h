@@ -3,24 +3,23 @@
 #include "TrackingMountComponent.h"
 #include "MikanTypedObjectSystem.h"
 
-class TrackingMountObjectSystemDefinition : public MikanTypedObjectSystemDefinition<TrackingMountComponent, TrackingMountDefinition, MikanTrackingMountID>
+class TrackingMountObjectSystemDefinition
+	: public MikanTypedObjectSystemDefinition<TrackingMountComponent, TrackingMountDefinition, MikanTrackingMountID>
 {
 public:
-	using Super= MikanTypedObjectSystemDefinition<TrackingMountComponent, TrackingMountDefinition, MikanTrackingMountID>;
+	using Super=
+		MikanTypedObjectSystemDefinition<TrackingMountComponent, TrackingMountDefinition, MikanTrackingMountID>;
 
 	TrackingMountObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class TrackingMountObjectSystem : public MikanTypedObjectSystem<
-									  TrackingMountComponent, TrackingMountDefinition,
-									  MikanTrackingMountID,
-									  TrackingMountObjectSystem, TrackingMountObjectSystemDefinition>
+class TrackingMountObjectSystem
+	: public MikanTypedObjectSystem<TrackingMountComponent, TrackingMountDefinition, MikanTrackingMountID,
+									TrackingMountObjectSystem, TrackingMountObjectSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		TrackingMountComponent, TrackingMountDefinition,
-		MikanTrackingMountID,
-		TrackingMountObjectSystem, TrackingMountObjectSystemDefinition>;
+	using Super= MikanTypedObjectSystem<TrackingMountComponent, TrackingMountDefinition, MikanTrackingMountID,
+										TrackingMountObjectSystem, TrackingMountObjectSystemDefinition>;
 
 	TrackingMountObjectSystem(ProjectManagerPtr ownerObjectSystem);
 

@@ -17,7 +17,8 @@
 
 class GlmTransform;
 
-class AnchorObjectSystemDefinition : public MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>
+class AnchorObjectSystemDefinition
+	: public MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>;
@@ -28,16 +29,12 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class AnchorObjectSystem : public MikanTypedObjectSystem<
-							   AnchorComponent, AnchorDefinition,
-							   MikanSpatialAnchorID,
-							   AnchorObjectSystem, AnchorObjectSystemDefinition>
+class AnchorObjectSystem : public MikanTypedObjectSystem<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID,
+														 AnchorObjectSystem, AnchorObjectSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		AnchorComponent, AnchorDefinition,
-		MikanSpatialAnchorID,
-		AnchorObjectSystem, AnchorObjectSystemDefinition>;
+	using Super= MikanTypedObjectSystem<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID, AnchorObjectSystem,
+										AnchorObjectSystemDefinition>;
 
 	AnchorObjectSystem(ProjectManagerPtr ownerObjectSystem);
 
@@ -63,7 +60,6 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 protected:
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		ComponentDefinitionPtr componentDefinition) override;
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											ComponentDefinitionPtr componentDefinition) override;
 };

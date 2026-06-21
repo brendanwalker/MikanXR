@@ -9,11 +9,8 @@ using MikanFunctionDatabaseConstPtr= std::shared_ptr<const class MikanFunctionDa
 class FunctionDatabaseEnumerator
 {
 public:
-	FunctionDatabaseEnumerator(
-		MikanFunctionDatabaseConstPtr database,
-		const std::string& systemFilter= "",
-		const std::string& componentFilter= "",
-		const std::string& functionFilter= "");
+	FunctionDatabaseEnumerator(MikanFunctionDatabaseConstPtr database, const std::string& systemFilter= "",
+							   const std::string& componentFilter= "", const std::string& functionFilter= "");
 	bool isValid() const;
 	void next();
 	int getCurrentFunctionIndex() const { return m_currentIndex; }

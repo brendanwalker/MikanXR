@@ -9,9 +9,7 @@
 #include "TestGraphicsContext_GL.h"
 #include "TestOpenGLMath.h"
 
-TestCameraRenderTarget_GL::TestCameraRenderTarget_GL(
-	TestGraphicsContextPtr ownerContext,
-	MikanCameraID cameraId)
+TestCameraRenderTarget_GL::TestCameraRenderTarget_GL(TestGraphicsContextPtr ownerContext, MikanCameraID cameraId)
 	: TestCameraRenderTarget(ownerContext, cameraId)
 	, m_renderTargetName("CameraRenderTarget_" + std::to_string(cameraId))
 	, m_frameBuffer()
@@ -120,19 +118,16 @@ void TestCameraRenderTarget_GL::updateCameraViewMatrix(const MikanCameraNewFrame
 	m_cameraUp= MikanVector3f_to_glm_vec3(newFrameEvent.camera_up);
 	m_cameraRight= glm::normalize(glm::cross(m_cameraForward, m_cameraUp));
 
-	m_viewMatrix=
-		mikan_camera_pose_to_glm_view_matrix(
-			newFrameEvent.camera_forward, newFrameEvent.camera_up, newFrameEvent.camera_position);
+	m_viewMatrix= mikan_camera_pose_to_glm_view_matrix(newFrameEvent.camera_forward, newFrameEvent.camera_up,
+													   newFrameEvent.camera_position);
 }
 
 void TestCameraRenderTarget_GL::updateCameraProjectionMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
 {
-	m_projMatrix=
-		mikan_camera_intrinsics_to_glm_projection_matrix(
-			newFrameEvent.focal_length.x, newFrameEvent.focal_length.y,
-			newFrameEvent.principal_point.x, newFrameEvent.principal_point.y,
-			newFrameEvent.pixel_size.x, newFrameEvent.pixel_size.y,
-			newFrameEvent.z_bounds.x, newFrameEvent.z_bounds.y);
+	m_projMatrix= mikan_camera_intrinsics_to_glm_projection_matrix(
+		newFrameEvent.focal_length.x, newFrameEvent.focal_length.y, newFrameEvent.principal_point.x,
+		newFrameEvent.principal_point.y, newFrameEvent.pixel_size.x, newFrameEvent.pixel_size.y,
+		newFrameEvent.z_bounds.x, newFrameEvent.z_bounds.y);
 }
 
 void TestCameraRenderTarget_GL::bindGraphicsAPIResource()

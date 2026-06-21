@@ -28,19 +28,11 @@ void GraphPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphProperty ------
-std::string GraphProperty::editorGetIcon() const
-{
-	return NodeEditorUI::getVariableIcon();
-}
+std::string GraphProperty::editorGetIcon() const { return NodeEditorUI::getVariableIcon(); }
 
-const ImVec4 GraphProperty::editorGetIconColor() const
-{
-	return NodeEditorUI::getPropertyColor();
-}
+const ImVec4 GraphProperty::editorGetIconColor() const { return NodeEditorUI::getPropertyColor(); }
 
-bool GraphProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	m_id= propConfig->id;
 	m_parentId= propConfig->parentId;
@@ -71,7 +63,4 @@ GraphPropertyConfigPtr GraphPropertyFactory::allocatePropertyConfig() const
 	return std::make_shared<GraphPropertyConfig>();
 }
 
-GraphPropertyPtr GraphPropertyFactory::allocateProperty() const
-{
-	return std::make_shared<GraphProperty>();
-}
+GraphPropertyPtr GraphPropertyFactory::allocateProperty() const { return std::make_shared<GraphProperty>(); }

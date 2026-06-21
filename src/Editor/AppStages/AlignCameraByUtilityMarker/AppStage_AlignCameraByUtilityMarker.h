@@ -23,9 +23,7 @@ public:
 	AppStage_AlignCameraByUtilityMarker(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_AlignCameraByUtilityMarker();
 
-	static bool tryEnterCalibration(
-		AppStage* fromAppStage,
-		CameraComponentPtr targetCameraComponent);
+	static bool tryEnterCalibration(AppStage* fromAppStage, CameraComponentPtr targetCameraComponent);
 
 	void setTargetCameraComponent(CameraComponentPtr cameraComponent);
 

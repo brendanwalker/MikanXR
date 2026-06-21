@@ -8,9 +8,8 @@
 //-- public methods -----
 bool glm_vec3_is_nearly_equal(const glm::vec3& a, const glm::vec3& b, const float epsilon)
 {
-	return is_nearly_equal(a.x, b.x, epsilon) &&
-		   is_nearly_equal(a.y, b.y, epsilon) &&
-		   is_nearly_equal(a.z, b.z, epsilon);
+	return is_nearly_equal(a.x, b.x, epsilon) && is_nearly_equal(a.y, b.y, epsilon)
+		   && is_nearly_equal(a.z, b.z, epsilon);
 }
 
 float glm_vec3_normalize_with_default(glm::vec3& v, const glm::vec3& default_result)
@@ -23,10 +22,7 @@ float glm_vec3_normalize_with_default(glm::vec3& v, const glm::vec3& default_res
 	return length;
 }
 
-glm::vec3 glm_vec3_lerp(const glm::vec3& a, const glm::vec3& b, const float u)
-{
-	return a * (1.f - u) + b * u;
-}
+glm::vec3 glm_vec3_lerp(const glm::vec3& a, const glm::vec3& b, const float u) { return a * (1.f - u) + b * u; }
 
 glm::mat4 glm_scale_along_axis(const glm::vec3& axis, const float scale)
 {
@@ -51,24 +47,19 @@ glm::mat4 glm_scale_along_axis(const glm::vec3& axis, const float scale)
 	return scale_along_axis_xform;
 }
 
-void glm_quat_to_euler_angles(
-	const glm::quat& orientation,
-	float& out_x_radians, float& out_y_radians, float& out_z_radians)
+void glm_quat_to_euler_angles(const glm::quat& orientation, float& out_x_radians, float& out_y_radians,
+							  float& out_z_radians)
 {
 	const glm::mat4 R= glm::mat4_cast(orientation);
 	glm::extractEulerAngleXYZ(R, out_x_radians, out_y_radians, out_z_radians);
 }
 
-void glm_euler_angles_to_mat3(
-	float x_radians, float y_radians, float z_radians,
-	glm::mat3& out_orientation)
+void glm_euler_angles_to_mat3(float x_radians, float y_radians, float z_radians, glm::mat3& out_orientation)
 {
 	out_orientation= glm::mat3(glm::eulerAngleXYZ(x_radians, y_radians, z_radians));
 }
 
-void glm_euler_angles_to_quat(
-	float x_radians, float y_radians, float z_radians,
-	glm::quat& out_orientation)
+void glm_euler_angles_to_quat(float x_radians, float y_radians, float z_radians, glm::quat& out_orientation)
 {
 	glm::mat3 R;
 	glm_euler_angles_to_mat3(x_radians, y_radians, z_radians, R);
@@ -167,12 +158,9 @@ void glm_xform_vectors(const glm::mat4& xform, glm::vec3* points, size_t point_c
 	}
 }
 
-bool glm_closest_point_on_ray_to_point(
-	const glm::vec3& ray_start,
-	const glm::vec3& ray_direction,
-	const glm::vec3& point,
-	float& out_ray_closest_time,
-	glm::vec3& out_ray_closest_point)
+bool glm_closest_point_on_ray_to_point(const glm::vec3& ray_start, const glm::vec3& ray_direction,
+									   const glm::vec3& point, float& out_ray_closest_time,
+									   glm::vec3& out_ray_closest_point)
 {
 	const glm::vec3 ray_start_to_point= point - ray_start;
 	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
@@ -183,13 +171,9 @@ bool glm_closest_point_on_ray_to_point(
 	return out_ray_closest_time >= 0.f;
 }
 
-bool glm_closest_point_on_ray_to_ray(
-	const glm::vec3& ray1_start,
-	const glm::vec3& ray1_direction,
-	const glm::vec3& ray2_start,
-	const glm::vec3& ray2_direction,
-	float& out_ray1_closest_time,
-	glm::vec3& out_ray1_closest_point)
+bool glm_closest_point_on_ray_to_ray(const glm::vec3& ray1_start, const glm::vec3& ray1_direction,
+									 const glm::vec3& ray2_start, const glm::vec3& ray2_direction,
+									 float& out_ray1_closest_time, glm::vec3& out_ray1_closest_point)
 {
 	// see https://palitri.com/vault/stuff/maths/Rays%20closest%20point.pdf
 	const glm::vec3& a= ray1_direction;
@@ -221,10 +205,9 @@ bool glm_closest_point_on_ray_to_ray(
 	}
 }
 
-bool glm_intersect_plane_with_ray(
-	const glm::vec3& point_on_plane, const glm::vec3& plane_normal,
-	const glm::vec3& ray_start, const glm::vec3& ray_direction,
-	float& outIntDistance, glm::vec3& outIntPoint)
+bool glm_intersect_plane_with_ray(const glm::vec3& point_on_plane, const glm::vec3& plane_normal,
+								  const glm::vec3& ray_start, const glm::vec3& ray_direction, float& outIntDistance,
+								  glm::vec3& outIntPoint)
 {
 	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
 
@@ -238,18 +221,13 @@ bool glm_intersect_plane_with_ray(
 	return false;
 }
 
-bool glm_intersect_tri_with_ray(
-	const GlmTriangle& tri,
-	const glm::vec3& ray_start, const glm::vec3& ray_direction,
-	float& outIntDistance, glm::vec3& outIntPoint, glm::vec3& outIntNormal)
+bool glm_intersect_tri_with_ray(const GlmTriangle& tri, const glm::vec3& ray_start, const glm::vec3& ray_direction,
+								float& outIntDistance, glm::vec3& outIntPoint, glm::vec3& outIntNormal)
 {
 	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
 
 	glm::vec2 baryPosition;
-	if (glm::intersectRayTriangle(
-			ray_start, ray_unit_direction,
-			tri.v0, tri.v1, tri.v2,
-			baryPosition, outIntDistance))
+	if (glm::intersectRayTriangle(ray_start, ray_unit_direction, tri.v0, tri.v1, tri.v2, baryPosition, outIntDistance))
 	{
 		const glm::vec3 edge1= tri.v1 - tri.v0;
 		const glm::vec3 edge2= tri.v2 - tri.v0;
@@ -266,9 +244,7 @@ bool glm_intersect_tri_with_ray(
 bool glm_intersect_disk_with_ray(
 	const glm::vec3& ray_start,     // Ray origin, in world space
 	const glm::vec3& ray_direction, // Ray direction, in world space.
-	const glm::vec3& disk_center,
-	const glm::vec3& disk_normal,
-	const float disk_radius,
+	const glm::vec3& disk_center, const glm::vec3& disk_normal, const float disk_radius,
 	float& outIntDistance,   // Output: distance between ray_origin and the intersection with the OBB
 	glm::vec3& outIntPoint,  // Output: intersection point on the surface of the OBB
 	glm::vec3& outIntNormal) // Output: intersection normal on the surface of the OBB
@@ -276,10 +252,7 @@ bool glm_intersect_disk_with_ray(
 	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
 
 	float intDistance= 0.f;
-	if (glm::intersectRayPlane(
-			ray_start, ray_unit_direction,
-			disk_center, disk_normal,
-			intDistance))
+	if (glm::intersectRayPlane(ray_start, ray_unit_direction, disk_center, disk_normal, intDistance))
 	{
 		const glm::vec3 intPoint= ray_start + ray_direction * intDistance;
 		const float intRadiusSqrd= glm::distance2(intPoint, disk_center);
@@ -301,11 +274,12 @@ bool glm_intersect_obb_with_ray(
 	const glm::vec3& ray_start,     // Ray origin, in world space
 	const glm::vec3& ray_direction, // Ray direction, in world space.
 	const glm::vec3& aabb_min,      // Minimum X,Y,Z coords of the mesh when not transformed at all.
-	const glm::vec3& aabb_max,      // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
-	const glm::mat4& xform,         // Transformation applied to the mesh (which will thus be also applied to its bounding box)
-	float& outIntDistance,          // Output: distance between ray_origin and the intersection with the OBB
-	glm::vec3& outIntPoint,         // Output: intersection point on the surface of the OBB
-	glm::vec3& outIntNormal)        // Output: intersection normal on the surface of the OBB
+	const glm::vec3&
+		aabb_max, // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+	const glm::mat4& xform,  // Transformation applied to the mesh (which will thus be also applied to its bounding box)
+	float& outIntDistance,   // Output: distance between ray_origin and the intersection with the OBB
+	glm::vec3& outIntPoint,  // Output: intersection point on the surface of the OBB
+	glm::vec3& outIntNormal) // Output: intersection normal on the surface of the OBB
 {
 	const glm::vec3 ray_unit_direction= glm::normalize(ray_direction);
 
@@ -447,12 +421,8 @@ bool glm_intersect_obb_with_ray(
 	return true;
 }
 
-bool glm_intersect_aabb_with_ray(
-	const glm::vec3& ray_start,
-	const glm::vec3& ray_direction,
-	const glm::vec3& aabb_min,
-	const glm::vec3& aabb_max,
-	float& outIntDistance)
+bool glm_intersect_aabb_with_ray(const glm::vec3& ray_start, const glm::vec3& ray_direction, const glm::vec3& aabb_min,
+								 const glm::vec3& aabb_max, float& outIntDistance)
 {
 	const glm::vec3 tMin= (aabb_min - ray_start) / ray_direction;
 	const glm::vec3 tMax= (aabb_max - ray_start) / ray_direction;
@@ -467,10 +437,8 @@ bool glm_intersect_aabb_with_ray(
 }
 
 // https://stackoverflow.com/questions/33532860/merge-two-spheres-to-get-a-new-one
-void glm_sphere_union(
-	const glm::vec3& c1, const float r1,
-	const glm::vec3& c2, const float r2,
-	glm::vec3& outC, float& outR)
+void glm_sphere_union(const glm::vec3& c1, const float r1, const glm::vec3& c2, const float r2, glm::vec3& outC,
+					  float& outR)
 {
 	const glm::vec3 c1_to_c2= c2 - c1;
 	const float dist= glm::length(c1_to_c2);

@@ -37,9 +37,7 @@ public:
 	inline static const std::string k_propertyClassName= "GraphProperty";
 	virtual std::string getClassName() const { return k_propertyClassName; }
 
-	virtual bool loadFromConfig(
-		GraphPropertyConfigConstPtr propConfig,
-		const NodeGraphConfig& graphConfig);
+	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig);
 	virtual void saveToConfig(GraphPropertyConfigPtr config) const;
 
 	inline void setOwnerGraph(NodeGraphPtr ownerGraph) { m_ownerGraph= ownerGraph; }
@@ -73,14 +71,8 @@ class GraphPropertyFactory
 public:
 	GraphPropertyFactory()= default;
 
-	inline GraphPropertyPtr getDefaultGraphPropertyObject() const
-	{
-		return m_defaultGraphPropertyObject;
-	}
-	inline std::string getGraphPropertyClassName() const
-	{
-		return m_defaultGraphPropertyObject->getClassName();
-	}
+	inline GraphPropertyPtr getDefaultGraphPropertyObject() const { return m_defaultGraphPropertyObject; }
+	inline std::string getGraphPropertyClassName() const { return m_defaultGraphPropertyObject->getClassName(); }
 
 	virtual GraphPropertyConfigPtr allocatePropertyConfig() const;
 	virtual GraphPropertyPtr allocateProperty() const;
@@ -113,8 +105,5 @@ public:
 		return std::make_shared<t_property_config_class>();
 	}
 
-	virtual GraphPropertyPtr allocateProperty() const override
-	{
-		return std::make_shared<t_property_class>();
-	}
+	virtual GraphPropertyPtr allocateProperty() const override { return std::make_shared<t_property_class>(); }
 };

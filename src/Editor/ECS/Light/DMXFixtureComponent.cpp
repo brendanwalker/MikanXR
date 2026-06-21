@@ -59,9 +59,8 @@ void DMXFixtureComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_bIsDisabled= pt.get_or<bool>(k_isDisabledPropertyId, false);
 }
 
-bool DMXFixtureComponentDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool DMXFixtureComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+													   const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -193,27 +192,20 @@ void DMXFixtureComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			DMXFixtureComponentDefinition::k_ownerStageIdPropertyId, MikanVariantType::INT));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			DMXFixtureComponentDefinition::k_dmxUniversePropertyId, MikanVariantType::USHORT));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			DMXFixtureComponentDefinition::k_dmxStartChannelPropertyId, MikanVariantType::USHORT));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			DMXFixtureComponentDefinition::k_dmxChannelCountPropertyId, MikanVariantType::USHORT)
-			->setReadOnly());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			DMXFixtureComponentDefinition::k_isDisabledPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		DMXFixtureComponentDefinition::k_ownerStageIdPropertyId, MikanVariantType::INT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		DMXFixtureComponentDefinition::k_dmxUniversePropertyId, MikanVariantType::USHORT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		DMXFixtureComponentDefinition::k_dmxStartChannelPropertyId, MikanVariantType::USHORT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 DMXFixtureComponentDefinition::k_dmxChannelCountPropertyId, MikanVariantType::USHORT)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(DMXFixtureComponentDefinition::k_isDisabledPropertyId,
+																  MikanVariantType::BOOL));
 }
 
-bool DMXFixtureComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool DMXFixtureComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	DMXFixtureComponentDefinitionPtr def= getDMXFixtureDefinition();
 
@@ -246,9 +238,7 @@ bool DMXFixtureComponent::getPropertyValue(
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool DMXFixtureComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool DMXFixtureComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	DMXFixtureComponentDefinitionPtr def= getDMXFixtureDefinition();
 
@@ -281,9 +271,7 @@ void DMXFixtureComponent::getFunctionDescriptors(std::vector<FunctionDescriptorC
 {
 	TransformComponent::getFunctionDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_triangulateLightFunctionId, "Triangulate Light"));
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_triangulateLightFunctionId, "Triangulate Light"));
 }
 
 bool DMXFixtureComponent::invokeFunction(const std::string& functionName)
@@ -313,8 +301,7 @@ void DMXFixtureComponent::triangulateLight()
 				// Show Light Triangulation Tool
 				AppStage_LightFixtureCalibration* anchorTriangulation=
 					getOwnerEditorWindow()->pushAppStageOfType<AppStage_LightFixtureCalibration>();
-				CameraComponentPtr camera=
-					getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
+				CameraComponentPtr camera= getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
 
 				anchorTriangulation->setSourceCamera(camera);
 				anchorTriangulation->setTargetFixture(getSelfPtr<DMXFixtureComponent>());
@@ -322,9 +309,8 @@ void DMXFixtureComponent::triangulateLight()
 	}
 	break;
 	case eTrackingVolumeType::marker:
-		ModalDialog_MessageBox::showMessageBox(
-			currentAppStage,
-			"Unable to triangulate lights using marker based tracking.");
+		ModalDialog_MessageBox::showMessageBox(currentAppStage,
+											   "Unable to triangulate lights using marker based tracking.");
 		break;
 	default:
 		ModalDialog_MessageBox::showMessageBox(
@@ -338,21 +324,23 @@ void DMXFixtureComponent::triangulateLight()
 void DMXFixtureComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<DMXFixtureComponent, TransformComponent>(
-			DMXFixtureComponent::k_componentClassName.c_str())
-		.addProperty("dmxUniverse", [](DMXFixtureComponent* c) -> int
-					 { return static_cast<int>(c->getDMXFixtureDefinition()->getDMXUniverse()); }, [](DMXFixtureComponent* c, int v)
-					 { c->getDMXFixtureDefinition()->setDMXUniverse(static_cast<uint16_t>(v)); })
-		.addProperty("dmxStartChannel", [](DMXFixtureComponent* c) -> int
-					 { return static_cast<int>(c->getDMXFixtureDefinition()->getDMXStartChannel()); }, [](DMXFixtureComponent* c, int v)
-					 { c->getDMXFixtureDefinition()->setDMXStartChannel(static_cast<uint16_t>(v)); })
-		.addProperty("isDisabled", [](DMXFixtureComponent* c) -> bool
-					 { return c->getDMXFixtureDefinition()->getIsDisabled(); }, [](DMXFixtureComponent* c, bool v)
-					 { c->getDMXFixtureDefinition()->setIsDisabled(v); })
+		.deriveClass<DMXFixtureComponent, TransformComponent>(DMXFixtureComponent::k_componentClassName.c_str())
+		.addProperty(
+			"dmxUniverse", [](DMXFixtureComponent* c) -> int
+			{ return static_cast<int>(c->getDMXFixtureDefinition()->getDMXUniverse()); },
+			[](DMXFixtureComponent* c, int v)
+			{ c->getDMXFixtureDefinition()->setDMXUniverse(static_cast<uint16_t>(v)); })
+		.addProperty(
+			"dmxStartChannel", [](DMXFixtureComponent* c) -> int
+			{ return static_cast<int>(c->getDMXFixtureDefinition()->getDMXStartChannel()); },
+			[](DMXFixtureComponent* c, int v)
+			{ c->getDMXFixtureDefinition()->setDMXStartChannel(static_cast<uint16_t>(v)); })
+		.addProperty(
+			"isDisabled", [](DMXFixtureComponent* c) -> bool { return c->getDMXFixtureDefinition()->getIsDisabled(); },
+			[](DMXFixtureComponent* c, bool v) { c->getDMXFixtureDefinition()->setIsDisabled(v); })
 		.addProperty("dmxChannelCount", [](DMXFixtureComponent* c) -> int
 					 { return static_cast<int>(c->getDMXFixtureDefinition()->getDMXChannelCount()); })
-		.addFunction("triangulateLight", [](DMXFixtureComponent* c)
-					 { c->triangulateLight(); })
+		.addFunction("triangulateLight", [](DMXFixtureComponent* c) { c->triangulateLight(); })
 		.addFunction("getOwnerStage", [](DMXFixtureComponent* c) -> StageComponent*
 					 { return const_cast<StageComponent*>(c->getOwnerStageComponent().get()); })
 		.endClass();

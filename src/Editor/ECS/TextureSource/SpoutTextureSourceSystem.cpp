@@ -11,8 +11,8 @@
 #include <assert.h>
 
 // -- SpoutTextureSourceSystemDefinition -----
-SpoutTextureSourceSystemDefinition::SpoutTextureSourceSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+SpoutTextureSourceSystemDefinition::SpoutTextureSourceSystemDefinition(const std::string& configName,
+																	   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }

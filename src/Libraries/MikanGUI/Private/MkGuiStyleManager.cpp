@@ -21,10 +21,7 @@ MkGuiStyleManager::MkGuiStyleManager()
 {
 }
 
-MkGuiStyleManager::~MkGuiStyleManager()
-{
-	delete m_impl;
-}
+MkGuiStyleManager::~MkGuiStyleManager() { delete m_impl; }
 
 // Maps JSON var name to ImGuiStyleVar enum
 static const std::unordered_map<std::string, ImGuiStyleVar> k_styleFloatTable= {
@@ -236,7 +233,8 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 					}
 					else
 					{
-						MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Mismatched value type for var: " << varName;
+						MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile")
+							<< "Mismatched value type for var: " << varName;
 					}
 				}
 				else if (vec2StyleIt != k_styleVec2Table.end())
@@ -246,14 +244,13 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 
 					if (varJson["value"].is_array() && varJson["value"].size() == 2)
 					{
-						entry.vec2Val= {
-							varJson["value"][0].get<float>(),
-							varJson["value"][1].get<float>()};
+						entry.vec2Val= {varJson["value"][0].get<float>(), varJson["value"][1].get<float>()};
 						style->vec2Vars().push_back(entry);
 					}
 					else
 					{
-						MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Mismatched value type for var: " << varName;
+						MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile")
+							<< "Mismatched value type for var: " << varName;
 						continue;
 					}
 				}
@@ -282,17 +279,15 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 
 				if (!colorJson["value"].is_array() || colorJson["value"].size() != 4)
 				{
-					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Color value must be [r,g,b,a] array for: " << colorName;
+					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile")
+						<< "Color value must be [r,g,b,a] array for: " << colorName;
 					continue;
 				}
 
 				MkGuiStyleColorEntry entry;
 				entry.col= it->second;
-				entry.value= {
-					colorJson["value"][0].get<float>(),
-					colorJson["value"][1].get<float>(),
-					colorJson["value"][2].get<float>(),
-					colorJson["value"][3].get<float>()};
+				entry.value= {colorJson["value"][0].get<float>(), colorJson["value"][1].get<float>(),
+							  colorJson["value"][2].get<float>(), colorJson["value"][3].get<float>()};
 				style->colors().push_back(entry);
 			}
 		}
@@ -322,8 +317,7 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 				}
 				else
 				{
-					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile")
-						<< "Failed to load texture: " << texPath;
+					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Failed to load texture: " << texPath;
 				}
 			}
 		}

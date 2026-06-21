@@ -13,10 +13,7 @@ using SharedTextureLogCallback= std::function<void(SharedTextureLogLevel level, 
 class SharedTextureLogger
 {
 public:
-	void setLogCallback(SharedTextureLogCallback callback)
-	{
-		m_logCallback= callback;
-	}
+	void setLogCallback(SharedTextureLogCallback callback) { m_logCallback= callback; }
 
 	void log(SharedTextureLogLevel level, const std::string& message)
 	{

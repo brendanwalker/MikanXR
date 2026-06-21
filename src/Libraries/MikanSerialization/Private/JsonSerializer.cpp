@@ -45,23 +45,19 @@ public:
 			std::string templateTypeName= templateClassInstanceType->getClassTemplate().getName();
 
 			// See if the field is a Serialization::List<T>
-			if (templateTypeName == "List" &&
-				templateClassInstanceType->getTemplateArgumentsCount() == 1)
+			if (templateTypeName == "List" && templateClassInstanceType->getTemplateArgumentsCount() == 1)
 			{
 				visitList(accessor, *templateClassInstanceType, m_jsonObject);
 			}
 			// See if the field is a Serialization::Map<K,V>
-			else if (templateTypeName == "Map" &&
-					 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+			else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
 			{
 				visitMap(accessor, *templateClassInstanceType, m_jsonObject);
 			}
 			else
 			{
-				setError(
-					stringify("JsonWriteVisitor::visitClass() ",
-							  "Class Field ", accessor.getName(),
-							  " was of expected type"));
+				setError(stringify("JsonWriteVisitor::visitClass() ", "Class Field ", accessor.getName(),
+								   " was of expected type"));
 				return;
 			}
 		}
@@ -71,9 +67,7 @@ public:
 		}
 	}
 
-	void visitObjectPtr(
-		ValueAccessor const& accessor,
-		json& ownerJsonObject)
+	void visitObjectPtr(ValueAccessor const& accessor, json& ownerJsonObject)
 	{
 		// Get the shared pointer instance
 		const void* objPtrInstance= accessor.getUntypedValuePtr();
@@ -81,10 +75,8 @@ public:
 
 		// Use reflection to get the runtime class name of the object pointed at
 		rfk::Method const* getRuntimeClassNameMethod=
-			objPtrClassType->getMethodByName(
-				"getRuntimeClassName", rfk::EMethodFlags::Default, true);
-		const std::string className=
-			getRuntimeClassNameMethod->invokeUnsafe<std::string>(objPtrInstance);
+			objPtrClassType->getMethodByName("getRuntimeClassName", rfk::EMethodFlags::Default, true);
+		const std::string className= getRuntimeClassNameMethod->invokeUnsafe<std::string>(objPtrInstance);
 
 		// Get the runtime class for the object
 		rfk::Struct const* objectStruct= nullptr;
@@ -94,10 +86,8 @@ public:
 			objectStruct= TypeRegistry::getStructByName(className);
 			if (objectStruct == nullptr)
 			{
-				setError(
-					stringify("JsonWriteVisitor::visitObjectPtr() ",
-							  "TypedObjectPtr Accessor ", accessor.getName(),
-							  " has an unknown class name ", className));
+				setError(stringify("JsonWriteVisitor::visitObjectPtr() ", "TypedObjectPtr Accessor ",
+								   accessor.getName(), " has an unknown class name ", className));
 				return;
 			}
 		}
@@ -108,8 +98,7 @@ public:
 
 		// Get the raw pointer to the object pointed to by the shared pointer
 		rfk::Method const* getRawPtrMethod=
-			objPtrClassType->getMethodByName(
-				"getRawPtr", rfk::EMethodFlags::Default, true);
+			objPtrClassType->getMethodByName("getRawPtr", rfk::EMethodFlags::Default, true);
 		const void* objectInstance= getRawPtrMethod->invokeUnsafe<const void*>(objPtrInstance);
 
 		// Serialize the object into json
@@ -132,17 +121,14 @@ public:
 		ownerJsonObject[accessor.getName()]= objectPtrJson;
 	}
 
-	void visitList(
-		ValueAccessor const& arrayAccessor,
-		rfk::ClassTemplateInstantiation const& templatedArrayType,
-		json& ownerJsonObject)
+	void visitList(ValueAccessor const& arrayAccessor, rfk::ClassTemplateInstantiation const& templatedArrayType,
+				   json& ownerJsonObject)
 	{
 		const void* arrayInstance= arrayAccessor.getUntypedValuePtr();
 
 		// Get the type of the elements in the array from the template argument
 		auto const& templateArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedArrayType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedArrayType.getTemplateArgumentAt(0));
 		rfk::Type const& elementType= templateArg.getType();
 
 		// Use reflection to get the methods to resize the array and get a mutable reference to an element
@@ -158,8 +144,7 @@ public:
 		{
 			// Get the target element instance in the array
 			const void* elementInstance=
-				getRawElementMethod->invokeUnsafe<const void*, const std::size_t&>(
-					arrayInstance, elementIndex);
+				getRawElementMethod->invokeUnsafe<const void*, const std::size_t&>(arrayInstance, elementIndex);
 
 			// Make a fake "field" for an element in the array
 			ValueAccessor elementAccessor(elementInstance, elementType);
@@ -182,15 +167,12 @@ public:
 		ownerJsonObject[arrayAccessor.getName()]= arrayJson;
 	}
 
-	void visitMap(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType,
-		json& ownerJsonObject)
+	void visitMap(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType,
+				  json& ownerJsonObject)
 	{
 		// Get the key type of the map from the template argument
 		auto const& templateKeyArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(0));
 		rfk::Type const& keyType= templateKeyArg.getType();
 
 		if (keyType == rfk::getType<int32_t>())
@@ -209,24 +191,20 @@ public:
 		{
 			rfk::Archetype const* keyArchetype= keyType.getArchetype();
 
-			setError(
-				stringify("JsonWriteVisitor::visitMap() ",
-						  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
-						  " is not supported"));
+			setError(stringify("JsonWriteVisitor::visitMap() ", "Map Key Archetype ",
+							   keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
+							   " is not supported"));
 			return;
 		}
 	}
 
 	template <typename t_key>
-	void visitMapOfKey(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType,
-		json& ownerJsonObject)
+	void visitMapOfKey(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType,
+					   json& ownerJsonObject)
 	{
 		// Get the type of the elements in the array from the template argument
 		auto const& templateValueArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(1));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(1));
 		rfk::Type const& valueType= templateValueArg.getType();
 
 		// Use reflection to get the method used to enumerate key-value pairs in the map
@@ -237,10 +215,8 @@ public:
 
 		// Serialize each element of the map
 		json arrayJson= json::array();
-		for (auto enumerator=
-				 getConstEnumeratorMethod->invokeUnsafe<std::shared_ptr<IMapConstEnumerator>>(mapInstance);
-			 enumerator->isValid();
-			 enumerator->next())
+		for (auto enumerator= getConstEnumeratorMethod->invokeUnsafe<std::shared_ptr<IMapConstEnumerator>>(mapInstance);
+			 enumerator->isValid(); enumerator->next())
 		{
 			json pairJson;
 
@@ -320,20 +296,16 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonWriteVisitor::visitEnum() ",
-						  "Enum Accessor ", accessor.getName(),
-						  " has an invalid memory size ", enumArchetype.getMemorySize()));
+			setError(stringify("JsonWriteVisitor::visitEnum() ", "Enum Accessor ", accessor.getName(),
+							   " has an invalid memory size ", enumArchetype.getMemorySize()));
 			return;
 		}
 
 		rfk::EnumValue const* enumValue= enumType.getEnumValue(enumIntValue);
 		if (enumValue == nullptr)
 		{
-			setError(
-				stringify("JsonWriteVisitor::visitEnum() ",
-						  "Enum Accessor ", accessor.getName(),
-						  " has an invalid int value ", enumIntValue));
+			setError(stringify("JsonWriteVisitor::visitEnum() ", "Enum Accessor ", accessor.getName(),
+							   " has an invalid int value ", enumIntValue));
 			return;
 		}
 
@@ -351,64 +323,32 @@ public:
 		}
 	}
 
-	virtual void visitBool(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<bool>(accessor);
-	}
+	virtual void visitBool(ValueAccessor const& accessor) override { setJsonValueFromAccessor<bool>(accessor); }
 
-	virtual void visitByte(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<int8_t>(accessor);
-	}
+	virtual void visitByte(ValueAccessor const& accessor) override { setJsonValueFromAccessor<int8_t>(accessor); }
 
-	virtual void visitUByte(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<uint8_t>(accessor);
-	}
+	virtual void visitUByte(ValueAccessor const& accessor) override { setJsonValueFromAccessor<uint8_t>(accessor); }
 
-	virtual void visitShort(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<int16_t>(accessor);
-	}
+	virtual void visitShort(ValueAccessor const& accessor) override { setJsonValueFromAccessor<int16_t>(accessor); }
 
-	virtual void visitUShort(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<uint16_t>(accessor);
-	}
+	virtual void visitUShort(ValueAccessor const& accessor) override { setJsonValueFromAccessor<uint16_t>(accessor); }
 
-	virtual void visitInt(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<int32_t>(accessor);
-	}
+	virtual void visitInt(ValueAccessor const& accessor) override { setJsonValueFromAccessor<int32_t>(accessor); }
 
-	virtual void visitUInt(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<uint32_t>(accessor);
-	}
+	virtual void visitUInt(ValueAccessor const& accessor) override { setJsonValueFromAccessor<uint32_t>(accessor); }
 
-	virtual void visitLong(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<int64_t>(accessor);
-	}
+	virtual void visitLong(ValueAccessor const& accessor) override { setJsonValueFromAccessor<int64_t>(accessor); }
 
 	virtual void visitULong(ValueAccessor const& accessor)
 	{
-		setError(
-			stringify("JsonWriteVisitor::visitULong() ",
-					  "ULong Accessor ", accessor.getName(),
-					  " type not supported by all JSON libraries"));
+		setError(stringify("JsonWriteVisitor::visitULong() ", "ULong Accessor ", accessor.getName(),
+						   " type not supported by all JSON libraries"));
 		return;
 	}
 
-	virtual void visitFloat(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<float>(accessor);
-	}
+	virtual void visitFloat(ValueAccessor const& accessor) override { setJsonValueFromAccessor<float>(accessor); }
 
-	virtual void visitDouble(ValueAccessor const& accessor) override
-	{
-		setJsonValueFromAccessor<double>(accessor);
-	}
+	virtual void visitDouble(ValueAccessor const& accessor) override { setJsonValueFromAccessor<double>(accessor); }
 
 private:
 	void visitString(ValueAccessor const& accessor) const
@@ -452,7 +392,8 @@ private:
 };
 
 // Public API
-bool serializeToJsonString(const void* instance, rfk::Struct const& structType, std::string& jsonString, std::string& outErrorMsg)
+bool serializeToJsonString(const void* instance, rfk::Struct const& structType, std::string& jsonString,
+						   std::string& outErrorMsg)
 {
 	json jsonObject;
 
@@ -465,7 +406,8 @@ bool serializeToJsonString(const void* instance, rfk::Struct const& structType, 
 	return false;
 }
 
-bool serializeToJson(const void* instance, rfk::Struct const& structType, nlohmann::json& jsonObject, std::string& outErrorMsg)
+bool serializeToJson(const void* instance, rfk::Struct const& structType, nlohmann::json& jsonObject,
+					 std::string& outErrorMsg)
 {
 	JsonWriteVisitor visitor(jsonObject);
 	Serialization::visitStruct(const_cast<void*>(instance), structType, &visitor);

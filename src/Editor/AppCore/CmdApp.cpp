@@ -75,10 +75,7 @@ void CmdApp::parseCommandLine(int argc, char** argv)
 	}
 }
 
-bool CmdApp::hasCommandLineFlag(const std::string& flag) const
-{
-	return m_commandLineFlags.count(flag) > 0;
-}
+bool CmdApp::hasCommandLineFlag(const std::string& flag) const { return m_commandLineFlags.count(flag) > 0; }
 
 std::string CmdApp::getCommandLineStringArg(const std::string& key, const std::string& defaultValue) const
 {
@@ -88,13 +85,12 @@ std::string CmdApp::getCommandLineStringArg(const std::string& key, const std::s
 
 void CmdApp::printUsage() const
 {
-	fprintf(stdout,
-			"MikanCmd - Mikan command-line tool\n"
-			"\n"
-			"Usage: MikanCmd <command>\n"
-			"\n"
-			"Commands:\n"
-			"  -runTests    Run the editor unit test suites\n");
+	fprintf(stdout, "MikanCmd - Mikan command-line tool\n"
+					"\n"
+					"Usage: MikanCmd <command>\n"
+					"\n"
+					"Commands:\n"
+					"  -runTests    Run the editor unit test suites\n");
 }
 
 int CmdApp::runTests() const

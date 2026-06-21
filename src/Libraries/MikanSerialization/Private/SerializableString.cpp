@@ -48,38 +48,17 @@ String& String::operator=(const String& other)
 	return *this;
 }
 
-void String::setValue(const char* str)
-{
-	m_pimpl->value= str ? str : "";
-}
+void String::setValue(const char* str) { m_pimpl->value= str ? str : ""; }
 
-const char* String::getValue() const
-{
-	return m_pimpl->value.c_str();
-}
+const char* String::getValue() const { return m_pimpl->value.c_str(); }
 
-bool String::isEmpty() const
-{
-	return m_pimpl->value.empty();
-}
+bool String::isEmpty() const { return m_pimpl->value.empty(); }
 
-bool String::operator==(const char* other) const
-{
-	return m_pimpl->value == (other ? other : "");
-}
+bool String::operator==(const char* other) const { return m_pimpl->value == (other ? other : ""); }
 
-bool String::operator!=(const char* other) const
-{
-	return !(*this == other);
-}
+bool String::operator!=(const char* other) const { return !(*this == other); }
 
-bool String::operator==(String const& other) const
-{
-	return m_pimpl->value == other.m_pimpl->value;
-}
+bool String::operator==(String const& other) const { return m_pimpl->value == other.m_pimpl->value; }
 
-bool String::operator!=(String const& other) const
-{
-	return m_pimpl->value != other.m_pimpl->value;
-}
+bool String::operator!=(String const& other) const { return m_pimpl->value != other.m_pimpl->value; }
 } // namespace Serialization

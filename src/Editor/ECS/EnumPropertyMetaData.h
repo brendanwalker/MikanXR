@@ -12,10 +12,7 @@ enum class eEnumDisplayStyle
 class EnumPropertyMetaData : public PropertyMetaData
 {
 public:
-	EnumPropertyMetaData(
-		const std::string* strings,
-		int count,
-		eEnumDisplayStyle style= eEnumDisplayStyle::ComboBox)
+	EnumPropertyMetaData(const std::string* strings, int count, eEnumDisplayStyle style= eEnumDisplayStyle::ComboBox)
 		: m_style(style)
 	{
 		for (int i= 0; i < count; i++)

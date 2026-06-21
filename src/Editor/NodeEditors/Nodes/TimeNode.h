@@ -11,7 +11,8 @@ public:
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 
 protected:
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(const NodeEditorState& editorState) const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
+		const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override { return "Time"; }
 
 	float m_currentTime= 0.f;

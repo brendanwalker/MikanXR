@@ -9,10 +9,7 @@ public:
 	~CVVideoFrameProcessor();
 
 	void ensureBufferSize(int width, int height);
-	void computeUndistortion(
-		const cv::Mat& srcBuffer,
-		const cv::Mat& distortionMapX,
-		const cv::Mat& distortionMapY);
+	void computeUndistortion(const cv::Mat& srcBuffer, const cv::Mat& distortionMapX, const cv::Mat& distortionMapY);
 
 	inline cv::Mat* getGrayscaleSourceBuffer() const { return m_gsSourceBuffer; }
 	inline cv::Mat* getGrayscaleUndistortBuffer() const { return m_gsUndistortBuffer; }

@@ -28,10 +28,7 @@ UdpMulticastSocket::UdpMulticastSocket()
 {
 }
 
-UdpMulticastSocket::~UdpMulticastSocket()
-{
-	close();
-}
+UdpMulticastSocket::~UdpMulticastSocket() { close(); }
 
 bool UdpMulticastSocket::open(const std::string& bindIP)
 {
@@ -49,10 +46,8 @@ bool UdpMulticastSocket::open(const std::string& bindIP)
 
 	// Allow address reuse
 	int reuseVal= 1;
-	::setsockopt(
-		static_cast<SOCKET>(m_socket),
-		SOL_SOCKET, SO_REUSEADDR,
-		reinterpret_cast<const char*>(&reuseVal), sizeof(reuseVal));
+	::setsockopt(static_cast<SOCKET>(m_socket), SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&reuseVal),
+				 sizeof(reuseVal));
 
 	// Bind to the local interface
 	sockaddr_in bindAddr{};
@@ -67,8 +62,7 @@ bool UdpMulticastSocket::open(const std::string& bindIP)
 		::inet_pton(AF_INET, bindIP.c_str(), &bindAddr.sin_addr);
 	}
 
-	if (::bind(static_cast<SOCKET>(m_socket),
-			   reinterpret_cast<sockaddr*>(&bindAddr), sizeof(bindAddr)) == SOCKET_ERROR)
+	if (::bind(static_cast<SOCKET>(m_socket), reinterpret_cast<sockaddr*>(&bindAddr), sizeof(bindAddr)) == SOCKET_ERROR)
 	{
 		close();
 		return false;
@@ -76,17 +70,13 @@ bool UdpMulticastSocket::open(const std::string& bindIP)
 
 	// Set multicast TTL to 1 (LAN only)
 	uint8_t ttl= 1;
-	::setsockopt(
-		static_cast<SOCKET>(m_socket),
-		IPPROTO_IP, IP_MULTICAST_TTL,
-		reinterpret_cast<const char*>(&ttl), sizeof(ttl));
+	::setsockopt(static_cast<SOCKET>(m_socket), IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast<const char*>(&ttl),
+				 sizeof(ttl));
 
 	// Disable multicast loopback (we don't want to receive our own packets)
 	uint8_t loopback= 0;
-	::setsockopt(
-		static_cast<SOCKET>(m_socket),
-		IPPROTO_IP, IP_MULTICAST_LOOP,
-		reinterpret_cast<const char*>(&loopback), sizeof(loopback));
+	::setsockopt(static_cast<SOCKET>(m_socket), IPPROTO_IP, IP_MULTICAST_LOOP, reinterpret_cast<const char*>(&loopback),
+				 sizeof(loopback));
 
 	return true;
 }
@@ -110,10 +100,8 @@ bool UdpMulticastSocket::sendTo(const std::string& destIP, uint16_t port, const 
 	destAddr.sin_port= htons(port);
 	::inet_pton(AF_INET, destIP.c_str(), &destAddr.sin_addr);
 
-	const int sent= ::sendto(
-		static_cast<SOCKET>(m_socket),
-		static_cast<const char*>(data), length, 0,
-		reinterpret_cast<const sockaddr*>(&destAddr), sizeof(destAddr));
+	const int sent= ::sendto(static_cast<SOCKET>(m_socket), static_cast<const char*>(data), length, 0,
+							 reinterpret_cast<const sockaddr*>(&destAddr), sizeof(destAddr));
 
 	return sent == length;
 }

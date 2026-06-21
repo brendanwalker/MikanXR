@@ -11,7 +11,6 @@ public:
 	{
 	}
 
-	virtual MikanRenderModelResourcePtr importModelFromFile(
-		const std::filesystem::path& modelPath,
-		MkMaterialConstPtr overrideMaterial) override;
+	virtual MikanRenderModelResourcePtr importModelFromFile(const std::filesystem::path& modelPath,
+															MkMaterialConstPtr overrideMaterial) override;
 };

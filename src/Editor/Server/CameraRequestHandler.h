@@ -22,7 +22,10 @@ public:
 
 	void disposeAllRenderTargetAccessors();
 
-	inline const SharedTextureReadAccessorCameraMap& getRenderTargetAccessorMap() const { return m_renderTargetReadAccessorCameraMap; }
+	inline const SharedTextureReadAccessorCameraMap& getRenderTargetAccessorMap() const
+	{
+		return m_renderTargetReadAccessorCameraMap;
+	}
 	class SharedTextureReadAccessor* getRenderTargetReadAccessor(MikanCameraID cameraId) const;
 	bool hasAllocatedRenderTarget(MikanCameraID cameraId) const;
 	bool allocateRenderTargetTextures(MikanCameraID cameraId, const MikanRenderTargetDescriptor& desc);
@@ -30,7 +33,8 @@ public:
 	bool readRenderTargetTextures(MikanCameraID cameraId, const int64_t newFrameIndex);
 
 protected:
-	class SharedTextureReadAccessor* getOrAllocateRenderTargetAccessor(MikanCameraID cameraId, const MikanRenderTargetDescriptor& desc);
+	class SharedTextureReadAccessor* getOrAllocateRenderTargetAccessor(MikanCameraID cameraId,
+																	   const MikanRenderTargetDescriptor& desc);
 	void disposeRenderTargetAccessor(MikanCameraID cameraId);
 
 private:
@@ -51,9 +55,13 @@ public:
 
 	void publishCameraNewFrameEvent(const struct MikanCameraNewFrameEvent& newFrameEvent);
 
-	MulticastDelegate<void(const char* clientId, const struct MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetAllocated;
-	MulticastDelegate<void(const char* clientId, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetReleased;
-	MulticastDelegate<void(const char* clientId, MikanCameraID cameraId, int64_t frameIndex)> OnClientRenderTargetUpdated;
+	MulticastDelegate<void(const char* clientId, const struct MikanClientInfo& clientInfo,
+						   class SharedTextureReadAccessor* readAccessor)>
+		OnClientRenderTargetAllocated;
+	MulticastDelegate<void(const char* clientId, class SharedTextureReadAccessor* readAccessor)>
+		OnClientRenderTargetReleased;
+	MulticastDelegate<void(const char* clientId, MikanCameraID cameraId, int64_t frameIndex)>
+		OnClientRenderTargetUpdated;
 
 protected:
 	void allocateRenderTargetTexturesHandler(const ClientRequest& request, ClientResponse& response);

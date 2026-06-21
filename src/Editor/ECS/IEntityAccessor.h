@@ -10,8 +10,7 @@ namespace rfk
 class Struct;
 };
 
-class IEntityAccessor : public IPropertyInterface,
-						public IFunctionInterface
+class IEntityAccessor : public IPropertyInterface, public IFunctionInterface
 {
 public:
 	MulticastDelegate<void(const IEntityAccessor* selfPtr)> onDisposed;

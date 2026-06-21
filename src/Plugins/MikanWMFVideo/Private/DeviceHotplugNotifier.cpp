@@ -45,10 +45,7 @@ DeviceHotplugNotifier::DeviceHotplugNotifier()
 {
 }
 
-DeviceHotplugNotifier::~DeviceHotplugNotifier()
-{
-	delete m_impl;
-}
+DeviceHotplugNotifier::~DeviceHotplugNotifier() { delete m_impl; }
 
 bool DeviceHotplugNotifier::startup(IDeviceHotplugListener* listener)
 {
@@ -67,11 +64,9 @@ bool DeviceHotplugNotifier::startup(IDeviceHotplugListener* listener)
 
 		if (RegisterClassEx(&m_impl->wx))
 		{
-			m_impl->hWnd= CreateWindow(
-				CLS_NAME, "DevNotifWnd", WS_ICONIC,
-				0, 0, CW_USEDEFAULT, 0, HWND_MESSAGE,
-				NULL, GetModuleHandle(0),
-				this); // Pass 'this' as the window lpParam
+			m_impl->hWnd= CreateWindow(CLS_NAME, "DevNotifWnd", WS_ICONIC, 0, 0, CW_USEDEFAULT, 0, HWND_MESSAGE, NULL,
+									   GetModuleHandle(0),
+									   this); // Pass 'this' as the window lpParam
 		}
 
 		if (m_impl->hWnd != nullptr)
@@ -118,9 +113,7 @@ void DeviceHotplugNotifier::shutdown()
 
 	if (m_impl->wx.hInstance != nullptr)
 	{
-		UnregisterClassA(
-			m_impl->wx.lpszClassName,
-			m_impl->wx.hInstance);
+		UnregisterClassA(m_impl->wx.lpszClassName, m_impl->wx.hInstance);
 		ZeroMemory(&m_impl->wx, sizeof(m_impl->wx));
 	}
 }
@@ -153,8 +146,7 @@ LRESULT message_handler(HWND__* hwnd, UINT msg_type, WPARAM wparam, LPARAM lpara
 	{
 		if (pThis != nullptr)
 		{
-			pThis->getPrivateImpl()->hImageDeviceNotify=
-				register_device_class_notification(hwnd, GUID_DEVCLASS_IMAGE);
+			pThis->getPrivateImpl()->hImageDeviceNotify= register_device_class_notification(hwnd, GUID_DEVCLASS_IMAGE);
 		}
 		break;
 	}
@@ -200,8 +192,7 @@ static HDEVNOTIFY register_device_class_notification(HWND__* hwnd, const GUID& g
 
 	if (dev_notify == nullptr)
 	{
-		MIKAN_LOG_ERROR("RegisterDeviceClassNotification")
-			<< "Could not register for device notifications!";
+		MIKAN_LOG_ERROR("RegisterDeviceClassNotification") << "Could not register for device notifications!";
 	}
 
 	return dev_notify;

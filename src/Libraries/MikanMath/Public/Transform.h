@@ -18,8 +18,7 @@ public:
 	{
 	}
 
-	GlmTransform(
-		const glm::vec3& position)
+	GlmTransform(const glm::vec3& position)
 		: m_position(position)
 		, m_rotation(glm::quat())
 		, m_scale(glm::vec3(1.f, 1.f, 1.f))
@@ -27,9 +26,7 @@ public:
 		rebuildMat();
 	}
 
-	GlmTransform(
-		const glm::vec3& position,
-		const glm::quat& rotation)
+	GlmTransform(const glm::vec3& position, const glm::quat& rotation)
 		: m_position(position)
 		, m_rotation(rotation)
 		, m_scale(glm::vec3(1.f, 1.f, 1.f))
@@ -37,10 +34,7 @@ public:
 		rebuildMat();
 	}
 
-	GlmTransform(
-		const glm::vec3& position,
-		const glm::quat& rotation,
-		const glm::vec3& scale)
+	GlmTransform(const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale)
 		: m_position(position)
 		, m_rotation(rotation)
 		, m_scale(scale)
@@ -48,8 +42,7 @@ public:
 		rebuildMat();
 	}
 
-	GlmTransform(
-		const glm::mat4& mat4)
+	GlmTransform(const glm::mat4& mat4)
 		: m_position(glm::vec3(0.f))
 		, m_rotation(glm::quat())
 		, m_scale(glm::vec3(1.f, 1.f, 1.f))
@@ -57,25 +50,13 @@ public:
 		setMat4(mat4);
 	}
 
-	const glm::vec3& getScale() const
-	{
-		return m_scale;
-	}
+	const glm::vec3& getScale() const { return m_scale; }
 
-	const glm::quat& getRotation() const
-	{
-		return m_rotation;
-	}
+	const glm::quat& getRotation() const { return m_rotation; }
 
-	const glm::vec3& getPosition() const
-	{
-		return m_position;
-	}
+	const glm::vec3& getPosition() const { return m_position; }
 
-	const glm::mat4& getMat4() const
-	{
-		return m_mat;
-	}
+	const glm::mat4& getMat4() const { return m_mat; }
 
 	void setScale(const glm::vec3& scale)
 	{
@@ -111,9 +92,7 @@ public:
 		glm::vec3 translation;
 		glm::vec3 skew;
 		glm::vec4 perspective;
-		if (glm::decompose(
-				mat4,
-				scale, orientation, translation, skew, perspective))
+		if (glm::decompose(mat4, scale, orientation, translation, skew, perspective))
 		{
 			m_position= translation;
 			m_rotation= orientation;

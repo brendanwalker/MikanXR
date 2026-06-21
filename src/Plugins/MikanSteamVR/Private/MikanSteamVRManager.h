@@ -38,9 +38,7 @@ public:
 	inline std::unique_ptr<class SteamVRResourceManager>& getResourceManager() { return m_resourceManager; }
 	SteamVRDeviceList getActiveDevices() const;
 	SteamVRDeviceList getActiveDevicesOfType(eVRDeviceType deviceType) const;
-	const vr::TrackedDevicePose_t* getDevicePose(
-		vr::TrackedDeviceIndex_t steamvrDeviceId,
-		int vrFrameDelay) const;
+	const vr::TrackedDevicePose_t* getDevicePose(vr::TrackedDeviceIndex_t steamvrDeviceId, int vrFrameDelay) const;
 
 protected:
 	bool tryConnect();

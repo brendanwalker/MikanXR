@@ -17,10 +17,8 @@ public:
 		Failed
 	};
 
-	WMFVideoFrameProcessor(
-		int deviceIndex,
-		const struct WMFDeviceFormatInfo& deviceFormat,
-		class MikanWMFVideoDevice* listener);
+	WMFVideoFrameProcessor(int deviceIndex, const struct WMFDeviceFormatInfo& deviceFormat,
+						   class MikanWMFVideoDevice* listener);
 	~WMFVideoFrameProcessor();
 
 	HRESULT init(IMFMediaSource* pSource);
@@ -41,12 +39,8 @@ protected:
 	Release();
 
 	// IMFSourceReaderCallback methods
-	STDMETHODIMP OnReadSample(
-		HRESULT hrStatus,
-		DWORD dwStreamIndex,
-		DWORD dwStreamFlags,
-		LONGLONG llTimestamp,
-		IMFSample* pSample);
+	STDMETHODIMP OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags, LONGLONG llTimestamp,
+							  IMFSample* pSample);
 	STDMETHODIMP OnFlush(DWORD dwStreamIndex) { return S_OK; }
 	STDMETHODIMP OnEvent(DWORD dwStreamIndex, IMFMediaEvent* pEvent) { return S_OK; }
 

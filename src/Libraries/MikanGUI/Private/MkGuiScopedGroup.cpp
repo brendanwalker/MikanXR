@@ -2,12 +2,6 @@
 
 #include "imgui.h"
 
-MkGuiScopedGroup::MkGuiScopedGroup()
-{
-	ImGui::BeginGroup();
-}
+MkGuiScopedGroup::MkGuiScopedGroup() { ImGui::BeginGroup(); }
 
-MkGuiScopedGroup::~MkGuiScopedGroup()
-{
-	ImGui::EndGroup();
-}
+MkGuiScopedGroup::~MkGuiScopedGroup() { ImGui::EndGroup(); }

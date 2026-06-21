@@ -22,7 +22,8 @@
 
 class GlmTransform;
 
-class SceneObjectSystemDefinition : public MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>
+class SceneObjectSystemDefinition
+	: public MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>;
@@ -40,16 +41,12 @@ private:
 	MikanSceneID m_currentSceneId= -1;
 };
 
-class SceneObjectSystem : public MikanTypedObjectSystem<
-							  SceneComponent, SceneComponentDefinition,
-							  MikanSceneID,
-							  SceneObjectSystem, SceneObjectSystemDefinition>
+class SceneObjectSystem : public MikanTypedObjectSystem<SceneComponent, SceneComponentDefinition, MikanSceneID,
+														SceneObjectSystem, SceneObjectSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		SceneComponent, SceneComponentDefinition,
-		MikanSceneID,
-		SceneObjectSystem, SceneObjectSystemDefinition>;
+	using Super= MikanTypedObjectSystem<SceneComponent, SceneComponentDefinition, MikanSceneID, SceneObjectSystem,
+										SceneObjectSystemDefinition>;
 
 	SceneObjectSystem(ProjectManagerPtr ownerObjectSystem);
 
@@ -64,10 +61,7 @@ public:
 	void setCurrentScene(SceneComponentPtr scene);
 	void setCurrentSceneById(MikanSceneID sceneId);
 
-	inline SceneComponentPtr getSceneById(MikanSceneID sceneId) const
-	{
-		return Super::getTypedComponentById(sceneId);
-	}
+	inline SceneComponentPtr getSceneById(MikanSceneID sceneId) const { return Super::getTypedComponentById(sceneId); }
 	inline SceneComponentPtr getSceneByName(const std::string& sceneName) const
 	{
 		return Super::getTypedComponentByName(sceneName);

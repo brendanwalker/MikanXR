@@ -21,8 +21,7 @@ TrackingVolumeDefinition::TrackingVolumeDefinition()
 {
 }
 
-TrackingVolumeDefinition::TrackingVolumeDefinition(
-	MikanTrackingVolumeID trackingVolumeId)
+TrackingVolumeDefinition::TrackingVolumeDefinition(MikanTrackingVolumeID trackingVolumeId)
 	: MikanComponentDefinition(trackingVolumeId, "")
 	, m_originMarkeId(INVALID_MIKAN_ID)
 {
@@ -44,9 +43,8 @@ void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 	m_originMarkeId= pt.get_or<MikanMarkerID>(k_originMarkerIdPropertyId.c_str(), m_originMarkeId);
 }
 
-bool TrackingVolumeDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool TrackingVolumeDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -96,10 +94,7 @@ rfk::Struct const* TrackingVolumeComponent::getClientAPIValuesStructType() const
 	return &MikanTrackingVolumeComponentValues::staticGetArchetype();
 }
 
-void TrackingVolumeComponent::init()
-{
-	MikanComponent::init();
-}
+void TrackingVolumeComponent::init() { MikanComponent::init(); }
 
 void TrackingVolumeComponent::deleteTrackingVolume()
 {
@@ -116,15 +111,12 @@ void TrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 {
 	MikanComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			TrackingVolumeDefinition::k_originMarkerIdPropertyId, MikanVariantType::INT)
-			->setDefaultValue(-1));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(TrackingVolumeDefinition::k_originMarkerIdPropertyId,
+																  MikanVariantType::INT)
+								 ->setDefaultValue(-1));
 }
 
-bool TrackingVolumeComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool TrackingVolumeComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{
@@ -135,9 +127,7 @@ bool TrackingVolumeComponent::getPropertyValue(
 	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool TrackingVolumeComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool TrackingVolumeComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{

@@ -22,10 +22,8 @@ public:
 	AppStage_VRTrackingRecenter(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_VRTrackingRecenter();
 
-	static bool tryEnterAlignmentCalibration(
-		class AppStage* fromAppStage,
-		CameraComponentPtr withCameraComponent,
-		VRTrackingVolumeComponentPtr forTrackingVolume);
+	static bool tryEnterAlignmentCalibration(class AppStage* fromAppStage, CameraComponentPtr withCameraComponent,
+											 VRTrackingVolumeComponentPtr forTrackingVolume);
 
 	void setSourceCamera(CameraComponentPtr cameraComponent);
 	inline void setTargetVRTrackingVolume(VRTrackingVolumeComponentPtr trackingVolume)
@@ -55,10 +53,8 @@ protected:
 	bool tryRestartCapture();
 
 	// Remote Control
-	virtual bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults) override;
+	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+											std::vector<std::string>& outResults) override;
 	bool handleGetStateCommand(std::vector<std::string>& outResults);
 	bool handleGetChessboardStabilityCommand(std::vector<std::string>& outResults);
 	bool handleBeginCommand(std::vector<std::string>& outResults);

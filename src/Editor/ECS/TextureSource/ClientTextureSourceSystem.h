@@ -9,24 +9,25 @@
 
 #include <string>
 
-class ClientTextureSourceSystemDefinition : public MikanTypedObjectSystemDefinition<ClientTextureSourceComponent, ClientTextureSourceDefinition, MikanTextureSourceID>
+class ClientTextureSourceSystemDefinition
+	: public MikanTypedObjectSystemDefinition<ClientTextureSourceComponent, ClientTextureSourceDefinition,
+											  MikanTextureSourceID>
 {
 public:
-	using Super= MikanTypedObjectSystemDefinition<ClientTextureSourceComponent, ClientTextureSourceDefinition, MikanTextureSourceID>;
+	using Super= MikanTypedObjectSystemDefinition<ClientTextureSourceComponent, ClientTextureSourceDefinition,
+												  MikanTextureSourceID>;
 
 	ClientTextureSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class ClientTextureSourceSystem : public MikanTypedObjectSystem<
-									  ClientTextureSourceComponent, ClientTextureSourceDefinition,
-									  MikanTextureSourceID,
-									  ClientTextureSourceSystem, ClientTextureSourceSystemDefinition>
+class ClientTextureSourceSystem
+	: public MikanTypedObjectSystem<ClientTextureSourceComponent, ClientTextureSourceDefinition, MikanTextureSourceID,
+									ClientTextureSourceSystem, ClientTextureSourceSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		ClientTextureSourceComponent, ClientTextureSourceDefinition,
-		MikanTextureSourceID,
-		ClientTextureSourceSystem, ClientTextureSourceSystemDefinition>;
+	using Super=
+		MikanTypedObjectSystem<ClientTextureSourceComponent, ClientTextureSourceDefinition, MikanTextureSourceID,
+							   ClientTextureSourceSystem, ClientTextureSourceSystemDefinition>;
 
 	ClientTextureSourceSystem(ProjectManagerPtr ownerObjectSystem);
 

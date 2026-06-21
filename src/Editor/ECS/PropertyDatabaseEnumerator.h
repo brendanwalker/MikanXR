@@ -9,11 +9,8 @@ using MikanPropertyDatabaseConstPtr= std::shared_ptr<const class MikanPropertyDa
 class PropertyDatabaseEnumerator
 {
 public:
-	PropertyDatabaseEnumerator(
-		MikanPropertyDatabaseConstPtr database,
-		const std::string& systemFilter= "",
-		const std::string& componentFilter= "",
-		const std::string& propertyFilter= "");
+	PropertyDatabaseEnumerator(MikanPropertyDatabaseConstPtr database, const std::string& systemFilter= "",
+							   const std::string& componentFilter= "", const std::string& propertyFilter= "");
 
 	bool isValid() const;
 	void next();

@@ -28,15 +28,11 @@ class VRDevicePoseView
 {
 public:
 	VRDevicePoseView();
-	VRDevicePoseView(
-		const VRDeviceComponent* deviceComponent,
-		eVRDevicePoseSpace space,
-		const std::string& socketName= "");
+	VRDevicePoseView(const VRDeviceComponent* deviceComponent, eVRDevicePoseSpace space,
+					 const std::string& socketName= "");
 
-	static VRDevicePoseViewPtr makePoseView(
-		const VRDeviceComponent* deviceComponent,
-		eVRDevicePoseSpace space,
-		const std::string& socketName= "");
+	static VRDevicePoseViewPtr makePoseView(const VRDeviceComponent* deviceComponent, eVRDevicePoseSpace space,
+											const std::string& socketName= "");
 	static VRDevicePoseViewPtr makeInvalidPoseView();
 
 	inline eVRDevicePoseSpace getPoseSpace() const { return m_poseSpace; }

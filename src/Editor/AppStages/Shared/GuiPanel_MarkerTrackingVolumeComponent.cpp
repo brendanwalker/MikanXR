@@ -7,9 +7,8 @@
 
 GuiPanel_MarkerTrackingVolumeComponent::GuiPanel_MarkerTrackingVolumeComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
-	, m_originMarkerDataSource(
-		  ownerAppStage->getProjectManager(),
-		  {{MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName}})
+	, m_originMarkerDataSource(ownerAppStage->getProjectManager(),
+							   {{MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName}})
 {
 }
 
@@ -39,8 +38,7 @@ void GuiPanel_MarkerTrackingVolumeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					volumeComp->makePropertyUIIdentifier(TrackingVolumeDefinition::k_originMarkerIdPropertyId),
-					"Origin Marker",
-					&m_originMarkerDataSource, selectedIndex))
+					"Origin Marker", &m_originMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -48,8 +46,9 @@ void GuiPanel_MarkerTrackingVolumeComponent::onConstruct()
 					if (comp)
 					{
 						const int newId= comp->getComponentId();
-						addDeferredGuiEvent([volumeComp, newId]()
-											{ volumeComp->getMarkerTrackingVolumeDefinition()->setOriginMarkerId(newId); });
+						addDeferredGuiEvent(
+							[volumeComp, newId]()
+							{ volumeComp->getMarkerTrackingVolumeDefinition()->setOriginMarkerId(newId); });
 					}
 				}
 			}

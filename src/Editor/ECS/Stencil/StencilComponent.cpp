@@ -19,10 +19,8 @@ StencilComponentDefinition::StencilComponentDefinition()
 {
 }
 
-StencilComponentDefinition::StencilComponentDefinition(
-	MikanStencilID stencilId,
-	const std::string& componentName,
-	const MikanTransform& xform)
+StencilComponentDefinition::StencilComponentDefinition(MikanStencilID stencilId, const std::string& componentName,
+													   const MikanTransform& xform)
 	: TransformComponentDefinition(stencilId, componentName, xform)
 	, m_bIsDisabled(false)
 {
@@ -48,9 +46,8 @@ void StencilComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_cullMode= StringUtils::FindEnumValue<eStencilCullMode>(modeName, k_stencilCullModeStrings);
 }
 
-bool StencilComponentDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool StencilComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+													const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -100,18 +97,14 @@ void StencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCons
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			StencilComponentDefinition::k_stencilDisabledPropertyId, MikanVariantType::BOOL));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			StencilComponentDefinition::k_stencilCullModePropertyId, MikanVariantType::INT)
-			->setDefaultValue((int)eStencilCullMode::none));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		StencilComponentDefinition::k_stencilDisabledPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 StencilComponentDefinition::k_stencilCullModePropertyId, MikanVariantType::INT)
+								 ->setDefaultValue((int)eStencilCullMode::none));
 }
 
-bool StencilComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool StencilComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
 	{
@@ -127,9 +120,7 @@ bool StencilComponent::getPropertyValue(
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool StencilComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool StencilComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
 	{
@@ -154,11 +145,15 @@ void StencilComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<StencilComponent, TransformComponent>("StencilComponent")
-		.addProperty("isDisabled", [](StencilComponent* component) -> bool
-					 { return component->getStencilComponentDefinition()->getIsDisabled(); }, [](StencilComponent* component, bool isDisabled)
-					 { component->getStencilComponentDefinition()->setIsDisabled(isDisabled); })
-		.addProperty("cullMode", [](StencilComponent* component) -> eStencilCullMode
-					 { return component->getStencilComponentDefinition()->getCullMode(); }, [](StencilComponent* component, eStencilCullMode cullMode)
-					 { component->getStencilComponentDefinition()->setCullMode(cullMode); })
+		.addProperty(
+			"isDisabled", [](StencilComponent* component) -> bool
+			{ return component->getStencilComponentDefinition()->getIsDisabled(); },
+			[](StencilComponent* component, bool isDisabled)
+			{ component->getStencilComponentDefinition()->setIsDisabled(isDisabled); })
+		.addProperty(
+			"cullMode", [](StencilComponent* component) -> eStencilCullMode
+			{ return component->getStencilComponentDefinition()->getCullMode(); },
+			[](StencilComponent* component, eStencilCullMode cullMode)
+			{ component->getStencilComponentDefinition()->setCullMode(cullMode); })
 		.endClass();
 }

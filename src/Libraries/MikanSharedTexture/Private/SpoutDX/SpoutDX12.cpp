@@ -81,10 +81,7 @@ spoutDX12::~spoutDX12()
 
 // Function: OpenDirectX12
 // Initialize and prepare DirectX 12 using a class D3D12 device.
-bool spoutDX12::OpenDirectX12()
-{
-	return OpenDirectX12(nullptr, nullptr);
-}
+bool spoutDX12::OpenDirectX12() { return OpenDirectX12(nullptr, nullptr); }
 
 // Function: OpenDirectX12
 // Initialize and prepare DirectX 12 using the D3D12 device and command queue passed in.
@@ -301,7 +298,8 @@ ID3D11On12Device* spoutDX12::CreateDX11on12device(ID3D12Device* pDevice12, IUnkn
 	int numQueues= 0;
 	if (ppCommandQueue)
 	{
-		SpoutLogNotice("spoutDX12::CreateDX11on12device(0x%.7X, 0x%.7X)", PtrToUint(pDevice12), PtrToUint(ppCommandQueue));
+		SpoutLogNotice("spoutDX12::CreateDX11on12device(0x%.7X, 0x%.7X)", PtrToUint(pDevice12),
+					   PtrToUint(ppCommandQueue));
 		numQueues= 1;
 	}
 	else
@@ -316,17 +314,16 @@ ID3D11On12Device* spoutDX12::CreateDX11on12device(ID3D12Device* pDevice12, IUnkn
 
 	UINT DeviceFlags11= D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-	HRESULT hRes= D3D11On12CreateDevice(
-		pDevice12,      // DX12 device
-		DeviceFlags11,  // FLAGS
-		nullptr,        // Feature level table
-		0,              // Feature levels
-		ppCommandQueue, // command queues
-		numQueues,      // Num queues
-		0,              // NodeMask
-		&pDevice11,     // D3D11 device
-		&pContext11,    // D3D11 context
-		nullptr);
+	HRESULT hRes= D3D11On12CreateDevice(pDevice12,      // DX12 device
+										DeviceFlags11,  // FLAGS
+										nullptr,        // Feature level table
+										0,              // Feature levels
+										ppCommandQueue, // command queues
+										numQueues,      // Num queues
+										0,              // NodeMask
+										&pDevice11,     // D3D11 device
+										&pContext11,    // D3D11 context
+										nullptr);
 
 	if (FAILED(hRes))
 	{
@@ -345,12 +342,14 @@ ID3D11On12Device* spoutDX12::CreateDX11on12device(ID3D12Device* pDevice12, IUnkn
 	SpoutLogNotice("spoutDX12::CreateDX11on12device");
 	if (pContext11)
 	{
-		SpoutLogNotice("    d3d11on12 device (0x%.7X), d3d11 device (0x%.7X)", PtrToUint(pd3d11On12Device), PtrToUint(pDevice11));
+		SpoutLogNotice("    d3d11on12 device (0x%.7X), d3d11 device (0x%.7X)", PtrToUint(pd3d11On12Device),
+					   PtrToUint(pDevice11));
 		SpoutLogNotice("    d3d11 context (0x%.7X)", PtrToUint(pContext11));
 	}
 	else
 	{
-		SpoutLogNotice("    d3d11on12 device (0x%.7X), d3d11 device (0x%.7X)", PtrToUint(pd3d11On12Device), PtrToUint(pDevice11));
+		SpoutLogNotice("    d3d11on12 device (0x%.7X), d3d11 device (0x%.7X)", PtrToUint(pd3d11On12Device),
+					   PtrToUint(pDevice11));
 	}
 
 	// Update globals
@@ -363,7 +362,8 @@ ID3D11On12Device* spoutDX12::CreateDX11on12device(ID3D12Device* pDevice12, IUnkn
 
 // Function: WrapDX12Resource
 // Wrap a D3D12 resource for use with D3D11.
-bool spoutDX12::WrapDX12Resource(ID3D12Resource* pDX12Resource, ID3D11Resource** ppWrapped11Resource, D3D12_RESOURCE_STATES InitialState)
+bool spoutDX12::WrapDX12Resource(ID3D12Resource* pDX12Resource, ID3D11Resource** ppWrapped11Resource,
+								 D3D12_RESOURCE_STATES InitialState)
 {
 	HRESULT hr= S_OK;
 
@@ -380,7 +380,8 @@ bool spoutDX12::WrapDX12Resource(ID3D12Resource* pDX12Resource, ID3D11Resource**
 	}
 	else
 	{
-		SpoutLogNotice("spoutDX12::WrapDX12Resource - pDX12Resource (0x%.7X) shader resource", PtrToUint(pDX12Resource));
+		SpoutLogNotice("spoutDX12::WrapDX12Resource - pDX12Resource (0x%.7X) shader resource",
+					   PtrToUint(pDX12Resource));
 		d3d11Flags.BindFlags= D3D11_BIND_SHADER_RESOURCE;
 	}
 
@@ -401,7 +402,8 @@ bool spoutDX12::WrapDX12Resource(ID3D12Resource* pDX12Resource, ID3D11Resource**
 
 	if (FAILED(hr))
 	{
-		SpoutLogError("spoutDX12::WrapDX12Resource - failed to create wrapped resource (%d 0x%.7X)", LOWORD(hr), UINT(hr));
+		SpoutLogError("spoutDX12::WrapDX12Resource - failed to create wrapped resource (%d 0x%.7X)", LOWORD(hr),
+					  UINT(hr));
 		// E_INVALIDARG 0x57
 		// E_NOTIMPL 0x4001
 		// DXGI_ERROR_INVALID_CALL 0xA001
@@ -429,12 +431,8 @@ void spoutDX12::UpdateWrappedResource(ID3D11Resource* pWrappedResource, ID3D11Re
 
 // Function: CreateDX12texture
 // Create a D3D12 texture resource.
-bool spoutDX12::CreateDX12texture(ID3D12Device* pd3dDevice12,
-								  unsigned int width,
-								  unsigned int height,
-								  D3D12_RESOURCE_STATES InitialState,
-								  DXGI_FORMAT format,
-								  ID3D12Resource** ppTexture)
+bool spoutDX12::CreateDX12texture(ID3D12Device* pd3dDevice12, unsigned int width, unsigned int height,
+								  D3D12_RESOURCE_STATES InitialState, DXGI_FORMAT format, ID3D12Resource** ppTexture)
 {
 	if (!pd3dDevice12)
 	{
@@ -476,13 +474,8 @@ bool spoutDX12::CreateDX12texture(ID3D12Device* pd3dDevice12,
 	DX12_HEAP_PROPERTIES heapprop= DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 	try
 	{
-		pd3dDevice12->CreateCommittedResource(
-			&heapprop,
-			D3D12_HEAP_FLAG_NONE,
-			&textureDesc,
-			InitialState,
-			nullptr,
-			IID_PPV_ARGS(&pTexture12));
+		pd3dDevice12->CreateCommittedResource(&heapprop, D3D12_HEAP_FLAG_NONE, &textureDesc, InitialState, nullptr,
+											  IID_PPV_ARGS(&pTexture12));
 	}
 	catch (...)
 	{
@@ -522,10 +515,7 @@ IDXGIAdapter1* spoutDX12::GetAdapterPointer1(int index)
 
 // Function: SetAdapterPointer1
 // Set required graphics adapter for creating a class D3D12 device.
-void spoutDX12::SetAdapterPointer1(IDXGIAdapter1* pAdapter)
-{
-	m_pAdapterDX12= pAdapter;
-}
+void spoutDX12::SetAdapterPointer1(IDXGIAdapter1* pAdapter) { m_pAdapterDX12= pAdapter; }
 
 //
 // Group: Device
@@ -533,31 +523,19 @@ void spoutDX12::SetAdapterPointer1(IDXGIAdapter1* pAdapter)
 
 // Function: GetD3D12device
 // Return class D3D12 device.
-ID3D12Device* spoutDX12::GetD3D12device()
-{
-	return m_pd3dDevice12;
-}
+ID3D12Device* spoutDX12::GetD3D12device() { return m_pd3dDevice12; }
 
 // Function: GetD3D11device
 // Return D3D11on12 D3D11 device..
-ID3D11Device* spoutDX12::GetD3D11device()
-{
-	return m_pd3dDevice11;
-}
+ID3D11Device* spoutDX12::GetD3D11device() { return m_pd3dDevice11; }
 
 // Function: GetD3D11context
 // Return D3D11on12 D3D11 context.
-ID3D11DeviceContext* spoutDX12::GetD3D11context()
-{
-	return m_pd3dDeviceContext11;
-}
+ID3D11DeviceContext* spoutDX12::GetD3D11context() { return m_pd3dDeviceContext11; }
 
 // Function: GetD3D11On12device
 // Return D3D11on12 device.
-ID3D11On12Device* spoutDX12::GetD3D11On12device()
-{
-	return m_pd3d11On12Device;
-}
+ID3D11On12Device* spoutDX12::GetD3D11On12device() { return m_pd3d11On12Device; }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //
@@ -585,10 +563,7 @@ ID3D12Device* spoutDX12::CreateDX12device()
 		factory1->Release();
 	}
 
-	hRes= D3D12CreateDevice(m_pAdapterDX12,
-							D3D_FEATURE_LEVEL_11_0,
-							_uuidof(ID3D12Device),
-							(void**)&pd3dDevice12);
+	hRes= D3D12CreateDevice(m_pAdapterDX12, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), (void**)&pd3dDevice12);
 
 	if (FAILED(hRes))
 	{
@@ -608,7 +583,8 @@ ID3D12Device* spoutDX12::CreateDX12device()
 // If no such adapter can be found, *ppAdapter will be set to nullptr.
 // _Use_decl_annotations_
 // Copied from Microsoft examples.
-void spoutDX12::GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter, bool requestHighPerformanceAdapter)
+void spoutDX12::GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAdapter,
+								   bool requestHighPerformanceAdapter)
 {
 	*ppAdapter= nullptr;
 
@@ -617,13 +593,13 @@ void spoutDX12::GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAd
 
 	if (SUCCEEDED(pFactory->QueryInterface(IID_PPV_ARGS(&factory6))))
 	{
-		for (
-			UINT adapterIndex= 0;
-			DXGI_ERROR_NOT_FOUND != factory6->EnumAdapterByGpuPreference(
-										adapterIndex,
-										requestHighPerformanceAdapter == true ? DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE : DXGI_GPU_PREFERENCE_UNSPECIFIED,
-										IID_PPV_ARGS(&adapter));
-			++adapterIndex)
+		for (UINT adapterIndex= 0; DXGI_ERROR_NOT_FOUND
+								   != factory6->EnumAdapterByGpuPreference(adapterIndex,
+																		   requestHighPerformanceAdapter == true
+																			   ? DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE
+																			   : DXGI_GPU_PREFERENCE_UNSPECIFIED,
+																		   IID_PPV_ARGS(&adapter));
+			 ++adapterIndex)
 		{
 			DXGI_ADAPTER_DESC1 desc;
 			adapter->GetDesc1(&desc);
@@ -645,7 +621,8 @@ void spoutDX12::GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAd
 	}
 	else
 	{
-		for (UINT adapterIndex= 0; DXGI_ERROR_NOT_FOUND != pFactory->EnumAdapters1(adapterIndex, &adapter); ++adapterIndex)
+		for (UINT adapterIndex= 0; DXGI_ERROR_NOT_FOUND != pFactory->EnumAdapters1(adapterIndex, &adapter);
+			 ++adapterIndex)
 		{
 			DXGI_ADAPTER_DESC1 desc;
 			adapter->GetDesc1(&desc);
@@ -659,10 +636,7 @@ void spoutDX12::GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** ppAd
 
 			// Check to see whether the adapter supports Direct3D 12, but don't create the
 			// actual device yet.
-			HRESULT hr= D3D12CreateDevice(adapter,
-										  D3D_FEATURE_LEVEL_11_0,
-										  _uuidof(ID3D12Device),
-										  nullptr);
+			HRESULT hr= D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr);
 
 			if (SUCCEEDED(hr))
 			{

@@ -31,14 +31,9 @@ bool intersect_unit_obb_outside(const glm::mat4& xform, const glm::vec3& normal)
 	float intDistance;
 	glm::vec3 intPoint;
 	glm::vec3 intNormal;
-	bool bIntersects=
-		glm_intersect_obb_with_ray(
-			rayStart,
-			rayDirection,
-			glm::vec3(-1, -1, -1), // Minimum X,Y,Z
-			glm::vec3(1, 1, 1),    // Maximum X,Y,Z
-			xform,
-			intDistance, intPoint, intNormal);
+	bool bIntersects= glm_intersect_obb_with_ray(rayStart, rayDirection, glm::vec3(-1, -1, -1), // Minimum X,Y,Z
+												 glm::vec3(1, 1, 1),                            // Maximum X,Y,Z
+												 xform, intDistance, intPoint, intNormal);
 
 	success= bIntersects;
 	assert(success);
@@ -60,13 +55,9 @@ bool intersect_unit_aabb_outside(const glm::vec3& normal)
 
 	float intDistance;
 	glm::vec3 intPoint;
-	bool bIntersects=
-		glm_intersect_aabb_with_ray(
-			rayStart,
-			rayDirection,
-			glm::vec3(-1, -1, -1), // Minimum X,Y,Z
-			glm::vec3(1, 1, 1),    // Maximum X,Y,Z
-			intDistance);
+	bool bIntersects= glm_intersect_aabb_with_ray(rayStart, rayDirection, glm::vec3(-1, -1, -1), // Minimum X,Y,Z
+												  glm::vec3(1, 1, 1),                            // Maximum X,Y,Z
+												  intDistance);
 
 	success= bIntersects;
 	assert(success);
@@ -87,13 +78,9 @@ bool intersect_unit_obb_inside(const glm::mat4& xform, const glm::vec3& rayDirec
 	glm::vec3 intPoint;
 	glm::vec3 intNormal;
 	bool bIntersects=
-		glm_intersect_obb_with_ray(
-			xformRayStart,
-			xformedRayDirection,
-			glm::vec3(-1, -1, -1), // Minimum X,Y,Z
-			glm::vec3(1, 1, 1),    // Maximum X,Y,Z
-			xform,
-			intDistance, intPoint, intNormal);
+		glm_intersect_obb_with_ray(xformRayStart, xformedRayDirection, glm::vec3(-1, -1, -1), // Minimum X,Y,Z
+								   glm::vec3(1, 1, 1),                                        // Maximum X,Y,Z
+								   xform, intDistance, intPoint, intNormal);
 
 	success= bIntersects;
 	assert(success);
@@ -114,13 +101,9 @@ bool intersect_unit_aabb_inside(const glm::vec3& rayDirection)
 
 	float intDistance;
 
-	bool bIntersects=
-		glm_intersect_aabb_with_ray(
-			rayStart,
-			rayDirection,
-			glm::vec3(-1, -1, -1), // Minimum X,Y,Z
-			glm::vec3(1, 1, 1),    // Maximum X,Y,Z
-			intDistance);
+	bool bIntersects= glm_intersect_aabb_with_ray(rayStart, rayDirection, glm::vec3(-1, -1, -1), // Minimum X,Y,Z
+												  glm::vec3(1, 1, 1),                            // Maximum X,Y,Z
+												  intDistance);
 
 	success= bIntersects;
 	assert(success);
@@ -139,14 +122,9 @@ bool no_intersect_unit_obb(const glm::mat4& xform, const glm::vec3& normal, cons
 	float intDistance;
 	glm::vec3 intPoint;
 	glm::vec3 intNormal;
-	bool bIntersects=
-		glm_intersect_obb_with_ray(
-			rayStart,
-			rayDirection,
-			glm::vec3(-1, -1, -1), // Minimum X,Y,Z
-			glm::vec3(1, 1, 1),    // Maximum X,Y,Z
-			xform,
-			intDistance, intPoint, intNormal);
+	bool bIntersects= glm_intersect_obb_with_ray(rayStart, rayDirection, glm::vec3(-1, -1, -1), // Minimum X,Y,Z
+												 glm::vec3(1, 1, 1),                            // Maximum X,Y,Z
+												 xform, intDistance, intPoint, intNormal);
 
 	success= !bIntersects;
 	assert(success);
@@ -161,13 +139,9 @@ bool no_intersect_unit_aabb(const glm::vec3& normal, const glm::vec3& rayDir)
 	glm::vec3 rayStart= glm::vec4(normal * 2.f, 1.f);
 
 	float intDistance;
-	bool bIntersects=
-		glm_intersect_aabb_with_ray(
-			rayStart,
-			rayDir,
-			glm::vec3(-1, -1, -1), // Minimum X,Y,Z
-			glm::vec3(1, 1, 1),    // Maximum X,Y,Z
-			intDistance);
+	bool bIntersects= glm_intersect_aabb_with_ray(rayStart, rayDir, glm::vec3(-1, -1, -1), // Minimum X,Y,Z
+												  glm::vec3(1, 1, 1),                      // Maximum X,Y,Z
+												  intDistance);
 
 	success= !bIntersects;
 	assert(success);

@@ -16,7 +16,6 @@ MIKAN_UTILITY_FUNC(bool) openFileWithDefaultApplication(const std::filesystem::p
 /// Open a file with a specific editor command (e.g. "code --reuse-window").
 /// The file path is appended as a quoted argument after the command.
 /// Falls back to openFileWithDefaultApplication when editorCommand is empty.
-MIKAN_UTILITY_FUNC(bool) openFileWithApplication(
-	const std::filesystem::path& filePath,
-	const std::string& editorCommand);
+MIKAN_UTILITY_FUNC(bool) openFileWithApplication(const std::filesystem::path& filePath,
+												 const std::string& editorCommand);
 }; // namespace OSUtils

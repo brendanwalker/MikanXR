@@ -5,10 +5,7 @@
 #include "ProjectConfigConstants.h"
 #include "Shared/GuiPanel_MarkerObjectSystem.h"
 
-bool GuiPanel_MarkerObjectSystem::init()
-{
-	return initTypedPropertyInterface<MarkerObjectSystem>(getOwnerAppStage());
-}
+bool GuiPanel_MarkerObjectSystem::init() { return initTypedPropertyInterface<MarkerObjectSystem>(getOwnerAppStage()); }
 
 void GuiPanel_MarkerObjectSystem::onConstruct()
 {
@@ -32,16 +29,17 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 				return false;
 
 			int selectedIndex= (int)def->getArucoDictionaryType();
-			if (MkGui::drawComboBoxProperty(
-					m_defaultGuiStyle,
-					markerSystem->makePropertyUIIdentifier(MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId),
-					"Aruco Dictionary",
-					&m_dictDataSource, selectedIndex))
+			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
+											markerSystem->makePropertyUIIdentifier(
+												MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId),
+											"Aruco Dictionary", &m_dictDataSource, selectedIndex))
 			{
-				addDeferredGuiEvent([this, selectedIndex]()
-									{
-					if (auto d = getMarkerObjectSystemDefinition())
-						d->setArucoDictionaryType((eCharucoDictionaryType)selectedIndex); });
+				addDeferredGuiEvent(
+					[this, selectedIndex]()
+					{
+						if (auto d= getMarkerObjectSystemDefinition())
+							d->setArucoDictionaryType((eCharucoDictionaryType)selectedIndex);
+					});
 			}
 			return true;
 		});
@@ -58,16 +56,17 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 				return false;
 
 			int selectedIndex= (int)def->getCharucoDictionaryType();
-			if (MkGui::drawComboBoxProperty(
-					m_defaultGuiStyle,
-					markerSystem->makePropertyUIIdentifier(MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId),
-					"Charuco Dictionary",
-					&m_dictDataSource, selectedIndex))
+			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
+											markerSystem->makePropertyUIIdentifier(
+												MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId),
+											"Charuco Dictionary", &m_dictDataSource, selectedIndex))
 			{
-				addDeferredGuiEvent([this, selectedIndex]()
-									{
-					if (auto d = getMarkerObjectSystemDefinition())
-						d->setCharucoDictionaryType((eCharucoDictionaryType)selectedIndex); });
+				addDeferredGuiEvent(
+					[this, selectedIndex]()
+					{
+						if (auto d= getMarkerObjectSystemDefinition())
+							d->setCharucoDictionaryType((eCharucoDictionaryType)selectedIndex);
+					});
 			}
 			return true;
 		});

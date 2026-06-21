@@ -7,8 +7,7 @@
 #include <directxmath.h>
 #include <memory>
 
-class TestGraphicsContext_DX : public TestGraphicsContext,
-							   public std::enable_shared_from_this<TestGraphicsContext_DX>
+class TestGraphicsContext_DX : public TestGraphicsContext, public std::enable_shared_from_this<TestGraphicsContext_DX>
 {
 public:
 	TestGraphicsContext_DX(class TestApp* ownerApp);
@@ -38,12 +37,9 @@ protected:
 	void renderNormalizedDepthTexture(class TestCameraRenderTarget_DX* dxRenderTarget);
 	void renderColorTexture(ID3D11ShaderResourceView* textureSRV) const;
 	void renderPackedDepthTexture(class TestCameraRenderTarget_DX* dxRenderTarget, IMikanAPIPtr mikanApi) const;
-	void renderCube(
-		const DirectX::XMMATRIX& viewProj,
-		const DirectX::XMFLOAT3& cameraPosition,
-		const DirectX::XMFLOAT3& cameraForward,
-		const DirectX::XMFLOAT3& cameraUp,
-		const DirectX::XMFLOAT3& cameraRight) const;
+	void renderCube(const DirectX::XMMATRIX& viewProj, const DirectX::XMFLOAT3& cameraPosition,
+					const DirectX::XMFLOAT3& cameraForward, const DirectX::XMFLOAT3& cameraUp,
+					const DirectX::XMFLOAT3& cameraRight) const;
 
 private:
 	struct SDL_Window* m_sdlWindow= nullptr;

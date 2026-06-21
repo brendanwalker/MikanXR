@@ -4,9 +4,7 @@
 #include "MikanCameraRequests.h"
 #include "TestCameraRenderTarget.h"
 
-TestCameraRenderTarget::TestCameraRenderTarget(
-	TestGraphicsContextPtr ownerContext,
-	MikanCameraID cameraId)
+TestCameraRenderTarget::TestCameraRenderTarget(TestGraphicsContextPtr ownerContext, MikanCameraID cameraId)
 	: m_ownerContext(ownerContext)
 	, m_cameraId(cameraId)
 {
@@ -18,9 +16,8 @@ TestCameraRenderTarget::~TestCameraRenderTarget()
 	assert(!m_bHasAllocatedRemoteTexture);
 }
 
-bool TestCameraRenderTarget::processCameraNewFrameEvent(
-	IMikanAPIPtr mikanAPI,
-	const MikanCameraNewFrameEvent& newFrameEvent)
+bool TestCameraRenderTarget::processCameraNewFrameEvent(IMikanAPIPtr mikanAPI,
+														const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	// Remember the frame index of the last frame we published
 	m_lastReceivedFrameIndex= newFrameEvent.frame;
@@ -44,10 +41,8 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 		{
 			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
 				<< "Update frame size "
-				<< "(camera_id: " << m_cameraId
-				<< ", new size: " << newWidth << "x" << newHeight
-				<< ", frame: " << m_lastReceivedFrameIndex
-				<< ").";
+				<< "(camera_id: " << m_cameraId << ", new size: " << newWidth << "x" << newHeight
+				<< ", frame: " << m_lastReceivedFrameIndex << ").";
 
 			// Remember the size of the render target once created
 			m_width= newWidth;
@@ -57,10 +52,8 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 		{
 			MIKAN_LOG_ERROR("MikanCameraRenderTarget::allocateRenderTarget")
 				<< "Failed to update frame size"
-				<< "(camera_id: " << m_cameraId
-				<< ", new size: " << newWidth << "x" << newHeight
-				<< ", frame: " << m_lastReceivedFrameIndex
-				<< "). Invalidating render target.";
+				<< "(camera_id: " << m_cameraId << ", new size: " << newWidth << "x" << newHeight
+				<< ", frame: " << m_lastReceivedFrameIndex << "). Invalidating render target.";
 			return false;
 		}
 	}
@@ -73,9 +66,7 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	{
 		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
 			<< "Failed to render camera frame "
-			<< "(camera_id: " << m_cameraId
-			<< ", frame: " << m_lastReceivedFrameIndex
-			<< ").";
+			<< "(camera_id: " << m_cameraId << ", frame: " << m_lastReceivedFrameIndex << ").";
 	}
 
 	// Unbind the graphics API specific render target for this camera
@@ -138,10 +129,7 @@ void TestCameraRenderTarget::dispose(IMikanAPIPtr mikanAPI)
 	freeGraphicsAPIResources();
 }
 
-bool TestCameraRenderTarget::reallocateRenderTarget(
-	IMikanAPIPtr mikanAPI,
-	int textureWidth,
-	int textureHeight)
+bool TestCameraRenderTarget::reallocateRenderTarget(IMikanAPIPtr mikanAPI, int textureWidth, int textureHeight)
 {
 	// Clean up anything we had
 	dispose(mikanAPI);
@@ -156,15 +144,15 @@ bool TestCameraRenderTarget::reallocateRenderTarget(
 
 		if (createSharedTexture(mikanAPI, textureWidth, textureHeight))
 		{
-			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
-				<< "Successfully created shared texture "
-				<< " (camera id: " << m_cameraId << ")";
+			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") << "Successfully created shared texture "
+																			<< " (camera id: " << m_cameraId << ")";
 
 			bSuccess= true;
 		}
 		else
 		{
-			// Clean back up the graphics resources, since there is no point to making them if we can't allocate the shared texture
+			// Clean back up the graphics resources, since there is no point to making them if we can't allocate the
+			// shared texture
 			freeGraphicsAPIResources();
 		}
 	}
@@ -172,10 +160,7 @@ bool TestCameraRenderTarget::reallocateRenderTarget(
 	return bSuccess;
 }
 
-bool TestCameraRenderTarget::createSharedTexture(
-	IMikanAPIPtr mikanAPI,
-	int textureWidth,
-	int textureHeight)
+bool TestCameraRenderTarget::createSharedTexture(IMikanAPIPtr mikanAPI, int textureWidth, int textureHeight)
 {
 	assert(!m_bHasAllocatedRemoteTexture);
 

@@ -49,10 +49,8 @@ void GizmoTranslateComponent::dispose()
 	MikanComponent::dispose();
 }
 
-glm::vec3 GizmoTranslateComponent::getColliderColor(
-	BoxColliderComponentWeakPtr colliderPtr,
-	const glm::vec3& defaultColor,
-	const glm::vec3& hilightColor) const
+glm::vec3 GizmoTranslateComponent::getColliderColor(BoxColliderComponentWeakPtr colliderPtr,
+													const glm::vec3& defaultColor, const glm::vec3& hilightColor) const
 {
 	if (colliderPtr.lock() == m_dragComponent.lock())
 		return Colors::Yellow;
@@ -72,10 +70,8 @@ static void drawTranslationBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr
 	drawTransformedBox(graphicsContext, xform, halfExtents, color);
 }
 
-static void drawTranslationArrowHandle(
-	DiskColliderComponentWeakPtr centerColliderWeakPtr,
-	BoxColliderComponentWeakPtr axisColliderWeakPtr,
-	const glm::vec3 color)
+static void drawTranslationArrowHandle(DiskColliderComponentWeakPtr centerColliderWeakPtr,
+									   BoxColliderComponentWeakPtr axisColliderWeakPtr, const glm::vec3 color)
 {
 	DiskColliderComponentPtr centerCollidePtr= centerColliderWeakPtr.lock();
 	BoxColliderComponentPtr axisCollidePtr= axisColliderWeakPtr.lock();
@@ -88,9 +84,7 @@ static void drawTranslationArrowHandle(
 	drawArrow(graphicsContext, glm::mat4(1.f), origin, axisEnd, 0.1f, color);
 }
 
-void GizmoTranslateComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void GizmoTranslateComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	if (m_bEnabled)
 	{
@@ -98,9 +92,12 @@ void GizmoTranslateComponent::customRender(
 		drawTranslationBoxHandle(m_xzHandle, getColliderColor(m_xzHandle, Colors::DarkGray, Colors::LightGray));
 		drawTranslationBoxHandle(m_yzHandle, getColliderColor(m_yzHandle, Colors::DarkGray, Colors::LightGray));
 
-		drawTranslationArrowHandle(m_viewPlaneHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red, Colors::Pink));
-		drawTranslationArrowHandle(m_viewPlaneHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green, Colors::LightGreen));
-		drawTranslationArrowHandle(m_viewPlaneHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue));
+		drawTranslationArrowHandle(m_viewPlaneHandle, m_xAxisHandle,
+								   getColliderColor(m_xAxisHandle, Colors::Red, Colors::Pink));
+		drawTranslationArrowHandle(m_viewPlaneHandle, m_yAxisHandle,
+								   getColliderColor(m_yAxisHandle, Colors::Green, Colors::LightGreen));
+		drawTranslationArrowHandle(m_viewPlaneHandle, m_zAxisHandle,
+								   getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue));
 
 		// View-plane handle: camera-facing circle at center
 		if (auto vph= m_viewPlaneHandle.lock())
@@ -131,9 +128,8 @@ void GizmoTranslateComponent::customRender(
 			drawAxisLabel(m_yAxisHandle, L"Y");
 			drawAxisLabel(m_zAxisHandle, L"Z");
 
-			drawTransformedCircle(
-				graphicsContext, vph->getWorldTransform(), vph->getRadius(), vphColor,
-				GizmoTransformComponent::k_gizmoCircleSegments);
+			drawTransformedCircle(graphicsContext, vph->getWorldTransform(), vph->getRadius(), vphColor,
+								  GizmoTransformComponent::k_gizmoCircleSegments);
 		}
 	}
 }
@@ -193,9 +189,7 @@ void GizmoTranslateComponent::updateColliderScales(float displayScale)
 				const float dotVal= glm::clamp(glm::dot(yAxis, cameraForward), -1.f, 1.f);
 				const float angle= acosf(dotVal);
 				const glm::quat faceCamera=
-					(crossLen > 1e-6f)
-						? glm::angleAxis(angle, rotAxis / crossLen)
-						: glm::quat(1.f, 0.f, 0.f, 0.f);
+					(crossLen > 1e-6f) ? glm::angleAxis(angle, rotAxis / crossLen) : glm::quat(1.f, 0.f, 0.f, 0.f);
 				h->setRelativeRotation(faceCamera);
 			}
 		}
@@ -210,19 +204,25 @@ void GizmoTranslateComponent::setEnabled(bool bEnabled)
 
 		if (bEnabled)
 		{
-			selectionComponentPtr->OnInteractionRayOverlapEnter+= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
-			selectionComponentPtr->OnInteractionRayOverlapExit+= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionRayOverlapEnter+=
+				MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit+=
+				MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
 			selectionComponentPtr->OnInteractionGrab+= MakeDelegate(this, &GizmoTranslateComponent::onInteractionGrab);
 			selectionComponentPtr->OnInteractionMove+= MakeDelegate(this, &GizmoTranslateComponent::onInteractionMove);
-			selectionComponentPtr->OnInteractionRelease+= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
+			selectionComponentPtr->OnInteractionRelease+=
+				MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
 		}
 		else
 		{
-			selectionComponentPtr->OnInteractionRayOverlapEnter-= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
-			selectionComponentPtr->OnInteractionRayOverlapExit-= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionRayOverlapEnter-=
+				MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit-=
+				MakeDelegate(this, &GizmoTranslateComponent::onInteractionRayOverlapExit);
 			selectionComponentPtr->OnInteractionGrab-= MakeDelegate(this, &GizmoTranslateComponent::onInteractionGrab);
 			selectionComponentPtr->OnInteractionMove-= MakeDelegate(this, &GizmoTranslateComponent::onInteractionMove);
-			selectionComponentPtr->OnInteractionRelease-= MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
+			selectionComponentPtr->OnInteractionRelease-=
+				MakeDelegate(this, &GizmoTranslateComponent::onInteractionRelease);
 		}
 
 		m_xyHandle.lock()->setEnabled(bEnabled);
@@ -287,10 +287,8 @@ void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, cons
 	{
 		if (m_bValidDragOrigin)
 		{
-			hasClosestPoint= glm_intersect_plane_with_ray(
-				m_dragOrigin, m_viewPlaneDragNormal,
-				rayOrigin, rayDir,
-				closestTime, closestPoint);
+			hasClosestPoint= glm_intersect_plane_with_ray(m_dragOrigin, m_viewPlaneDragNormal, rayOrigin, rayDir,
+														  closestTime, closestPoint);
 		}
 		else
 		{
@@ -301,50 +299,32 @@ void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, cons
 	// XY handle drag
 	else if (dragColliderPtr == m_xyHandle.lock())
 	{
-		hasClosestPoint= glm_intersect_plane_with_ray(
-			origin, zAxis,
-			rayOrigin, rayDir,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_intersect_plane_with_ray(origin, zAxis, rayOrigin, rayDir, closestTime, closestPoint);
 	}
 	// XZ handle drag
 	else if (dragColliderPtr == m_xzHandle.lock())
 	{
-		hasClosestPoint= glm_intersect_plane_with_ray(
-			origin, yAxis,
-			rayOrigin, rayDir,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_intersect_plane_with_ray(origin, yAxis, rayOrigin, rayDir, closestTime, closestPoint);
 	}
 	// YZ handle drag
 	else if (dragColliderPtr == m_yzHandle.lock())
 	{
-		hasClosestPoint= glm_intersect_plane_with_ray(
-			origin, xAxis,
-			rayOrigin, rayDir,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_intersect_plane_with_ray(origin, xAxis, rayOrigin, rayDir, closestTime, closestPoint);
 	}
 	// X Axis drag
 	else if (dragColliderPtr == m_xAxisHandle.lock())
 	{
-		hasClosestPoint= glm_closest_point_on_ray_to_ray(
-			origin, xAxis,
-			rayOrigin, rayDir,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_closest_point_on_ray_to_ray(origin, xAxis, rayOrigin, rayDir, closestTime, closestPoint);
 	}
 	// Y Axis drag
 	else if (dragColliderPtr == m_yAxisHandle.lock())
 	{
-		hasClosestPoint= glm_closest_point_on_ray_to_ray(
-			origin, yAxis,
-			rayOrigin, rayDir,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_closest_point_on_ray_to_ray(origin, yAxis, rayOrigin, rayDir, closestTime, closestPoint);
 	}
 	// Z Axis drag
 	else if (dragColliderPtr == m_zAxisHandle.lock())
 	{
-		hasClosestPoint= glm_closest_point_on_ray_to_ray(
-			origin, zAxis,
-			rayOrigin, rayDir,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_closest_point_on_ray_to_ray(origin, zAxis, rayOrigin, rayDir, closestTime, closestPoint);
 	}
 
 	if (hasClosestPoint)

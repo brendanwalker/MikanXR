@@ -1,8 +1,6 @@
 #include "MikanCefApp.h"
 
-void MikanCefApp::OnBeforeCommandLineProcessing(
-	const CefString& process_type,
-	CefRefPtr<CefCommandLine> command_line)
+void MikanCefApp::OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line)
 {
 	// Replace real webcam/microphone hardware with fake devices in every CEF
 	// process.  MikanXR manages camera capture itself through the native video

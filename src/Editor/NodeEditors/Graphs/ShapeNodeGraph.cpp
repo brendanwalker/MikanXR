@@ -77,8 +77,7 @@ bool ShapeNodeGraph::bindEventNodes()
 	m_renderShapeEventNode= getEventNodeByName(k_renderShapeEventName);
 	if (!m_renderShapeEventNode)
 	{
-		MIKAN_LOG_ERROR("ShapeNodeGraph::bindEventNodes")
-			<< "Failed to find event node: " << k_renderShapeEventName;
+		MIKAN_LOG_ERROR("ShapeNodeGraph::bindEventNodes") << "Failed to find event node: " << k_renderShapeEventName;
 		bSuccess= false;
 	}
 
@@ -96,9 +95,7 @@ bool ShapeNodeGraph::renderShape(const glm::mat4& vpMatrix, NodeEvaluator& evalu
 	else
 	{
 		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::invalidNode,
-				"Missing OnRenderShape event node"));
+			NodeEvaluationError(eNodeEvaluationErrorCode::invalidNode, "Missing OnRenderShape event node"));
 	}
 
 	return !evaluator.hasErrors();
@@ -123,10 +120,7 @@ void ShapeNodeGraph::unbindFromShapeComponent(ShapeComponentPtr shapeComponent)
 	}
 }
 
-ShapeComponentPtr ShapeNodeGraph::getBoundShapeComponent() const
-{
-	return m_boundShapeComponent.lock();
-}
+ShapeComponentPtr ShapeNodeGraph::getBoundShapeComponent() const { return m_boundShapeComponent.lock(); }
 
 // -- ShapeNodeGraphFactory -----
 NodeGraphPtr ShapeNodeGraphFactory::initialCreateNodeGraph(IEditorWindow* ownerWindow) const

@@ -8,31 +8,28 @@
 #include "MikanCameraRequests.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) AllocateCameraRenderTargetTextures : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) AllocateCameraRenderTargetTextures
+	: public MikanRequest
 {
 public:
-	AllocateCameraRenderTargetTextures(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(AllocateCameraRenderTargetTextures)}
+	AllocateCameraRenderTargetTextures(){MIKAN_REQUEST_TYPE_INFO_INIT(AllocateCameraRenderTargetTextures)}
 
-	FIELD()
-	MikanCameraID camera_id= INVALID_MIKAN_ID;
+	FIELD() MikanCameraID camera_id= INVALID_MIKAN_ID;
 
-	FIELD()
-	MikanRenderTargetDescriptor descriptor;
+	FIELD() MikanRenderTargetDescriptor descriptor;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	AllocateCameraRenderTargetTextures_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) WriteCameraColorRenderTargetTexture : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) WriteCameraColorRenderTargetTexture
+	: public MikanRequest
 {
 public:
-	WriteCameraColorRenderTargetTexture(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(WriteCameraColorRenderTargetTexture)}
+	WriteCameraColorRenderTargetTexture(){MIKAN_REQUEST_TYPE_INFO_INIT(WriteCameraColorRenderTargetTexture)}
 
-	FIELD()
-	MikanCameraID camera_id= INVALID_MIKAN_ID;
+	FIELD() MikanCameraID camera_id= INVALID_MIKAN_ID;
 
 	FIELD() void* api_color_texture_ptr= nullptr;
 
@@ -41,14 +38,13 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) WriteCameraDepthRenderTargetTexture : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) WriteCameraDepthRenderTargetTexture
+	: public MikanRequest
 {
 public:
-	WriteCameraDepthRenderTargetTexture(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(WriteCameraDepthRenderTargetTexture)}
+	WriteCameraDepthRenderTargetTexture(){MIKAN_REQUEST_TYPE_INFO_INIT(WriteCameraDepthRenderTargetTexture)}
 
-	FIELD()
-	MikanCameraID camera_id= INVALID_MIKAN_ID;
+	FIELD() MikanCameraID camera_id= INVALID_MIKAN_ID;
 
 	FIELD() void* api_depth_texture_ptr= nullptr;
 
@@ -63,31 +59,28 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) PublishCameraRenderTargetTextures : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) PublishCameraRenderTargetTextures
+	: public MikanRequest
 {
 public:
-	PublishCameraRenderTargetTextures(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(PublishCameraRenderTargetTextures)}
+	PublishCameraRenderTargetTextures(){MIKAN_REQUEST_TYPE_INFO_INIT(PublishCameraRenderTargetTextures)}
 
-	FIELD()
-	MikanCameraID camera_id= INVALID_MIKAN_ID;
+	FIELD() MikanCameraID camera_id= INVALID_MIKAN_ID;
 
-	FIELD()
-	int64_t frame_index= 0;
+	FIELD() int64_t frame_index= 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	PublishCameraRenderTargetTextures_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) FreeCameraRenderTargetTextures : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) FreeCameraRenderTargetTextures
+	: public MikanRequest
 {
 public:
-	FreeCameraRenderTargetTextures(){
-		MIKAN_REQUEST_TYPE_INFO_INIT(FreeCameraRenderTargetTextures)}
+	FreeCameraRenderTargetTextures(){MIKAN_REQUEST_TYPE_INFO_INIT(FreeCameraRenderTargetTextures)}
 
-	FIELD()
-	MikanCameraID camera_id= INVALID_MIKAN_ID;
+	FIELD() MikanCameraID camera_id= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	FreeCameraRenderTargetTextures_GENERATED

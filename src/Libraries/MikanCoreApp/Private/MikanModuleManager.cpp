@@ -9,15 +9,9 @@
 class MikanModuleManager : public IMikanModuleManager
 {
 public:
-	virtual ~MikanModuleManager()
-	{
-		shutdown();
-	};
+	virtual ~MikanModuleManager() { shutdown(); };
 
-	bool init()
-	{
-		return true;
-	}
+	bool init() { return true; }
 
 	void shutdown()
 	{

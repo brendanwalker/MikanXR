@@ -2,10 +2,7 @@
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceComponent.h"
 
-bool GuiPanel_NetworkVideoSourceComponent::init()
-{
-	return initTypedPropertyInterface<NetworkVideoSourceComponent>();
-}
+bool GuiPanel_NetworkVideoSourceComponent::init() { return initTypedPropertyInterface<NetworkVideoSourceComponent>(); }
 
 void GuiPanel_NetworkVideoSourceComponent::onConstruct()
 {
@@ -27,21 +24,20 @@ void GuiPanel_NetworkVideoSourceComponent::onConstruct()
 
 			auto definitionPtr= videoSourceComp->getNetworkVideoSourceDefinition();
 			const eNetworkVideoProtocol currentProtocol= definitionPtr->getProtocol();
-			const int currentIndex=
-				(currentProtocol != eNetworkVideoProtocol::INVALID) ? (int)currentProtocol : -1;
+			const int currentIndex= (currentProtocol != eNetworkVideoProtocol::INVALID) ? (int)currentProtocol : -1;
 			int selectedIndex= currentIndex;
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					videoSourceComp->makePropertyUIIdentifier(NetworkVideoSourceDefinition::k_protocolPropertyId),
-					"Protocol",
-					&m_protocolDataSource, selectedIndex))
+					"Protocol", &m_protocolDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
 					const eNetworkVideoProtocol newProtocol= (eNetworkVideoProtocol)selectedIndex;
-					addDeferredGuiEvent([videoSourceComp, newProtocol]()
-										{ videoSourceComp->getNetworkVideoSourceDefinition()->setProtocol(newProtocol); });
+					addDeferredGuiEvent(
+						[videoSourceComp, newProtocol]()
+						{ videoSourceComp->getNetworkVideoSourceDefinition()->setProtocol(newProtocol); });
 				}
 			}
 			return true;

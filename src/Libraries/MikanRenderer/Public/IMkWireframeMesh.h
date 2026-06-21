@@ -13,19 +13,12 @@ public:
 };
 
 MIKAN_RENDERER_FUNC(IMkWireframeMeshPtr) CreateMkWireframeMesh(class IMkGraphicsContext* ownerContext);
-MIKAN_RENDERER_FUNC(IMkWireframeMeshPtr) CreateMkWireframeMesh(
-	class IMkGraphicsContext* ownerContext,
-	std::string name,
-	const uint8_t* vertexData,
-	const size_t vertexSize,
-	uint32_t vertexCount,
-	const uint8_t* indexData,
-	const size_t indexSize,
-	uint32_t lineCount,
-	bool bOwnsVertexData);
+MIKAN_RENDERER_FUNC(IMkWireframeMeshPtr) CreateMkWireframeMesh(class IMkGraphicsContext* ownerContext, std::string name,
+															   const uint8_t* vertexData, const size_t vertexSize,
+															   uint32_t vertexCount, const uint8_t* indexData,
+															   const size_t indexSize, uint32_t lineCount,
+															   bool bOwnsVertexData);
 
-MIKAN_RENDERER_FUNC(void) drawTransformedWireframeMesh(
-	IMkCameraConstPtr camera,
-	const glm::mat4& transform,
-	const class IMkWireframeMesh* wireframeMesh,
-	const glm::vec3& color);
+MIKAN_RENDERER_FUNC(void) drawTransformedWireframeMesh(IMkCameraConstPtr camera, const glm::mat4& transform,
+													   const class IMkWireframeMesh* wireframeMesh,
+													   const glm::vec3& color);

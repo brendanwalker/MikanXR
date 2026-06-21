@@ -69,12 +69,10 @@ MIKAN_API_FUNC(const char*) mikanVariantTypeToString(MikanVariantType variantTyp
 /// Bundle containing all intrinsic video source properties
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariant
 {
-	FIELD()
-	MikanVariantType value_type;
+	FIELD() MikanVariantType value_type;
 
 	// MikanVariantBase derived type
-	FIELD()
-	Serialization::PolymorphicObjectPtr value_ptr;
+	FIELD() Serialization::PolymorphicObjectPtr value_ptr;
 
 	MikanVariant();
 
@@ -180,8 +178,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanBoolValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanBoolValue : public MikanVariantBase
 {
 	FIELD() bool value= false;
 
@@ -190,30 +187,25 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanUByteValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanUByteValue : public MikanVariantBase
 {
-	FIELD()
-	uint8_t value= false;
+	FIELD() uint8_t value= false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanUByteValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanUShortValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanUShortValue : public MikanVariantBase
 {
-	FIELD()
-	uint16_t value= false;
+	FIELD() uint16_t value= false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanUShortValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanIntValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanIntValue : public MikanVariantBase
 {
 	FIELD() int value= 0;
 
@@ -222,8 +214,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanLongValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanLongValue : public MikanVariantBase
 {
 	FIELD() long value= 0;
 
@@ -232,8 +223,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanFloatValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanFloatValue : public MikanVariantBase
 {
 	FIELD() float value= 0.0f;
 
@@ -242,8 +232,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanDoubleValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanDoubleValue : public MikanVariantBase
 {
 	FIELD() double value= 0.0;
 
@@ -252,122 +241,99 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanStringValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanStringValue : public MikanVariantBase
 {
-	FIELD()
-	Serialization::String value;
+	FIELD() Serialization::String value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStringValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector2fValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector2fValue : public MikanVariantBase
 {
-	FIELD()
-	MikanVector2f value;
+	FIELD() MikanVector2f value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector2fValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector3fValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector3fValue : public MikanVariantBase
 {
-	FIELD()
-	MikanVector3f value;
+	FIELD() MikanVector3f value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector3fValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector4fValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector4fValue : public MikanVariantBase
 {
-	FIELD()
-	MikanVector4f value;
+	FIELD() MikanVector4f value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector4fValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanQuatfValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanQuatfValue : public MikanVariantBase
 {
-	FIELD()
-	MikanQuatf value;
+	FIELD() MikanQuatf value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuatfValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanMatrix4fValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanMatrix4fValue : public MikanVariantBase
 {
-	FIELD()
-	MikanMatrix4f value;
+	FIELD() MikanMatrix4f value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix4fValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector2dValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector2dValue : public MikanVariantBase
 {
-	FIELD()
-	MikanVector2d value;
+	FIELD() MikanVector2d value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector2dValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector3dValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector3dValue : public MikanVariantBase
 {
-	FIELD()
-	MikanVector3d value;
+	FIELD() MikanVector3d value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector3dValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector4dValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector4dValue : public MikanVariantBase
 {
-	FIELD()
-	MikanVector4d value;
+	FIELD() MikanVector4d value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector4dValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanQuatdValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanQuatdValue : public MikanVariantBase
 {
-	FIELD()
-	MikanQuatd value;
+	FIELD() MikanQuatd value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuatdValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanBoolArrayValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanBoolArrayValue : public MikanVariantBase
 {
-	FIELD()
-	Serialization::List<bool>
-		value;
+	FIELD() Serialization::List<bool> value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoolArrayValue_GENERATED
@@ -377,21 +343,16 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanUByteArrayValue
 	: public MikanVariantBase
 {
-	FIELD()
-	Serialization::List<uint8_t>
-		value;
+	FIELD() Serialization::List<uint8_t> value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanUByteArrayValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanIntArrayValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanIntArrayValue : public MikanVariantBase
 {
-	FIELD()
-	Serialization::List<int>
-		value;
+	FIELD() Serialization::List<int> value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanIntArrayValue_GENERATED
@@ -401,9 +362,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanFloatArrayValue
 	: public MikanVariantBase
 {
-	FIELD()
-	Serialization::List<float>
-		value;
+	FIELD() Serialization::List<float> value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanFloatArrayValue_GENERATED
@@ -413,21 +372,16 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanStringArrayValue
 	: public MikanVariantBase
 {
-	FIELD()
-	Serialization::List<Serialization::String>
-		value;
+	FIELD() Serialization::List<Serialization::String> value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStringArrayValue_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanStringMapValue
-	: public MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanStringMapValue : public MikanVariantBase
 {
-	FIELD()
-	Serialization::Map<Serialization::String, Serialization::String>
-		value;
+	FIELD() Serialization::Map<Serialization::String, Serialization::String> value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStringMapValue_GENERATED

@@ -14,8 +14,7 @@
 #include <assert.h>
 
 // -- BoxStencilSystemDefinition -----
-BoxStencilSystemDefinition::BoxStencilSystemDefinition(
-	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+BoxStencilSystemDefinition::BoxStencilSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -27,10 +26,7 @@ configuru::Config BoxStencilSystemDefinition::writeToJSON()
 	return pt;
 }
 
-void BoxStencilSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	Super::readFromJSON(pt);
-}
+void BoxStencilSystemDefinition::readFromJSON(const configuru::Config& pt) { Super::readFromJSON(pt); }
 
 // -- BoxStencilSystem ----
 BoxStencilSystem::BoxStencilSystem(ProjectManagerPtr ownerObjectSystem)
@@ -38,11 +34,9 @@ BoxStencilSystem::BoxStencilSystem(ProjectManagerPtr ownerObjectSystem)
 {
 }
 
-void BoxStencilSystem::getRelevantBoxStencilList(
-	const std::vector<MikanStencilID>* allowedStencilIds,
-	const glm::vec3& cameraPosition,
-	const glm::vec3& cameraForward,
-	std::vector<BoxStencilComponentPtr>& outStencilList) const
+void BoxStencilSystem::getRelevantBoxStencilList(const std::vector<MikanStencilID>* allowedStencilIds,
+												 const glm::vec3& cameraPosition, const glm::vec3& cameraForward,
+												 std::vector<BoxStencilComponentPtr>& outStencilList) const
 {
 	outStencilList.clear();
 	for (const auto& stencilPair : Super::getComponentMap())
@@ -56,8 +50,7 @@ void BoxStencilSystem::getRelevantBoxStencilList(
 		// If there is an active allow list, make sure stencil is on it
 		if (allowedStencilIds != nullptr)
 		{
-			if (std::find(
-					allowedStencilIds->begin(), allowedStencilIds->end(), stencilId) == allowedStencilIds->end())
+			if (std::find(allowedStencilIds->begin(), allowedStencilIds->end(), stencilId) == allowedStencilIds->end())
 			{
 				continue;
 			}
@@ -79,10 +72,9 @@ void BoxStencilSystem::getRelevantBoxStencilList(
 			const glm::vec3 cameraToStencil= stencilCenter - cameraPosition;
 
 			const bool bIsStencilInFrontOfCamera= glm::dot(cameraToStencil, cameraForward) > 0.f;
-			const bool bIsCameraInStecil=
-				fabsf(glm::dot(cameraToStencil, stencilXAxis)) <= boxXSize &&
-				fabsf(glm::dot(cameraToStencil, stencilYAxis)) <= boxYSize &&
-				fabsf(glm::dot(cameraToStencil, stencilZAxis)) <= boxZSize;
+			const bool bIsCameraInStecil= fabsf(glm::dot(cameraToStencil, stencilXAxis)) <= boxXSize
+										  && fabsf(glm::dot(cameraToStencil, stencilYAxis)) <= boxYSize
+										  && fabsf(glm::dot(cameraToStencil, stencilZAxis)) <= boxZSize;
 
 			if (bIsStencilInFrontOfCamera || bIsCameraInStecil)
 			{
@@ -92,9 +84,8 @@ void BoxStencilSystem::getRelevantBoxStencilList(
 	}
 }
 
-void BoxStencilSystem::additionalComponentFactory(
-	MikanObjectPtr ownerComponentObject,
-	ComponentDefinitionPtr componentDefinition)
+void BoxStencilSystem::additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+												  ComponentDefinitionPtr componentDefinition)
 {
 	TransformComponentPtr rootComponent= ownerComponentObject->getRootComponent();
 	assert(rootComponent);
@@ -103,20 +94,16 @@ void BoxStencilSystem::additionalComponentFactory(
 
 	// Attach a box collider component to the stencil
 	BoxColliderComponentPtr boxColliderPtr= ownerComponentObject->addComponent<BoxColliderComponent>();
-	boxColliderPtr->setHalfExtents(
-		glm::vec3(
-			boxDefinition->getBoxXSize() * 0.5f,
-			boxDefinition->getBoxYSize() * 0.5f,
-			boxDefinition->getBoxZSize() * 0.5f));
+	boxColliderPtr->setHalfExtents(glm::vec3(boxDefinition->getBoxXSize() * 0.5f, boxDefinition->getBoxYSize() * 0.5f,
+											 boxDefinition->getBoxZSize() * 0.5f));
 	boxColliderPtr->attachToComponent(rootComponent);
 
 	// Add a selection component
 	ownerComponentObject->addComponent<SelectionComponent>();
 }
 
-bool BoxStencilSystem::isStencilFacingCamera(
-	StencilComponentConstPtr stencil,
-	const glm::vec3& cameraPosition, const glm::vec3& cameraForward)
+bool BoxStencilSystem::isStencilFacingCamera(StencilComponentConstPtr stencil, const glm::vec3& cameraPosition,
+											 const glm::vec3& cameraForward)
 {
 	StencilComponentConfigConstPtr configPtr= stencil->getStencilComponentDefinition();
 	eStencilCullMode cullMode= configPtr->getCullMode();
@@ -143,8 +130,7 @@ bool BoxStencilSystem::isStencilFacingCamera(
 	const glm::vec3 cameraToStencil= stencilCenter - cameraPosition;
 	const glm::vec3 stencilToCamera= -cameraToStencil;
 
-	return glm::dot(cameraToStencil, cameraForward) > 0.f &&
-		   glm::dot(stencilToCamera, stencilForward) > 0.f;
+	return glm::dot(cameraToStencil, cameraForward) > 0.f && glm::dot(stencilToCamera, stencilForward) > 0.f;
 }
 
 // -- IPropertyInterface ----
@@ -168,21 +154,12 @@ void BoxStencilSystem::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.beginClass<BoxStencilSystem>("BoxStencilSystem")
-		.addFunction("getBoxStencilById",
-					 [](BoxStencilSystem* s, int id) -> BoxStencilComponent*
-					 {
-						 return s->getBoxStencilById(static_cast<MikanStencilID>(id)).get();
-					 })
-		.addFunction("getBoxStencilByName",
-					 [](BoxStencilSystem* s, const std::string& name) -> BoxStencilComponent*
-					 {
-						 return s->getBoxStencilByName(name).get();
-					 })
+		.addFunction("getBoxStencilById", [](BoxStencilSystem* s, int id) -> BoxStencilComponent*
+					 { return s->getBoxStencilById(static_cast<MikanStencilID>(id)).get(); })
+		.addFunction("getBoxStencilByName", [](BoxStencilSystem* s, const std::string& name) -> BoxStencilComponent*
+					 { return s->getBoxStencilByName(name).get(); })
 		.addFunction("getBoxStencilCount",
-					 [](BoxStencilSystem* s) -> int
-					 {
-						 return static_cast<int>(s->getComponentMap().size());
-					 })
+					 [](BoxStencilSystem* s) -> int { return static_cast<int>(s->getComponentMap().size()); })
 		.addFunction("getBoxStencilAtIndex",
 					 [](BoxStencilSystem* s, int i) -> BoxStencilComponent*
 					 {

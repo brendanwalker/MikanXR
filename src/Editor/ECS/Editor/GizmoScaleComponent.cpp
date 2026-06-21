@@ -44,9 +44,8 @@ void GizmoScaleComponent::dispose()
 	MikanComponent::dispose();
 }
 
-glm::vec3 GizmoScaleComponent::getColliderColor(
-	BoxColliderComponentWeakPtr colliderPtr,
-	const glm::vec3& defaultColor) const
+glm::vec3 GizmoScaleComponent::getColliderColor(BoxColliderComponentWeakPtr colliderPtr,
+												const glm::vec3& defaultColor) const
 {
 	if (colliderPtr.lock() == m_dragComponent.lock())
 		return Colors::Yellow;
@@ -66,10 +65,8 @@ static void drawScaleBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, cons
 	drawTransformedBox(graphicsContext, xform, halfExtents, color);
 }
 
-static void drawScaleArrowHandle(
-	BoxColliderComponentWeakPtr centerColliderWeakPtr,
-	BoxColliderComponentWeakPtr axisColliderWeakPtr,
-	const glm::vec3 color)
+static void drawScaleArrowHandle(BoxColliderComponentWeakPtr centerColliderWeakPtr,
+								 BoxColliderComponentWeakPtr axisColliderWeakPtr, const glm::vec3 color)
 {
 	BoxColliderComponentPtr centerColliderPtr= centerColliderWeakPtr.lock();
 	IMkGraphicsContext* graphicsContext= centerColliderPtr->getGraphicsContext();
@@ -85,9 +82,7 @@ static void drawScaleArrowHandle(
 	drawSegment(graphicsContext, glm::mat4(1.f), origin, axisBoxCenter, color);
 }
 
-void GizmoScaleComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void GizmoScaleComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	if (m_bEnabled)
 	{
@@ -106,8 +101,8 @@ void GizmoScaleComponent::customRender(
 			auto drawAxisLabel= [&](BoxColliderComponentWeakPtr axisHandle, const wchar_t* label)
 			{
 				if (auto axisPtr= axisHandle.lock())
-					drawTextAtWorldPosition(graphicsContext, style,
-											glm_mat4_get_position(axisPtr->getWorldTransform()), label);
+					drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(axisPtr->getWorldTransform()),
+											label);
 			};
 
 			drawAxisLabel(m_xAxisHandle, L"X");
@@ -151,19 +146,25 @@ void GizmoScaleComponent::setEnabled(bool bEnabled)
 
 		if (bEnabled)
 		{
-			selectionComponentPtr->OnInteractionRayOverlapEnter+= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
-			selectionComponentPtr->OnInteractionRayOverlapExit+= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionRayOverlapEnter+=
+				MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit+=
+				MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
 			selectionComponentPtr->OnInteractionGrab+= MakeDelegate(this, &GizmoScaleComponent::onInteractionGrab);
 			selectionComponentPtr->OnInteractionMove+= MakeDelegate(this, &GizmoScaleComponent::onInteractionMove);
-			selectionComponentPtr->OnInteractionRelease+= MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
+			selectionComponentPtr->OnInteractionRelease+=
+				MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
 		}
 		else
 		{
-			selectionComponentPtr->OnInteractionRayOverlapEnter-= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
-			selectionComponentPtr->OnInteractionRayOverlapExit-= MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionRayOverlapEnter-=
+				MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit-=
+				MakeDelegate(this, &GizmoScaleComponent::onInteractionRayOverlapExit);
 			selectionComponentPtr->OnInteractionGrab-= MakeDelegate(this, &GizmoScaleComponent::onInteractionGrab);
 			selectionComponentPtr->OnInteractionMove-= MakeDelegate(this, &GizmoScaleComponent::onInteractionMove);
-			selectionComponentPtr->OnInteractionRelease-= MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
+			selectionComponentPtr->OnInteractionRelease-=
+				MakeDelegate(this, &GizmoScaleComponent::onInteractionRelease);
 		}
 
 		m_centerHandle.lock()->setEnabled(bEnabled);
@@ -191,11 +192,8 @@ void GizmoScaleComponent::onInteractionGrab(const ColliderRaycastHitResult& hitR
 	m_lastClosestPoint= m_dragOrigin;
 }
 
-static float computeScaleDelta(
-	const glm::vec3& gizmo_center,
-	const glm::vec3& drag_origin,
-	const glm::vec3& drag_start,
-	const glm::vec3& drag_end)
+static float computeScaleDelta(const glm::vec3& gizmo_center, const glm::vec3& drag_origin, const glm::vec3& drag_start,
+							   const glm::vec3& drag_end)
 {
 	const float dragDistance= glm::length(drag_start - drag_end);
 	const float deltaMagnitude= dragDistance * k_dragScaleFactor;
@@ -225,9 +223,7 @@ void GizmoScaleComponent::onInteractionMove(const glm::vec3& rayOrigin, const gl
 	// Center handle drag
 	if (dragColliderPtr == m_centerHandle.lock())
 	{
-		hasClosestPoint= glm_closest_point_on_ray_to_point(
-			rayOrigin, rayDir, m_dragOrigin,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_closest_point_on_ray_to_point(rayOrigin, rayDir, m_dragOrigin, closestTime, closestPoint);
 
 		const float delta= computeScaleDelta(origin, m_dragOrigin, m_lastClosestPoint, closestPoint);
 		scaleDelta= glm::vec3(delta, delta, delta);
@@ -235,10 +231,7 @@ void GizmoScaleComponent::onInteractionMove(const glm::vec3& rayOrigin, const gl
 	// X Axis drag
 	else if (dragColliderPtr == m_xAxisHandle.lock())
 	{
-		hasClosestPoint= glm_closest_point_on_ray_to_ray(
-			rayOrigin, rayDir,
-			origin, xAxis,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_closest_point_on_ray_to_ray(rayOrigin, rayDir, origin, xAxis, closestTime, closestPoint);
 
 		const float delta= computeScaleDelta(origin, m_dragOrigin, m_lastClosestPoint, closestPoint);
 		scaleDelta= glm::vec3(delta, 0.f, 0.f);
@@ -246,10 +239,7 @@ void GizmoScaleComponent::onInteractionMove(const glm::vec3& rayOrigin, const gl
 	// Y Axis drag
 	else if (dragColliderPtr == m_yAxisHandle.lock())
 	{
-		hasClosestPoint= glm_closest_point_on_ray_to_ray(
-			rayOrigin, rayDir,
-			origin, yAxis,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_closest_point_on_ray_to_ray(rayOrigin, rayDir, origin, yAxis, closestTime, closestPoint);
 
 		const float delta= computeScaleDelta(origin, m_dragOrigin, m_lastClosestPoint, closestPoint);
 		scaleDelta= glm::vec3(0.f, delta, 0.f);
@@ -257,10 +247,7 @@ void GizmoScaleComponent::onInteractionMove(const glm::vec3& rayOrigin, const gl
 	// Z Axis drag
 	else if (dragColliderPtr == m_zAxisHandle.lock())
 	{
-		hasClosestPoint= glm_closest_point_on_ray_to_ray(
-			rayOrigin, rayDir,
-			origin, zAxis,
-			closestTime, closestPoint);
+		hasClosestPoint= glm_closest_point_on_ray_to_ray(rayOrigin, rayDir, origin, zAxis, closestTime, closestPoint);
 
 		const float delta= computeScaleDelta(origin, m_dragOrigin, m_lastClosestPoint, closestPoint);
 		scaleDelta= glm::vec3(0.f, 0.f, delta);
@@ -273,10 +260,7 @@ void GizmoScaleComponent::onInteractionMove(const glm::vec3& rayOrigin, const gl
 	}
 }
 
-void GizmoScaleComponent::onInteractionRelease()
-{
-	m_dragComponent.reset();
-}
+void GizmoScaleComponent::onInteractionRelease() { m_dragComponent.reset(); }
 
 void GizmoScaleComponent::requestScale(const glm::vec3& objectSpaceScale)
 {

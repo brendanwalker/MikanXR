@@ -24,8 +24,7 @@
 #include "opencv2/objdetect/charuco_detector.hpp"
 
 //-- CalibrationPatternFinder -----
-CalibrationPatternFinder::CalibrationPatternFinder(
-	VideoFrameDistortionView* distortionView)
+CalibrationPatternFinder::CalibrationPatternFinder(VideoFrameDistortionView* distortionView)
 	: m_distortionView(distortionView)
 	, m_frameWidth(distortionView->getFrameWidth())
 	, m_frameHeight(distortionView->getFrameHeight())
@@ -39,17 +38,14 @@ CalibrationPatternFinder::CalibrationPatternFinder(int frameWidth, int frameHeig
 {
 }
 
-CalibrationPatternFinder::~CalibrationPatternFinder()
-{
-}
+CalibrationPatternFinder::~CalibrationPatternFinder() {}
 
 cv::Mat* CalibrationPatternFinder::getGrayscaleVideoFrameInput() const
 {
 	// By default use the undistorted grayscale image unless explicitly disabled
 	// (which should only be the case during distortion calibration)
-	return m_distortionView->isGrayscaleUndistortDisabled()
-			   ? m_distortionView->getGrayscaleSourceBuffer()
-			   : m_distortionView->getGrayscaleUndistortBuffer();
+	return m_distortionView->isGrayscaleUndistortDisabled() ? m_distortionView->getGrayscaleSourceBuffer()
+															: m_distortionView->getGrayscaleUndistortBuffer();
 }
 
 bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform)
@@ -85,29 +81,20 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 	cv::Quatd cv_cameraToPatternRot;
 	cv::Vec3d cv_cameraToPatternVecMM; // Millimeters
 	double meanReprojectionError= 0.0;
-	if (!computeOpenCVCameraRelativePatternTransform(
-			monoIntrinsics,
-			imagePoints,
-			m_opencvSolvePnPGeometry.points,
-			cv_cameraToPatternRot,
-			cv_cameraToPatternVecMM,
-			&meanReprojectionError))
+	if (!computeOpenCVCameraRelativePatternTransform(monoIntrinsics, imagePoints, m_opencvSolvePnPGeometry.points,
+													 cv_cameraToPatternRot, cv_cameraToPatternVecMM,
+													 &meanReprojectionError))
 	{
 		return false;
 	}
 
 	// Convert OpenCV pose (in mm) to OpenGL pose (in meters)
-	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToPatternRot, cv_cameraToPatternVecMM,
-		outCameraToPatternXform);
+	convertOpenCVCameraRelativePoseToGLMMat(cv_cameraToPatternRot, cv_cameraToPatternVecMM, outCameraToPatternXform);
 
 	return true;
 }
 
-bool CalibrationPatternFinder::areCurrentImagePointsValid() const
-{
-	return m_currentImagePoints.size() > 0;
-}
+bool CalibrationPatternFinder::areCurrentImagePointsValid() const { return m_currentImagePoints.size() > 0; }
 
 void CalibrationPatternFinder::renderCalibrationPattern2D() const
 {
@@ -115,12 +102,9 @@ void CalibrationPatternFinder::renderCalibrationPattern2D() const
 	{
 		IMkGraphicsContext* graphicsContext= m_distortionView->getGraphicsContext();
 
-		drawOpenCVChessBoard2D(
-			graphicsContext,
-			m_frameWidth, m_frameHeight,
-			(float*)m_currentImagePoints.data(), // cv::point2f is just two floats
-			(int)m_currentImagePoints.size(),
-			true);
+		drawOpenCVChessBoard2D(graphicsContext, m_frameWidth, m_frameHeight,
+							   (float*)m_currentImagePoints.data(), // cv::point2f is just two floats
+							   (int)m_currentImagePoints.size(), true);
 	}
 }
 
@@ -130,12 +114,9 @@ void CalibrationPatternFinder::renderSolvePnPPattern3D(const glm::mat4& xform) c
 	{
 		IMkGraphicsContext* graphicsContext= m_distortionView->getGraphicsContext();
 
-		drawOpenCVChessBoard3D(
-			graphicsContext,
-			xform,
-			m_openglSolvePnPGeometry.points.data(), // cv::point3f is just three floats
-			(int)m_openglSolvePnPGeometry.points.size(),
-			true);
+		drawOpenCVChessBoard3D(graphicsContext, xform,
+							   m_openglSolvePnPGeometry.points.data(), // cv::point3f is just three floats
+							   (int)m_openglSolvePnPGeometry.points.size(), true);
 	}
 }
 
@@ -162,6 +143,5 @@ ArucoDictionaryPtr CalibrationPatternFinder::getArucoDictionary(eCharucoDictiona
 		break;
 	}
 
-	return std::make_shared<cv::aruco::Dictionary>(
-		cv::aruco::getPredefinedDictionary(cvDictionaryType));
+	return std::make_shared<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cvDictionaryType));
 }

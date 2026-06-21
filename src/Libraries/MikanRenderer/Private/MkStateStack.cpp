@@ -40,37 +40,20 @@ IMkState* MkStateStack::pushState(const std::string& scopeName)
 	return state;
 }
 
-int MkStateStack::getCurrentStackDepth() const
-{
-	return (int)m_data->stateStack.size() - 1;
-}
+int MkStateStack::getCurrentStackDepth() const { return (int)m_data->stateStack.size() - 1; }
 
 IMkState* MkStateStack::getState(const int depth) const
 {
-	return (depth >= 0 && depth < (int)m_data->stateStack.size())
-			   ? m_data->stateStack[depth]
-			   : nullptr;
+	return (depth >= 0 && depth < (int)m_data->stateStack.size()) ? m_data->stateStack[depth] : nullptr;
 }
 
-IMkState* MkStateStack::getCurrentState() const
-{
-	return getState(getCurrentStackDepth());
-}
+IMkState* MkStateStack::getCurrentState() const { return getState(getCurrentStackDepth()); }
 
-IMkGraphicsContext* MkStateStack::getOwnerContext() const
-{
-	return m_data->ownerContext;
-}
+IMkGraphicsContext* MkStateStack::getOwnerContext() const { return m_data->ownerContext; }
 
-void MkStateStack::setDebugPrintEnabled(bool bDebugPrint)
-{
-	m_data->bDebugPrint= bDebugPrint;
-}
+void MkStateStack::setDebugPrintEnabled(bool bDebugPrint) { m_data->bDebugPrint= bDebugPrint; }
 
-bool MkStateStack::isDebugPrintEnabled() const
-{
-	return m_data->bDebugPrint;
-}
+bool MkStateStack::isDebugPrintEnabled() const { return m_data->bDebugPrint; }
 
 void MkStateStack::popState()
 {

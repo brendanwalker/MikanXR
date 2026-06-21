@@ -14,16 +14,12 @@ class StencilComponentDefinition : public TransformComponentDefinition
 {
 public:
 	StencilComponentDefinition();
-	StencilComponentDefinition(
-		MikanStencilID stencilId,
-		const std::string& componentName,
-		const MikanTransform& xform);
+	StencilComponentDefinition(MikanStencilID stencilId, const std::string& componentName, const MikanTransform& xform);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_stencilDisabledPropertyId;
 	bool getIsDisabled() const { return m_bIsDisabled; }

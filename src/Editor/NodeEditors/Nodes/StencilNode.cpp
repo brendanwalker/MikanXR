@@ -29,10 +29,7 @@ void StencilNodeConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- StencilNode -----
-StencilNode::~StencilNode()
-{
-	setOwnerGraph(NodeGraphPtr());
-}
+StencilNode::~StencilNode() { setOwnerGraph(NodeGraphPtr()); }
 
 void StencilNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 {
@@ -68,8 +65,7 @@ bool StencilNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("StencilNode::loadFromConfig")
-				<< "Failed to find Stencil property: " << propId
-				<< ", on Stencil node";
+				<< "Failed to find Stencil property: " << propId << ", on Stencil node";
 		}
 	}
 
@@ -107,7 +103,8 @@ bool StencilNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> StencilNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> StencilNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))

@@ -17,16 +17,12 @@ class PropertyNotifyDatabase
 public:
 	PropertyNotifyDatabase(MikanPropertyDatabaseConstPtr propertyDatabase);
 
-	bool setPropertyNotifyMode(
-		const std::string& systemFilter,
-		const std::string& componentFilter,
-		const std::string& propertyFilter,
-		MikanPropertyNotifyMode notifyMode);
+	bool setPropertyNotifyMode(const std::string& systemFilter, const std::string& componentFilter,
+							   const std::string& propertyFilter, MikanPropertyNotifyMode notifyMode);
 
 	MikanPropertyNotifyMode getPropertyNotifyMode(int propertyIndex) const;
-	MikanPropertyNotifyMode getPropertyNotifyMode(
-		const MikanPropertyValue& propertyValue,
-		ProjectManagerPtr systemManager) const;
+	MikanPropertyNotifyMode getPropertyNotifyMode(const MikanPropertyValue& propertyValue,
+												  ProjectManagerPtr systemManager) const;
 
 private:
 	MikanPropertyDatabaseConstPtr m_propertyDatabase;

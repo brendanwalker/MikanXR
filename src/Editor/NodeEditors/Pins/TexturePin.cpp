@@ -35,11 +35,6 @@ std::shared_ptr<MkNodesScopedColorStyle> TexturePin::editorRenderMakeLinkStyle(f
 	return style;
 }
 
-void TexturePin::editorRenderContextMenu(const NodeEditorState& editorState)
-{
-}
+void TexturePin::editorRenderContextMenu(const NodeEditorState& editorState) {}
 
-ImU32 TexturePin::editorGetLinkStyleColor() const
-{
-	return IM_COL32(148, 0, 0, 255);
-}
+ImU32 TexturePin::editorGetLinkStyleColor() const { return IM_COL32(148, 0, 0, 255); }

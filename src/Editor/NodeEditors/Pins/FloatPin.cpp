@@ -33,9 +33,7 @@ std::shared_ptr<MkNodesScopedColorStyle> FloatPinBase::editorRenderMakePinStyle(
 	return style;
 }
 
-void FloatPinBase::editorRenderContextMenu(const NodeEditorState& editorState)
-{
-}
+void FloatPinBase::editorRenderContextMenu(const NodeEditorState& editorState) {}
 
 // -- FloatPin -----
 void FloatPin::editorRenderInputTextEntry(const NodeEditorState& editorState)
@@ -67,10 +65,7 @@ std::shared_ptr<MkNodesScopedColorStyle> FloatPin::editorRenderMakeLinkStyle(flo
 	return style;
 }
 
-ImU32 FloatPin::editorGetLinkStyleColor() const
-{
-	return IM_COL32(156, 253, 65, 255);
-}
+ImU32 FloatPin::editorGetLinkStyleColor() const { return IM_COL32(156, 253, 65, 255); }
 
 // -- Float2Pin -----
 void Float2Pin::copyValueFromSourcePin()

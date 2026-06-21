@@ -3,23 +3,16 @@
 #include "MikanComponent.h"
 #include "ProjectManager.h"
 
-GuiDataSource_ComboBox::GuiDataSource_ComboBox(
-	ProjectManagerPtr projectManager,
-	const std::vector<SystemComponentPair>& systemNameComponentPairs)
+GuiDataSource_ComboBox::GuiDataSource_ComboBox(ProjectManagerPtr projectManager,
+											   const std::vector<SystemComponentPair>& systemNameComponentPairs)
 	: m_projectManager(projectManager)
 	, m_systemComponentPairs(systemNameComponentPairs)
 {
 }
 
-void GuiDataSource_ComboBox::setFilter(ComponentFilter filter)
-{
-	m_filter= filter;
-}
+void GuiDataSource_ComboBox::setFilter(ComponentFilter filter) { m_filter= filter; }
 
-void GuiDataSource_ComboBox::setDisplayStringBuilder(DisplayStringBuilder builder)
-{
-	m_displayStringBuilder= builder;
-}
+void GuiDataSource_ComboBox::setDisplayStringBuilder(DisplayStringBuilder builder) { m_displayStringBuilder= builder; }
 
 void GuiDataSource_ComboBox::refreshEntries()
 {
@@ -45,8 +38,7 @@ void GuiDataSource_ComboBox::refreshEntries()
 					continue;
 
 				m_comboEntrieValues.push_back(comp);
-				m_displayStrings.push_back(
-					m_displayStringBuilder ? m_displayStringBuilder(comp) : comp->getName());
+				m_displayStrings.push_back(m_displayStringBuilder ? m_displayStringBuilder(comp) : comp->getName());
 			}
 		}
 	}
@@ -75,17 +67,8 @@ int GuiDataSource_ComboBox::getEntryIndexByComponentId(MikanComponentID componen
 	return -1;
 }
 
-MikanComponentPtr GuiDataSource_ComboBox::getEntryAtIndex(int index) const
-{
-	return m_comboEntrieValues[index];
-}
+MikanComponentPtr GuiDataSource_ComboBox::getEntryAtIndex(int index) const { return m_comboEntrieValues[index]; }
 
-int GuiDataSource_ComboBox::getEntryCount() const
-{
-	return (int)m_comboEntrieValues.size();
-}
+int GuiDataSource_ComboBox::getEntryCount() const { return (int)m_comboEntrieValues.size(); }
 
-const std::string& GuiDataSource_ComboBox::getEntryDisplayString(int index) const
-{
-	return m_displayStrings[index];
-}
+const std::string& GuiDataSource_ComboBox::getEntryDisplayString(int index) const { return m_displayStrings[index]; }

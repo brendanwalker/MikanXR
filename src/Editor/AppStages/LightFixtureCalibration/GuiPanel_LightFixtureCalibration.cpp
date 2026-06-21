@@ -8,10 +8,9 @@ void GuiPanel_LightFixtureCalibration::onGui()
 	{
 	case eLightFixtureCalibrationMenuState::verifyInitialCameraSetup:
 	{
-		ImGui::TextWrapped(
-			"Fixture '%s' has been set to white. "
-			"Position the camera so the fixture is visible and verify the video stream is running.",
-			m_fixtureName.c_str());
+		ImGui::TextWrapped("Fixture '%s' has been set to white. "
+						   "Position the camera so the fixture is visible and verify the video stream is running.",
+						   m_fixtureName.c_str());
 		ImGui::Spacing();
 		if (ImGui::Button("Ok"))
 		{
@@ -29,9 +28,7 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::capturePosition1:
 	{
-		ImGui::TextWrapped(
-			"Camera position 1: Click on the '%s' fixture in the image.",
-			m_fixtureName.c_str());
+		ImGui::TextWrapped("Camera position 1: Click on the '%s' fixture in the image.", m_fixtureName.c_str());
 		ImGui::Spacing();
 		if (ImGui::Button("Redo"))
 		{
@@ -49,8 +46,7 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::moveCamera:
 	{
-		ImGui::TextWrapped(
-			"Move the camera to a second position with a different angle to the fixture.");
+		ImGui::TextWrapped("Move the camera to a second position with a different angle to the fixture.");
 		ImGui::Spacing();
 		if (ImGui::Button("Ok"))
 		{
@@ -74,9 +70,7 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::capturePosition2:
 	{
-		ImGui::TextWrapped(
-			"Camera position 2: Click on the '%s' fixture in the image.",
-			m_fixtureName.c_str());
+		ImGui::TextWrapped("Camera position 2: Click on the '%s' fixture in the image.", m_fixtureName.c_str());
 		ImGui::Spacing();
 		if (ImGui::Button("Redo"))
 		{
@@ -94,8 +88,7 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::verifyTriangulatedPosition:
 	{
-		ImGui::TextWrapped(
-			"Verify the triangulated fixture position looks correct in the viewport.");
+		ImGui::TextWrapped("Verify the triangulated fixture position looks correct in the viewport.");
 		ImGui::Spacing();
 		if (ImGui::Button("Ok"))
 		{
@@ -119,9 +112,7 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::calibrationComplete:
 	{
-		ImGui::TextWrapped(
-			"Fixture '%s' position calibrated successfully.",
-			m_fixtureName.c_str());
+		ImGui::TextWrapped("Fixture '%s' position calibrated successfully.", m_fixtureName.c_str());
 		ImGui::Spacing();
 		if (ImGui::Button("Ok"))
 		{

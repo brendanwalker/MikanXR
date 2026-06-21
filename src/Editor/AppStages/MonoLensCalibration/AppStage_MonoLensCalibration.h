@@ -44,10 +44,8 @@ protected:
 	void onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode);
 
 	// Remote Control
-	virtual bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults) override;
+	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+											std::vector<std::string>& outResults) override;
 	bool handleGetStateCommand(std::vector<std::string>& outResults);
 	bool handleGetImagePointStabilityCommand(std::vector<std::string>& outResults);
 	bool handleGetSamplesNeededCommand(std::vector<std::string>& outResults);

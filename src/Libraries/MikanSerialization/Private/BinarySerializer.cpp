@@ -41,23 +41,19 @@ public:
 			std::string templateTypeName= templateClassInstanceType->getClassTemplate().getName();
 
 			// See if the field is a Serialization::List<T>
-			if (templateTypeName == "List" &&
-				templateClassInstanceType->getTemplateArgumentsCount() == 1)
+			if (templateTypeName == "List" && templateClassInstanceType->getTemplateArgumentsCount() == 1)
 			{
 				visitList(accessor, *templateClassInstanceType);
 			}
 			// See if the field is a Serialization::Map<K,V>
-			else if (templateTypeName == "Map" &&
-					 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+			else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
 			{
 				visitMap(accessor, *templateClassInstanceType);
 			}
 			else
 			{
-				setError(
-					stringify("BinaryWriteVisitor::visitClass() ",
-							  "Class Field ", accessor.getName(),
-							  " was of expected type"));
+				setError(stringify("BinaryWriteVisitor::visitClass() ", "Class Field ", accessor.getName(),
+								   " was of expected type"));
 				return;
 			}
 		}
@@ -85,10 +81,8 @@ public:
 
 		// Use reflection to get the runtime class name of the object pointed at
 		rfk::Method const* getRuntimeClassNameMethod=
-			objPtrClassType->getMethodByName(
-				"getRuntimeClassName", rfk::EMethodFlags::Default, true);
-		const std::string className=
-			getRuntimeClassNameMethod->invokeUnsafe<std::string>(objPtrInstance);
+			objPtrClassType->getMethodByName("getRuntimeClassName", rfk::EMethodFlags::Default, true);
+		const std::string className= getRuntimeClassNameMethod->invokeUnsafe<std::string>(objPtrInstance);
 
 		// Get the runtime class for the object
 		rfk::Struct const* objectStruct= nullptr;
@@ -98,10 +92,8 @@ public:
 			objectStruct= TypeRegistry::getStructByName(className);
 			if (objectStruct == nullptr)
 			{
-				setError(
-					stringify("BinaryWriteVisitor::visitObjectPtr() ",
-							  "TypedObjectPtr Accessor ", accessor.getName(),
-							  " has an unknown class name ", className));
+				setError(stringify("BinaryWriteVisitor::visitObjectPtr() ", "TypedObjectPtr Accessor ",
+								   accessor.getName(), " has an unknown class name ", className));
 				return;
 			}
 		}
@@ -111,8 +103,7 @@ public:
 
 		// Get the raw pointer to the object pointed to by the shared pointer
 		rfk::Method const* getRawPtrMethod=
-			objPtrClassType->getMethodByName(
-				"getRawPtr", rfk::EMethodFlags::Default, true);
+			objPtrClassType->getMethodByName("getRawPtr", rfk::EMethodFlags::Default, true);
 		const void* objectInstance= getRawPtrMethod->invokeUnsafe<const void*>(objPtrInstance);
 
 		// Write out whether the object is valid or not
@@ -126,16 +117,13 @@ public:
 		}
 	}
 
-	void visitList(
-		ValueAccessor const& arrayAccessor,
-		rfk::ClassTemplateInstantiation const& templatedArrayType)
+	void visitList(ValueAccessor const& arrayAccessor, rfk::ClassTemplateInstantiation const& templatedArrayType)
 	{
 		const void* arrayInstance= arrayAccessor.getUntypedValuePtr();
 
 		// Get the type of the elements in the array from the template argument
 		auto const& templateArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedArrayType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedArrayType.getTemplateArgumentAt(0));
 		rfk::Type const& elementType= templateArg.getType();
 
 		// Use reflection to get the methods to resize the array and get a reference to an element
@@ -151,8 +139,7 @@ public:
 		{
 			// Get the target element instance in the array
 			const void* elementInstance=
-				getRawElementMethod->invokeUnsafe<const void*, const std::size_t&>(
-					arrayInstance, elementIndex);
+				getRawElementMethod->invokeUnsafe<const void*, const std::size_t&>(arrayInstance, elementIndex);
 
 			// Make a fake "field" for an element in the array
 			ValueAccessor elementAccessor(elementInstance, elementType);
@@ -162,14 +149,11 @@ public:
 		}
 	}
 
-	void visitMap(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType)
+	void visitMap(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType)
 	{
 		// Get the key type of the map from the template argument
 		auto const& templateKeyArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(0));
 		rfk::Type const& keyType= templateKeyArg.getType();
 
 		// Use reflection to get the the number of elements in the map
@@ -197,23 +181,19 @@ public:
 		{
 			rfk::Archetype const* keyArchetype= keyType.getArchetype();
 
-			setError(
-				stringify("BinaryWriteVisitor::visitMap() ",
-						  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
-						  " is not supported"));
+			setError(stringify("BinaryWriteVisitor::visitMap() ", "Map Key Archetype ",
+							   keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
+							   " is not supported"));
 			return;
 		}
 	}
 
 	template <typename t_key>
-	void visitMapOfKey(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType)
+	void visitMapOfKey(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType)
 	{
 		// Get the type of the elements in the array from the template argument
 		auto const& templateValueArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(1));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(1));
 		rfk::Type const& valueType= templateValueArg.getType();
 
 		// Use reflection to get the method used to enumerate key-value pairs in the map
@@ -223,10 +203,8 @@ public:
 		const void* mapInstance= mapAccessor.getUntypedValuePtr();
 
 		// Serialize each element of the map
-		for (auto enumerator=
-				 getConstEnumeratorMethod->invokeUnsafe<std::shared_ptr<IMapConstEnumerator>>(mapInstance);
-			 enumerator->isValid();
-			 enumerator->next())
+		for (auto enumerator= getConstEnumeratorMethod->invokeUnsafe<std::shared_ptr<IMapConstEnumerator>>(mapInstance);
+			 enumerator->isValid(); enumerator->next())
 		{
 			// Serialize the key
 			const void* rawKey= enumerator->getKeyRaw();
@@ -273,20 +251,16 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("BinaryWriteVisitor::visitEnum() ",
-						  "Enum Accessor ", accessor.getName(),
-						  " has an invalid memory size ", enumArchetype.getMemorySize()));
+			setError(stringify("BinaryWriteVisitor::visitEnum() ", "Enum Accessor ", accessor.getName(),
+							   " has an invalid memory size ", enumArchetype.getMemorySize()));
 			return;
 		}
 
 		rfk::EnumValue const* enumValue= enumType.getEnumValue(enumIntValue);
 		if (enumValue == nullptr)
 		{
-			setError(
-				stringify("BinaryWriteVisitor::visitEnum() ",
-						  "Enum Accessor ", accessor.getName(),
-						  " has an invalid int value ", enumIntValue));
+			setError(stringify("BinaryWriteVisitor::visitEnum() ", "Enum Accessor ", accessor.getName(),
+							   " has an invalid int value ", enumIntValue));
 			return;
 		}
 
@@ -354,7 +328,8 @@ private:
 };
 
 // Public API
-bool serializeToBytes(const void* instance, rfk::Struct const& structType, std::vector<uint8_t>& outBytes, std::string& outErrorMsg)
+bool serializeToBytes(const void* instance, rfk::Struct const& structType, std::vector<uint8_t>& outBytes,
+					  std::string& outErrorMsg)
 {
 	BinaryWriter writer(outBytes);
 	BinaryWriteVisitor visitor(writer);

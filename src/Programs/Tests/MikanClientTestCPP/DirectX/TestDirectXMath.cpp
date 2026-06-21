@@ -1,24 +1,14 @@
 #include "TestDirectXMath.h"
 
-DirectX::XMFLOAT3 mikan_vec3_to_directx_xmfloat3(const MikanVector3f& vec)
-{
-	return {vec.x, vec.y, -vec.z};
-}
+DirectX::XMFLOAT3 mikan_vec3_to_directx_xmfloat3(const MikanVector3f& vec) { return {vec.x, vec.y, -vec.z}; }
 
-DirectX::XMVECTOR mikan_vec3_to_directx_xmvector(const MikanVector3f& vec)
-{
-	return {vec.x, vec.y, -vec.z, 0.f};
-}
+DirectX::XMVECTOR mikan_vec3_to_directx_xmvector(const MikanVector3f& vec) { return {vec.x, vec.y, -vec.z, 0.f}; }
 
-DirectX::XMVECTOR mikan_position_to_directx_xmvector(const MikanVector3f& vec)
-{
-	return {vec.x, vec.y, -vec.z, 1.f};
-}
+DirectX::XMVECTOR mikan_position_to_directx_xmvector(const MikanVector3f& vec) { return {vec.x, vec.y, -vec.z, 1.f}; }
 
-DirectX::XMMATRIX mikan_camera_pose_to_directx_view_matrix(
-	const MikanVector3f& cameraForward,
-	const MikanVector3f& cameraUp,
-	const MikanVector3f& cameraPosition)
+DirectX::XMMATRIX mikan_camera_pose_to_directx_view_matrix(const MikanVector3f& cameraForward,
+														   const MikanVector3f& cameraUp,
+														   const MikanVector3f& cameraPosition)
 {
 	// Create the view matrix using DirectX's left-handed function
 	const DirectX::XMVECTOR dxForward= mikan_vec3_to_directx_xmvector(cameraForward);
@@ -29,11 +19,9 @@ DirectX::XMMATRIX mikan_camera_pose_to_directx_view_matrix(
 	return DirectX::XMMatrixLookAtLH(dxPosition, dxTarget, dxUp);
 }
 
-DirectX::XMMATRIX mikan_camera_intrinsics_to_directx_projection_matrix(
-	float fx, float fy,
-	float cx, float cy,
-	float width, float height,
-	float zNear, float zFar)
+DirectX::XMMATRIX mikan_camera_intrinsics_to_directx_projection_matrix(float fx, float fy, float cx, float cy,
+																	   float width, float height, float zNear,
+																	   float zFar)
 {
 	// First, convert focal lengths to normalized device coordinates
 	float fovX= 2.0f * atan(width / (2.0f * fx));

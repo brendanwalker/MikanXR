@@ -13,7 +13,8 @@
 class IDMXManager;
 
 // -- RGBPixelGridSystemDefinition -----
-class RGBPixelGridSystemDefinition : public MikanTypedObjectSystemDefinition<RGBPixelGridComponent, RGBPixelGridDefinition, MikanLightID>
+class RGBPixelGridSystemDefinition
+	: public MikanTypedObjectSystemDefinition<RGBPixelGridComponent, RGBPixelGridDefinition, MikanLightID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<RGBPixelGridComponent, RGBPixelGridDefinition, MikanLightID>;
@@ -22,16 +23,12 @@ public:
 };
 
 // -- RGBPixelGridSystem -----
-class RGBPixelGridSystem : public MikanTypedObjectSystem<
-							   RGBPixelGridComponent, RGBPixelGridDefinition,
-							   MikanLightID,
-							   RGBPixelGridSystem, RGBPixelGridSystemDefinition>
+class RGBPixelGridSystem : public MikanTypedObjectSystem<RGBPixelGridComponent, RGBPixelGridDefinition, MikanLightID,
+														 RGBPixelGridSystem, RGBPixelGridSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		RGBPixelGridComponent, RGBPixelGridDefinition,
-		MikanLightID,
-		RGBPixelGridSystem, RGBPixelGridSystemDefinition>;
+	using Super= MikanTypedObjectSystem<RGBPixelGridComponent, RGBPixelGridDefinition, MikanLightID, RGBPixelGridSystem,
+										RGBPixelGridSystemDefinition>;
 
 	RGBPixelGridSystem(ProjectManagerPtr ownerProjectManager);
 

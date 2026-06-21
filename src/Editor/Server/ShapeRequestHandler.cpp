@@ -21,9 +21,8 @@ bool ShapeRequestHandler::startup(MainWindow* mainWindow)
 	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	// Shape Requests
-	messageServer->setRequestHandler(
-		GetModelShapeRenderGeometry::staticGetArchetype().getName(),
-		std::bind(&ShapeRequestHandler::getModelShapeRenderGeometryHandler, this, _1, _2));
+	messageServer->setRequestHandler(GetModelShapeRenderGeometry::staticGetArchetype().getName(),
+									 std::bind(&ShapeRequestHandler::getModelShapeRenderGeometryHandler, this, _1, _2));
 
 	return true;
 }

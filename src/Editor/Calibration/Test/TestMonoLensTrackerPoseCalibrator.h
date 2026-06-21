@@ -6,13 +6,9 @@
 class TestMonoLensTrackerPoseCalibrator : public MonoLensTrackerPoseCalibrator
 {
 public:
-	TestMonoLensTrackerPoseCalibrator(
-		const glm::dmat4& cameraPuckXform_VRSpace,
-		const glm::dmat4& matPuckXform_VRSpace,
-		const glm::dvec3& matPuckOffsetMM,
-		class CalibrationPatternFinder* patternFinder,
-		const MikanMonoIntrinsics& cameraIntrinsics,
-		int desiredSampleCount)
+	TestMonoLensTrackerPoseCalibrator(const glm::dmat4& cameraPuckXform_VRSpace, const glm::dmat4& matPuckXform_VRSpace,
+									  const glm::dvec3& matPuckOffsetMM, class CalibrationPatternFinder* patternFinder,
+									  const MikanMonoIntrinsics& cameraIntrinsics, int desiredSampleCount)
 		: MonoLensTrackerPoseCalibrator(patternFinder, cameraIntrinsics, desiredSampleCount)
 		, m_cameraPuckXform(cameraPuckXform_VRSpace)
 		, m_matPuckXform(matPuckXform_VRSpace)

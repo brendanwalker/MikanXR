@@ -88,9 +88,7 @@ void* PolymorphicObjectPtr::allocateByType(rfk::Struct const* objectClass)
 	{
 		auto objectPtr= objectClass->makeSharedInstance<PolymorphicStruct>();
 
-		setPolymorphicStructPtrInternal(
-			objectPtr,
-			*objectClass);
+		setPolymorphicStructPtrInternal(objectPtr, *objectClass);
 
 		return getRawPtrMutable();
 	}
@@ -98,20 +96,11 @@ void* PolymorphicObjectPtr::allocateByType(rfk::Struct const* objectClass)
 	return nullptr;
 }
 
-const void* PolymorphicObjectPtr::getRawPtr() const
-{
-	return m_impl->runtimeClassRawPtr;
-}
+const void* PolymorphicObjectPtr::getRawPtr() const { return m_impl->runtimeClassRawPtr; }
 
-void* PolymorphicObjectPtr::getRawPtrMutable()
-{
-	return const_cast<void*>(getRawPtr());
-}
+void* PolymorphicObjectPtr::getRawPtrMutable() { return const_cast<void*>(getRawPtr()); }
 
-std::string PolymorphicObjectPtr::getRuntimeClassName() const
-{
-	return m_impl->runtimeClassName;
-}
+std::string PolymorphicObjectPtr::getRuntimeClassName() const { return m_impl->runtimeClassName; }
 
 bool PolymorphicObjectPtr::isTypeCompatibleWith(rfk::Struct const& objectClass) const
 {
@@ -121,17 +110,16 @@ bool PolymorphicObjectPtr::isTypeCompatibleWith(rfk::Struct const& objectClass) 
 
 		if (runtimeClass != nullptr)
 		{
-			return runtimeClass->getId() == objectClass.getId() ||
-				   runtimeClass->isSubclassOf(objectClass); // Strict subclass check
+			return runtimeClass->getId() == objectClass.getId()
+				   || runtimeClass->isSubclassOf(objectClass); // Strict subclass check
 		}
 	}
 
 	return false;
 }
 
-void PolymorphicObjectPtr::setPolymorphicStructPtrInternal(
-	std::shared_ptr<PolymorphicStruct> objPtr,
-	rfk::Struct const& objectClass)
+void PolymorphicObjectPtr::setPolymorphicStructPtrInternal(std::shared_ptr<PolymorphicStruct> objPtr,
+														   rfk::Struct const& objectClass)
 {
 	uint8_t* rawObjPtr= reinterpret_cast<uint8_t*>(objPtr.get());
 

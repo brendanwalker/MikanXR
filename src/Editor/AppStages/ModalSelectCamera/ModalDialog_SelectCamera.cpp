@@ -14,11 +14,8 @@ ModalDialog_SelectCamera::ModalDialog_SelectCamera(AppStage* appStage)
 {
 }
 
-bool ModalDialog_SelectCamera::selectCamera(
-	AppStage* appStage,
-	SelectCallback selectCallback,
-	CancelCallback cancelCallback,
-	FilterCallback filterCallback)
+bool ModalDialog_SelectCamera::selectCamera(AppStage* appStage, SelectCallback selectCallback,
+											CancelCallback cancelCallback, FilterCallback filterCallback)
 {
 	ModalDialog_SelectCamera* dialog= appStage->pushModalDialog<ModalDialog_SelectCamera>();
 
@@ -31,10 +28,8 @@ bool ModalDialog_SelectCamera::selectCamera(
 	return true;
 }
 
-bool ModalDialog_SelectCamera::init(
-	SelectCallback selectCallback,
-	CancelCallback cancelCallback,
-	FilterCallback filterCallback)
+bool ModalDialog_SelectCamera::init(SelectCallback selectCallback, CancelCallback cancelCallback,
+									FilterCallback filterCallback)
 {
 	m_selectCallback= selectCallback;
 	m_cancelCallback= cancelCallback;
@@ -70,10 +65,7 @@ void ModalDialog_SelectCamera::onGui()
 		m_bNeedsOpen= false;
 	}
 
-	ImGui::SetNextWindowPos(
-		ImGui::GetMainViewport()->GetCenter(),
-		ImGuiCond_Appearing,
-		ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
 	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{

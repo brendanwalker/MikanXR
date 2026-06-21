@@ -2,11 +2,7 @@
 #include "StringUtils.h"
 #include "SteamVRDeviceProperties.h"
 
-SteamVRDeviceProperties::SteamVRDeviceProperties(
-	vr::TrackedDeviceIndex_t deviceIndex)
-{
-	m_deviceIndex= deviceIndex;
-}
+SteamVRDeviceProperties::SteamVRDeviceProperties(vr::TrackedDeviceIndex_t deviceIndex) { m_deviceIndex= deviceIndex; }
 
 void SteamVRDeviceProperties::updateProperties()
 {
@@ -61,8 +57,7 @@ void SteamVRDeviceProperties::updateProperties()
 		break;
 	case vr::TrackedDeviceClass_Controller:
 	{
-		vr::ETrackedControllerRole controllerRole=
-			vrSystem->GetControllerRoleForTrackedDeviceIndex(m_deviceIndex);
+		vr::ETrackedControllerRole controllerRole= vrSystem->GetControllerRoleForTrackedDeviceIndex(m_deviceIndex);
 
 		if (controllerRole == vr::TrackedControllerRole_LeftHand)
 		{
@@ -132,7 +127,8 @@ bool SteamVRDeviceProperties::updateReadyIconPath()
 			if (startPos != std::string::npos)
 			{
 				std::filesystem::path iconPath= m_resourcesPath / "icons";
-				std::filesystem::path fullIconPath= partialIconPath.replace(startPos, resourcesToken.size(), iconPath.string());
+				std::filesystem::path fullIconPath=
+					partialIconPath.replace(startPos, resourcesToken.size(), iconPath.string());
 
 				if (std::filesystem::exists(fullIconPath))
 				{
@@ -193,31 +189,21 @@ bool SteamVRDeviceProperties::updateRenderModelComponents()
 		{
 			// Get the length of the component name
 			const uint32_t componentNameLen=
-				renderModelInterface->GetComponentName(
-					m_renderModelName.c_str(),
-					componentIndex,
-					nullptr,
-					0);
+				renderModelInterface->GetComponentName(m_renderModelName.c_str(), componentIndex, nullptr, 0);
 			if (componentNameLen != 0)
 			{
 				// Allocate a buffer for the component name
 				char* szComponentName= new char[componentNameLen + 1];
 
 				// Fetch the component name
-				if (renderModelInterface->GetComponentName(
-						m_renderModelName.c_str(),
-						componentIndex,
-						szComponentName,
-						componentNameLen) != 0)
+				if (renderModelInterface->GetComponentName(m_renderModelName.c_str(), componentIndex, szComponentName,
+														   componentNameLen)
+					!= 0)
 				{
 					// Get the length of the component's render model name
 					// NOTE: Some components are dynamic and don't have meshes
-					const uint32_t componentRenderModelNameLen=
-						renderModelInterface->GetComponentRenderModelName(
-							m_renderModelName.c_str(),
-							szComponentName,
-							nullptr,
-							0);
+					const uint32_t componentRenderModelNameLen= renderModelInterface->GetComponentRenderModelName(
+						m_renderModelName.c_str(), szComponentName, nullptr, 0);
 
 					if (componentRenderModelNameLen != 0)
 					{
@@ -225,11 +211,10 @@ bool SteamVRDeviceProperties::updateRenderModelComponents()
 						char* szRenderModelName= new char[componentRenderModelNameLen + 1];
 
 						// Fetch the render model name
-						if (renderModelInterface->GetComponentRenderModelName(
-								m_renderModelName.c_str(),
-								szComponentName,
-								szRenderModelName,
-								componentRenderModelNameLen) != 0)
+						if (renderModelInterface->GetComponentRenderModelName(m_renderModelName.c_str(),
+																			  szComponentName, szRenderModelName,
+																			  componentRenderModelNameLen)
+							!= 0)
 						{
 							// Add to the list of components
 							RenderComponentDefinition componentInfo;
@@ -266,9 +251,8 @@ bool SteamVRDeviceProperties::updateRenderModelComponents()
 	return true;
 }
 
-std::string SteamVRDeviceProperties::fetchStringDeviceProperty(
-	vr::ETrackedDeviceProperty property,
-	const std::string& default_string)
+std::string SteamVRDeviceProperties::fetchStringDeviceProperty(vr::ETrackedDeviceProperty property,
+															   const std::string& default_string)
 {
 	vr::IVRSystem* vrSystem= vr::VRSystem();
 	if (vrSystem == nullptr)
@@ -277,20 +261,13 @@ std::string SteamVRDeviceProperties::fetchStringDeviceProperty(
 	char szResult[512];
 	vr::ETrackedPropertyError error= vr::TrackedProp_Success;
 
-	vrSystem->GetStringTrackedDeviceProperty(
-		m_deviceIndex,
-		property,
-		szResult,
-		(uint32_t)sizeof(szResult),
-		&error);
+	vrSystem->GetStringTrackedDeviceProperty(m_deviceIndex, property, szResult, (uint32_t)sizeof(szResult), &error);
 
 	return error == vr::TrackedProp_Success ? szResult : default_string;
 }
 
-std::string SteamVRDeviceProperties::fetchStringSettingsProperty(
-	const char* sectionName,
-	const char* sectionKey,
-	const std::string& default_string)
+std::string SteamVRDeviceProperties::fetchStringSettingsProperty(const char* sectionName, const char* sectionKey,
+																 const std::string& default_string)
 {
 	vr::IVRSettings* vrSettings= vr::VRSettings();
 	if (vrSettings == nullptr)

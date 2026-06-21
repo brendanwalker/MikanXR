@@ -19,7 +19,8 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
-class MarkerObjectSystemDefinition : public MikanTypedObjectSystemDefinition<MarkerComponent, MarkerDefinition, MikanMarkerID>
+class MarkerObjectSystemDefinition
+	: public MikanTypedObjectSystemDefinition<MarkerComponent, MarkerDefinition, MikanMarkerID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<MarkerComponent, MarkerDefinition, MikanMarkerID>;
@@ -69,16 +70,12 @@ protected:
 	eCharucoDictionaryType m_charucoDictionaryType= DEFAULT_CHARUCO_DICTIONARY_TYPE;
 };
 
-class MarkerObjectSystem : public MikanTypedObjectSystem<
-							   MarkerComponent, MarkerDefinition,
-							   MikanMarkerID,
-							   MarkerObjectSystem, MarkerObjectSystemDefinition>
+class MarkerObjectSystem : public MikanTypedObjectSystem<MarkerComponent, MarkerDefinition, MikanMarkerID,
+														 MarkerObjectSystem, MarkerObjectSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		MarkerComponent, MarkerDefinition,
-		MikanMarkerID,
-		MarkerObjectSystem, MarkerObjectSystemDefinition>;
+	using Super= MikanTypedObjectSystem<MarkerComponent, MarkerDefinition, MikanMarkerID, MarkerObjectSystem,
+										MarkerObjectSystemDefinition>;
 
 	MarkerObjectSystem(ProjectManagerPtr ownerObjectSystemManager);
 

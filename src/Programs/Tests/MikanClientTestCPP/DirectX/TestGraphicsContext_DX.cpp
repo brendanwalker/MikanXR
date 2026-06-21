@@ -30,26 +30,18 @@ TestGraphicsContext_DX::TestGraphicsContext_DX(TestApp* ownerApp)
 {
 }
 
-TestCameraRenderTargetPtr TestGraphicsContext_DX::allocateCameraRenderTarget(
-	int cameraId)
+TestCameraRenderTargetPtr TestGraphicsContext_DX::allocateCameraRenderTarget(int cameraId)
 {
-	return std::make_shared<TestCameraRenderTarget_DX>(
-		shared_from_this(), m_pd3dDevice, cameraId);
+	return std::make_shared<TestCameraRenderTarget_DX>(shared_from_this(), m_pd3dDevice, cameraId);
 }
 
-void* TestGraphicsContext_DX::getGraphicsDeviceInterface() const
-{
-	return m_pd3dDevice;
-}
+void* TestGraphicsContext_DX::getGraphicsDeviceInterface() const { return m_pd3dDevice; }
 
 bool TestGraphicsContext_DX::create(int windowWidth, int windowHeight)
 {
 	const SDL_WindowFlags window_flags= (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-	m_sdlWindow= SDL_CreateWindow("Mikan Client Test",
-								  SDL_WINDOWPOS_CENTERED,
-								  SDL_WINDOWPOS_CENTERED,
-								  windowWidth, windowHeight,
-								  window_flags);
+	m_sdlWindow= SDL_CreateWindow("Mikan Client Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth,
+								  windowHeight, window_flags);
 	m_windowWidth= windowWidth;
 	m_windowHeight= windowHeight;
 
@@ -65,16 +57,13 @@ bool TestGraphicsContext_DX::create(int windowWidth, int windowHeight)
 		return false;
 	}
 
-	if (!initializeCubeShader() ||
-		!initializeDepthNormalizeShader() ||
-		!initializeQuadTextureShader())
+	if (!initializeCubeShader() || !initializeDepthNormalizeShader() || !initializeQuadTextureShader())
 	{
 		MIKAN_LOG_ERROR("startup") << "Failed to initialize shaders!";
 		return false;
 	}
 
-	if (!initializeCubeGeometry() ||
-		!initializeQuadGeometry())
+	if (!initializeCubeGeometry() || !initializeQuadGeometry())
 	{
 		MIKAN_LOG_ERROR("startup") << "Failed to initialize geometry!";
 		return false;
@@ -125,8 +114,7 @@ void TestGraphicsContext_DX::renderMainTarget() const
 	m_pSwapChain->Present(0, 0);
 }
 
-bool TestGraphicsContext_DX::renderToCameraTarget(
-	TestCameraRenderTarget* cameraRenderTarget)
+bool TestGraphicsContext_DX::renderToCameraTarget(TestCameraRenderTarget* cameraRenderTarget)
 {
 	auto* dxRenderTarget= static_cast<TestCameraRenderTarget_DX*>(cameraRenderTarget);
 
@@ -150,12 +138,11 @@ bool TestGraphicsContext_DX::renderToCameraTarget(
 	return true;
 }
 
-void TestGraphicsContext_DX::renderNormalizedDepthTexture(
-	TestCameraRenderTarget_DX* dxRenderTarget)
+void TestGraphicsContext_DX::renderNormalizedDepthTexture(TestCameraRenderTarget_DX* dxRenderTarget)
 {
 	// Create the color render target texture.
-	if (m_depthNormalizeTargetWidth != dxRenderTarget->getWidth() ||
-		m_depthNormalizeTargetHeight != dxRenderTarget->getHeight())
+	if (m_depthNormalizeTargetWidth != dxRenderTarget->getWidth()
+		|| m_depthNormalizeTargetHeight != dxRenderTarget->getHeight())
 	{
 		// Release existing resources if they exist
 		if (m_depthNormalizeColorTargetSRV)
@@ -177,15 +164,12 @@ void TestGraphicsContext_DX::renderNormalizedDepthTexture(
 		}
 
 		// Create new resources with the correct size
-		if (!createColorRenderTargetResources(
-				m_pd3dDevice,
-				dxRenderTarget->getWidth(),
-				dxRenderTarget->getHeight(),
-				&m_depthNormalizeColorTargetTexture,
-				&m_depthNormalizeColorTargetView,
-				&m_depthNormalizeColorTargetSRV))
+		if (!createColorRenderTargetResources(m_pd3dDevice, dxRenderTarget->getWidth(), dxRenderTarget->getHeight(),
+											  &m_depthNormalizeColorTargetTexture, &m_depthNormalizeColorTargetView,
+											  &m_depthNormalizeColorTargetSRV))
 		{
-			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create color render target";
+			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources")
+				<< "Failed to create color render target";
 			return;
 		}
 
@@ -272,37 +256,16 @@ bool TestGraphicsContext_DX::createDeviceD3D()
 		D3D_FEATURE_LEVEL_11_0,
 		D3D_FEATURE_LEVEL_10_0,
 	};
-	HRESULT res=
-		D3D11CreateDeviceAndSwapChain(
-			nullptr,
-			D3D_DRIVER_TYPE_HARDWARE,
-			nullptr,
-			createDeviceFlags,
-			featureLevelArray,
-			2,
-			D3D11_SDK_VERSION,
-			&sd,
-			&m_pSwapChain,
-			&m_pd3dDevice,
-			&featureLevel,
-			&m_pd3dDeviceContext);
+	HRESULT res= D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags,
+											   featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &m_pSwapChain,
+											   &m_pd3dDevice, &featureLevel, &m_pd3dDeviceContext);
 
 	// Try high-performance WARP software driver if hardware is not available
 	if (res == DXGI_ERROR_UNSUPPORTED)
 	{
-		res= D3D11CreateDeviceAndSwapChain(
-			nullptr,
-			D3D_DRIVER_TYPE_WARP,
-			nullptr,
-			createDeviceFlags,
-			featureLevelArray,
-			2,
-			D3D11_SDK_VERSION,
-			&sd,
-			&m_pSwapChain,
-			&m_pd3dDevice,
-			&featureLevel,
-			&m_pd3dDeviceContext);
+		res= D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_WARP, nullptr, createDeviceFlags, featureLevelArray,
+										   2, D3D11_SDK_VERSION, &sd, &m_pSwapChain, &m_pd3dDevice, &featureLevel,
+										   &m_pd3dDeviceContext);
 	}
 
 	if (res != S_OK)
@@ -624,23 +587,14 @@ bool TestGraphicsContext_DX::initializeCubeShader()
 
 	// Compile and create shaders
 	ID3DBlob* vertexShaderByteCode= nullptr;
-	if (!compileAndCreateShaders(
-			m_pd3dDevice,
-			shaderCode,
-			&m_cubeVertexShader,
-			&m_cubePixelShader,
-			&vertexShaderByteCode))
+	if (!compileAndCreateShaders(m_pd3dDevice, shaderCode, &m_cubeVertexShader, &m_cubePixelShader,
+								 &vertexShaderByteCode))
 	{
 		return false;
 	}
 
 	// Create constant buffer
-	if (!createConstantBuffer(
-			m_pd3dDevice,
-			sizeof(DirectX::XMMATRIX),
-			D3D11_USAGE_DEFAULT,
-			0,
-			&m_cubeConstantBuffer))
+	if (!createConstantBuffer(m_pd3dDevice, sizeof(DirectX::XMMATRIX), D3D11_USAGE_DEFAULT, 0, &m_cubeConstantBuffer))
 	{
 		vertexShaderByteCode->Release();
 		return false;
@@ -711,33 +665,22 @@ bool TestGraphicsContext_DX::initializeDepthNormalizeShader()
 
 	// Compile and create shaders
 	ID3DBlob* vertexShaderByteCode= nullptr;
-	if (!compileAndCreateShaders(
-			m_pd3dDevice,
-			shaderCode,
-			&m_depthNormalizeVertexShader,
-			&m_depthNormalizePixelShader,
-			&vertexShaderByteCode))
+	if (!compileAndCreateShaders(m_pd3dDevice, shaderCode, &m_depthNormalizeVertexShader, &m_depthNormalizePixelShader,
+								 &vertexShaderByteCode))
 	{
 		return false;
 	}
 
-	if (!createConstantBuffer(
-			m_pd3dDevice,
-			sizeof(DepthNormalizeConstants),
-			D3D11_USAGE_DYNAMIC,
-			D3D11_CPU_ACCESS_WRITE,
-			&m_depthNormalizeConstantBuffer))
+	if (!createConstantBuffer(m_pd3dDevice, sizeof(DepthNormalizeConstants), D3D11_USAGE_DYNAMIC,
+							  D3D11_CPU_ACCESS_WRITE, &m_depthNormalizeConstantBuffer))
 	{
 		vertexShaderByteCode->Release();
 		return false;
 	}
 
 	// Create sampler state
-	if (!createSamplerState(
-			m_pd3dDevice,
-			D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-			D3D11_TEXTURE_ADDRESS_CLAMP,
-			&m_depthNormalizeSamplerState))
+	if (!createSamplerState(m_pd3dDevice, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP,
+							&m_depthNormalizeSamplerState))
 	{
 		vertexShaderByteCode->Release();
 		return false;
@@ -781,12 +724,8 @@ bool TestGraphicsContext_DX::initializeQuadTextureShader()
 
 	// Compile and create shaders
 	ID3DBlob* vertexShaderByteCode= nullptr;
-	if (!compileAndCreateShaders(
-			m_pd3dDevice,
-			shaderCode,
-			&m_quadTextureVertexShader,
-			&m_quadTexturePixelShader,
-			&vertexShaderByteCode))
+	if (!compileAndCreateShaders(m_pd3dDevice, shaderCode, &m_quadTextureVertexShader, &m_quadTexturePixelShader,
+								 &vertexShaderByteCode))
 	{
 		return false;
 	}
@@ -803,11 +742,8 @@ bool TestGraphicsContext_DX::initializeQuadTextureShader()
 	}
 
 	// Create sampler state
-	if (!createSamplerState(
-			m_pd3dDevice,
-			D3D11_FILTER_MIN_MAG_MIP_LINEAR,
-			D3D11_TEXTURE_ADDRESS_CLAMP,
-			&m_quadTextureSamplerState))
+	if (!createSamplerState(m_pd3dDevice, D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP,
+							&m_quadTextureSamplerState))
 	{
 		vertexShaderByteCode->Release();
 		return false;
@@ -817,8 +753,7 @@ bool TestGraphicsContext_DX::initializeQuadTextureShader()
 	return true;
 }
 
-void TestGraphicsContext_DX::renderColorTexture(
-	ID3D11ShaderResourceView* textureSRV) const
+void TestGraphicsContext_DX::renderColorTexture(ID3D11ShaderResourceView* textureSRV) const
 {
 	// Assign the quad vertices
 	UINT stride= sizeof(DirectX::XMFLOAT3) + sizeof(DirectX::XMFLOAT2); // position (float3) + texcoord (float2)
@@ -839,9 +774,8 @@ void TestGraphicsContext_DX::renderColorTexture(
 	m_pd3dDeviceContext->Draw(6, 0);
 }
 
-void TestGraphicsContext_DX::renderPackedDepthTexture(
-	TestCameraRenderTarget_DX* dxRenderTarget,
-	IMikanAPIPtr mikanApi) const
+void TestGraphicsContext_DX::renderPackedDepthTexture(TestCameraRenderTarget_DX* dxRenderTarget,
+													  IMikanAPIPtr mikanApi) const
 {
 	MikanCameraID cameraId= dxRenderTarget->getCameraId();
 
@@ -857,12 +791,9 @@ void TestGraphicsContext_DX::renderPackedDepthTexture(
 	}
 }
 
-void TestGraphicsContext_DX::renderCube(
-	const DirectX::XMMATRIX& viewProj,
-	const DirectX::XMFLOAT3& cameraPosition,
-	const DirectX::XMFLOAT3& cameraForward,
-	const DirectX::XMFLOAT3& cameraUp,
-	const DirectX::XMFLOAT3& cameraRight) const
+void TestGraphicsContext_DX::renderCube(const DirectX::XMMATRIX& viewProj, const DirectX::XMFLOAT3& cameraPosition,
+										const DirectX::XMFLOAT3& cameraForward, const DirectX::XMFLOAT3& cameraUp,
+										const DirectX::XMFLOAT3& cameraRight) const
 {
 	const float time= m_ownerApp->getTimeSeconds();
 	const MikanVector3f cubeOffset= m_ownerApp->getCubeOffset();
@@ -889,13 +820,10 @@ void TestGraphicsContext_DX::renderCube(
 	cubePosition= DirectX::XMVectorMultiplyAdd(xmCameraRight, DirectX::XMVectorReplicate(cubeOffset.x), cubePosition);
 
 	// Build cube transformation matrix
-	DirectX::XMMATRIX cubeModelViewProj=
-		DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f) *
-		DirectX::XMMatrixRotationX(time) *
-		DirectX::XMMatrixRotationY(time * 2.0f) *
-		DirectX::XMMatrixRotationZ(time * 0.7f) *
-		DirectX::XMMatrixTranslationFromVector(cubePosition) *
-		viewProj;
+	DirectX::XMMATRIX cubeModelViewProj= DirectX::XMMatrixScaling(0.1f, 0.1f, 0.1f) * DirectX::XMMatrixRotationX(time)
+										 * DirectX::XMMatrixRotationY(time * 2.0f)
+										 * DirectX::XMMatrixRotationZ(time * 0.7f)
+										 * DirectX::XMMatrixTranslationFromVector(cubePosition) * viewProj;
 
 	// Transpose for HLSL (column-major)
 	cubeModelViewProj= DirectX::XMMatrixTranspose(cubeModelViewProj);

@@ -119,10 +119,7 @@ const Serialization::String& MikanVariant::getSerializationStringValue() const
 	return value_ptr.getTypedPointer<MikanStringValue>()->value;
 }
 
-const char* MikanVariant::getUtf8StringPointerValue() const
-{
-	return getSerializationStringValue().getValue();
-}
+const char* MikanVariant::getUtf8StringPointerValue() const { return getSerializationStringValue().getValue(); }
 
 const MikanVector2f& MikanVariant::getVector2fValue() const
 {
@@ -396,8 +393,7 @@ void MikanVariant::setValue(const std::filesystem::path& value)
 
 void MikanVariant::setValue(const std::vector<bool>& value)
 {
-	Serialization::List<bool>& value_array=
-		value_ptr.allocatedByType<MikanBoolArrayValue>()->value;
+	Serialization::List<bool>& value_array= value_ptr.allocatedByType<MikanBoolArrayValue>()->value;
 	value_type= MikanVariantType::BOOL_ARRAY;
 	value_array.resize(value.size());
 	for (size_t i= 0; i < value.size(); ++i)
@@ -412,8 +408,7 @@ void MikanVariant::setValue(const Serialization::List<bool>& value)
 
 void MikanVariant::setValue(const std::vector<uint8_t>& value)
 {
-	Serialization::List<uint8_t>& value_array=
-		value_ptr.allocatedByType<MikanUByteArrayValue>()->value;
+	Serialization::List<uint8_t>& value_array= value_ptr.allocatedByType<MikanUByteArrayValue>()->value;
 	value_type= MikanVariantType::UBYTE_ARRAY;
 	value_array.assign(value.data(), value.data() + value.size());
 }
@@ -436,8 +431,7 @@ void MikanVariant::setValue(const std::vector<float>& value)
 
 void MikanVariant::setValue(const std::vector<std::string>& value)
 {
-	Serialization::List<Serialization::String>& value_array=
-		value_ptr.allocatedByType<MikanStringArrayValue>()->value;
+	Serialization::List<Serialization::String>& value_array= value_ptr.allocatedByType<MikanStringArrayValue>()->value;
 
 	value_type= MikanVariantType::STRING_ARRAY;
 	value_array.clear();
@@ -449,8 +443,7 @@ void MikanVariant::setValue(const std::vector<std::string>& value)
 
 void MikanVariant::setValue(const std::vector<Serialization::String>& value)
 {
-	Serialization::List<Serialization::String>& value_array=
-		value_ptr.allocatedByType<MikanStringArrayValue>()->value;
+	Serialization::List<Serialization::String>& value_array= value_ptr.allocatedByType<MikanStringArrayValue>()->value;
 
 	value_type= MikanVariantType::STRING_ARRAY;
 	value_array.assign(value.data(), value.data() + value.size());

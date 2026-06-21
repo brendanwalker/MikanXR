@@ -46,7 +46,8 @@ bool DeepNeuralNetwork::loadOnnxFile(const std::filesystem::path& onnxPath)
 
 	if (net.empty())
 	{
-		MIKAN_LOG_ERROR("OpenCVManager::fetchDeepNeuralNetwork") << "Unable to read neural network from file: " << onnxPath.string();
+		MIKAN_LOG_ERROR("OpenCVManager::fetchDeepNeuralNetwork")
+			<< "Unable to read neural network from file: " << onnxPath.string();
 		return false;
 	}
 
@@ -72,12 +73,14 @@ bool DeepNeuralNetwork::loadOnnxFile(const std::filesystem::path& onnxPath)
 
 	if (topLayerInputShapes.size() == 0 || topLayerInputShapes[0].size() != 4)
 	{
-		MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") << "Unable to read input layer shapes from neural network: " << onnxPath.string();
+		MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile")
+			<< "Unable to read input layer shapes from neural network: " << onnxPath.string();
 		return false;
 	}
 	else if (topLayerInputShapes[0][1] != 1 && topLayerInputShapes[0][1] != 3)
 	{
-		MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile") << "Input layer channel count unsupported size(" << topLayerInputShapes[0][1] << "): " << onnxPath.string();
+		MIKAN_LOG_ERROR("DeepNeuralNetwork::loadOnnxFile")
+			<< "Input layer channel count unsupported size(" << topLayerInputShapes[0][1] << "): " << onnxPath.string();
 		return false;
 	}
 
@@ -138,35 +141,17 @@ void DeepNeuralNetwork::dispose()
 	m_dnnData->outputHeight= 0;
 }
 
-int DeepNeuralNetwork::getInputWidth() const
-{
-	return m_dnnData->inputWidth;
-}
+int DeepNeuralNetwork::getInputWidth() const { return m_dnnData->inputWidth; }
 
-int DeepNeuralNetwork::getInputHeight() const
-{
-	return m_dnnData->inputHeight;
-}
+int DeepNeuralNetwork::getInputHeight() const { return m_dnnData->inputHeight; }
 
-int DeepNeuralNetwork::getInputChannels() const
-{
-	return m_dnnData->inputChannels;
-}
+int DeepNeuralNetwork::getInputChannels() const { return m_dnnData->inputChannels; }
 
-int DeepNeuralNetwork::getOutputWidth() const
-{
-	return m_dnnData->outputWidth;
-}
+int DeepNeuralNetwork::getOutputWidth() const { return m_dnnData->outputWidth; }
 
-int DeepNeuralNetwork::getOutputHeight() const
-{
-	return m_dnnData->outputHeight;
-}
+int DeepNeuralNetwork::getOutputHeight() const { return m_dnnData->outputHeight; }
 
-int DeepNeuralNetwork::getOutputChannels() const
-{
-	return m_dnnData->outputChannels;
-}
+int DeepNeuralNetwork::getOutputChannels() const { return m_dnnData->outputChannels; }
 
 bool DeepNeuralNetwork::evaluateForwardPass(cv::Mat* inputBlob, cv::Mat* outputBlob) const
 {
@@ -175,18 +160,14 @@ bool DeepNeuralNetwork::evaluateForwardPass(cv::Mat* inputBlob, cv::Mat* outputB
 	if (m_dnnData->net.empty())
 		return false;
 
-	if (inputBlob->dims != 4 ||
-		inputBlob->size[3] != m_dnnData->inputWidth ||
-		inputBlob->size[2] != m_dnnData->inputHeight ||
-		inputBlob->size[1] != m_dnnData->inputChannels)
+	if (inputBlob->dims != 4 || inputBlob->size[3] != m_dnnData->inputWidth
+		|| inputBlob->size[2] != m_dnnData->inputHeight || inputBlob->size[1] != m_dnnData->inputChannels)
 	{
 		return false;
 	}
 
-	if (outputBlob->dims != 3 ||
-		outputBlob->size[2] != m_dnnData->outputWidth ||
-		outputBlob->size[1] != m_dnnData->outputHeight ||
-		outputBlob->size[0] != m_dnnData->outputChannels)
+	if (outputBlob->dims != 3 || outputBlob->size[2] != m_dnnData->outputWidth
+		|| outputBlob->size[1] != m_dnnData->outputHeight || outputBlob->size[0] != m_dnnData->outputChannels)
 	{
 		return false;
 	}

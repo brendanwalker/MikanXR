@@ -89,11 +89,8 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 	if (m_bEnableQuadStencils)
 	{
 		std::vector<QuadStencilComponentPtr> quadList;
-		getObjectSystemOfType<QuadStencilSystem>()->getRelevantQuadStencilList(
-			nullptr,
-			cameraPosition,
-			cameraForward,
-			quadList);
+		getObjectSystemOfType<QuadStencilSystem>()->getRelevantQuadStencilList(nullptr, cameraPosition, cameraForward,
+																			   quadList);
 
 		for (QuadStencilComponentPtr stencil : quadList)
 		{
@@ -106,11 +103,8 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 	if (m_bEnableBoxStencils)
 	{
 		std::vector<BoxStencilComponentPtr> boxList;
-		getObjectSystemOfType<BoxStencilSystem>()->getRelevantBoxStencilList(
-			nullptr,
-			cameraPosition,
-			cameraForward,
-			boxList);
+		getObjectSystemOfType<BoxStencilSystem>()->getRelevantBoxStencilList(nullptr, cameraPosition, cameraForward,
+																			 boxList);
 
 		for (BoxStencilComponentPtr stencil : boxList)
 		{
@@ -123,11 +117,8 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 	if (m_bEnableModelStencils)
 	{
 		std::vector<ModelStencilComponentPtr> modelList;
-		getObjectSystemOfType<ModelStencilSystem>()->getRelevantModelStencilList(
-			nullptr,
-			cameraPosition,
-			cameraForward,
-			modelList);
+		getObjectSystemOfType<ModelStencilSystem>()->getRelevantModelStencilList(nullptr, cameraPosition, cameraForward,
+																				 modelList);
 
 		for (ModelStencilComponentPtr stencil : modelList)
 		{
@@ -147,7 +138,8 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> StencilSelectNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> StencilSelectNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
@@ -174,18 +166,9 @@ void StencilSelectNode::editorRenderPropertySheet(const NodeEditorState& editorS
 {
 	if (NodeEditorUI::DrawPropertySheetHeader("Stencil Select Node", editorState.styleManager))
 	{
-		NodeEditorUI::DrawCheckBoxProperty(
-			"StencilSelectNodeEnableQuad",
-			"Enable Quads",
-			m_bEnableQuadStencils);
-		NodeEditorUI::DrawCheckBoxProperty(
-			"StencilSelectNodeEnableBox",
-			"Enable Boxes",
-			m_bEnableBoxStencils);
-		NodeEditorUI::DrawCheckBoxProperty(
-			"StencilSelectNodeEnableModel",
-			"Enable Models",
-			m_bEnableModelStencils);
+		NodeEditorUI::DrawCheckBoxProperty("StencilSelectNodeEnableQuad", "Enable Quads", m_bEnableQuadStencils);
+		NodeEditorUI::DrawCheckBoxProperty("StencilSelectNodeEnableBox", "Enable Boxes", m_bEnableBoxStencils);
+		NodeEditorUI::DrawCheckBoxProperty("StencilSelectNodeEnableModel", "Enable Models", m_bEnableModelStencils);
 	}
 }
 

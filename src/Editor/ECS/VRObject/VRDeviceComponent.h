@@ -77,15 +77,11 @@ public:
 
 	const std::vector<std::string>& getSocketNames() const { return m_socketNames; }
 	bool getSocketRelativePoseByName(const std::string& socketName, glm::mat4& outPose) const;
-	VRDevicePoseViewPtr makePoseView(
-		eVRDevicePoseSpace space,
-		const std::string& socketName= "") const;
+	VRDevicePoseViewPtr makePoseView(eVRDevicePoseSpace space, const std::string& socketName= "") const;
 
 	void refreshDevicePose();
-	void renderVRDeviceInfo(
-		IMkGraphicsContext* graphicsContext,
-		IMkCameraConstPtr camera,
-		const glm::mat4& transformToTargetSpace) const;
+	void renderVRDeviceInfo(IMkGraphicsContext* graphicsContext, IMkCameraConstPtr camera,
+							const glm::mat4& transformToTargetSpace) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

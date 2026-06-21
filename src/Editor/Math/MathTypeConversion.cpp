@@ -87,15 +87,9 @@ cv::Matx44d glm_dmat4x4_to_cv_mat44d(const glm::dmat4& in)
 	return out;
 }
 
-cv::Vec3d glm_dvec3_to_cv_vec3d(const glm::dvec3& in)
-{
-	return cv::Vec3d(in.x, in.y, in.z);
-}
+cv::Vec3d glm_dvec3_to_cv_vec3d(const glm::dvec3& in) { return cv::Vec3d(in.x, in.y, in.z); }
 
-cv::Quatd glm_dquat_to_cv_quatd(const glm::dquat& in)
-{
-	return cv::Quatd(in.w, in.x, in.y, in.z);
-}
+cv::Quatd glm_dquat_to_cv_quatd(const glm::dquat& in) { return cv::Quatd(in.w, in.x, in.y, in.z); }
 
 // OpenCV types to Mikan types
 glm::mat3 cv_mat33f_to_glm_mat3(const cv::Matx33f& in)
@@ -162,15 +156,9 @@ glm::dmat4x3 cv_mat34d_to_glm_dmat4x3(const cv::Matx34d& in)
 	return out;
 }
 
-glm::vec3 cv_vec3f_to_glm_vec3(const cv::Vec3f& in)
-{
-	return glm::vec3(in(0), in(1), in(2));
-}
+glm::vec3 cv_vec3f_to_glm_vec3(const cv::Vec3f& in) { return glm::vec3(in(0), in(1), in(2)); }
 
-glm::dvec3 cv_vec3d_to_glm_dvec3(const cv::Vec3d& in)
-{
-	return glm::dvec3(in(0), in(1), in(2));
-}
+glm::dvec3 cv_vec3d_to_glm_dvec3(const cv::Vec3d& in) { return glm::dvec3(in(0), in(1), in(2)); }
 
 glm::dquat cv_quatd_to_glm_dquat(const cv::Quatd& in)
 {
@@ -184,28 +172,17 @@ glm::dquat cv_quatd_to_glm_dquat(const cv::Quatd& in)
 }
 
 // VRDevicePost to GLM types
-glm::vec3 VRDevicePosition_to_glm_vec3(const struct VRDevicePosition& in)
-{
-	return glm::vec3(in.x, in.y, in.z);
-}
+glm::vec3 VRDevicePosition_to_glm_vec3(const struct VRDevicePosition& in) { return glm::vec3(in.x, in.y, in.z); }
 
-glm::quat VRDeviceQuat_to_glm_quat(const struct VRDeviceQuat& in)
-{
-	return glm::quat(in.w, in.x, in.y, in.z);
-}
+glm::quat VRDeviceQuat_to_glm_quat(const struct VRDeviceQuat& in) { return glm::quat(in.w, in.x, in.y, in.z); }
 
 GlmTransform VRDevicePose_to_GlmTransform(const struct VRDevicePose& in)
 {
-	return GlmTransform(
-		VRDevicePosition_to_glm_vec3(in.position),
-		VRDeviceQuat_to_glm_quat(in.orientation));
+	return GlmTransform(VRDevicePosition_to_glm_vec3(in.position), VRDeviceQuat_to_glm_quat(in.orientation));
 }
 
 // OpenCV to Mikan types
-MikanVector3d cv_vec3d_to_MikanVector3d(const cv::Vec3d& in)
-{
-	return {in(0), in(1), in(2)};
-}
+MikanVector3d cv_vec3d_to_MikanVector3d(const cv::Vec3d& in) { return {in(0), in(1), in(2)}; }
 
 MikanQuatd cv_quatd_to_MikanQuatd(const cv::Quatd& in)
 {
@@ -340,32 +317,18 @@ MikanMatrix4x3d MikanMatrix4x3d_to_cv_mat34d(const cv::Matx34d& in)
 }
 
 // Mikan types to GLM tyoes
-glm::dvec3 MikanVector3d_to_glm_dvec3(const MikanVector3d& in)
-{
-	return glm::dvec3(in.x, in.y, in.z);
-}
+glm::dvec3 MikanVector3d_to_glm_dvec3(const MikanVector3d& in) { return glm::dvec3(in.x, in.y, in.z); }
 
-glm::vec3 MikanVector3f_to_glm_vec3(const MikanVector3f& in)
-{
-	return glm::vec3(in.x, in.y, in.z);
-}
+glm::vec3 MikanVector3f_to_glm_vec3(const MikanVector3f& in) { return glm::vec3(in.x, in.y, in.z); }
 
-MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in)
-{
-	return {in.x, in.y, in.z};
-}
+MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in) { return {in.x, in.y, in.z}; }
 
-glm::dquat MikanQuatd_to_glm_dquat(const MikanQuatd& in)
-{
-	return glm::dquat(in.w, in.x, in.y, in.z);
-}
+glm::dquat MikanQuatd_to_glm_dquat(const MikanQuatd& in) { return glm::dquat(in.w, in.x, in.y, in.z); }
 
 GlmTransform MikanTransform_to_glm_transform(const MikanTransform& in)
 {
-	return GlmTransform(
-		MikanVector3f_to_glm_vec3(in.position),
-		MikanQuatf_to_glm_quat(in.rotation),
-		MikanVector3f_to_glm_vec3(in.scale));
+	return GlmTransform(MikanVector3f_to_glm_vec3(in.position), MikanQuatf_to_glm_quat(in.rotation),
+						MikanVector3f_to_glm_vec3(in.scale));
 }
 
 MikanMatrix4f glm_mat4_to_MikanMatrix4f(const glm::mat4& in)
@@ -409,15 +372,9 @@ glm::quat MikanRotator3f_to_glm_quat(const MikanRotator3f& in)
 	return glm::quat(glm::mat3(glm::eulerAngleXYZ(xRadians, yRadians, zRadians)));
 }
 
-glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in)
-{
-	return glm::quat(in.w, in.x, in.y, in.z);
-}
+glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in) { return glm::quat(in.w, in.x, in.y, in.z); }
 
-glm::quat MikanQuatd_to_glm_quat(const MikanQuatd& in)
-{
-	return glm::quat(in.w, in.x, in.y, in.z);
-}
+glm::quat MikanQuatd_to_glm_quat(const MikanQuatd& in) { return glm::quat(in.w, in.x, in.y, in.z); }
 
 MikanTransform glm_transform_to_MikanTransform(const GlmTransform& in)
 {
@@ -434,13 +391,7 @@ MikanRotator3f glm_quat_to_MikanRotator3f(const glm::quat& in)
 	float xRadians, yRadians, zRadians;
 	glm_quat_to_euler_angles(in, xRadians, yRadians, zRadians);
 
-	return {
-		xRadians * k_radians_to_degrees,
-		yRadians * k_radians_to_degrees,
-		zRadians * k_radians_to_degrees};
+	return {xRadians * k_radians_to_degrees, yRadians * k_radians_to_degrees, zRadians * k_radians_to_degrees};
 }
 
-MikanQuatf glm_quat_to_MikanQuatf(const glm::quat& in)
-{
-	return {in.w, in.x, in.y, in.z};
-}
+MikanQuatf glm_quat_to_MikanQuatf(const glm::quat& in) { return {in.w, in.x, in.y, in.z}; }

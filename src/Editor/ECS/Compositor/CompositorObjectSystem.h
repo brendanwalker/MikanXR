@@ -14,7 +14,8 @@
 #include <string>
 #include <vector>
 
-class CompositorObjectSystemDefinition : public MikanTypedObjectSystemDefinition<CompositorComponent, CompositorDefinition, MikanCompositorID>
+class CompositorObjectSystemDefinition
+	: public MikanTypedObjectSystemDefinition<CompositorComponent, CompositorDefinition, MikanCompositorID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<CompositorComponent, CompositorDefinition, MikanCompositorID>;
@@ -22,16 +23,13 @@ public:
 	CompositorObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class CompositorObjectSystem : public MikanTypedObjectSystem<
-								   CompositorComponent, CompositorDefinition,
-								   MikanCompositorID,
-								   CompositorObjectSystem, CompositorObjectSystemDefinition>
+class CompositorObjectSystem
+	: public MikanTypedObjectSystem<CompositorComponent, CompositorDefinition, MikanCompositorID,
+									CompositorObjectSystem, CompositorObjectSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		CompositorComponent, CompositorDefinition,
-		MikanCompositorID,
-		CompositorObjectSystem, CompositorObjectSystemDefinition>;
+	using Super= MikanTypedObjectSystem<CompositorComponent, CompositorDefinition, MikanCompositorID,
+										CompositorObjectSystem, CompositorObjectSystemDefinition>;
 
 	CompositorObjectSystem(ProjectManagerPtr ownerObjectSystem);
 

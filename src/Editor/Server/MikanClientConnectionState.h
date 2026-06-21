@@ -13,9 +13,7 @@ using PropertyNotifyDatabasePtr= std::shared_ptr<class PropertyNotifyDatabase>;
 class MikanClientConnectionState
 {
 public:
-	MikanClientConnectionState(
-		class MikanServer* ownerServer,
-		const std::string& connectionId);
+	MikanClientConnectionState(class MikanServer* ownerServer, const std::string& connectionId);
 	virtual ~MikanClientConnectionState();
 
 	inline class MikanServer* getOwnerServer() const { return m_ownerServer; }
@@ -32,11 +30,8 @@ public:
 	void publishMikanJsonEvent(const std::string& mikanJsonEvent);
 
 	// Property Events
-	bool setPropertyNotifyMode(
-		const std::string& systemFilter,
-		const std::string& componentFilter,
-		const std::string& propertyFilter,
-		MikanPropertyNotifyMode notifyMode);
+	bool setPropertyNotifyMode(const std::string& systemFilter, const std::string& componentFilter,
+							   const std::string& propertyFilter, MikanPropertyNotifyMode notifyMode);
 	void publishPropertyChangedEvent(const MikanPropertyValue& propertyValue);
 
 private:

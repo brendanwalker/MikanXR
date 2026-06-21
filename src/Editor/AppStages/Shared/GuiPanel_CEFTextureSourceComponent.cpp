@@ -3,10 +3,7 @@
 #include "CEFTextureSourceComponent.h"
 #include "MkGuiDrawUtils.h"
 
-bool GuiPanel_CEFTextureSourceComponent::init()
-{
-	return initTypedPropertyInterface<CEFTextureSourceComponent>();
-}
+bool GuiPanel_CEFTextureSourceComponent::init() { return initTypedPropertyInterface<CEFTextureSourceComponent>(); }
 
 void GuiPanel_CEFTextureSourceComponent::onConstruct()
 {
@@ -25,15 +22,12 @@ void GuiPanel_CEFTextureSourceComponent::onConstruct()
 			char buf[2048];
 			strncpy_s(buf, sizeof(buf), currentUrl.c_str(), _TRUNCATE);
 
-			if (MkGui::drawStringProperty(
-					m_defaultGuiStyle,
-					comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_urlPropertyId),
-					"URL",
-					buf, sizeof(buf)))
+			if (MkGui::drawStringProperty(m_defaultGuiStyle,
+										  comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_urlPropertyId),
+										  "URL", buf, sizeof(buf)))
 			{
 				std::string newUrl(buf);
-				addDeferredGuiEvent([comp, newUrl]()
-									{ comp->getCEFTextureSourceDefinition()->setUrl(newUrl); });
+				addDeferredGuiEvent([comp, newUrl]() { comp->getCEFTextureSourceDefinition()->setUrl(newUrl); });
 			}
 			return true;
 		});
@@ -49,14 +43,11 @@ void GuiPanel_CEFTextureSourceComponent::onConstruct()
 
 			int w= comp->getCEFTextureSourceDefinition()->getWidth();
 
-			if (MkGui::drawIntProperty(
-					m_defaultGuiStyle,
-					comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_widthPropertyId),
-					"Width",
-					w))
+			if (MkGui::drawIntProperty(m_defaultGuiStyle,
+									   comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_widthPropertyId),
+									   "Width", w))
 			{
-				addDeferredGuiEvent([comp, w]()
-									{ comp->getCEFTextureSourceDefinition()->setWidth(w); });
+				addDeferredGuiEvent([comp, w]() { comp->getCEFTextureSourceDefinition()->setWidth(w); });
 			}
 			return true;
 		});
@@ -72,14 +63,11 @@ void GuiPanel_CEFTextureSourceComponent::onConstruct()
 
 			int h= comp->getCEFTextureSourceDefinition()->getHeight();
 
-			if (MkGui::drawIntProperty(
-					m_defaultGuiStyle,
-					comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_heightPropertyId),
-					"Height",
-					h))
+			if (MkGui::drawIntProperty(m_defaultGuiStyle,
+									   comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_heightPropertyId),
+									   "Height", h))
 			{
-				addDeferredGuiEvent([comp, h]()
-									{ comp->getCEFTextureSourceDefinition()->setHeight(h); });
+				addDeferredGuiEvent([comp, h]() { comp->getCEFTextureSourceDefinition()->setHeight(h); });
 			}
 			return true;
 		});

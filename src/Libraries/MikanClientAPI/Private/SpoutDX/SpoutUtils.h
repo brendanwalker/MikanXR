@@ -192,7 +192,8 @@ bool ReadPathFromRegistry(HKEY hKey, const char* subkey, const char* valuename, 
 bool WritePathToRegistry(HKEY hKey, const char* subkey, const char* valuename, const char* filepath);
 
 // Write subkey binary hex data string
-bool WriteBinaryToRegistry(HKEY hKey, const char* subkey, const char* valuename, const unsigned char* hexdata, DWORD nchars);
+bool WriteBinaryToRegistry(HKEY hKey, const char* subkey, const char* valuename, const unsigned char* hexdata,
+						   DWORD nchars);
 
 // Remove subkey value name
 bool RemovePathFromRegistry(HKEY hKey, const char* subkey, const char* valuename);

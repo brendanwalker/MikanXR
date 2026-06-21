@@ -58,10 +58,8 @@ struct StencilAlignmentState
 };
 
 //-- MonoDistortionCalibrator ----
-StencilAligner::StencilAligner(
-	CameraComponentPtr cameraComponent,
-	VideoFrameDistortionView* distortionView,
-	ModelStencilComponentPtr modelStencil)
+StencilAligner::StencilAligner(CameraComponentPtr cameraComponent, VideoFrameDistortionView* distortionView,
+							   ModelStencilComponentPtr modelStencil)
 	: m_calibrationState(new StencilAlignmentState)
 	, m_cameraComponent(cameraComponent)
 	, m_distortionView(distortionView)
@@ -71,21 +69,15 @@ StencilAligner::StencilAligner(
 	m_calibrationState->init(distortionView->getVideoSourceComponent());
 }
 
-StencilAligner::~StencilAligner()
-{
-	delete m_calibrationState;
-}
+StencilAligner::~StencilAligner() { delete m_calibrationState; }
 
 bool StencilAligner::hasFinishedPointSampling() const
 {
-	return m_calibrationState->pixelSamples.size() >= DESIRED_SAMPLE_COUNT &&
-		   m_calibrationState->cvLocalVertexSamples.size() >= DESIRED_SAMPLE_COUNT;
+	return m_calibrationState->pixelSamples.size() >= DESIRED_SAMPLE_COUNT
+		   && m_calibrationState->cvLocalVertexSamples.size() >= DESIRED_SAMPLE_COUNT;
 }
 
-void StencilAligner::resetCalibrationState()
-{
-	m_calibrationState->resetCalibration();
-}
+void StencilAligner::resetCalibrationState() { m_calibrationState->resetCalibration(); }
 
 void StencilAligner::samplePixel(const glm::vec2& pixel)
 {
@@ -100,10 +92,8 @@ void StencilAligner::sampleVertex(const glm::vec3& localVertex)
 	// * Mikan units are in meters, but SolvePnP want points in millimeters
 	// * Convert from OpenGL coordinate system to OpenCV coordinate system
 	// (x, y, z) -> (x, -y, -z)
-	const cv::Point3d cv_localVertex(
-		localVertex.x * k_meters_to_millimeters,
-		-localVertex.y * k_meters_to_millimeters,
-		-localVertex.z * k_meters_to_millimeters);
+	const cv::Point3d cv_localVertex(localVertex.x * k_meters_to_millimeters, -localVertex.y * k_meters_to_millimeters,
+									 -localVertex.z * k_meters_to_millimeters);
 
 	m_calibrationState->cvLocalVertexSamples.push_back(cv_localVertex);
 	m_calibrationState->glLocalVertexSamples.push_back(localVertex);
@@ -111,8 +101,8 @@ void StencilAligner::sampleVertex(const glm::vec3& localVertex)
 
 bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 {
-	if (m_calibrationState->pixelSamples.size() < DESIRED_SAMPLE_COUNT ||
-		m_calibrationState->cvLocalVertexSamples.size() < DESIRED_SAMPLE_COUNT)
+	if (m_calibrationState->pixelSamples.size() < DESIRED_SAMPLE_COUNT
+		|| m_calibrationState->cvLocalVertexSamples.size() < DESIRED_SAMPLE_COUNT)
 		return false;
 
 	// Make sure mono camera intrinsics are available
@@ -128,21 +118,16 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 	cv::Quatd cv_cameraToStencilRot;
 	cv::Vec3d cv_cameraToStencilVecMM; // Millimeters
 	const auto& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
-	if (!computeOpenCVCameraRelativePatternTransform(
-			monoIntrinsics,
-			m_calibrationState->pixelSamples,
-			m_calibrationState->cvLocalVertexSamples,
-			cv_cameraToStencilRot,
-			cv_cameraToStencilVecMM))
+	if (!computeOpenCVCameraRelativePatternTransform(monoIntrinsics, m_calibrationState->pixelSamples,
+													 m_calibrationState->cvLocalVertexSamples, cv_cameraToStencilRot,
+													 cv_cameraToStencilVecMM))
 	{
 		return false;
 	}
 
 	// Convert OpenCV pose (in mm) to OpenGL pose (in meters)
 	glm::dmat4 cameraToStencilXform;
-	convertOpenCVCameraRelativePoseToGLMMat(
-		cv_cameraToStencilRot, cv_cameraToStencilVecMM,
-		cameraToStencilXform);
+	convertOpenCVCameraRelativePoseToGLMMat(cv_cameraToStencilRot, cv_cameraToStencilVecMM, cameraToStencilXform);
 
 	// Compute world transform from the current camera pose
 	glm::mat4 cameraPose;
@@ -177,12 +162,7 @@ void StencilAligner::renderPixelSamples()
 		TextStyle style= getDefaultTextStyle();
 		style.horizontalAlignment= eHorizontalTextAlignment::Middle;
 		style.verticalAlignment= eVerticalTextAlignment::Bottom;
-		drawTextAtCameraPosition(
-			graphicsContext,
-			style,
-			frameWidth, frameHeight,
-			glm_points[i],
-			L"P%d", i);
+		drawTextAtCameraPosition(graphicsContext, style, frameWidth, frameHeight, glm_points[i], L"P%d", i);
 
 		if (i > 0)
 		{
@@ -199,19 +179,11 @@ void StencilAligner::renderPixelSamples()
 				color= Colors::Blue;
 				break;
 			}
-			drawSegment2d(
-				graphicsContext,
-				frameWidth, frameHeight,
-				glm_points[0], glm_points[i],
-				color, color);
+			drawSegment2d(graphicsContext, frameWidth, frameHeight, glm_points[0], glm_points[i], color, color);
 		}
 	}
 
-	drawPointList2d(
-		graphicsContext,
-		frameWidth, frameHeight,
-		glm_points, pointCount,
-		Colors::Yellow, 2.f);
+	drawPointList2d(graphicsContext, frameWidth, frameHeight, glm_points, pointCount, Colors::Yellow, 2.f);
 }
 
 void StencilAligner::renderVertexSamples()
@@ -229,11 +201,7 @@ void StencilAligner::renderVertexSamples()
 		TextStyle style= getDefaultTextStyle();
 		style.horizontalAlignment= eHorizontalTextAlignment::Middle;
 		style.verticalAlignment= eVerticalTextAlignment::Bottom;
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style,
-			worldVertex,
-			L"P%d", i);
+		drawTextAtWorldPosition(graphicsContext, style, worldVertex, L"P%d", i);
 
 		if (i > 0)
 		{
@@ -250,9 +218,7 @@ void StencilAligner::renderVertexSamples()
 				color= Colors::Blue;
 				break;
 			}
-			drawSegment(
-				graphicsContext,
-				xform, m_calibrationState->glLocalVertexSamples[0], localVertex, color, color);
+			drawSegment(graphicsContext, xform, m_calibrationState->glLocalVertexSamples[0], localVertex, color, color);
 		}
 	}
 }

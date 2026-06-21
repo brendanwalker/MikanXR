@@ -5,10 +5,8 @@
 #include "TestDirectXUtils.h"
 #include "Logger.h"
 
-TestCameraRenderTarget_DX::TestCameraRenderTarget_DX(
-	TestGraphicsContextPtr ownerContext,
-	ID3D11Device* d3dDevice,
-	MikanCameraID cameraId)
+TestCameraRenderTarget_DX::TestCameraRenderTarget_DX(TestGraphicsContextPtr ownerContext, ID3D11Device* d3dDevice,
+													 MikanCameraID cameraId)
 	: TestCameraRenderTarget(ownerContext, cameraId)
 	, m_d3dDevice(d3dDevice)
 	, m_projMatrix(DirectX::XMMatrixIdentity())
@@ -32,26 +30,16 @@ TestCameraRenderTarget_DX::~TestCameraRenderTarget_DX()
 bool TestCameraRenderTarget_DX::createGraphicsAPIResources(int textureWidth, int textureHeight)
 {
 	// Create the color render target texture.
-	if (!createColorRenderTargetResources(
-			m_d3dDevice,
-			textureWidth,
-			textureHeight,
-			&m_colorTargetTexture,
-			&m_colorTargetView,
-			&m_colorTargetSRV))
+	if (!createColorRenderTargetResources(m_d3dDevice, textureWidth, textureHeight, &m_colorTargetTexture,
+										  &m_colorTargetView, &m_colorTargetSRV))
 	{
 		MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create color render target";
 		return false;
 	}
 
 	// Create the depth render target texture
-	if (!createDepthRenderTargetResources(
-			m_d3dDevice,
-			textureWidth,
-			textureHeight,
-			&m_floatDepthTargetTexture,
-			&m_floatDepthTargetView,
-			&m_floatDepthTargetSRV))
+	if (!createDepthRenderTargetResources(m_d3dDevice, textureWidth, textureHeight, &m_floatDepthTargetTexture,
+										  &m_floatDepthTargetView, &m_floatDepthTargetSRV))
 	{
 		MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create depth render target";
 		return false;
@@ -102,15 +90,9 @@ void TestCameraRenderTarget_DX::freeGraphicsAPIResources()
 	}
 }
 
-void* TestCameraRenderTarget_DX::getGraphicsApiColorTexturePtr() const
-{
-	return m_colorTargetTexture;
-}
+void* TestCameraRenderTarget_DX::getGraphicsApiColorTexturePtr() const { return m_colorTargetTexture; }
 
-void* TestCameraRenderTarget_DX::getGraphicsApiDepthTexturePtr() const
-{
-	return m_floatDepthTargetTexture;
-}
+void* TestCameraRenderTarget_DX::getGraphicsApiDepthTexturePtr() const { return m_floatDepthTargetTexture; }
 
 void TestCameraRenderTarget_DX::updateCameraViewMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
 {
@@ -153,8 +135,7 @@ void TestCameraRenderTarget_DX::bindGraphicsAPIResource()
 
 	if (deviceContext == nullptr)
 	{
-		MIKAN_LOG_ERROR("TestCameraRenderTarget_DX::bindGraphicsAPIResource")
-			<< "Failed to get device context";
+		MIKAN_LOG_ERROR("TestCameraRenderTarget_DX::bindGraphicsAPIResource") << "Failed to get device context";
 		return;
 	}
 

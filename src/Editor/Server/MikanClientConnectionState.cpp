@@ -6,27 +6,18 @@
 #include "PropertyNotifyDatabase.h"
 #include "ServerResponseHelpers.h"
 
-MikanClientConnectionState::MikanClientConnectionState(
-	MikanServer* ownerServer,
-	const std::string& connectionId)
+MikanClientConnectionState::MikanClientConnectionState(MikanServer* ownerServer, const std::string& connectionId)
 	: m_ownerServer(ownerServer)
 	, m_connectionId(connectionId)
 	, m_renderTargetClientState(new RenderTargetClientState(this))
 	, m_propertyNotifyDatabase(
-		  std::make_shared<PropertyNotifyDatabase>(
-			  ownerServer->getProjectManager()->getPropertyDatabaseConst()))
+		  std::make_shared<PropertyNotifyDatabase>(ownerServer->getProjectManager()->getPropertyDatabaseConst()))
 {
 }
 
-MikanClientConnectionState::~MikanClientConnectionState()
-{
-	delete m_renderTargetClientState;
-}
+MikanClientConnectionState::~MikanClientConnectionState() { delete m_renderTargetClientState; }
 
-const char* MikanClientConnectionState::getClientId() const
-{
-	return m_clientInfo.clientId.getValue();
-}
+const char* MikanClientConnectionState::getClientId() const { return m_clientInfo.clientId.getValue(); }
 
 bool MikanClientConnectionState::isClientInfoValid() const
 {
@@ -59,21 +50,18 @@ void MikanClientConnectionState::publishMikanJsonEvent(const std::string& mikanJ
 }
 
 // Property Events
-bool MikanClientConnectionState::setPropertyNotifyMode(
-	const std::string& systemFilter,
-	const std::string& componentFilter,
-	const std::string& propertyFilter,
-	MikanPropertyNotifyMode notifyMode)
+bool MikanClientConnectionState::setPropertyNotifyMode(const std::string& systemFilter,
+													   const std::string& componentFilter,
+													   const std::string& propertyFilter,
+													   MikanPropertyNotifyMode notifyMode)
 {
-	return m_propertyNotifyDatabase->setPropertyNotifyMode(
-		systemFilter, componentFilter, propertyFilter, notifyMode);
+	return m_propertyNotifyDatabase->setPropertyNotifyMode(systemFilter, componentFilter, propertyFilter, notifyMode);
 }
 
 void MikanClientConnectionState::publishPropertyChangedEvent(const MikanPropertyValue& propertyValue)
 {
 	MikanPropertyNotifyMode notifyMode=
-		m_propertyNotifyDatabase->getPropertyNotifyMode(
-			propertyValue, m_ownerServer->getProjectManager());
+		m_propertyNotifyDatabase->getPropertyNotifyMode(propertyValue, m_ownerServer->getProjectManager());
 
 	if (notifyMode != MikanPropertyNotifyMode::NONE)
 	{
@@ -88,8 +76,7 @@ void MikanClientConnectionState::publishPropertyChangedEvent(const MikanProperty
 			propertyUpdateEvent.propertyValue.fieldValue= propertyValue.fieldValue;
 		}
 
-		m_ownerServer->getMessageServer()->sendMessageToClient(
-			getConnectionId(),
-			mikanTypeToJsonString(propertyUpdateEvent));
+		m_ownerServer->getMessageServer()->sendMessageToClient(getConnectionId(),
+															   mikanTypeToJsonString(propertyUpdateEvent));
 	}
 }

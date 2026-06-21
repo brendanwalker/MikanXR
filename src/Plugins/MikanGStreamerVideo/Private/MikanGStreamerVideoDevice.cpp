@@ -13,9 +13,7 @@
 #include <chrono>
 #include <thread>
 
-const std::string g_GStreamerProtocolStrings[(int)eNetworkVideoProtocol::COUNT]= {
-	"rtmp",
-	"rtsp"};
+const std::string g_GStreamerProtocolStrings[(int)eNetworkVideoProtocol::COUNT]= {"rtmp", "rtsp"};
 
 // -- struct GStreamerImpl -----
 struct GStreamerImpl
@@ -91,24 +89,19 @@ struct GStreamerImpl
 
 	static bool isFrameInfoValid(const NetworkVideoStreamProperties& frameInfo)
 	{
-		return frameInfo.width > 0 &&
-			   frameInfo.height > 0 &&
-			   frameInfo.frame_rate_numerator > 0 &&
-			   frameInfo.frame_rate_demonenator > 0 &&
-			   frameInfo.bufferFormat[0] != '\0' &&
-			   frameInfo.name[0] != '\0';
+		return frameInfo.width > 0 && frameInfo.height > 0 && frameInfo.frame_rate_numerator > 0
+			   && frameInfo.frame_rate_demonenator > 0 && frameInfo.bufferFormat[0] != '\0'
+			   && frameInfo.name[0] != '\0';
 	}
 
-	static bool hasFrameInfoChanged(
-		const NetworkVideoStreamProperties& oldFrameInfo,
-		const NetworkVideoStreamProperties& frameInfo)
+	static bool hasFrameInfoChanged(const NetworkVideoStreamProperties& oldFrameInfo,
+									const NetworkVideoStreamProperties& frameInfo)
 	{
-		return oldFrameInfo.width != frameInfo.width ||
-			   oldFrameInfo.height != frameInfo.height ||
-			   oldFrameInfo.frame_rate_numerator != frameInfo.frame_rate_numerator ||
-			   oldFrameInfo.frame_rate_demonenator != frameInfo.frame_rate_demonenator ||
-			   strncmp(oldFrameInfo.bufferFormat, frameInfo.bufferFormat, sizeof(oldFrameInfo.bufferFormat)) != 0 ||
-			   strncmp(oldFrameInfo.name, frameInfo.name, sizeof(oldFrameInfo.name)) != 0;
+		return oldFrameInfo.width != frameInfo.width || oldFrameInfo.height != frameInfo.height
+			   || oldFrameInfo.frame_rate_numerator != frameInfo.frame_rate_numerator
+			   || oldFrameInfo.frame_rate_demonenator != frameInfo.frame_rate_demonenator
+			   || strncmp(oldFrameInfo.bufferFormat, frameInfo.bufferFormat, sizeof(oldFrameInfo.bufferFormat)) != 0
+			   || strncmp(oldFrameInfo.name, frameInfo.name, sizeof(oldFrameInfo.name)) != 0;
 	}
 
 	static bool extractVideoFrameInfo(GstCaps* caps, NetworkVideoStreamProperties& outFrameInfo)
@@ -159,14 +152,9 @@ struct GStreamerImpl
 
 			if (gst_structure_has_field(structure, "format"))
 			{
-				strncpy(
-					outFrameInfo.bufferFormat,
-					gst_structure_get_string(structure, "format"),
-					sizeof(outFrameInfo.bufferFormat));
-				strncpy(
-					outFrameInfo.name,
-					gst_structure_get_name(structure),
-					sizeof(outFrameInfo.name));
+				strncpy(outFrameInfo.bufferFormat, gst_structure_get_string(structure, "format"),
+						sizeof(outFrameInfo.bufferFormat));
+				strncpy(outFrameInfo.name, gst_structure_get_name(structure), sizeof(outFrameInfo.name));
 			}
 		}
 
@@ -192,7 +180,8 @@ struct GStreamerImpl
 			gchar* debug_info;
 
 			gst_message_parse_error(msg, &err, &debug_info);
-			MIKAN_LOG_ERROR("gstreamer::bus_call") << "Error received from element " << GST_OBJECT_NAME(msg->src) << ": " << err->message;
+			MIKAN_LOG_ERROR("gstreamer::bus_call")
+				<< "Error received from element " << GST_OBJECT_NAME(msg->src) << ": " << err->message;
 			MIKAN_LOG_ERROR("gstreamer::bus_call") << "Debugging information: " << (debug_info ? debug_info : "none");
 			g_clear_error(&err);
 			g_free(debug_info);
@@ -210,9 +199,8 @@ struct GStreamerImpl
 };
 
 // -- MikanUsbVideoDevice -----
-MikanGStreamerVideoDevice::MikanGStreamerVideoDevice(
-	MikanGStreamerVideoDeviceManager* ownerDeviceManager,
-	const NetworkVideoConnectionSettings& connectionInfo)
+MikanGStreamerVideoDevice::MikanGStreamerVideoDevice(MikanGStreamerVideoDeviceManager* ownerDeviceManager,
+													 const NetworkVideoConnectionSettings& connectionInfo)
 	: m_ownerDeviceManager(ownerDeviceManager)
 	, m_connectionInfo(connectionInfo)
 	, m_url(constructURL(connectionInfo))
@@ -227,8 +215,7 @@ MikanGStreamerVideoDevice::~MikanGStreamerVideoDevice()
 	delete m_impl;
 }
 
-std::string MikanGStreamerVideoDevice::constructURL(
-	const NetworkVideoConnectionSettings& connectionInfo)
+std::string MikanGStreamerVideoDevice::constructURL(const NetworkVideoConnectionSettings& connectionInfo)
 {
 	std::string protocolStr;
 	switch (connectionInfo.protocol)
@@ -269,26 +256,14 @@ std::string MikanGStreamerVideoDevice::constructURL(
 }
 
 // -- Device Listener
-void MikanGStreamerVideoDevice::addListener(INetworkVideoDeviceListener* listener)
-{
-	m_listeners.insert(listener);
-}
+void MikanGStreamerVideoDevice::addListener(INetworkVideoDeviceListener* listener) { m_listeners.insert(listener); }
 
-void MikanGStreamerVideoDevice::removeListener(INetworkVideoDeviceListener* listener)
-{
-	m_listeners.erase(listener);
-}
+void MikanGStreamerVideoDevice::removeListener(INetworkVideoDeviceListener* listener) { m_listeners.erase(listener); }
 
 // -- Device Properties
-const char* MikanGStreamerVideoDevice::getDevicePath() const
-{
-	return m_url.c_str();
-}
+const char* MikanGStreamerVideoDevice::getDevicePath() const { return m_url.c_str(); }
 
-const char* MikanGStreamerVideoDevice::getFriendlyName() const
-{
-	return getDevicePath();
-}
+const char* MikanGStreamerVideoDevice::getFriendlyName() const { return getDevicePath(); }
 
 bool MikanGStreamerVideoDevice::getStreamProperties(NetworkVideoStreamProperties& outProperties) const
 {
@@ -311,9 +286,7 @@ eVideoOpeningStatus MikanGStreamerVideoDevice::open()
 	m_openState= eOpenState::opening;
 	auto promise= std::make_shared<std::promise<bool>>();
 	m_openFuture= promise->get_future();
-	std::thread([promise, this]() mutable
-				{ promise->set_value(openOnThread()); })
-		.detach();
+	std::thread([promise, this]() mutable { promise->set_value(openOnThread()); }).detach();
 
 	return eVideoOpeningStatus::opening;
 }
@@ -476,8 +449,7 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 		if (m_timeSinceLastFrameSeconds >= k_streamTimeoutSeconds)
 		{
 			MIKAN_LOG_WARNING("GStreamerVideoDevice::update")
-				<< "No frame received for " << m_timeSinceLastFrameSeconds
-				<< "s — restarting stream pipeline";
+				<< "No frame received for " << m_timeSinceLastFrameSeconds << "s — restarting stream pipeline";
 			m_timeSinceLastFrameSeconds= 0.0f;
 			m_pendingStreamStartAfterOpen= true;
 			close();
@@ -566,14 +538,10 @@ void MikanGStreamerVideoDevice::close()
 }
 
 // -- Video Settings
-bool MikanGStreamerVideoDevice::isVideoSettingSupported(const eVideoSettingType property_type) const
-{
-	return false;
-}
+bool MikanGStreamerVideoDevice::isVideoSettingSupported(const eVideoSettingType property_type) const { return false; }
 
-bool MikanGStreamerVideoDevice::getVideoSettingConstraint(
-	const eVideoSettingType property_type,
-	VideoSettingConstraint& outConstraint) const
+bool MikanGStreamerVideoDevice::getVideoSettingConstraint(const eVideoSettingType property_type,
+														  VideoSettingConstraint& outConstraint) const
 {
 	return false;
 }
@@ -583,18 +551,14 @@ void MikanGStreamerVideoDevice::setVideoSetting(const eVideoSettingType property
 	// Not supported
 }
 
-int MikanGStreamerVideoDevice::getVideoSetting(const eVideoSettingType property_type) const
-{
-	return -1;
-}
+int MikanGStreamerVideoDevice::getVideoSetting(const eVideoSettingType property_type) const { return -1; }
 
 // -- Video Streaming
 eVideoStreamingStatus MikanGStreamerVideoDevice::startVideoStream()
 {
 	if (m_openState == eOpenState::open)
 	{
-		if (m_streamingStatus == eVideoStreamingStatus::stopped ||
-			m_streamingStatus == eVideoStreamingStatus::failed)
+		if (m_streamingStatus == eVideoStreamingStatus::stopped || m_streamingStatus == eVideoStreamingStatus::failed)
 		{
 			m_timeSinceLastFrameSeconds= 0.0f;
 			gst_element_set_state(m_impl->pipeline, GST_STATE_PLAYING);
@@ -607,10 +571,7 @@ eVideoStreamingStatus MikanGStreamerVideoDevice::startVideoStream()
 	return eVideoStreamingStatus::failed;
 }
 
-eVideoStreamingStatus MikanGStreamerVideoDevice::getVideoStreamingStatus() const
-{
-	return m_streamingStatus;
-}
+eVideoStreamingStatus MikanGStreamerVideoDevice::getVideoStreamingStatus() const { return m_streamingStatus; }
 
 void MikanGStreamerVideoDevice::stopVideoStream()
 {

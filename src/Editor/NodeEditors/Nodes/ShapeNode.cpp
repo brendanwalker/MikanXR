@@ -29,10 +29,7 @@ void ShapeNodeConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- ShapeNode -----
-ShapeNode::~ShapeNode()
-{
-	setOwnerGraph(NodeGraphPtr());
-}
+ShapeNode::~ShapeNode() { setOwnerGraph(NodeGraphPtr()); }
 
 void ShapeNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 {
@@ -68,8 +65,7 @@ bool ShapeNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("ShapeNode::loadFromConfig")
-				<< "Failed to find Shape property: " << propId
-				<< ", on Shape node";
+				<< "Failed to find Shape property: " << propId << ", on Shape node";
 		}
 	}
 

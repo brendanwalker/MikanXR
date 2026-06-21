@@ -19,15 +19,11 @@ public:
 	virtual void setTextResponseHandler(TextResponseHandler handler) override;
 	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) override;
 
-	MikanCoreResult connect(
-		const std::string& host,
-		const std::string& port) override;
+	MikanCoreResult connect(const std::string& host, const std::string& port) override;
 	void disconnect(uint16_t code, const std::string& reason) override;
 
-	virtual MikanCoreResult fetchNextEvent(
-		size_t utf8BufferSize,
-		char* outUtf8Buffer,
-		size_t* outUtf8BufferSizeNeeded) override;
+	virtual MikanCoreResult fetchNextEvent(size_t utf8BufferSize, char* outUtf8Buffer,
+										   size_t* outUtf8BufferSizeNeeded) override;
 	virtual MikanCoreResult sendRequest(const std::string& utf8RequestString) override;
 
 	const bool getIsConnected() const override;

@@ -34,10 +34,7 @@ public:
 		}
 	}
 
-	void operator+=(const Delegate<RetType(Args...)>& delegate)
-	{
-		m_delegates.push_back(delegate.Clone());
-	}
+	void operator+=(const Delegate<RetType(Args...)>& delegate) { m_delegates.push_back(delegate.Clone()); }
 	void operator-=(const Delegate<RetType(Args...)>& delegate)
 	{
 		for (auto it= m_delegates.begin(); it != m_delegates.end(); ++it)

@@ -24,10 +24,7 @@
 class ShapeComboDataSource : public NodeEditorUI::ComboBoxDataSource
 {
 public:
-	ShapeComboDataSource(
-		NodeGraphPtr ownerGraph,
-		ShapeComponentPtr shapeComponent,
-		eShapeType shapeType)
+	ShapeComboDataSource(NodeGraphPtr ownerGraph, ShapeComponentPtr shapeComponent, eShapeType shapeType)
 	{
 		if (!ownerGraph)
 			return;
@@ -39,8 +36,7 @@ public:
 		case eShapeType::quad:
 		{
 			auto quadSystem= ownerGraph->getObjectSystemOfType<QuadShapeSystem>();
-			for (auto it= quadSystem->getComponentMap().begin();
-				 it != quadSystem->getComponentMap().end(); it++)
+			for (auto it= quadSystem->getComponentMap().begin(); it != quadSystem->getComponentMap().end(); it++)
 			{
 				auto shapePtr= it->second.lock();
 				if (shapePtr == shapeComponent)
@@ -53,8 +49,7 @@ public:
 		case eShapeType::box:
 		{
 			auto boxSystem= ownerGraph->getObjectSystemOfType<BoxShapeSystem>();
-			for (auto it= boxSystem->getComponentMap().begin();
-				 it != boxSystem->getComponentMap().end(); it++)
+			for (auto it= boxSystem->getComponentMap().begin(); it != boxSystem->getComponentMap().end(); it++)
 			{
 				auto shapePtr= it->second.lock();
 				if (shapePtr == shapeComponent)
@@ -67,8 +62,7 @@ public:
 		case eShapeType::model:
 		{
 			auto modelSystem= ownerGraph->getObjectSystemOfType<ModelShapeSystem>();
-			for (auto it= modelSystem->getComponentMap().begin();
-				 it != modelSystem->getComponentMap().end(); it++)
+			for (auto it= modelSystem->getComponentMap().begin(); it != modelSystem->getComponentMap().end(); it++)
 			{
 				auto shapePtr= it->second.lock();
 				if (shapePtr == shapeComponent)
@@ -115,10 +109,8 @@ configuru::Config GraphShapePropertyConfig::writeToJSON()
 {
 	configuru::Config pt= GraphPropertyConfig::writeToJSON();
 
-	pt["shape_type"]=
-		(shapeType != eShapeType::INVALID)
-			? k_shapeTypeStrings[(int)shapeType]
-			: k_shapeTypeStrings[(int)eShapeType::quad];
+	pt["shape_type"]= (shapeType != eShapeType::INVALID) ? k_shapeTypeStrings[(int)shapeType]
+														 : k_shapeTypeStrings[(int)eShapeType::quad];
 	pt["shape_name"]= shapeName;
 
 	return pt;
@@ -126,23 +118,15 @@ configuru::Config GraphShapePropertyConfig::writeToJSON()
 
 void GraphShapePropertyConfig::readFromJSON(const configuru::Config& pt)
 {
-	const std::string shapeTypeString=
-		pt.get_or<std::string>(
-			"shape_type",
-			k_shapeTypeStrings[(int)eShapeType::quad]);
-	shapeType=
-		StringUtils::FindEnumValue<eShapeType>(
-			shapeTypeString,
-			k_shapeTypeStrings);
+	const std::string shapeTypeString= pt.get_or<std::string>("shape_type", k_shapeTypeStrings[(int)eShapeType::quad]);
+	shapeType= StringUtils::FindEnumValue<eShapeType>(shapeTypeString, k_shapeTypeStrings);
 	shapeName= pt.get_or<std::string>("shape_name", "");
 
 	GraphPropertyConfig::readFromJSON(pt);
 }
 
 // -- GraphShapeProperty -----
-bool GraphShapeProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphShapeProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
@@ -202,9 +186,7 @@ void GraphShapeProperty::saveToConfig(GraphPropertyConfigPtr config) const
 		shapePropConfig->shapeName= definition->getComponentName();
 		shapePropConfig->id= definition->getComponentId();
 		shapePropConfig->shapeType=
-			ShapeUtils::getShapeType(
-				getOwnerGraph()->getOwnerProject(),
-				definition->getComponentId());
+			ShapeUtils::getShapeType(getOwnerGraph()->getOwnerProject(), definition->getComponentId());
 	}
 	else
 	{
@@ -243,19 +225,12 @@ void GraphShapeProperty::editorRenderPropertySheet(const class NodeEditorState& 
 		// Shape selection
 		ShapeComboDataSource dataSource(m_ownerGraph, m_shapeComponent, m_shapeType);
 		int selectedIndex= dataSource.getCurrentShapeIndex();
-		if (NodeEditorUI::DrawComboBoxProperty(
-				"shapeSelection",
-				"Source",
-				&dataSource,
-				selectedIndex,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawComboBoxProperty("shapeSelection", "Source", &dataSource, selectedIndex,
+											   editorState.styleManager))
 		{
 			setShapeComponent(dataSource.getEntryShape(selectedIndex));
 		}
 	}
 }
 
-const ImVec4 GraphShapeProperty::editorGetIconColor() const
-{
-	return NodeEditorUI::getComponentColor();
-}
+const ImVec4 GraphShapeProperty::editorGetIconColor() const { return NodeEditorUI::getComponentColor(); }

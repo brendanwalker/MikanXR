@@ -15,11 +15,8 @@ public:
 	void ensureBufferSize(int width, int height);
 
 	void uploadSourceBuffer(const cv::Mat& srcBuffer);
-	void computeUndistortion(
-		IMkTexturePtr writeTexture,
-		IMkTexturePtr distortionTexture,
-		IMkTriangulatedMeshPtr fullscreenQuad,
-		IMkGraphicsContext* graphicsContext);
+	void computeUndistortion(IMkTexturePtr writeTexture, IMkTexturePtr distortionTexture,
+							 IMkTriangulatedMeshPtr fullscreenQuad, IMkGraphicsContext* graphicsContext);
 
 private:
 	// Source texture that receives the raw BGR video frame before shader undistortion

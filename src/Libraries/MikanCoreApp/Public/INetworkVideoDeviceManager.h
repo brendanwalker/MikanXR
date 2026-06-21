@@ -19,8 +19,7 @@ public:
 	virtual INetworkVideoDevicePtr getDeviceByIndex(size_t index)= 0;
 	virtual INetworkVideoDevicePtr getDeviceByPath(const char* devicePath)= 0;
 
-	virtual INetworkVideoDevicePtr createVideoDevice(
-		const NetworkVideoConnectionSettings& settings)= 0;
+	virtual INetworkVideoDevicePtr createVideoDevice(const NetworkVideoConnectionSettings& settings)= 0;
 	virtual void destroyVideoDevice(INetworkVideoDevicePtr device)= 0;
 };
 using INetworkVideoDeviceManagerPtr= std::shared_ptr<INetworkVideoDeviceManager>;

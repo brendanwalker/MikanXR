@@ -5,14 +5,10 @@ ColliderComponent::ColliderComponent(MikanObjectWeakPtr owner)
 {
 }
 
-void ColliderComponent::setEnabled(bool bEnabled)
-{
-	m_bEnabled= bEnabled;
-}
+void ColliderComponent::setEnabled(bool bEnabled) { m_bEnabled= bEnabled; }
 
-bool ColliderComponent::computeRayIntersection(
-	const ColliderRaycastHitRequest& request,
-	ColliderRaycastHitResult& outResult) const
+bool ColliderComponent::computeRayIntersection(const ColliderRaycastHitRequest& request,
+											   ColliderRaycastHitResult& outResult) const
 {
 	outResult.hitValid= false;
 	outResult.hitLocation= glm::vec3(0.f);

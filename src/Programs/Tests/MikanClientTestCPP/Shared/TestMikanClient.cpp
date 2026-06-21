@@ -37,13 +37,9 @@ TestMikanClient::TestMikanClient(TestGraphicsContext* graphicsContext)
 {
 }
 
-TestMikanClient::~TestMikanClient()
-{
-	dispose();
-}
+TestMikanClient::~TestMikanClient() { dispose(); }
 
-bool TestMikanClient::init(
-	const char* szClientName)
+bool TestMikanClient::init(const char* szClientName)
 {
 	LoggerSettings settings= {};
 	settings.min_log_level= LogSeverityLevel::info;
@@ -58,9 +54,8 @@ bool TestMikanClient::init(
 	}
 
 	m_mikanInitialized= true;
-	m_mikanApi->setGraphicsDeviceInterface(
-		m_graphicsContext->getGraphicsApi(),
-		m_graphicsContext->getGraphicsDeviceInterface());
+	m_mikanApi->setGraphicsDeviceInterface(m_graphicsContext->getGraphicsApi(),
+										   m_graphicsContext->getGraphicsDeviceInterface());
 
 	// Create a default camera render target to render to when we aren't connected to Mikan
 	m_graphicsContext->getOrAddCameraRenderTarget(INVALID_MIKAN_ID);
@@ -198,7 +193,8 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 		auto componentList= std::static_pointer_cast<ComponentListResponse>(listResponse);
 		size_t componentCount= componentList->componentIdList.size();
 
-		MIKAN_LOG_INFO("handleComponentListChanged") << t_component_values::k_componentClassName << " Count: " << componentCount;
+		MIKAN_LOG_INFO("handleComponentListChanged")
+			<< t_component_values::k_componentClassName << " Count: " << componentCount;
 
 		for (size_t Index= 0; Index < componentCount; ++Index)
 		{
@@ -212,8 +208,7 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 			auto response= mikanApi->sendRequest(componentRequest).fetchResponse();
 			if (response->resultCode == MikanAPIResult::Success)
 			{
-				auto componentValuesResponse=
-					std::static_pointer_cast<ComponentGetValuesResponse>(response);
+				auto componentValuesResponse= std::static_pointer_cast<ComponentGetValuesResponse>(response);
 				const auto* typedComponentValues=
 					componentValuesResponse->valuesObject.getTypedPointer<t_component_values>();
 
@@ -274,10 +269,7 @@ void TestMikanClient::handleMikanDisconnected(const MikanDisconnectedEvent& disc
 	}
 }
 
-constexpr double degToRad(double degrees)
-{
-	return degrees * (3.14159265358979323846 / 180.0);
-}
+constexpr double degToRad(double degrees) { return degrees * (3.14159265358979323846 / 180.0); }
 
 void TestMikanClient::makeFakeCameraNewFrameEvent(MikanCameraNewFrameEvent& fakeNewFrameEvent)
 {
@@ -308,8 +300,7 @@ void TestMikanClient::makeFakeCameraNewFrameEvent(MikanCameraNewFrameEvent& fake
 
 void TestMikanClient::handleCameraNewFrameEvent(const MikanCameraNewFrameEvent& newFrameEvent)
 {
-	TestCameraRenderTargetPtr renderTarget=
-		m_graphicsContext->getOrAddCameraRenderTarget(newFrameEvent.camera_id);
+	TestCameraRenderTargetPtr renderTarget= m_graphicsContext->getOrAddCameraRenderTarget(newFrameEvent.camera_id);
 
 	if (renderTarget)
 	{
@@ -341,17 +332,13 @@ void TestMikanClient::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& 
 
 		MIKAN_LOG_INFO("handlePropertyUpdateEvent")
 			<< "Component Field Changed: "
-			<< "systemClass: " << systemName
-			<< ", componentClass: " << componentClass
-			<< ", componentName: " << componentName
-			<< ", fieldName: " << fieldName;
+			<< "systemClass: " << systemName << ", componentClass: " << componentClass
+			<< ", componentName: " << componentName << ", fieldName: " << fieldName;
 	}
 	else
 	{
-		MIKAN_LOG_INFO("handlePropertyUpdateEvent")
-			<< "System Field Changed: "
-			<< "systemClass: " << systemName
-			<< ", fieldName: " << fieldName;
+		MIKAN_LOG_INFO("handlePropertyUpdateEvent") << "System Field Changed: "
+													<< "systemClass: " << systemName << ", fieldName: " << fieldName;
 	}
 
 	if (systemName == MikanAnchorComponentValues::k_ownerSystemName)
@@ -390,8 +377,7 @@ void TestMikanClient::handleComponentNameChanged(const MikanPropertyUpdateEvent&
 	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
 
 	MIKAN_LOG_INFO("HandleComponentNameChanged")
-		<< "Component(class: " << componentClass
-		<< ", id: " << propertyUpdateEvent.propertyValue.componentId
+		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
 		<< "), Name Change: " << componentName;
 }
 
@@ -423,8 +409,7 @@ void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent
 	const MikanVector3f& s= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformScaleChanged")
-		<< "Component(class: " << componentClass
-		<< ", id: " << propertyUpdateEvent.propertyValue.componentId
+		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
 		<< "), Scale Change: " << s.x << ", " << s.y << ", " << s.z;
 }
 
@@ -435,8 +420,7 @@ void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdat
 	const MikanQuatf& q= propertyUpdateEvent.propertyValue.fieldValue.getQuaternionfValue();
 
 	MIKAN_LOG_INFO("handleTransformOrientationChanged")
-		<< "Component(class: " << componentClass
-		<< ", id: " << propertyUpdateEvent.propertyValue.componentId
+		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
 		<< "), Orientation Change: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z;
 }
 
@@ -447,8 +431,7 @@ void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEv
 	const MikanVector3f& v= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformPositionChanged")
-		<< "Component(class: " << componentClass
-		<< ", id: " << propertyUpdateEvent.propertyValue.componentId
+		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
 		<< "), Position Change: " << v.x << ", " << v.y << ", " << v.z;
 }
 

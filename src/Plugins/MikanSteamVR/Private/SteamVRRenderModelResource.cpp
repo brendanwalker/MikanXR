@@ -13,8 +13,7 @@
 #include "glm/ext/vector_float4.hpp"
 #include "openvr.h"
 
-SteamVRRenderModelResource::SteamVRRenderModelResource(
-	class IMkGraphicsContext* ownerContext)
+SteamVRRenderModelResource::SteamVRRenderModelResource(class IMkGraphicsContext* ownerContext)
 	: m_ownerContext(ownerContext)
 	, m_steamVRRenderModel(nullptr)
 	, m_steamVRTextureMap(nullptr)
@@ -24,10 +23,7 @@ SteamVRRenderModelResource::SteamVRRenderModelResource(
 {
 }
 
-SteamVRRenderModelResource::~SteamVRRenderModelResource()
-{
-	disposeSteamVRResources();
-}
+SteamVRRenderModelResource::~SteamVRRenderModelResource() { disposeSteamVRResources(); }
 
 bool SteamVRRenderModelResource::createGraphicsResources()
 {
@@ -36,16 +32,11 @@ bool SteamVRRenderModelResource::createGraphicsResources()
 
 	m_mkDiffuseTexture= createTextureResource(m_steamVRTextureMap);
 	m_mkMaterialInstance= createMaterialInstance(m_mkDiffuseTexture);
-	m_mkTriangulatedMesh= createTriangulatedMeshResource(
-		m_renderModelName, m_mkMaterialInstance, m_steamVRRenderModel);
-	m_mkWireframeMesh= createWireframeMeshResource(
-		m_renderModelName, m_steamVRRenderModel);
+	m_mkTriangulatedMesh= createTriangulatedMeshResource(m_renderModelName, m_mkMaterialInstance, m_steamVRRenderModel);
+	m_mkWireframeMesh= createWireframeMeshResource(m_renderModelName, m_steamVRRenderModel);
 
-	const bool bSuccess=
-		m_mkDiffuseTexture != nullptr &&
-		m_mkMaterialInstance != nullptr &&
-		m_mkTriangulatedMesh != nullptr &&
-		m_mkWireframeMesh != nullptr;
+	const bool bSuccess= m_mkDiffuseTexture != nullptr && m_mkMaterialInstance != nullptr
+						 && m_mkTriangulatedMesh != nullptr && m_mkWireframeMesh != nullptr;
 
 	if (!bSuccess)
 	{
@@ -91,9 +82,7 @@ bool SteamVRRenderModelResource::loadSteamVRResources()
 	while (m_steamVRTextureMap == nullptr)
 	{
 		vr::EVRRenderModelError result=
-			vr::VRRenderModels()->LoadTexture_Async(
-				m_steamVRRenderModel->diffuseTextureId,
-				&m_steamVRTextureMap);
+			vr::VRRenderModels()->LoadTexture_Async(m_steamVRRenderModel->diffuseTextureId, &m_steamVRTextureMap);
 
 		if (result == vr::VRRenderModelError_Loading)
 		{
@@ -126,19 +115,14 @@ void SteamVRRenderModelResource::disposeSteamVRResources()
 	}
 }
 
-IMkTexturePtr SteamVRRenderModelResource::createTextureResource(
-	const vr::RenderModel_TextureMap_t* steamvrTexture)
+IMkTexturePtr SteamVRRenderModelResource::createTextureResource(const vr::RenderModel_TextureMap_t* steamvrTexture)
 {
 	IMkTexturePtr mkTexture= nullptr;
 
 	if (steamvrTexture != nullptr)
 	{
-		mkTexture= CreateMkTexture(
-			steamvrTexture->unWidth,
-			steamvrTexture->unHeight,
-			steamvrTexture->rubTextureMapData,
-			MK_RGBA,
-			MK_RGBA);
+		mkTexture= CreateMkTexture(steamvrTexture->unWidth, steamvrTexture->unHeight, steamvrTexture->rubTextureMapData,
+								   MK_RGBA, MK_RGBA);
 
 		if (!mkTexture->createTexture())
 		{
@@ -149,8 +133,7 @@ IMkTexturePtr SteamVRRenderModelResource::createTextureResource(
 	return mkTexture;
 }
 
-MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
-	IMkTexturePtr texture)
+MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(IMkTexturePtr texture)
 {
 	IMkShaderCache* shaderCache= m_ownerContext->getShaderCache();
 	MkMaterialConstPtr material= shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
@@ -171,27 +154,19 @@ MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 }
 
 IMkTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResource(
-	const std::string& meshName,
-	MkMaterialInstancePtr materialInstance,
-	const vr::RenderModel_t* steamVRRenderModel)
+	const std::string& meshName, MkMaterialInstancePtr materialInstance, const vr::RenderModel_t* steamVRRenderModel)
 {
 	IMkTriangulatedMeshPtr glMesh= nullptr;
 
 	if (steamVRRenderModel != nullptr)
 	{
-		glMesh= createMkTriangulatedMesh(
-			m_ownerContext,
-			meshName,
-			(const uint8_t*)steamVRRenderModel->rVertexData,
-			sizeof(vr::RenderModel_Vertex_t),
-			steamVRRenderModel->unVertexCount,
-			(const uint8_t*)steamVRRenderModel->rIndexData,
-			sizeof(uint16_t),
-			steamVRRenderModel->unTriangleCount,
-			false); // <-- triangulated mesh does not own vertex data
+		glMesh= createMkTriangulatedMesh(m_ownerContext, meshName, (const uint8_t*)steamVRRenderModel->rVertexData,
+										 sizeof(vr::RenderModel_Vertex_t), steamVRRenderModel->unVertexCount,
+										 (const uint8_t*)steamVRRenderModel->rIndexData, sizeof(uint16_t),
+										 steamVRRenderModel->unTriangleCount,
+										 false); // <-- triangulated mesh does not own vertex data
 
-		if (!glMesh->setMaterialInstance(materialInstance) ||
-			!glMesh->createResources())
+		if (!glMesh->setMaterialInstance(materialInstance) || !glMesh->createResources())
 		{
 			glMesh= nullptr;
 		}
@@ -200,9 +175,8 @@ IMkTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResourc
 	return glMesh;
 }
 
-IMkWireframeMeshPtr SteamVRRenderModelResource::createWireframeMeshResource(
-	const std::string& meshName,
-	const vr::RenderModel_t* steamVRRenderModel)
+IMkWireframeMeshPtr SteamVRRenderModelResource::createWireframeMeshResource(const std::string& meshName,
+																			const vr::RenderModel_t* steamVRRenderModel)
 {
 	if (steamVRRenderModel == nullptr)
 	{
@@ -220,8 +194,7 @@ IMkWireframeMeshPtr SteamVRRenderModelResource::createWireframeMeshResource(
 	{
 		const size_t readVertexSize= sizeof(vr::RenderModel_Vertex_t);
 		const uint8_t* readPtr=
-			(const uint8_t*)steamVRRenderModel->rVertexData +
-			offsetof(vr::RenderModel_Vertex_t, vPosition);
+			(const uint8_t*)steamVRRenderModel->rVertexData + offsetof(vr::RenderModel_Vertex_t, vPosition);
 
 		uint8_t* writePtr= writeVertexData;
 
@@ -262,24 +235,16 @@ IMkWireframeMeshPtr SteamVRRenderModelResource::createWireframeMeshResource(
 		}
 	}
 
-	IMkWireframeMeshPtr wireMesh= CreateMkWireframeMesh(
-		m_ownerContext,
-		meshName,
-		(const uint8_t*)writeVertexData,
-		writeVertexSize,
-		(uint32_t)writeVertexCount,
-		(const uint8_t*)indexData,
-		indexSize,
-		(uint32_t)lineCount,
-		true); // <-- wireframe mesh owns vertex data, cleans up on delete
+	IMkWireframeMeshPtr wireMesh=
+		CreateMkWireframeMesh(m_ownerContext, meshName, (const uint8_t*)writeVertexData, writeVertexSize,
+							  (uint32_t)writeVertexCount, (const uint8_t*)indexData, indexSize, (uint32_t)lineCount,
+							  true); // <-- wireframe mesh owns vertex data, cleans up on delete
 
 	if (wireMesh->createResources())
 	{
 		auto matInstance= wireMesh->getMaterialInstance();
 
-		matInstance->setVec4BySemantic(
-			eUniformSemantic::diffuseColorRGBA,
-			glm::vec4(1.f, 1.f, 0.f, 1.f)); // yellow
+		matInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f, 1.f, 0.f, 1.f)); // yellow
 	}
 	else
 	{

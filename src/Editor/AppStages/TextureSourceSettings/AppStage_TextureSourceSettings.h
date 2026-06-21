@@ -16,10 +16,7 @@ class AppStage_TextureSourceSettings : public AppStage
 public:
 	AppStage_TextureSourceSettings(class IEditorWindow* ownerWindow);
 
-	inline void setSourceCameraId(MikanCameraID cameraId)
-	{
-		m_cameraId= cameraId;
-	}
+	inline void setSourceCameraId(MikanCameraID cameraId) { m_cameraId= cameraId; }
 
 	inline void setTextureSourceComponent(TextureSourceComponentPtr textureSourceComponent)
 	{
@@ -39,10 +36,8 @@ protected:
 	void onReturnEvent();
 
 	// Remote Control
-	bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults);
+	bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+									std::vector<std::string>& outResults);
 	bool handleGetTextureSourceComponentId(std::vector<std::string>& outResults);
 	bool handleReturnRequest(std::vector<std::string>& outResults);
 

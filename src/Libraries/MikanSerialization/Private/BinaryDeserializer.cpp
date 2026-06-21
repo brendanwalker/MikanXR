@@ -42,24 +42,20 @@ public:
 			std::string templateTypeName= templateClassInstanceType->getClassTemplate().getName();
 
 			// See if the field is a Serialization::List<T>
-			if (templateTypeName == "List" &&
-				templateClassInstanceType->getTemplateArgumentsCount() == 1)
+			if (templateTypeName == "List" && templateClassInstanceType->getTemplateArgumentsCount() == 1)
 			{
 				visitList(accessor, *templateClassInstanceType);
 			}
 			// See if the field is a Serialization::Map<K,V>
-			else if (templateTypeName == "Map" &&
-					 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+			else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
 			{
 				visitMap(accessor, *templateClassInstanceType);
 			}
 		}
 		else
 		{
-			setError(
-				stringify("BinaryReadVisitor::visitClass() ",
-						  "Class Field ", accessor.getName(),
-						  " was not of expected type IEnumerable to deserialize json array value"));
+			setError(stringify("BinaryReadVisitor::visitClass() ", "Class Field ", accessor.getName(),
+							   " was not of expected type IEnumerable to deserialize json array value"));
 			return;
 		}
 	}
@@ -89,10 +85,8 @@ public:
 			objectStruct= TypeRegistry::getStructByName(objectClassName);
 			if (objectStruct == nullptr)
 			{
-				setError(
-					stringify("BinaryReadVisitor::visitObjectPtr() ",
-							  "TypedObjectPtr Accessor ", accessor.getName(),
-							  " used an unknown class_name ", objectClassName));
+				setError(stringify("BinaryReadVisitor::visitObjectPtr() ", "TypedObjectPtr Accessor ",
+								   accessor.getName(), " used an unknown class_name ", objectClassName));
 				return;
 				return;
 			}
@@ -110,24 +104,20 @@ public:
 
 			// Allocate a default instance of the object assigned to the shared pointer
 			void* objectInstance=
-				allocateMethod->invokeUnsafe<void*, const std::string&>(
-					objPtrInstance, objectClassName);
+				allocateMethod->invokeUnsafe<void*, const std::string&>(objPtrInstance, objectClassName);
 
 			// Deserialize the object from the binary stream
 			Serialization::visitStruct(objectInstance, *objectStruct, this);
 		}
 	}
 
-	void visitList(
-		ValueAccessor const& arrayAccessor,
-		rfk::ClassTemplateInstantiation const& templatedArrayType)
+	void visitList(ValueAccessor const& arrayAccessor, rfk::ClassTemplateInstantiation const& templatedArrayType)
 	{
 		void* arrayInstance= arrayAccessor.getUntypedValueMutablePtr();
 
 		// Get the type of the elements in the array from the template argument
 		auto const& templateArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedArrayType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedArrayType.getTemplateArgumentAt(0));
 		rfk::Type const& elementType= templateArg.getType();
 
 		// Use reflection to get the methods to resize the array and get a mutable reference to an element
@@ -145,8 +135,7 @@ public:
 		{
 			// Get the target element instance in the array
 			void* elementInstance=
-				getRawElementMutableMethod->invokeUnsafe<void*, const std::size_t&>(
-					arrayInstance, elementIndex);
+				getRawElementMutableMethod->invokeUnsafe<void*, const std::size_t&>(arrayInstance, elementIndex);
 
 			// Make a fake "field" for an element in the array
 			ValueAccessor elementAccessor(elementInstance, elementType);
@@ -156,14 +145,11 @@ public:
 		}
 	}
 
-	void visitMap(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType)
+	void visitMap(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType)
 	{
 		// Get the key type of the map from the template argument
 		auto const& templateKeyArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(0));
 		rfk::Type const& keyType= templateKeyArg.getType();
 
 		if (keyType == rfk::getType<int32_t>())
@@ -182,25 +168,21 @@ public:
 		{
 			rfk::Archetype const* keyArchetype= keyType.getArchetype();
 
-			setError(
-				stringify("BinaryReadVisitor::visitMap() ",
-						  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
-						  " is not supported"));
+			setError(stringify("BinaryReadVisitor::visitMap() ", "Map Key Archetype ",
+							   keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
+							   " is not supported"));
 			return;
 		}
 	}
 
 	template <typename t_key>
-	void visitMapOfKey(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType)
+	void visitMapOfKey(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType)
 	{
 		void* mapInstance= mapAccessor.getUntypedValueMutablePtr();
 
 		// Get the type of the elements in the array from the template argument
 		auto const& templateValueArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(1));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(1));
 		rfk::Type const& valueType= templateValueArg.getType();
 
 		// Use reflection to get the method use to clear and add pairs to the map
@@ -221,9 +203,7 @@ public:
 			from_binary(m_binaryReader, key);
 
 			// Get or Add the target value instance in the map
-			void* valueInstance=
-				getOrAddValueMethod->invokeUnsafe<void*, const t_key&>(
-					mapInstance, key);
+			void* valueInstance= getOrAddValueMethod->invokeUnsafe<void*, const t_key&>(mapInstance, key);
 
 			// Make a fake "field" for an element in the array
 			ValueAccessor valueAccessor(valueInstance, valueType);
@@ -258,10 +238,8 @@ public:
 		enumValue= Serialization::findEnumValueByString(enumType, enumStringValue.c_str());
 		if (enumValue == nullptr)
 		{
-			setError(
-				stringify("BinaryReadVisitor::visitEnum() ",
-						  "Enum Accessor ", accessor.getName(),
-						  " has an invalid value ", enumStringValue));
+			setError(stringify("BinaryReadVisitor::visitEnum() ", "Enum Accessor ", accessor.getName(),
+							   " has an invalid value ", enumStringValue));
 			return;
 			return;
 		}
@@ -280,60 +258,27 @@ public:
 		}
 	}
 
-	virtual void visitBool(ValueAccessor const& accessor) override
-	{
-		deserializeValue<bool>(accessor);
-	}
+	virtual void visitBool(ValueAccessor const& accessor) override { deserializeValue<bool>(accessor); }
 
-	virtual void visitByte(ValueAccessor const& accessor) override
-	{
-		deserializeValue<int8_t>(accessor);
-	}
+	virtual void visitByte(ValueAccessor const& accessor) override { deserializeValue<int8_t>(accessor); }
 
-	virtual void visitUByte(ValueAccessor const& accessor) override
-	{
-		deserializeValue<uint8_t>(accessor);
-	}
+	virtual void visitUByte(ValueAccessor const& accessor) override { deserializeValue<uint8_t>(accessor); }
 
-	virtual void visitShort(ValueAccessor const& accessor) override
-	{
-		deserializeValue<int16_t>(accessor);
-	}
+	virtual void visitShort(ValueAccessor const& accessor) override { deserializeValue<int16_t>(accessor); }
 
-	virtual void visitUShort(ValueAccessor const& accessor) override
-	{
-		deserializeValue<uint16_t>(accessor);
-	}
+	virtual void visitUShort(ValueAccessor const& accessor) override { deserializeValue<uint16_t>(accessor); }
 
-	virtual void visitInt(ValueAccessor const& accessor) override
-	{
-		deserializeValue<int32_t>(accessor);
-	}
+	virtual void visitInt(ValueAccessor const& accessor) override { deserializeValue<int32_t>(accessor); }
 
-	virtual void visitUInt(ValueAccessor const& accessor) override
-	{
-		deserializeValue<uint32_t>(accessor);
-	}
+	virtual void visitUInt(ValueAccessor const& accessor) override { deserializeValue<uint32_t>(accessor); }
 
-	virtual void visitLong(ValueAccessor const& accessor) override
-	{
-		deserializeValue<int64_t>(accessor);
-	}
+	virtual void visitLong(ValueAccessor const& accessor) override { deserializeValue<int64_t>(accessor); }
 
-	virtual void visitULong(ValueAccessor const& accessor)
-	{
-		deserializeValue<uint64_t>(accessor);
-	}
+	virtual void visitULong(ValueAccessor const& accessor) { deserializeValue<uint64_t>(accessor); }
 
-	virtual void visitFloat(ValueAccessor const& accessor) override
-	{
-		deserializeValue<float>(accessor);
-	}
+	virtual void visitFloat(ValueAccessor const& accessor) override { deserializeValue<float>(accessor); }
 
-	virtual void visitDouble(ValueAccessor const& accessor) override
-	{
-		deserializeValue<double>(accessor);
-	}
+	virtual void visitDouble(ValueAccessor const& accessor) override { deserializeValue<double>(accessor); }
 
 private:
 	template <typename T>
@@ -348,21 +293,14 @@ private:
 };
 
 // Public API
-bool deserializeFromBytes(
-	const std::vector<uint8_t>& inBytes,
-	void* instance,
-	rfk::Struct const& structType,
-	std::string& outErrorMesg)
+bool deserializeFromBytes(const std::vector<uint8_t>& inBytes, void* instance, rfk::Struct const& structType,
+						  std::string& outErrorMesg)
 {
 	return deserializeFromBytes(inBytes.data(), inBytes.size(), instance, structType, outErrorMesg);
 }
 
-bool deserializeFromBytes(
-	const uint8_t* inBytes,
-	const size_t inSize,
-	void* instance,
-	rfk::Struct const& structType,
-	std::string& outErrorMesg)
+bool deserializeFromBytes(const uint8_t* inBytes, const size_t inSize, void* instance, rfk::Struct const& structType,
+						  std::string& outErrorMesg)
 {
 	BinaryReader reader(inBytes, inSize);
 	BinaryReadVisitor visitor(reader);

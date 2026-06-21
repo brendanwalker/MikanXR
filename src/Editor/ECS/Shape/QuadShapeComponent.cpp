@@ -143,8 +143,7 @@ void QuadShapeComponent::openShape()
 	if (!graphicsContext)
 		return;
 
-	MkMaterialConstPtr material=
-		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+	MkMaterialConstPtr material= graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 	if (!material)
 		return;
 
@@ -162,16 +161,11 @@ void QuadShapeComponent::openShape()
 	};
 	static const uint16_t indices[6]= {0, 1, 2, 0, 2, 3};
 
-	IMkTriangulatedMeshPtr quadMesh= createMkTriangulatedMesh(
-		graphicsContext.get(),
-		"quad_shape",
-		reinterpret_cast<const uint8_t*>(vertices),
-		sizeof(PTVertex),
-		4,
-		reinterpret_cast<const uint8_t*>(indices),
-		sizeof(uint16_t),
-		2,      // triangle count
-		false); // mesh does NOT own the vertex/index data (static array above)
+	IMkTriangulatedMeshPtr quadMesh=
+		createMkTriangulatedMesh(graphicsContext.get(), "quad_shape", reinterpret_cast<const uint8_t*>(vertices),
+								 sizeof(PTVertex), 4, reinterpret_cast<const uint8_t*>(indices), sizeof(uint16_t),
+								 2,      // triangle count
+								 false); // mesh does NOT own the vertex/index data (static array above)
 
 	if (!quadMesh)
 		return;
@@ -186,20 +180,15 @@ void QuadShapeComponent::openShape()
 	m_sceneRenderable= meshInstance;
 }
 
-void QuadShapeComponent::closeShape()
-{
-	m_sceneRenderable= nullptr;
-}
+void QuadShapeComponent::closeShape() { m_sceneRenderable= nullptr; }
 
-void QuadShapeComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void QuadShapeComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+												 const ConfigPropertyChangeSet& changedPropertySet)
 {
 	ShapeComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
-	const bool sizeChanged=
-		changedPropertySet.hasPropertyName(QuadShapeDefinition::k_quadWidthPropertyId) ||
-		changedPropertySet.hasPropertyName(QuadShapeDefinition::k_quadHeightPropertyId);
+	const bool sizeChanged= changedPropertySet.hasPropertyName(QuadShapeDefinition::k_quadWidthPropertyId)
+							|| changedPropertySet.hasPropertyName(QuadShapeDefinition::k_quadHeightPropertyId);
 
 	if (sizeChanged)
 	{
@@ -218,8 +207,7 @@ void QuadShapeComponent::updateBoxColliderExtents()
 	if (!def)
 		return;
 
-	collider->setHalfExtents(
-		glm::vec3(def->getQuadWidth() * 0.5f, def->getQuadHeight() * 0.5f, 0.01f));
+	collider->setHalfExtents(glm::vec3(def->getQuadWidth() * 0.5f, def->getQuadHeight() * 0.5f, 0.01f));
 }
 
 // -- IPropertyInterface ----
@@ -228,22 +216,17 @@ void QuadShapeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 	ShapeComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			QuadShapeDefinition::k_quadWidthPropertyId, MikanVariantType::FLOAT)
+		std::make_shared<PropertyDescriptor>(QuadShapeDefinition::k_quadWidthPropertyId, MikanVariantType::FLOAT)
 			->setDefaultValue(1.f));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			QuadShapeDefinition::k_quadHeightPropertyId, MikanVariantType::FLOAT)
+		std::make_shared<PropertyDescriptor>(QuadShapeDefinition::k_quadHeightPropertyId, MikanVariantType::FLOAT)
 			->setDefaultValue(1.f));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			QuadShapeDefinition::k_quadDoubleSidedPropertyId, MikanVariantType::BOOL)
+		std::make_shared<PropertyDescriptor>(QuadShapeDefinition::k_quadDoubleSidedPropertyId, MikanVariantType::BOOL)
 			->setDefaultValue(true));
 }
 
-bool QuadShapeComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool QuadShapeComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	const auto def= getQuadShapeDefinition();
 
@@ -266,9 +249,7 @@ bool QuadShapeComponent::getPropertyValue(
 	return ShapeComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool QuadShapeComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool QuadShapeComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	const auto def= getQuadShapeDefinition();
 
@@ -296,14 +277,20 @@ void QuadShapeComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<QuadShapeComponent, ShapeComponent>(QuadShapeComponent::k_componentClassName.c_str())
-		.addProperty("quadWidth", [](QuadShapeComponent* component) -> float
-					 { return component->getQuadShapeDefinition()->getQuadWidth(); }, [](QuadShapeComponent* component, float value)
-					 { component->getQuadShapeDefinition()->setQuadWidth(value); })
-		.addProperty("quadHeight", [](QuadShapeComponent* component) -> float
-					 { return component->getQuadShapeDefinition()->getQuadHeight(); }, [](QuadShapeComponent* component, float value)
-					 { component->getQuadShapeDefinition()->setQuadHeight(value); })
-		.addProperty("isDoubleSided", [](QuadShapeComponent* component) -> bool
-					 { return component->getQuadShapeDefinition()->getIsDoubleSided(); }, [](QuadShapeComponent* component, bool value)
-					 { component->getQuadShapeDefinition()->setIsDoubleSided(value); })
+		.addProperty(
+			"quadWidth",
+			[](QuadShapeComponent* component) -> float { return component->getQuadShapeDefinition()->getQuadWidth(); },
+			[](QuadShapeComponent* component, float value)
+			{ component->getQuadShapeDefinition()->setQuadWidth(value); })
+		.addProperty(
+			"quadHeight",
+			[](QuadShapeComponent* component) -> float { return component->getQuadShapeDefinition()->getQuadHeight(); },
+			[](QuadShapeComponent* component, float value)
+			{ component->getQuadShapeDefinition()->setQuadHeight(value); })
+		.addProperty(
+			"isDoubleSided", [](QuadShapeComponent* component) -> bool
+			{ return component->getQuadShapeDefinition()->getIsDoubleSided(); },
+			[](QuadShapeComponent* component, bool value)
+			{ component->getQuadShapeDefinition()->setIsDoubleSided(value); })
 		.endClass();
 }

@@ -30,40 +30,29 @@ bool PropertyRequestHandler::startup(MainWindow* mainWindow)
 	ProjectConfigPtr projectConfig= getProjectConfig();
 	if (projectConfig)
 	{
-		projectConfig->OnPropertyChanged+= MakeDelegate(
-			this,
-			&PropertyRequestHandler::onProjectConfigChanged);
+		projectConfig->OnPropertyChanged+= MakeDelegate(this, &PropertyRequestHandler::onProjectConfigChanged);
 		m_projectConfig= projectConfig;
 	}
 
 	// Property Requests
-	messageServer->setRequestHandler(
-		PropertySetValueRequest::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::setPropertyValueHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		PropertyGetValueRequest::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::getPropertyValueHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		SetPropertyNotifyMode::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::setPropertyNotifyModeHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		GetPropertyDescriptors::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::getPropertyDescriptorsHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		ComponentGetValuesRequest::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::getComponentValuesHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		GetComponentListRequest::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::getComponentListHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		SystemGetValuesRequest::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::getSystemValuesHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		SystemCreateObjectRequest::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::createSystemObjectHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		SystemDestroyObjectRequest::staticGetArchetype().getName(),
-		std::bind(&PropertyRequestHandler::destroySystemObjectHandler, this, _1, _2));
+	messageServer->setRequestHandler(PropertySetValueRequest::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::setPropertyValueHandler, this, _1, _2));
+	messageServer->setRequestHandler(PropertyGetValueRequest::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::getPropertyValueHandler, this, _1, _2));
+	messageServer->setRequestHandler(SetPropertyNotifyMode::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::setPropertyNotifyModeHandler, this, _1, _2));
+	messageServer->setRequestHandler(GetPropertyDescriptors::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::getPropertyDescriptorsHandler, this, _1, _2));
+	messageServer->setRequestHandler(ComponentGetValuesRequest::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::getComponentValuesHandler, this, _1, _2));
+	messageServer->setRequestHandler(GetComponentListRequest::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::getComponentListHandler, this, _1, _2));
+	messageServer->setRequestHandler(SystemGetValuesRequest::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::getSystemValuesHandler, this, _1, _2));
+	messageServer->setRequestHandler(SystemCreateObjectRequest::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::createSystemObjectHandler, this, _1, _2));
+	messageServer->setRequestHandler(SystemDestroyObjectRequest::staticGetArchetype().getName(),
+									 std::bind(&PropertyRequestHandler::destroySystemObjectHandler, this, _1, _2));
 
 	return true;
 }
@@ -73,16 +62,13 @@ void PropertyRequestHandler::shutdown()
 	ProjectConfigPtr projectConfig= m_projectConfig.lock();
 	if (projectConfig)
 	{
-		projectConfig->OnPropertyChanged-= MakeDelegate(
-			this,
-			&PropertyRequestHandler::onProjectConfigChanged);
+		projectConfig->OnPropertyChanged-= MakeDelegate(this, &PropertyRequestHandler::onProjectConfigChanged);
 	}
 }
 
 // Project Config Change Callbacks
-void PropertyRequestHandler::onProjectConfigChanged(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void PropertyRequestHandler::onProjectConfigChanged(CommonConfigPtr configPtr,
+													const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (auto systemDefinition= std::dynamic_pointer_cast<MikanObjectSystemDefinition>(configPtr))
 	{
@@ -100,9 +86,8 @@ void PropertyRequestHandler::onProjectConfigChanged(
 	}
 }
 
-void PropertyRequestHandler::onObjectSystemDefinitionChanged(
-	MikanObjectSystemDefinitionPtr systemDefinition,
-	const std::string& propertyName)
+void PropertyRequestHandler::onObjectSystemDefinitionChanged(MikanObjectSystemDefinitionPtr systemDefinition,
+															 const std::string& propertyName)
 {
 	const MikanClientConnectionStateMap& clientConnections= m_owner->getConnectedClientStateMap();
 	if (clientConnections.empty())
@@ -126,9 +111,8 @@ void PropertyRequestHandler::onObjectSystemDefinitionChanged(
 	}
 }
 
-void PropertyRequestHandler::onComponentDefinitionChanged(
-	MikanComponentDefinitionPtr componentDefinition,
-	const std::string& propertyName)
+void PropertyRequestHandler::onComponentDefinitionChanged(MikanComponentDefinitionPtr componentDefinition,
+														  const std::string& propertyName)
 {
 	const MikanClientConnectionStateMap& clientConnections= m_owner->getConnectedClientStateMap();
 	if (clientConnections.empty())
@@ -162,9 +146,7 @@ void PropertyRequestHandler::onComponentDefinitionChanged(
 }
 
 // Property Request Handlers
-void PropertyRequestHandler::setPropertyValueHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void PropertyRequestHandler::setPropertyValueHandler(const ClientRequest& request, ClientResponse& response)
 {
 	PropertySetValueRequest setValueRequest;
 	if (!readTypedRequest(request.utf8RequestString, setValueRequest))
@@ -215,9 +197,7 @@ void PropertyRequestHandler::setPropertyValueHandler(
 	writeTypedJsonResponse(request.requestId, setValueResponse, response);
 }
 
-void PropertyRequestHandler::getPropertyValueHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void PropertyRequestHandler::getPropertyValueHandler(const ClientRequest& request, ClientResponse& response)
 {
 	PropertyGetValueRequest getValueRequest;
 	if (!readTypedRequest(request.utf8RequestString, getValueRequest))
@@ -308,13 +288,12 @@ void PropertyRequestHandler::getComponentValuesHandler(const ClientRequest& requ
 
 	// Extract the values into the response polymorphic object
 	std::string serializeError;
-	if (!Serialization::serializeFromEntity(
-			std::static_pointer_cast<IEntityAccessor>(componentPtr),
-			getValuesResponse.valuesObject.allocateByType(valuesStruct),
-			*valuesStruct,
-			serializeError))
+	if (!Serialization::serializeFromEntity(std::static_pointer_cast<IEntityAccessor>(componentPtr),
+											getValuesResponse.valuesObject.allocateByType(valuesStruct), *valuesStruct,
+											serializeError))
 	{
-		MIKAN_LOG_ERROR("PropertyRequestHandler::getComponentValuesHandler") << "Failed to serialize component values: " << serializeError;
+		MIKAN_LOG_ERROR("PropertyRequestHandler::getComponentValuesHandler")
+			<< "Failed to serialize component values: " << serializeError;
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
@@ -348,7 +327,8 @@ void PropertyRequestHandler::getComponentListHandler(const ClientRequest& reques
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
-	componentListResponse.componentIdList.assign(componentIdVector.data(), componentIdVector.data() + componentIdVector.size());
+	componentListResponse.componentIdList.assign(componentIdVector.data(),
+												 componentIdVector.data() + componentIdVector.size());
 
 	writeTypedJsonResponse(request.requestId, componentListResponse, response);
 }
@@ -383,13 +363,12 @@ void PropertyRequestHandler::getSystemValuesHandler(const ClientRequest& request
 
 	// Extract the values into the response polymorphic object
 	std::string serializeError;
-	if (!Serialization::serializeFromEntity(
-			std::static_pointer_cast<IEntityAccessor>(objectSystem),
-			getValuesResponse.valuesObject.allocateByType(valuesStruct),
-			*valuesStruct,
-			serializeError))
+	if (!Serialization::serializeFromEntity(std::static_pointer_cast<IEntityAccessor>(objectSystem),
+											getValuesResponse.valuesObject.allocateByType(valuesStruct), *valuesStruct,
+											serializeError))
 	{
-		MIKAN_LOG_ERROR("PropertyRequestHandler::getSystemValuesHandler") << "Failed to serialize system values: " << serializeError;
+		MIKAN_LOG_ERROR("PropertyRequestHandler::getSystemValuesHandler")
+			<< "Failed to serialize system values: " << serializeError;
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
@@ -417,9 +396,8 @@ void PropertyRequestHandler::createSystemObjectHandler(const ClientRequest& requ
 	}
 
 	// Attempt to create the object on the specified system
-	if (!objectSystem->addNewObjectByUntypedDefinition(
-			createObjectRequest.componentClassName.getValue(),
-			createObjectRequest.initParams))
+	if (!objectSystem->addNewObjectByUntypedDefinition(createObjectRequest.componentClassName.getValue(),
+													   createObjectRequest.initParams))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
@@ -467,9 +445,7 @@ void PropertyRequestHandler::destroySystemObjectHandler(const ClientRequest& req
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void PropertyRequestHandler::setPropertyNotifyModeHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void PropertyRequestHandler::setPropertyNotifyModeHandler(const ClientRequest& request, ClientResponse& response)
 {
 	SetPropertyNotifyMode setPropertyNotifyMode;
 	if (!readTypedRequest(request.utf8RequestString, setPropertyNotifyMode))
@@ -486,10 +462,8 @@ void PropertyRequestHandler::setPropertyNotifyModeHandler(
 	}
 
 	if (!clientState->setPropertyNotifyMode(
-			setPropertyNotifyMode.systemFilter.getValue(),
-			setPropertyNotifyMode.componentFilter.getValue(),
-			setPropertyNotifyMode.propertyFilter.getValue(),
-			setPropertyNotifyMode.notifyMode))
+			setPropertyNotifyMode.systemFilter.getValue(), setPropertyNotifyMode.componentFilter.getValue(),
+			setPropertyNotifyMode.propertyFilter.getValue(), setPropertyNotifyMode.notifyMode))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidParam, response);
 		return;
@@ -498,9 +472,7 @@ void PropertyRequestHandler::setPropertyNotifyModeHandler(
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void PropertyRequestHandler::getPropertyDescriptorsHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void PropertyRequestHandler::getPropertyDescriptorsHandler(const ClientRequest& request, ClientResponse& response)
 {
 	GetPropertyDescriptors getDescriptorsRequest;
 	if (!readTypedRequest(request.utf8RequestString, getDescriptorsRequest))
@@ -512,11 +484,9 @@ void PropertyRequestHandler::getPropertyDescriptorsHandler(
 	PropertyDescriptorResponse propertyDescriptorResponse;
 
 	MikanPropertyDatabaseConstPtr propertyDatabase= getProjectManager()->getPropertyDatabaseConst();
-	PropertyDatabaseEnumerator enumerator(
-		propertyDatabase,
-		getDescriptorsRequest.systemFilter.getValue(),
-		getDescriptorsRequest.componentFilter.getValue(),
-		getDescriptorsRequest.propertyFilter.getValue());
+	PropertyDatabaseEnumerator enumerator(propertyDatabase, getDescriptorsRequest.systemFilter.getValue(),
+										  getDescriptorsRequest.componentFilter.getValue(),
+										  getDescriptorsRequest.propertyFilter.getValue());
 	while (enumerator.isValid())
 	{
 		int propertyIndex= enumerator.getCurrentPropertyIndex();

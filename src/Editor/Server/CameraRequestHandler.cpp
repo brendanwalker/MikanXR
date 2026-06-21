@@ -18,10 +18,7 @@ RenderTargetClientState::RenderTargetClientState(class MikanClientConnectionStat
 {
 }
 
-RenderTargetClientState::~RenderTargetClientState()
-{
-	disposeAllRenderTargetAccessors();
-}
+RenderTargetClientState::~RenderTargetClientState() { disposeAllRenderTargetAccessors(); }
 
 MikanClientGraphicsApi RenderTargetClientState::getClientGraphicsAPI(MikanCameraID cameraId) const
 {
@@ -31,8 +28,7 @@ MikanClientGraphicsApi RenderTargetClientState::getClientGraphicsAPI(MikanCamera
 }
 
 SharedTextureReadAccessor* RenderTargetClientState::getOrAllocateRenderTargetAccessor(
-	MikanCameraID cameraId,
-	const MikanRenderTargetDescriptor& desc)
+	MikanCameraID cameraId, const MikanRenderTargetDescriptor& desc)
 {
 	SharedTextureReadAccessor* readAccessor= getRenderTargetReadAccessor(cameraId);
 
@@ -87,29 +83,26 @@ bool RenderTargetClientState::hasAllocatedRenderTarget(MikanCameraID cameraId) c
 	{
 		const MikanRenderTargetDescriptor& desc= readAccessor->getRenderTargetDescriptor();
 
-		return desc.color_buffer_type != MikanColorBuffer_NOCOLOR ||
-			   desc.depth_buffer_type != MikanDepthBuffer_NODEPTH;
+		return desc.color_buffer_type != MikanColorBuffer_NOCOLOR || desc.depth_buffer_type != MikanDepthBuffer_NODEPTH;
 	}
 
 	return false;
 }
 
-bool RenderTargetClientState::allocateRenderTargetTextures(MikanCameraID cameraId, const MikanRenderTargetDescriptor& desc)
+bool RenderTargetClientState::allocateRenderTargetTextures(MikanCameraID cameraId,
+														   const MikanRenderTargetDescriptor& desc)
 {
 	SharedTextureReadAccessor* readAccessor= getOrAllocateRenderTargetAccessor(cameraId, desc);
 
 	// This will free any existing render target
-	if (readAccessor != nullptr &&
-		readAccessor->initialize(&desc))
+	if (readAccessor != nullptr && readAccessor->initialize(&desc))
 	{
 		auto* cameraRequestHandler= MikanServer::getInstance()->getCameraRequestHandler();
 
 		if (cameraRequestHandler->OnClientRenderTargetAllocated)
 		{
-			cameraRequestHandler->OnClientRenderTargetAllocated(
-				m_owner->getClientId(),
-				m_owner->getMikanClientInfo(),
-				readAccessor);
+			cameraRequestHandler->OnClientRenderTargetAllocated(m_owner->getClientId(), m_owner->getMikanClientInfo(),
+																readAccessor);
 		}
 
 		return true;
@@ -128,9 +121,7 @@ void RenderTargetClientState::freeRenderTargetTexturesHandler(MikanCameraID came
 
 		if (cameraRequestHandler->OnClientRenderTargetReleased)
 		{
-			cameraRequestHandler->OnClientRenderTargetReleased(
-				m_owner->getClientId(),
-				readAccessor);
+			cameraRequestHandler->OnClientRenderTargetReleased(m_owner->getClientId(), readAccessor);
 		}
 
 		disposeRenderTargetAccessor(cameraId);
@@ -157,19 +148,15 @@ bool CameraRequestHandler::startup(MainWindow* mainWindow)
 	messageServer->setRequestHandler(
 		AllocateCameraRenderTargetTextures::staticGetArchetype().getName(),
 		std::bind(&CameraRequestHandler::allocateRenderTargetTexturesHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		FreeCameraRenderTargetTextures::staticGetArchetype().getName(),
-		std::bind(&CameraRequestHandler::freeRenderTargetTexturesHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		PublishCameraRenderTargetTextures::staticGetArchetype().getName(),
-		std::bind(&CameraRequestHandler::frameRenderedHandler, this, _1, _2));
+	messageServer->setRequestHandler(FreeCameraRenderTargetTextures::staticGetArchetype().getName(),
+									 std::bind(&CameraRequestHandler::freeRenderTargetTexturesHandler, this, _1, _2));
+	messageServer->setRequestHandler(PublishCameraRenderTargetTextures::staticGetArchetype().getName(),
+									 std::bind(&CameraRequestHandler::frameRenderedHandler, this, _1, _2));
 
 	return true;
 }
 
-void CameraRequestHandler::allocateRenderTargetTexturesHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void CameraRequestHandler::allocateRenderTargetTexturesHandler(const ClientRequest& request, ClientResponse& response)
 {
 	AllocateCameraRenderTargetTextures allocateRequest;
 	if (!readTypedRequest(request.utf8RequestString, allocateRequest))
@@ -196,9 +183,7 @@ void CameraRequestHandler::allocateRenderTargetTexturesHandler(
 	}
 }
 
-void CameraRequestHandler::freeRenderTargetTexturesHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void CameraRequestHandler::freeRenderTargetTexturesHandler(const ClientRequest& request, ClientResponse& response)
 {
 	FreeCameraRenderTargetTextures freeRenderTargetTexturesRequest= {};
 	if (!readTypedRequest(request.utf8RequestString, freeRenderTargetTexturesRequest))
@@ -215,9 +200,8 @@ void CameraRequestHandler::freeRenderTargetTexturesHandler(
 		// Broadcast that the client render target was disposed
 		if (OnClientRenderTargetReleased)
 		{
-			OnClientRenderTargetReleased(
-				clientState->getClientId(),
-				renderTargetState->getRenderTargetReadAccessor(freeRenderTargetTexturesRequest.camera_id));
+			OnClientRenderTargetReleased(clientState->getClientId(), renderTargetState->getRenderTargetReadAccessor(
+																		 freeRenderTargetTexturesRequest.camera_id));
 		}
 
 		// Free the render target texture
@@ -232,9 +216,7 @@ void CameraRequestHandler::freeRenderTargetTexturesHandler(
 	}
 }
 
-void CameraRequestHandler::frameRenderedHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void CameraRequestHandler::frameRenderedHandler(const ClientRequest& request, ClientResponse& response)
 {
 	PublishCameraRenderTargetTextures frameRenderedRequest= {};
 	if (!readTypedRequest(request.utf8RequestString, frameRenderedRequest))
@@ -251,12 +233,11 @@ void CameraRequestHandler::frameRenderedHandler(
 		// Process incoming video frames, if we have a compositor active
 		if (OnClientRenderTargetUpdated)
 		{
-			if (renderTargetState->readRenderTargetTextures(frameRenderedRequest.camera_id, frameRenderedRequest.frame_index))
+			if (renderTargetState->readRenderTargetTextures(frameRenderedRequest.camera_id,
+															frameRenderedRequest.frame_index))
 			{
-				OnClientRenderTargetUpdated(
-					clientState->getClientId(),
-					frameRenderedRequest.camera_id,
-					frameRenderedRequest.frame_index);
+				OnClientRenderTargetUpdated(clientState->getClientId(), frameRenderedRequest.camera_id,
+											frameRenderedRequest.frame_index);
 			}
 		}
 

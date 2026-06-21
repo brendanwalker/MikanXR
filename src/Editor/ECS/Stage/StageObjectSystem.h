@@ -16,7 +16,8 @@
 #include <memory>
 #include <string>
 
-class StageObjectSystemDefinition : public MikanTypedObjectSystemDefinition<StageComponent, StageComponentDefinition, MikanStageID>
+class StageObjectSystemDefinition
+	: public MikanTypedObjectSystemDefinition<StageComponent, StageComponentDefinition, MikanStageID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<StageComponent, StageComponentDefinition, MikanStageID>;
@@ -24,32 +25,22 @@ public:
 	StageObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class StageObjectSystem : public MikanTypedObjectSystem<
-							  StageComponent, StageComponentDefinition,
-							  MikanStageID,
-							  StageObjectSystem, StageObjectSystemDefinition>
+class StageObjectSystem : public MikanTypedObjectSystem<StageComponent, StageComponentDefinition, MikanStageID,
+														StageObjectSystem, StageObjectSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		StageComponent, StageComponentDefinition,
-		MikanStageID,
-		StageObjectSystem, StageObjectSystemDefinition>;
+	using Super= MikanTypedObjectSystem<StageComponent, StageComponentDefinition, MikanStageID, StageObjectSystem,
+										StageObjectSystemDefinition>;
 
 	StageObjectSystem(ProjectManagerPtr ownerObjectSystem);
 
 	inline static const std::string k_objectSystemClassName= "StageObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	inline StageComponentPtr getStageById(MikanStageID stageId) const
-	{
-		return Super::getTypedComponentById(stageId);
-	}
+	inline StageComponentPtr getStageById(MikanStageID stageId) const { return Super::getTypedComponentById(stageId); }
 	inline StageComponentPtr getStageByName(const std::string& stageName) const
 	{
 		return Super::getTypedComponentByName(stageName);
 	}
-	inline MikanStageID getFirstStageId() const
-	{
-		return Super::getFirstComponentId();
-	}
+	inline MikanStageID getFirstStageId() const { return Super::getFirstComponentId(); }
 };

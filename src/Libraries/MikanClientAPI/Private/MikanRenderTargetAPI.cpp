@@ -9,27 +9,23 @@ MikanRenderTargetAPI::MikanRenderTargetAPI(MikanRequestManager* requestManager)
 {
 }
 
-MikanAPIResult MikanRenderTargetAPI::setGraphicsDeviceInterface(
-	MikanClientGraphicsApi api,
-	void* graphicsDeviceInterface)
+MikanAPIResult MikanRenderTargetAPI::setGraphicsDeviceInterface(MikanClientGraphicsApi api,
+																void* graphicsDeviceInterface)
 {
 	MikanContext context= m_requestManager->getContext();
 
 	return (MikanAPIResult)Mikan_SetGraphicsDeviceInterface(context, api, graphicsDeviceInterface);
 }
 
-MikanAPIResult MikanRenderTargetAPI::getGraphicsDeviceInterface(
-	MikanClientGraphicsApi api,
-	void** outGraphicsDeviceInterface)
+MikanAPIResult MikanRenderTargetAPI::getGraphicsDeviceInterface(MikanClientGraphicsApi api,
+																void** outGraphicsDeviceInterface)
 {
 	MikanContext context= m_requestManager->getContext();
 
 	return (MikanAPIResult)Mikan_GetGraphicsDeviceInterface(context, api, outGraphicsDeviceInterface);
 }
 
-MikanAPIResult MikanRenderTargetAPI::getCameraPackDepthTextureResourcePtr(
-	MikanCameraID cameraId,
-	void** outResourcePtr)
+MikanAPIResult MikanRenderTargetAPI::getCameraPackDepthTextureResourcePtr(MikanCameraID cameraId, void** outResourcePtr)
 {
 	if (outResourcePtr != nullptr)
 	{
@@ -73,8 +69,7 @@ MikanResponseFuture MikanRenderTargetAPI::tryProcessRequest(MikanRequest& reques
 	return MikanResponseFuture();
 }
 
-MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
-	MikanRequest& request)
+MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(MikanRequest& request)
 {
 	auto& allocateRequest= static_cast<AllocateCameraRenderTargetTextures&>(request);
 	const MikanRenderTargetDescriptor& descriptor= allocateRequest.descriptor;
@@ -83,15 +78,13 @@ MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
 
 	// Create the shared texture
 	MikanAPIResult result=
-		(MikanAPIResult)Mikan_AllocateCameraRenderTargetTextures(
-			context, allocateRequest.camera_id, &descriptor);
+		(MikanAPIResult)Mikan_AllocateCameraRenderTargetTextures(context, allocateRequest.camera_id, &descriptor);
 	if (result == MikanAPIResult::Success)
 	{
 		// Actual descriptor might differ from desired descriptor based on render target writer's capabilities
 		MikanRenderTargetDescriptor actualDescriptor;
-		result=
-			(MikanAPIResult)Mikan_GetCameraRenderTargetDescriptor(
-				context, allocateRequest.camera_id, &actualDescriptor);
+		result= (MikanAPIResult)Mikan_GetCameraRenderTargetDescriptor(context, allocateRequest.camera_id,
+																	  &actualDescriptor);
 		if (result == MikanAPIResult::Success)
 		{
 			// Overwrite the descriptor in the original request with the actual descriptor
@@ -104,22 +97,19 @@ MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
 	return m_requestManager->addResponseHandler(INVALID_MIKAN_ID, MikanAPIResult::RequestFailed);
 }
 
-MikanResponseFuture MikanRenderTargetAPI::writeColorRenderTargetTexture(
-	MikanRequest& request)
+MikanResponseFuture MikanRenderTargetAPI::writeColorRenderTargetTexture(MikanRequest& request)
 {
 	auto& writeRequest= static_cast<WriteCameraColorRenderTargetTexture&>(request);
 	void* apiColorTexturePtr= writeRequest.api_color_texture_ptr;
 
 	MikanContext context= m_requestManager->getContext();
 	MikanAPIResult result=
-		(MikanAPIResult)Mikan_WriteCameraColorRenderTargetTexture(
-			context, writeRequest.camera_id, apiColorTexturePtr);
+		(MikanAPIResult)Mikan_WriteCameraColorRenderTargetTexture(context, writeRequest.camera_id, apiColorTexturePtr);
 
 	return MikanResponseFuture(result);
 }
 
-MikanResponseFuture MikanRenderTargetAPI::writeDepthRenderTargetTexture(
-	MikanRequest& request)
+MikanResponseFuture MikanRenderTargetAPI::writeDepthRenderTargetTexture(MikanRequest& request)
 {
 	auto& writeRequest= static_cast<WriteCameraDepthRenderTargetTexture&>(request);
 	void* apiDepthTexturePtr= writeRequest.api_depth_texture_ptr;
@@ -127,23 +117,20 @@ MikanResponseFuture MikanRenderTargetAPI::writeDepthRenderTargetTexture(
 	float zFar= writeRequest.z_far;
 
 	MikanContext context= m_requestManager->getContext();
-	MikanAPIResult result=
-		(MikanAPIResult)Mikan_WriteCameraDepthRenderTargetTexture(
-			context, writeRequest.camera_id, apiDepthTexturePtr, zNear, zFar);
+	MikanAPIResult result= (MikanAPIResult)Mikan_WriteCameraDepthRenderTargetTexture(context, writeRequest.camera_id,
+																					 apiDepthTexturePtr, zNear, zFar);
 
 	return MikanResponseFuture(result);
 }
 
-MikanResponseFuture MikanRenderTargetAPI::publishRenderTargetTextures(
-	MikanRequest& request)
+MikanResponseFuture MikanRenderTargetAPI::publishRenderTargetTextures(MikanRequest& request)
 {
 	auto& publishRequest= static_cast<PublishCameraRenderTargetTextures&>(request);
 
 	return m_requestManager->sendRequest(publishRequest);
 }
 
-MikanResponseFuture MikanRenderTargetAPI::freeRenderTargetTextures(
-	MikanRequest& request)
+MikanResponseFuture MikanRenderTargetAPI::freeRenderTargetTextures(MikanRequest& request)
 {
 	auto& freeRequest= static_cast<FreeCameraRenderTargetTextures&>(request);
 

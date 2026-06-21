@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-class BoxShapeSystemDefinition : public MikanTypedObjectSystemDefinition<BoxShapeComponent, BoxShapeDefinition, MikanShapeID>
+class BoxShapeSystemDefinition
+	: public MikanTypedObjectSystemDefinition<BoxShapeComponent, BoxShapeDefinition, MikanShapeID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<BoxShapeComponent, BoxShapeDefinition, MikanShapeID>;
@@ -21,16 +22,12 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class BoxShapeSystem : public MikanTypedObjectSystem<
-						   BoxShapeComponent, BoxShapeDefinition,
-						   MikanShapeID,
-						   BoxShapeSystem, BoxShapeSystemDefinition>
+class BoxShapeSystem : public MikanTypedObjectSystem<BoxShapeComponent, BoxShapeDefinition, MikanShapeID,
+													 BoxShapeSystem, BoxShapeSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		BoxShapeComponent, BoxShapeDefinition,
-		MikanShapeID,
-		BoxShapeSystem, BoxShapeSystemDefinition>;
+	using Super= MikanTypedObjectSystem<BoxShapeComponent, BoxShapeDefinition, MikanShapeID, BoxShapeSystem,
+										BoxShapeSystemDefinition>;
 
 	BoxShapeSystem(ProjectManagerPtr ownerObjectSystem);
 
@@ -56,9 +53,8 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		ComponentDefinitionPtr componentDefinition) override;
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											ComponentDefinitionPtr componentDefinition) override;
 };
 
 using BoxShapeSystemPtr= std::shared_ptr<BoxShapeSystem>;

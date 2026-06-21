@@ -6,14 +6,9 @@
 class MIKAN_GUI_CLASS MkGuiScopedChild
 {
 public:
-	MkGuiScopedChild(const char* str_id,
-					 const ImVec2& size= ImVec2(0, 0),
-					 bool border= false,
+	MkGuiScopedChild(const char* str_id, const ImVec2& size= ImVec2(0, 0), bool border= false,
 					 ImGuiWindowFlags flags= 0);
-	MkGuiScopedChild(unsigned int id,
-					 const ImVec2& size= ImVec2(0, 0),
-					 bool border= false,
-					 ImGuiWindowFlags flags= 0);
+	MkGuiScopedChild(unsigned int id, const ImVec2& size= ImVec2(0, 0), bool border= false, ImGuiWindowFlags flags= 0);
 	~MkGuiScopedChild();
 
 	MkGuiScopedChild(const MkGuiScopedChild&)= delete;

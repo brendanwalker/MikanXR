@@ -57,80 +57,67 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	m_defaultGuiStyle= getGuiStyleManager()->getStyle("default_component_panel");
 
 	auto pm= ownerAppStage->getProjectManager();
-	m_sceneDataSource= std::make_unique<GuiDataSource_ComboBox>(pm,
-																std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-																	{SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName}});
+	m_sceneDataSource= std::make_unique<GuiDataSource_ComboBox>(
+		pm, std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+				{SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName}});
 
-	m_compositorDataSource= std::make_unique<GuiDataSource_ComboBox>(pm,
-																	 std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-																		 {CompositorObjectSystem::k_objectSystemClassName, CompositorComponent::k_componentClassName}});
-	m_compositorDataSource->setFilter([this](MikanComponentPtr comp) -> bool
-									  {
-		auto compositor = std::static_pointer_cast<CompositorComponent>(comp);
-		return compositor->getCompositorDefinition()->getOwnerSceneId() == m_selectedSceneId; });
+	m_compositorDataSource= std::make_unique<GuiDataSource_ComboBox>(
+		pm, std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+				{CompositorObjectSystem::k_objectSystemClassName, CompositorComponent::k_componentClassName}});
+	m_compositorDataSource->setFilter(
+		[this](MikanComponentPtr comp) -> bool
+		{
+			auto compositor= std::static_pointer_cast<CompositorComponent>(comp);
+			return compositor->getCompositorDefinition()->getOwnerSceneId() == m_selectedSceneId;
+		});
 
 	// Listen for anchor changes
 	AnchorObjectSystemPtr anchorSystem= m_anchorSystem.lock();
 	anchorSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onAnchorSystemConfigChanged);
-	anchorSystem->OnNewObjectFinalized+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	anchorSystem->OnObjectDisposed+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	anchorSystem->OnNewObjectFinalized+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	anchorSystem->OnObjectDisposed+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	// Listen for selection changes
-	m_editorSystem.lock()->OnSelectionChanged+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onSelectionChanged);
+	m_editorSystem.lock()->OnSelectionChanged+= MakeDelegate(this, &GuiPanel_ProjectScenes::onSelectionChanged);
 
 	// Listen for stencil changes
 	QuadStencilSystemPtr quadStencilSystem= m_quadStencilSystem.lock();
 	quadStencilSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	quadStencilSystem->OnNewObjectFinalized+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	quadStencilSystem->OnObjectDisposed+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	quadStencilSystem->OnNewObjectFinalized+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	quadStencilSystem->OnObjectDisposed+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	BoxStencilSystemPtr boxStencilSystem= m_boxStencilSystem.lock();
 	boxStencilSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	boxStencilSystem->OnNewObjectFinalized+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	boxStencilSystem->OnObjectDisposed+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	boxStencilSystem->OnNewObjectFinalized+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	boxStencilSystem->OnObjectDisposed+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	ModelStencilSystemPtr modelStencilSystem= m_modelStencilSystem.lock();
 	modelStencilSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	modelStencilSystem->OnNewObjectFinalized+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	modelStencilSystem->OnObjectDisposed+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	modelStencilSystem->OnNewObjectFinalized+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	modelStencilSystem->OnObjectDisposed+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	// Listen for shape changes
 	QuadShapeSystemPtr quadShapeSystem= m_quadShapeSystem.lock();
 	quadShapeSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-	quadShapeSystem->OnNewObjectFinalized+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	quadShapeSystem->OnObjectDisposed+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	quadShapeSystem->OnNewObjectFinalized+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	quadShapeSystem->OnObjectDisposed+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	BoxShapeSystemPtr boxShapeSystem= m_boxShapeSystem.lock();
 	boxShapeSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-	boxShapeSystem->OnNewObjectFinalized+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	boxShapeSystem->OnObjectDisposed+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	boxShapeSystem->OnNewObjectFinalized+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	boxShapeSystem->OnObjectDisposed+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	ModelShapeSystemPtr modelShapeSystem= m_modelShapeSystem.lock();
 	modelShapeSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-	modelShapeSystem->OnNewObjectFinalized+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	modelShapeSystem->OnObjectDisposed+=
-		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	modelShapeSystem->OnNewObjectFinalized+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	modelShapeSystem->OnObjectDisposed+= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	// Build initial state
 	rebuildSceneOutliner();
@@ -159,76 +146,61 @@ void GuiPanel_ProjectScenes::dispose()
 	{
 		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onAnchorSystemConfigChanged);
-		sys->OnNewObjectFinalized-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+		sys->OnNewObjectFinalized-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
 	if (EditorObjectSystemPtr sys= m_editorSystem.lock())
 	{
-		sys->OnSelectionChanged-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onSelectionChanged);
+		sys->OnSelectionChanged-= MakeDelegate(this, &GuiPanel_ProjectScenes::onSelectionChanged);
 	}
 
 	if (QuadStencilSystemPtr sys= m_quadStencilSystem.lock())
 	{
 		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnNewObjectFinalized-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+		sys->OnNewObjectFinalized-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
 	if (BoxStencilSystemPtr sys= m_boxStencilSystem.lock())
 	{
 		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnNewObjectFinalized-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+		sys->OnNewObjectFinalized-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
 	if (ModelStencilSystemPtr sys= m_modelStencilSystem.lock())
 	{
 		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnNewObjectFinalized-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+		sys->OnNewObjectFinalized-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
 	if (QuadShapeSystemPtr sys= m_quadShapeSystem.lock())
 	{
 		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-		sys->OnNewObjectFinalized-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+		sys->OnNewObjectFinalized-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
 	if (BoxShapeSystemPtr sys= m_boxShapeSystem.lock())
 	{
 		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-		sys->OnNewObjectFinalized-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+		sys->OnNewObjectFinalized-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
 	if (ModelShapeSystemPtr sys= m_modelShapeSystem.lock())
 	{
 		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-		sys->OnNewObjectFinalized-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed-=
-			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+		sys->OnNewObjectFinalized-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed-= MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
 	GuiPanel::dispose();
@@ -321,9 +293,8 @@ void GuiPanel_ProjectScenes::setSelectedSceneObject(MikanObjectPtr selectedObjec
 	}
 }
 
-void GuiPanel_ProjectScenes::onAnchorSystemConfigChanged(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void GuiPanel_ProjectScenes::onAnchorSystemConfigChanged(CommonConfigPtr configPtr,
+														 const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
@@ -331,46 +302,37 @@ void GuiPanel_ProjectScenes::onAnchorSystemConfigChanged(
 	}
 }
 
-void GuiPanel_ProjectScenes::onStencilSystemConfigChanged(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void GuiPanel_ProjectScenes::onStencilSystemConfigChanged(CommonConfigPtr configPtr,
+														  const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_parentTransformIdPropertyId) ||
-		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
+	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_parentTransformIdPropertyId)
+		|| changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
 		rebuildSceneOutliner();
 	}
 }
 
-void GuiPanel_ProjectScenes::onShapeSystemConfigChanged(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void GuiPanel_ProjectScenes::onShapeSystemConfigChanged(CommonConfigPtr configPtr,
+														const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_parentTransformIdPropertyId) ||
-		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
+	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_parentTransformIdPropertyId)
+		|| changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
 		rebuildSceneOutliner();
 	}
 }
 
-void GuiPanel_ProjectScenes::onObjectInitialized(
-	MikanObjectSystemPtr objectSystemPtr,
-	MikanObjectPtr objectPtr)
+void GuiPanel_ProjectScenes::onObjectInitialized(MikanObjectSystemPtr objectSystemPtr, MikanObjectPtr objectPtr)
 {
 	rebuildSceneOutliner();
 }
 
-void GuiPanel_ProjectScenes::onObjectDisposed(
-	MikanObjectSystemPtr objectSystemPtr,
-	MikanObjectConstPtr objectPtr)
+void GuiPanel_ProjectScenes::onObjectDisposed(MikanObjectSystemPtr objectSystemPtr, MikanObjectConstPtr objectPtr)
 {
 	rebuildSceneOutliner();
 }
 
-void GuiPanel_ProjectScenes::onSelectionChanged()
-{
-	updateSelection();
-}
+void GuiPanel_ProjectScenes::onSelectionChanged() { updateSelection(); }
 
 void GuiPanel_ProjectScenes::rebuildSceneOutliner()
 {
@@ -437,9 +399,9 @@ void GuiPanel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 		if (childObject != ownerObject)
 		{
 			// Only show AnchorComponent, StencilComponent, and ShapeComponent-derived objects in the outliner
-			if (!childObject->getComponentOfType<AnchorComponent>() &&
-				!childObject->getComponentOfType<StencilComponent>() &&
-				!childObject->getComponentOfType<ShapeComponent>())
+			if (!childObject->getComponentOfType<AnchorComponent>()
+				&& !childObject->getComponentOfType<StencilComponent>()
+				&& !childObject->getComponentOfType<ShapeComponent>())
 				continue;
 
 			addTransformComponent(child, depth + 1);
@@ -460,23 +422,20 @@ void GuiPanel_ProjectScenes::onGui()
 	// Scenes combo
 	m_sceneDataSource->refreshEntries();
 
-	if (m_selectedSceneId != INVALID_MIKAN_ID &&
-		m_sceneDataSource->getEntryIndexByComponentId(m_selectedSceneId) == -1)
+	if (m_selectedSceneId != INVALID_MIKAN_ID && m_sceneDataSource->getEntryIndexByComponentId(m_selectedSceneId) == -1)
 	{
 		setSelectedSceneId(INVALID_MIKAN_ID);
 	}
 
 	int sceneIndex= m_sceneDataSource->getEntryIndexByComponentId(m_selectedSceneId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectScene", "Scene",
-									m_sceneDataSource.get(), sceneIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectScene", "Scene", m_sceneDataSource.get(), sceneIndex))
 	{
 		if (sceneIndex >= 0)
 		{
 			if (MikanComponentPtr sel= m_sceneDataSource->getEntryAtIndex(sceneIndex))
 			{
 				int newId= sel->getComponentId();
-				addDeferredGuiEvent([this, newId]()
-									{ setSelectedSceneId(newId); });
+				addDeferredGuiEvent([this, newId]() { setSelectedSceneId(newId); });
 			}
 		}
 	}
@@ -484,18 +443,21 @@ void GuiPanel_ProjectScenes::onGui()
 	ImGui::SameLine();
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addScene", "add_component"))
 	{
-		addDeferredGuiEvent([this]()
-							{
-			StageObjectSystemPtr stageSys = m_stageSystem.lock();
-			MikanStageID firstStageId = stageSys ? stageSys->getFirstComponentId() : INVALID_MIKAN_ID;
-			if (firstStageId != INVALID_MIKAN_ID)
+		addDeferredGuiEvent(
+			[this]()
 			{
-				m_sceneSystem.lock()->addNewObjectByTypedDefinition(
-					[firstStageId](auto def) {
-						def->setParentStageId(firstStageId);
-						return true;
-					});
-			} });
+				StageObjectSystemPtr stageSys= m_stageSystem.lock();
+				MikanStageID firstStageId= stageSys ? stageSys->getFirstComponentId() : INVALID_MIKAN_ID;
+				if (firstStageId != INVALID_MIKAN_ID)
+				{
+					m_sceneSystem.lock()->addNewObjectByTypedDefinition(
+						[firstStageId](auto def)
+						{
+							def->setParentStageId(firstStageId);
+							return true;
+						});
+				}
+			});
 	}
 
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
@@ -518,8 +480,8 @@ void GuiPanel_ProjectScenes::onGui()
 	{
 		m_compositorDataSource->refreshEntries();
 
-		if (m_selectedCompositorId != INVALID_MIKAN_ID &&
-			m_compositorDataSource->getEntryIndexByComponentId(m_selectedCompositorId) == -1)
+		if (m_selectedCompositorId != INVALID_MIKAN_ID
+			&& m_compositorDataSource->getEntryIndexByComponentId(m_selectedCompositorId) == -1)
 		{
 			setSelectedCompositorId(INVALID_MIKAN_ID);
 		}
@@ -533,8 +495,7 @@ void GuiPanel_ProjectScenes::onGui()
 				if (MikanComponentPtr sel= m_compositorDataSource->getEntryAtIndex(compositorIndex))
 				{
 					int newId= sel->getComponentId();
-					addDeferredGuiEvent([this, newId]()
-										{ setSelectedCompositorId((MikanCompositorID)newId); });
+					addDeferredGuiEvent([this, newId]() { setSelectedCompositorId((MikanCompositorID)newId); });
 				}
 			}
 		}
@@ -542,14 +503,17 @@ void GuiPanel_ProjectScenes::onGui()
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addCompositor", "add_component"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				int sceneId = m_selectedSceneId;
-				m_compositorSystem.lock()->addNewObjectByTypedDefinition(
-					[sceneId](auto def) {
-						def->setOwnerSceneId(sceneId);
-						return true;
-					}); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					int sceneId= m_selectedSceneId;
+					m_compositorSystem.lock()->addNewObjectByTypedDefinition(
+						[sceneId](auto def)
+						{
+							def->setOwnerSceneId(sceneId);
+							return true;
+						});
+				});
 		}
 
 		if (m_selectedCompositorId != INVALID_MIKAN_ID)
@@ -557,8 +521,8 @@ void GuiPanel_ProjectScenes::onGui()
 			ImGui::SameLine();
 			if (MkGui::drawImageButton(m_defaultGuiStyle, "removeCompositor", "delete_component"))
 			{
-				addDeferredGuiEvent([this]()
-									{ m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId); });
+				addDeferredGuiEvent(
+					[this]() { m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId); });
 			}
 
 			m_context->getCompositorPanel()->onGui();
@@ -572,107 +536,128 @@ void GuiPanel_ProjectScenes::onGui()
 	{
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addAnchor", "add_anchor"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				int parentTransformId = m_selectedTransformId;
-				m_anchorSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setParentTransformId(parentTransformId);
-						return true;
-					}); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					int parentTransformId= m_selectedTransformId;
+					m_anchorSystem.lock()->addNewObjectByTypedDefinition(
+						[parentTransformId](auto def)
+						{
+							def->setParentTransformId(parentTransformId);
+							return true;
+						});
+				});
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addQuadStencil", "add_quad_stencil"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				int parentTransformId = m_selectedTransformId;
-				m_quadStencilSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setQuadWidth(0.25f);
-						def->setQuadHeight(0.25f);
-						def->setIsDoubleSided(true);
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						def->setIsDisabled(false);
-						return true;
-					}); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					int parentTransformId= m_selectedTransformId;
+					m_quadStencilSystem.lock()->addNewObjectByTypedDefinition(
+						[parentTransformId](auto def)
+						{
+							def->setQuadWidth(0.25f);
+							def->setQuadHeight(0.25f);
+							def->setIsDoubleSided(true);
+							def->setRelativeTransform(GlmTransform());
+							def->setParentTransformId(parentTransformId);
+							def->setIsDisabled(false);
+							return true;
+						});
+				});
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addBoxStencil", "add_box_stencil"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				int parentTransformId = m_selectedTransformId;
-				m_boxStencilSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setBoxXSize(0.25f);
-						def->setBoxYSize(0.25f);
-						def->setBoxZSize(0.25f);
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						def->setIsDisabled(false);
-						return true;
-					}); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					int parentTransformId= m_selectedTransformId;
+					m_boxStencilSystem.lock()->addNewObjectByTypedDefinition(
+						[parentTransformId](auto def)
+						{
+							def->setBoxXSize(0.25f);
+							def->setBoxYSize(0.25f);
+							def->setBoxZSize(0.25f);
+							def->setRelativeTransform(GlmTransform());
+							def->setParentTransformId(parentTransformId);
+							def->setIsDisabled(false);
+							return true;
+						});
+				});
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addModelStencil", "add_model_stencil"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				int parentTransformId = m_selectedTransformId;
-				m_modelStencilSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						def->setIsDisabled(false);
-						return true;
-					}); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					int parentTransformId= m_selectedTransformId;
+					m_modelStencilSystem.lock()->addNewObjectByTypedDefinition(
+						[parentTransformId](auto def)
+						{
+							def->setRelativeTransform(GlmTransform());
+							def->setParentTransformId(parentTransformId);
+							def->setIsDisabled(false);
+							return true;
+						});
+				});
 		}
 
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addQuadShape", "add_quad_shape"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				int parentTransformId = m_selectedTransformId;
-				m_quadShapeSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setQuadWidth(0.25f);
-						def->setQuadHeight(0.25f);
-						def->setIsDoubleSided(true);
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						return true;
-					}); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					int parentTransformId= m_selectedTransformId;
+					m_quadShapeSystem.lock()->addNewObjectByTypedDefinition(
+						[parentTransformId](auto def)
+						{
+							def->setQuadWidth(0.25f);
+							def->setQuadHeight(0.25f);
+							def->setIsDoubleSided(true);
+							def->setRelativeTransform(GlmTransform());
+							def->setParentTransformId(parentTransformId);
+							return true;
+						});
+				});
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addBoxShape", "add_box_shape"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				int parentTransformId = m_selectedTransformId;
-				m_boxShapeSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setBoxXSize(0.25f);
-						def->setBoxYSize(0.25f);
-						def->setBoxZSize(0.25f);
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						return true;
-					}); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					int parentTransformId= m_selectedTransformId;
+					m_boxShapeSystem.lock()->addNewObjectByTypedDefinition(
+						[parentTransformId](auto def)
+						{
+							def->setBoxXSize(0.25f);
+							def->setBoxYSize(0.25f);
+							def->setBoxZSize(0.25f);
+							def->setRelativeTransform(GlmTransform());
+							def->setParentTransformId(parentTransformId);
+							return true;
+						});
+				});
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addModelShape", "add_model_shape"))
 		{
-			addDeferredGuiEvent([this]()
-								{
-				int parentTransformId = m_selectedTransformId;
-				m_modelShapeSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						return true;
-					}); });
+			addDeferredGuiEvent(
+				[this]()
+				{
+					int parentTransformId= m_selectedTransformId;
+					m_modelShapeSystem.lock()->addNewObjectByTypedDefinition(
+						[parentTransformId](auto def)
+						{
+							def->setRelativeTransform(GlmTransform());
+							def->setParentTransformId(parentTransformId);
+							return true;
+						});
+				});
 		}
 
 		ImGui::Text("Scene Objects");
@@ -690,10 +675,12 @@ void GuiPanel_ProjectScenes::onGui()
 					SelectionComponentPtr selComp= entry.selectionComponent.lock();
 					if (selComp)
 					{
-						addDeferredGuiEvent([this, selComp]()
-											{
-							m_editorSystem.lock()->setSelection(selComp);
-							setSelectedSceneObject(selComp->getOwnerObject()); });
+						addDeferredGuiEvent(
+							[this, selComp]()
+							{
+								m_editorSystem.lock()->setSelection(selComp);
+								setSelectedSceneObject(selComp->getOwnerObject());
+							});
 					}
 				}
 			}
@@ -701,8 +688,7 @@ void GuiPanel_ProjectScenes::onGui()
 		}
 
 		// Remove selected object
-		if (m_selectedSceneObjectListIndex >= 0 &&
-			m_selectedSceneObjectListIndex < (int)m_sceneOutliner.size())
+		if (m_selectedSceneObjectListIndex >= 0 && m_selectedSceneObjectListIndex < (int)m_sceneOutliner.size())
 		{
 			if (ImGui::Button("Remove Selected"))
 			{
@@ -713,8 +699,7 @@ void GuiPanel_ProjectScenes::onGui()
 					MikanObjectPtr ownerObject= selComp->getOwnerObject();
 					MikanObjectSystemPtr ownerSystem= ownerObject->getOwnerSystem();
 
-					addDeferredGuiEvent([ownerSystem, ownerObject]()
-										{ ownerSystem->deleteObject(ownerObject); });
+					addDeferredGuiEvent([ownerSystem, ownerObject]() { ownerSystem->deleteObject(ownerObject); });
 				}
 			}
 

@@ -94,14 +94,26 @@ public:
 
 	// -- Fundamental scalars --
 	void visitBool(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::BOOL); }
-	void visitByte(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::UBYTE); } // int8_t -> UBYTE (see visitByte in serializer)
+	void visitByte(Serialization::ValueAccessor const& a) override
+	{
+		record(a, MikanVariantType::UBYTE);
+	} // int8_t -> UBYTE (see visitByte in serializer)
 	void visitUByte(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::UBYTE); }
-	void visitShort(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::USHORT); } // int16_t -> USHORT
+	void visitShort(Serialization::ValueAccessor const& a) override
+	{
+		record(a, MikanVariantType::USHORT);
+	} // int16_t -> USHORT
 	void visitUShort(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::USHORT); }
 	void visitInt(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::INT); }
-	void visitUInt(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::INT); } // uint32_t -> INT
+	void visitUInt(Serialization::ValueAccessor const& a) override
+	{
+		record(a, MikanVariantType::INT);
+	} // uint32_t -> INT
 	void visitLong(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::LONG); }
-	void visitULong(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::LONG); } // uint64_t -> LONG
+	void visitULong(Serialization::ValueAccessor const& a) override
+	{
+		record(a, MikanVariantType::LONG);
+	} // uint64_t -> LONG
 	void visitFloat(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::FLOAT); }
 	void visitDouble(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::DOUBLE); }
 	void visitEnum(Serialization::ValueAccessor const& a) override { record(a, MikanVariantType::INT); }
@@ -130,8 +142,7 @@ public:
 		else if (t == rfk::getType<MikanQuatd>())
 			record(a, MikanVariantType::QUATERNIOND);
 		else
-			setError(StringUtils::stringify(
-				"Field '", a.getName(), "' has unsupported struct type"));
+			setError(StringUtils::stringify("Field '", a.getName(), "' has unsupported struct type"));
 	}
 
 	// -- Strings, lists, maps, polymorphic object ptrs --
@@ -140,8 +151,7 @@ public:
 		rfk::Type const& fieldType= a.getType();
 		rfk::Class const* fieldClassType= a.getClassType();
 
-		if (fieldClassType != nullptr &&
-			fieldClassType->getClassKind() == rfk::EClassKind::TemplateInstantiation)
+		if (fieldClassType != nullptr && fieldClassType->getClassKind() == rfk::EClassKind::TemplateInstantiation)
 		{
 			const auto* templateInst= rfk::classTemplateInstantiationCast(fieldClassType);
 			const std::string templateName= templateInst->getClassTemplate().getName();
@@ -163,8 +173,8 @@ public:
 				else if (elementType == rfk::getType<Serialization::String>())
 					record(a, MikanVariantType::STRING_ARRAY);
 				else
-					setError(StringUtils::stringify(
-						"Field '", a.getName(), "' is a List with an unsupported element type"));
+					setError(
+						StringUtils::stringify("Field '", a.getName(), "' is a List with an unsupported element type"));
 			}
 			else if (templateName == "Map" && templateInst->getTemplateArgumentsCount() == 2)
 			{
@@ -173,8 +183,8 @@ public:
 			}
 			else
 			{
-				setError(StringUtils::stringify(
-					"Field '", a.getName(), "' is an unsupported template class '", templateName, "'"));
+				setError(StringUtils::stringify("Field '", a.getName(), "' is an unsupported template class '",
+												templateName, "'"));
 			}
 		}
 		else if (fieldType == rfk::getType<Serialization::PolymorphicObjectPtr>())
@@ -202,53 +212,52 @@ struct SchemaTestEntry
 	GetDescriptorsFn getDescriptors;
 };
 
-#define SCHEMA_ENTRY(EditorClass, ValuesStruct) \
+#define SCHEMA_ENTRY(EditorClass, ValuesStruct)                                                                        \
 	{#EditorClass, &ValuesStruct::staticGetArchetype(), &EditorClass::getPropertyDescriptors}
 
-const SchemaTestEntry k_schemaTestEntries[]=
-	{
-		// -- Components --
-		SCHEMA_ENTRY(AnchorComponent, MikanAnchorComponentValues),
-		SCHEMA_ENTRY(CameraComponent, MikanCameraComponentValues),
-		SCHEMA_ENTRY(CompositorComponent, MikanCompositorComponentValues),
-		// DMXFixtureComponent is an abstract base (getPropertyDescriptors is protected and
-		// it is never serialized directly); its fields are covered by the concrete
-		// RGBSpotLightComponent / RGBPixelGridComponent entries below.
-		SCHEMA_ENTRY(RGBPixelGridComponent, MikanRGBPixelGridComponentValues),
-		SCHEMA_ENTRY(RGBSpotLightComponent, MikanRGBSpotLightComponentValues),
-		SCHEMA_ENTRY(MarkerComponent, MikanMarkerComponentValues),
-		SCHEMA_ENTRY(SceneComponent, MikanSceneComponentValues),
-		SCHEMA_ENTRY(TransformComponent, MikanTransformComponentValues),
-		SCHEMA_ENTRY(BoxShapeComponent, MikanBoxShapeComponentValues),
-		SCHEMA_ENTRY(ModelShapeComponent, MikanModelShapeComponentValues),
-		SCHEMA_ENTRY(QuadShapeComponent, MikanQuadShapeComponentValues),
-		SCHEMA_ENTRY(StageComponent, MikanStageComponentValues),
-		SCHEMA_ENTRY(BoxStencilComponent, MikanBoxStencilComponentValues),
-		SCHEMA_ENTRY(ModelStencilComponent, MikanModelStencilComponentValues),
-		SCHEMA_ENTRY(QuadStencilComponent, MikanQuadStencilComponentValues),
-		SCHEMA_ENTRY(StencilComponent, MikanStencilComponentValues),
-		SCHEMA_ENTRY(CEFTextureSourceComponent, MikanCEFTextureSourceValues),
-		SCHEMA_ENTRY(ClientTextureSourceComponent, MikanClientTextureSourceValues),
-		SCHEMA_ENTRY(SpoutTextureSourceComponent, MikanSpoutTextureSourceValues),
-		SCHEMA_ENTRY(TextureSourceComponent, MikanTextureSourceValues),
-		SCHEMA_ENTRY(TrackingMountComponent, MikanTrackingMountComponentValues),
-		SCHEMA_ENTRY(MarkerTrackingVolumeComponent, MikanMarkerTrackingVolumeComponentValues),
-		SCHEMA_ENTRY(TrackingVolumeComponent, MikanTrackingVolumeComponentValues),
-		SCHEMA_ENTRY(VRTrackingVolumeComponent, MikanVRTrackingVolumeComponentValues),
-		SCHEMA_ENTRY(NetworkVideoSourceComponent, MikanNetworkVideoSourceValues),
-		SCHEMA_ENTRY(USBVideoSourceComponent, MikanUSBVideoSourceValues),
-		SCHEMA_ENTRY(VideoSourceComponent, MikanVideoSourceValues),
-		SCHEMA_ENTRY(VRDeviceComponent, MikanVRDeviceComponentValues),
+const SchemaTestEntry k_schemaTestEntries[]= {
+	// -- Components --
+	SCHEMA_ENTRY(AnchorComponent, MikanAnchorComponentValues),
+	SCHEMA_ENTRY(CameraComponent, MikanCameraComponentValues),
+	SCHEMA_ENTRY(CompositorComponent, MikanCompositorComponentValues),
+	// DMXFixtureComponent is an abstract base (getPropertyDescriptors is protected and
+	// it is never serialized directly); its fields are covered by the concrete
+	// RGBSpotLightComponent / RGBPixelGridComponent entries below.
+	SCHEMA_ENTRY(RGBPixelGridComponent, MikanRGBPixelGridComponentValues),
+	SCHEMA_ENTRY(RGBSpotLightComponent, MikanRGBSpotLightComponentValues),
+	SCHEMA_ENTRY(MarkerComponent, MikanMarkerComponentValues),
+	SCHEMA_ENTRY(SceneComponent, MikanSceneComponentValues),
+	SCHEMA_ENTRY(TransformComponent, MikanTransformComponentValues),
+	SCHEMA_ENTRY(BoxShapeComponent, MikanBoxShapeComponentValues),
+	SCHEMA_ENTRY(ModelShapeComponent, MikanModelShapeComponentValues),
+	SCHEMA_ENTRY(QuadShapeComponent, MikanQuadShapeComponentValues),
+	SCHEMA_ENTRY(StageComponent, MikanStageComponentValues),
+	SCHEMA_ENTRY(BoxStencilComponent, MikanBoxStencilComponentValues),
+	SCHEMA_ENTRY(ModelStencilComponent, MikanModelStencilComponentValues),
+	SCHEMA_ENTRY(QuadStencilComponent, MikanQuadStencilComponentValues),
+	SCHEMA_ENTRY(StencilComponent, MikanStencilComponentValues),
+	SCHEMA_ENTRY(CEFTextureSourceComponent, MikanCEFTextureSourceValues),
+	SCHEMA_ENTRY(ClientTextureSourceComponent, MikanClientTextureSourceValues),
+	SCHEMA_ENTRY(SpoutTextureSourceComponent, MikanSpoutTextureSourceValues),
+	SCHEMA_ENTRY(TextureSourceComponent, MikanTextureSourceValues),
+	SCHEMA_ENTRY(TrackingMountComponent, MikanTrackingMountComponentValues),
+	SCHEMA_ENTRY(MarkerTrackingVolumeComponent, MikanMarkerTrackingVolumeComponentValues),
+	SCHEMA_ENTRY(TrackingVolumeComponent, MikanTrackingVolumeComponentValues),
+	SCHEMA_ENTRY(VRTrackingVolumeComponent, MikanVRTrackingVolumeComponentValues),
+	SCHEMA_ENTRY(NetworkVideoSourceComponent, MikanNetworkVideoSourceValues),
+	SCHEMA_ENTRY(USBVideoSourceComponent, MikanUSBVideoSourceValues),
+	SCHEMA_ENTRY(VideoSourceComponent, MikanVideoSourceValues),
+	SCHEMA_ENTRY(VRDeviceComponent, MikanVRDeviceComponentValues),
 
-		// -- Object systems --
-		SCHEMA_ENTRY(EditorObjectSystem, MikanEditorSystemValues),
-		SCHEMA_ENTRY(DMXObjectSystem, MikanDMXObjectSystemValues),
-		SCHEMA_ENTRY(MarkerObjectSystem, MikanMarkerSystemValues),
-		SCHEMA_ENTRY(BoxShapeSystem, MikanBoxShapeSystemValues),
-		SCHEMA_ENTRY(ModelShapeSystem, MikanModelShapeSystemValues),
-		SCHEMA_ENTRY(QuadShapeSystem, MikanQuadShapeSystemValues),
-		SCHEMA_ENTRY(USBVideoSourceSystem, MikanUSBVideoSourceSystemValues),
-		SCHEMA_ENTRY(VRObjectSystem, MikanVRObjectSystemValues),
+	// -- Object systems --
+	SCHEMA_ENTRY(EditorObjectSystem, MikanEditorSystemValues),
+	SCHEMA_ENTRY(DMXObjectSystem, MikanDMXObjectSystemValues),
+	SCHEMA_ENTRY(MarkerObjectSystem, MikanMarkerSystemValues),
+	SCHEMA_ENTRY(BoxShapeSystem, MikanBoxShapeSystemValues),
+	SCHEMA_ENTRY(ModelShapeSystem, MikanModelShapeSystemValues),
+	SCHEMA_ENTRY(QuadShapeSystem, MikanQuadShapeSystemValues),
+	SCHEMA_ENTRY(USBVideoSourceSystem, MikanUSBVideoSourceSystemValues),
+	SCHEMA_ENTRY(VRObjectSystem, MikanVRObjectSystemValues),
 };
 
 #undef SCHEMA_ENTRY
@@ -271,7 +280,8 @@ bool testSchemaEntry(const SchemaTestEntry& entry)
 	Serialization::visitStruct(instance, *entry.valuesStruct, &schemaVisitor);
 	if (schemaVisitor.hasError())
 	{
-		MIKAN_LOG_ERROR("testSchemaEntry") << "[" << entry.label << "]" << "values struct has an unsupported field: " << schemaVisitor.getError();
+		MIKAN_LOG_ERROR("testSchemaEntry")
+			<< "[" << entry.label << "]" << "values struct has an unsupported field: " << schemaVisitor.getError();
 		success= false;
 	}
 
@@ -297,12 +307,17 @@ bool testSchemaEntry(const SchemaTestEntry& entry)
 		auto descriptorIt= descriptorTypesByName.find(fieldName);
 		if (descriptorIt == descriptorTypesByName.end())
 		{
-			MIKAN_LOG_ERROR("testSchemaEntry") << "[" << entry.label << "]" << "values struct field '" << fieldName << "' " << "(" << mikanVariantTypeToString(requiredType) << ") " << "has no matching property descriptor (unfetchable / name mismatch)";
+			MIKAN_LOG_ERROR("testSchemaEntry") << "[" << entry.label << "]" << "values struct field '" << fieldName
+											   << "' " << "(" << mikanVariantTypeToString(requiredType) << ") "
+											   << "has no matching property descriptor (unfetchable / name mismatch)";
 			success= false;
 		}
 		else if (descriptorIt->second != requiredType)
 		{
-			MIKAN_LOG_ERROR("testSchemaEntry") << "[" << entry.label << "]" << "field '" << fieldName << "'" << " type mismatch: descriptor=" << mikanVariantTypeToString(descriptorIt->second) << ", " << "values struct requires=" << mikanVariantTypeToString(requiredType);
+			MIKAN_LOG_ERROR("testSchemaEntry")
+				<< "[" << entry.label << "]" << "field '" << fieldName << "'"
+				<< " type mismatch: descriptor=" << mikanVariantTypeToString(descriptorIt->second) << ", "
+				<< "values struct requires=" << mikanVariantTypeToString(requiredType);
 			success= false;
 		}
 	}
@@ -312,7 +327,9 @@ bool testSchemaEntry(const SchemaTestEntry& entry)
 	{
 		if (schemaVisitor.fieldTypes.find(descriptorEntry.first) == schemaVisitor.fieldTypes.end())
 		{
-			MIKAN_LOG_ERROR("testSchemaEntry") << "[" << entry.label << "]" << "descriptor '" << descriptorEntry.first << "' " << "(" << mikanVariantTypeToString(descriptorEntry.second) << ") " << "has no field in the values struct";
+			MIKAN_LOG_ERROR("testSchemaEntry")
+				<< "[" << entry.label << "]" << "descriptor '" << descriptorEntry.first << "' " << "("
+				<< mikanVariantTypeToString(descriptorEntry.second) << ") " << "has no field in the values struct";
 			success= false;
 		}
 	}

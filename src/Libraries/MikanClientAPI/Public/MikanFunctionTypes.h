@@ -16,14 +16,10 @@
 /// Structure representing a component property value
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanFunctionTypes")) MikanFunctionDescriptor
 {
-	FIELD()
-	Serialization::String ownerSystemClass;
-	FIELD()
-	Serialization::String ownerComponentClass;
-	FIELD()
-	Serialization::String functionName;
-	FIELD()
-	Serialization::String displayName;
+	FIELD() Serialization::String ownerSystemClass;
+	FIELD() Serialization::String ownerComponentClass;
+	FIELD() Serialization::String functionName;
+	FIELD() Serialization::String displayName;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanFunctionDescriptor_GENERATED

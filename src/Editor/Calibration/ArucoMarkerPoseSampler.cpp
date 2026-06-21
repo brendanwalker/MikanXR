@@ -37,9 +37,7 @@ struct ArucoMarkerPoseSamplerState
 	glm::dquat rotationOffset;
 	glm::dvec3 translationOffset;
 
-	void init(
-		CameraComponentPtr cameraComponent,
-		int sampleCount)
+	void init(CameraComponentPtr cameraComponent, int sampleCount)
 	{
 		// Get the current camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
@@ -69,10 +67,8 @@ struct ArucoMarkerPoseSamplerState
 };
 
 //-- ArucoMarkerPoseSampler ----
-ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
-	CameraComponentPtr cameraComponent,
-	VideoFrameDistortionView* distortionView,
-	int desiredSampleCount)
+ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(CameraComponentPtr cameraComponent,
+											   VideoFrameDistortionView* distortionView, int desiredSampleCount)
 	: m_calibrationState(new ArucoMarkerPoseSamplerState)
 	, m_calibrationCamera(cameraComponent)
 	, m_markerFinder(new CalibrationPatternFinder_Aruco(cameraComponent, distortionView))
@@ -81,16 +77,12 @@ ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
 	frameHeight= distortionView->getFrameHeight();
 
 	// Private calibration state
-	m_calibrationState->init(
-		cameraComponent,
-		desiredSampleCount);
+	m_calibrationState->init(cameraComponent, desiredSampleCount);
 }
 
-ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
-	CameraComponentPtr cameraComponent,
-	VideoFrameDistortionView* distortionView,
-	int desiredSampleCount,
-	MarkerDefinitionConstPtr markerDefinition)
+ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(CameraComponentPtr cameraComponent,
+											   VideoFrameDistortionView* distortionView, int desiredSampleCount,
+											   MarkerDefinitionConstPtr markerDefinition)
 	: m_calibrationState(new ArucoMarkerPoseSamplerState)
 	, m_calibrationCamera(cameraComponent)
 	, m_markerFinder(new CalibrationPatternFinder_Aruco(cameraComponent, distortionView, markerDefinition))
@@ -98,9 +90,7 @@ ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
 	frameWidth= distortionView->getFrameWidth();
 	frameHeight= distortionView->getFrameHeight();
 
-	m_calibrationState->init(
-		cameraComponent,
-		desiredSampleCount);
+	m_calibrationState->init(cameraComponent, desiredSampleCount);
 }
 
 ArucoMarkerPoseSampler::~ArucoMarkerPoseSampler()
@@ -122,10 +112,7 @@ float ArucoMarkerPoseSampler::getCalibrationProgress() const
 	return samplePercentage;
 }
 
-void ArucoMarkerPoseSampler::resetCalibrationState()
-{
-	m_calibrationState->resetCalibration();
-}
+void ArucoMarkerPoseSampler::resetCalibrationState() { m_calibrationState->resetCalibration(); }
 
 bool ArucoMarkerPoseSampler::computeApertureRelativeMarkerXform()
 {
@@ -146,10 +133,7 @@ bool ArucoMarkerPoseSampler::computeApertureRelativeMarkerXform()
 	return true;
 }
 
-bool ArucoMarkerPoseSampler::hasValidApertureRelativeMarkerXform() const
-{
-	return m_calibrationState->hasValidCapture;
-}
+bool ArucoMarkerPoseSampler::hasValidApertureRelativeMarkerXform() const { return m_calibrationState->hasValidCapture; }
 
 void ArucoMarkerPoseSampler::sampleLastApertureRelativeMarkerXform()
 {
@@ -169,16 +153,14 @@ void ArucoMarkerPoseSampler::sampleLastApertureRelativeMarkerXform()
 	m_calibrationState->capturedSampleCount++;
 }
 
-bool ArucoMarkerPoseSampler::computeCalibratedMarkerPose(
-	MikanQuatd& outRotation,
-	MikanVector3d& outTranslation)
+bool ArucoMarkerPoseSampler::computeCalibratedMarkerPose(MikanQuatd& outRotation, MikanVector3d& outTranslation)
 {
 	cv::Vec3d cv_cameraOffsetPosition;
 	cv::Quatd cv_cameraOffsetQuat;
 
-	if (hasFinishedSampling() &&
-		opencv_quaternion_compute_average(m_calibrationState->cv_apertureOffsetQuats, cv_cameraOffsetQuat) &&
-		opencv_vec3d_compute_average(m_calibrationState->cv_apertureOffsetPositions, cv_cameraOffsetPosition))
+	if (hasFinishedSampling()
+		&& opencv_quaternion_compute_average(m_calibrationState->cv_apertureOffsetQuats, cv_cameraOffsetQuat)
+		&& opencv_vec3d_compute_average(m_calibrationState->cv_apertureOffsetPositions, cv_cameraOffsetPosition))
 	{
 		outRotation= cv_quatd_to_MikanQuatd(cv_cameraOffsetQuat);
 		outTranslation= cv_vec3d_to_MikanVector3d(cv_cameraOffsetPosition);
@@ -204,8 +186,6 @@ void ArucoMarkerPoseSampler::renderApertureSpaceCalibrationState()
 		drawTransformedAxes(graphicsContext, cameraToMarkerXform, 0.1f);
 
 		TextStyle style= getDefaultTextStyle();
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, glm_mat4_get_position(cameraToMarkerXform), L"Marker");
+		drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(cameraToMarkerXform), L"Marker");
 	}
 }

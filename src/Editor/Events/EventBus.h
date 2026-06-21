@@ -33,9 +33,8 @@ public:
 	/// @param filter Predicate function that returns true if event should be delivered to handler
 	/// @return Subscription ID (used for unsubscribing)
 	template <typename EventType>
-	EventBusSubID subscribe(
-		std::function<void(const EventType&)> handler,
-		std::function<bool(const EventType&)> filter);
+	EventBusSubID subscribe(std::function<void(const EventType&)> handler,
+							std::function<bool(const EventType&)> filter);
 
 	/// @brief Unsubscribe from events
 	/// @param subscriptionId The ID returned from subscribe()
@@ -78,9 +77,8 @@ class EventSubscriptions
 {
 public:
 	template <typename EventType>
-	EventBusSubID addSubscription(
-		std::function<void(const EventType&)> handler,
-		std::function<bool(const EventType&)> filter= nullptr)
+	EventBusSubID addSubscription(std::function<void(const EventType&)> handler,
+								  std::function<bool(const EventType&)> filter= nullptr)
 	{
 		std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -101,8 +99,7 @@ public:
 		std::lock_guard<std::mutex> lock(m_mutex);
 
 		auto it= std::find_if(m_subscriptions.begin(), m_subscriptions.end(),
-							  [subscriptionId](const auto& sub)
-							  { return sub->id == subscriptionId; });
+							  [subscriptionId](const auto& sub) { return sub->id == subscriptionId; });
 
 		if (it != m_subscriptions.end())
 		{
@@ -158,9 +155,7 @@ class EventBusImpl
 {
 public:
 	template <typename EventType>
-	int subscribe(
-		std::function<void(const EventType&)> handler,
-		std::function<bool(const EventType&)> filter= nullptr)
+	int subscribe(std::function<void(const EventType&)> handler, std::function<bool(const EventType&)> filter= nullptr)
 	{
 		std::type_index typeIdx(typeid(EventType));
 		std::lock_guard<std::mutex> lock(m_mapMutex);
@@ -235,9 +230,8 @@ EventBusSubID EventBus::subscribe(std::function<void(const EventType&)> handler)
 }
 
 template <typename EventType>
-EventBusSubID EventBus::subscribe(
-	std::function<void(const EventType&)> handler,
-	std::function<bool(const EventType&)> filter)
+EventBusSubID EventBus::subscribe(std::function<void(const EventType&)> handler,
+								  std::function<bool(const EventType&)> filter)
 {
 	return m_impl->subscribe<EventType>(std::move(handler), std::move(filter));
 }

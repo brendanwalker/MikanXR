@@ -27,10 +27,7 @@ public:
 	{
 	}
 
-	virtual ~MikanTextRenderer()
-	{
-		delete[] m_textQuadVertices;
-	}
+	virtual ~MikanTextRenderer() { delete[] m_textQuadVertices; }
 
 	virtual bool startup() override
 	{
@@ -134,10 +131,8 @@ public:
 		m_textQuadVertexCount= 0;
 	}
 
-	virtual void addTextAtScreenPosition(
-		const TextStyle& style,
-		const glm::vec2& screenCoords,
-		const std::wstring& text) override
+	virtual void addTextAtScreenPosition(const TextStyle& style, const glm::vec2& screenCoords,
+										 const std::wstring& text) override
 	{
 		BakedTextQuad bakedQuad;
 		bakedQuad.texture= m_fontManager->fetchBakedText(style, text);
@@ -181,11 +176,13 @@ public:
 			// Top Triangle
 			setTextQuadVertex(bakedQuad.startVertexIndex + 0, glm::vec2(x + xOffset, y + yOffset), glm::vec2(0, 0));
 			setTextQuadVertex(bakedQuad.startVertexIndex + 1, glm::vec2(x + w + xOffset, y + yOffset), glm::vec2(1, 0));
-			setTextQuadVertex(bakedQuad.startVertexIndex + 2, glm::vec2(x + w + xOffset, y + h + yOffset), glm::vec2(1, 1));
+			setTextQuadVertex(bakedQuad.startVertexIndex + 2, glm::vec2(x + w + xOffset, y + h + yOffset),
+							  glm::vec2(1, 1));
 
 			// Bottom Triangle
 			setTextQuadVertex(bakedQuad.startVertexIndex + 3, glm::vec2(x + xOffset, y + yOffset), glm::vec2(0, 0));
-			setTextQuadVertex(bakedQuad.startVertexIndex + 4, glm::vec2(x + w + xOffset, y + h + yOffset), glm::vec2(1, 1));
+			setTextQuadVertex(bakedQuad.startVertexIndex + 4, glm::vec2(x + w + xOffset, y + h + yOffset),
+							  glm::vec2(1, 1));
 			setTextQuadVertex(bakedQuad.startVertexIndex + 5, glm::vec2(x + xOffset, y + h + yOffset), glm::vec2(0, 1));
 
 			// Record the baked quad
@@ -248,9 +245,7 @@ private:
 	MkMaterialInstancePtr m_textMaterialInstance;
 };
 
-IMkTextRendererPtr createMkTextRenderer(
-	IMkGraphicsContext* ownerContext,
-	IMkFontManager* fontManager)
+IMkTextRendererPtr createMkTextRenderer(IMkGraphicsContext* ownerContext, IMkFontManager* fontManager)
 {
 	return std::make_shared<MikanTextRenderer>(ownerContext, fontManager);
 }

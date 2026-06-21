@@ -20,10 +20,7 @@ namespace ObjUtils
 class MaterialTriMeshData
 {
 public:
-	MaterialTriMeshData(
-		int materialId,
-		const std::string& materialName,
-		MkMaterialInstancePtr materialInst)
+	MaterialTriMeshData(int materialId, const std::string& materialName, MkMaterialInstancePtr materialInst)
 		: m_materialId(materialId)
 		, m_materialName(materialName)
 		, m_materialInstance(materialInst)
@@ -36,19 +33,13 @@ public:
 		m_texCoordAttribute= vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::texCoord);
 		m_vertexSize= vertexDefinition->getVertexSize();
 
-		assert(m_positionAttribute != nullptr &&
-			   m_positionAttribute->getDataType() == eVertexDataType::datatype_vec3);
-		assert(m_normalAttribute == nullptr ||
-			   m_normalAttribute->getDataType() == eVertexDataType::datatype_vec3);
-		assert(m_texCoordAttribute == nullptr ||
-			   m_texCoordAttribute->getDataType() == eVertexDataType::datatype_vec2);
+		assert(m_positionAttribute != nullptr && m_positionAttribute->getDataType() == eVertexDataType::datatype_vec3);
+		assert(m_normalAttribute == nullptr || m_normalAttribute->getDataType() == eVertexDataType::datatype_vec3);
+		assert(m_texCoordAttribute == nullptr || m_texCoordAttribute->getDataType() == eVertexDataType::datatype_vec2);
 		assert(m_vertexSize > 0);
 	}
 
-	inline bool isValid() const
-	{
-		return m_vertexCount > 0 && m_indexCount > 0;
-	}
+	inline bool isValid() const { return m_vertexCount > 0 && m_indexCount > 0; }
 
 	inline const std::string& getMaterialName() const { return m_materialName; }
 	inline MkMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; }
@@ -96,28 +87,23 @@ public:
 				uint8_t* vertexWritePtr= &m_vertexData[m_vertexSize * m_vertexCount];
 
 				// Copy in the position data
-				glm::vec3 position(
-					objData.positions[3 * elementIndex.p + 0],
-					objData.positions[3 * elementIndex.p + 1],
-					objData.positions[3 * elementIndex.p + 2]);
+				glm::vec3 position(objData.positions[3 * elementIndex.p + 0], objData.positions[3 * elementIndex.p + 1],
+								   objData.positions[3 * elementIndex.p + 2]);
 				memcpy(vertexWritePtr + m_positionAttribute->getOffset(), &position, sizeof(glm::vec3));
 
 				// Copy in the normal data (if vertex has a normal)
 				if (m_normalAttribute != nullptr)
 				{
-					glm::vec3 normal(
-						objData.normals[3 * elementIndex.n + 0],
-						objData.normals[3 * elementIndex.n + 1],
-						objData.normals[3 * elementIndex.n + 2]);
+					glm::vec3 normal(objData.normals[3 * elementIndex.n + 0], objData.normals[3 * elementIndex.n + 1],
+									 objData.normals[3 * elementIndex.n + 2]);
 					memcpy(vertexWritePtr + m_normalAttribute->getOffset(), &normal, sizeof(glm::vec3));
 				}
 
 				// Copy in the texel data (if vertex has a texel)
 				if (m_texCoordAttribute != nullptr)
 				{
-					glm::vec2 texcoord(
-						objData.texcoords[2 * elementIndex.t + 0],
-						objData.texcoords[2 * elementIndex.t + 1]);
+					glm::vec2 texcoord(objData.texcoords[2 * elementIndex.t + 0],
+									   objData.texcoords[2 * elementIndex.t + 1]);
 					memcpy(vertexWritePtr + m_texCoordAttribute->getOffset(), &texcoord, sizeof(glm::vec2));
 				}
 
@@ -152,22 +138,16 @@ private:
 using MaterialTriMeshDataPtr= std::shared_ptr<MaterialTriMeshData>;
 using MaterialTriMeshDataConstPtr= std::shared_ptr<const MaterialTriMeshData>;
 
-MkMaterialInstancePtr createTriMeshMaterialInstance(
-	IMkGraphicsContext* graphicsContext,
-	MkMaterialConstPtr material,
-	const fastObjMesh* objMesh,
-	const fastObjMaterial& objMaterial);
-IMkTriangulatedMeshPtr createTriangulatedMeshResource(
-	IMkGraphicsContext* graphicsContext,
-	MaterialTriMeshDataConstPtr triMeshData);
-IMkWireframeMeshPtr createWireframeMeshResource(
-	IMkGraphicsContext* graphicsContext,
-	MaterialTriMeshDataConstPtr triMeshData);
+MkMaterialInstancePtr createTriMeshMaterialInstance(IMkGraphicsContext* graphicsContext, MkMaterialConstPtr material,
+													const fastObjMesh* objMesh, const fastObjMaterial& objMaterial);
+IMkTriangulatedMeshPtr createTriangulatedMeshResource(IMkGraphicsContext* graphicsContext,
+													  MaterialTriMeshDataConstPtr triMeshData);
+IMkWireframeMeshPtr createWireframeMeshResource(IMkGraphicsContext* graphicsContext,
+												MaterialTriMeshDataConstPtr triMeshData);
 }; // namespace ObjUtils
 
-MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
-	const std::filesystem::path& modelPath,
-	MkMaterialConstPtr overrideMaterial)
+MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(const std::filesystem::path& modelPath,
+																  MkMaterialConstPtr overrideMaterial)
 {
 	IMkGraphicsContext* graphicsContext= m_ownerManager->getGraphicsContext();
 	IMkShaderCache* shaderCache= graphicsContext->getShaderCache();
@@ -197,9 +177,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	if (objData != nullptr)
 	{
 		// Create a new model resource
-		modelResource=
-			std::make_shared<MikanRenderModelResource>(
-				m_ownerManager->getGraphicsContext());
+		modelResource= std::make_shared<MikanRenderModelResource>(m_ownerManager->getGraphicsContext());
 		modelResource->setName(modelNameString);
 		modelResource->setModelFilePath(modelPath);
 
@@ -212,14 +190,9 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 				const std::string materialName= objMaterial.name;
 
 				MkMaterialInstancePtr materialInst=
-					ObjUtils::createTriMeshMaterialInstance(
-						graphicsContext,
-						triMeshMaterial,
-						objData,
-						objMaterial);
+					ObjUtils::createTriMeshMaterialInstance(graphicsContext, triMeshMaterial, objData, objMaterial);
 				ObjUtils::MaterialTriMeshDataPtr triMeshData=
-					std::make_shared<ObjUtils::MaterialTriMeshData>(
-						materialIndex, materialName, materialInst);
+					std::make_shared<ObjUtils::MaterialTriMeshData>(materialIndex, materialName, materialInst);
 
 				materialToTrimeshMap.push_back(triMeshData);
 			}
@@ -239,14 +212,9 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 			defaultObjMaterial.d= 1.0;
 
 			MkMaterialInstancePtr materialInst=
-				ObjUtils::createTriMeshMaterialInstance(
-					graphicsContext,
-					triMeshMaterial,
-					objData,
-					defaultObjMaterial);
+				ObjUtils::createTriMeshMaterialInstance(graphicsContext, triMeshMaterial, objData, defaultObjMaterial);
 			ObjUtils::MaterialTriMeshDataPtr triMeshData=
-				std::make_shared<ObjUtils::MaterialTriMeshData>(
-					0, materialName, materialInst);
+				std::make_shared<ObjUtils::MaterialTriMeshData>(0, materialName, materialInst);
 
 			materialToTrimeshMap.push_back(triMeshData);
 		}
@@ -322,19 +290,16 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 
 namespace ObjUtils
 {
-bool addTextureToMaterialInstance(
-	IMkTextureCache* textureCache,
-	MkMaterialInstancePtr materialInstance,
-	const fastObjMesh* objMesh,
-	unsigned int textureIndex,
-	const eUniformSemantic semantic)
+bool addTextureToMaterialInstance(IMkTextureCache* textureCache, MkMaterialInstancePtr materialInstance,
+								  const fastObjMesh* objMesh, unsigned int textureIndex,
+								  const eUniformSemantic semantic)
 {
 	IMkShaderPtr program= materialInstance->getMaterial()->getProgram();
 
 	// See if the shader has a uniform that wants to bind to a texture with the given semantic
 	std::string uniformName;
-	if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
-		getUniformSemanticDataType(semantic) == eUniformDataType::datatype_texture)
+	if (program->getFirstUniformNameOfSemantic(semantic, uniformName)
+		&& getUniformSemanticDataType(semantic) == eUniformDataType::datatype_texture)
 	{
 		// Try loading the texture using the relative path
 		IMkTexturePtr texture;
@@ -372,62 +337,47 @@ bool addTextureToMaterialInstance(
 	}
 }
 
-MkMaterialInstancePtr createTriMeshMaterialInstance(
-	IMkGraphicsContext* graphicsContext,
-	MkMaterialConstPtr material,
-	const fastObjMesh* objMesh,
-	const fastObjMaterial& objMaterial)
+MkMaterialInstancePtr createTriMeshMaterialInstance(IMkGraphicsContext* graphicsContext, MkMaterialConstPtr material,
+													const fastObjMesh* objMesh, const fastObjMaterial& objMaterial)
 {
 	IMkTextureCache* textureCache= graphicsContext->getTextureCache();
 	MkMaterialInstancePtr materialInstance= createMkMaterialInstance(material);
 
-	materialInstance->setVec3BySemantic(
-		eUniformSemantic::ambientColorRGB,
-		glm::vec4(objMaterial.Ka[0], objMaterial.Ka[1], objMaterial.Ka[2], 1.f));
-	materialInstance->setVec3BySemantic(
-		eUniformSemantic::diffuseColorRGBA,
-		glm::vec4(objMaterial.Kd[0], objMaterial.Kd[1], objMaterial.Kd[2], 1.f));
-	materialInstance->setVec3BySemantic(
-		eUniformSemantic::specularColorRGB,
-		glm::vec4(objMaterial.Ks[0], objMaterial.Ks[1], objMaterial.Ks[2], 1.f));
-	materialInstance->setFloatBySemantic(
-		eUniformSemantic::specularHighlights,
-		objMaterial.Ns);
-	materialInstance->setFloatBySemantic(
-		eUniformSemantic::opticalDensity,
-		objMaterial.Ni);
-	materialInstance->setFloatBySemantic(
-		eUniformSemantic::dissolve,
-		objMaterial.d);
-	materialInstance->setFloatBySemantic(
-		eUniformSemantic::ambientStrength,
-		0.3f);
+	materialInstance->setVec3BySemantic(eUniformSemantic::ambientColorRGB,
+										glm::vec4(objMaterial.Ka[0], objMaterial.Ka[1], objMaterial.Ka[2], 1.f));
+	materialInstance->setVec3BySemantic(eUniformSemantic::diffuseColorRGBA,
+										glm::vec4(objMaterial.Kd[0], objMaterial.Kd[1], objMaterial.Kd[2], 1.f));
+	materialInstance->setVec3BySemantic(eUniformSemantic::specularColorRGB,
+										glm::vec4(objMaterial.Ks[0], objMaterial.Ks[1], objMaterial.Ks[2], 1.f));
+	materialInstance->setFloatBySemantic(eUniformSemantic::specularHighlights, objMaterial.Ns);
+	materialInstance->setFloatBySemantic(eUniformSemantic::opticalDensity, objMaterial.Ni);
+	materialInstance->setFloatBySemantic(eUniformSemantic::dissolve, objMaterial.d);
+	materialInstance->setFloatBySemantic(eUniformSemantic::ambientStrength, 0.3f);
 
 	// Ambient Texture Map
-	addTextureToMaterialInstance(
-		textureCache, materialInstance, objMesh, objMaterial.map_Ka, eUniformSemantic::ambientTexture);
+	addTextureToMaterialInstance(textureCache, materialInstance, objMesh, objMaterial.map_Ka,
+								 eUniformSemantic::ambientTexture);
 	// Diffuse Texture Map
-	addTextureToMaterialInstance(
-		textureCache, materialInstance, objMesh, objMaterial.map_Kd, eUniformSemantic::diffuseTexture);
+	addTextureToMaterialInstance(textureCache, materialInstance, objMesh, objMaterial.map_Kd,
+								 eUniformSemantic::diffuseTexture);
 	// Specular Texture Map
-	addTextureToMaterialInstance(
-		textureCache, materialInstance, objMesh, objMaterial.map_Ks, eUniformSemantic::specularTexture);
+	addTextureToMaterialInstance(textureCache, materialInstance, objMesh, objMaterial.map_Ks,
+								 eUniformSemantic::specularTexture);
 	// Specular Hightlight Map
-	addTextureToMaterialInstance(
-		textureCache, materialInstance, objMesh, objMaterial.map_Ns, eUniformSemantic::specularHightlightTexture);
+	addTextureToMaterialInstance(textureCache, materialInstance, objMesh, objMaterial.map_Ns,
+								 eUniformSemantic::specularHightlightTexture);
 	// Alpha Texture Map
-	addTextureToMaterialInstance(
-		textureCache, materialInstance, objMesh, objMaterial.map_d, eUniformSemantic::alphaTexture);
+	addTextureToMaterialInstance(textureCache, materialInstance, objMesh, objMaterial.map_d,
+								 eUniformSemantic::alphaTexture);
 	// Bump Map
-	addTextureToMaterialInstance(
-		textureCache, materialInstance, objMesh, objMaterial.map_bump, eUniformSemantic::bumpTexture);
+	addTextureToMaterialInstance(textureCache, materialInstance, objMesh, objMaterial.map_bump,
+								 eUniformSemantic::bumpTexture);
 
 	return materialInstance;
 }
 
-IMkTriangulatedMeshPtr createTriangulatedMeshResource(
-	IMkGraphicsContext* graphicsContext,
-	MaterialTriMeshDataConstPtr triMeshData)
+IMkTriangulatedMeshPtr createTriangulatedMeshResource(IMkGraphicsContext* graphicsContext,
+													  MaterialTriMeshDataConstPtr triMeshData)
 {
 	if (!triMeshData->isValid())
 	{
@@ -450,20 +400,13 @@ IMkTriangulatedMeshPtr createTriangulatedMeshResource(
 	std::memcpy(indexBuffer, triMeshData->getIndexData(), indexBufferSize);
 
 	IMkTriangulatedMeshPtr triMesh= createMkTriangulatedMesh(
-		graphicsContext,
-		triMeshData->getMaterialName(),
-		(const uint8_t*)vertexBuffer,
-		vertexSize,
-		(uint32_t)vertexCount,
-		(const uint8_t*)indexBuffer,
-		indexSize,
-		(uint32_t)triangleCount,
+		graphicsContext, triMeshData->getMaterialName(), (const uint8_t*)vertexBuffer, vertexSize,
+		(uint32_t)vertexCount, (const uint8_t*)indexBuffer, indexSize, (uint32_t)triangleCount,
 		true); // <-- triangulated mesh owns vertex data, cleans up on delete
 
 	// If the mesh fails to set the material instance or create resources
 	// then clean the mesh up and return nullptr
-	if (!triMesh->setMaterialInstance(triMeshData->getMaterialInstance()) ||
-		!triMesh->createResources())
+	if (!triMesh->setMaterialInstance(triMeshData->getMaterialInstance()) || !triMesh->createResources())
 	{
 		triMesh= nullptr;
 	}
@@ -471,9 +414,8 @@ IMkTriangulatedMeshPtr createTriangulatedMeshResource(
 	return triMesh;
 }
 
-IMkWireframeMeshPtr createWireframeMeshResource(
-	IMkGraphicsContext* graphicsContext,
-	MaterialTriMeshDataConstPtr triMeshData)
+IMkWireframeMeshPtr createWireframeMeshResource(IMkGraphicsContext* graphicsContext,
+												MaterialTriMeshDataConstPtr triMeshData)
 {
 	if (!triMeshData->isValid())
 	{
@@ -533,14 +475,8 @@ IMkWireframeMeshPtr createWireframeMeshResource(
 	}
 
 	IMkWireframeMeshPtr wireMesh= CreateMkWireframeMesh(
-		graphicsContext,
-		triMeshData->getMaterialName(),
-		(const uint8_t*)writeVertexData,
-		writeVertexSize,
-		(uint32_t)writeVertexCount,
-		(const uint8_t*)indexData,
-		indexSize,
-		(uint32_t)lineCount,
+		graphicsContext, triMeshData->getMaterialName(), (const uint8_t*)writeVertexData, writeVertexSize,
+		(uint32_t)writeVertexCount, (const uint8_t*)indexData, indexSize, (uint32_t)lineCount,
 		true); // <-- wireframe mesh owns vertex data, cleans up on delete
 
 	if (wireMesh->createResources())

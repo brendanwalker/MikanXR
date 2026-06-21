@@ -104,8 +104,10 @@ public:
 	const EditorSettings& getEditorSettings() const { return getEditorSystemConfigConst()->getEditorSettings(); }
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
-	virtual bool getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const override;
-	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const override;
+	virtual bool getComponentList(const std::string& componentClassName,
+								  std::vector<MikanComponentPtr>& outComponentList) const override;
+	virtual bool getComponentIdList(const std::string& componentClassName,
+									std::vector<int>& outComponentIdList) const override;
 
 	void bindViewport(MikanViewportWeakPtr viewportWeakPtr);
 	void unbindViewport(MikanViewportWeakPtr viewportWeakPtr);
@@ -166,22 +168,12 @@ protected:
 	// Helpers
 	void createSceneTransformGizmo(SceneComponentPtr ownerScene);
 	void disposeSceneTransformGizmo();
-	void createGizmoBoxCollider(
-		MikanObjectPtr gizmoObjectPtr,
-		const std::string& name,
-		const glm::vec3& center,
-		const glm::vec3& halfExtents,
-		const int priority);
-	void createGizmoDiskCollider(
-		MikanObjectPtr gizmoObjectPtr,
-		const std::string& name,
-		const glm::vec3& center,
-		const glm::vec3& normal,
-		const float radius,
-		const int priority);
-	SelectionComponentPtr findClosestSelectionTarget(
-		const glm::vec3& rayOrigin, const glm::vec3& rayDir,
-		ColliderRaycastHitResult& outRaycastResult) const;
+	void createGizmoBoxCollider(MikanObjectPtr gizmoObjectPtr, const std::string& name, const glm::vec3& center,
+								const glm::vec3& halfExtents, const int priority);
+	void createGizmoDiskCollider(MikanObjectPtr gizmoObjectPtr, const std::string& name, const glm::vec3& center,
+								 const glm::vec3& normal, const float radius, const int priority);
+	SelectionComponentPtr findClosestSelectionTarget(const glm::vec3& rayOrigin, const glm::vec3& rayDir,
+													 ColliderRaycastHitResult& outRaycastResult) const;
 	void clearHoveredComponent();
 	void clearSelectedComponent();
 };

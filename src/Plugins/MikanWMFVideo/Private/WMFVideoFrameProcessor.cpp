@@ -14,10 +14,8 @@
 using namespace WMFUtility;
 
 // -- WMF Video Frame Processor -----
-WMFVideoFrameProcessor::WMFVideoFrameProcessor(
-	int deviceIndex,
-	const WMFDeviceFormatInfo& deviceFormat,
-	MikanWMFVideoDevice* listener)
+WMFVideoFrameProcessor::WMFVideoFrameProcessor(int deviceIndex, const WMFDeviceFormatInfo& deviceFormat,
+											   MikanWMFVideoDevice* listener)
 	: m_deviceIndex(deviceIndex)
 	, m_deviceFormat(deviceFormat)
 	, m_videoSourceListener(listener)
@@ -36,10 +34,7 @@ WMFVideoFrameProcessor::WMFVideoFrameProcessor(
 {
 }
 
-WMFVideoFrameProcessor::~WMFVideoFrameProcessor(void)
-{
-	dispose();
-}
+WMFVideoFrameProcessor::~WMFVideoFrameProcessor(void) { dispose(); }
 
 HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 {
@@ -79,8 +74,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 	if (SUCCEEDED(hrDecoder) && selectedDecoderCLSID != GUID_NULL)
 	{
 		microsoftDecoderAvailable= true;
-		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-			<< "Microsoft H.264 decoder available for compressed formats";
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init") << "Microsoft H.264 decoder available for compressed formats";
 	}
 
 	// Always enable converters (we may need format conversion)
@@ -115,10 +109,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 	{
 		// Use the selected format index, not 0!
 		int formatIndex= (m_deviceFormat.device_format_index >= 0) ? m_deviceFormat.device_format_index : 0;
-		HRESULT hrNative= m_pSourceReader->GetNativeMediaType(
-			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-			formatIndex,
-			&m_pNativeInputType);
+		HRESULT hrNative= m_pSourceReader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, formatIndex,
+															  &m_pNativeInputType);
 
 		if (SUCCEEDED(hrNative) && m_pNativeInputType)
 		{
@@ -128,9 +120,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 			m_pNativeInputType->GetGUID(MF_MT_SUBTYPE, &nativeSubtype);
 
 			// If the native format is NOT actually compressed, disable manual decoder
-			if (nativeSubtype != MFVideoFormat_H264 &&
-				nativeSubtype != MFVideoFormat_H265 &&
-				nativeSubtype != MFVideoFormat_MJPG)
+			if (nativeSubtype != MFVideoFormat_H264 && nativeSubtype != MFVideoFormat_H265
+				&& nativeSubtype != MFVideoFormat_MJPG)
 			{
 				MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
 					<< "Expected compressed format (" << m_deviceFormat.sub_type_name
@@ -156,9 +147,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 		fallbackFormat= MFVideoFormat_YUY2;
 		fallbackFrameBufferFormat= eUSBVideoFrameBufferFormat::USBVideo_YUY2;
 
-		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-			<< "Compressed format detected (" << m_deviceFormat.sub_type_name
-			<< "), will try NV12 output (fallback: YUY2)";
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init") << "Compressed format detected (" << m_deviceFormat.sub_type_name
+													   << "), will try NV12 output (fallback: YUY2)";
 	}
 	else
 	{
@@ -180,8 +170,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 		if (SUCCEEDED(hr))
 			hr= pAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE);
 
-		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-			<< "Enabling hardware transforms for H.264 decoding";
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init") << "Enabling hardware transforms for H.264 decoding";
 	}
 	else
 	{
@@ -212,15 +201,11 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 	{
 		// Clone the native type to preserve all attributes,
 		// except for the subtype to trigger decoding (e.g., H264 -> YUY2)
-		pType= makeWMFMediaTypeFromSourceReader(
-			m_pSourceReader,
-			m_deviceFormat.device_format_index,
-			preferredFormat);
+		pType= makeWMFMediaTypeFromSourceReader(m_pSourceReader, m_deviceFormat.device_format_index, preferredFormat);
 	}
 	else if (useNativePassthrough)
 	{
-		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-			<< "Using native passthrough - no output format conversion";
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init") << "Using native passthrough - no output format conversion";
 	}
 
 	// Fallback: create minimal media type if we couldn't get native type by index
@@ -229,9 +214,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 		MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
 			<< "Could not get native type by index, creating minimal output type";
 
-		pType= makeWMFMediaTypeFromDeviceFormatInfo(
-			m_deviceFormat,
-			m_wmfOutputFormat);
+		pType= makeWMFMediaTypeFromDeviceFormatInfo(m_deviceFormat, m_wmfOutputFormat);
 	}
 
 	// Try to set the output type on the first video stream (skip if passthrough)
@@ -240,10 +223,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
 			<< "Attempting to set output format to " << getWMFVideoFormatName(m_wmfOutputFormat) << "...";
 
-		hr= m_pSourceReader->SetCurrentMediaType(
-			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-			nullptr,
-			pType);
+		hr= m_pSourceReader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, pType);
 
 		if (SUCCEEDED(hr))
 		{
@@ -254,8 +234,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 		{
 			// Preferred format failed, try fallback
 			MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
-				<< "Failed to set preferred output format: " << getHresultMessage(hr)
-				<< ", trying fallback format";
+				<< "Failed to set preferred output format: " << getHresultMessage(hr) << ", trying fallback format";
 
 			tryFallback= true;
 		}
@@ -264,10 +243,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 	{
 		// For passthrough, detect the native format and use it
 		IMFMediaType* pNativeType= nullptr;
-		HRESULT hrNative= m_pSourceReader->GetNativeMediaType(
-			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-			MF_SOURCE_READER_CURRENT_TYPE_INDEX,
-			&pNativeType);
+		HRESULT hrNative= m_pSourceReader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+															  MF_SOURCE_READER_CURRENT_TYPE_INDEX, &pNativeType);
 
 		if (SUCCEEDED(hrNative))
 		{
@@ -280,19 +257,16 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 			if (nativeSubtype == MFVideoFormat_YUY2)
 			{
 				m_outputFormat= eUSBVideoFrameBufferFormat::USBVideo_YUY2;
-				MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-					<< "Using native YUY2 format (passthrough)";
+				MIKAN_LOG_INFO("WMFVideoFrameProcessor::init") << "Using native YUY2 format (passthrough)";
 			}
 			else if (nativeSubtype == MFVideoFormat_NV12)
 			{
 				m_outputFormat= eUSBVideoFrameBufferFormat::USBVideo_NV12;
-				MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-					<< "Using native NV12 format (passthrough)";
+				MIKAN_LOG_INFO("WMFVideoFrameProcessor::init") << "Using native NV12 format (passthrough)";
 			}
 			else
 			{
-				MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
-					<< "Unknown native format for passthrough";
+				MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init") << "Unknown native format for passthrough";
 			}
 
 			MemoryUtils::safeRelease(&pNativeType);
@@ -307,10 +281,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 		// Recreate media type with fallback format
 		if (m_deviceFormat.device_format_index >= 0)
 		{
-			pType= makeWMFMediaTypeFromSourceReader(
-				m_pSourceReader,
-				m_deviceFormat.device_format_index,
-				fallbackFormat);
+			pType=
+				makeWMFMediaTypeFromSourceReader(m_pSourceReader, m_deviceFormat.device_format_index, fallbackFormat);
 		}
 
 		if (SUCCEEDED(hr) && pType)
@@ -318,10 +290,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
 				<< "Attempting to set fallback format to " << getWMFVideoFormatName(fallbackFormat) << "...";
 
-			hr= m_pSourceReader->SetCurrentMediaType(
-				(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-				nullptr,
-				pType);
+			hr= m_pSourceReader->SetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, nullptr, pType);
 
 			if (SUCCEEDED(hr))
 			{
@@ -344,9 +313,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 	IMFMediaType* pActualType= nullptr;
 	if (SUCCEEDED(hr))
 	{
-		hr= m_pSourceReader->GetCurrentMediaType(
-			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-			&pActualType);
+		hr= m_pSourceReader->GetCurrentMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, &pActualType);
 
 		if (SUCCEEDED(hr))
 		{
@@ -357,10 +324,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 			{
 				// Get the native media type to see what the camera actually provides
 				IMFMediaType* pNativeType= nullptr;
-				HRESULT hrNative= m_pSourceReader->GetNativeMediaType(
-					(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-					0,
-					&pNativeType);
+				HRESULT hrNative=
+					m_pSourceReader->GetNativeMediaType((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, &pNativeType);
 
 				if (SUCCEEDED(hrNative))
 				{
@@ -386,8 +351,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 				else
 				{
 					MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-						<< "Successfully configured output format: "
-						<< getWMFVideoFormatName(m_wmfOutputFormat);
+						<< "Successfully configured output format: " << getWMFVideoFormatName(m_wmfOutputFormat);
 				}
 			}
 		}
@@ -417,8 +381,7 @@ void WMFVideoFrameProcessor::dispose()
 	MemoryUtils::safeReleaseAllCount(&m_pDecoderTransform);
 	MemoryUtils::safeReleaseAllCount(&m_pSourceReader);
 
-	MIKAN_LOG_INFO("WMFVideoFrameProcessor::dispose")
-		<< "Disposing video frame reader for device: " << m_deviceIndex;
+	MIKAN_LOG_INFO("WMFVideoFrameProcessor::dispose") << "Disposing video frame reader for device: " << m_deviceIndex;
 }
 
 void WMFVideoFrameProcessor::startVideoFrameStream()
@@ -431,13 +394,12 @@ void WMFVideoFrameProcessor::startVideoFrameStream()
 		m_state= State::Starting;
 
 		// Request the first sample - this starts the async callback loop
-		HRESULT hr= m_pSourceReader->ReadSample(
-			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-			0,        // No flags
-			nullptr,  // Don't need actual stream index back
-			nullptr,  // Don't need flags back
-			nullptr,  // Don't need timestamp back
-			nullptr); // Sample will be delivered to OnReadSample()
+		HRESULT hr= m_pSourceReader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+												0,        // No flags
+												nullptr,  // Don't need actual stream index back
+												nullptr,  // Don't need flags back
+												nullptr,  // Don't need timestamp back
+												nullptr); // Sample will be delivered to OnReadSample()
 
 		if (SUCCEEDED(hr))
 		{
@@ -476,12 +438,8 @@ void WMFVideoFrameProcessor::stopVideoFrameStream()
 	}
 }
 
-STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(
-	HRESULT hrStatus,
-	DWORD dwStreamIndex,
-	DWORD dwStreamFlags,
-	LONGLONG llTimestamp,
-	IMFSample* pSample)
+STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(HRESULT hrStatus, DWORD dwStreamIndex, DWORD dwStreamFlags,
+												  LONGLONG llTimestamp, IMFSample* pSample)
 {
 	// Check if we're still running
 	if (m_state != State::Running)
@@ -529,9 +487,8 @@ STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(
 				m_sampleIndex++;
 				if (m_state == State::Running)
 				{
-					m_pSourceReader->ReadSample(
-						(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-						0, nullptr, nullptr, nullptr, nullptr);
+					m_pSourceReader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, nullptr,
+												nullptr, nullptr);
 				}
 				else
 				{
@@ -549,9 +506,8 @@ STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(
 				m_sampleIndex++;
 				if (m_state == State::Running)
 				{
-					m_pSourceReader->ReadSample(
-						(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-						0, nullptr, nullptr, nullptr, nullptr);
+					m_pSourceReader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, nullptr,
+												nullptr, nullptr);
 				}
 				return S_OK;
 			}
@@ -694,13 +650,7 @@ STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(
 	// Request next sample to continue the async loop
 	if (m_state == State::Running)
 	{
-		m_pSourceReader->ReadSample(
-			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
-			0,
-			nullptr,
-			nullptr,
-			nullptr,
-			nullptr);
+		m_pSourceReader->ReadSample((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM, 0, nullptr, nullptr, nullptr, nullptr);
 	}
 
 	return S_OK;
@@ -708,18 +658,12 @@ STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(
 
 STDMETHODIMP WMFVideoFrameProcessor::QueryInterface(REFIID riid, void** ppv)
 {
-	static const QITAB qit[]=
-		{
-			QITABENT(WMFVideoFrameProcessor, IMFSourceReaderCallback),
-			{0}};
+	static const QITAB qit[]= {QITABENT(WMFVideoFrameProcessor, IMFSourceReaderCallback), {0}};
 	return QISearch(this, qit, riid, ppv);
 }
 
 STDMETHODIMP_(ULONG)
-WMFVideoFrameProcessor::AddRef()
-{
-	return InterlockedIncrement(&m_referenceCount);
-}
+WMFVideoFrameProcessor::AddRef() { return InterlockedIncrement(&m_referenceCount); }
 
 STDMETHODIMP_(ULONG)
 WMFVideoFrameProcessor::Release()
@@ -824,8 +768,8 @@ HRESULT WMFVideoFrameProcessor::processCompressedSample(IMFSample* pCompressedSa
 			if (attempt == 0 && m_sampleIndex < 10)
 			{
 				MIKAN_LOG_INFO("WMFVideoFrameProcessor::processCompressedSample")
-					<< "Decoder buffering (frame " << m_sampleIndex << ", attempt " << attempt
-					<< ", input " << (bInputAccepted ? "accepted" : "not accepted") << ")";
+					<< "Decoder buffering (frame " << m_sampleIndex << ", attempt " << attempt << ", input "
+					<< (bInputAccepted ? "accepted" : "not accepted") << ")";
 			}
 
 			// If input wasn't accepted and we have no output, we're stuck

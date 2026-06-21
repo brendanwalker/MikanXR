@@ -18,11 +18,8 @@ struct MikanPropertyEntry
 	std::string componentClassName;
 	PropertyDescriptorConstPtr descriptor;
 
-	MikanPropertyEntry(
-		int inPropertyIndex,
-		const std::string& inSystemName,
-		const std::string& inComponentClassName,
-		PropertyDescriptorConstPtr inDescriptor)
+	MikanPropertyEntry(int inPropertyIndex, const std::string& inSystemName, const std::string& inComponentClassName,
+					   PropertyDescriptorConstPtr inDescriptor)
 		: propertyIndex(inPropertyIndex)
 		, systemName(inSystemName)
 		, componentClassName(inComponentClassName)
@@ -56,37 +53,28 @@ public:
 
 		for (const PropertyDescriptorConstPtr& descriptor : descriptors)
 		{
-			registerProperty(
-				t_system_class::k_objectSystemClassName,
-				t_component_class::k_componentClassName,
-				descriptor);
+			registerProperty(t_system_class::k_objectSystemClassName, t_component_class::k_componentClassName,
+							 descriptor);
 		}
 	}
 
 	void clear();
-	void registerProperty(
-		const std::string& systemName,
-		const std::string& componentClassName,
-		PropertyDescriptorConstPtr descriptor);
+	void registerProperty(const std::string& systemName, const std::string& componentClassName,
+						  PropertyDescriptorConstPtr descriptor);
 
 	const std::vector<MikanPropertyEntry>& getAllProperties() const { return m_properties; }
 
-	int findPropertyIndex(
-		const std::string& systemName,
-		const std::string& componentClassName,
-		const std::string& propertyName) const;
+	int findPropertyIndex(const std::string& systemName, const std::string& componentClassName,
+						  const std::string& propertyName) const;
 	const MikanPropertyEntry* getPropertyByIndex(int propertyIndex) const;
 
-	PropertyDescriptorConstPtr findPropertyDescriptor(
-		const std::string& systemName,
-		const std::string& componentClassName,
-		const std::string& propertyName) const;
+	PropertyDescriptorConstPtr findPropertyDescriptor(const std::string& systemName,
+													  const std::string& componentClassName,
+													  const std::string& propertyName) const;
 
 private:
-	static std::string makePropertyKey(
-		const std::string& systemName,
-		const std::string& componentClassName,
-		const std::string& propertyName);
+	static std::string makePropertyKey(const std::string& systemName, const std::string& componentClassName,
+									   const std::string& propertyName);
 
 private:
 	std::vector<MikanPropertyEntry> m_properties;

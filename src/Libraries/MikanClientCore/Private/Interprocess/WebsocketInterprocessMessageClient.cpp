@@ -22,14 +22,10 @@ public:
 		, m_websocket(std::make_shared<ix::WebSocket>())
 		, m_eventQueue(std::make_shared<LockFreeEventQueue>())
 	{
-		m_websocket->setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg)
-										  { handleWebSocketMessage(msg); });
+		m_websocket->setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) { handleWebSocketMessage(msg); });
 	}
 
-	~WebsocketConnectionState()
-	{
-		disconnect();
-	}
+	~WebsocketConnectionState() { disconnect(); }
 
 	const bool getIsConnected() const
 	{
@@ -49,9 +45,7 @@ public:
 		m_binaryResponseHandler= handler;
 	}
 
-	MikanCoreResult connect(
-		const std::string& host,
-		const std::string& port)
+	MikanCoreResult connect(const std::string& host, const std::string& port)
 	{
 		if (getIsConnected())
 		{
@@ -80,9 +74,8 @@ public:
 			}
 			else
 			{
-				m_websocket->stop(
-					ix::WebSocketCloseConstants::kNormalClosureCode,
-					ix::WebSocketCloseConstants::kNormalClosureMessage);
+				m_websocket->stop(ix::WebSocketCloseConstants::kNormalClosureCode,
+								  ix::WebSocketCloseConstants::kNormalClosureMessage);
 			}
 
 			return true;
@@ -99,8 +92,7 @@ public:
 		{
 			MIKAN_MT_LOG_INFO("handleWebSocketMessage")
 				<< "New connection"
-				<< ", uri: " << msg->openInfo.uri
-				<< ", protocol: " << msg->openInfo.protocol;
+				<< ", uri: " << msg->openInfo.uri << ", protocol: " << msg->openInfo.protocol;
 		}
 		break;
 		case ix::WebSocketMessageType::Close:
@@ -199,28 +191,15 @@ WebsocketInterprocessMessageClient::WebsocketInterprocessMessageClient(int proto
 {
 }
 
-WebsocketInterprocessMessageClient::~WebsocketInterprocessMessageClient()
-{
-	dispose();
-}
+WebsocketInterprocessMessageClient::~WebsocketInterprocessMessageClient() { dispose(); }
 
-MikanCoreResult WebsocketInterprocessMessageClient::initialize()
-{
-	return MikanCoreResult_Success;
-}
+MikanCoreResult WebsocketInterprocessMessageClient::initialize() { return MikanCoreResult_Success; }
 
-void WebsocketInterprocessMessageClient::dispose()
-{
-	disconnect(0, "");
-}
+void WebsocketInterprocessMessageClient::dispose() { disconnect(0, ""); }
 
-const bool WebsocketInterprocessMessageClient::getIsConnected() const
-{
-	return m_connectionState->getIsConnected();
-}
+const bool WebsocketInterprocessMessageClient::getIsConnected() const { return m_connectionState->getIsConnected(); }
 
-void WebsocketInterprocessMessageClient::setTextResponseHandler(
-	IInterprocessMessageClient::TextResponseHandler handler)
+void WebsocketInterprocessMessageClient::setTextResponseHandler(IInterprocessMessageClient::TextResponseHandler handler)
 {
 	m_connectionState->setTextResponseHandler(handler);
 }
@@ -231,9 +210,7 @@ void WebsocketInterprocessMessageClient::setBinaryResponseHandler(
 	m_connectionState->setBinaryResponseHandler(handler);
 }
 
-MikanCoreResult WebsocketInterprocessMessageClient::connect(
-	const std::string& host,
-	const std::string& port)
+MikanCoreResult WebsocketInterprocessMessageClient::connect(const std::string& host, const std::string& port)
 {
 	return m_connectionState->connect(host, port);
 }
@@ -243,10 +220,8 @@ void WebsocketInterprocessMessageClient::disconnect(uint16_t code, const std::st
 	m_connectionState->disconnect(code, reason);
 }
 
-MikanCoreResult WebsocketInterprocessMessageClient::fetchNextEvent(
-	size_t utf8BufferSize,
-	char* outUtf8Buffer,
-	size_t* outUtf8BufferSizeNeeded)
+MikanCoreResult WebsocketInterprocessMessageClient::fetchNextEvent(size_t utf8BufferSize, char* outUtf8Buffer,
+																   size_t* outUtf8BufferSizeNeeded)
 {
 	auto eventQueue= m_connectionState->getServerEventQueue();
 	const std::string* nextEvent= eventQueue->peek();

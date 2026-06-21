@@ -15,9 +15,8 @@
 #include "LuaBridge/LuaBridge.h"
 
 // -- AnchorObjectSystemDefinition -----
-AnchorObjectSystemDefinition::AnchorObjectSystemDefinition(
-	const std::string& configName,
-	IEntityIDAllocatorPtr idAllocator)
+AnchorObjectSystemDefinition::AnchorObjectSystemDefinition(const std::string& configName,
+														   IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
@@ -29,10 +28,7 @@ configuru::Config AnchorObjectSystemDefinition::writeToJSON()
 	return pt;
 }
 
-void AnchorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	Super::readFromJSON(pt);
-}
+void AnchorObjectSystemDefinition::readFromJSON(const configuru::Config& pt) { Super::readFromJSON(pt); }
 
 // -- AnchorObjectSystem -----
 AnchorObjectSystem::AnchorObjectSystem(ProjectManagerPtr ownerObjectSystem)
@@ -52,9 +48,8 @@ bool AnchorObjectSystem::getSpatialAnchorWorldTransform(MikanSpatialAnchorID anc
 	return false;
 }
 
-void AnchorObjectSystem::additionalComponentFactory(
-	MikanObjectPtr ownerComponentObject,
-	ComponentDefinitionPtr componentDefinition)
+void AnchorObjectSystem::additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+													ComponentDefinitionPtr componentDefinition)
 {
 	TransformComponentPtr rootComponent= ownerComponentObject->getRootComponent();
 	assert(rootComponent);
@@ -90,21 +85,12 @@ void AnchorObjectSystem::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.beginClass<AnchorObjectSystem>("AnchorObjectSystem")
-		.addFunction("getAnchorById",
-					 [](AnchorObjectSystem* s, int id) -> AnchorComponent*
-					 {
-						 return s->getSpatialAnchorById(static_cast<MikanSpatialAnchorID>(id)).get();
-					 })
-		.addFunction("getAnchorByName",
-					 [](AnchorObjectSystem* s, const std::string& name) -> AnchorComponent*
-					 {
-						 return s->getSpatialAnchorByName(name).get();
-					 })
+		.addFunction("getAnchorById", [](AnchorObjectSystem* s, int id) -> AnchorComponent*
+					 { return s->getSpatialAnchorById(static_cast<MikanSpatialAnchorID>(id)).get(); })
+		.addFunction("getAnchorByName", [](AnchorObjectSystem* s, const std::string& name) -> AnchorComponent*
+					 { return s->getSpatialAnchorByName(name).get(); })
 		.addFunction("getAnchorCount",
-					 [](AnchorObjectSystem* s) -> int
-					 {
-						 return static_cast<int>(s->getComponentMap().size());
-					 })
+					 [](AnchorObjectSystem* s) -> int { return static_cast<int>(s->getComponentMap().size()); })
 		.addFunction("getAnchorAtIndex",
 					 [](AnchorObjectSystem* s, int i) -> AnchorComponent*
 					 {

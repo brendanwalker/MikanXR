@@ -120,7 +120,8 @@ bool ShapeSelectNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> ShapeSelectNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> ShapeSelectNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(80, 150, 130, 225))
@@ -144,18 +145,9 @@ void ShapeSelectNode::editorRenderPropertySheet(const NodeEditorState& editorSta
 {
 	if (NodeEditorUI::DrawPropertySheetHeader("Shape Select Node", editorState.styleManager))
 	{
-		NodeEditorUI::DrawCheckBoxProperty(
-			"ShapeSelectNodeEnableQuad",
-			"Enable Quads",
-			m_bEnableQuadShapes);
-		NodeEditorUI::DrawCheckBoxProperty(
-			"ShapeSelectNodeEnableBox",
-			"Enable Boxes",
-			m_bEnableBoxShapes);
-		NodeEditorUI::DrawCheckBoxProperty(
-			"ShapeSelectNodeEnableModel",
-			"Enable Models",
-			m_bEnableModelShapes);
+		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableQuad", "Enable Quads", m_bEnableQuadShapes);
+		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableBox", "Enable Boxes", m_bEnableBoxShapes);
+		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableModel", "Enable Models", m_bEnableModelShapes);
 	}
 }
 

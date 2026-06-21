@@ -22,10 +22,8 @@ MikanResponseFuture::MikanResponseFuture(MikanAPIResult result)
 	promise.set_value(makeSimpleMikanResponse(result));
 }
 
-MikanResponseFuture::MikanResponseFuture(
-	MikanRequestManager* owner,
-	MikanRequestID requestId,
-	MikanResponsePromise& promise)
+MikanResponseFuture::MikanResponseFuture(MikanRequestManager* owner, MikanRequestID requestId,
+										 MikanResponsePromise& promise)
 	: m_impl(new MikanResponseFutureImpl())
 {
 	m_impl->ownerRequestManager= owner;
@@ -88,8 +86,7 @@ MikanResponsePtr MikanResponseFuture::fetchResponse(uint32_t timeoutMilliseconds
 			else
 			{
 				// Timeout reached, cancel the request
-				if (m_impl->ownerRequestManager != nullptr &&
-					m_impl->requestId != INVALID_MIKAN_ID)
+				if (m_impl->ownerRequestManager != nullptr && m_impl->requestId != INVALID_MIKAN_ID)
 				{
 					m_impl->ownerRequestManager->cancelRequest(m_impl->requestId);
 				}

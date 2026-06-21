@@ -15,9 +15,7 @@
 #include "imgui.h"
 #include "imnodes.h"
 
-const std::string g_variableEvalModeStrings[(int)eVariableEvalMode::COUNT]= {
-	"get",
-	"set"};
+const std::string g_variableEvalModeStrings[(int)eVariableEvalMode::COUNT]= {"get", "set"};
 extern const std::string* k_variableEvalModeStrings= g_variableEvalModeStrings;
 
 // -- ValueSourceComboDataSource ---
@@ -31,9 +29,7 @@ public:
 
 		currentValueSource= ownerNode->getValueSource();
 
-		for (auto it= ownerGraph->getPropertyMap().begin();
-			 it != ownerGraph->getPropertyMap().end();
-			 it++)
+		for (auto it= ownerGraph->getPropertyMap().begin(); it != ownerGraph->getPropertyMap().end(); it++)
 		{
 			auto valueSource= std::dynamic_pointer_cast<GraphValueProperty>(it->second);
 
@@ -50,25 +46,13 @@ public:
 		}
 	}
 
-	inline int getCurrentValueSourceIndex() const
-	{
-		return selectedValueSourceIndex;
-	}
+	inline int getCurrentValueSourceIndex() const { return selectedValueSourceIndex; }
 
-	inline GraphValuePropertyPtr getEntryValueSource(int index)
-	{
-		return comboEntries[index].valueSource;
-	}
+	inline GraphValuePropertyPtr getEntryValueSource(int index) { return comboEntries[index].valueSource; }
 
-	virtual int getEntryCount() override
-	{
-		return (int)comboEntries.size();
-	}
+	virtual int getEntryCount() override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override
-	{
-		return comboEntries[index].entryString;
-	}
+	virtual const std::string& getEntryDisplayString(int index) override { return comboEntries[index].entryString; }
 
 private:
 	struct ComboEntry
@@ -100,19 +84,12 @@ void VariableNodeConfig::readFromJSON(const configuru::Config& pt)
 	valuePropertyId= pt.get_or<t_graph_property_id>("value_property_id", -1);
 
 	const std::string pinModeString=
-		pt.get_or<std::string>(
-			"pin_mode",
-			k_variableEvalModeStrings[(int)eVariableEvalMode::get]);
-	evalMode=
-		StringUtils::FindEnumValue<eVariableEvalMode>(
-			pinModeString, k_variableEvalModeStrings);
+		pt.get_or<std::string>("pin_mode", k_variableEvalModeStrings[(int)eVariableEvalMode::get]);
+	evalMode= StringUtils::FindEnumValue<eVariableEvalMode>(pinModeString, k_variableEvalModeStrings);
 }
 
 // -- VariableNode -----
-VariableNode::~VariableNode()
-{
-	setOwnerGraph(NodeGraphPtr());
-}
+VariableNode::~VariableNode() { setOwnerGraph(NodeGraphPtr()); }
 
 void VariableNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 {
@@ -148,8 +125,7 @@ bool VariableNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("VariableNode::loadFromConfig")
-				<< "Failed to find value property: " << propId
-				<< ", on Variable node";
+				<< "Failed to find value property: " << propId << ", on Variable node";
 		}
 
 		// Determines if we are getting or setting the property value
@@ -172,12 +148,8 @@ void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 
 		// Evaluation Mode
 		int iEvalMode= (int)m_evalMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-				"variableNodeEvalMode",
-				"Eval Mode",
-				"Get\0Set\0",
-				iEvalMode,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("variableNodeEvalMode", "Eval Mode", "Get\0Set\0", iEvalMode,
+													 editorState.styleManager))
 		{
 			m_evalMode= (eVariableEvalMode)iEvalMode;
 			bPinsNeedRebuild= true;
@@ -187,12 +159,8 @@ void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 		auto self= std::static_pointer_cast<VariableNode>(shared_from_this());
 		ValueSourceComboDataSource dataSource(self);
 		int valueSourceIndex= dataSource.getCurrentValueSourceIndex();
-		if (NodeEditorUI::DrawComboBoxProperty(
-				"variableSource",
-				"Source",
-				&dataSource,
-				valueSourceIndex,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawComboBoxProperty("variableSource", "Source", &dataSource, valueSourceIndex,
+											   editorState.styleManager))
 		{
 			m_sourceProperty= dataSource.getEntryValueSource(valueSourceIndex);
 			bPinsNeedRebuild= true;
@@ -230,10 +198,7 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 	if (!m_sourceProperty)
 	{
 		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::missingInput,
-				"Missing source property",
-				this));
+			NodeEvaluationError(eNodeEvaluationErrorCode::missingInput, "Missing source property", this));
 		bSuccess= false;
 	}
 
@@ -255,11 +220,9 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 			else
 			{
 				evaluator.addError(
-					NodeEvaluationError(
-						eNodeEvaluationErrorCode::missingInput,
-						StringUtils::stringify(m_inputValuePin->getName(), " missing input connection"),
-						this,
-						m_inputValuePin.get()));
+					NodeEvaluationError(eNodeEvaluationErrorCode::missingInput,
+										StringUtils::stringify(m_inputValuePin->getName(), " missing input connection"),
+										this, m_inputValuePin.get()));
 				bSuccess= false;
 			}
 		}
@@ -275,11 +238,9 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 		else
 		{
 			evaluator.addError(
-				NodeEvaluationError(
-					eNodeEvaluationErrorCode::missingOutput,
-					StringUtils::stringify(m_outputValuePin->getName(), " missing output connection"),
-					this,
-					m_outputValuePin.get()));
+				NodeEvaluationError(eNodeEvaluationErrorCode::missingOutput,
+									StringUtils::stringify(m_outputValuePin->getName(), " missing output connection"),
+									this, m_outputValuePin.get()));
 			bSuccess= false;
 		}
 	}
@@ -287,12 +248,11 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 	return bSuccess;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> VariableNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> VariableNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
-	const unsigned int titleBarColor=
-		m_outputValuePin
-			? m_outputValuePin->editorValuePinColor(1.f)
-			: ImGui::GetColorU32(NodeEditorUI::getPropertyColor(1.f));
+	const unsigned int titleBarColor= m_outputValuePin ? m_outputValuePin->editorValuePinColor(1.f)
+													   : ImGui::GetColorU32(NodeEditorUI::getPropertyColor(1.f));
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, titleBarColor)
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
@@ -331,17 +291,15 @@ void VariableNode::rebuildPins()
 			addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
 
 			// Create the input value pin
-			m_inputValuePin=
-				std::dynamic_pointer_cast<ValuePin>(
-					addPinByClassName(m_sourceProperty->getPinClassName(), "valueIn", eNodePinDirection::INPUT));
+			m_inputValuePin= std::dynamic_pointer_cast<ValuePin>(
+				addPinByClassName(m_sourceProperty->getPinClassName(), "valueIn", eNodePinDirection::INPUT));
 			assert(m_inputValuePin);
 			m_inputValuePin->editorSetShowPinName(false);
 		}
 
 		// Both Set and Get modes create an output value pin
-		m_outputValuePin=
-			std::dynamic_pointer_cast<ValuePin>(
-				addPinByClassName(m_sourceProperty->getPinClassName(), "valueOut", eNodePinDirection::OUTPUT));
+		m_outputValuePin= std::dynamic_pointer_cast<ValuePin>(
+			addPinByClassName(m_sourceProperty->getPinClassName(), "valueOut", eNodePinDirection::OUTPUT));
 		assert(m_outputValuePin);
 		m_outputValuePin->editorSetShowPinName(false);
 	}

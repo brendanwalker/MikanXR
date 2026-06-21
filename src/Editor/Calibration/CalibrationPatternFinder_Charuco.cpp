@@ -33,13 +33,11 @@ public:
 };
 
 //-- CalibrationPatternFinder_Charuco -----
-CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
-	VideoFrameDistortionView* distortionView,
-	int charucoRows,
-	int charucoCols,
-	float charucoSquareLengthMM,
-	float charucoMarkerLengthMM,
-	eCharucoDictionaryType charucoDictionaryType)
+CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(VideoFrameDistortionView* distortionView,
+																   int charucoRows, int charucoCols,
+																   float charucoSquareLengthMM,
+																   float charucoMarkerLengthMM,
+																   eCharucoDictionaryType charucoDictionaryType)
 	: CalibrationPatternFinder(distortionView)
 	, m_markerData(new CharucoBoardData())
 {
@@ -55,22 +53,17 @@ CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
 		for (int col= 0; col < cornerCols; ++col)
 		{
 			// Solve PnP points are on the XZ Plane
-			cv::Point3f openCVSolvePnPPoint(
-				float(col) * charucoSquareLengthMM,
-				0.f,
-				-float(row) * charucoSquareLengthMM);
+			cv::Point3f openCVSolvePnPPoint(float(col) * charucoSquareLengthMM, 0.f,
+											-float(row) * charucoSquareLengthMM);
 			// Lens calibration points are on the XY Plane
-			cv::Point3f openCVLensCalibrationPoint(
-				float(col) * charucoSquareLengthMM,
-				float(row) * charucoSquareLengthMM,
-				0.f);
+			cv::Point3f openCVLensCalibrationPoint(float(col) * charucoSquareLengthMM,
+												   float(row) * charucoSquareLengthMM, 0.f);
 
 			// OpenCV -> OpenGL coordinate system transform
 			// Rendering world units in meters, not mm
-			glm::vec3 openGLPoint(
-				openCVSolvePnPPoint.x * k_millimeters_to_meters,
-				-openCVSolvePnPPoint.y * k_millimeters_to_meters,
-				-openCVSolvePnPPoint.z * k_millimeters_to_meters);
+			glm::vec3 openGLPoint(openCVSolvePnPPoint.x * k_millimeters_to_meters,
+								  -openCVSolvePnPPoint.y * k_millimeters_to_meters,
+								  -openCVSolvePnPPoint.z * k_millimeters_to_meters);
 
 			m_opencvLensCalibrationGeometry.points.push_back(openCVLensCalibrationPoint);
 			m_opencvSolvePnPGeometry.points.push_back(openCVSolvePnPPoint);
@@ -79,11 +72,8 @@ CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
 	}
 
 	ArucoDictionaryPtr dictionary= getArucoDictionary(charucoDictionaryType);
-	cv::aruco::CharucoBoard board(
-		cv::Size(charucoCols, charucoRows),
-		charucoSquareLengthMM * k_millimeters_to_meters,
-		charucoMarkerLengthMM * k_millimeters_to_meters,
-		*dictionary.get());
+	cv::aruco::CharucoBoard board(cv::Size(charucoCols, charucoRows), charucoSquareLengthMM * k_millimeters_to_meters,
+								  charucoMarkerLengthMM * k_millimeters_to_meters, *dictionary.get());
 	m_markerData->detector= cv::makePtr<cv::aruco::CharucoDetector>(board);
 	m_markerData->rows= charucoRows;
 	m_markerData->cols= charucoCols;
@@ -91,10 +81,7 @@ CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
 	m_markerData->markerLengthMM= charucoMarkerLengthMM;
 }
 
-CalibrationPatternFinder_Charuco::~CalibrationPatternFinder_Charuco()
-{
-	delete m_markerData;
-}
+CalibrationPatternFinder_Charuco::~CalibrationPatternFinder_Charuco() { delete m_markerData; }
 
 bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float minSeperationDist)
 {
@@ -113,12 +100,8 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	// Find Charuco marker corners in the source image
 	m_markerData->markerCorners.clear();
 	m_markerData->markerVisibleIds.clear();
-	m_markerData->detector->detectBoard(
-		*gsSourceBuffer,
-		m_markerData->charucoCorners,
-		m_markerData->charucoIds,
-		m_markerData->markerCorners,
-		m_markerData->markerVisibleIds);
+	m_markerData->detector->detectBoard(*gsSourceBuffer, m_markerData->charucoCorners, m_markerData->charucoIds,
+										m_markerData->markerCorners, m_markerData->markerVisibleIds);
 	const bool bFoundMarkers= m_markerData->markerVisibleIds.size() > 0;
 
 	if (bFoundMarkers)
@@ -138,8 +121,7 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 				for (int corner_index= 0; corner_index < cornerCount; ++corner_index)
 				{
 					float squared_error=
-						(float)(cv::norm(
-							m_currentImagePoints[corner_index] - m_lastValidImagePoints[corner_index]));
+						(float)(cv::norm(m_currentImagePoints[corner_index] - m_lastValidImagePoints[corner_index]));
 
 					error_sum+= squared_error;
 				}
@@ -163,10 +145,9 @@ bool CalibrationPatternFinder_Charuco::findNewCalibrationPattern(const float min
 	return bImagePointsValid;
 }
 
-bool CalibrationPatternFinder_Charuco::fetchLastFoundCalibrationPattern(
-	t_opencv_point2d_list& outImagePoints,
-	t_opencv_pointID_list& outImagePointIDs,
-	cv::Point2f outBoundingQuad[4])
+bool CalibrationPatternFinder_Charuco::fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints,
+																		t_opencv_pointID_list& outImagePointIDs,
+																		cv::Point2f outBoundingQuad[4])
 {
 	// If it's a valid new location, append it to the board list
 	if (areCurrentImagePointsValid())
@@ -219,12 +200,9 @@ void CalibrationPatternFinder_Charuco::renderCalibrationPattern2D() const
 
 		const t_opencv_point2d_list& corners= m_markerData->markerCorners[quadIndex];
 
-		drawQuadList2d(
-			graphicsContext,
-			m_frameWidth, m_frameHeight,
-			(float*)corners.data(), // cv::point2f is just two floats
-			(int)corners.size(),
-			Colors::Yellow);
+		drawQuadList2d(graphicsContext, m_frameWidth, m_frameHeight,
+					   (float*)corners.data(), // cv::point2f is just two floats
+					   (int)corners.size(), Colors::Yellow);
 
 		if (quadIndex < m_markerData->markerVisibleIds.size())
 		{
@@ -233,12 +211,8 @@ void CalibrationPatternFinder_Charuco::renderCalibrationPattern2D() const
 			cv::Point2f quadCenter;
 			opencv_point2f_compute_average(corners, quadCenter);
 
-			drawTextAtTrackerPosition(
-				graphicsContext,
-				style,
-				m_frameWidth, m_frameHeight,
-				glm::vec2(quadCenter.x, quadCenter.y),
-				L"%d", markerId);
+			drawTextAtTrackerPosition(graphicsContext, style, m_frameWidth, m_frameHeight,
+									  glm::vec2(quadCenter.x, quadCenter.y), L"%d", markerId);
 		}
 	}
 }

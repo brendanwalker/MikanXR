@@ -45,15 +45,13 @@ public:
 				std::string templateTypeName= templateClassInstanceType->getClassTemplate().getName();
 
 				// See if the field is a Serialization::List<T>
-				if (templateTypeName == "List" &&
-					templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				if (templateTypeName == "List" && templateClassInstanceType->getTemplateArgumentsCount() == 1)
 				{
 					visitList(accessor, *templateClassInstanceType, fieldJsonObject);
 					return;
 				}
 				// See if the field is a Serialization::Map<K,V>
-				else if (templateTypeName == "Map" &&
-						 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+				else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
 				{
 					visitMap(accessor, *templateClassInstanceType, fieldJsonObject);
 					return;
@@ -61,10 +59,8 @@ public:
 			}
 			else
 			{
-				setError(
-					stringify("JsonReadVisitor::visitClass() ",
-							  "Class Field ", accessor.getName(),
-							  " was not of expected type Serializable::List to deserialize json array value"));
+				setError(stringify("JsonReadVisitor::visitClass() ", "Class Field ", accessor.getName(),
+								   " was not of expected type Serializable::List to deserialize json array value"));
 				return;
 			}
 		}
@@ -89,10 +85,8 @@ public:
 			}
 			else
 			{
-				setError(
-					stringify("JsonReadVisitor::visitClass() ",
-							  "Class Field ", accessor.getName(),
-							  " was not of expected type Serializable::List to deserialize json array value"));
+				setError(stringify("JsonReadVisitor::visitClass() ", "Class Field ", accessor.getName(),
+								   " was not of expected type Serializable::List to deserialize json array value"));
 				return;
 			}
 		}
@@ -100,9 +94,7 @@ public:
 		JsonReadVisitor::visitStruct(accessor);
 	}
 
-	void visitObjectPtr(
-		ValueAccessor const& accessor,
-		const json& ownerJsonObject)
+	void visitObjectPtr(ValueAccessor const& accessor, const json& ownerJsonObject)
 	{
 		// Get the shared pointer we are writing
 		void* objPtrInstance= accessor.getUntypedValueMutablePtr();
@@ -117,10 +109,8 @@ public:
 			objectStruct= TypeRegistry::getStructByName(objectClassName);
 			if (objectStruct == nullptr)
 			{
-				setError(
-					stringify("JsonReadVisitor::visitObjectPtr() ",
-							  "TypedObjectPtr Accessor ", accessor.getName(),
-							  " used an unknown runtime class_name: ", objectClassName));
+				setError(stringify("JsonReadVisitor::visitObjectPtr() ", "TypedObjectPtr Accessor ", accessor.getName(),
+								   " used an unknown runtime class_name: ", objectClassName));
 				return;
 			}
 		}
@@ -129,13 +119,11 @@ public:
 		{
 			// Use reflection to get the methods to create and initialize the object
 			rfk::Method const* allocateMethod=
-				objPtrClassType->getMethodByName(
-					"allocateByClassName", rfk::EMethodFlags::Default, true);
+				objPtrClassType->getMethodByName("allocateByClassName", rfk::EMethodFlags::Default, true);
 
 			// Allocate a default instance of the object assigned to the shared pointer
 			void* objectInstance=
-				allocateMethod->invokeUnsafe<void*, const std::string&>(
-					objPtrInstance, objectClassName);
+				allocateMethod->invokeUnsafe<void*, const std::string&>(objPtrInstance, objectClassName);
 
 			// Deserialize the object from the json
 			json objectJson= ownerJsonObject["value"];
@@ -148,17 +136,14 @@ public:
 		}
 	}
 
-	void visitList(
-		ValueAccessor const& arrayAccessor,
-		rfk::ClassTemplateInstantiation const& templatedArrayType,
-		const json& arrayJsonObject)
+	void visitList(ValueAccessor const& arrayAccessor, rfk::ClassTemplateInstantiation const& templatedArrayType,
+				   const json& arrayJsonObject)
 	{
 		void* arrayInstance= arrayAccessor.getUntypedValueMutablePtr();
 
 		// Get the type of the elements in the array from the template argument
 		auto const& templateArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedArrayType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedArrayType.getTemplateArgumentAt(0));
 		rfk::Type const& elementType= templateArg.getType();
 
 		// Use reflection to get the methods to resize the array and get a mutable reference to an element
@@ -177,8 +162,7 @@ public:
 
 			// Get the target element instance in the array
 			void* elementInstance=
-				getRawElementMutableMethod->invokeUnsafe<void*, const std::size_t&>(
-					arrayInstance, elementIndex);
+				getRawElementMutableMethod->invokeUnsafe<void*, const std::size_t&>(arrayInstance, elementIndex);
 
 			// Make a fake "field" for an element in the array
 			ValueAccessor elementAccessor(elementInstance, elementType);
@@ -194,15 +178,12 @@ public:
 		}
 	}
 
-	void visitMap(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType,
-		const json& mapArrayJsonObject)
+	void visitMap(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType,
+				  const json& mapArrayJsonObject)
 	{
 		// Get the key type of the map from the template argument
 		auto const& templateKeyArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(0));
 		rfk::Type const& keyType= templateKeyArg.getType();
 
 		if (keyType == rfk::getType<int32_t>())
@@ -221,25 +202,21 @@ public:
 		{
 			rfk::Archetype const* keyArchetype= keyType.getArchetype();
 
-			setError(
-				stringify("JsonReadVisitor::visitMap() ",
-						  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
-						  " is not supported"));
+			setError(stringify("JsonReadVisitor::visitMap() ", "Map Key Archetype ",
+							   keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
+							   " is not supported"));
 		}
 	}
 
 	template <typename t_key>
-	void visitMapOfKey(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType,
-		const json& mapArrayJsonObject)
+	void visitMapOfKey(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType,
+					   const json& mapArrayJsonObject)
 	{
 		void* mapInstance= mapAccessor.getUntypedValueMutablePtr();
 
 		// Get the type of the elements in the array from the template argument
 		auto const& templateValueArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(1));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(1));
 		rfk::Type const& valueType= templateValueArg.getType();
 
 		// Use reflection to get the method use to clear and add pairs to the map
@@ -259,18 +236,14 @@ public:
 			if (!pairJson.contains("key"))
 			{
 				setError(
-					stringify("JsonReadVisitor::visitMapOfKey() ",
-							  "Map Pair ", pairIndex,
-							  " does not contain key"));
+					stringify("JsonReadVisitor::visitMapOfKey() ", "Map Pair ", pairIndex, " does not contain key"));
 				return;
 			}
 
 			if (!pairJson.contains("value"))
 			{
 				setError(
-					stringify("JsonReadVisitor::visitMapOfKey() ",
-							  "Map Pair ", pairIndex,
-							  " does not contain value"));
+					stringify("JsonReadVisitor::visitMapOfKey() ", "Map Pair ", pairIndex, " does not contain value"));
 				return;
 			}
 
@@ -278,9 +251,7 @@ public:
 			t_key key= pairJson["key"].get<t_key>();
 
 			// Get or Add the target value instance in the map
-			void* valueInstance=
-				getOrAddValueMethod->invokeUnsafe<void*, const t_key&>(
-					mapInstance, key);
+			void* valueInstance= getOrAddValueMethod->invokeUnsafe<void*, const t_key&>(mapInstance, key);
 
 			// Make a fake "field" for an element in the array
 			ValueAccessor valueAccessor(valueInstance, valueType);
@@ -317,10 +288,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitStruct() ",
-						  "Struct Field ", accessor.getName(),
-						  " was not of expected type object to deserialize json object value"));
+			setError(stringify("JsonReadVisitor::visitStruct() ", "Struct Field ", accessor.getName(),
+							   " was not of expected type object to deserialize json object value"));
 		}
 	}
 
@@ -342,10 +311,8 @@ public:
 
 			if (enumValue == nullptr)
 			{
-				setError(
-					stringify("JsonReadVisitor::visitEnum() ",
-							  "Enum Accessor ", accessor.getName(),
-							  " has an invalid value ", value));
+				setError(stringify("JsonReadVisitor::visitEnum() ", "Enum Accessor ", accessor.getName(),
+								   " has an invalid value ", value));
 				return;
 			}
 		}
@@ -356,19 +323,15 @@ public:
 
 			if (enumValue == nullptr)
 			{
-				setError(
-					stringify("JsonReadVisitor::visitEnum() ",
-							  "Enum Accessor ", accessor.getName(),
-							  " has an invalid value ", value));
+				setError(stringify("JsonReadVisitor::visitEnum() ", "Enum Accessor ", accessor.getName(),
+								   " has an invalid value ", value));
 				return;
 			}
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitEnum() ",
-						  "Enum Accessor ", accessor.getName(),
-						  " was not an int or a string json value"));
+			setError(stringify("JsonReadVisitor::visitEnum() ", "Enum Accessor ", accessor.getName(),
+							   " was not an int or a string json value"));
 			return;
 		}
 
@@ -404,10 +367,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitBool() ",
-						  "Bool Accessor ", accessor.getName(),
-						  " was not a bool json value"));
+			setError(stringify("JsonReadVisitor::visitBool() ", "Bool Accessor ", accessor.getName(),
+							   " was not a bool json value"));
 		}
 	}
 
@@ -426,10 +387,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitByte() ",
-						  "Byte Accessor ", accessor.getName(),
-						  " was not a integer json value"));
+			setError(stringify("JsonReadVisitor::visitByte() ", "Byte Accessor ", accessor.getName(),
+							   " was not a integer json value"));
 		}
 	}
 
@@ -454,10 +413,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitUByte() ",
-						  "UByte Accessor ", accessor.getName(),
-						  " was not a integer json value"));
+			setError(stringify("JsonReadVisitor::visitUByte() ", "UByte Accessor ", accessor.getName(),
+							   " was not a integer json value"));
 		}
 	}
 
@@ -476,10 +433,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitShort() ",
-						  "Short Accessor ", accessor.getName(),
-						  " was not a integer json value"));
+			setError(stringify("JsonReadVisitor::visitShort() ", "Short Accessor ", accessor.getName(),
+							   " was not a integer json value"));
 		}
 	}
 
@@ -504,10 +459,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitUShort() ",
-						  "UShort Accessor ", accessor.getName(),
-						  " was not a integer json value"));
+			setError(stringify("JsonReadVisitor::visitUShort() ", "UShort Accessor ", accessor.getName(),
+							   " was not a integer json value"));
 		}
 	}
 
@@ -526,10 +479,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitInt() ",
-						  "Int32 Accessor ", accessor.getName(),
-						  " was not a integer json value"));
+			setError(stringify("JsonReadVisitor::visitInt() ", "Int32 Accessor ", accessor.getName(),
+							   " was not a integer json value"));
 		}
 	}
 
@@ -554,10 +505,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitUInt() ",
-						  "UInt32 Accessor ", accessor.getName(),
-						  " was not a integer json value"));
+			setError(stringify("JsonReadVisitor::visitUInt() ", "UInt32 Accessor ", accessor.getName(),
+							   " was not a integer json value"));
 		}
 	}
 
@@ -576,19 +525,15 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitLong() ",
-						  "Int64 Accessor ", accessor.getName(),
-						  " was not a integer json value"));
+			setError(stringify("JsonReadVisitor::visitLong() ", "Int64 Accessor ", accessor.getName(),
+							   " was not a integer json value"));
 		}
 	}
 
 	virtual void visitULong(ValueAccessor const& accessor)
 	{
-		setError(
-			stringify("JsonWriteVisitor::visitULong() ",
-					  "ULong Accessor ", accessor.getName(),
-					  " type not supported by all JSON libraries"));
+		setError(stringify("JsonWriteVisitor::visitULong() ", "ULong Accessor ", accessor.getName(),
+						   " type not supported by all JSON libraries"));
 	}
 
 	virtual void visitFloat(ValueAccessor const& accessor) override
@@ -606,10 +551,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitFloat() ",
-						  "Float Accessor ", accessor.getName(),
-						  " was not a float json value"));
+			setError(stringify("JsonReadVisitor::visitFloat() ", "Float Accessor ", accessor.getName(),
+							   " was not a float json value"));
 		}
 	}
 
@@ -628,10 +571,8 @@ public:
 		}
 		else
 		{
-			setError(
-				stringify("JsonReadVisitor::visitDouble() ",
-						  "Double Accessor ", accessor.getName(),
-						  " was not a float json value"));
+			setError(stringify("JsonReadVisitor::visitDouble() ", "Double Accessor ", accessor.getName(),
+							   " was not a float json value"));
 		}
 	}
 
@@ -663,7 +604,8 @@ private:
 };
 
 // Public API
-bool deserializeFromJsonString(const std::string& jsonString, void* instance, rfk::Struct const& structType, std::string& outErrorMsg)
+bool deserializeFromJsonString(const std::string& jsonString, void* instance, rfk::Struct const& structType,
+							   std::string& outErrorMsg)
 {
 	try
 	{
@@ -678,7 +620,8 @@ bool deserializeFromJsonString(const std::string& jsonString, void* instance, rf
 	}
 }
 
-bool deserializeFromJson(const nlohmann::json& jsonObject, void* instance, rfk::Struct const& structType, std::string& outErrorMsg)
+bool deserializeFromJson(const nlohmann::json& jsonObject, void* instance, rfk::Struct const& structType,
+						 std::string& outErrorMsg)
 {
 	JsonReadVisitor visitor(jsonObject);
 	Serialization::visitStruct(instance, structType, &visitor);

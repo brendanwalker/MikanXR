@@ -70,8 +70,7 @@ bool TextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("TextureNode::loadFromConfig")
-				<< "Failed to find texture property: " << propId
-				<< ", on texture node";
+				<< "Failed to find texture property: " << propId << ", on texture node";
 		}
 	}
 
@@ -109,7 +108,8 @@ bool TextureNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> TextureNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> TextureNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))

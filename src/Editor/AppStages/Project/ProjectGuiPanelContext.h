@@ -47,20 +47,32 @@ public:
 	inline GuiPanel_BoxShapeComponent* getBoxShapePanel() const { return m_boxShapePanel; }
 	inline GuiPanel_BoxStencilComponent* getBoxStencilPanel() const { return m_boxStencilPanel; }
 	inline GuiPanel_CameraComponent* getCameraPanel() const { return m_cameraPanel; }
-	inline GuiPanel_ClientTextureSourceComponent* getClientTextureSourcePanel() const { return m_clientTextureSourcePanel; }
+	inline GuiPanel_ClientTextureSourceComponent* getClientTextureSourcePanel() const
+	{
+		return m_clientTextureSourcePanel;
+	}
 	inline GuiPanel_CompositorComponent* getCompositorPanel() const { return m_compositorPanel; }
 	inline GuiPanel_MarkerComponent* getMarkerPanel() const { return m_markerPanel; }
-	inline GuiPanel_MarkerTrackingVolumeComponent* getMarkerTrackingVolumePanel() const { return m_markerTrackingVolumePanel; }
+	inline GuiPanel_MarkerTrackingVolumeComponent* getMarkerTrackingVolumePanel() const
+	{
+		return m_markerTrackingVolumePanel;
+	}
 	inline GuiPanel_ModelShapeComponent* getModelShapePanel() const { return m_modelShapePanel; }
 	inline GuiPanel_ModelStencilComponent* getModelStencilPanel() const { return m_modelStencilPanel; }
-	inline GuiPanel_NetworkVideoSourceComponent* getNetworkVideoSourcePanel() const { return m_networkVideoSourcePanel; }
+	inline GuiPanel_NetworkVideoSourceComponent* getNetworkVideoSourcePanel() const
+	{
+		return m_networkVideoSourcePanel;
+	}
 	inline GuiPanel_QuadShapeComponent* getQuadShapePanel() const { return m_quadShapePanel; }
 	inline GuiPanel_QuadStencilComponent* getQuadStencilPanel() const { return m_quadStencilPanel; }
 	inline GuiPanel_RGBPixelGridComponent* getPixelGridPanel() const { return m_pixelGridPanel; }
 	inline GuiPanel_RGBSpotLightComponent* getSpotLightPanel() const { return m_spotLightPanel; }
 	inline GuiPanel_SceneComponent* getScenePanel() const { return m_scenePanel; }
 	inline GuiPanel_CEFTextureSourceComponent* getCEFTextureSourcePanel() const { return m_cefTextureSourcePanel; }
-	inline GuiPanel_SpoutTextureSourceComponent* getSpoutTextureSourcePanel() const { return m_spoutTextureSourcePanel; }
+	inline GuiPanel_SpoutTextureSourceComponent* getSpoutTextureSourcePanel() const
+	{
+		return m_spoutTextureSourcePanel;
+	}
 	inline GuiPanel_StageComponent* getStagePanel() const { return m_stagePanel; }
 	inline GuiPanel_TrackingMountComponent* getTrackingMountPanel() const { return m_trackingMountPanel; }
 	inline GuiPanel_USBVideoSourceComponent* getUSBVideoSourcePanel() const { return m_usbVideoSourcePanel; }

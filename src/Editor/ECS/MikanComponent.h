@@ -28,9 +28,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams);
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams);
 
 	static const std::string k_componentIdPropertyId;
 	int getComponentId() const { return m_componentId; }
@@ -51,8 +50,7 @@ protected:
 	AssetReferenceConfigPtr m_componentScriptAssetRefConfig;
 };
 
-class MikanComponent : public std::enable_shared_from_this<MikanComponent>,
-					   public IEntityAccessor
+class MikanComponent : public std::enable_shared_from_this<MikanComponent>, public IEntityAccessor
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);

@@ -70,9 +70,7 @@ struct AnchorTriangulationState
 };
 
 //-- MonoDistortionCalibrator ----
-AnchorTriangulator::AnchorTriangulator(
-	CameraComponentPtr cameraComponent,
-	VideoFrameDistortionView* distortionView)
+AnchorTriangulator::AnchorTriangulator(CameraComponentPtr cameraComponent, VideoFrameDistortionView* distortionView)
 	: m_calibrationState(new AnchorTriangulationState)
 	, m_cameraComponent(cameraComponent)
 	, m_distortionView(distortionView)
@@ -81,10 +79,7 @@ AnchorTriangulator::AnchorTriangulator(
 	m_calibrationState->init(cameraComponent);
 }
 
-AnchorTriangulator::~AnchorTriangulator()
-{
-	delete m_calibrationState;
-}
+AnchorTriangulator::~AnchorTriangulator() { delete m_calibrationState; }
 
 bool AnchorTriangulator::hasFinishedInitialPointSampling() const
 {
@@ -96,10 +91,7 @@ bool AnchorTriangulator::hasFinishedTriangulatedPointSampling() const
 	return m_calibrationState->triangulatedPointSampleCount >= 3;
 }
 
-void AnchorTriangulator::resetCalibrationState()
-{
-	m_calibrationState->resetCalibration();
-}
+void AnchorTriangulator::resetCalibrationState() { m_calibrationState->resetCalibration(); }
 
 void AnchorTriangulator::sampleMouseScreenPosition()
 {
@@ -135,9 +127,8 @@ glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 	const float screenWidth= window->getWidth();
 	const float screenHeight= window->getHeight();
 
-	glm::vec2 pointSample(
-		((float)mouseScreenX * frameWidth) / screenWidth,
-		((float)mouseScreenY * frameHeight) / screenHeight);
+	glm::vec2 pointSample(((float)mouseScreenX * frameWidth) / screenWidth,
+						  ((float)mouseScreenY * frameHeight) / screenHeight);
 
 	return pointSample;
 }
@@ -160,12 +151,9 @@ void AnchorTriangulator::computeCurrentTriangulation()
 	// Compute a ray for the initial sample pixel
 	glm::vec3 initialPointRayStart;
 	glm::vec3 initialPointRayDirection;
-	computeCameraRayAtPixel(
-		m_calibrationState->inputCameraIntrinsics,
-		m_calibrationState->initialCameraPoseSample,
-		m_calibrationState->initialPointSamples[sampleIndex],
-		initialPointRayStart,
-		initialPointRayDirection);
+	computeCameraRayAtPixel(m_calibrationState->inputCameraIntrinsics, m_calibrationState->initialCameraPoseSample,
+							m_calibrationState->initialPointSamples[sampleIndex], initialPointRayStart,
+							initialPointRayDirection);
 
 	// Compute a ray for triangulating new sample pixel
 	glm::mat4 triangulatingCameraXform;
@@ -174,22 +162,16 @@ void AnchorTriangulator::computeCurrentTriangulation()
 		const glm::vec2 triangulatingPointSample= computeMouseScreenPosition();
 		glm::vec3 triangulatingPointRayStart;
 		glm::vec3 triangulatingPointRayDirection;
-		computeCameraRayAtPixel(
-			m_calibrationState->inputCameraIntrinsics,
-			triangulatingCameraXform,
-			triangulatingPointSample,
-			triangulatingPointRayStart,
-			triangulatingPointRayDirection);
+		computeCameraRayAtPixel(m_calibrationState->inputCameraIntrinsics, triangulatingCameraXform,
+								triangulatingPointSample, triangulatingPointRayStart, triangulatingPointRayDirection);
 
 		// Triangulate the two points by finding the point on the
 		// initial ray closest to the triangulating ray
 		float closestTime;
 		glm::vec3 closesPoint;
-		if (glm_closest_point_on_ray_to_ray(
-				initialPointRayStart, initialPointRayDirection,
-				triangulatingPointRayStart, triangulatingPointRayDirection,
-				closestTime, closesPoint) &&
-			closestTime >= 0.f)
+		if (glm_closest_point_on_ray_to_ray(initialPointRayStart, initialPointRayDirection, triangulatingPointRayStart,
+											triangulatingPointRayDirection, closestTime, closesPoint)
+			&& closestTime >= 0.f)
 		{
 			m_calibrationState->lastWorldTriangulatedPoint= closesPoint;
 		}
@@ -209,11 +191,7 @@ bool AnchorTriangulator::computeAnchorTransform(AnchorTriangulatorInfo& anchorIn
 	const glm::vec3 yAxis= glm::normalize(glm::cross(zAxis, xAxis));
 
 	m_calibrationState->anchorWorldXform=
-		glm::mat4(
-			glm::vec4(xAxis, 0.f),
-			glm::vec4(yAxis, 0.f),
-			glm::vec4(zAxis, 0.f),
-			glm::vec4(origin, 1.f));
+		glm::mat4(glm::vec4(xAxis, 0.f), glm::vec4(yAxis, 0.f), glm::vec4(zAxis, 0.f), glm::vec4(origin, 1.f));
 	anchorInfo.worldTransform= m_calibrationState->anchorWorldXform;
 
 	return true;
@@ -239,37 +217,22 @@ void AnchorTriangulator::renderInitialPoint2dSegements()
 		TextStyle style= getDefaultTextStyle();
 		style.horizontalAlignment= eHorizontalTextAlignment::Middle;
 		style.verticalAlignment= eVerticalTextAlignment::Bottom;
-		drawTextAtCameraPosition(
-			graphicsContext,
-			style,
-			frameWidth, frameHeight,
-			glm_points[i],
-			L"P%d", i);
+		drawTextAtCameraPosition(graphicsContext, style, frameWidth, frameHeight, glm_points[i], L"P%d", i);
 	}
 
 	if (pointCount >= 2)
 	{
-		drawSegment2d(
-			graphicsContext,
-			frameWidth, frameHeight,
-			glm_points[0], glm_points[1],
-			Colors::Red, Colors::Green);
+		drawSegment2d(graphicsContext, frameWidth, frameHeight, glm_points[0], glm_points[1], Colors::Red,
+					  Colors::Green);
 	}
 
 	if (pointCount >= 3)
 	{
-		drawSegment2d(
-			graphicsContext,
-			frameWidth, frameHeight,
-			glm_points[0], glm_points[2],
-			Colors::Red, Colors::Blue);
+		drawSegment2d(graphicsContext, frameWidth, frameHeight, glm_points[0], glm_points[2], Colors::Red,
+					  Colors::Blue);
 	}
 
-	drawPointList2d(
-		graphicsContext,
-		frameWidth, frameHeight,
-		glm_points, pointCount,
-		Colors::Yellow, 2.f);
+	drawPointList2d(graphicsContext, frameWidth, frameHeight, glm_points, pointCount, Colors::Yellow, 2.f);
 }
 
 void AnchorTriangulator::renderInitialPoint3dRays()
@@ -282,12 +245,7 @@ void AnchorTriangulator::renderInitialPoint3dRays()
 	const float vfov_radians= degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);
 	const float zNear= fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
 	const float zFar= fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
-	drawTransformedFrustum(
-		graphicsContext,
-		glmCameraXform,
-		hfov_radians, vfov_radians,
-		zNear, zFar,
-		Colors::Yellow);
+	drawTransformedFrustum(graphicsContext, glmCameraXform, hfov_radians, vfov_radians, zNear, zFar, Colors::Yellow);
 	drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
 
 	// Draw the rays corresponding to each pixel sample
@@ -299,12 +257,8 @@ void AnchorTriangulator::renderInitialPoint3dRays()
 		// Compute a ray for each sample pixel
 		glm::vec3 rayStart;
 		glm::vec3 rayDirection;
-		computeCameraRayAtPixel(
-			m_calibrationState->inputCameraIntrinsics,
-			glmCameraXform,
-			imagePoint,
-			rayStart,
-			rayDirection);
+		computeCameraRayAtPixel(m_calibrationState->inputCameraIntrinsics, glmCameraXform, imagePoint, rayStart,
+								rayDirection);
 		glm::vec3 rayEnd= rayStart + rayDirection * 1000.f;
 
 		drawSegment(graphicsContext, glm::mat4(1.f), rayStart, rayEnd, k_anchorRayColors[i]);
@@ -329,32 +283,22 @@ void AnchorTriangulator::renderCurrentPointTriangulation()
 	// Draw the ray for the current initial sample point we are trying to triangulate
 	glm::vec3 initialPointRayStart;
 	glm::vec3 initialPointRayDirection;
-	computeCameraRayAtPixel(
-		m_calibrationState->inputCameraIntrinsics,
-		m_calibrationState->initialCameraPoseSample,
-		m_calibrationState->initialPointSamples[sampleIndex],
-		initialPointRayStart,
-		initialPointRayDirection);
+	computeCameraRayAtPixel(m_calibrationState->inputCameraIntrinsics, m_calibrationState->initialCameraPoseSample,
+							m_calibrationState->initialPointSamples[sampleIndex], initialPointRayStart,
+							initialPointRayDirection);
 	glm::vec3 initialPointRayEnd= initialPointRayStart + initialPointRayDirection * 1000.f;
-	drawSegment(
-		graphicsContext,
-		glm::mat4(1.f), initialPointRayStart, initialPointRayEnd, k_anchorRayColors[sampleIndex]);
+	drawSegment(graphicsContext, glm::mat4(1.f), initialPointRayStart, initialPointRayEnd,
+				k_anchorRayColors[sampleIndex]);
 
 	// Draw the most recently computed triangulation
-	drawPoint(
-		graphicsContext,
-		glm::mat4(1.f), m_calibrationState->lastWorldTriangulatedPoint, Colors::Yellow, 5.f);
+	drawPoint(graphicsContext, glm::mat4(1.f), m_calibrationState->lastWorldTriangulatedPoint, Colors::Yellow, 5.f);
 
 	// Draw the label for the current point index
 	TextStyle style= getDefaultTextStyle();
 	style.horizontalAlignment= eHorizontalTextAlignment::Middle;
 	style.verticalAlignment= eVerticalTextAlignment::Bottom;
-	drawTextAtCameraPosition(
-		graphicsContext,
-		style,
-		frameWidth, frameHeight,
-		m_calibrationState->lastWorldTriangulatedPoint,
-		L"P%d", sampleIndex);
+	drawTextAtCameraPosition(graphicsContext, style, frameWidth, frameHeight,
+							 m_calibrationState->lastWorldTriangulatedPoint, L"P%d", sampleIndex);
 }
 
 void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
@@ -371,9 +315,7 @@ void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 	TextStyle style= getDefaultTextStyle();
 	for (int i= 0; i < 3; i++)
 	{
-		drawTextAtWorldPosition(
-			graphicsContext,
-			style, m_calibrationState->triangulatedPointSamples[i], L"P%d", i);
+		drawTextAtWorldPosition(graphicsContext, style, m_calibrationState->triangulatedPointSamples[i], L"P%d", i);
 	}
 
 	if (bShowCameraFrustum)
@@ -387,12 +329,8 @@ void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 			const float zNear= fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
 			const float zFar= fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
 
-			drawTransformedFrustum(
-				graphicsContext,
-				glm_camera_xform,
-				hfov_radians, vfov_radians,
-				zNear, zFar,
-				Colors::Yellow);
+			drawTransformedFrustum(graphicsContext, glm_camera_xform, hfov_radians, vfov_radians, zNear, zFar,
+								   Colors::Yellow);
 			drawTransformedAxes(graphicsContext, glm_camera_xform, 0.1f);
 		}
 	}

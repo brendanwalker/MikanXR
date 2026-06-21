@@ -4,9 +4,7 @@
 
 #include <easy/profiler.h>
 
-CVVideoFrameProcessor::CVVideoFrameProcessor()
-{
-}
+CVVideoFrameProcessor::CVVideoFrameProcessor() {}
 
 CVVideoFrameProcessor::~CVVideoFrameProcessor()
 {
@@ -42,10 +40,8 @@ void CVVideoFrameProcessor::ensureBufferSize(int width, int height)
 	m_bgrGsDisplayBuffer= new cv::Mat(height, width, CV_8UC3);
 }
 
-void CVVideoFrameProcessor::computeUndistortion(
-	const cv::Mat& srcBuffer,
-	const cv::Mat& distortionMapX,
-	const cv::Mat& distortionMapY)
+void CVVideoFrameProcessor::computeUndistortion(const cv::Mat& srcBuffer, const cv::Mat& distortionMapX,
+												const cv::Mat& distortionMapY)
 {
 	if (m_bgrUndistortBuffer == nullptr)
 		return;
@@ -57,10 +53,8 @@ void CVVideoFrameProcessor::computeUndistortion(
 	{
 		EASY_BLOCK("Color Undistort");
 
-		cv::remap(
-			srcBuffer, *m_bgrUndistortBuffer,
-			distortionMapX, distortionMapY,
-			cv::INTER_LINEAR, cv::BORDER_CONSTANT);
+		cv::remap(srcBuffer, *m_bgrUndistortBuffer, distortionMapX, distortionMapY, cv::INTER_LINEAR,
+				  cv::BORDER_CONSTANT);
 	}
 
 	// Also, optionally do grayscale conversion (and maybe undistortion)
@@ -75,10 +69,8 @@ void CVVideoFrameProcessor::computeUndistortion(
 
 			{
 				EASY_BLOCK("Grayscale Undistort");
-				cv::remap(
-					*m_gsSourceBuffer, *m_gsUndistortBuffer,
-					distortionMapX, distortionMapY,
-					cv::INTER_LINEAR, cv::BORDER_CONSTANT);
+				cv::remap(*m_gsSourceBuffer, *m_gsUndistortBuffer, distortionMapX, distortionMapY, cv::INTER_LINEAR,
+						  cv::BORDER_CONSTANT);
 			}
 
 			{

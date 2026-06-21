@@ -52,13 +52,10 @@ void ColorTextureSourceNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	const std::string clientTextureTypeString=
-		pt.get_or<std::string>(
-			"texture_source_color_type",
-			k_textureSourceColorTypeStrings[(int)eTextureSourceColorType::colorRGB]);
+	const std::string clientTextureTypeString= pt.get_or<std::string>(
+		"texture_source_color_type", k_textureSourceColorTypeStrings[(int)eTextureSourceColorType::colorRGB]);
 	textureSourceColorType=
-		StringUtils::FindEnumValue<eTextureSourceColorType>(
-			clientTextureTypeString, k_textureSourceColorTypeStrings);
+		StringUtils::FindEnumValue<eTextureSourceColorType>(clientTextureTypeString, k_textureSourceColorTypeStrings);
 	bVerticalFlip= pt.get_or<bool>("vertical_flip", false);
 
 	textureSourceId= pt.get_or<int>("texture_source_id", INVALID_MIKAN_ID);
@@ -79,9 +76,7 @@ bool ColorTextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		if (projectManager)
 		{
 			m_textureSourceComponent=
-				TextureSourceQueries::getTextureSourceById(
-					projectManager,
-					textureSourceNodeConfig->textureSourceId);
+				TextureSourceQueries::getTextureSourceById(projectManager, textureSourceNodeConfig->textureSourceId);
 		}
 
 		return true;
@@ -98,9 +93,7 @@ void ColorTextureSourceNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	textureSourceNodeConfig->textureSourceColorType= m_clientTextureType;
 	textureSourceNodeConfig->bVerticalFlip= m_bVerticalFlip;
 	textureSourceNodeConfig->textureSourceId=
-		textureSourceComponent
-			? textureSourceComponent->getTextureSourceId()
-			: INVALID_MIKAN_ID;
+		textureSourceComponent ? textureSourceComponent->getTextureSourceId() : INVALID_MIKAN_ID;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -112,9 +105,7 @@ TextureSourceComponentPtr ColorTextureSourceNode::getTextureSourceComponent() co
 
 IMkTexturePtr ColorTextureSourceNode::getTextureResource() const
 {
-	return m_bVerticalFlip && m_colorFrameBuffer
-			   ? m_colorFrameBuffer->getColorTexture()
-			   : getColorSourceTexture();
+	return m_bVerticalFlip && m_colorFrameBuffer ? m_colorFrameBuffer->getColorTexture() : getColorSourceTexture();
 }
 
 bool ColorTextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
@@ -145,11 +136,8 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 	if (boundCompositorComponent && boundCameraComponent && textureSourceComponent)
 	{
 		const int64_t pendingFrameIndex= boundCompositorComponent->getPendingCompositedFrameIndex();
-		IMkTexturePtr clientTexture=
-			textureSourceComponent->getClientColorSourceTexture(
-				boundCameraComponent->getCameraId(),
-				m_clientTextureType,
-				pendingFrameIndex);
+		IMkTexturePtr clientTexture= textureSourceComponent->getClientColorSourceTexture(
+			boundCameraComponent->getCameraId(), m_clientTextureType, pendingFrameIndex);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
@@ -178,8 +166,8 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 {
 	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
 
-	assert(m_clientTextureType == eTextureSourceColorType::colorRGBA ||
-		   m_clientTextureType == eTextureSourceColorType::colorRGB);
+	assert(m_clientTextureType == eTextureSourceColorType::colorRGBA
+		   || m_clientTextureType == eTextureSourceColorType::colorRGB);
 
 	// Create the color frame buffer if it doesn't exist yet and we want to flip the Y axis
 	if (m_colorFrameBuffer == nullptr && m_bVerticalFlip)
@@ -218,12 +206,10 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 			m_colorFrameBuffer->createResources();
 
 			// Re-create the render material instance
-			const std::string colorMaterialName=
-				m_clientTextureType == eTextureSourceColorType::colorRGBA
-					? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
-					: INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
-			MkMaterialConstPtr colorMaterial=
-				graphicsContext->getShaderCache()->getMaterialByName(colorMaterialName);
+			const std::string colorMaterialName= m_clientTextureType == eTextureSourceColorType::colorRGBA
+													 ? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
+													 : INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
+			MkMaterialConstPtr colorMaterial= graphicsContext->getShaderCache()->getMaterialByName(colorMaterialName);
 			if (colorMaterial != nullptr)
 			{
 				m_colorMaterialInstance= createMkMaterialInstance(colorMaterial);
@@ -239,10 +225,8 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 	// Render the color texture to the frame buffer
 	if (m_bVerticalFlip && m_colorMaterialInstance)
 	{
-		MkScopedObjectBinding colorFramebufferBinding(
-			graphicsContext->getMkStateStack().getCurrentState(),
-			"Color Texture Framebuffer Scope",
-			m_colorFrameBuffer);
+		MkScopedObjectBinding colorFramebufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+													  "Color Texture Framebuffer Scope", m_colorFrameBuffer);
 		if (colorFramebufferBinding)
 		{
 			IMkState* glState= colorFramebufferBinding.getMkState();
@@ -280,7 +264,8 @@ void ColorTextureSourceNode::evaluateFlippedColorTexture(IMkState* glState, IMkT
 	}
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> ColorTextureSourceNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> ColorTextureSourceNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
@@ -329,12 +314,8 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 	{
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-				"textureSourceColorType",
-				"Type",
-				"colorRGB\0colorRGBA\0",
-				iTextureType,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type", "colorRGB\0colorRGBA\0",
+													 iTextureType, editorState.styleManager))
 		{
 			m_clientTextureType= (eTextureSourceColorType)iTextureType;
 		}
@@ -347,22 +328,15 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			TextureSourceComponentPtr TextureSourceComponent= getTextureSourceComponent();
 
 			int selectedIndex= dataSource.getEntryIndex(TextureSourceComponent);
-			if (NodeEditorUI::DrawComboBoxProperty(
-					"textureSourceIndex",
-					"Source",
-					&dataSource,
-					selectedIndex,
-					editorState.styleManager))
+			if (NodeEditorUI::DrawComboBoxProperty("textureSourceIndex", "Source", &dataSource, selectedIndex,
+												   editorState.styleManager))
 			{
 				m_textureSourceComponent= dataSource.getEntryAtIndex(selectedIndex);
 			}
 		}
 
 		// Vertical Flip
-		NodeEditorUI::DrawCheckBoxProperty(
-			"drawColorTextureVerticalFlip",
-			"Vertical Flip",
-			m_bVerticalFlip);
+		NodeEditorUI::DrawCheckBoxProperty("drawColorTextureVerticalFlip", "Vertical Flip", m_bVerticalFlip);
 	}
 }
 

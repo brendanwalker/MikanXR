@@ -294,13 +294,10 @@ static DXGI_FORMAT computeCompatibleDepthSRVFormat(DXGI_FORMAT depthFormat)
 	return resultFormat;
 }
 
-bool createColorRenderTargetResources(
-	ID3D11Device* d3dDevice,
-	int textureWidth,
-	int textureHeight,
-	ID3D11Texture2D** ppColorTargetTexture,
-	ID3D11RenderTargetView** ppColorTargetView,
-	ID3D11ShaderResourceView** ppColorTargetSRV)
+bool createColorRenderTargetResources(ID3D11Device* d3dDevice, int textureWidth, int textureHeight,
+									  ID3D11Texture2D** ppColorTargetTexture,
+									  ID3D11RenderTargetView** ppColorTargetView,
+									  ID3D11ShaderResourceView** ppColorTargetSRV)
 {
 	HRESULT result;
 
@@ -325,8 +322,7 @@ bool createColorRenderTargetResources(
 		MIKAN_LOG_ERROR("createColorRenderTargetResources")
 			<< "Failed to create Color DX Texture2D "
 			<< "(format: DXGI_FORMAT_B8G8R8A8_UNORM"
-			<< ", size: " << textureWidth << "x" << textureHeight
-			<< ")";
+			<< ", size: " << textureWidth << "x" << textureHeight << ")";
 		return false;
 	}
 
@@ -364,13 +360,10 @@ bool createColorRenderTargetResources(
 	return true;
 }
 
-bool createDepthRenderTargetResources(
-	ID3D11Device* d3dDevice,
-	int textureWidth,
-	int textureHeight,
-	ID3D11Texture2D** ppFloatDepthTargetTexture,
-	ID3D11DepthStencilView** ppFloatDepthTargetView,
-	ID3D11ShaderResourceView** ppFloatDepthTargetSRV)
+bool createDepthRenderTargetResources(ID3D11Device* d3dDevice, int textureWidth, int textureHeight,
+									  ID3D11Texture2D** ppFloatDepthTargetTexture,
+									  ID3D11DepthStencilView** ppFloatDepthTargetView,
+									  ID3D11ShaderResourceView** ppFloatDepthTargetSRV)
 {
 	HRESULT result;
 
@@ -398,8 +391,7 @@ bool createDepthRenderTargetResources(
 	{
 		MIKAN_LOG_ERROR("createDepthRenderTargetResources")
 			<< "Failed to create Float Depth DX Texture2D "
-			<< "(format: " << DXGIFormatToString(resourceFormat)
-			<< ", size: " << textureWidth << "x" << textureHeight
+			<< "(format: " << DXGIFormatToString(resourceFormat) << ", size: " << textureWidth << "x" << textureHeight
 			<< ")";
 		return false;
 	}
@@ -411,13 +403,13 @@ bool createDepthRenderTargetResources(
 	depthStencilViewDesc.ViewDimension= D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice= 0;
 
-	result= d3dDevice->CreateDepthStencilView(*ppFloatDepthTargetTexture, &depthStencilViewDesc, ppFloatDepthTargetView);
+	result=
+		d3dDevice->CreateDepthStencilView(*ppFloatDepthTargetTexture, &depthStencilViewDesc, ppFloatDepthTargetView);
 	if (FAILED(result))
 	{
 		MIKAN_LOG_ERROR("createDepthRenderTargetResources")
 			<< "Failed to create depth stencil view"
-			<< "(format: " << DXGIFormatToString(depthViewFormat)
-			<< ", size: " << textureWidth << "x" << textureHeight
+			<< "(format: " << DXGIFormatToString(depthViewFormat) << ", size: " << textureWidth << "x" << textureHeight
 			<< ")";
 		return false;
 	}
@@ -431,13 +423,13 @@ bool createDepthRenderTargetResources(
 	shaderResourceViewDesc.Texture2D.MipLevels= 1;
 
 	// Create the shader resource view.
-	result= d3dDevice->CreateShaderResourceView(*ppFloatDepthTargetTexture, &shaderResourceViewDesc, ppFloatDepthTargetSRV);
+	result=
+		d3dDevice->CreateShaderResourceView(*ppFloatDepthTargetTexture, &shaderResourceViewDesc, ppFloatDepthTargetSRV);
 	if (FAILED(result))
 	{
 		MIKAN_LOG_ERROR("createDepthRenderTargetResources")
 			<< "Failed to create depth shader resource view"
-			<< "(format: " << DXGIFormatToString(srvFormat)
-			<< ", size: " << textureWidth << "x" << textureHeight
+			<< "(format: " << DXGIFormatToString(srvFormat) << ", size: " << textureWidth << "x" << textureHeight
 			<< ")";
 		return false;
 	}
@@ -462,8 +454,8 @@ HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCS
 #endif
 
 	ID3DBlob* pErrorBlob= nullptr;
-	hr= D3DCompileFromFile(szFileName, nullptr, nullptr, szEntryPoint, szShaderModel,
-						   dwShaderFlags, 0, ppBlobOut, &pErrorBlob);
+	hr= D3DCompileFromFile(szFileName, nullptr, nullptr, szEntryPoint, szShaderModel, dwShaderFlags, 0, ppBlobOut,
+						   &pErrorBlob);
 	if (FAILED(hr))
 	{
 		if (pErrorBlob)
@@ -500,18 +492,17 @@ bool compileShaderFromString(
 	dwShaderFlags|= D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
-	hr= D3DCompile(
-		shaderCode.c_str(),  // HLSL shader code
-		shaderCode.length(), // Length of the shader code
-		nullptr,             // Optional source name
-		nullptr,             // Optional macro definitions
-		nullptr,             // Optional include handler
-		szEntryPoint,        // Entry point function name
-		szShaderModel,       // Shader model
-		dwShaderFlags,       // Shader compile options
-		0,                   // More compile options
-		ppBlobOut,           // Pointer to store compiled shader code
-		&pErrorBlob          // Pointer to store error messages
+	hr= D3DCompile(shaderCode.c_str(),  // HLSL shader code
+				   shaderCode.length(), // Length of the shader code
+				   nullptr,             // Optional source name
+				   nullptr,             // Optional macro definitions
+				   nullptr,             // Optional include handler
+				   szEntryPoint,        // Entry point function name
+				   szShaderModel,       // Shader model
+				   dwShaderFlags,       // Shader compile options
+				   0,                   // More compile options
+				   ppBlobOut,           // Pointer to store compiled shader code
+				   &pErrorBlob          // Pointer to store error messages
 	);
 
 	if (FAILED(hr))
@@ -520,9 +511,7 @@ bool compileShaderFromString(
 		{
 			const char* szErrorString= (char*)pErrorBlob->GetBufferPointer();
 
-			MIKAN_LOG_ERROR("compileShaderFromString")
-				<< "D3DCompile failed with error: "
-				<< szErrorString;
+			MIKAN_LOG_ERROR("compileShaderFromString") << "D3DCompile failed with error: " << szErrorString;
 
 			pErrorBlob->Release();
 		}
@@ -538,12 +527,9 @@ bool compileShaderFromString(
 	return true;
 }
 
-bool compileAndCreateShaders(
-	ID3D11Device* d3dDevice,
-	const std::string& shaderCodeString,
-	ID3D11VertexShader** ppVertexShader,
-	ID3D11PixelShader** ppPixelShader,
-	ID3DBlob** ppVertexShaderByteCode)
+bool compileAndCreateShaders(ID3D11Device* d3dDevice, const std::string& shaderCodeString,
+							 ID3D11VertexShader** ppVertexShader, ID3D11PixelShader** ppPixelShader,
+							 ID3DBlob** ppVertexShaderByteCode)
 {
 	ID3DBlob* vertexShaderBlob= nullptr;
 	ID3DBlob* pixelShaderBlob= nullptr;
@@ -564,11 +550,8 @@ bool compileAndCreateShaders(
 	}
 
 	// Create vertex shader
-	HRESULT hr= d3dDevice->CreateVertexShader(
-		vertexShaderBlob->GetBufferPointer(),
-		vertexShaderBlob->GetBufferSize(),
-		nullptr,
-		ppVertexShader);
+	HRESULT hr= d3dDevice->CreateVertexShader(vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(),
+											  nullptr, ppVertexShader);
 	if (FAILED(hr))
 	{
 		MIKAN_LOG_ERROR("compileAndCreateShaders") << "Failed to create vertex shader";
@@ -578,11 +561,8 @@ bool compileAndCreateShaders(
 	}
 
 	// Create pixel shader
-	hr= d3dDevice->CreatePixelShader(
-		pixelShaderBlob->GetBufferPointer(),
-		pixelShaderBlob->GetBufferSize(),
-		nullptr,
-		ppPixelShader);
+	hr= d3dDevice->CreatePixelShader(pixelShaderBlob->GetBufferPointer(), pixelShaderBlob->GetBufferSize(), nullptr,
+									 ppPixelShader);
 	if (FAILED(hr))
 	{
 		MIKAN_LOG_ERROR("compileAndCreateShaders") << "Failed to create pixel shader";
@@ -609,12 +589,8 @@ bool compileAndCreateShaders(
 	return true;
 }
 
-bool createConstantBuffer(
-	ID3D11Device* d3dDevice,
-	size_t bufferSize,
-	D3D11_USAGE usage,
-	UINT cpuAccessFlags,
-	ID3D11Buffer** ppConstantBuffer)
+bool createConstantBuffer(ID3D11Device* d3dDevice, size_t bufferSize, D3D11_USAGE usage, UINT cpuAccessFlags,
+						  ID3D11Buffer** ppConstantBuffer)
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -633,11 +609,8 @@ bool createConstantBuffer(
 	return true;
 }
 
-bool createSamplerState(
-	ID3D11Device* d3dDevice,
-	D3D11_FILTER filter,
-	D3D11_TEXTURE_ADDRESS_MODE addressMode,
-	ID3D11SamplerState** ppSamplerState)
+bool createSamplerState(ID3D11Device* d3dDevice, D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode,
+						ID3D11SamplerState** ppSamplerState)
 {
 	D3D11_SAMPLER_DESC samplerDesc;
 	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
@@ -659,18 +632,12 @@ bool createSamplerState(
 	return true;
 }
 
-bool createInputLayout(
-	ID3D11Device* d3dDevice,
-	const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
-	ID3DBlob* vertexShaderByteCode,
-	ID3D11InputLayout** ppInputLayout)
+bool createInputLayout(ID3D11Device* d3dDevice, const std::vector<D3D11_INPUT_ELEMENT_DESC>& inputElements,
+					   ID3DBlob* vertexShaderByteCode, ID3D11InputLayout** ppInputLayout)
 {
-	HRESULT hr= d3dDevice->CreateInputLayout(
-		inputElements.data(),
-		(UINT)inputElements.size(),
-		vertexShaderByteCode->GetBufferPointer(),
-		vertexShaderByteCode->GetBufferSize(),
-		ppInputLayout);
+	HRESULT hr= d3dDevice->CreateInputLayout(inputElements.data(), (UINT)inputElements.size(),
+											 vertexShaderByteCode->GetBufferPointer(),
+											 vertexShaderByteCode->GetBufferSize(), ppInputLayout);
 	if (FAILED(hr))
 	{
 		MIKAN_LOG_ERROR("createInputLayout") << "Failed to create input layout";

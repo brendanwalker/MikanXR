@@ -33,21 +33,19 @@ USBVideoSourceDefinition::USBVideoSourceDefinition()
 {
 }
 
-USBVideoSourceDefinition::USBVideoSourceDefinition(
-	MikanVideoSourceID videoSourceId)
+USBVideoSourceDefinition::USBVideoSourceDefinition(MikanVideoSourceID videoSourceId)
 	: VideoSourceDefinition(videoSourceId)
 	, m_devicePath("")
 	, m_videoMode("")
 {
 }
 
-bool USBVideoSourceDefinition::wantsSaveForPropertyChange(
-	const ConfigPropertyChangeSet& changedPropertySet) const
+bool USBVideoSourceDefinition::wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const
 {
 	// Current device path is read-only, don't trigger save on change
 	// TODO: All read-only properties should be ignored for save triggers
-	if (changedPropertySet.hasPropertyName(USBVideoSourceComponent::k_currentDevicePathPropertyId) &&
-		changedPropertySet.getSet().size() == 1)
+	if (changedPropertySet.hasPropertyName(USBVideoSourceComponent::k_currentDevicePathPropertyId)
+		&& changedPropertySet.getSet().size() == 1)
 	{
 		return false;
 	}
@@ -74,9 +72,8 @@ void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	readStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_videoSettingsPropertyId, m_videoSettingsMap);
 }
 
-bool USBVideoSourceDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool USBVideoSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!VideoSourceDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -121,9 +118,8 @@ void USBVideoSourceDefinition::setVideoMode(const std::string& videoMode)
 	}
 }
 
-bool USBVideoSourceDefinition::getVideoSettingsForMode(
-	const std::string& modeName,
-	USBVideoSettingsArray& outSettings) const
+bool USBVideoSourceDefinition::getVideoSettingsForMode(const std::string& modeName,
+													   USBVideoSettingsArray& outSettings) const
 {
 	auto it= m_videoSettingsMap.find(modeName);
 	if (it != m_videoSettingsMap.end())
@@ -135,9 +131,8 @@ bool USBVideoSourceDefinition::getVideoSettingsForMode(
 	return false;
 }
 
-void USBVideoSourceDefinition::setCameraSettingsForMode(
-	const std::string& modeName,
-	const USBVideoSettingsArray& settings)
+void USBVideoSourceDefinition::setCameraSettingsForMode(const std::string& modeName,
+														const USBVideoSettingsArray& settings)
 {
 	m_videoSettingsMap[modeName]= settings;
 }
@@ -252,10 +247,7 @@ std::string USBVideoSourceComponent::getDevicePath() const
 	return "";
 }
 
-std::string USBVideoSourceComponent::getDeviceAPI() const
-{
-	return "USBVideoSource";
-}
+std::string USBVideoSourceComponent::getDeviceAPI() const { return "USBVideoSource"; }
 
 bool USBVideoSourceComponent::openVideoSource()
 {
@@ -276,8 +268,8 @@ bool USBVideoSourceComponent::openVideoSource()
 	{
 		// If the manager is still initializing, mark this component as pending so the
 		// system will retry openVideoSource() once the manager is ready
-		if (usbVideoSourceSystem->getUsbVideoManagerState() ==
-			USBVideoSourceSystem::eUsbVideoManagerState::initializing)
+		if (usbVideoSourceSystem->getUsbVideoManagerState()
+			== USBVideoSourceSystem::eUsbVideoManagerState::initializing)
 		{
 			m_bPendingOpen= true;
 		}
@@ -301,8 +293,7 @@ bool USBVideoSourceComponent::openVideoSource()
 	m_usbVideoDevice->addListener(this);
 
 	// Signal to the UI to rebuild the video mode list
-	getDefinition()->notifyPropertyChanged(
-		ConfigPropertyChangeSet().addPropertyName(k_currentDevicePathPropertyId));
+	getDefinition()->notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_currentDevicePathPropertyId));
 
 	// Update settings (brightness, exposure, etc) for the current video mode
 	handleVideoModeUpdated();
@@ -318,8 +309,7 @@ bool USBVideoSourceComponent::openVideoSource()
 }
 
 void USBVideoSourceComponent::USBVideoSourceComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+	CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
 {
 	// If the device path changed, reopen the video source
 	if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_desiredDevicePathPropertyId))
@@ -368,11 +358,8 @@ bool USBVideoSourceComponent::updateVideoMode()
 		// If we don't have a valid desired video mode yet, try to set a default one
 		if (!bHasValidMode)
 		{
-			const int videoFormatIndex=
-				findBestVideoModeIndex(
-					DEFAULT_DESIRED_VIDEO_WIDTH,
-					DEFAULT_DESIRED_VIDEO_HEIGHT,
-					DEFAULT_DESIRED_FRAME_RATE);
+			const int videoFormatIndex= findBestVideoModeIndex(
+				DEFAULT_DESIRED_VIDEO_WIDTH, DEFAULT_DESIRED_VIDEO_HEIGHT, DEFAULT_DESIRED_FRAME_RATE);
 			if (videoFormatIndex != -1 && m_usbVideoDevice->setVideoModeByIndex(videoFormatIndex))
 			{
 				currentVideoMode= m_usbVideoDevice->getVideoModeName();
@@ -391,10 +378,7 @@ bool USBVideoSourceComponent::updateVideoMode()
 	return true;
 }
 
-int USBVideoSourceComponent::findBestVideoModeIndex(
-	int w,
-	int h,
-	int frameRate) const
+int USBVideoSourceComponent::findBestVideoModeIndex(int w, int h, int frameRate) const
 {
 	assert(m_usbVideoDevice != nullptr);
 	int result_id= -1;
@@ -406,15 +390,13 @@ int USBVideoSourceComponent::findBestVideoModeIndex(
 		{
 			for (size_t testDeviceIndex= 0; testDeviceIndex < numFormats; ++testDeviceIndex)
 			{
-				if (UsbVideoModeProperties modeInfo;
-					m_usbVideoDevice->getVideoModeProperties(testDeviceIndex, modeInfo) &&
-					modeInfo.frame_rate_demonenator > 0)
+				if (UsbVideoModeProperties modeInfo; m_usbVideoDevice->getVideoModeProperties(testDeviceIndex, modeInfo)
+													 && modeInfo.frame_rate_demonenator > 0)
 				{
 					int rounded_frame_rate= modeInfo.frame_rate_numerator / modeInfo.frame_rate_demonenator;
 
-					if ((w == -1 || modeInfo.width == w) &&
-						(h == -1 || modeInfo.height == h) &&
-						(frameRate == -1 || rounded_frame_rate == frameRate))
+					if ((w == -1 || modeInfo.width == w) && (h == -1 || modeInfo.height == h)
+						&& (frameRate == -1 || rounded_frame_rate == frameRate))
 					{
 						result_id= (int)testDeviceIndex;
 						break;
@@ -517,8 +499,7 @@ void USBVideoSourceComponent::handleVideoModeSettingUpdated()
 
 	std::string videoModeName= szVideoModeName;
 	USBVideoSourceDefinitionPtr definition= getUSBVideoSourceDefinition();
-	if (USBVideoSettingsArray settings;
-		definition->getVideoSettingsForMode(videoModeName, settings))
+	if (USBVideoSettingsArray settings; definition->getVideoSettingsForMode(videoModeName, settings))
 	{
 		for (int settingIndex= 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
 		{
@@ -529,8 +510,7 @@ void USBVideoSourceComponent::handleVideoModeSettingUpdated()
 
 void USBVideoSourceComponent::handleWantsActiveStream()
 {
-	if (m_usbVideoDevice != nullptr &&
-		m_usbVideoDevice->getIsOpen())
+	if (m_usbVideoDevice != nullptr && m_usbVideoDevice->getIsOpen())
 	{
 		eVideoStreamingStatus status= m_usbVideoDevice->getVideoStreamingStatus();
 		switch (status)
@@ -577,14 +557,10 @@ void USBVideoSourceComponent::saveVideoSettingDefaultsFromCurrentMode()
 		if (constraint.max_value > constraint.min_value)
 		{
 			const float defaultFloatvalue=
-				remap_int_to_float(
-					constraint.min_value, constraint.max_value,
-					0.f, 1.f,
-					constraint.default_value);
+				remap_int_to_float(constraint.min_value, constraint.max_value, 0.f, 1.f, constraint.default_value);
 
 			setVideoSettingAsFloatFraction(
-				settingType,
-				defaultFloatvalue,
+				settingType, defaultFloatvalue,
 				true); // force apply the default value even if it matches current cached value
 		}
 	}
@@ -634,8 +610,7 @@ void USBVideoSourceComponent::restoreVideoSettingsToCurrentMode()
 					const float desiredFloatValue= videoSettings[settingIndex];
 
 					setVideoSettingAsFloatFraction(
-						settingType,
-						desiredFloatValue,
+						settingType, desiredFloatValue,
 						true); // force apply the default value even if it matches current cached value
 				}
 			}
@@ -655,9 +630,8 @@ bool USBVideoSourceComponent::hasVideoSetting(eVideoSettingType settingType) con
 	return false;
 }
 
-bool USBVideoSourceComponent::getVideoSettingAsFloatFraction(
-	eVideoSettingType settingType,
-	float& outFloatFraction) const
+bool USBVideoSourceComponent::getVideoSettingAsFloatFraction(eVideoSettingType settingType,
+															 float& outFloatFraction) const
 {
 	const VideoSettingConstraint& constraint= m_currentVideoConstraints[(int)settingType];
 
@@ -667,11 +641,7 @@ bool USBVideoSourceComponent::getVideoSettingAsFloatFraction(
 	{
 		const int currentIntValue= m_usbVideoDevice->getVideoSetting(settingType);
 
-		outFloatFraction=
-			remap_int_to_float(
-				constraint.min_value, constraint.max_value,
-				0.f, 1.f,
-				currentIntValue);
+		outFloatFraction= remap_int_to_float(constraint.min_value, constraint.max_value, 0.f, 1.f, currentIntValue);
 
 		return true;
 	}
@@ -679,10 +649,8 @@ bool USBVideoSourceComponent::getVideoSettingAsFloatFraction(
 	return false;
 }
 
-bool USBVideoSourceComponent::setVideoSettingAsFloatFraction(
-	eVideoSettingType settingType,
-	float desiredFloatValue,
-	bool bForce)
+bool USBVideoSourceComponent::setVideoSettingAsFloatFraction(eVideoSettingType settingType, float desiredFloatValue,
+															 bool bForce)
 {
 	const VideoSettingConstraint& constraint= m_currentVideoConstraints[(int)settingType];
 	const int valueIntRange= constraint.max_value - constraint.min_value;
@@ -697,10 +665,7 @@ bool USBVideoSourceComponent::setVideoSettingAsFloatFraction(
 		if (bForce || fabsf(currentFloatValue - desiredFloatValue) > minDelta)
 		{
 			const int desiredIntValue=
-				remap_float_to_int(
-					0.f, 1.f,
-					constraint.min_value, constraint.max_value,
-					desiredFloatValue);
+				remap_float_to_int(0.f, 1.f, constraint.min_value, constraint.max_value, desiredFloatValue);
 
 			// Set the camera setting on the USB video device
 			if (m_usbVideoDevice != nullptr)
@@ -824,9 +789,7 @@ bool USBVideoSourceComponent::getFrameRate(float& outFrameRate) const
 	UsbVideoModeProperties modeProperties;
 	if (getVideoModeProperties(getVideoModeIndex(), modeProperties))
 	{
-		outFrameRate=
-			(float)modeProperties.frame_rate_numerator /
-			(float)modeProperties.frame_rate_demonenator;
+		outFrameRate= (float)modeProperties.frame_rate_numerator / (float)modeProperties.frame_rate_demonenator;
 		return true;
 	}
 
@@ -879,9 +842,7 @@ size_t USBVideoSourceComponent::getAvailableVideoModesCount() const
 	return 0;
 }
 
-bool USBVideoSourceComponent::getVideoModeProperties(
-	size_t index,
-	UsbVideoModeProperties& outProperties) const
+bool USBVideoSourceComponent::getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const
 {
 	if (m_usbVideoDevice != nullptr)
 	{
@@ -916,8 +877,7 @@ bool USBVideoSourceComponent::getVideoModeResolutionName(std::string& outResolut
 bool USBVideoSourceComponent::getVideoModeFrameRateName(std::string& outFrameRate) const
 {
 	UsbVideoModeProperties modeProperties;
-	if (getVideoModeProperties(getVideoModeIndex(), modeProperties) &&
-		modeProperties.frame_rate_demonenator > 0)
+	if (getVideoModeProperties(getVideoModeIndex(), modeProperties) && modeProperties.frame_rate_demonenator > 0)
 	{
 		int fps= modeProperties.frame_rate_numerator / modeProperties.frame_rate_demonenator;
 		outFrameRate= std::to_string(fps);
@@ -930,8 +890,7 @@ bool USBVideoSourceComponent::getVideoModeFrameRateName(std::string& outFrameRat
 bool USBVideoSourceComponent::getVideoModeFormatName(std::string& outFormat) const
 {
 	UsbVideoModeProperties modeProperties;
-	if (getVideoModeProperties(getVideoModeIndex(), modeProperties) &&
-		modeProperties.format != nullptr)
+	if (getVideoModeProperties(getVideoModeIndex(), modeProperties) && modeProperties.format != nullptr)
 	{
 		outFormat= modeProperties.format;
 		return true;
@@ -942,8 +901,7 @@ bool USBVideoSourceComponent::getVideoModeFormatName(std::string& outFormat) con
 
 bool USBVideoSourceComponent::setVideoModeByName(const std::string& videoModeName)
 {
-	if (m_usbVideoDevice != nullptr &&
-		m_usbVideoDevice->setVideoModeByName(videoModeName.c_str()))
+	if (m_usbVideoDevice != nullptr && m_usbVideoDevice->setVideoModeByName(videoModeName.c_str()))
 	{
 		getUSBVideoSourceDefinition()->setVideoMode(videoModeName);
 		return true;
@@ -954,8 +912,7 @@ bool USBVideoSourceComponent::setVideoModeByName(const std::string& videoModeNam
 
 bool USBVideoSourceComponent::setVideoModeByIndex(size_t index)
 {
-	if (m_usbVideoDevice != nullptr &&
-		m_usbVideoDevice->setVideoModeByIndex(index))
+	if (m_usbVideoDevice != nullptr && m_usbVideoDevice->setVideoModeByIndex(index))
 	{
 		getUSBVideoSourceDefinition()->setVideoMode(m_usbVideoDevice->getVideoModeName());
 		return true;
@@ -1026,9 +983,8 @@ static std::string formatFrameRate(const UsbVideoModeProperties& modeProperties)
 	if (modeProperties.frame_rate_demonenator == 1)
 		return std::to_string(modeProperties.frame_rate_numerator);
 
-	const float fps=
-		static_cast<float>(modeProperties.frame_rate_numerator) /
-		static_cast<float>(modeProperties.frame_rate_demonenator);
+	const float fps= static_cast<float>(modeProperties.frame_rate_numerator)
+					 / static_cast<float>(modeProperties.frame_rate_demonenator);
 
 	std::ostringstream oss;
 	oss << std::fixed << std::setprecision(2) << fps;
@@ -1090,10 +1046,7 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 		{
 		}
 
-		bool operator<(const FrameRateInfo& other) const
-		{
-			return fps > other.fps;
-		}
+		bool operator<(const FrameRateInfo& other) const { return fps > other.fps; }
 	};
 
 	std::set<ResolutionInfo> uniqueResolutions;
@@ -1110,8 +1063,8 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 			uniqueResolutions.insert(ResolutionInfo(modeProperties));
 
 			// If the mode's resolution matches the current mode, add the possible frame rates
-			if (currentModeProperties.width == modeProperties.width &&
-				currentModeProperties.height == modeProperties.height)
+			if (currentModeProperties.width == modeProperties.width
+				&& currentModeProperties.height == modeProperties.height)
 			{
 				// Collect unique frame rates for the current resolution
 				if (modeProperties.frame_rate_demonenator > 0)
@@ -1119,8 +1072,8 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 					uniqueFrameRates.insert(FrameRateInfo(modeProperties));
 
 					// Collect unique formats for the current resolution and frame rate
-					if (currentModeProperties.frame_rate_numerator == modeProperties.frame_rate_numerator &&
-						currentModeProperties.frame_rate_demonenator == modeProperties.frame_rate_demonenator)
+					if (currentModeProperties.frame_rate_numerator == modeProperties.frame_rate_numerator
+						&& currentModeProperties.frame_rate_demonenator == modeProperties.frame_rate_demonenator)
 					{
 						uniqueFormats.insert(modeProperties.format);
 					}
@@ -1145,10 +1098,8 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 	m_cachedVideoFormatNames.assign(uniqueFormats.begin(), uniqueFormats.end());
 }
 
-bool USBVideoSourceComponent::setVideoModeToBestMatch(
-	const std::string& resolution,
-	const std::string& frameRate,
-	const std::string& format)
+bool USBVideoSourceComponent::setVideoModeToBestMatch(const std::string& resolution, const std::string& frameRate,
+													  const std::string& format)
 {
 	if (m_usbVideoDevice == nullptr)
 		return false;
@@ -1171,11 +1122,9 @@ bool USBVideoSourceComponent::setVideoModeToBestMatch(
 	for (size_t modeIndex= 0; modeIndex < modeCount; ++modeIndex)
 	{
 		UsbVideoModeProperties modeProperties;
-		if (m_usbVideoDevice->getVideoModeProperties(modeIndex, modeProperties) &&
-			modeProperties.width == desiredWidth &&
-			modeProperties.height == desiredHeight &&
-			modeProperties.format == format &&
-			formatFrameRate(modeProperties) == frameRate)
+		if (m_usbVideoDevice->getVideoModeProperties(modeIndex, modeProperties) && modeProperties.width == desiredWidth
+			&& modeProperties.height == desiredHeight && modeProperties.format == format
+			&& formatFrameRate(modeProperties) == frameRate)
 		{
 			return setVideoModeByIndex(modeIndex);
 		}
@@ -1245,21 +1194,14 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 			const UsbVideoFrameSection& uvSection= bufferInfo.sections[1];
 
 			// Create separate Mat views for Y and UV planes using section offsets
-			cv::Mat yPlane(
-				ySection.pixel_height,
-				ySection.pixel_width,
-				CV_8UC1,
-				(void*)(bufferInfo.data + ySection.start_offset),
-				ySection.stride);
+			cv::Mat yPlane(ySection.pixel_height, ySection.pixel_width, CV_8UC1,
+						   (void*)(bufferInfo.data + ySection.start_offset), ySection.stride);
 
 			// For NV12, UV plane is interleaved U and V bytes
 			// When using CV_8UC2, width is half of Y plane width (each pixel = 2 bytes)
-			cv::Mat uvPlane(
-				uvSection.pixel_height,
-				uvSection.pixel_width / 2, // Half width since each pixel is 2 bytes (U+V)
-				CV_8UC2,
-				(void*)(bufferInfo.data + uvSection.start_offset),
-				uvSection.stride);
+			cv::Mat uvPlane(uvSection.pixel_height,
+							uvSection.pixel_width / 2, // Half width since each pixel is 2 bytes (U+V)
+							CV_8UC2, (void*)(bufferInfo.data + uvSection.start_offset), uvSection.stride);
 
 			// Use cvtColorTwoPlane for proper NV12 conversion with separate planes
 			cv::cvtColorTwoPlane(yPlane, uvPlane, bgrMat, cv::COLOR_YUV2BGR_NV12);
@@ -1275,24 +1217,18 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 	{
 		// YUY2 (YUYV) format: 4:2:2 packed format (2 bytes per pixel)
 		const UsbVideoFrameSection& section= bufferInfo.sections[0];
-		cv::Mat yuy2Mat(
-			section.pixel_height,
-			section.pixel_width,
-			CV_8UC2,
-			(void*)(bufferInfo.data + section.start_offset),
-			section.stride); // stride is already in bytes per row
+		cv::Mat yuy2Mat(section.pixel_height, section.pixel_width, CV_8UC2,
+						(void*)(bufferInfo.data + section.start_offset),
+						section.stride); // stride is already in bytes per row
 		cv::cvtColor(yuy2Mat, bgrMat, cv::COLOR_YUV2BGR_YUY2);
 	}
 	else if (bufferInfo.data_format == eUSBVideoFrameBufferFormat::USBVideo_RGB24)
 	{
 		// RGB24 format: convert to BGR
 		const UsbVideoFrameSection& section= bufferInfo.sections[0];
-		cv::Mat rgb24Mat(
-			section.pixel_height,
-			section.pixel_width,
-			CV_8UC3,
-			(void*)(bufferInfo.data + section.start_offset),
-			section.stride); // stride is already in bytes per row
+		cv::Mat rgb24Mat(section.pixel_height, section.pixel_width, CV_8UC3,
+						 (void*)(bufferInfo.data + section.start_offset),
+						 section.stride); // stride is already in bytes per row
 		cv::cvtColor(rgb24Mat, bgrMat, cv::COLOR_RGB2BGR);
 	}
 	else
@@ -1324,20 +1260,12 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 		cv::Rect right_bounds= cv::Rect(section_width, 0, section_width, section_height);
 
 		// Cache the left raw video frame
-		writeStereoVideoFrameSection(
-			bufferInfo.data,
-			bufferDimensions,
-			is_frame_flipped,
-			VideoFrameSection::Left,
-			is_buffer_flipped ? right_bounds : left_bounds);
+		writeStereoVideoFrameSection(bufferInfo.data, bufferDimensions, is_frame_flipped, VideoFrameSection::Left,
+									 is_buffer_flipped ? right_bounds : left_bounds);
 
 		// Cache the right raw video frame
-		writeStereoVideoFrameSection(
-			bufferInfo.data,
-			bufferDimensions,
-			is_frame_flipped,
-			VideoFrameSection::Right,
-			is_buffer_flipped ? left_bounds : right_bounds);
+		writeStereoVideoFrameSection(bufferInfo.data, bufferDimensions, is_frame_flipped, VideoFrameSection::Right,
+									 is_buffer_flipped ? left_bounds : right_bounds);
 	}
 	else
 	{
@@ -1353,24 +1281,9 @@ const std::string USBVideoSourceComponent::k_currentVideoResolutionsPropertyId= 
 const std::string USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId= "video_frame_rates";
 const std::string USBVideoSourceComponent::k_currentVideoFormatsPropertyId= "video_formats";
 const std::string USBVideoSourceComponent::k_videoSettingPropertyPrefixes[(int)eVideoSettingType::COUNT]= {
-	"brightness",
-	"contrast",
-	"hue",
-	"saturation",
-	"sharpness",
-	"gamma",
-	"white_balance",
-	"red_balance",
-	"green_balance",
-	"blue_balance",
-	"gain",
-	"pan",
-	"tilt",
-	"roll",
-	"zoom",
-	"exposure",
-	"iris",
-	"focus",
+	"brightness",    "contrast",    "hue",           "saturation",   "sharpness", "gamma",
+	"white_balance", "red_balance", "green_balance", "blue_balance", "gain",      "pan",
+	"tilt",          "roll",        "zoom",          "exposure",     "iris",      "focus",
 };
 const std::string USBVideoSourceComponent::k_videoSettingValidSuffix= "_valid";
 const std::string USBVideoSourceComponent::k_videoSettingFractionSuffix= "_fraction";
@@ -1385,73 +1298,59 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 		const std::string validPropertyId= prefix + USBVideoSourceComponent::k_videoSettingValidSuffix;
 		const std::string fractionPropertyId= prefix + USBVideoSourceComponent::k_videoSettingFractionSuffix;
 
+		outDescriptors.push_back(std::make_shared<PropertyDescriptor>(validPropertyId, MikanVariantType::BOOL)
+									 ->setReadOnly()
+									 ->setUIHidden());
 		outDescriptors.push_back(
-			std::make_shared<PropertyDescriptor>(
-				validPropertyId, MikanVariantType::BOOL)
-				->setReadOnly()
-				->setUIHidden());
-		outDescriptors.push_back(
-			std::make_shared<PropertyDescriptor>(
-				fractionPropertyId, MikanVariantType::FLOAT)
-				->setUIHidden());
+			std::make_shared<PropertyDescriptor>(fractionPropertyId, MikanVariantType::FLOAT)->setUIHidden());
 	}
 
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 USBVideoSourceDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING)
+								 ->setUIHidden()
+								 ->setClientAPIHidden());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 USBVideoSourceComponent::k_currentFriendlyNamePropertyId, MikanVariantType::STRING)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 USBVideoSourceComponent::k_currentDevicePathPropertyId, MikanVariantType::STRING)
+								 ->setReadOnly()
+								 ->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING)
-			->setUIHidden()
-			->setClientAPIHidden());
+		std::make_shared<PropertyDescriptor>(USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING)
+			->setUIHidden());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(USBVideoSourceDefinition::k_videoResolutionPropertyId,
+																  MikanVariantType::STRING)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(USBVideoSourceDefinition::k_videoFrameRatePropertyId,
+																  MikanVariantType::STRING)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(USBVideoSourceDefinition::k_videoFormatPropertyId,
+																  MikanVariantType::STRING)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(USBVideoSourceDefinition::k_videoSettingsPropertyId,
+																  MikanVariantType::FLOAT_ARRAY)
+								 ->setReadOnly()
+								 ->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceComponent::k_currentFriendlyNamePropertyId, MikanVariantType::STRING)
-			->setReadOnly());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceComponent::k_currentDevicePathPropertyId, MikanVariantType::STRING)
+		std::make_shared<PropertyDescriptor>(USBVideoSourceComponent::k_currentVideoResolutionsPropertyId,
+											 MikanVariantType::STRING_ARRAY)
 			->setReadOnly()
 			->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING)
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoResolutionPropertyId, MikanVariantType::STRING)
-			->setReadOnly());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoFrameRatePropertyId, MikanVariantType::STRING)
-			->setReadOnly());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoFormatPropertyId, MikanVariantType::STRING)
-			->setReadOnly());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoSettingsPropertyId, MikanVariantType::FLOAT_ARRAY)
+		std::make_shared<PropertyDescriptor>(USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId,
+											 MikanVariantType::STRING_ARRAY)
 			->setReadOnly()
 			->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceComponent::k_currentVideoResolutionsPropertyId, MikanVariantType::STRING_ARRAY)
-			->setReadOnly()
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId, MikanVariantType::STRING_ARRAY)
-			->setReadOnly()
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceComponent::k_currentVideoFormatsPropertyId, MikanVariantType::STRING_ARRAY)
+		std::make_shared<PropertyDescriptor>(USBVideoSourceComponent::k_currentVideoFormatsPropertyId,
+											 MikanVariantType::STRING_ARRAY)
 			->setReadOnly()
 			->setUIHidden());
 }
 
-static bool parseVideoSourceSettingProperty(
-	const std::string& propertyName,
-	eVideoSettingType& outSettingType,
-	std::string& outSuffix)
+static bool parseVideoSourceSettingProperty(const std::string& propertyName, eVideoSettingType& outSettingType,
+											std::string& outSuffix)
 {
 	for (int settingIndex= 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
 	{
@@ -1469,9 +1368,7 @@ static bool parseVideoSourceSettingProperty(
 	return false;
 }
 
-bool USBVideoSourceComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool USBVideoSourceComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	{
 		eVideoSettingType settingType;
@@ -1487,8 +1384,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 			else if (settingSuffix == k_videoSettingFractionSuffix)
 			{
 
-				if (float floatFractionValue;
-					getVideoSettingAsFloatFraction(settingType, floatFractionValue))
+				if (float floatFractionValue; getVideoSettingAsFloatFraction(settingType, floatFractionValue))
 				{
 					outValue= floatFractionValue;
 				}
@@ -1533,8 +1429,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoResolutionPropertyId)
 	{
-		if (std::string resolution;
-			getVideoModeResolutionName(resolution))
+		if (std::string resolution; getVideoModeResolutionName(resolution))
 		{
 			outValue= resolution;
 		}
@@ -1546,8 +1441,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoFrameRatePropertyId)
 	{
-		if (std::string frameRate;
-			getVideoModeFrameRateName(frameRate))
+		if (std::string frameRate; getVideoModeFrameRateName(frameRate))
 		{
 			outValue= frameRate;
 		}
@@ -1559,8 +1453,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoFormatPropertyId)
 	{
-		if (std::string format;
-			getVideoModeFormatName(format))
+		if (std::string format; getVideoModeFormatName(format))
 		{
 			outValue= format;
 		}
@@ -1572,8 +1465,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 	}
 	else if (propertyName == USBVideoSourceComponent::k_currentVideoResolutionsPropertyId)
 	{
-		if (std::vector<std::string> resolutions;
-			getVideoResolutionNames(resolutions))
+		if (std::vector<std::string> resolutions; getVideoResolutionNames(resolutions))
 		{
 			outValue= resolutions;
 		}
@@ -1585,8 +1477,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 	}
 	else if (propertyName == USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId)
 	{
-		if (std::vector<std::string> frameRates;
-			getVideoFrameRateNames(frameRates))
+		if (std::vector<std::string> frameRates; getVideoFrameRateNames(frameRates))
 		{
 			outValue= frameRates;
 		}
@@ -1598,8 +1489,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 	}
 	else if (propertyName == USBVideoSourceComponent::k_currentVideoFormatsPropertyId)
 	{
-		if (std::vector<std::string> formats;
-			getVideoFormatNames(formats))
+		if (std::vector<std::string> formats; getVideoFormatNames(formats))
 		{
 			outValue= formats;
 		}
@@ -1613,9 +1503,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 	return VideoSourceComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool USBVideoSourceComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool USBVideoSourceComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	{
 		eVideoSettingType settingType;
@@ -1662,9 +1550,7 @@ void USBVideoSourceComponent::getFunctionDescriptors(std::vector<FunctionDescrip
 {
 	VideoSourceComponent::getFunctionDescriptors(outPropertyNames);
 
-	outPropertyNames.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_resetToDefaultsFunctionId, "Reset to Defaults"));
+	outPropertyNames.push_back(std::make_shared<FunctionDescriptor>(k_resetToDefaultsFunctionId, "Reset to Defaults"));
 }
 
 bool USBVideoSourceComponent::invokeFunction(const std::string& functionName)

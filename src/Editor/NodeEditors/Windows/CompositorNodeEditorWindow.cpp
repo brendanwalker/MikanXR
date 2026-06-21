@@ -51,8 +51,7 @@ bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr 
 	}
 
 	// Tell the new node graph about the compositor component it's bound to
-	auto compositorNodeGraph=
-		std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
+	auto compositorNodeGraph= std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
 	compositorNodeGraph->bindToCompositorComponent(m_compositorComponent);
 
 	// Tell the compositor component about the node graph it's bound to
@@ -110,9 +109,7 @@ void CompositorNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorSt
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef=
-				NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
-					factory->getAssetRefClassName()))
+		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleGraphVariablesDragDrop(editorState);
 			return;
@@ -127,8 +124,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 	for (auto factory : validPropertyFactories)
 	{
 		if (auto property=
-				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(
-					factory->getGraphPropertyClassName()))
+				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -139,9 +135,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef=
-				NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
-					factory->getAssetRefClassName()))
+		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleMainFrameDragDrop(editorState);
 			return;

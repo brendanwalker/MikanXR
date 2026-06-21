@@ -31,13 +31,11 @@ public:
 			std::string templateTypeName= templateClassInstanceType->getClassTemplate().getName();
 
 			// See if the field is a Serialization::List<T>
-			if (templateTypeName == "List" &&
-				templateClassInstanceType->getTemplateArgumentsCount() == 1)
+			if (templateTypeName == "List" && templateClassInstanceType->getTemplateArgumentsCount() == 1)
 			{
 				// Get the type of the elements in the array from the template argument
 				auto const& templateArg=
-					static_cast<rfk::TypeTemplateArgument const&>(
-						templateClassInstanceType->getTemplateArgumentAt(0));
+					static_cast<rfk::TypeTemplateArgument const&>(templateClassInstanceType->getTemplateArgumentAt(0));
 				rfk::Type const& elementType= templateArg.getType();
 
 				if (elementType == rfk::getType<bool>())
@@ -62,22 +60,19 @@ public:
 				}
 				else
 				{
-					setError(
-						"EntityAccessorReadVisitor::visitClass() List with unsupported element type");
+					setError("EntityAccessorReadVisitor::visitClass() List with unsupported element type");
 					return;
 				}
 			}
 			// See if the field is a Serialization::Map<K,V>
-			else if (templateTypeName == "Map" &&
-					 templateClassInstanceType->getTemplateArgumentsCount() == 2)
+			else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
 			{
 				visitMap(accessor, *templateClassInstanceType);
 			}
 			else
 			{
-				setError(
-					StringUtils::stringify("EntityAccessorReadVisitor::visitClass() ",
-										   "Template Class Type ", templateTypeName, " is not supported"));
+				setError(StringUtils::stringify("EntityAccessorReadVisitor::visitClass() ", "Template Class Type ",
+												templateTypeName, " is not supported"));
 				return;
 			}
 		}
@@ -101,51 +96,46 @@ public:
 		PolymorphicObjectPtr& objPtrInstance= accessor.getTypedValueMutableRef<PolymorphicObjectPtr>();
 
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::POLYMORPHIC_OBJECT)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::POLYMORPHIC_OBJECT)
 		{
 			// Directly use the PolymorphicObjectPtr from the source property value
 			objPtrInstance= sourcePropertyValue.getPolymorphicObjectValue();
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitObjectPtr() ",
-									   "Missing valid PolymorphicObjectPtr for", accessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitObjectPtr() ",
+											"Missing valid PolymorphicObjectPtr for", accessor.getName()));
 			return;
 		}
 	}
 
 	void visitBoolList(ValueAccessor const& arrayAccessor)
 	{
-		auto* destArray= reinterpret_cast<Serialization::List<bool>*>(
-			arrayAccessor.getUntypedValueMutablePtr());
+		auto* destArray= reinterpret_cast<Serialization::List<bool>*>(arrayAccessor.getUntypedValueMutablePtr());
 
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::BOOL_ARRAY)
+		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::BOOL_ARRAY)
 		{
 			const auto& sourceArray= sourcePropertyValue.getBoolArrayValue();
 			destArray->assign(sourceArray.data(), sourceArray.data() + sourceArray.size());
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitBoolList() ",
-									   "Missing valid BoolList for", arrayAccessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitBoolList() ", "Missing valid BoolList for",
+											arrayAccessor.getName()));
 			return;
 		}
 	}
 
 	void visitUByteList(ValueAccessor const& arrayAccessor)
 	{
-		auto* destArray=
-			reinterpret_cast<Serialization::List<uint8_t>*>(
-				arrayAccessor.getUntypedValueMutablePtr());
+		auto* destArray= reinterpret_cast<Serialization::List<uint8_t>*>(arrayAccessor.getUntypedValueMutablePtr());
 
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::UBYTE_ARRAY)
+		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::UBYTE_ARRAY)
 		{
 			const auto& sourceArray= sourcePropertyValue.getUByteArrayValue();
 
@@ -153,22 +143,19 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitUByteList() ",
-									   "Missing valid UByteList for", arrayAccessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitUByteList() ",
+											"Missing valid UByteList for", arrayAccessor.getName()));
 			return;
 		}
 	}
 
 	void visitIntList(ValueAccessor const& arrayAccessor)
 	{
-		auto* destArray=
-			reinterpret_cast<Serialization::List<int>*>(
-				arrayAccessor.getUntypedValueMutablePtr());
+		auto* destArray= reinterpret_cast<Serialization::List<int>*>(arrayAccessor.getUntypedValueMutablePtr());
 
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::INT_ARRAY)
+		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::INT_ARRAY)
 		{
 			const auto& sourceArray= sourcePropertyValue.getIntArrayValue();
 
@@ -176,22 +163,19 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitIntList() ",
-									   "Missing valid IntList for", arrayAccessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitIntList() ", "Missing valid IntList for",
+											arrayAccessor.getName()));
 			return;
 		}
 	}
 
 	void visitFloatList(ValueAccessor const& arrayAccessor)
 	{
-		auto* destArray=
-			reinterpret_cast<Serialization::List<float>*>(
-				arrayAccessor.getUntypedValueMutablePtr());
+		auto* destArray= reinterpret_cast<Serialization::List<float>*>(arrayAccessor.getUntypedValueMutablePtr());
 
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::FLOAT_ARRAY)
+		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::FLOAT_ARRAY)
 		{
 			const auto& sourceArray= sourcePropertyValue.getFloatArrayValue();
 
@@ -199,9 +183,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitFloatList() ",
-									   "Missing valid FloatList for", arrayAccessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitFloatList() ",
+											"Missing valid FloatList for", arrayAccessor.getName()));
 			return;
 		}
 	}
@@ -209,12 +192,11 @@ public:
 	void visitStringList(ValueAccessor const& arrayAccessor)
 	{
 		auto* destArray=
-			reinterpret_cast<Serialization::List<Serialization::String>*>(
-				arrayAccessor.getUntypedValueMutablePtr());
+			reinterpret_cast<Serialization::List<Serialization::String>*>(arrayAccessor.getUntypedValueMutablePtr());
 
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::STRING_ARRAY)
+		if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::STRING_ARRAY)
 		{
 			const auto& sourceArray= sourcePropertyValue.getStringArrayValue();
 
@@ -222,29 +204,23 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitStringList() ",
-									   "Missing valid StringList for", arrayAccessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitStringList() ",
+											"Missing valid StringList for", arrayAccessor.getName()));
 			return;
 		}
 	}
 
-	void visitMap(
-		ValueAccessor const& mapAccessor,
-		rfk::ClassTemplateInstantiation const& templatedMapType)
+	void visitMap(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType)
 	{
 		// Get the key type of the map from the template argument
 		auto const& templateKeyArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(0));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(0));
 		auto const& templateValueArg=
-			static_cast<rfk::TypeTemplateArgument const&>(
-				templatedMapType.getTemplateArgumentAt(1));
+			static_cast<rfk::TypeTemplateArgument const&>(templatedMapType.getTemplateArgumentAt(1));
 		rfk::Type const& keyType= templateKeyArg.getType();
 		rfk::Type const& valueType= templateValueArg.getType();
 
-		if (keyType == rfk::getType<std::string>() &&
-			valueType == rfk::getType<Serialization::String>())
+		if (keyType == rfk::getType<std::string>() && valueType == rfk::getType<Serialization::String>())
 		{
 			visitStringMap(mapAccessor, templatedMapType);
 		}
@@ -253,26 +229,23 @@ public:
 			rfk::Archetype const* keyArchetype= keyType.getArchetype();
 			rfk::Archetype const* valueArchetype= valueType.getArchetype();
 
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitMap() ",
-									   "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
-									   " Value Archetype ", valueArchetype != nullptr ? valueArchetype->getName() : "<Null Archetype>",
-									   " is not supported"));
+			setError(StringUtils::stringify(
+				"EntityAccessorReadVisitor::visitMap() ", "Map Key Archetype ",
+				keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>", " Value Archetype ",
+				valueArchetype != nullptr ? valueArchetype->getName() : "<Null Archetype>", " is not supported"));
 			return;
 		}
 	}
 
-	void visitStringMap(ValueAccessor const& mapAccessor,
-						rfk::ClassTemplateInstantiation const& templatedMapType)
+	void visitStringMap(ValueAccessor const& mapAccessor, rfk::ClassTemplateInstantiation const& templatedMapType)
 	{
 		// Get an enumerator to the target string map
-		auto* mapInstance=
-			reinterpret_cast<Serialization::Map<Serialization::String, Serialization::String>*>(
-				mapAccessor.getUntypedValueMutablePtr());
+		auto* mapInstance= reinterpret_cast<Serialization::Map<Serialization::String, Serialization::String>*>(
+			mapAccessor.getUntypedValueMutablePtr());
 
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(mapAccessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::STRING_MAP)
+		if (m_entityAccessor->getPropertyValue(mapAccessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::STRING_MAP)
 		{
 			const Serialization::Map<Serialization::String, Serialization::String>& sourceMap=
 				sourcePropertyValue.getStringMapValue();
@@ -285,9 +258,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitStringMap() ",
-									   "Missing valid StringMap for", mapAccessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitStringMap() ",
+											"Missing valid StringMap for", mapAccessor.getName()));
 			return;
 		}
 	}
@@ -295,8 +267,8 @@ public:
 	void visitString(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::STRING)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::STRING)
 		{
 			auto* variablePtr= accessor.getTypedValueMutablePtr<Serialization::String>();
 
@@ -304,9 +276,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitString() ",
-									   "Missing valid String for", accessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitString() ", "Missing valid String for",
+											accessor.getName()));
 			return;
 		}
 	}
@@ -353,10 +324,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitStruct() ",
-									   "Struct Accessor ", accessor.getName(),
-									   " was not a recognized struct type"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitStruct() ", "Struct Accessor ",
+											accessor.getName(), " was not a recognized struct type"));
 			return;
 		}
 	}
@@ -364,8 +333,8 @@ public:
 	void visitVector2f(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::VECTOR2F)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::VECTOR2F)
 		{
 			MikanVector2f value= sourcePropertyValue.getVector2fValue();
 
@@ -373,10 +342,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitVector2f() ",
-									   "Vector2f Accessor ", accessor.getName(),
-									   " was not a Vector2f value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitVector2f() ", "Vector2f Accessor ",
+											accessor.getName(), " was not a Vector2f value"));
 			return;
 		}
 	}
@@ -384,18 +351,16 @@ public:
 	void visitVector3f(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::VECTOR3F)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::VECTOR3F)
 		{
 			MikanVector3f value= sourcePropertyValue.getVector3fValue();
 			accessor.setValueByType(value);
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitVector3f() ",
-									   "Vector3f Accessor ", accessor.getName(),
-									   " was not a Vector3f value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitVector3f() ", "Vector3f Accessor ",
+											accessor.getName(), " was not a Vector3f value"));
 			return;
 		}
 	}
@@ -403,18 +368,16 @@ public:
 	void visitVector4f(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::VECTOR4F)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::VECTOR4F)
 		{
 			MikanVector4f value= sourcePropertyValue.getVector4fValue();
 			accessor.setValueByType(value);
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitVector4f() ",
-									   "Vector4f Accessor ", accessor.getName(),
-									   " was not a Vector4f value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitVector4f() ", "Vector4f Accessor ",
+											accessor.getName(), " was not a Vector4f value"));
 			return;
 		}
 	}
@@ -422,18 +385,16 @@ public:
 	void visitQuaternionf(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::QUATERNIONF)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::QUATERNIONF)
 		{
 			MikanQuatf value= sourcePropertyValue.getQuaternionfValue();
 			accessor.setValueByType(value);
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitQuaternionf() ",
-									   "Quaternionf Accessor ", accessor.getName(),
-									   " was not a Quaternionf value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitQuaternionf() ", "Quaternionf Accessor ",
+											accessor.getName(), " was not a Quaternionf value"));
 			return;
 		}
 	}
@@ -441,18 +402,16 @@ public:
 	void visitMatrix4f(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::MATRIX4F)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::MATRIX4F)
 		{
 			MikanMatrix4f value= sourcePropertyValue.getMatrix4fValue();
 			accessor.setValueByType(value);
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitMatrix4f() ",
-									   "Matrix4f Accessor ", accessor.getName(),
-									   " was not a Matrix4f value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitMatrix4f() ", "Matrix4f Accessor ",
+											accessor.getName(), " was not a Matrix4f value"));
 			return;
 		}
 	}
@@ -460,18 +419,16 @@ public:
 	void visitVector2d(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::VECTOR2D)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::VECTOR2D)
 		{
 			MikanVector2d value= sourcePropertyValue.getVector2dValue();
 			accessor.setValueByType(value);
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitVector2d() ",
-									   "Vector2d Accessor ", accessor.getName(),
-									   " was not a Vector2d value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitVector2d() ", "Vector2d Accessor ",
+											accessor.getName(), " was not a Vector2d value"));
 			return;
 		}
 	}
@@ -479,18 +436,16 @@ public:
 	void visitVector3d(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::VECTOR3D)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::VECTOR3D)
 		{
 			MikanVector3d value= sourcePropertyValue.getVector3dValue();
 			accessor.setValueByType(value);
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitVector3d() ",
-									   "Vector3d Accessor ", accessor.getName(),
-									   " was not a Vector3d value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitVector3d() ", "Vector3d Accessor ",
+											accessor.getName(), " was not a Vector3d value"));
 			return;
 		}
 	}
@@ -498,18 +453,16 @@ public:
 	void visitVector4d(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::VECTOR4D)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::VECTOR4D)
 		{
 			MikanVector4d value= sourcePropertyValue.getVector4dValue();
 			accessor.setValueByType(value);
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitVector4d() ",
-									   "Vector4d Accessor ", accessor.getName(),
-									   " was not a Vector4d value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitVector4d() ", "Vector4d Accessor ",
+											accessor.getName(), " was not a Vector4d value"));
 			return;
 		}
 	}
@@ -517,18 +470,16 @@ public:
 	void visitQuaterniond(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::QUATERNIOND)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::QUATERNIOND)
 		{
 			MikanQuatd value= sourcePropertyValue.getQuaterniondValue();
 			accessor.setValueByType(value);
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitQuaterniond() ",
-									   "Quaterniond Accessor ", accessor.getName(),
-									   " was not a Quaterniond value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitQuaterniond() ", "Quaterniond Accessor ",
+											accessor.getName(), " was not a Quaterniond value"));
 			return;
 		}
 	}
@@ -536,8 +487,8 @@ public:
 	virtual void visitEnum(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::INT)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::INT)
 		{
 			const int sourceEnumIntValue= sourcePropertyValue.getIntValue();
 
@@ -562,18 +513,15 @@ public:
 			}
 			else
 			{
-				setError(
-					StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ",
-										   "Enum Accessor ", accessor.getName(),
-										   " has an invalid value ", sourceEnumIntValue));
+				setError(StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ", "Enum Accessor ",
+												accessor.getName(), " has an invalid value ", sourceEnumIntValue));
 				return;
 			}
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ",
-									   "Missing valid Enum for", accessor.getName()));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ", "Missing valid Enum for",
+											accessor.getName()));
 			return;
 		}
 	}
@@ -581,8 +529,8 @@ public:
 	virtual void visitBool(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::BOOL)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::BOOL)
 		{
 			bool value= sourcePropertyValue.getBoolValue();
 
@@ -590,10 +538,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitBool() ",
-									   "Bool Accessor ", accessor.getName(),
-									   " was not a bool value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitBool() ", "Bool Accessor ",
+											accessor.getName(), " was not a bool value"));
 			return;
 		}
 	}
@@ -601,8 +547,8 @@ public:
 	virtual void visitByte(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::UBYTE)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::UBYTE)
 		{
 			// Convert ubyte -> byte
 			int8_t value= (int8_t)sourcePropertyValue.getUByteValue();
@@ -611,10 +557,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitByte() ",
-									   "Byte Accessor ", accessor.getName(),
-									   " was not a integer value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitByte() ", "Byte Accessor ",
+											accessor.getName(), " was not a integer value"));
 			return;
 		}
 	}
@@ -622,8 +566,8 @@ public:
 	virtual void visitUByte(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::UBYTE)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::UBYTE)
 		{
 			uint8_t value= sourcePropertyValue.getUByteValue();
 
@@ -631,10 +575,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitUByte() ",
-									   "UByte Accessor ", accessor.getName(),
-									   " was not a integer value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitUByte() ", "UByte Accessor ",
+											accessor.getName(), " was not a integer value"));
 			return;
 		}
 	}
@@ -642,8 +584,8 @@ public:
 	virtual void visitShort(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::USHORT)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::USHORT)
 		{
 			// Convert ushort -> short
 			int16_t value= (int16_t)sourcePropertyValue.getUShortValue();
@@ -652,10 +594,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitShort() ",
-									   "Short Accessor ", accessor.getName(),
-									   " was not a integer value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitShort() ", "Short Accessor ",
+											accessor.getName(), " was not a integer value"));
 			return;
 		}
 	}
@@ -663,8 +603,8 @@ public:
 	virtual void visitUShort(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::USHORT)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::USHORT)
 		{
 			uint16_t value= sourcePropertyValue.getUShortValue();
 
@@ -672,10 +612,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitUShort() ",
-									   "UShort Accessor ", accessor.getName(),
-									   " was not a integer value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitUShort() ", "UShort Accessor ",
+											accessor.getName(), " was not a integer value"));
 			return;
 		}
 	}
@@ -683,8 +621,8 @@ public:
 	virtual void visitInt(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::INT)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::INT)
 		{
 			int32_t value= (int32_t)sourcePropertyValue.getIntValue();
 
@@ -692,10 +630,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitInt() ",
-									   "Int32 Accessor ", accessor.getName(),
-									   " was not a integer value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitInt() ", "Int32 Accessor ",
+											accessor.getName(), " was not a integer value"));
 			return;
 		}
 	}
@@ -703,8 +639,8 @@ public:
 	virtual void visitUInt(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::INT)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::INT)
 		{
 			uint32_t value= (uint32_t)sourcePropertyValue.getIntValue();
 
@@ -712,10 +648,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitUInt() ",
-									   "UInt32 Accessor ", accessor.getName(),
-									   " was not a integer value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitUInt() ", "UInt32 Accessor ",
+											accessor.getName(), " was not a integer value"));
 			return;
 		}
 	}
@@ -723,8 +657,8 @@ public:
 	virtual void visitLong(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::LONG)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::LONG)
 		{
 			int64_t value= (int64_t)sourcePropertyValue.getLongValue();
 
@@ -732,10 +666,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitLong() ",
-									   "Int64 Accessor ", accessor.getName(),
-									   " was not a long value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitLong() ", "Int64 Accessor ",
+											accessor.getName(), " was not a long value"));
 			return;
 		}
 	}
@@ -743,8 +675,8 @@ public:
 	virtual void visitULong(ValueAccessor const& accessor)
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::LONG)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::LONG)
 		{
 			uint64_t value= (uint64_t)sourcePropertyValue.getLongValue();
 
@@ -752,10 +684,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitULong() ",
-									   "UInt64 Accessor ", accessor.getName(),
-									   " was not a long value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitULong() ", "UInt64 Accessor ",
+											accessor.getName(), " was not a long value"));
 			return;
 		}
 	}
@@ -763,8 +693,8 @@ public:
 	virtual void visitFloat(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::FLOAT)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::FLOAT)
 		{
 			float value= sourcePropertyValue.getFloatValue();
 
@@ -772,10 +702,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitFloat() ",
-									   "Float Accessor ", accessor.getName(),
-									   " was not a float value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitFloat() ", "Float Accessor ",
+											accessor.getName(), " was not a float value"));
 			return;
 		}
 	}
@@ -783,8 +711,8 @@ public:
 	virtual void visitDouble(ValueAccessor const& accessor) override
 	{
 		MikanVariant sourcePropertyValue;
-		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-			sourcePropertyValue.value_type == MikanVariantType::DOUBLE)
+		if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue)
+			&& sourcePropertyValue.value_type == MikanVariantType::DOUBLE)
 		{
 			double value= sourcePropertyValue.getDoubleValue();
 
@@ -792,10 +720,8 @@ public:
 		}
 		else
 		{
-			setError(
-				StringUtils::stringify("EntityAccessorReadVisitor::visitDouble() ",
-									   "Double Accessor ", accessor.getName(),
-									   " was not a double value"));
+			setError(StringUtils::stringify("EntityAccessorReadVisitor::visitDouble() ", "Double Accessor ",
+											accessor.getName(), " was not a double value"));
 			return;
 		}
 	}
@@ -805,7 +731,8 @@ private:
 };
 
 // Public API
-bool serializeFromEntity(IEntityAccessorConstPtr entityAccessor, void* instance, rfk::Struct const& structType, std::string& outErrorMsg)
+bool serializeFromEntity(IEntityAccessorConstPtr entityAccessor, void* instance, rfk::Struct const& structType,
+						 std::string& outErrorMsg)
 {
 	EntityAccessorReadVisitor visitor(entityAccessor);
 	Serialization::visitStruct(instance, structType, &visitor);

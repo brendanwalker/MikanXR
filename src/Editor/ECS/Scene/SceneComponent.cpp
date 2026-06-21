@@ -38,8 +38,7 @@ SceneComponentDefinition::SceneComponentDefinition()
 {
 }
 
-SceneComponentDefinition::SceneComponentDefinition(
-	MikanSceneID sceneId)
+SceneComponentDefinition::SceneComponentDefinition(MikanSceneID sceneId)
 	: TransformComponentDefinition(sceneId, "", glm_transform_to_MikanTransform(GlmTransform()))
 	, m_parentStageId(INVALID_MIKAN_ID)
 {
@@ -63,9 +62,8 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_displayCompositorId= pt.get_or<int>(k_displayCompositorIdPropertyId, INVALID_MIKAN_ID);
 }
 
-bool SceneComponentDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool SceneComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												  const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -123,10 +121,7 @@ rfk::Struct const* SceneComponent::getClientAPIValuesStructType() const
 	return &MikanSceneComponentValues::staticGetArchetype();
 }
 
-MikanStageID SceneComponent::getParentStageId() const
-{
-	return getSceneComponentDefinition()->getParentStageId();
-}
+MikanStageID SceneComponent::getParentStageId() const { return getSceneComponentDefinition()->getParentStageId(); }
 
 StageComponentPtr SceneComponent::getParentStage() const
 {
@@ -196,7 +191,8 @@ void SceneComponent::attachToStage(MikanStageID newParentId)
 	}
 }
 
-void SceneComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
+void SceneComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+											 const ConfigPropertyChangeSet& changedPropertySet)
 {
 	TransformComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
@@ -220,14 +216,9 @@ void SceneComponent::showCompositorOutput()
 	}
 }
 
-void SceneComponent::activateScene()
-{
-	refreshActiveCompositors();
-}
+void SceneComponent::activateScene() { refreshActiveCompositors(); }
 
-void SceneComponent::deactivateScene()
-{
-}
+void SceneComponent::deactivateScene() {}
 
 void SceneComponent::refreshActiveCompositors()
 {
@@ -250,20 +241,16 @@ void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			SceneComponentDefinition::k_parentStagePropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(SceneComponentDefinition::k_parentStagePropertyId, MikanVariantType::INT)
 			->setDefaultValue(-1)
 			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			SceneComponentDefinition::k_displayCompositorIdPropertyId, MikanVariantType::INT)
-			->setDefaultValue(-1)
-			->setUIHidden());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 SceneComponentDefinition::k_displayCompositorIdPropertyId, MikanVariantType::INT)
+								 ->setDefaultValue(-1)
+								 ->setUIHidden());
 }
 
-bool SceneComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool SceneComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
 	{
@@ -279,9 +266,7 @@ bool SceneComponent::getPropertyValue(
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool SceneComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool SceneComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
 	{
@@ -309,8 +294,7 @@ void SceneComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 	TransformComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_showCompositorOutputFunctionId, "Show Compositor Output"));
+		std::make_shared<FunctionDescriptor>(k_showCompositorOutputFunctionId, "Show Compositor Output"));
 }
 
 bool SceneComponent::invokeFunction(const std::string& functionName)
@@ -329,31 +313,14 @@ void SceneComponent::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<SceneComponent, TransformComponent>(SceneComponent::k_componentClassName.c_str())
-		.addProperty("parentStageId",
-					 [](SceneComponent* component) -> int
-					 {
-						 return component->getSceneComponentDefinition()->getParentStageId();
-					 })
-		.addProperty("displayCompositorId",
-					 [](SceneComponent* component) -> int
-					 {
-						 return component->getSceneComponentDefinition()->getDisplayCompositorId();
-					 })
-		.addFunction("showCompositorOutput",
-					 [](SceneComponent* c)
-					 {
-						 c->showCompositorOutput();
-					 })
-		.addFunction("getParentStage",
-					 [](SceneComponent* c) -> StageComponent*
-					 {
-						 return c->getParentStage().get();
-					 })
+		.addProperty("parentStageId", [](SceneComponent* component) -> int
+					 { return component->getSceneComponentDefinition()->getParentStageId(); })
+		.addProperty("displayCompositorId", [](SceneComponent* component) -> int
+					 { return component->getSceneComponentDefinition()->getDisplayCompositorId(); })
+		.addFunction("showCompositorOutput", [](SceneComponent* c) { c->showCompositorOutput(); })
+		.addFunction("getParentStage", [](SceneComponent* c) -> StageComponent* { return c->getParentStage().get(); })
 		.addFunction("getOutputCompositorCount",
-					 [](SceneComponent* c) -> int
-					 {
-						 return static_cast<int>(c->getOutputCompositors().size());
-					 })
+					 [](SceneComponent* c) -> int { return static_cast<int>(c->getOutputCompositors().size()); })
 		.addFunction("getOutputCompositorAtIndex",
 					 [](SceneComponent* c, int i) -> CompositorComponent*
 					 {

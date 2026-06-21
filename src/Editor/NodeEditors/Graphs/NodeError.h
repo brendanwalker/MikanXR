@@ -20,11 +20,8 @@ enum eNodeEvaluationErrorCode
 struct NodeEvaluationError
 {
 	NodeEvaluationError()= default;
-	NodeEvaluationError(
-		eNodeEvaluationErrorCode inErrorCode,
-		const std::string& inErrorMessage,
-		class Node* inErrorNode= nullptr,
-		class NodePin* inErrorPin= nullptr);
+	NodeEvaluationError(eNodeEvaluationErrorCode inErrorCode, const std::string& inErrorMessage,
+						class Node* inErrorNode= nullptr, class NodePin* inErrorPin= nullptr);
 
 	eNodeEvaluationErrorCode errorCode= NONE;
 	std::string errorMessage;

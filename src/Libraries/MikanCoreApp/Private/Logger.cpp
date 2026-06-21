@@ -134,10 +134,7 @@ void log_dispose()
 	g_is_initialized= false;
 }
 
-bool log_can_emit_level(LogSeverityLevel level)
-{
-	return (level >= g_min_log_level);
-}
+bool log_can_emit_level(LogSeverityLevel level) { return (level >= g_min_log_level); }
 
 std::string log_get_timestamp_prefix()
 {
@@ -180,10 +177,7 @@ public:
 
 	void write_line()
 	{
-		if (g_is_initialized &&
-			g_logger_callback != nullptr &&
-			m_hasWrittenLog &&
-			log_can_emit_level(m_level))
+		if (g_is_initialized && g_logger_callback != nullptr && m_hasWrittenLog && log_can_emit_level(m_level))
 		{
 			const std::string line= m_lineBuffer.str();
 
@@ -203,10 +197,7 @@ LoggerStream::~LoggerStream()
 	delete m_impl;
 }
 
-void LoggerStream::write_line()
-{
-	m_impl->write_line();
-}
+void LoggerStream::write_line() { m_impl->write_line(); }
 
 // Wrapper for forwarding value
 LoggerStream& LoggerStream::operator<<(bool value)

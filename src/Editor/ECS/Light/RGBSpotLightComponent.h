@@ -24,9 +24,8 @@ public:
 
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_coneAngleDegreesPropertyId;
 	float getConeAngleDegrees() const { return m_coneAngleDegrees; }
@@ -52,9 +51,7 @@ public:
 
 	virtual void init() override;
 	virtual void dispose() override;
-	virtual void customRender(
-		IMkGraphicsContext* graphicsContext,
-		MikanCameraPtr viewportCamera) const override;
+	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 
 	void disposeMeshComponents();
 	void rebuildMeshComponents();

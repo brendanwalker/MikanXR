@@ -46,31 +46,44 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	// This ensures unique component IDs across the entire project
 	persistentIDAllocator= std::make_shared<PersistentIDAllocator>(k_transientIdStart + k_transientIdMaxRange + 1);
 
-	// Create object system definitions for object systems with persistent components, using the shared persistent ID allocator
+	// Create object system definitions for object systems with persistent components, using the shared persistent ID
+	// allocator
 	anchorConfig= addTypedDefinition<AnchorObjectSystemDefinition, AnchorObjectSystem>(persistentIDAllocator);
 	boxShapeSystemDefinition= addTypedDefinition<BoxShapeSystemDefinition, BoxShapeSystem>(persistentIDAllocator);
 	boxStencilSystemDefinition= addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>(persistentIDAllocator);
 	cameraConfig= addTypedDefinition<CameraObjectSystemDefinition, CameraObjectSystem>(persistentIDAllocator);
-	clientConfig= addTypedDefinition<ClientTextureSourceSystemDefinition, ClientTextureSourceSystem>(persistentIDAllocator);
-	compositorConfig= addTypedDefinition<CompositorObjectSystemDefinition, CompositorObjectSystem>(persistentIDAllocator);
+	clientConfig=
+		addTypedDefinition<ClientTextureSourceSystemDefinition, ClientTextureSourceSystem>(persistentIDAllocator);
+	compositorConfig=
+		addTypedDefinition<CompositorObjectSystemDefinition, CompositorObjectSystem>(persistentIDAllocator);
 	editorConfig= addTypedDefinition<EditorObjectSystemDefinition, EditorObjectSystem>(persistentIDAllocator);
 	markerSystemDefinition= addTypedDefinition<MarkerObjectSystemDefinition, MarkerObjectSystem>(persistentIDAllocator);
-	markerTrackingVolumeConfig= addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>(persistentIDAllocator);
+	markerTrackingVolumeConfig=
+		addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>(persistentIDAllocator);
 	modelShapeSystemDefinition= addTypedDefinition<ModelShapeSystemDefinition, ModelShapeSystem>(persistentIDAllocator);
-	modelStencilSystemDefinition= addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>(persistentIDAllocator);
+	modelStencilSystemDefinition=
+		addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>(persistentIDAllocator);
 	quadShapeSystemDefinition= addTypedDefinition<QuadShapeSystemDefinition, QuadShapeSystem>(persistentIDAllocator);
-	quadStencilSystemDefinition= addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>(persistentIDAllocator);
+	quadStencilSystemDefinition=
+		addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>(persistentIDAllocator);
 	sceneConfig= addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>(persistentIDAllocator);
 	stageConfig= addTypedDefinition<StageObjectSystemDefinition, StageObjectSystem>(persistentIDAllocator);
-	spoutConfig= addTypedDefinition<SpoutTextureSourceSystemDefinition, SpoutTextureSourceSystem>(persistentIDAllocator);
+	spoutConfig=
+		addTypedDefinition<SpoutTextureSourceSystemDefinition, SpoutTextureSourceSystem>(persistentIDAllocator);
 	cefConfig= addTypedDefinition<CEFTextureSourceSystemDefinition, CEFTextureSourceSystem>(persistentIDAllocator);
-	trackingMountSystemConfig= addTypedDefinition<TrackingMountObjectSystemDefinition, TrackingMountObjectSystem>(persistentIDAllocator);
-	networkVideoSourceSystemConfig= addTypedDefinition<NetworkVideoSourceSystemDefinition, NetworkVideoSourceSystem>(persistentIDAllocator);
-	usbVideoSourceSystemConfig= addTypedDefinition<USBVideoSourceSystemDefinition, USBVideoSourceSystem>(persistentIDAllocator);
-	vrTrackingVolumeConfig= addTypedDefinition<VRTrackingVolumeSystemDefinition, VRTrackingVolumeSystem>(persistentIDAllocator);
+	trackingMountSystemConfig=
+		addTypedDefinition<TrackingMountObjectSystemDefinition, TrackingMountObjectSystem>(persistentIDAllocator);
+	networkVideoSourceSystemConfig=
+		addTypedDefinition<NetworkVideoSourceSystemDefinition, NetworkVideoSourceSystem>(persistentIDAllocator);
+	usbVideoSourceSystemConfig=
+		addTypedDefinition<USBVideoSourceSystemDefinition, USBVideoSourceSystem>(persistentIDAllocator);
+	vrTrackingVolumeConfig=
+		addTypedDefinition<VRTrackingVolumeSystemDefinition, VRTrackingVolumeSystem>(persistentIDAllocator);
 	dmxObjectSystemDefinition= addTypedDefinition<DMXObjectSystemDefinition, DMXObjectSystem>(persistentIDAllocator);
-	rgbSpotLightSystemDefinition= addTypedDefinition<RGBSpotLightSystemDefinition, RGBSpotLightSystem>(persistentIDAllocator);
-	rgbPixelGridSystemDefinition= addTypedDefinition<RGBPixelGridSystemDefinition, RGBPixelGridSystem>(persistentIDAllocator);
+	rgbSpotLightSystemDefinition=
+		addTypedDefinition<RGBSpotLightSystemDefinition, RGBSpotLightSystem>(persistentIDAllocator);
+	rgbPixelGridSystemDefinition=
+		addTypedDefinition<RGBPixelGridSystemDefinition, RGBPixelGridSystem>(persistentIDAllocator);
 
 	// Create object system definitions for the runtime only components, using the transient ID allocator
 	vrObjectConfig= addTypedDefinition<VRObjectSystemDefinition, VRObjectSystem>(transientIDAllocator);

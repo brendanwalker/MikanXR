@@ -41,9 +41,8 @@ void GizmoRotateComponent::dispose()
 	MikanComponent::dispose();
 }
 
-glm::vec3 GizmoRotateComponent::getColliderColor(
-	DiskColliderComponentWeakPtr colliderPtr,
-	const glm::vec3& defaultColor) const
+glm::vec3 GizmoRotateComponent::getColliderColor(DiskColliderComponentWeakPtr colliderPtr,
+												 const glm::vec3& defaultColor) const
 {
 	if (colliderPtr.lock() == m_dragComponent.lock())
 		return Colors::Yellow;
@@ -53,10 +52,8 @@ glm::vec3 GizmoRotateComponent::getColliderColor(
 		return defaultColor;
 }
 
-bool GizmoRotateComponent::getColliderRotationAxis(
-	ColliderComponentWeakPtr colliderWeakPtr,
-	glm::vec3& outWorldSpaceOrigin,
-	glm::vec3& outWorldSpaceAxis)
+bool GizmoRotateComponent::getColliderRotationAxis(ColliderComponentWeakPtr colliderWeakPtr,
+												   glm::vec3& outWorldSpaceOrigin, glm::vec3& outWorldSpaceAxis)
 {
 	ColliderComponentPtr dragColliderPtr= colliderWeakPtr.lock();
 
@@ -85,12 +82,11 @@ static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, c
 	const float radius= collidePtr->getRadius();
 
 	drawTransformedCircle(graphicsContext, xform, radius, color, GizmoTransformComponent::k_gizmoCircleSegments);
-	drawTransformedCircle(graphicsContext, xform, radius * k_innerRingScale, color, GizmoTransformComponent::k_gizmoCircleSegments);
+	drawTransformedCircle(graphicsContext, xform, radius * k_innerRingScale, color,
+						  GizmoTransformComponent::k_gizmoCircleSegments);
 }
 
-void GizmoRotateComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void GizmoRotateComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	if (m_bEnabled)
 	{
@@ -108,10 +104,8 @@ void GizmoRotateComponent::customRender(
 			auto diskComponentPtr= std::static_pointer_cast<DiskColliderComponent>(dragComponentPtr);
 			const float radius= diskComponentPtr->getRadius();
 
-			drawTransformedSpiralArc(
-				graphicsContext,
-				m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow,
-				GizmoTransformComponent::k_gizmoCircleSegments);
+			drawTransformedSpiralArc(graphicsContext, m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow,
+									 GizmoTransformComponent::k_gizmoCircleSegments);
 
 			const glm::vec3 center= glm_mat4_get_position(diskComponentPtr->getWorldTransform());
 			const float angleDeg= glm::degrees(m_dragAngle);
@@ -142,19 +136,25 @@ void GizmoRotateComponent::setEnabled(bool bEnabled)
 
 		if (bEnabled)
 		{
-			selectionComponentPtr->OnInteractionRayOverlapEnter+= MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapEnter);
-			selectionComponentPtr->OnInteractionRayOverlapExit+= MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionRayOverlapEnter+=
+				MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit+=
+				MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapExit);
 			selectionComponentPtr->OnInteractionGrab+= MakeDelegate(this, &GizmoRotateComponent::onInteractionGrab);
 			selectionComponentPtr->OnInteractionMove+= MakeDelegate(this, &GizmoRotateComponent::onInteractionMove);
-			selectionComponentPtr->OnInteractionRelease+= MakeDelegate(this, &GizmoRotateComponent::onInteractionRelease);
+			selectionComponentPtr->OnInteractionRelease+=
+				MakeDelegate(this, &GizmoRotateComponent::onInteractionRelease);
 		}
 		else
 		{
-			selectionComponentPtr->OnInteractionRayOverlapEnter-= MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapEnter);
-			selectionComponentPtr->OnInteractionRayOverlapExit-= MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapExit);
+			selectionComponentPtr->OnInteractionRayOverlapEnter-=
+				MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapEnter);
+			selectionComponentPtr->OnInteractionRayOverlapExit-=
+				MakeDelegate(this, &GizmoRotateComponent::onInteractionRayOverlapExit);
 			selectionComponentPtr->OnInteractionGrab-= MakeDelegate(this, &GizmoRotateComponent::onInteractionGrab);
 			selectionComponentPtr->OnInteractionMove-= MakeDelegate(this, &GizmoRotateComponent::onInteractionMove);
-			selectionComponentPtr->OnInteractionRelease-= MakeDelegate(this, &GizmoRotateComponent::onInteractionRelease);
+			selectionComponentPtr->OnInteractionRelease-=
+				MakeDelegate(this, &GizmoRotateComponent::onInteractionRelease);
 		}
 
 		m_xAxisHandle.lock()->setEnabled(bEnabled);
@@ -177,9 +177,7 @@ void GizmoRotateComponent::onInteractionRayOverlapExit(const ColliderRaycastHitR
 void GizmoRotateComponent::onInteractionGrab(const ColliderRaycastHitResult& hitResult)
 {
 	glm::vec3 worldSpaceRotationOrigin;
-	if (getColliderRotationAxis(
-			hitResult.hitComponent,
-			worldSpaceRotationOrigin, m_worldSpaceRotationAxis))
+	if (getColliderRotationAxis(hitResult.hitComponent, worldSpaceRotationOrigin, m_worldSpaceRotationAxis))
 	{
 		// Drag Basis is:
 		// * Centered at rotation origin
@@ -190,12 +188,8 @@ void GizmoRotateComponent::onInteractionGrab(const ColliderRaycastHitResult& hit
 		const glm::vec3 z_axis= glm::normalize(glm::cross(m_worldSpaceRotationAxis, x_axis));
 		const glm::vec3 y_axis= glm::normalize(glm::cross(z_axis, x_axis));
 
-		m_worldSpaceDragBasis=
-			glm::mat4(
-				glm::vec4(x_axis, 0.f),
-				glm::vec4(y_axis, 0.f),
-				glm::vec4(z_axis, 0.f),
-				glm::vec4(worldSpaceRotationOrigin, 1.f));
+		m_worldSpaceDragBasis= glm::mat4(glm::vec4(x_axis, 0.f), glm::vec4(y_axis, 0.f), glm::vec4(z_axis, 0.f),
+										 glm::vec4(worldSpaceRotationOrigin, 1.f));
 		m_worldSpaceDragStart= hitResult.hitLocation;
 
 		m_dragComponent= hitResult.hitComponent;
@@ -220,10 +214,8 @@ void GizmoRotateComponent::onInteractionMove(const glm::vec3& rayOrigin, const g
 		float dragRayTime= 0.f;
 		glm::vec3 dragRayPoint= m_worldSpaceDragStart;
 
-		if (glm_closest_point_on_ray_to_ray(
-				m_worldSpaceDragStart, worldSpaceDragPosDir,
-				rayOrigin, rayDir,
-				dragRayTime, dragRayPoint))
+		if (glm_closest_point_on_ray_to_ray(m_worldSpaceDragStart, worldSpaceDragPosDir, rayOrigin, rayDir, dragRayTime,
+											dragRayPoint))
 		{
 			auto diskPtr= std::static_pointer_cast<DiskColliderComponent>(m_dragComponent.lock());
 			const float diskRadius= diskPtr->getRadius();

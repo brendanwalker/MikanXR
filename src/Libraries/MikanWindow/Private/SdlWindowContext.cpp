@@ -24,18 +24,13 @@
 
 #include "SdlCommon.h"
 
-SdlWindowContext::SdlWindowContext(
-	IMkWindowContextManagerPtr ownerWindowManager,
-	IMkGraphicsContextPtr graphicsContext)
+SdlWindowContext::SdlWindowContext(IMkWindowContextManagerPtr ownerWindowManager, IMkGraphicsContextPtr graphicsContext)
 	: m_ownerWindowManager(ownerWindowManager)
 	, m_graphicsContext(graphicsContext)
 {
 }
 
-SdlWindowContext::~SdlWindowContext()
-{
-	shutdown();
-}
+SdlWindowContext::~SdlWindowContext() { shutdown(); }
 
 void SdlWindowContext::enableGLDataSharing()
 {
@@ -84,11 +79,9 @@ bool SdlWindowContext::startup()
 		SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
 	}
 
-	SDL_WindowFlags window_flags= (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-	m_sdlWindow= SDL_CreateWindow(m_title.c_str(),
-								  SDL_WINDOWPOS_CENTERED,
-								  SDL_WINDOWPOS_CENTERED,
-								  m_width, m_height,
+	SDL_WindowFlags window_flags=
+		(SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+	m_sdlWindow= SDL_CreateWindow(m_title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, m_width, m_height,
 								  window_flags);
 	if (m_sdlWindow == nullptr)
 	{
@@ -115,7 +108,8 @@ bool SdlWindowContext::startup()
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("SdlWindowContext::startup") << "Unable to initialize SDL OpenGL context: " << SDL_GetError();
+				MIKAN_LOG_ERROR("SdlWindowContext::startup")
+					<< "Unable to initialize SDL OpenGL context: " << SDL_GetError();
 				success= false;
 			}
 		}
@@ -203,10 +197,7 @@ void SdlWindowContext::render()
 	// Base implementation - subclasses override for render logic
 }
 
-void SdlWindowContext::present()
-{
-	SDL_GL_SwapWindow(m_sdlWindow);
-}
+void SdlWindowContext::present() { SDL_GL_SwapWindow(m_sdlWindow); }
 
 IMkViewportPtr SdlWindowContext::getRenderingViewport() const
 {
@@ -366,9 +357,8 @@ void SdlWindowContext::makeContextCurrent()
 	}
 }
 
-IMkWindowContextPtr createMkWindowContext(
-	IMkWindowContextManagerPtr ownerWindowManager,
-	IMkGraphicsContextPtr graphicsContext)
+IMkWindowContextPtr createMkWindowContext(IMkWindowContextManagerPtr ownerWindowManager,
+										  IMkGraphicsContextPtr graphicsContext)
 {
 	// TODO: Use the graphics context API to determine which window type to create
 	// (e.g. OpenGL = SdlGlWindow, Vulkan = SdlVulkanWindow, etc.)

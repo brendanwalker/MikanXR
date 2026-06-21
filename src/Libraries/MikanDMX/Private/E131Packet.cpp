@@ -16,10 +16,7 @@ static uint16_t hton16(uint16_t v)
 static uint32_t hton32(uint32_t v)
 {
 #if defined(_WIN32)
-	return ((v & 0xFF000000u) >> 24) |
-		   ((v & 0x00FF0000u) >> 8) |
-		   ((v & 0x0000FF00u) << 8) |
-		   ((v & 0x000000FFu) << 24);
+	return ((v & 0xFF000000u) >> 24) | ((v & 0x00FF0000u) >> 8) | ((v & 0x0000FF00u) << 8) | ((v & 0x000000FFu) << 24);
 #else
 	return __builtin_bswap32(v);
 #endif
@@ -36,8 +33,8 @@ constexpr uint32_t VECTOR_ROOT_E131_DATA= 0x00000004;
 constexpr uint32_t VECTOR_E131_DATA_PACKET= 0x00000002;
 constexpr uint8_t VECTOR_DMP_SET_PROPERTY= 0x02;
 
-static const uint8_t k_acnPacketIdentifier[12]= {
-	0x41, 0x53, 0x43, 0x2D, 0x45, 0x31, 0x2E, 0x31, 0x37, 0x00, 0x00, 0x00}; // "ASC-E1.17\0\0\0"
+static const uint8_t k_acnPacketIdentifier[12]= {0x41, 0x53, 0x43, 0x2D, 0x45, 0x31,
+												 0x2E, 0x31, 0x37, 0x00, 0x00, 0x00}; // "ASC-E1.17\0\0\0"
 
 void e131_packet_init(E131Packet& pkt, const uint8_t cid[16], const char* sourceName, uint8_t priority)
 {
@@ -75,10 +72,7 @@ void e131_packet_init(E131Packet& pkt, const uint8_t cid[16], const char* source
 	pkt.property_values[0]= 0x00;    // DMX512 NULL start code
 }
 
-void e131_packet_set_universe(E131Packet& pkt, uint16_t universe)
-{
-	pkt.universe= hton16(universe);
-}
+void e131_packet_set_universe(E131Packet& pkt, uint16_t universe) { pkt.universe= hton16(universe); }
 
 void e131_packet_set_slots(E131Packet& pkt, uint16_t startSlot, const uint8_t* values, uint16_t count)
 {

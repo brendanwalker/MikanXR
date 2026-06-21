@@ -61,10 +61,7 @@ void client_log_dispose()
 	g_is_initialized= false;
 }
 
-bool client_log_can_emit_level(ClientLogSeverityLevel level)
-{
-	return (level >= g_min_log_level);
-}
+bool client_log_can_emit_level(ClientLogSeverityLevel level) { return (level >= g_min_log_level); }
 
 std::string client_log_get_timestamp_prefix()
 {
@@ -107,10 +104,7 @@ public:
 
 	void write_line()
 	{
-		if (g_is_initialized &&
-			g_logger_callback != nullptr &&
-			m_hasWrittenLog &&
-			client_log_can_emit_level(m_level))
+		if (g_is_initialized && g_logger_callback != nullptr && m_hasWrittenLog && client_log_can_emit_level(m_level))
 		{
 			const std::string line= m_lineBuffer.str();
 
@@ -130,10 +124,7 @@ ClientLoggerStream::~ClientLoggerStream()
 	delete m_impl;
 }
 
-void ClientLoggerStream::write_line()
-{
-	m_impl->write_line();
-}
+void ClientLoggerStream::write_line() { m_impl->write_line(); }
 
 // Wrapper for forwarding value
 ClientLoggerStream& ClientLoggerStream::operator<<(bool value)

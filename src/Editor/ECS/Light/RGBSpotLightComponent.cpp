@@ -49,15 +49,9 @@ RGBSpotLightDefinition::RGBSpotLightDefinition(MikanLightID lightId)
 	setDMXChannelCount(3);
 }
 
-void RGBSpotLightDefinition::setConeAngleDegrees(float deg)
-{
-	m_coneAngleDegrees= deg;
-}
+void RGBSpotLightDefinition::setConeAngleDegrees(float deg) { m_coneAngleDegrees= deg; }
 
-void RGBSpotLightDefinition::setConeRangeMeters(float m)
-{
-	m_coneRangeMeters= m;
-}
+void RGBSpotLightDefinition::setConeRangeMeters(float m) { m_coneRangeMeters= m; }
 
 configuru::Config RGBSpotLightDefinition::writeToJSON()
 {
@@ -77,9 +71,8 @@ void RGBSpotLightDefinition::readFromJSON(const configuru::Config& pt)
 	m_coneRangeMeters= pt.get_or<float>(k_coneRangeMetersPropertyId, 2.0f);
 }
 
-bool RGBSpotLightDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool RGBSpotLightDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												const Serialization::PolymorphicObjectPtr& initParams)
 {
 	return DMXFixtureComponentDefinition::readFromInitParams(ownerObjectSystem, initParams);
 }
@@ -104,12 +97,18 @@ void RGBSpotLightComponent::init()
 	SelectionComponentPtr selectionComponentPtr= getOwnerObject()->getComponentOfType<SelectionComponent>();
 	if (selectionComponentPtr)
 	{
-		selectionComponentPtr->OnInteractionRayOverlapEnter+= MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapEnter);
-		selectionComponentPtr->OnInteractionRayOverlapExit+= MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapExit);
-		selectionComponentPtr->OnInteractionSelected+= MakeDelegate(this, &RGBSpotLightComponent::onInteractionSelected);
-		selectionComponentPtr->OnInteractionUnselected+= MakeDelegate(this, &RGBSpotLightComponent::onInteractionUnselected);
-		selectionComponentPtr->OnTransformGizmoBound+= MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoBound);
-		selectionComponentPtr->OnTransformGizmoUnbound+= MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoUnbound);
+		selectionComponentPtr->OnInteractionRayOverlapEnter+=
+			MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit+=
+			MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected+=
+			MakeDelegate(this, &RGBSpotLightComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected+=
+			MakeDelegate(this, &RGBSpotLightComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound+=
+			MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound+=
+			MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoUnbound);
 
 		m_selectionComponent= selectionComponentPtr;
 	}
@@ -122,12 +121,18 @@ void RGBSpotLightComponent::dispose()
 	SelectionComponentPtr selectionComponentPtr= m_selectionComponent.lock();
 	if (selectionComponentPtr)
 	{
-		selectionComponentPtr->OnInteractionRayOverlapEnter-= MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapEnter);
-		selectionComponentPtr->OnInteractionRayOverlapExit-= MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapExit);
-		selectionComponentPtr->OnInteractionSelected-= MakeDelegate(this, &RGBSpotLightComponent::onInteractionSelected);
-		selectionComponentPtr->OnInteractionUnselected-= MakeDelegate(this, &RGBSpotLightComponent::onInteractionUnselected);
-		selectionComponentPtr->OnTransformGizmoBound-= MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoBound);
-		selectionComponentPtr->OnTransformGizmoUnbound-= MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoUnbound);
+		selectionComponentPtr->OnInteractionRayOverlapEnter-=
+			MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit-=
+			MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected-=
+			MakeDelegate(this, &RGBSpotLightComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected-=
+			MakeDelegate(this, &RGBSpotLightComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound-=
+			MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound-=
+			MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoUnbound);
 	}
 
 	DMXFixtureComponent::dispose();
@@ -163,10 +168,8 @@ void RGBSpotLightComponent::rebuildMeshComponents()
 	MkMaterialConstPtr material=
 		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
 
-	const std::filesystem::path modelPath=
-		PathUtils::makeAbsoluteResourceFilePath(k_spotLightModelRelPath);
-	MikanRenderModelResourcePtr modelResourcePtr=
-		modelResourceManager->fetchRenderModel(modelPath, material);
+	const std::filesystem::path modelPath= PathUtils::makeAbsoluteResourceFilePath(k_spotLightModelRelPath);
+	MikanRenderModelResourcePtr modelResourcePtr= modelResourceManager->fetchRenderModel(modelPath, material);
 
 	if (modelResourcePtr)
 	{
@@ -175,8 +178,7 @@ void RGBSpotLightComponent::rebuildMeshComponents()
 		{
 			IMkTriangulatedMeshPtr triMeshPtr= modelResourcePtr->getTriangulatedMesh(meshIndex);
 
-			IMkStaticMeshInstancePtr triMeshInstancePtr=
-				createMkStaticMeshInstance(triMeshPtr->getName(), triMeshPtr);
+			IMkStaticMeshInstancePtr triMeshInstancePtr= createMkStaticMeshInstance(triMeshPtr->getName(), triMeshPtr);
 			triMeshInstancePtr->setVisible(true);
 			triMeshInstancePtr->getMaterialInstance()->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
 
@@ -254,9 +256,7 @@ void RGBSpotLightComponent::updateWireframeMeshColor()
 
 	for (IMkStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
 	{
-		meshPtr->getMaterialInstance()->setVec4BySemantic(
-			eUniformSemantic::diffuseColorRGBA,
-			glm::vec4(color, 1.f));
+		meshPtr->getMaterialInstance()->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(color, 1.f));
 	}
 }
 
@@ -301,10 +301,8 @@ void RGBSpotLightComponent::rebuildConeMesh()
 	}
 
 	m_coneMesh= createMkTriangulatedMesh(
-		graphicsContext.get(),
-		"spotLightCone",
-		reinterpret_cast<const uint8_t*>(verts.data()), sizeof(PosVert), (uint32_t)verts.size(),
-		reinterpret_cast<const uint8_t*>(indices.data()), sizeof(uint32_t), N * 2,
+		graphicsContext.get(), "spotLightCone", reinterpret_cast<const uint8_t*>(verts.data()), sizeof(PosVert),
+		(uint32_t)verts.size(), reinterpret_cast<const uint8_t*>(indices.data()), sizeof(uint32_t), N * 2,
 		false); // data uploaded to GPU in createResources(), no need for mesh to own CPU copy
 
 	if (m_coneMesh)
@@ -361,20 +359,11 @@ void RGBSpotLightComponent::onTransformGizmoUnbound()
 	updateWireframeMeshColor();
 }
 
-void RGBSpotLightComponent::setRed(uint8_t v)
-{
-	setRGB(v, m_green, m_blue);
-}
+void RGBSpotLightComponent::setRed(uint8_t v) { setRGB(v, m_green, m_blue); }
 
-void RGBSpotLightComponent::setGreen(uint8_t v)
-{
-	setRGB(m_red, v, m_blue);
-}
+void RGBSpotLightComponent::setGreen(uint8_t v) { setRGB(m_red, v, m_blue); }
 
-void RGBSpotLightComponent::setBlue(uint8_t v)
-{
-	setRGB(m_red, m_green, v);
-}
+void RGBSpotLightComponent::setBlue(uint8_t v) { setRGB(m_red, m_green, v); }
 
 void RGBSpotLightComponent::setRGB(uint8_t r, uint8_t g, uint8_t b)
 {
@@ -397,10 +386,7 @@ void RGBSpotLightComponent::sendDMXData(IDMXManager* manager) const
 		return;
 
 	const uint8_t rgb[3]= {getRed(), getGreen(), getBlue()};
-	manager->setChannels(
-		def->getDMXUniverse(),
-		def->getDMXStartChannel(),
-		rgb, 3);
+	manager->setChannels(def->getDMXUniverse(), def->getDMXStartChannel(), rgb, 3);
 }
 
 void RGBSpotLightComponent::getDMXData(MikanDMXData& outData) const
@@ -431,21 +417,19 @@ void RGBSpotLightComponent::getPropertyDescriptors(std::vector<PropertyDescripto
 {
 	DMXFixtureComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBSpotLightComponent::k_redPropertyId, MikanVariantType::UBYTE));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBSpotLightComponent::k_greenPropertyId, MikanVariantType::UBYTE));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBSpotLightComponent::k_bluePropertyId, MikanVariantType::UBYTE));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBSpotLightDefinition::k_coneAngleDegreesPropertyId, MikanVariantType::FLOAT));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBSpotLightDefinition::k_coneRangeMetersPropertyId, MikanVariantType::FLOAT));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_redPropertyId, MikanVariantType::UBYTE));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_greenPropertyId, MikanVariantType::UBYTE));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_bluePropertyId, MikanVariantType::UBYTE));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(RGBSpotLightDefinition::k_coneAngleDegreesPropertyId,
+																  MikanVariantType::FLOAT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(RGBSpotLightDefinition::k_coneRangeMetersPropertyId,
+																  MikanVariantType::FLOAT));
 }
 
-bool RGBSpotLightComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool RGBSpotLightComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	RGBSpotLightDefinitionPtr def= getRGBSpotLightDefinition();
 
@@ -484,9 +468,7 @@ bool RGBSpotLightComponent::getPropertyValue(
 	return DMXFixtureComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool RGBSpotLightComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool RGBSpotLightComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	RGBSpotLightDefinitionPtr def= getRGBSpotLightDefinition();
 
@@ -526,9 +508,7 @@ bool RGBSpotLightComponent::setPropertyValue(
 }
 
 // -- customRender --
-void RGBSpotLightComponent::customRender(
-	IMkGraphicsContext* graphicsContext,
-	MikanCameraPtr viewportCamera) const
+void RGBSpotLightComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	RGBSpotLightDefinitionPtr def= getRGBSpotLightDefinition();
 	if (!def || def->getIsDisabled())
@@ -542,12 +522,8 @@ void RGBSpotLightComponent::customRender(
 		drawTransformedAxes(graphicsContext, xform, 0.05f, 0.05f, 0.05f);
 
 		TextStyle style= getDefaultTextStyle();
-		drawTextAtWorldPosition(graphicsContext, style, position,
-								L"Light %d [%d,%d,%d]",
-								def->getComponentId(),
-								static_cast<int>(getRed()),
-								static_cast<int>(getGreen()),
-								static_cast<int>(getBlue()));
+		drawTextAtWorldPosition(graphicsContext, style, position, L"Light %d [%d,%d,%d]", def->getComponentId(),
+								static_cast<int>(getRed()), static_cast<int>(getGreen()), static_cast<int>(getBlue()));
 	}
 
 	// Render the volumetric cone visualization
@@ -581,27 +557,25 @@ void RGBSpotLightComponent::customRender(
 void RGBSpotLightComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<RGBSpotLightComponent, DMXFixtureComponent>(
-			RGBSpotLightComponent::k_componentClassName.c_str())
-		.addProperty("red", [](RGBSpotLightComponent* c) -> int
-					 { return static_cast<int>(c->getRed()); }, [](RGBSpotLightComponent* c, int v)
-					 { c->setRed(static_cast<uint8_t>(v)); })
-		.addProperty("green", [](RGBSpotLightComponent* c) -> int
-					 { return static_cast<int>(c->getGreen()); }, [](RGBSpotLightComponent* c, int v)
-					 { c->setGreen(static_cast<uint8_t>(v)); })
-		.addProperty("blue", [](RGBSpotLightComponent* c) -> int
-					 { return static_cast<int>(c->getBlue()); }, [](RGBSpotLightComponent* c, int v)
-					 { c->setBlue(static_cast<uint8_t>(v)); })
+		.deriveClass<RGBSpotLightComponent, DMXFixtureComponent>(RGBSpotLightComponent::k_componentClassName.c_str())
+		.addProperty(
+			"red", [](RGBSpotLightComponent* c) -> int { return static_cast<int>(c->getRed()); },
+			[](RGBSpotLightComponent* c, int v) { c->setRed(static_cast<uint8_t>(v)); })
+		.addProperty(
+			"green", [](RGBSpotLightComponent* c) -> int { return static_cast<int>(c->getGreen()); },
+			[](RGBSpotLightComponent* c, int v) { c->setGreen(static_cast<uint8_t>(v)); })
+		.addProperty(
+			"blue", [](RGBSpotLightComponent* c) -> int { return static_cast<int>(c->getBlue()); },
+			[](RGBSpotLightComponent* c, int v) { c->setBlue(static_cast<uint8_t>(v)); })
 		.addFunction("setRGB", [](RGBSpotLightComponent* c, int r, int g, int b)
-					 { c->setRGB(
-						   static_cast<uint8_t>(r),
-						   static_cast<uint8_t>(g),
-						   static_cast<uint8_t>(b)); })
-		.addProperty("coneAngleDegrees", [](RGBSpotLightComponent* c) -> float
-					 { return c->getRGBSpotLightDefinition()->getConeAngleDegrees(); }, [](RGBSpotLightComponent* c, float v)
-					 { c->getRGBSpotLightDefinition()->setConeAngleDegrees(v); })
-		.addProperty("coneRangeMeters", [](RGBSpotLightComponent* c) -> float
-					 { return c->getRGBSpotLightDefinition()->getConeRangeMeters(); }, [](RGBSpotLightComponent* c, float v)
-					 { c->getRGBSpotLightDefinition()->setConeRangeMeters(v); })
+					 { c->setRGB(static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b)); })
+		.addProperty(
+			"coneAngleDegrees",
+			[](RGBSpotLightComponent* c) -> float { return c->getRGBSpotLightDefinition()->getConeAngleDegrees(); },
+			[](RGBSpotLightComponent* c, float v) { c->getRGBSpotLightDefinition()->setConeAngleDegrees(v); })
+		.addProperty(
+			"coneRangeMeters",
+			[](RGBSpotLightComponent* c) -> float { return c->getRGBSpotLightDefinition()->getConeRangeMeters(); },
+			[](RGBSpotLightComponent* c, float v) { c->getRGBSpotLightDefinition()->setConeRangeMeters(v); })
 		.endClass();
 }

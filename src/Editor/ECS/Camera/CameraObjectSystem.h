@@ -7,7 +7,8 @@
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 
-class CameraObjectSystemDefinition : public MikanTypedObjectSystemDefinition<CameraComponent, CameraDefinition, MikanCameraID>
+class CameraObjectSystemDefinition
+	: public MikanTypedObjectSystemDefinition<CameraComponent, CameraDefinition, MikanCameraID>
 {
 public:
 	using Super= MikanTypedObjectSystemDefinition<CameraComponent, CameraDefinition, MikanCameraID>;
@@ -15,16 +16,12 @@ public:
 	CameraObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class CameraObjectSystem : public MikanTypedObjectSystem<
-							   CameraComponent, CameraDefinition,
-							   MikanCameraID,
-							   CameraObjectSystem, CameraObjectSystemDefinition>
+class CameraObjectSystem : public MikanTypedObjectSystem<CameraComponent, CameraDefinition, MikanCameraID,
+														 CameraObjectSystem, CameraObjectSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		CameraComponent, CameraDefinition,
-		MikanCameraID,
-		CameraObjectSystem, CameraObjectSystemDefinition>;
+	using Super= MikanTypedObjectSystem<CameraComponent, CameraDefinition, MikanCameraID, CameraObjectSystem,
+										CameraObjectSystemDefinition>;
 
 	CameraObjectSystem(ProjectManagerPtr ownerObjectSystem);
 

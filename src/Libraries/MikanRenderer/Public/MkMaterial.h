@@ -24,11 +24,10 @@ enum class eUniformBindResult : int
 	error
 };
 using BindUniformCallback=
-	std::function<eUniformBindResult(
-		std::shared_ptr<class IMkShader>, // Source program to bind the uniform for
-		eUniformDataType,                 // Data type of the uniform
-		eUniformSemantic,                 // Semantic of the uniform
-		const std::string&)>;             // Name of the uniform
+	std::function<eUniformBindResult(std::shared_ptr<class IMkShader>, // Source program to bind the uniform for
+									 eUniformDataType,                 // Data type of the uniform
+									 eUniformSemantic,                 // Semantic of the uniform
+									 const std::string&)>;             // Name of the uniform
 
 class MIKAN_RENDERER_CLASS MkMaterial
 {

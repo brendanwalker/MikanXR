@@ -52,13 +52,10 @@ void DepthTextureSourceNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	const std::string clientTextureTypeString=
-		pt.get_or<std::string>(
-			"texture_source_depth_type",
-			k_textureSourceDepthTypeStrings[(int)eTextureSourceDepthType::depthPackRGBA]);
+	const std::string clientTextureTypeString= pt.get_or<std::string>(
+		"texture_source_depth_type", k_textureSourceDepthTypeStrings[(int)eTextureSourceDepthType::depthPackRGBA]);
 	textureSourceColorType=
-		StringUtils::FindEnumValue<eTextureSourceDepthType>(
-			clientTextureTypeString, k_textureSourceDepthTypeStrings);
+		StringUtils::FindEnumValue<eTextureSourceDepthType>(clientTextureTypeString, k_textureSourceDepthTypeStrings);
 	bVerticalFlip= pt.get_or<bool>("vertical_flip", false);
 
 	textureVideoSourceId= pt.get_or<int>("texture_source_id", INVALID_MIKAN_ID);
@@ -78,10 +75,8 @@ bool DepthTextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		ProjectManagerPtr projectManager= getOwnerProject();
 		if (projectManager)
 		{
-			m_textureSourceComponent=
-				TextureSourceQueries::getTextureSourceById(
-					projectManager,
-					clientTextureNodeConfig->textureVideoSourceId);
+			m_textureSourceComponent= TextureSourceQueries::getTextureSourceById(
+				projectManager, clientTextureNodeConfig->textureVideoSourceId);
 		}
 
 		return true;
@@ -98,9 +93,7 @@ void DepthTextureSourceNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	textureSourceNodeConfig->textureSourceColorType= m_clientTextureType;
 	textureSourceNodeConfig->bVerticalFlip= m_bVerticalFlip;
 	textureSourceNodeConfig->textureVideoSourceId=
-		textureSourceComponent
-			? textureSourceComponent->getTextureSourceId()
-			: INVALID_MIKAN_ID;
+		textureSourceComponent ? textureSourceComponent->getTextureSourceId() : INVALID_MIKAN_ID;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -145,11 +138,8 @@ IMkTexturePtr DepthTextureSourceNode::getDepthSourceTexture() const
 	if (boundCameraComponent != nullptr && boundCompositorComponent != nullptr && textureSourceComponent != nullptr)
 	{
 		const int64_t pendingFrameIndex= boundCompositorComponent->getPendingCompositedFrameIndex();
-		IMkTexturePtr clientTexture=
-			textureSourceComponent->getClientDepthSourceTexture(
-				boundCameraComponent->getCameraId(),
-				m_clientTextureType,
-				pendingFrameIndex);
+		IMkTexturePtr clientTexture= textureSourceComponent->getClientDepthSourceTexture(
+			boundCameraComponent->getCameraId(), m_clientTextureType, pendingFrameIndex);
 
 		// If the client texture is not available, return a white texture
 		// (white RGBA decodes to linearDepth ≈ 1.004, which is always behind videoZ ≤ 0.9998)
@@ -189,16 +179,13 @@ void DepthTextureSourceNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 	}
 
 	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
-	MkScopedObjectBinding depthFramebufferBinding(
-		graphicsContext->getMkStateStack().getCurrentState(),
-		"Depth Texture Framebuffer Scope",
-		m_linearDepthFrameBuffer);
+	MkScopedObjectBinding depthFramebufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+												  "Depth Texture Framebuffer Scope", m_linearDepthFrameBuffer);
 	if (depthFramebufferBinding)
 	{
 		IMkState* glState= depthFramebufferBinding.getMkState();
 		MkMaterialConstPtr depthUnpackMaterial=
-			graphicsContext->getShaderCache()->getMaterialByName(
-				INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
+			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
 
 		if (depthUnpackMaterial != nullptr)
 		{
@@ -239,7 +226,8 @@ void DepthTextureSourceNode::evaluateDepthTexture(IMkState* glState, IMkTextureP
 	}
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> DepthTextureSourceNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> DepthTextureSourceNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
@@ -273,8 +261,7 @@ void DepthTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 	IMkTexturePtr colorTexture=
 		m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getColorTexture() : IMkTexturePtr();
-	uint32_t glTextureId=
-		colorTexture ? colorTexture->getGlTextureId() : 0;
+	uint32_t glTextureId= colorTexture ? colorTexture->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
 
@@ -290,12 +277,8 @@ void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 	{
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-				"textureSourceColorType",
-				"Type",
-				"depthPackRGBA\0",
-				iTextureType,
-				editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type", "depthPackRGBA\0", iTextureType,
+													 editorState.styleManager))
 		{
 			m_clientTextureType= (eTextureSourceDepthType)iTextureType;
 		}
@@ -308,22 +291,15 @@ void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			TextureSourceComponentPtr videoSourceComponent= getTextureSourceComponent();
 
 			int selectedIndex= dataSource.getEntryIndex(videoSourceComponent);
-			if (NodeEditorUI::DrawComboBoxProperty(
-					"textureSourceIndex",
-					"Source",
-					&dataSource,
-					selectedIndex,
-					editorState.styleManager))
+			if (NodeEditorUI::DrawComboBoxProperty("textureSourceIndex", "Source", &dataSource, selectedIndex,
+												   editorState.styleManager))
 			{
 				m_textureSourceComponent= dataSource.getEntryAtIndex(selectedIndex);
 			}
 		}
 
 		// Vertical Flip
-		NodeEditorUI::DrawCheckBoxProperty(
-			"drawDepthTextureVerticalFlip",
-			"Vertical Flip",
-			m_bVerticalFlip);
+		NodeEditorUI::DrawCheckBoxProperty("drawDepthTextureVerticalFlip", "Vertical Flip", m_bVerticalFlip);
 	}
 }
 

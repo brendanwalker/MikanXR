@@ -61,9 +61,7 @@ AppStage_StencilAlignment::AppStage_StencilAlignment(IEditorWindow* ownerWindow)
 {
 }
 
-AppStage_StencilAlignment::~AppStage_StencilAlignment()
-{
-}
+AppStage_StencilAlignment::~AppStage_StencilAlignment() {}
 
 void AppStage_StencilAlignment::enter()
 {
@@ -108,10 +106,7 @@ void AppStage_StencilAlignment::enter()
 	}
 
 	// Create the distortion view (acts as stream ownership token)
-	m_monoDistortionView=
-		new VideoFrameDistortionView(
-			m_videoSourceComponent,
-			eVideoFrameProcessorMode::CALIBRATION);
+	m_monoDistortionView= new VideoFrameDistortionView(m_videoSourceComponent, eVideoFrameProcessorMode::CALIBRATION);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — update() drives the retry loop
@@ -122,12 +117,9 @@ void AppStage_StencilAlignment::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		m_calibrationPanel= addGuiPanel<GuiPanel_StencilAlignment>();
-		m_calibrationPanel->OnOkEvent= [this]()
-		{ onOkEvent(); };
-		m_calibrationPanel->OnRedoEvent= [this]()
-		{ onRedoEvent(); };
-		m_calibrationPanel->OnCancelEvent= [this]()
-		{ onCancelEvent(); };
+		m_calibrationPanel->OnOkEvent= [this]() { onOkEvent(); };
+		m_calibrationPanel->OnRedoEvent= [this]() { onRedoEvent(); };
+		m_calibrationPanel->OnCancelEvent= [this]() { onCancelEvent(); };
 	}
 
 	setMenuState(newState);
@@ -177,11 +169,7 @@ void AppStage_StencilAlignment::setupStencilAligner()
 {
 	// Create a aligner to calibrate the stencil
 	// (m_monoDistortionView is already created in enter())
-	m_stencilAligner=
-		new StencilAligner(
-			m_cameraComponent,
-			m_monoDistortionView,
-			m_targetStencilComponent);
+	m_stencilAligner= new StencilAligner(m_cameraComponent, m_monoDistortionView, m_targetStencilComponent);
 }
 
 void AppStage_StencilAlignment::updateXRCamera()
@@ -212,10 +200,8 @@ void AppStage_StencilAlignment::updateVRCamera()
 		{
 			if (bValidBoundingSphere)
 			{
-				glm_sphere_union(
-					m_boundingSphereCenter, m_boundingSphereRadius,
-					colliderCenter, colliderRadius,
-					m_boundingSphereCenter, m_boundingSphereRadius);
+				glm_sphere_union(m_boundingSphereCenter, m_boundingSphereRadius, colliderCenter, colliderRadius,
+								 m_boundingSphereCenter, m_boundingSphereRadius);
 			}
 			else
 			{
@@ -286,10 +272,8 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())
 	{
-		MkScopedObjectBinding colorFramebufferBinding(
-			graphicsContext->getMkStateStack().getCurrentState(),
-			"Color Framebuffer Scope",
-			m_frameBuffer);
+		MkScopedObjectBinding colorFramebufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+													  "Color Framebuffer Scope", m_frameBuffer);
 
 		if (colorFramebufferBinding)
 		{
@@ -367,20 +351,12 @@ void AppStage_StencilAlignment::renderStencilScene()
 		if (m_hoverResult.hitValid)
 		{
 			// Draw collision normal
-			drawSegment(
-				graphicsContext,
-				glm::mat4(1.f),
-				m_hoverResult.hitLocation,
-				m_hoverResult.hitLocation + m_hoverResult.hitNormal * 0.01f,
-				Colors::Green);
+			drawSegment(graphicsContext, glm::mat4(1.f), m_hoverResult.hitLocation,
+						m_hoverResult.hitLocation + m_hoverResult.hitNormal * 0.01f, Colors::Green);
 
 			// Draw the closest vertex to the collision point
-			drawSegment(
-				graphicsContext,
-				glm::mat4(1.f),
-				m_hoverResult.closestVertexWorld,
-				m_hoverResult.closestVertexWorld + m_hoverResult.hitNormal * 0.01f,
-				Colors::Yellow);
+			drawSegment(graphicsContext, glm::mat4(1.f), m_hoverResult.closestVertexWorld,
+						m_hoverResult.closestVertexWorld + m_hoverResult.hitNormal * 0.01f, Colors::Yellow);
 		}
 	}
 }
@@ -396,10 +372,7 @@ void AppStage_StencilAlignment::onGui()
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##StencilAlignment", nullptr, k_flags);
 	if (!panel)
@@ -436,10 +409,10 @@ void AppStage_StencilAlignment::setMenuState(eStencilAlignmentMenuState newState
 void AppStage_StencilAlignment::onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
 	eStencilAlignmentMenuState menuState= m_calibrationPanel->getMenuState();
-	if (menuState == eStencilAlignmentMenuState::captureOriginVertex ||
-		menuState == eStencilAlignmentMenuState::captureXAxisVertex ||
-		menuState == eStencilAlignmentMenuState::captureYAxisVertex ||
-		menuState == eStencilAlignmentMenuState::captureZAxisVertex)
+	if (menuState == eStencilAlignmentMenuState::captureOriginVertex
+		|| menuState == eStencilAlignmentMenuState::captureXAxisVertex
+		|| menuState == eStencilAlignmentMenuState::captureYAxisVertex
+		|| menuState == eStencilAlignmentMenuState::captureZAxisVertex)
 	{
 		m_hoverResult= ColliderRaycastHitResult();
 
@@ -453,8 +426,7 @@ void AppStage_StencilAlignment::onMouseRayChanged(const glm::vec3& rayOrigin, co
 				ColliderRaycastHitRequest request= {rayOrigin, rayDir};
 				ColliderRaycastHitResult result;
 
-				if (colliderComponent->computeRayIntersection(request, result) &&
-					result.hitDistance < closestDistance)
+				if (colliderComponent->computeRayIntersection(request, result) && result.hitDistance < closestDistance)
 				{
 					m_hoverResult= result;
 					closestDistance= result.hitDistance;
@@ -465,9 +437,8 @@ void AppStage_StencilAlignment::onMouseRayChanged(const glm::vec3& rayOrigin, co
 			glm::vec3 newColor= m_hoverResult.hitValid ? Colors::LightGray : Colors::DarkGray;
 			for (IMkStaticMeshInstancePtr meshInstance : m_targetStencilComponent->getWireframeMeshes())
 			{
-				meshInstance->getMaterialInstance()->setVec4BySemantic(
-					eUniformSemantic::diffuseColorRGBA,
-					glm::vec4(newColor, 1.f));
+				meshInstance->getMaterialInstance()->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA,
+																	   glm::vec4(newColor, 1.f));
 			}
 		}
 	}
@@ -479,8 +450,8 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 		return;
 
 	eStencilAlignmentMenuState menuState= m_calibrationPanel->getMenuState();
-	if (menuState >= eStencilAlignmentMenuState::captureOriginPixel &&
-		menuState <= eStencilAlignmentMenuState::captureZAxisVertex)
+	if (menuState >= eStencilAlignmentMenuState::captureOriginPixel
+		&& menuState <= eStencilAlignmentMenuState::captureZAxisVertex)
 	{
 		bool bValidSample= false;
 
@@ -499,11 +470,9 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 			{
 				// Remap from window viewport size to the frame buffer size
 				glm::i32vec2 windowViewportSize= viewport->getViewportSize();
-				glm::vec2 frameBufferPixel= remapPointIntoTarget(
-					(float)windowViewportSize.x, (float)windowViewportSize.y,
-					0.f, 0.f,
-					m_frameBuffer->getWidth(), m_frameBuffer->getHeight(),
-					viewportPixel);
+				glm::vec2 frameBufferPixel=
+					remapPointIntoTarget((float)windowViewportSize.x, (float)windowViewportSize.y, 0.f, 0.f,
+										 m_frameBuffer->getWidth(), m_frameBuffer->getHeight(), viewportPixel);
 
 				// Record the pixel location sample
 				m_stencilAligner->samplePixel(frameBufferPixel);
@@ -575,7 +544,4 @@ void AppStage_StencilAlignment::onRedoEvent()
 	setMenuState(eStencilAlignmentMenuState::verifyInitialCameraSetup);
 }
 
-void AppStage_StencilAlignment::onCancelEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_StencilAlignment::onCancelEvent() { m_ownerWindow->popAppState(); }

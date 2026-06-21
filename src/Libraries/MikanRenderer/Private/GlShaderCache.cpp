@@ -17,20 +17,11 @@ public:
 		: m_ownerContext(ownerContext)
 	{
 	}
-	virtual ~GlShaderCache()
-	{
-		shutdown();
-	}
+	virtual ~GlShaderCache() { shutdown(); }
 
-	virtual bool startup() override
-	{
-		return InternalShaders::registerInternalShaders(this);
-	}
+	virtual bool startup() override { return InternalShaders::registerInternalShaders(this); }
 
-	virtual void shutdown() override
-	{
-		m_programCache.clear();
-	}
+	virtual void shutdown() override { m_programCache.clear(); }
 
 	MkMaterialPtr GlShaderCache::registerMaterial(IMkShaderCodeConstPtr code)
 	{
@@ -68,8 +59,7 @@ public:
 		return MkMaterialConstPtr();
 	}
 
-	IMkShaderPtr GlShaderCache::fetchCompiledIMkShader(
-		IMkShaderCodeConstPtr code)
+	IMkShaderPtr GlShaderCache::fetchCompiledIMkShader(IMkShaderCodeConstPtr code)
 	{
 		auto it= m_programCache.find(code->getProgramName());
 		if (it != m_programCache.end())
@@ -121,10 +111,9 @@ IMkShaderCodeConstPtr getPTTexturedFullScreenRGBQuad()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -137,8 +126,8 @@ IMkShaderCodeConstPtr getPTTexturedFullScreenRGBQuad()
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -166,10 +155,9 @@ IMkShaderCodeConstPtr getPTUndistortTexturedFullScreenRGBQuad()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -182,8 +170,8 @@ IMkShaderCodeConstPtr getPTUndistortTexturedFullScreenRGBQuad()
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -215,10 +203,9 @@ IMkShaderCodeConstPtr getPTTexturedFullScreenRGBAQuad()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -231,8 +218,8 @@ IMkShaderCodeConstPtr getPTTexturedFullScreenRGBAQuad()
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -259,10 +246,9 @@ IMkShaderCodeConstPtr getTextShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_TEXT,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_TEXT,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -277,8 +263,8 @@ IMkShaderCodeConstPtr getTextShaderCode()
 					gl_Position = vec4(2.0*(aPos.x / screenSize.x) - 1.0, 1.0 - 2.0*(aPos.y / screenSize.y), 0.0, 1.0); 
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -307,10 +293,9 @@ IMkShaderCodeConstPtr getUnpackRGBALinearDepthTextureShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -323,8 +308,8 @@ IMkShaderCodeConstPtr getUnpackRGBALinearDepthTextureShaderCode()
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 				out float gl_FragDepth;
@@ -358,10 +343,9 @@ IMkShaderCodeConstPtr getPWireframeShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_P_WIREFRAME,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_P_WIREFRAME,
+										  // vertex shader
+										  R""""(
 				#version 410 
 				uniform mat4 mvpMatrix; 
 				layout(location = 0) in vec3 in_position; 
@@ -370,8 +354,8 @@ IMkShaderCodeConstPtr getPWireframeShaderCode()
 					gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 410 core
 				uniform vec4 diffuseColor; 
 				out vec4 out_FragColor;
@@ -394,10 +378,9 @@ IMkShaderCodeConstPtr getPSolidColorShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_P_SOLID_COLOR,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_P_SOLID_COLOR,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 
@@ -408,8 +391,8 @@ IMkShaderCodeConstPtr getPSolidColorShaderCode()
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -434,10 +417,9 @@ IMkShaderCodeConstPtr getPCUnlitColorShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PC_UNLIT_COLOR,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PC_UNLIT_COLOR,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec3 inPosition;
 				layout (location = 1) in vec4 inColor0; 
@@ -451,8 +433,8 @@ IMkShaderCodeConstPtr getPCUnlitColorShaderCode()
 					gl_Position = mvpMatrix * vec4(inPosition, 1.0);
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				in vec4 fragColor;
 				out vec4 finalColor;
@@ -476,10 +458,9 @@ IMkShaderCodeConstPtr getPTTexturedShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PT_TEXTURED,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_TEXTURED,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -494,8 +475,8 @@ IMkShaderCodeConstPtr getPTTexturedShaderCode()
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -524,10 +505,9 @@ IMkShaderCodeConstPtr getPNTTexturedShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PNT_TEXTURED,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PNT_TEXTURED,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 				layout(location = 1) in vec3 v3NormalIn; 
@@ -543,8 +523,8 @@ IMkShaderCodeConstPtr getPNTTexturedShaderCode()
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				}  
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -574,10 +554,9 @@ IMkShaderCodeConstPtr getPNTTexturedColoredShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED,
+										  // vertex shader
+										  R""""(
 				#version 410 
 				uniform mat4 matrix; 
 				layout(location = 0) in vec3 aPos; 
@@ -602,8 +581,8 @@ IMkShaderCodeConstPtr getPNTTexturedColoredShaderCode()
 
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 410 core
 
 				in vec3 Normal; // Normal from the vertex shader
@@ -669,10 +648,9 @@ IMkShaderCodeConstPtr getPLinearDepthShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_P_LINEAR_DEPTH,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_P_LINEAR_DEPTH,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 
@@ -691,8 +669,8 @@ IMkShaderCodeConstPtr getPLinearDepthShaderCode()
 					depth = -(mvMatrix * vec4(aPos, 1.0)).z;
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 
 				uniform mat4 projMatrix;
@@ -737,10 +715,9 @@ IMkShaderCodeConstPtr getPTVisualizeGLDepthShaderCode()
 		// and the perspective projection formula is using the OpenGL convention where:
 		// Near plane(z = zNear) -> NDC z = -1 -> depth buffer = 0
 		// Far plane(z = zFar) -> NDC z = 1 -> depth buffer = 1
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -753,8 +730,8 @@ IMkShaderCodeConstPtr getPTVisualizeGLDepthShaderCode()
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -799,10 +776,9 @@ IMkShaderCodeConstPtr getPM5544TestCardShaderCode()
 	{
 		// PM5544 Test Card from here: https://www.shadertoy.com/view/4ccyWH
 		// CRT effects from here: https://www.shadertoy.com/view/XtlSD7
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_PT_PM5544_TEST_CARD,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_PM5544_TEST_CARD,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -815,8 +791,8 @@ IMkShaderCodeConstPtr getPM5544TestCardShaderCode()
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -973,10 +949,9 @@ IMkShaderCodeConstPtr getPConeVolumeShaderCode()
 
 	if (x_shaderCode == nullptr)
 	{
-		x_shaderCode= createIMkShaderCode(
-			INTERNAL_MATERIAL_P_CONE_VOLUME,
-			// vertex shader
-			R""""(
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_P_CONE_VOLUME,
+										  // vertex shader
+										  R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 
@@ -990,8 +965,8 @@ IMkShaderCodeConstPtr getPConeVolumeShaderCode()
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				}
 				)"""",
-			// fragment shader
-			R""""(
+										  // fragment shader
+										  R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -1040,7 +1015,8 @@ bool registerInternalShaders(IMkShaderCache* shaderCache)
 	{
 		if (!shaderCache->registerMaterial(code))
 		{
-			MIKAN_LOG_ERROR("InternalShaders::registerInternalShaders()") << "Failed to compile " << code->getProgramName();
+			MIKAN_LOG_ERROR("InternalShaders::registerInternalShaders()")
+				<< "Failed to compile " << code->getProgramName();
 			bSuccess= false;
 		}
 	}

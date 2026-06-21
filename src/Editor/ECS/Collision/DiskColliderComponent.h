@@ -15,9 +15,8 @@ public:
 	float getRadius() const { return m_radius; }
 	void setRadius(float radius) { m_radius= radius; }
 
-	virtual bool computeRayIntersection(
-		const ColliderRaycastHitRequest& request,
-		ColliderRaycastHitResult& outResult) const override;
+	virtual bool computeRayIntersection(const ColliderRaycastHitRequest& request,
+										ColliderRaycastHitResult& outResult) const override;
 
 private:
 	float m_radius;

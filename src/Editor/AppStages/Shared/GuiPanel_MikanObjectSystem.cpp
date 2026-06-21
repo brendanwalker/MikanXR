@@ -7,10 +7,7 @@ GuiPanel_MikanObjectSystem::GuiPanel_MikanObjectSystem(AppStage* ownerAppStage)
 {
 }
 
-MikanObjectSystemPtr GuiPanel_MikanObjectSystem::getObjectSystem() const
-{
-	return m_objectSystem.lock();
-}
+MikanObjectSystemPtr GuiPanel_MikanObjectSystem::getObjectSystem() const { return m_objectSystem.lock(); }
 
 void GuiPanel_MikanObjectSystem::setObjectSystem(MikanObjectSystemPtr objectSystem)
 {
@@ -18,20 +15,14 @@ void GuiPanel_MikanObjectSystem::setObjectSystem(MikanObjectSystemPtr objectSyst
 	m_entityAccessor->setEntityAccessor(objectSystem);
 }
 
-void GuiPanel_MikanObjectSystem::onGui()
-{
-	m_entityAccessor->onGui();
-}
+void GuiPanel_MikanObjectSystem::onGui() { m_entityAccessor->onGui(); }
 
 void GuiPanel_MikanObjectSystem::addDeferredGuiEvent(std::function<void()> callback)
 {
 	m_entityAccessor->addDeferredGuiEvent(callback);
 }
 
-void GuiPanel_MikanObjectSystem::processDeferredGuiEvents()
-{
-	m_entityAccessor->processDeferredGuiEvents();
-}
+void GuiPanel_MikanObjectSystem::processDeferredGuiEvents() { m_entityAccessor->processDeferredGuiEvents(); }
 
 void GuiPanel_MikanObjectSystem::dispose()
 {

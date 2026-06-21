@@ -9,10 +9,7 @@
 class VRDevicePoseSampler
 {
 public:
-	VRDevicePoseSampler(
-		VRDevicePoseViewPtr poseView,
-		CameraComponentConstPtr cameraContext,
-		int desiredSampleCount);
+	VRDevicePoseSampler(VRDevicePoseViewPtr poseView, CameraComponentConstPtr cameraContext, int desiredSampleCount);
 	virtual ~VRDevicePoseSampler();
 
 	bool hasFinishedSampling() const;

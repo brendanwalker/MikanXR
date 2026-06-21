@@ -31,10 +31,7 @@ void MaterialNodeConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- MaterialNode -----
-MaterialNode::~MaterialNode()
-{
-	setOwnerGraph(NodeGraphPtr());
-}
+MaterialNode::~MaterialNode() { setOwnerGraph(NodeGraphPtr()); }
 
 void MaterialNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 {
@@ -70,8 +67,7 @@ bool MaterialNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		else
 		{
 			MIKAN_LOG_WARNING("MaterialNode::loadFromConfig")
-				<< "Failed to find material property: " << propId
-				<< ", on material node";
+				<< "Failed to find material property: " << propId << ", on material node";
 		}
 	}
 
@@ -117,7 +113,8 @@ bool MaterialNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> MaterialNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> MaterialNode::editorRenderMakeNodeStyle(
+	const NodeEditorState& editorState) const
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))

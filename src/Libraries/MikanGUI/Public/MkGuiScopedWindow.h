@@ -6,9 +6,7 @@
 class MIKAN_GUI_CLASS MkGuiScopedWindow
 {
 public:
-	MkGuiScopedWindow(const char* name,
-					  bool* p_open= nullptr,
-					  ImGuiWindowFlags flags= 0);
+	MkGuiScopedWindow(const char* name, bool* p_open= nullptr, ImGuiWindowFlags flags= 0);
 	~MkGuiScopedWindow();
 
 	MkGuiScopedWindow(const MkGuiScopedWindow&)= delete;

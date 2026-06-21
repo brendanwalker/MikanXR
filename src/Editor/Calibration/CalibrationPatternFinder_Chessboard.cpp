@@ -9,11 +9,9 @@
 #include "opencv2/calib3d/calib3d.hpp"
 
 //-- CalibrationPatternFinder_Chessboard -----
-CalibrationPatternFinder_Chessboard::CalibrationPatternFinder_Chessboard(
-	VideoFrameDistortionView* distortionView,
-	int chessbordRows,
-	int chessbordCols,
-	float squareLengthMM)
+CalibrationPatternFinder_Chessboard::CalibrationPatternFinder_Chessboard(VideoFrameDistortionView* distortionView,
+																		 int chessbordRows, int chessbordCols,
+																		 float squareLengthMM)
 	: CalibrationPatternFinder(distortionView)
 	, m_chessbordRows(chessbordRows)
 	, m_chessbordCols(chessbordCols)
@@ -28,22 +26,15 @@ CalibrationPatternFinder_Chessboard::CalibrationPatternFinder_Chessboard(
 		for (int col= 0; col < m_chessbordCols; ++col)
 		{
 			// Solve PnP points are on the XZ Plane
-			cv::Point3f openCVSolvePnPPoint(
-				float(col) * m_squareLengthMM,
-				0.f,
-				-float(row) * m_squareLengthMM);
+			cv::Point3f openCVSolvePnPPoint(float(col) * m_squareLengthMM, 0.f, -float(row) * m_squareLengthMM);
 			// Lens calibration points are on the XY Plane
-			cv::Point3f openCVLensCalibrationPoint(
-				float(col) * m_squareLengthMM,
-				float(row) * m_squareLengthMM,
-				0.f);
+			cv::Point3f openCVLensCalibrationPoint(float(col) * m_squareLengthMM, float(row) * m_squareLengthMM, 0.f);
 
 			// OpenCV -> OpenGL coordinate system transform
 			// Rendering world units in meters, not mm
-			glm::vec3 openGLPoint(
-				openCVSolvePnPPoint.x * k_millimeters_to_meters,
-				-openCVSolvePnPPoint.y * k_millimeters_to_meters,
-				-openCVSolvePnPPoint.z * k_millimeters_to_meters);
+			glm::vec3 openGLPoint(openCVSolvePnPPoint.x * k_millimeters_to_meters,
+								  -openCVSolvePnPPoint.y * k_millimeters_to_meters,
+								  -openCVSolvePnPPoint.z * k_millimeters_to_meters);
 
 			m_opencvLensCalibrationGeometry.points.push_back(openCVLensCalibrationPoint);
 			m_opencvSolvePnPGeometry.points.push_back(openCVSolvePnPPoint);
@@ -67,24 +58,21 @@ bool CalibrationPatternFinder_Chessboard::findNewCalibrationPattern(const float 
 		return false;
 
 	// Find chessboard corners:
-	const bool bFoundChessboard=
-		cv::findChessboardCorners(
-			*gsSourceBuffer,
-			cv::Size(m_chessbordCols, m_chessbordRows),
-			m_currentImagePoints, // output corners
-			cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_FILTER_QUADS
-				// + cv::CALIB_CB_NORMALIZE_IMAGE is suuuper slow
-				+ cv::CALIB_CB_FAST_CHECK);
+	const bool bFoundChessboard= cv::findChessboardCorners(*gsSourceBuffer, cv::Size(m_chessbordCols, m_chessbordRows),
+														   m_currentImagePoints, // output corners
+														   cv::CALIB_CB_ADAPTIVE_THRESH
+															   + cv::CALIB_CB_FILTER_QUADS
+															   // + cv::CALIB_CB_NORMALIZE_IMAGE is suuuper slow
+															   + cv::CALIB_CB_FAST_CHECK);
 
 	if (bFoundChessboard)
 	{
 		// Get subpixel accuracy on those corners
-		cv::cornerSubPix(
-			*gsSourceBuffer,
-			m_currentImagePoints, // corners to refine
-			cv::Size(11, 11),     // winSize- Half of the side length of the search window
-			cv::Size(-1, -1),     // zeroZone- (-1,-1) means no dead zone in search
-			cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 30, 0.1));
+		cv::cornerSubPix(*gsSourceBuffer,
+						 m_currentImagePoints, // corners to refine
+						 cv::Size(11, 11),     // winSize- Half of the side length of the search window
+						 cv::Size(-1, -1),     // zeroZone- (-1,-1) means no dead zone in search
+						 cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 30, 0.1));
 
 		// Append the new chessboard corner pixels into the image_points matrix
 		if (m_currentImagePoints.size() == cornerCount)
@@ -98,8 +86,7 @@ bool CalibrationPatternFinder_Chessboard::findNewCalibrationPattern(const float 
 				for (int corner_index= 0; corner_index < cornerCount; ++corner_index)
 				{
 					float squared_error=
-						(float)(cv::norm(
-							m_currentImagePoints[corner_index] - m_lastValidImagePoints[corner_index]));
+						(float)(cv::norm(m_currentImagePoints[corner_index] - m_lastValidImagePoints[corner_index]));
 
 					error_sum+= squared_error;
 				}
@@ -123,10 +110,9 @@ bool CalibrationPatternFinder_Chessboard::findNewCalibrationPattern(const float 
 	return bImagePointsValid;
 }
 
-bool CalibrationPatternFinder_Chessboard::fetchLastFoundCalibrationPattern(
-	t_opencv_point2d_list& outImagePoints,
-	t_opencv_pointID_list& outImagePointIDs,
-	cv::Point2f outBoundingQuad[4])
+bool CalibrationPatternFinder_Chessboard::fetchLastFoundCalibrationPattern(t_opencv_point2d_list& outImagePoints,
+																		   t_opencv_pointID_list& outImagePointIDs,
+																		   cv::Point2f outBoundingQuad[4])
 {
 	// If it's a valid new location, append it to the board list
 	if (areCurrentImagePointsValid())

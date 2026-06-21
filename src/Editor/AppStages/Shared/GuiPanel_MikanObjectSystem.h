@@ -18,7 +18,10 @@ public:
 
 	// IGuiPanel
 	virtual class AppStage* getOwnerAppStage() const override { return m_entityAccessor->getOwnerAppStage(); }
-	virtual class MkGuiStyleManager* getGuiStyleManager() const override { return m_entityAccessor->getGuiStyleManager(); }
+	virtual class MkGuiStyleManager* getGuiStyleManager() const override
+	{
+		return m_entityAccessor->getGuiStyleManager();
+	}
 	virtual void onGui() override;
 	virtual void addDeferredGuiEvent(std::function<void()> callback) override;
 	virtual void processDeferredGuiEvents() override;
@@ -28,14 +31,12 @@ protected:
 	template <class t_object_system_type>
 	bool initTypedPropertyInterface(AppStage* ownerAppStage)
 	{
-		const bool bSuccess=
-			m_entityAccessor->init<t_object_system_type>(
-				t_object_system_type::k_objectSystemClassName,
-				[this]() -> bool
-				{
-					onConstruct();
-					return true;
-				});
+		const bool bSuccess= m_entityAccessor->init<t_object_system_type>(t_object_system_type::k_objectSystemClassName,
+																		  [this]() -> bool
+																		  {
+																			  onConstruct();
+																			  return true;
+																		  });
 
 		return bSuccess;
 	}

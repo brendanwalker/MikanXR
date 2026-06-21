@@ -14,10 +14,13 @@
 
 using VRTrackingVolumeIdList= std::vector<MikanTrackingVolumeID>;
 
-class VRTrackingVolumeSystemDefinition : public MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID>
+class VRTrackingVolumeSystemDefinition
+	: public MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition,
+											  MikanTrackingVolumeID>
 {
 public:
-	using Super= MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID>;
+	using Super=
+		MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID>;
 
 	VRTrackingVolumeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -25,16 +28,13 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class VRTrackingVolumeSystem : public MikanTypedObjectSystem<
-								   VRTrackingVolumeComponent, VRTrackingVolumeDefinition,
-								   MikanTrackingVolumeID,
-								   VRTrackingVolumeSystem, VRTrackingVolumeSystemDefinition>
+class VRTrackingVolumeSystem
+	: public MikanTypedObjectSystem<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID,
+									VRTrackingVolumeSystem, VRTrackingVolumeSystemDefinition>
 {
 public:
-	using Super= MikanTypedObjectSystem<
-		VRTrackingVolumeComponent, VRTrackingVolumeDefinition,
-		MikanTrackingVolumeID,
-		VRTrackingVolumeSystem, VRTrackingVolumeSystemDefinition>;
+	using Super= MikanTypedObjectSystem<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID,
+										VRTrackingVolumeSystem, VRTrackingVolumeSystemDefinition>;
 
 	VRTrackingVolumeSystem(ProjectManagerPtr ownerObjectSystemManager);
 
@@ -53,7 +53,6 @@ public:
 	VRTrackingVolumeComponentPtr addNewVRTrackingVolume(eTrackingRuntime trackingRuntime);
 
 protected:
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		VRTrackingVolumeDefinitionPtr componentDefinition) override;
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											VRTrackingVolumeDefinitionPtr componentDefinition) override;
 };

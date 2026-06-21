@@ -32,12 +32,8 @@ const ImVec4 getComponentColor(float alpha= 1.f);
 bool DrawPropertySheetHeader(const std::string headerText, MkGuiStyleManager* styleManager);
 void DrawStaticTextProperty(const std::string label, const std::string text, MkGuiStyleManager* styleManager);
 void DrawCheckBoxProperty(const std::string fieldName, const std::string label, bool& inout_value);
-bool DrawSimpleComboBoxProperty(
-	const std::string fieldName,
-	const std::string label,
-	const char* items,
-	int& inout_selectedIdex,
-	MkGuiStyleManager* styleManager);
+bool DrawSimpleComboBoxProperty(const std::string fieldName, const std::string label, const char* items,
+								int& inout_selectedIdex, MkGuiStyleManager* styleManager);
 void DrawImageProperty(const std::string label, IMkTexturePtr image);
 
 class ComboBoxDataSource
@@ -48,12 +44,8 @@ public:
 
 	static bool itemGetter(void* data, int idx, const char** out_str);
 };
-bool DrawComboBoxProperty(
-	const std::string fieldName,
-	const std::string label,
-	ComboBoxDataSource* dataSource,
-	int& inout_selectedIdex,
-	MkGuiStyleManager* styleManager);
+bool DrawComboBoxProperty(const std::string fieldName, const std::string label, ComboBoxDataSource* dataSource,
+						  int& inout_selectedIdex, MkGuiStyleManager* styleManager);
 
 void* receiveDragDropPayload(const std::string& PayloadType);
 template <class t_payload_type>

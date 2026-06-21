@@ -91,15 +91,9 @@ int App::exec(int argc, char** argv)
 	return result;
 }
 
-IEditorWindow* App::getCurrentlyRenderingWindow() const
-{
-	return m_renderingWindow;
-}
+IEditorWindow* App::getCurrentlyRenderingWindow() const { return m_renderingWindow; }
 
-bool App::hasCommandLineFlag(const std::string& flag) const
-{
-	return m_commandLineFlags.count(flag) > 0;
-}
+bool App::hasCommandLineFlag(const std::string& flag) const { return m_commandLineFlags.count(flag) > 0; }
 
 std::string App::getCommandLineStringArg(const std::string& key, const std::string& defaultValue) const
 {
@@ -281,9 +275,7 @@ void App::tick()
 
 	// Update the frame rate
 	const auto now= std::chrono::steady_clock::now();
-	const float deltaSeconds= fminf(
-		std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
-		0.1f);
+	const float deltaSeconds= fminf(std::chrono::duration<float>(now - m_lastFrameTimestamp).count(), 0.1f);
 	m_fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 	m_secondsSinceAppStart+= deltaSeconds;
 	m_lastFrameTimestamp= now;

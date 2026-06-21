@@ -12,9 +12,8 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem,
-		const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_spoutSourcePropertyId;
 	inline const std::string& getSpoutSource() const { return m_spoutSource; }
@@ -42,7 +41,9 @@ public:
 	const std::string& getSpoutSourceName() const;
 
 	// Texture Source Interface
-	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const;
+	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId,
+													  eTextureSourceColorType textureSourceColorType,
+													  int64_t frameIndex= -1) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -60,7 +61,8 @@ public:
 	virtual void showTextureSourceSettings() override;
 
 protected:
-	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
 	void closeTextureSource();
 	void openTextureSource();
 

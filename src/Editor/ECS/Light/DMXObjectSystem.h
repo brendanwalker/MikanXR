@@ -59,11 +59,16 @@ public:
 
 	DMXObjectSystemDefinitionConstPtr getDMXObjectSystemConfigConst() const;
 	DMXObjectSystemDefinitionPtr getDMXObjectSystemConfig();
-	const DMXManagerConfig& getDMXManagerConfig() const { return getDMXObjectSystemConfigConst()->getDMXManagerConfig(); }
+	const DMXManagerConfig& getDMXManagerConfig() const
+	{
+		return getDMXObjectSystemConfigConst()->getDMXManagerConfig();
+	}
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
-	virtual bool getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const override;
-	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const override;
+	virtual bool getComponentList(const std::string& componentClassName,
+								  std::vector<MikanComponentPtr>& outComponentList) const override;
+	virtual bool getComponentIdList(const std::string& componentClassName,
+									std::vector<int>& outComponentIdList) const override;
 
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase) override;
@@ -89,9 +94,7 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	void onDefinitionMarkedDirty(
-		CommonConfigPtr configPtr,
-		const class ConfigPropertyChangeSet& changedPropertySet);
+	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 
 private:
 	IDMXManagerUniquePtr m_dmxManager;

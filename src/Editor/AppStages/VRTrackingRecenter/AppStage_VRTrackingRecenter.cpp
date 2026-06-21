@@ -54,14 +54,11 @@ AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(IEditorWindow* ownerWin
 {
 }
 
-AppStage_VRTrackingRecenter::~AppStage_VRTrackingRecenter()
-{
-}
+AppStage_VRTrackingRecenter::~AppStage_VRTrackingRecenter() {}
 
-bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
-	class AppStage* fromAppStage,
-	CameraComponentPtr withCameraComponent,
-	VRTrackingVolumeComponentPtr forTrackingVolume)
+bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(class AppStage* fromAppStage,
+															   CameraComponentPtr withCameraComponent,
+															   VRTrackingVolumeComponentPtr forTrackingVolume)
 {
 	assert(fromAppStage);
 	assert(withCameraComponent);
@@ -71,8 +68,7 @@ bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
 	if (!videoSourceComponent)
 	{
 		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Camera is not associated with a video source. Please set a video source for the camera.");
+			fromAppStage, "Camera is not associated with a video source. Please set a video source for the camera.");
 		return false;
 	}
 
@@ -95,9 +91,9 @@ bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
 
 	if (!withCameraComponent->hasValidApertureOffsetXform())
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Selected camera does not have a valid aperture offset transform. Please calibrate the camera's tracking mount offset.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage,
+											   "Selected camera does not have a valid aperture offset transform. "
+											   "Please calibrate the camera's tracking mount offset.");
 		return false;
 	}
 
@@ -138,10 +134,7 @@ void AppStage_VRTrackingRecenter::enter()
 	m_frameBuffer->createResources();
 
 	// Create the distortion view (acts as stream ownership token)
-	m_monoDistortionView=
-		new VideoFrameDistortionView(
-			m_videoSourceComponent,
-			eVideoFrameProcessorMode::CALIBRATION);
+	m_monoDistortionView= new VideoFrameDistortionView(m_videoSourceComponent, eVideoFrameProcessorMode::CALIBRATION);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — update() drives the retry loop
@@ -152,16 +145,11 @@ void AppStage_VRTrackingRecenter::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		m_calibrationPanel= addGuiPanel<GuiPanel_VRTrackingRecenter>();
-		m_calibrationPanel->OnBeginEvent= [this]()
-		{ onBeginEvent(); };
-		m_calibrationPanel->OnRestartEvent= [this]()
-		{ onRestartEvent(); };
-		m_calibrationPanel->OnCancelEvent= [this]()
-		{ onCancelEvent(); };
-		m_calibrationPanel->OnReturnEvent= [this]()
-		{ onReturnEvent(); };
-		m_calibrationPanel->OnMarkerStabilityChangedEvent= [this](bool b)
-		{ onMarkerStabilityChangedEvent(b); };
+		m_calibrationPanel->OnBeginEvent= [this]() { onBeginEvent(); };
+		m_calibrationPanel->OnRestartEvent= [this]() { onRestartEvent(); };
+		m_calibrationPanel->OnCancelEvent= [this]() { onCancelEvent(); };
+		m_calibrationPanel->OnReturnEvent= [this]() { onReturnEvent(); };
+		m_calibrationPanel->OnMarkerStabilityChangedEvent= [this](bool b) { onMarkerStabilityChangedEvent(b); };
 	}
 
 	setMenuState(newState);
@@ -206,19 +194,12 @@ void AppStage_VRTrackingRecenter::setupMarkerPoseSampler()
 	// Create a sampler to do the actual marker pose recording
 	// (m_monoDistortionView is already created in enter())
 	m_markerPoseSampler=
-		new ArucoMarkerPoseSampler(
-			m_cameraComponent,
-			m_monoDistortionView,
-			DESIRED_MARKER_SAMPLE_COUNT);
+		new ArucoMarkerPoseSampler(m_cameraComponent, m_monoDistortionView, DESIRED_MARKER_SAMPLE_COUNT);
 
 	// Create a sampler to record the camera puck pose in VR tracking space
 	VRDevicePoseViewPtr puckPoseView=
 		m_cameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
-	m_puckSampler=
-		new VRDevicePoseSampler(
-			puckPoseView,
-			m_cameraComponent,
-			DESIRED_MARKER_SAMPLE_COUNT);
+	m_puckSampler= new VRDevicePoseSampler(puckPoseView, m_cameraComponent, DESIRED_MARKER_SAMPLE_COUNT);
 }
 
 void AppStage_VRTrackingRecenter::updateCameraPose()
@@ -286,8 +267,7 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 		m_monoDistortionView->readAndProcessVideoFrame();
 
 		// Sample marker and puck together each frame
-		if (m_markerPoseSampler->computeApertureRelativeMarkerXform() &&
-			m_puckSampler->computeVRDeviceXform())
+		if (m_markerPoseSampler->computeApertureRelativeMarkerXform() && m_puckSampler->computeVRDeviceXform())
 		{
 			m_markerPoseSampler->sampleLastApertureRelativeMarkerXform();
 			m_puckSampler->sampleLastVRDeviceXform();
@@ -304,30 +284,24 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 			MikanQuatd markerRot;
 			MikanVector3d markerPos;
 			glm::mat4 apertureOffsetXform;
-			if (m_puckSampler->computeCalibratedDevicePose(puckRot, puckPos) &&
-				m_markerPoseSampler->computeCalibratedMarkerPose(markerRot, markerPos) &&
-				m_cameraComponent->getApertureOffsetXform(apertureOffsetXform))
+			if (m_puckSampler->computeCalibratedDevicePose(puckRot, puckPos)
+				&& m_markerPoseSampler->computeCalibratedMarkerPose(markerRot, markerPos)
+				&& m_cameraComponent->getApertureOffsetXform(apertureOffsetXform))
 			{
 				// Compute the puck pose in VRSpace
 				glm::dmat4 avgPuckXform_VRSpace=
-					glm_mat4_from_pose(
-						MikanQuatd_to_glm_dquat(puckRot),
-						MikanVector3d_to_glm_dvec3(puckPos));
+					glm_mat4_from_pose(MikanQuatd_to_glm_dquat(puckRot), MikanVector3d_to_glm_dvec3(puckPos));
 
 				// Compute the aperture pose in VR space by applying the aperture offset to the puck pose
-				glm::dmat4 avgAperturePose_VRSpace=
-					glm_composite_xform(apertureOffsetXform, avgPuckXform_VRSpace);
+				glm::dmat4 avgAperturePose_VRSpace= glm_composite_xform(apertureOffsetXform, avgPuckXform_VRSpace);
 
 				// Compute the marker pose in aperture space
 				glm::dmat4 avgApertureToMarker=
-					glm_mat4_from_pose(
-						MikanQuatd_to_glm_dquat(markerRot),
-						MikanVector3d_to_glm_dvec3(markerPos));
+					glm_mat4_from_pose(MikanQuatd_to_glm_dquat(markerRot), MikanVector3d_to_glm_dvec3(markerPos));
 
 				// The conversion from stage space to VR tracking space is given
 				// by the marker pose in VR space since the marker is at the origin of stage space
-				glm::dmat4 stageSpaceToVRSpace=
-					glm_composite_xform(avgApertureToMarker, avgAperturePose_VRSpace);
+				glm::dmat4 stageSpaceToVRSpace= glm_composite_xform(avgApertureToMarker, avgAperturePose_VRSpace);
 				// Thus the conversion from VR tracking space to stage space is the inverse of that
 				glm::mat4 vrSpaceToStageSpace= glm::inverse(glm::mat4(stageSpaceToVRSpace));
 
@@ -359,10 +333,8 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())
 	{
-		MkScopedObjectBinding colorFramebufferBinding(
-			graphicsContext->getMkStateStack().getCurrentState(),
-			"Color Framebuffer Scope",
-			m_frameBuffer);
+		MkScopedObjectBinding colorFramebufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+													  "Color Framebuffer Scope", m_frameBuffer);
 
 		if (colorFramebufferBinding)
 		{
@@ -432,10 +404,7 @@ void AppStage_VRTrackingRecenter::onGui()
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, 0), ImGuiCond_Always);
 
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##VRTrackingRecenter", nullptr, k_flags);
 	if (!panel)
@@ -466,10 +435,7 @@ void AppStage_VRTrackingRecenter::setMenuState(eVRTrackingRecenterMenuState newS
 }
 
 // Calibration Model UI Events
-void AppStage_VRTrackingRecenter::onBeginEvent()
-{
-	tryBeginCapture();
-}
+void AppStage_VRTrackingRecenter::onBeginEvent() { tryBeginCapture(); }
 
 bool AppStage_VRTrackingRecenter::tryBeginCapture()
 {
@@ -491,10 +457,7 @@ bool AppStage_VRTrackingRecenter::tryBeginCapture()
 	return false;
 }
 
-void AppStage_VRTrackingRecenter::onRestartEvent()
-{
-	tryRestartCapture();
-}
+void AppStage_VRTrackingRecenter::onRestartEvent() { tryRestartCapture(); }
 
 bool AppStage_VRTrackingRecenter::tryRestartCapture()
 {
@@ -516,15 +479,9 @@ bool AppStage_VRTrackingRecenter::tryRestartCapture()
 	return false;
 }
 
-void AppStage_VRTrackingRecenter::onCancelEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_VRTrackingRecenter::onCancelEvent() { m_ownerWindow->popAppState(); }
 
-void AppStage_VRTrackingRecenter::onReturnEvent()
-{
-	m_ownerWindow->popAppState();
-}
+void AppStage_VRTrackingRecenter::onReturnEvent() { m_ownerWindow->popAppState(); }
 
 void AppStage_VRTrackingRecenter::onMarkerStabilityChangedEvent(bool bIsStable)
 {
@@ -535,10 +492,9 @@ void AppStage_VRTrackingRecenter::onMarkerStabilityChangedEvent(bool bIsStable)
 }
 
 // Remote Control
-bool AppStage_VRTrackingRecenter::handleRemoteControlCommand(
-	const std::string& command,
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage_VRTrackingRecenter::handleRemoteControlCommand(const std::string& command,
+															 const std::vector<std::string>& parameters,
+															 std::vector<std::string>& outResults)
 {
 	if (!IRemoteControllable::handleRemoteControlCommand(command, parameters, outResults))
 	{
@@ -563,8 +519,7 @@ bool AppStage_VRTrackingRecenter::handleRemoteControlCommand(
 	return false;
 }
 
-bool AppStage_VRTrackingRecenter::handleGetStateCommand(
-	std::vector<std::string>& outResults)
+bool AppStage_VRTrackingRecenter::handleGetStateCommand(std::vector<std::string>& outResults)
 {
 	const eVRTrackingRecenterMenuState menuState= m_calibrationPanel->getMenuState();
 	const std::string& stateName= k_VRTrackingRecenterMenuStateStrings[(int)menuState];
@@ -574,8 +529,7 @@ bool AppStage_VRTrackingRecenter::handleGetStateCommand(
 	return true;
 }
 
-bool AppStage_VRTrackingRecenter::handleGetChessboardStabilityCommand(
-	std::vector<std::string>& outResults)
+bool AppStage_VRTrackingRecenter::handleGetChessboardStabilityCommand(std::vector<std::string>& outResults)
 {
 	const bool bIsStable= m_calibrationPanel->getCurrentMarkerStable();
 	outResults.push_back(bIsStable ? IRemoteControllable::k_true : IRemoteControllable::k_false);

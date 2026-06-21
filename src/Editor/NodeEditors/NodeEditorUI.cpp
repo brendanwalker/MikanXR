@@ -37,65 +37,29 @@ const std::string& getArrayIcon()
 	return icon;
 }
 
-const ImVec4 getPinHoveredColor(float alpha)
-{
-	return ImVec4(0.53f, 0.937f, 0.765f, alpha);
-}
+const ImVec4 getPinHoveredColor(float alpha) { return ImVec4(0.53f, 0.937f, 0.765f, alpha); }
 
-const ImVec4 getBooleanColor(float alpha)
-{
-	return ImVec4(0.5f, 0.0f, 0.0f, alpha);
-}
+const ImVec4 getBooleanColor(float alpha) { return ImVec4(0.5f, 0.0f, 0.0f, alpha); }
 
-const ImVec4 getEnumColor(float alpha)
-{
-	return ImVec4(0.f, 0.278f, 0.302f, alpha);
-}
+const ImVec4 getEnumColor(float alpha) { return ImVec4(0.f, 0.278f, 0.302f, alpha); }
 
-const ImVec4 getIntColor(float alpha)
-{
-	return ImVec4(0.176f, 0.529f, 0.329f, alpha);
-}
+const ImVec4 getIntColor(float alpha) { return ImVec4(0.176f, 0.529f, 0.329f, alpha); }
 
-const ImVec4 getIntVectorColor(float alpha)
-{
-	return ImVec4(0.557f, 0.886f, 0.722f, alpha);
-}
+const ImVec4 getIntVectorColor(float alpha) { return ImVec4(0.557f, 0.886f, 0.722f, alpha); }
 
-const ImVec4 getFloatColor(float alpha)
-{
-	return ImVec4(0.624f, 0.973f, 0.267f, alpha);
-}
+const ImVec4 getFloatColor(float alpha) { return ImVec4(0.624f, 0.973f, 0.267f, alpha); }
 
-const ImVec4 getFloatVectorColor(float alpha)
-{
-	return ImVec4(1.f, 0.78f, 0.173f, alpha);
-}
+const ImVec4 getFloatVectorColor(float alpha) { return ImVec4(1.f, 0.78f, 0.173f, alpha); }
 
-const ImVec4 getMatrixColor(float alpha)
-{
-	return ImVec4(0.965f, 0.396f, 0.024f, alpha);
-}
+const ImVec4 getMatrixColor(float alpha) { return ImVec4(0.965f, 0.396f, 0.024f, alpha); }
 
-const ImVec4 getPropertyColor(float alpha)
-{
-	return ImVec4(0.f, 0.631f, 0.929f, alpha);
-}
+const ImVec4 getPropertyColor(float alpha) { return ImVec4(0.f, 0.631f, 0.929f, alpha); }
 
-const ImVec4 getTextureColor(float alpha)
-{
-	return ImVec4(0.6f, 0.263f, 0.969f, alpha);
-}
+const ImVec4 getTextureColor(float alpha) { return ImVec4(0.6f, 0.263f, 0.969f, alpha); }
 
-const ImVec4 getComponentColor(float alpha)
-{
-	return ImVec4(0.008f, 0.643f, 0.949f, alpha);
-}
+const ImVec4 getComponentColor(float alpha) { return ImVec4(0.008f, 0.643f, 0.949f, alpha); }
 
-static std::string makeImGuiElementName(const std::string& name)
-{
-	return StringUtils::stringify("##", name);
-}
+static std::string makeImGuiElementName(const std::string& name) { return StringUtils::stringify("##", name); }
 
 bool DrawPropertySheetHeader(const std::string headerText, MkGuiStyleManager* styleManager)
 {
@@ -122,12 +86,8 @@ void DrawCheckBoxProperty(const std::string fieldName, const std::string label, 
 	ImGui::Checkbox(imguiElementName.c_str(), &inout_value);
 }
 
-bool DrawSimpleComboBoxProperty(
-	const std::string fieldName,
-	const std::string label,
-	const char* items,
-	int& inout_selectedIdex,
-	MkGuiStyleManager* styleManager)
+bool DrawSimpleComboBoxProperty(const std::string fieldName, const std::string label, const char* items,
+								int& inout_selectedIdex, MkGuiStyleManager* styleManager)
 {
 	ImGui::Text(label.c_str());
 	ImGui::SameLine(k_labelWidth);
@@ -160,22 +120,15 @@ bool ComboBoxDataSource::itemGetter(void* data, int idx, const char** out_str)
 	return false;
 }
 
-bool DrawComboBoxProperty(
-	const std::string fieldName,
-	const std::string label,
-	ComboBoxDataSource* dataSource,
-	int& inout_selectedIdex,
-	MkGuiStyleManager* styleManager)
+bool DrawComboBoxProperty(const std::string fieldName, const std::string label, ComboBoxDataSource* dataSource,
+						  int& inout_selectedIdex, MkGuiStyleManager* styleManager)
 {
 	ImGui::Text(label.c_str());
 	ImGui::SameLine(k_labelWidth);
 	ImGui::SetNextItemWidth(k_valueWidth);
 	MkGuiScopedStyle comboStyle(styleManager->getStyle("node_editor_property_value"));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
-	return ImGui::Combo(imguiElementName.c_str(),
-						&inout_selectedIdex,
-						&ComboBoxDataSource::itemGetter,
-						dataSource,
+	return ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, &ComboBoxDataSource::itemGetter, dataSource,
 						dataSource->getEntryCount());
 }
 

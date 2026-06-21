@@ -2,10 +2,7 @@
 
 #include "imgui.h"
 
-MkGuiScopedDragDropTarget::MkGuiScopedDragDropTarget()
-{
-	m_active= ImGui::BeginDragDropTarget();
-}
+MkGuiScopedDragDropTarget::MkGuiScopedDragDropTarget() { m_active= ImGui::BeginDragDropTarget(); }
 
 MkGuiScopedDragDropTarget::~MkGuiScopedDragDropTarget()
 {

@@ -31,13 +31,9 @@ public:
 	using Pool= MikanTypedComponentPool<TComponent, TDefinition, TID>;
 	using DefinitionInitFunction= std::function<bool(ComponentDefinitionPtr)>;
 
-	MikanTypedObjectSystem(
-		ProjectManagerPtr ownerObjectSystem)
+	MikanTypedObjectSystem(ProjectManagerPtr ownerObjectSystem)
 		: MikanObjectSystem(ownerObjectSystem)
-		, m_componentPool(
-			  this,
-			  [this](auto def)
-			  { return this->objectFactory(def); })
+		, m_componentPool(this, [this](auto def) { return this->objectFactory(def); })
 	{
 	}
 
@@ -96,9 +92,8 @@ public:
 		return std::static_pointer_cast<MikanComponent>(m_componentPool.getById(static_cast<TID>(componentId)));
 	}
 
-	virtual bool getComponentList(
-		const std::string& componentClassName,
-		std::vector<MikanComponentPtr>& outComponentList) const
+	virtual bool getComponentList(const std::string& componentClassName,
+								  std::vector<MikanComponentPtr>& outComponentList) const
 	{
 		if (componentClassName == TComponent::k_componentClassName)
 		{
@@ -108,9 +103,7 @@ public:
 		return false;
 	}
 
-	virtual bool getComponentIdList(
-		const std::string& componentClassName,
-		std::vector<int>& outComponentIdList) const
+	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const
 	{
 		if (componentClassName == TComponent::k_componentClassName)
 		{
@@ -138,20 +131,11 @@ public:
 		}
 	}
 
-	ComponentPtr getTypedComponentById(TID id) const
-	{
-		return m_componentPool.getById(id);
-	}
+	ComponentPtr getTypedComponentById(TID id) const { return m_componentPool.getById(id); }
 
-	ComponentPtr getTypedComponentByName(const std::string& name) const
-	{
-		return m_componentPool.getByName(name);
-	}
+	ComponentPtr getTypedComponentByName(const std::string& name) const { return m_componentPool.getByName(name); }
 
-	TID getFirstComponentId() const
-	{
-		return m_componentPool.getFirstComponentId();
-	}
+	TID getFirstComponentId() const { return m_componentPool.getFirstComponentId(); }
 
 	using PredFunction= std::function<bool(ComponentConstPtr)>;
 	ComponentPtr getTypedComponentByPredicate(PredFunction predicate) const
@@ -159,10 +143,7 @@ public:
 		return m_componentPool.findByPredicate(predicate);
 	}
 
-	const typename Pool::ComponentMap& getComponentMap() const
-	{
-		return m_componentPool.getAll();
-	}
+	const typename Pool::ComponentMap& getComponentMap() const { return m_componentPool.getAll(); }
 
 	using VisitFunction= std::function<void(ComponentPtr)>;
 	using FilterFunction= std::function<bool(ComponentPtr)>;
@@ -180,9 +161,8 @@ public:
 	}
 
 	// Component Pool Mutators
-	virtual MikanComponentPtr addNewObjectByUntypedDefinition(
-		const std::string& primaryComponentClass,
-		Serialization::PolymorphicObjectPtr initParams) override
+	virtual MikanComponentPtr addNewObjectByUntypedDefinition(const std::string& primaryComponentClass,
+															  Serialization::PolymorphicObjectPtr initParams) override
 	{
 		// Only support creating objects from definitions that match the primary component type of this system
 		if (primaryComponentClass == TComponent::k_componentClassName)
@@ -205,8 +185,8 @@ public:
 
 		// Allocate new component definition (doesn't add to pool yet)
 		ComponentDefinitionPtr componentDefinition= systemDefinition->allocateNewDefinition();
-		componentDefinition->setComponentName(
-			TComponent::k_componentClassName + std::to_string(componentDefinition->getComponentId()));
+		componentDefinition->setComponentName(TComponent::k_componentClassName
+											  + std::to_string(componentDefinition->getComponentId()));
 
 		// Allow caller to initialize definition before creating object
 		if (definitionInit)
@@ -262,12 +242,8 @@ public:
 	// -- Rendering -----
 	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera, FilterFunction filterFunc= {})
 	{
-		visitComponents(
-			[graphicsContext, viewportCamera](ComponentPtr component)
-			{
-				component->customRender(graphicsContext, viewportCamera);
-			},
-			filterFunc);
+		visitComponents([graphicsContext, viewportCamera](ComponentPtr component)
+						{ component->customRender(graphicsContext, viewportCamera); }, filterFunc);
 	}
 
 	// -- IPropertyInterface ----
@@ -276,7 +252,8 @@ public:
 		MikanObjectSystem::getPropertyDescriptors(outDescriptors);
 
 		outDescriptors.push_back(
-			std::make_shared<PropertyDescriptor>(TSystemDefinition::k_componentIdListPropertyId, MikanVariantType::INT_ARRAY)
+			std::make_shared<PropertyDescriptor>(TSystemDefinition::k_componentIdListPropertyId,
+												 MikanVariantType::INT_ARRAY)
 				->setReadOnly()
 				->setUIHidden()
 				->setClientAPIHidden()); // Exposed via GetComponentListRequest, not PropertyGetValueRequest
@@ -301,9 +278,8 @@ protected:
 		return m_componentPool.create(componentDefinition);
 	}
 
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		ComponentDefinitionPtr componentDefinition)
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											ComponentDefinitionPtr componentDefinition)
 	{
 		// override in derived classes to add additional components to the object
 	}
@@ -315,19 +291,19 @@ private:
 		const std::string systemName= getObjectSystemClassName();
 		const std::string compName= componentDefinition->getComponentName();
 
-#define MIKAN_FACTORY_TIMED(label, expr)                                            \
-	do                                                                              \
-	{                                                                               \
-		auto _t0= std::chrono::high_resolution_clock::now();                        \
-		expr;                                                                       \
-		auto _ms= std::chrono::duration_cast<std::chrono::milliseconds>(            \
-					  std::chrono::high_resolution_clock::now() - _t0)              \
-					  .count();                                                     \
-		if (_ms >= 10)                                                              \
-		{                                                                           \
-			MIKAN_LOG_INFO("MikanTypedObjectSystem::objectFactory")                 \
-				<< systemName << "[" << compName << "] " label ": " << _ms << "ms"; \
-		}                                                                           \
+#define MIKAN_FACTORY_TIMED(label, expr)                                                                               \
+	do                                                                                                                 \
+	{                                                                                                                  \
+		auto _t0= std::chrono::high_resolution_clock::now();                                                           \
+		expr;                                                                                                          \
+		auto _ms=                                                                                                      \
+			std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - _t0)     \
+				.count();                                                                                              \
+		if (_ms >= 10)                                                                                                 \
+		{                                                                                                              \
+			MIKAN_LOG_INFO("MikanTypedObjectSystem::objectFactory")                                                    \
+				<< systemName << "[" << compName << "] " label ": " << _ms << "ms";                                    \
+		}                                                                                                              \
 	} while (0)
 
 		MikanObjectPtr mikanObject= newEmptyObject();
@@ -345,8 +321,7 @@ private:
 		}
 
 		// Allow derived systems to add additional components
-		MIKAN_FACTORY_TIMED("additionalComponentFactory",
-							additionalComponentFactory(mikanObject, componentDefinition));
+		MIKAN_FACTORY_TIMED("additionalComponentFactory", additionalComponentFactory(mikanObject, componentDefinition));
 
 		// Init the object once all components are added
 		MIKAN_FACTORY_TIMED("init", mikanObject->init());

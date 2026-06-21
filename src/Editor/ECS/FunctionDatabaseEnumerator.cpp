@@ -5,11 +5,10 @@
 #include <algorithm>
 #include <cctype>
 
-FunctionDatabaseEnumerator::FunctionDatabaseEnumerator(
-	MikanFunctionDatabaseConstPtr database,
-	const std::string& systemFilter,
-	const std::string& componentFilter,
-	const std::string& functionFilter)
+FunctionDatabaseEnumerator::FunctionDatabaseEnumerator(MikanFunctionDatabaseConstPtr database,
+													   const std::string& systemFilter,
+													   const std::string& componentFilter,
+													   const std::string& functionFilter)
 	: m_database(database)
 	, m_systemFilter(systemFilter)
 	, m_componentFilter(componentFilter)
@@ -88,11 +87,9 @@ bool FunctionDatabaseEnumerator::matchesFilter(const std::string& value, const s
 	std::string lowerFilter= filter;
 
 	std::transform(lowerValue.begin(), lowerValue.end(), lowerValue.begin(),
-				   [](unsigned char c)
-				   { return std::tolower(c); });
+				   [](unsigned char c) { return std::tolower(c); });
 	std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(),
-				   [](unsigned char c)
-				   { return std::tolower(c); });
+				   [](unsigned char c) { return std::tolower(c); });
 
 	return lowerValue == lowerFilter;
 }

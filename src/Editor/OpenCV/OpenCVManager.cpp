@@ -127,10 +127,7 @@ void OpenCVManager::parseOpenCVBuildInfo()
 	}
 }
 
-void OpenCVManager::shutdown()
-{
-	m_dnnMap.clear();
-}
+void OpenCVManager::shutdown() { m_dnnMap.clear(); }
 
 DeepNeuralNetworkPtr OpenCVManager::fetchDeepNeuralNetwork(const std::string& dnnFileName)
 {

@@ -28,19 +28,10 @@ bool convertWcsToMbs(const wchar_t* wc_string, char* out_mb_string, const size_t
 		const wchar_t* wcsIndirectString= wc_string;
 		mbstate_t mbstate;
 
-		success= wcsrtombs_s(
-					 &countConverted,
-					 out_mb_string,
-					 mb_buffer_size,
-					 &wcsIndirectString,
-					 _TRUNCATE,
-					 &mbstate) == 0;
-#else
 		success=
-			wcstombs(
-				out_mb_string,
-				wc_string,
-				mb_buffer_size) != static_cast<size_t>(-1);
+			wcsrtombs_s(&countConverted, out_mb_string, mb_buffer_size, &wcsIndirectString, _TRUNCATE, &mbstate) == 0;
+#else
+		success= wcstombs(out_mb_string, wc_string, mb_buffer_size) != static_cast<size_t>(-1);
 #endif
 	}
 
@@ -56,12 +47,7 @@ bool convertMbsToWcs(const char* mb_string, wchar_t* out_wc_string, const size_t
 		const char* mbsIndirectString= mb_string;
 		mbstate_t mbstate;
 
-		success=
-			mbsrtowcs(
-				out_wc_string,
-				&mbsIndirectString,
-				wc_buffer_size,
-				&mbstate) != static_cast<size_t>(-1);
+		success= mbsrtowcs(out_wc_string, &mbsIndirectString, wc_buffer_size, &mbstate) != static_cast<size_t>(-1);
 	}
 
 	return success;
@@ -145,8 +131,7 @@ int formatWString(wchar_t* buffer, size_t buffer_size, const wchar_t* format, ..
 
 std::string base64Encode(const std::vector<uint8_t>& data)
 {
-	static const char kBase64Chars[]=
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	static const char kBase64Chars[]= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 	std::string result;
 	const size_t size= data.size();

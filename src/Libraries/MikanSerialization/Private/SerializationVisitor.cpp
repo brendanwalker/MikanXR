@@ -127,10 +127,7 @@ ValueAccessor::ValueAccessor(ValueAccessor&& other)
 {
 }
 
-ValueAccessor::~ValueAccessor()
-{
-	delete m_pimpl;
-}
+ValueAccessor::~ValueAccessor() { delete m_pimpl; }
 
 ValueAccessor& ValueAccessor::operator=(const ValueAccessor& other)
 {
@@ -143,10 +140,7 @@ ValueAccessor& ValueAccessor::operator=(const ValueAccessor& other)
 	return *this;
 }
 
-const void* ValueAccessor::getInstance() const
-{
-	return m_pimpl->instance;
-}
+const void* ValueAccessor::getInstance() const { return m_pimpl->instance; }
 
 void* ValueAccessor::getInstanceMutable() const
 {
@@ -154,35 +148,17 @@ void* ValueAccessor::getInstanceMutable() const
 	return m_pimpl->instance;
 }
 
-rfk::Field const* ValueAccessor::getField() const
-{
-	return m_pimpl->field;
-}
+rfk::Field const* ValueAccessor::getField() const { return m_pimpl->field; }
 
-rfk::Type const& ValueAccessor::getType() const
-{
-	return m_pimpl->type;
-}
+rfk::Type const& ValueAccessor::getType() const { return m_pimpl->type; }
 
-std::string const& ValueAccessor::getName() const
-{
-	return m_pimpl->name;
-}
+std::string const& ValueAccessor::getName() const { return m_pimpl->name; }
 
-rfk::Class const* ValueAccessor::getClassType() const
-{
-	return rfk::classCast(m_pimpl->type.getArchetype());
-}
+rfk::Class const* ValueAccessor::getClassType() const { return rfk::classCast(m_pimpl->type.getArchetype()); }
 
-rfk::Struct const* ValueAccessor::getStructType() const
-{
-	return rfk::structCast(m_pimpl->type.getArchetype());
-}
+rfk::Struct const* ValueAccessor::getStructType() const { return rfk::structCast(m_pimpl->type.getArchetype()); }
 
-rfk::Enum const* ValueAccessor::getEnumType() const
-{
-	return rfk::enumCast(m_pimpl->type.getArchetype());
-}
+rfk::Enum const* ValueAccessor::getEnumType() const { return rfk::enumCast(m_pimpl->type.getArchetype()); }
 
 const void* ValueAccessor::getUntypedValuePtr() const
 {
@@ -208,18 +184,21 @@ void* ValueAccessor::getUntypedValueMutablePtr() const
 void memoryOffsetSortStructFields(rfk::Struct const& structType, FieldList& outFields)
 {
 	// Recurse into parent structs first, since they will be laid out in memory first
-	structType.foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool
-								   {
-			FieldList* outSortedFieldsPtr = reinterpret_cast<FieldList*>(userData);
+	structType.foreachDirectParent(
+		[](rfk::ParentStruct const& parentStruct, void* userData) -> bool
+		{
+			FieldList* outSortedFieldsPtr= reinterpret_cast<FieldList*>(userData);
 			memoryOffsetSortStructFields(parentStruct.getArchetype(), *outSortedFieldsPtr);
-			return true; },
-								   &outFields);
+			return true;
+		},
+		&outFields);
 
 	// Gather all the public, non-static fields on this struct
 	FieldList fieldsOnThisStruct;
-	structType.foreachField([](rfk::Field const& field, void* userData) -> bool
-							{
-			FieldList* sortedFieldsPtr = reinterpret_cast<FieldList*>(userData);
+	structType.foreachField(
+		[](rfk::Field const& field, void* userData) -> bool
+		{
+			FieldList* sortedFieldsPtr= reinterpret_cast<FieldList*>(userData);
 
 			// Skip this field is it is non-public or is static
 			if (field.getAccess() != rfk::EAccessSpecifier::Public || field.isStatic())
@@ -228,18 +207,15 @@ void memoryOffsetSortStructFields(rfk::Struct const& structType, FieldList& outF
 			}
 
 			sortedFieldsPtr->push_back(&field);
-			return true; },
-							&fieldsOnThisStruct,
-							false);
+			return true;
+		},
+		&fieldsOnThisStruct, false);
 
 	// Sort the fields on this struct by memory offset
 	if (fieldsOnThisStruct.size() > 1)
 	{
 		std::sort(fieldsOnThisStruct.begin(), fieldsOnThisStruct.end(),
-				  [](rfk::Field const* a, rfk::Field const* b)
-				  {
-					  return a->getMemoryOffset() < b->getMemoryOffset();
-				  });
+				  [](rfk::Field const* a, rfk::Field const* b) { return a->getMemoryOffset() < b->getMemoryOffset(); });
 	}
 
 	// Append the sorted fields to the output list

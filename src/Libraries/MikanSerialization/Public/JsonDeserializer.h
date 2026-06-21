@@ -8,17 +8,11 @@
 
 namespace Serialization
 {
-SERIALIZATION_API bool deserializeFromJsonString(
-	const std::string& jsonString,
-	void* instance,
-	rfk::Struct const& structType,
-	std::string& outErrorMsg);
+SERIALIZATION_API bool deserializeFromJsonString(const std::string& jsonString, void* instance,
+												 rfk::Struct const& structType, std::string& outErrorMsg);
 
-SERIALIZATION_API bool deserializeFromJson(
-	const nlohmann::json& jsonObject,
-	void* instance,
-	rfk::Struct const& structType,
-	std::string& outErrorMsg);
+SERIALIZATION_API bool deserializeFromJson(const nlohmann::json& jsonObject, void* instance,
+										   rfk::Struct const& structType, std::string& outErrorMsg);
 
 #ifdef SERIALIZATION_REFLECTION_ENABLED
 template <typename t_object_type>

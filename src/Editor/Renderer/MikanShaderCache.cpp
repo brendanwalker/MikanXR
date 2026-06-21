@@ -16,15 +16,9 @@ MikanShaderCache::MikanShaderCache(IMkGraphicsContext* graphicsContext)
 {
 }
 
-bool MikanShaderCache::startup()
-{
-	return m_shaderCache->startup();
-}
+bool MikanShaderCache::startup() { return m_shaderCache->startup(); }
 
-void MikanShaderCache::shutdown()
-{
-	m_shaderCache->shutdown();
-}
+void MikanShaderCache::shutdown() { m_shaderCache->shutdown(); }
 
 MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef)
 {
@@ -89,8 +83,7 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("MikanShaderCache::loadFromConfigData")
-			<< vertexShaderFilePath.string()
-			<< " - unable to load vertex shader file!";
+			<< vertexShaderFilePath.string() << " - unable to load vertex shader file!";
 		return IMkShaderCodeConstPtr();
 	}
 
@@ -109,8 +102,7 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("MikanShaderCache::loadFromConfigData")
-			<< fragmentShaderFilePath.string()
-			<< " - unable to load fragment shader file!";
+			<< fragmentShaderFilePath.string() << " - unable to load fragment shader file!";
 		return IMkShaderCodeConstPtr();
 	}
 
@@ -120,16 +112,12 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 
 	for (const GlVertexAttributeConfigPtr attribConfig : config.vertexAttributes)
 	{
-		if (attribConfig->dataType == eVertexDataType::INVALID ||
-			attribConfig->semantic == eVertexSemantic::INVALID)
+		if (attribConfig->dataType == eVertexDataType::INVALID || attribConfig->semantic == eVertexSemantic::INVALID)
 		{
 			MIKAN_LOG_ERROR("IMkShaderCode::loadFromConfigData")
-				<< "Invalid vertex attribute("
-				<< attribConfig->name
-				<< ") dataType="
-				<< VertexConstantUtils::vertexDataTypeToString(attribConfig->dataType)
-				<< ", semantic="
-				<< VertexConstantUtils::vertexSemanticToString(attribConfig->semantic);
+				<< "Invalid vertex attribute(" << attribConfig->name
+				<< ") dataType=" << VertexConstantUtils::vertexDataTypeToString(attribConfig->dataType)
+				<< ", semantic=" << VertexConstantUtils::vertexSemanticToString(attribConfig->semantic);
 			return IMkShaderCodeConstPtr();
 		}
 		else
@@ -159,10 +147,7 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 		else
 		{
 			MIKAN_LOG_ERROR("IMkShaderCode::loadFromConfigData")
-				<< "Invalid semantic: "
-				<< uniformName
-				<< " -> "
-				<< semanticName;
+				<< "Invalid semantic: " << uniformName << " -> " << semanticName;
 			return IMkShaderCodeConstPtr();
 		}
 	}
@@ -180,8 +165,7 @@ MkMaterialConstPtr MikanShaderCache::getMaterialByName(const std::string& name)
 	return m_shaderCache->getMaterialByName(name);
 }
 
-IMkShaderPtr MikanShaderCache::fetchCompiledIMkShader(
-	IMkShaderCodeConstPtr code)
+IMkShaderPtr MikanShaderCache::fetchCompiledIMkShader(IMkShaderCodeConstPtr code)
 {
 	return m_shaderCache->fetchCompiledIMkShader(code);
 }

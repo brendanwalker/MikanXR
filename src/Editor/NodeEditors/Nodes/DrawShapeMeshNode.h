@@ -63,9 +63,7 @@ protected:
 	void setMaterialPin(PropertyPinPtr inPin);
 	void setMaterial(MkMaterialConstPtr inMaterial);
 
-	void drawShapeRenderable(
-		IMkSceneRenderableConstPtr renderable,
-		const glm::mat4& vpMatrix);
+	void drawShapeRenderable(IMkSceneRenderableConstPtr renderable, const glm::mat4& vpMatrix);
 
 protected:
 	PropertyPinPtr m_materialPin;

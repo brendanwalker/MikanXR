@@ -24,10 +24,7 @@ void MikanGStreamerVideoDeviceManager::shutdown()
 	m_deviceList.clear();
 }
 
-size_t MikanGStreamerVideoDeviceManager::getDeviceCount() const
-{
-	return m_deviceList.size();
-}
+size_t MikanGStreamerVideoDeviceManager::getDeviceCount() const { return m_deviceList.size(); }
 
 INetworkVideoDevicePtr MikanGStreamerVideoDeviceManager::getDeviceByIndex(size_t index)
 {
@@ -43,12 +40,9 @@ INetworkVideoDevicePtr MikanGStreamerVideoDeviceManager::getDeviceByPath(const c
 {
 	size_t devicePathLen= strlen(devicePath);
 
-	auto it= std::find_if(
-		m_deviceList.begin(), m_deviceList.end(),
-		[devicePath, devicePathLen](const INetworkVideoDevicePtr& entry)
-		{
-			return strncmp(devicePath, entry->getDevicePath(), devicePathLen) != 0;
-		});
+	auto it= std::find_if(m_deviceList.begin(), m_deviceList.end(),
+						  [devicePath, devicePathLen](const INetworkVideoDevicePtr& entry)
+						  { return strncmp(devicePath, entry->getDevicePath(), devicePathLen) != 0; });
 
 	if (it != m_deviceList.end())
 	{

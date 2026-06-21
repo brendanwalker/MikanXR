@@ -68,10 +68,7 @@ public:
 		return nullptr;
 	}
 
-	const DeviceSetPoseSample* getNewestSample() const
-	{
-		return !isEmpty() ? &m_samples[m_head] : nullptr;
-	}
+	const DeviceSetPoseSample* getNewestSample() const { return !isEmpty() ? &m_samples[m_head] : nullptr; }
 
 	const DeviceSetPoseSample* getOldestSample() const
 	{
@@ -86,25 +83,13 @@ public:
 		m_currentSize= 0;
 	}
 
-	bool isEmpty() const
-	{
-		return m_currentSize == 0;
-	}
+	bool isEmpty() const { return m_currentSize == 0; }
 
-	bool full() const
-	{
-		return m_currentSize >= m_maxSize;
-	}
+	bool full() const { return m_currentSize >= m_maxSize; }
 
-	size_t capacity() const
-	{
-		return m_maxSize;
-	}
+	size_t capacity() const { return m_maxSize; }
 
-	size_t size() const
-	{
-		return m_currentSize;
-	}
+	size_t size() const { return m_currentSize; }
 
 private:
 	std::unique_ptr<DeviceSetPoseSample[]> m_samples;
@@ -127,9 +112,7 @@ MikanSteamVRManager::MikanSteamVRManager()
 {
 }
 
-MikanSteamVRManager::~MikanSteamVRManager()
-{
-}
+MikanSteamVRManager::~MikanSteamVRManager() {}
 
 void MikanSteamVRManager::addListener(IVRDeviceManagerListener* eventListener)
 {
@@ -163,10 +146,7 @@ bool MikanSteamVRManager::startup(IMkGraphicsContext* graphicsContext)
 	return true;
 }
 
-void MikanSteamVRManager::createGraphicsResources()
-{
-	m_resourceManager->createPendingGraphicsResources();
-}
+void MikanSteamVRManager::createGraphicsResources() { m_resourceManager->createPendingGraphicsResources(); }
 
 void MikanSteamVRManager::update(float deltaTime)
 {
@@ -228,15 +208,9 @@ void MikanSteamVRManager::update(float deltaTime)
 	updateDevicePoses();
 }
 
-void MikanSteamVRManager::shutdown()
-{
-	disconnect();
-}
+void MikanSteamVRManager::shutdown() { disconnect(); }
 
-size_t MikanSteamVRManager::getDeviceCount() const
-{
-	return m_activeSteamVRDeviceList.size();
-}
+size_t MikanSteamVRManager::getDeviceCount() const { return m_activeSteamVRDeviceList.size(); }
 
 IVRDevice* MikanSteamVRManager::getDeviceByIndex(size_t index)
 {
@@ -245,12 +219,9 @@ IVRDevice* MikanSteamVRManager::getDeviceByIndex(size_t index)
 
 IVRDevice* MikanSteamVRManager::getDeviceByPath(const char* devicePath)
 {
-	auto it= std::find_if(
-		m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
-		[devicePath](const IVRDevicePtr& device)
-		{
-			return strncmp(device->getDevicePath(), devicePath, 512) == 0;
-		});
+	auto it= std::find_if(m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
+						  [devicePath](const IVRDevicePtr& device)
+						  { return strncmp(device->getDevicePath(), devicePath, 512) == 0; });
 	if (it != m_activeSteamVRDeviceList.end())
 	{
 		return it->get();
@@ -342,9 +313,8 @@ SteamVRDeviceList MikanSteamVRManager::getActiveDevicesOfType(eVRDeviceType devi
 	return filteredDevices;
 }
 
-const vr::TrackedDevicePose_t* MikanSteamVRManager::getDevicePose(
-	vr::TrackedDeviceIndex_t steamvrDeviceId,
-	int vrFrameDelay) const
+const vr::TrackedDevicePose_t* MikanSteamVRManager::getDevicePose(vr::TrackedDeviceIndex_t steamvrDeviceId,
+																  int vrFrameDelay) const
 {
 	if (m_activeSteamVRDeviceIdSet.find(steamvrDeviceId) != m_activeSteamVRDeviceIdSet.end())
 	{
@@ -373,10 +343,7 @@ void MikanSteamVRManager::addConnectedDeviceIdsOfClass(int deviceClassEnumValue)
 	auto deviceClass= static_cast<vr::ETrackedDeviceClass>(deviceClassEnumValue);
 	vr::TrackedDeviceIndex_t deviceIndices[vr::k_unMaxTrackedDeviceCount];
 	uint32_t deviceCount=
-		vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(
-			deviceClass,
-			deviceIndices,
-			vr::k_unMaxTrackedDeviceCount);
+		vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(deviceClass, deviceIndices, vr::k_unMaxTrackedDeviceCount);
 
 	for (uint32_t index= 0; index < deviceCount; ++index)
 	{
@@ -395,9 +362,8 @@ void MikanSteamVRManager::handleTrackedDeviceActivated(vr::TrackedDeviceIndex_t 
 {
 	const vr::ETrackedDeviceClass deviceClass= vr::VRSystem()->GetTrackedDeviceClass(steamVRDeviceId);
 
-	if (deviceClass == vr::TrackedDeviceClass_HMD ||
-		deviceClass == vr::TrackedDeviceClass_Controller ||
-		deviceClass == vr::TrackedDeviceClass_GenericTracker)
+	if (deviceClass == vr::TrackedDeviceClass_HMD || deviceClass == vr::TrackedDeviceClass_Controller
+		|| deviceClass == vr::TrackedDeviceClass_GenericTracker)
 	{
 		m_activeSteamVRDeviceIdSet.insert(steamVRDeviceId);
 
@@ -420,17 +386,13 @@ void MikanSteamVRManager::handleTrackedDeviceDeactivated(vr::TrackedDeviceIndex_
 {
 	const vr::ETrackedDeviceClass deviceClass= vr::VRSystem()->GetTrackedDeviceClass(deviceIndex);
 
-	if (deviceClass == vr::TrackedDeviceClass_HMD ||
-		deviceClass == vr::TrackedDeviceClass_Controller ||
-		deviceClass == vr::TrackedDeviceClass_GenericTracker)
+	if (deviceClass == vr::TrackedDeviceClass_HMD || deviceClass == vr::TrackedDeviceClass_Controller
+		|| deviceClass == vr::TrackedDeviceClass_GenericTracker)
 	{
 		m_activeSteamVRDeviceIdSet.erase(deviceIndex);
-		auto it= std::remove_if(
-			m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
-			[deviceIndex](const IVRDevicePtr& device)
-			{
-				return device->getDeviceIndex() == deviceIndex;
-			});
+		auto it= std::remove_if(m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
+								[deviceIndex](const IVRDevicePtr& device)
+								{ return device->getDeviceIndex() == deviceIndex; });
 
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{
@@ -441,12 +403,9 @@ void MikanSteamVRManager::handleTrackedDeviceDeactivated(vr::TrackedDeviceIndex_
 
 void MikanSteamVRManager::handleTrackedDevicePropertyChanged(vr::TrackedDeviceIndex_t deviceIndex)
 {
-	auto it= std::find_if(
-		m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
-		[deviceIndex](const IVRDevicePtr& device)
-		{
-			return device->getDeviceIndex() == deviceIndex;
-		});
+	auto it=
+		std::find_if(m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
+					 [deviceIndex](const IVRDevicePtr& device) { return device->getDeviceIndex() == deviceIndex; });
 
 	if (it != m_activeSteamVRDeviceList.end())
 	{
@@ -476,11 +435,8 @@ void MikanSteamVRManager::updateDevicePoses()
 		newSample.frameCounter= m_vrFrameCounter;
 		if (vrSystem != nullptr)
 		{
-			vrSystem->GetDeviceToAbsoluteTrackingPose(
-				vr::TrackingUniverseStanding,
-				0.0f,
-				newSample.devicePoses,
-				vr::k_unMaxTrackedDeviceCount);
+			vrSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0f, newSample.devicePoses,
+													  vr::k_unMaxTrackedDeviceCount);
 		}
 		m_vrFrameCounter++;
 	}

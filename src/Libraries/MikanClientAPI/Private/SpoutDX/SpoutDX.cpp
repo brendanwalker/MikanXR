@@ -224,7 +224,8 @@ bool spoutDX::OpenDirectX11(ID3D11Device* pDevice)
 			// Get the immediate context
 			pDevice->GetImmediateContext(&m_pImmediateContext);
 			m_bClassDevice= false; // An existing device pointer was used
-			SpoutLogNotice("    using device (0x%.7X) : context (0x%.7X)", PtrToUint(m_pd3dDevice), PtrToUint(m_pImmediateContext));
+			SpoutLogNotice("    using device (0x%.7X) : context (0x%.7X)", PtrToUint(m_pd3dDevice),
+						   PtrToUint(m_pImmediateContext));
 		}
 		else
 		{
@@ -245,17 +246,11 @@ bool spoutDX::OpenDirectX11(ID3D11Device* pDevice)
 
 // Function: OpenDirectX11
 // Return the class DirectX11 device
-ID3D11Device* spoutDX::GetDX11Device()
-{
-	return m_pd3dDevice;
-}
+ID3D11Device* spoutDX::GetDX11Device() { return m_pd3dDevice; }
 
 // Function: GetDX11Context
 // Return the class DirectX11 immediate context
-ID3D11DeviceContext* spoutDX::GetDX11Context()
-{
-	return m_pImmediateContext;
-}
+ID3D11DeviceContext* spoutDX::GetDX11Context() { return m_pImmediateContext; }
 
 // Function: CloseDirectX11
 // Close DirectX11 and free resources
@@ -303,10 +298,7 @@ void spoutDX::CloseDirectX11()
 
 // Function: CloseDirectX11
 // Was a device was created using the SpoutDirectX class
-bool spoutDX::IsClassDevice()
-{
-	return m_bClassDevice;
-}
+bool spoutDX::IsClassDevice() { return m_bClassDevice; }
 
 //---------------------------------------------------------
 // SENDER
@@ -368,10 +360,7 @@ bool spoutDX::SetSenderName(const char* sendername)
 //---------------------------------------------------------
 // Function: SetSenderFormat
 // Set the sender DX11 shared texture format
-void spoutDX::SetSenderFormat(DXGI_FORMAT format)
-{
-	m_dwFormat= format;
-}
+void spoutDX::SetSenderFormat(DXGI_FORMAT format) { m_dwFormat= format; }
 
 //---------------------------------------------------------
 // Function: ReleaseSender
@@ -499,9 +488,8 @@ bool spoutDX::SendTexture(ID3D11Texture2D* pTexture)
 // The region to be copied must be smaller than the texture
 // The sender must be initialized at the width and height of the region
 //
-bool spoutDX::SendTexture(ID3D11Texture2D* pTexture,
-						  unsigned int xoffset, unsigned int yoffset,
-						  unsigned int width, unsigned int height)
+bool spoutDX::SendTexture(ID3D11Texture2D* pTexture, unsigned int xoffset, unsigned int yoffset, unsigned int width,
+						  unsigned int height)
 {
 
 	// Quit if no data
@@ -585,51 +573,33 @@ bool spoutDX::SendImage(unsigned char* pData, unsigned int width, unsigned int h
 //---------------------------------------------------------
 // Function: IsInitialized
 // Initialization status
-bool spoutDX::IsInitialized()
-{
-	return m_bSpoutInitialized;
-}
+bool spoutDX::IsInitialized() { return m_bSpoutInitialized; }
 
 //---------------------------------------------------------
 // Function: GetName
 // Sender name
-const char* spoutDX::GetName()
-{
-	return m_SenderName;
-}
+const char* spoutDX::GetName() { return m_SenderName; }
 
 //---------------------------------------------------------
 // Function: GetWidth
 // Sender width
-unsigned int spoutDX::GetWidth()
-{
-	return m_Width;
-}
+unsigned int spoutDX::GetWidth() { return m_Width; }
 
 //---------------------------------------------------------
 // Function: GetHeight
 // Sender height
-unsigned int spoutDX::GetHeight()
-{
-	return m_Height;
-}
+unsigned int spoutDX::GetHeight() { return m_Height; }
 
 //---------------------------------------------------------
 // Function: GetFps
 // Sender frame rate
 //    Round result to reduce variability
-double spoutDX::GetFps()
-{
-	return (frame.GetSenderFps());
-}
+double spoutDX::GetFps() { return (frame.GetSenderFps()); }
 
 //---------------------------------------------------------
 // Function: GetFrame
 // Sender frame number
-long spoutDX::GetFrame()
-{
-	return (frame.GetSenderFrame());
-}
+long spoutDX::GetFrame() { return (frame.GetSenderFrame()); }
 
 //---------------------------------------------------------
 // RECEIVER
@@ -870,8 +840,7 @@ bool spoutDX::ReceiveTexture(ID3D11Texture2D** ppTexture)
 // Function: ReceiveImage
 // Receive from a sender via DX11 staging textures to an rgba or rgb buffer of variable size
 // A new shared texture pointer (m_pSharedTexture) is retrieved if the sender changed
-bool spoutDX::ReceiveImage(unsigned char* pixels,
-						   unsigned int width, unsigned int height, bool bRGB, bool bInvert)
+bool spoutDX::ReceiveImage(unsigned char* pixels, unsigned int width, unsigned int height, bool bRGB, bool bInvert)
 {
 	// Return if flagged for update
 	// The update flag is reset when the receiving application calls IsUpdated()
@@ -941,10 +910,7 @@ bool spoutDX::ReceiveImage(unsigned char* pixels,
 //---------------------------------------------------------
 // Function: SelectSender
 // Open sender selection dialog
-void spoutDX::SelectSender()
-{
-	SelectSenderPanel();
-}
+void spoutDX::SelectSender() { SelectSenderPanel(); }
 
 //---------------------------------------------------------
 // Function: IsUpdated
@@ -966,10 +932,7 @@ bool spoutDX::IsUpdated()
 //
 //   If the sender closes, receiving functions return false,
 //   but connection can be tested at any time.
-bool spoutDX::IsConnected()
-{
-	return m_bConnected;
-}
+bool spoutDX::IsConnected() { return m_bConnected; }
 
 //---------------------------------------------------------
 // Function: IsFrameNew
@@ -977,10 +940,7 @@ bool spoutDX::IsConnected()
 //
 //   The receiving texture or pixel buffer is refreshed if the sender has produced a new frame
 //   This can be queried to process texture data only for new frames
-bool spoutDX::IsFrameNew()
-{
-	return frame.IsFrameNew();
-}
+bool spoutDX::IsFrameNew() { return frame.IsFrameNew(); }
 
 //---------------------------------------------------------
 // Function: GetSenderTexture()
@@ -1018,58 +978,37 @@ ID3D11Texture2D* spoutDX::GetSenderTexture()
 //---------------------------------------------------------
 // Function: GetSenderHandle
 // Received sender share handle
-HANDLE spoutDX::GetSenderHandle()
-{
-	return m_dxShareHandle;
-}
+HANDLE spoutDX::GetSenderHandle() { return m_dxShareHandle; }
 
 //---------------------------------------------------------
 // Function: GetSenderFormat
 // Get sender DirectX texture format
-DXGI_FORMAT spoutDX::GetSenderFormat()
-{
-	return (DXGI_FORMAT)m_dwFormat;
-}
+DXGI_FORMAT spoutDX::GetSenderFormat() { return (DXGI_FORMAT)m_dwFormat; }
 
 //---------------------------------------------------------
 // Function: GetSenderName
 // Get sender name
-const char* spoutDX::GetSenderName()
-{
-	return m_SenderName;
-}
+const char* spoutDX::GetSenderName() { return m_SenderName; }
 
 //---------------------------------------------------------
 // Function: GetSenderWidth
 // Get sender width
-unsigned int spoutDX::GetSenderWidth()
-{
-	return m_Width;
-}
+unsigned int spoutDX::GetSenderWidth() { return m_Width; }
 
 //---------------------------------------------------------
 // Function: GetSenderHeight
 // Get sender height
-unsigned int spoutDX::GetSenderHeight()
-{
-	return m_Height;
-}
+unsigned int spoutDX::GetSenderHeight() { return m_Height; }
 
 //---------------------------------------------------------
 // Function: GetSenderFps
 // Get sender frame rate
-double spoutDX::GetSenderFps()
-{
-	return frame.GetSenderFps();
-}
+double spoutDX::GetSenderFps() { return frame.GetSenderFps(); }
 
 //---------------------------------------------------------
 // Function: GetSenderFrame
 // Get sender frame number
-long spoutDX::GetSenderFrame()
-{
-	return frame.GetSenderFrame();
-}
+long spoutDX::GetSenderFrame() { return frame.GetSenderFrame(); }
 
 //---------------------------------------------------------
 // COMMON
@@ -1083,25 +1022,16 @@ long spoutDX::GetSenderFrame()
 // Function: HoldFps
 // Frame rate control
 //    Desired frames per second
-void spoutDX::HoldFps(int fps)
-{
-	frame.HoldFps(fps);
-}
+void spoutDX::HoldFps(int fps) { frame.HoldFps(fps); }
 
 // Function: DisableFrameCount
 // Disable frame counting specifically for this application
-void spoutDX::DisableFrameCount()
-{
-	frame.DisableFrameCount();
-}
+void spoutDX::DisableFrameCount() { frame.DisableFrameCount(); }
 
 //---------------------------------------------------------
 // Function: IsFrameCountEnabled
 // Return frame count status
-bool spoutDX::IsFrameCountEnabled()
-{
-	return frame.IsFrameCountEnabled();
-}
+bool spoutDX::IsFrameCountEnabled() { return frame.IsFrameCountEnabled(); }
 
 // -----------------------------------------------
 // Function: SetFrameSync
@@ -1140,10 +1070,7 @@ bool spoutDX::WaitFrameSync(const char* SenderName, DWORD dwTimeout)
 //---------------------------------------------------------
 // Function: GetSenderCount
 // Number of senders
-int spoutDX::GetSenderCount()
-{
-	return sendernames.GetSenderCount();
-}
+int spoutDX::GetSenderCount() { return sendernames.GetSenderCount(); }
 
 //---------------------------------------------------------
 // Function: GetSender
@@ -1156,7 +1083,8 @@ bool spoutDX::GetSender(int index, char* sendername, int sendernameMaxSize)
 //---------------------------------------------------------
 // Function: GetSenderInfo
 // Sender information
-bool spoutDX::GetSenderInfo(const char* sendername, unsigned int& width, unsigned int& height, HANDLE& dxShareHandle, DWORD& dwFormat)
+bool spoutDX::GetSenderInfo(const char* sendername, unsigned int& width, unsigned int& height, HANDLE& dxShareHandle,
+							DWORD& dwFormat)
 {
 	return sendernames.GetSenderInfo(sendername, width, height, dxShareHandle, dwFormat);
 }
@@ -1164,34 +1092,22 @@ bool spoutDX::GetSenderInfo(const char* sendername, unsigned int& width, unsigne
 //---------------------------------------------------------
 // Function: GetActiveSender
 // Current active sender name
-bool spoutDX::GetActiveSender(char* Sendername)
-{
-	return sendernames.GetActiveSender(Sendername);
-}
+bool spoutDX::GetActiveSender(char* Sendername) { return sendernames.GetActiveSender(Sendername); }
 
 //---------------------------------------------------------
 // Function: SetActiveSender
 // Set sender as active
-bool spoutDX::SetActiveSender(const char* Sendername)
-{
-	return sendernames.SetActiveSender(Sendername);
-}
+bool spoutDX::SetActiveSender(const char* Sendername) { return sendernames.SetActiveSender(Sendername); }
 
 //---------------------------------------------------------
 // Function: GetMaxSenders
 // Get user Maximum senders allowed
-int spoutDX::GetMaxSenders()
-{
-	return (sendernames.GetMaxSenders());
-}
+int spoutDX::GetMaxSenders() { return (sendernames.GetMaxSenders()); }
 
 //---------------------------------------------------------
 // Function: SetMaxSenders
 // Set user Maximum senders allowed
-void spoutDX::SetMaxSenders(int maxSenders)
-{
-	sendernames.SetMaxSenders(maxSenders);
-}
+void spoutDX::SetMaxSenders(int maxSenders) { sendernames.SetMaxSenders(maxSenders); }
 
 //
 // Adapter functions
@@ -1206,10 +1122,7 @@ void spoutDX::SetMaxSenders(int maxSenders)
 //---------------------------------------------------------
 // Function: GetNumAdapters
 // The number of graphics adapters in the system
-int spoutDX::GetNumAdapters()
-{
-	return spoutdx.GetNumAdapters();
-}
+int spoutDX::GetNumAdapters() { return spoutdx.GetNumAdapters(); }
 
 //---------------------------------------------------------
 // Function: GetAdapterName
@@ -1230,10 +1143,7 @@ bool spoutDX::GetAdapterInfo(char* adapter, char* display, int maxchars)
 //---------------------------------------------------------
 // Function: GetAdapter
 // Get adapter index
-int spoutDX::GetAdapter()
-{
-	return spoutdx.GetAdapter();
-}
+int spoutDX::GetAdapter() { return spoutdx.GetAdapter(); }
 
 //---------------------------------------------------------
 // Function: SetAdapter
@@ -1252,26 +1162,17 @@ bool spoutDX::SetAdapter(int index)
 //---------------------------------------------------------
 // Function: GetAdapterPointer
 // Get adapter pointer for a given adapter (-1 means current)
-IDXGIAdapter* spoutDX::GetAdapterPointer(int index)
-{
-	return spoutdx.GetAdapterPointer(index);
-}
+IDXGIAdapter* spoutDX::GetAdapterPointer(int index) { return spoutdx.GetAdapterPointer(index); }
 
 //---------------------------------------------------------
 // Function: SetAdapterPointer
 // Set required graphics adapter for creating a device
-void spoutDX::SetAdapterPointer(IDXGIAdapter* pAdapter)
-{
-	spoutdx.SetAdapterPointer(pAdapter);
-}
+void spoutDX::SetAdapterPointer(IDXGIAdapter* pAdapter) { spoutdx.SetAdapterPointer(pAdapter); }
 
 //---------------------------------------------------------
 // Function: GetAdapterAuto
 // Get auto device switching status
-bool spoutDX::GetAdapterAuto()
-{
-	return m_bAdapt;
-}
+bool spoutDX::GetAdapterAuto() { return m_bAdapt; }
 
 //---------------------------------------------------------
 // Function: SetAdapterAuto
@@ -1322,7 +1223,8 @@ int spoutDX::GetSenderAdapter(const char* sendername, char* adaptername, int max
 				if (pDummyDevice)
 				{
 					// Try to open the share handle with the device created from the adapter
-					if (spoutdx.OpenDX11shareHandle(pDummyDevice, &pSharedTexture, LongToHandle((long)info.shareHandle)))
+					if (spoutdx.OpenDX11shareHandle(pDummyDevice, &pSharedTexture,
+													LongToHandle((long)info.shareHandle)))
 					{
 						// break as soon as it succeeds
 						SpoutLogNotice("    found sender adapter %d (0x%.7X)", i, PtrToUint(pAdapter));
@@ -1697,9 +1599,8 @@ bool spoutDX::GetMemoryShareMode()
 //---------------------------------------------------------
 // Function: CreateDX11texture
 // Create a texture that is not shared
-bool spoutDX::CreateDX11texture(ID3D11Device* pd3dDevice,
-								unsigned int width, unsigned int height,
-								DXGI_FORMAT format, ID3D11Texture2D** ppTexture)
+bool spoutDX::CreateDX11texture(ID3D11Device* pd3dDevice, unsigned int width, unsigned int height, DXGI_FORMAT format,
+								ID3D11Texture2D** ppTexture)
 {
 	return spoutdx.CreateDX11Texture(pd3dDevice, width, height, format, ppTexture);
 }
@@ -1791,7 +1692,8 @@ bool spoutDX::CheckSender(unsigned int width, unsigned int height, DWORD dwForma
 		// Create a shared texture for the sender
 		// A sender creates a new texture with a new share handle
 		m_dxShareHandle= nullptr;
-		spoutdx.CreateSharedDX11Texture(m_pd3dDevice, m_Width, m_Height, (DXGI_FORMAT)m_dwFormat, &m_pSharedTexture, m_dxShareHandle);
+		spoutdx.CreateSharedDX11Texture(m_pd3dDevice, m_Width, m_Height, (DXGI_FORMAT)m_dwFormat, &m_pSharedTexture,
+										m_dxShareHandle);
 
 		// Create a sender using the DX11 shared texture handle (m_dxShareHandle)
 		// and specifying the same texture format
@@ -1829,7 +1731,8 @@ bool spoutDX::CheckSender(unsigned int width, unsigned int height, DWORD dwForma
 			m_pSharedTexture->Release();
 		m_pSharedTexture= nullptr;
 		m_dxShareHandle= nullptr;
-		spoutdx.CreateSharedDX11Texture(m_pd3dDevice, width, height, (DXGI_FORMAT)dwFormat, &m_pSharedTexture, m_dxShareHandle);
+		spoutdx.CreateSharedDX11Texture(m_pd3dDevice, width, height, (DXGI_FORMAT)dwFormat, &m_pSharedTexture,
+										m_dxShareHandle);
 
 		// Update the sender and class variables
 		sendernames.UpdateSender(m_SenderName, width, height, m_dxShareHandle, dwFormat);
@@ -1981,7 +1884,8 @@ bool spoutDX::ReceiveSenderData()
 			{
 
 				// If this fails, the sender graphics adapter might be different
-				SpoutLogWarning("SpoutReceiver::ReceiveSenderData - could not retrieve sender texture from share handle");
+				SpoutLogWarning(
+					"SpoutReceiver::ReceiveSenderData - could not retrieve sender texture from share handle");
 
 				// If a device has been created within this class, we can re-create it
 				// on the fly using a different graphics adapter if auto adapter switching
@@ -2069,8 +1973,8 @@ void spoutDX::CreateReceiver(const char* SenderName, unsigned int width, unsigne
 // bInvert - flip the image
 // bSwap - swap red/blue (BGRA/RGBA). Not available for re-sample
 //
-bool spoutDX::ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* destpixels,
-							unsigned int width, unsigned int height, bool bRGB, bool bInvert, bool bSwap)
+bool spoutDX::ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* destpixels, unsigned int width,
+							unsigned int height, bool bRGB, bool bInvert, bool bSwap)
 {
 	if (!m_pImmediateContext || !pStagingSource || !destpixels)
 		return false;
@@ -2092,14 +1996,17 @@ bool spoutDX::ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* dest
 			// TODO : rgba2bgraResample
 			if (width != m_Width || height != m_Height)
 			{
-				spoutcopy.rgba2rgbaResample(mappedSubResource.pData, destpixels, m_Width, m_Height, mappedSubResource.RowPitch, width, height, bInvert);
+				spoutcopy.rgba2rgbaResample(mappedSubResource.pData, destpixels, m_Width, m_Height,
+											mappedSubResource.RowPitch, width, height, bInvert);
 			}
 			else
 			{
 				if (bSwap)
-					spoutcopy.rgba2bgra(mappedSubResource.pData, destpixels, width, height, mappedSubResource.RowPitch, bInvert);
+					spoutcopy.rgba2bgra(mappedSubResource.pData, destpixels, width, height, mappedSubResource.RowPitch,
+										bInvert);
 				else
-					spoutcopy.rgba2rgba(mappedSubResource.pData, destpixels, width, height, mappedSubResource.RowPitch, bInvert);
+					spoutcopy.rgba2rgba(mappedSubResource.pData, destpixels, width, height, mappedSubResource.RowPitch,
+										bInvert);
 			}
 		}
 		else if (m_dwFormat == 28)
@@ -2109,16 +2016,20 @@ bool spoutDX::ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* dest
 			if (width != m_Width || height != m_Height)
 			{
 				if (bSwap)
-					spoutcopy.rgba2rgbResample(mappedSubResource.pData, destpixels, m_Width, m_Height, mappedSubResource.RowPitch, width, height, bInvert);
+					spoutcopy.rgba2rgbResample(mappedSubResource.pData, destpixels, m_Width, m_Height,
+											   mappedSubResource.RowPitch, width, height, bInvert);
 				else
-					spoutcopy.rgba2bgrResample(mappedSubResource.pData, destpixels, m_Width, m_Height, mappedSubResource.RowPitch, width, height, bInvert);
+					spoutcopy.rgba2bgrResample(mappedSubResource.pData, destpixels, m_Width, m_Height,
+											   mappedSubResource.RowPitch, width, height, bInvert);
 			}
 			else
 			{
 				if (bSwap)
-					spoutcopy.rgba2rgb(mappedSubResource.pData, destpixels, m_Width, m_Height, mappedSubResource.RowPitch, bInvert);
+					spoutcopy.rgba2rgb(mappedSubResource.pData, destpixels, m_Width, m_Height,
+									   mappedSubResource.RowPitch, bInvert);
 				else
-					spoutcopy.rgba2bgr(mappedSubResource.pData, destpixels, m_Width, m_Height, mappedSubResource.RowPitch, bInvert);
+					spoutcopy.rgba2bgr(mappedSubResource.pData, destpixels, m_Width, m_Height,
+									   mappedSubResource.RowPitch, bInvert);
 			}
 		}
 		else
@@ -2126,12 +2037,14 @@ bool spoutDX::ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* dest
 			// Used for SpoutCam to receive RGB images
 			if (width != m_Width || height != m_Height)
 			{
-				spoutcopy.rgba2rgbResample(mappedSubResource.pData, destpixels, m_Width, m_Height, mappedSubResource.RowPitch, width, height, bInvert, m_bMirror, m_bSwapRB);
+				spoutcopy.rgba2rgbResample(mappedSubResource.pData, destpixels, m_Width, m_Height,
+										   mappedSubResource.RowPitch, width, height, bInvert, m_bMirror, m_bSwapRB);
 			}
 			else
 			{
 				// Approx 5 msec at 1920x1080
-				spoutcopy.rgba2rgb(mappedSubResource.pData, destpixels, m_Width, m_Height, mappedSubResource.RowPitch, bInvert, m_bMirror, m_bSwapRB);
+				spoutcopy.rgba2rgb(mappedSubResource.pData, destpixels, m_Width, m_Height, mappedSubResource.RowPitch,
+								   bInvert, m_bMirror, m_bSwapRB);
 			}
 		}
 
@@ -2176,7 +2089,8 @@ bool spoutDX::CheckStagingTextures(unsigned int width, unsigned int height, DWOR
 		}
 	}
 
-	if (CreateDX11StagingTexture(width, height, (DXGI_FORMAT)dwFormat, &m_pStaging[0]) && CreateDX11StagingTexture(width, height, (DXGI_FORMAT)dwFormat, &m_pStaging[1]))
+	if (CreateDX11StagingTexture(width, height, (DXGI_FORMAT)dwFormat, &m_pStaging[0])
+		&& CreateDX11StagingTexture(width, height, (DXGI_FORMAT)dwFormat, &m_pStaging[1]))
 	{
 		return true;
 	}
@@ -2185,7 +2099,8 @@ bool spoutDX::CheckStagingTextures(unsigned int width, unsigned int height, DWOR
 }
 
 // Create a DirectX 11 staging texture for read and write
-bool spoutDX::CreateDX11StagingTexture(unsigned int width, unsigned int height, DXGI_FORMAT format, ID3D11Texture2D** pStagingTexture)
+bool spoutDX::CreateDX11StagingTexture(unsigned int width, unsigned int height, DXGI_FORMAT format,
+									   ID3D11Texture2D** pStagingTexture)
 {
 	if (!m_pd3dDevice)
 		return false;
@@ -2470,7 +2385,8 @@ bool spoutDX::CheckSpoutPanel(char* sendername, int maxchars)
 					{
 						// Otherwise the sender might not be registered.
 						// SpoutPanel always writes the selected sender name to the registry.
-						if (ReadPathFromRegistry(HKEY_CURRENT_USER, "Software\\Leading Edge\\SpoutPanel", "Sendername", newname))
+						if (ReadPathFromRegistry(HKEY_CURRENT_USER, "Software\\Leading Edge\\SpoutPanel", "Sendername",
+												 newname))
 						{
 							// Register the sender if it exists
 							if (newname[0] != 0)

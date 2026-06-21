@@ -46,22 +46,22 @@ void GuiPanel_MarkerComponent::onConstruct()
 			const int currentArucoId= markerComp->getMarkerDefinition()->getArucoId();
 			int selectedIndex= m_arucoIdDataSource.getEntryIndexByValue(currentArucoId);
 
-			if (MkGui::drawComboBoxProperty(
-					m_defaultGuiStyle,
-					markerComp->makePropertyUIIdentifier(MarkerDefinition::k_arucoIdPropertyId),
-					"Aruco ID",
-					&m_arucoIdDataSource, selectedIndex))
+			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
+											markerComp->makePropertyUIIdentifier(MarkerDefinition::k_arucoIdPropertyId),
+											"Aruco ID", &m_arucoIdDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
 					const int newArucoId= m_arucoIdDataSource.getEntryValue(selectedIndex);
-					addDeferredGuiEvent([this, markerComp, newArucoId]()
-										{
-						markerComp->getMarkerDefinition()->setArucoId(newArucoId);
-						if (OnMarkerSelected)
+					addDeferredGuiEvent(
+						[this, markerComp, newArucoId]()
 						{
-							OnMarkerSelected(newArucoId);
-						} });
+							markerComp->getMarkerDefinition()->setArucoId(newArucoId);
+							if (OnMarkerSelected)
+							{
+								OnMarkerSelected(newArucoId);
+							}
+						});
 				}
 			}
 			// Display the marker preview (texture cached on MarkerComponent)
@@ -76,10 +76,7 @@ void GuiPanel_MarkerComponent::onConstruct()
 		});
 }
 
-MarkerObjectSystemPtr GuiPanel_MarkerComponent::getMarkerObjectSystem() const
-{
-	return m_markerObjectSystem.lock();
-}
+MarkerObjectSystemPtr GuiPanel_MarkerComponent::getMarkerObjectSystem() const { return m_markerObjectSystem.lock(); }
 
 MarkerObjectSystemDefinitionPtr GuiPanel_MarkerComponent::getMarkerObjectSystemDefinition() const
 {

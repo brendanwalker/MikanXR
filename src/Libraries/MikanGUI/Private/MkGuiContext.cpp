@@ -51,15 +51,9 @@ MkGuiContext::MkGuiContext(class IMkWindowContext* window)
 {
 }
 
-MkGuiContext::~MkGuiContext()
-{
-	shutdown();
-}
+MkGuiContext::~MkGuiContext() { shutdown(); }
 
-IMkTextureCache* MkGuiContext::getTextureCache() const
-{
-	return m_window->getGraphicsContext()->getTextureCache();
-}
+IMkTextureCache* MkGuiContext::getTextureCache() const { return m_window->getGraphicsContext()->getTextureCache(); }
 
 bool MkGuiContext::startup()
 {
@@ -297,14 +291,15 @@ void MkGuiContext::configImGui()
 {
 	ImGuiIO& io= ImGui::GetIO();
 
-	io.Fonts->AddFontFromFileTTF(
-		getDefaultJapaneseFontPath().string().c_str(), 16, NULL, io.Fonts->GetGlyphRangesJapanese());
+	io.Fonts->AddFontFromFileTTF(getDefaultJapaneseFontPath().string().c_str(), 16, NULL,
+								 io.Fonts->GetGlyphRangesJapanese());
 	// TODO: Find these fonts
 	// io.Fonts->AddFontFromFileTTF(getDefaultKoreanFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesKorean();
-	// io.Fonts->AddFontFromFileTTF(getDefaultChineseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesChineseFull();
-	// io.Fonts->AddFontFromFileTTF(getDefaultCyrillicFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic();
-	// io.Fonts->AddFontFromFileTTF(getDefaultThaiFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesThai();
-	// io.Fonts->AddFontFromFileTTF(getDefaultVietnameseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesVietnamese();
+	// io.Fonts->AddFontFromFileTTF(getDefaultChineseFontPath().c_str(), 16, NULL,
+	// io.Fonts->GetGlyphRangesChineseFull(); io.Fonts->AddFontFromFileTTF(getDefaultCyrillicFontPath().c_str(), 16,
+	// NULL, io.Fonts->GetGlyphRangesCyrillic(); io.Fonts->AddFontFromFileTTF(getDefaultThaiFontPath().c_str(), 16,
+	// NULL, io.Fonts->GetGlyphRangesThai(); io.Fonts->AddFontFromFileTTF(getDefaultVietnameseFontPath().c_str(), 16,
+	// NULL, io.Fonts->GetGlyphRangesVietnamese();
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
@@ -314,14 +309,12 @@ void MkGuiContext::configImGui()
 	icons_config.MergeMode= true;
 	icons_config.PixelSnapH= true;
 
-	m_NormalIconFont= io.Fonts->AddFontFromFileTTF(
-		getForkAwesomeWebFontPath().string().c_str(),
-		14, &icons_config, icons_ranges);
+	m_NormalIconFont=
+		io.Fonts->AddFontFromFileTTF(getForkAwesomeWebFontPath().string().c_str(), 14, &icons_config, icons_ranges);
 
 	icons_config.GlyphOffset.y+= (22 - 17) * 0.5f;
-	m_BigIconFont= io.Fonts->AddFontFromFileTTF(
-		getForkAwesomeWebFontPath().string().c_str(),
-		22, &icons_config, icons_ranges);
+	m_BigIconFont=
+		io.Fonts->AddFontFromFileTTF(getForkAwesomeWebFontPath().string().c_str(), 22, &icons_config, icons_ranges);
 }
 
 void MkGuiContext::configImNodes()

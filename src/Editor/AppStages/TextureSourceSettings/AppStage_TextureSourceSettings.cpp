@@ -69,11 +69,9 @@ void AppStage_TextureSourceSettings::enter()
 	IMkGraphicsContext* graphicsContext= m_ownerWindow->getGraphicsContext().get();
 	m_fullscreenRGBQuad= createFullscreenQuadMesh(graphicsContext, true, false);
 	m_fullscreenRGBAQuad= createFullscreenQuadMesh(graphicsContext, true, true);
-	m_fullscreenDepthUnpackQuad=
-		createFullscreenQuadMesh(
-			graphicsContext,
-			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE),
-			true);
+	m_fullscreenDepthUnpackQuad= createFullscreenQuadMesh(
+		graphicsContext,
+		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE), true);
 }
 
 void AppStage_TextureSourceSettings::update(float deltaSeconds)
@@ -88,15 +86,12 @@ void AppStage_TextureSourceSettings::update(float deltaSeconds)
 		if (m_newFrameTimer <= 0.f)
 		{
 			if (MikanCameraNewFrameEvent newFrameEvent;
-				cameraComponent->makeNewCameraFrameEvent(
-					-1,        // Skip video frame index
-					1280, 720, // fallback render target size
-					newFrameEvent))
+				cameraComponent->makeNewCameraFrameEvent(-1,        // Skip video frame index
+														 1280, 720, // fallback render target size
+														 newFrameEvent))
 			{
-				getOwnerWindow()
-					->getMikanServer()
-					->getCameraRequestHandler()
-					->publishCameraNewFrameEvent(newFrameEvent);
+				getOwnerWindow()->getMikanServer()->getCameraRequestHandler()->publishCameraNewFrameEvent(
+					newFrameEvent);
 			}
 
 			m_newFrameTimer= k_newFrameTimerDuration;
@@ -119,10 +114,7 @@ void AppStage_TextureSourceSettings::onGui()
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 
 	constexpr ImGuiWindowFlags k_flags=
-		ImGuiWindowFlags_NoMove |
-		ImGuiWindowFlags_NoResize |
-		ImGuiWindowFlags_NoCollapse |
-		ImGuiWindowFlags_NoTitleBar;
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##TextureSourceSettings", nullptr, k_flags);
 	if (!panel)
@@ -156,7 +148,8 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 	{
 	case eTextureSourceDisplayBufferType::Color:
 	{
-		videoTexture= textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGBA);
+		videoTexture=
+			textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGBA);
 		if (videoTexture)
 		{
 			fullscreenQuad= m_fullscreenRGBAQuad;
@@ -164,7 +157,8 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 		}
 		else
 		{
-			videoTexture= textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGB);
+			videoTexture=
+				textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGB);
 			if (videoTexture)
 			{
 				fullscreenQuad= m_fullscreenRGBQuad;
@@ -176,7 +170,8 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 
 	case eTextureSourceDisplayBufferType::Depth:
 	{
-		videoTexture= textureSourceComponent->getClientDepthSourceTexture(m_cameraId, eTextureSourceDepthType::depthPackRGBA);
+		videoTexture=
+			textureSourceComponent->getClientDepthSourceTexture(m_cameraId, eTextureSourceDepthType::depthPackRGBA);
 		if (videoTexture)
 		{
 			fullscreenQuad= m_fullscreenDepthUnpackQuad;
@@ -213,16 +208,12 @@ void AppStage_TextureSourceSettings::exit()
 	AppStage::exit();
 }
 
-void AppStage_TextureSourceSettings::onReturnEvent()
-{
-	getOwnerWindow()->popAppState();
-}
+void AppStage_TextureSourceSettings::onReturnEvent() { getOwnerWindow()->popAppState(); }
 
 // Remote Control
-bool AppStage_TextureSourceSettings::handleRemoteControlCommand(
-	const std::string& command,
-	const std::vector<std::string>& parameters,
-	std::vector<std::string>& outResults)
+bool AppStage_TextureSourceSettings::handleRemoteControlCommand(const std::string& command,
+																const std::vector<std::string>& parameters,
+																std::vector<std::string>& outResults)
 {
 	if (command == "get_texture_source_component_id")
 	{
@@ -236,8 +227,7 @@ bool AppStage_TextureSourceSettings::handleRemoteControlCommand(
 	return AppStage::handleRemoteControlCommand(command, parameters, outResults);
 }
 
-bool AppStage_TextureSourceSettings::handleGetTextureSourceComponentId(
-	std::vector<std::string>& outResults)
+bool AppStage_TextureSourceSettings::handleGetTextureSourceComponentId(std::vector<std::string>& outResults)
 {
 	TextureSourceComponentPtr textureSource= m_textureSourceComponent.lock();
 	MikanTextureSourceID textureSourceId= textureSource ? textureSource->getComponentId() : INVALID_MIKAN_ID;
@@ -246,8 +236,7 @@ bool AppStage_TextureSourceSettings::handleGetTextureSourceComponentId(
 	return true;
 }
 
-bool AppStage_TextureSourceSettings::handleReturnRequest(
-	std::vector<std::string>& outResults)
+bool AppStage_TextureSourceSettings::handleReturnRequest(std::vector<std::string>& outResults)
 {
 	getOwnerWindow()->popAppState();
 	outResults.push_back(IRemoteControllable::k_success);

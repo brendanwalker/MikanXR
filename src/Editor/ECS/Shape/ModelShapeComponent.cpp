@@ -192,8 +192,7 @@ void ModelShapeComponent::rebuildMeshComponents()
 	{
 		IMkTriangulatedMeshPtr triMeshPtr= modelResourcePtr->getTriangulatedMesh(meshIndex);
 
-		IMkStaticMeshInstancePtr triMeshInstancePtr=
-			createMkStaticMeshInstance(triMeshPtr->getName(), triMeshPtr);
+		IMkStaticMeshInstancePtr triMeshInstancePtr= createMkStaticMeshInstance(triMeshPtr->getName(), triMeshPtr);
 		triMeshInstancePtr->setVisible(true);
 
 		StaticMeshComponentPtr meshComponentPtr= ownerObject->addComponent<StaticMeshComponent>();
@@ -212,9 +211,8 @@ void ModelShapeComponent::rebuildMeshComponents()
 	}
 }
 
-void ModelShapeComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void ModelShapeComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+												  const ConfigPropertyChangeSet& changedPropertySet)
 {
 	ShapeComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
@@ -230,13 +228,10 @@ void ModelShapeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 	ShapeComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			ModelShapeDefinition::k_modelPathPropertyId, MikanVariantType::STRING));
+		std::make_shared<PropertyDescriptor>(ModelShapeDefinition::k_modelPathPropertyId, MikanVariantType::STRING));
 }
 
-bool ModelShapeComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool ModelShapeComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	const auto def= getModelShapeDefinition();
 
@@ -249,9 +244,7 @@ bool ModelShapeComponent::getPropertyValue(
 	return ShapeComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool ModelShapeComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool ModelShapeComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	const auto def= getModelShapeDefinition();
 
@@ -269,10 +262,7 @@ void ModelShapeComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<ModelShapeComponent, ShapeComponent>(ModelShapeComponent::k_componentClassName.c_str())
-		.addProperty("modelPath",
-					 [](ModelShapeComponent* component) -> std::string
-					 {
-						 return component->getModelShapeDefinition()->getModelPath().string();
-					 })
+		.addProperty("modelPath", [](ModelShapeComponent* component) -> std::string
+					 { return component->getModelShapeDefinition()->getModelPath().string(); })
 		.endClass();
 }

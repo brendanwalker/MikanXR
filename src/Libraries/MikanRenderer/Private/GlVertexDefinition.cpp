@@ -29,11 +29,7 @@ public:
 	{
 	}
 
-	GlVertexAttribute(
-		const std::string& name,
-		eVertexDataType dataType,
-		eVertexSemantic semantic,
-		bool isNormalized)
+	GlVertexAttribute(const std::string& name, eVertexDataType dataType, eVertexSemantic semantic, bool isNormalized)
 		: m_name(name)
 		, m_numComponents(VertexDefinitionUtils::determineNumComponents(dataType))
 		, m_componentType(VertexDefinitionUtils::determineComponentType(dataType))
@@ -50,11 +46,9 @@ public:
 	{
 		const auto* otherGlAttrib= static_cast<const GlVertexAttribute*>(other.get());
 
-		return this->m_location == otherGlAttrib->m_location &&
-			   this->m_numComponents == otherGlAttrib->m_numComponents &&
-			   this->m_componentType == otherGlAttrib->m_componentType &&
-			   this->m_bIsNormalized == otherGlAttrib->m_bIsNormalized &&
-			   this->m_offset == otherGlAttrib->m_offset;
+		return this->m_location == otherGlAttrib->m_location && this->m_numComponents == otherGlAttrib->m_numComponents
+			   && this->m_componentType == otherGlAttrib->m_componentType
+			   && this->m_bIsNormalized == otherGlAttrib->m_bIsNormalized && this->m_offset == otherGlAttrib->m_offset;
 	}
 
 	virtual const std::string& getName() const override { return m_name; }
@@ -65,15 +59,9 @@ public:
 	virtual eVertexDataType getDataType() const override { return m_dataType; }
 	virtual bool getIsNormalized() const override { return m_bIsNormalized; }
 
-	virtual void setLocation(int location) override
-	{
-		m_location= location;
-	}
+	virtual void setLocation(int location) override { m_location= location; }
 
-	virtual void setOffset(size_t offset) override
-	{
-		m_offset= offset;
-	}
+	virtual void setOffset(size_t offset) override { m_offset= offset; }
 
 private:
 	// OpenGL specific
@@ -113,24 +101,17 @@ public:
 	{
 		for (int location= 0; location < m_attributes.size(); location++)
 		{
-			IMkVertexAttributePtr attrib=
-				std::const_pointer_cast<IMkVertexAttribute>(m_attributes[location]);
+			IMkVertexAttributePtr attrib= std::const_pointer_cast<IMkVertexAttribute>(m_attributes[location]);
 
 			attrib->setLocation(location);
 			attrib->setOffset(m_vertexSize);
 
-			std::string dataTypeName=
-				attrib->getDataType() != eVertexDataType::INVALID
-					? k_VertexDataTypeNames[(int)attrib->getDataType()]
-					: "INVALID";
+			std::string dataTypeName= attrib->getDataType() != eVertexDataType::INVALID
+										  ? k_VertexDataTypeNames[(int)attrib->getDataType()]
+										  : "INVALID";
 			std::string normalizedStr= attrib->getIsNormalized() ? "_norm" : "";
-			std::string attribDesc=
-				StringUtils::stringify(
-					"[",
-					attrib->getLocation(), "_",
-					attrib->getName(), "_",
-					dataTypeName, normalizedStr,
-					"]");
+			std::string attribDesc= StringUtils::stringify("[", attrib->getLocation(), "_", attrib->getName(), "_",
+														   dataTypeName, normalizedStr, "]");
 			m_description+= attribDesc;
 
 			m_vertexSize+= attrib->getAttributeSize();
@@ -156,20 +137,12 @@ public:
 			GLsizei stride= (GLsizei)m_vertexSize;
 
 			glEnableVertexAttribArray(attribIndex);
-			glVertexAttribPointer(
-				glAttrib->m_location,
-				glAttrib->m_numComponents,
-				glAttrib->m_componentType,
-				glAttrib->m_bIsNormalized ? GL_TRUE : GL_FALSE,
-				stride,
-				(GLvoid*)glAttrib->m_offset);
+			glVertexAttribPointer(glAttrib->m_location, glAttrib->m_numComponents, glAttrib->m_componentType,
+								  glAttrib->m_bIsNormalized ? GL_TRUE : GL_FALSE, stride, (GLvoid*)glAttrib->m_offset);
 		}
 	}
 
-	virtual const std::string& getVertexDefinitionDesc() const override
-	{
-		return m_description;
-	}
+	virtual const std::string& getVertexDefinitionDesc() const override { return m_description; }
 
 	virtual const IMkVertexAttribute* getFirstAttributeBySemantic(eVertexSemantic semantic) const override
 	{
@@ -238,17 +211,13 @@ public:
 			GLint attribArraySize;
 			GLenum attribType;
 
-			glGetActiveAttrib(
-				programId,
-				GLuint(attribIndex),
-				(GLsizei)sizeof(attribName),
-				nullptr,
-				&attribArraySize,
-				&attribType,
-				attribName);
+			glGetActiveAttrib(programId, GLuint(attribIndex), (GLsizei)sizeof(attribName), nullptr, &attribArraySize,
+							  &attribType, attribName);
 			if (attribArraySize != 1)
 			{
-				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") << "Program " << programName << " has unsupported array[" << attribArraySize << "] attribute " << attribName;
+				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader")
+					<< "Program " << programName << " has unsupported array[" << attribArraySize << "] attribute "
+					<< attribName;
 				bSuccess= false;
 				break;
 			}
@@ -265,7 +234,9 @@ public:
 					eVertexDataType actualDataType= VertexDefinitionUtils::determineDataType(attribType);
 					if (actualDataType == eVertexDataType::INVALID)
 					{
-						MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") << "Program " << programName << " has attribute " << attribName << " using unsupported GL datatype 0x" << std::hex << attribType;
+						MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader")
+							<< "Program " << programName << " has attribute " << attribName
+							<< " using unsupported GL datatype 0x" << std::hex << attribType;
 						bSuccess= false;
 						break;
 					}
@@ -303,21 +274,27 @@ public:
 
 					if (!bHasCompatibleTypes)
 					{
-						MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") << "Program " << programName << " has attribute " << attribName << " with mismatched data type " << "(expected: " << k_VertexDataTypeNames[(int)expectedDataType] << ", actual: " << k_VertexDataTypeNames[(int)actualDataType] << ")";
+						MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader")
+							<< "Program " << programName << " has attribute " << attribName
+							<< " with mismatched data type "
+							<< "(expected: " << k_VertexDataTypeNames[(int)expectedDataType]
+							<< ", actual: " << k_VertexDataTypeNames[(int)actualDataType] << ")";
 						bSuccess= false;
 						break;
 					}
 				}
 				else
 				{
-					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") << "Program " << programName << " has out of range attribute " << attribName;
+					MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader")
+						<< "Program " << programName << " has out of range attribute " << attribName;
 					bSuccess= false;
 					break;
 				}
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader") << "Program " << programName << " has missing location for attrib " << attribName;
+				MIKAN_LOG_ERROR("GlVertexDefinition::extractFromIMkShader")
+					<< "Program " << programName << " has missing location for attrib " << attribName;
 				bSuccess= false;
 			}
 		}
@@ -332,23 +309,18 @@ private:
 	bool m_bIsValid;
 };
 
-IMkVertexAttributePtr createMkVertexAttribute(
-	const std::string& name,
-	eVertexDataType dataType,
-	eVertexSemantic semantic,
-	bool isNormalized)
+IMkVertexAttributePtr createMkVertexAttribute(const std::string& name, eVertexDataType dataType,
+											  eVertexSemantic semantic, bool isNormalized)
 {
 	return std::make_shared<GlVertexAttribute>(name, dataType, semantic, isNormalized);
 }
 
-IMkVertexDefinitionPtr createMkVertexDefinition(
-	IMkVertexDefinitionConstPtr vertexDefinition)
+IMkVertexDefinitionPtr createMkVertexDefinition(IMkVertexDefinitionConstPtr vertexDefinition)
 {
 	return std::make_shared<GlVertexDefinition>(vertexDefinition);
 }
 
-IMkVertexDefinitionPtr createMkVertexDefinition(
-	const std::vector<IMkVertexAttributeConstPtr>& attribtes)
+IMkVertexDefinitionPtr createMkVertexDefinition(const std::vector<IMkVertexAttributeConstPtr>& attribtes)
 {
 	return std::make_shared<GlVertexDefinition>(attribtes);
 }

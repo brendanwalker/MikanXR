@@ -54,10 +54,7 @@ void writeTypedJsonResponse(MikanRequestID requestId, t_mikan_type& result, Clie
 }
 
 template <typename t_mikan_type>
-void writeTypedBinaryResponse(
-	MikanRequestID requestId,
-	t_mikan_type& result,
-	ClientResponse& response)
+void writeTypedBinaryResponse(MikanRequestID requestId, t_mikan_type& result, ClientResponse& response)
 {
 	result.requestId= requestId;
 	result.resultCode= MikanAPIResult::Success;

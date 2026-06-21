@@ -13,7 +13,8 @@ TrackingVolumeIdList getTrackingVolumeIdList(ProjectManagerConstPtr projectManag
 
 	auto markerTrackingVolumeSystem= projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
 	auto markerTrackingVolumeIds= markerTrackingVolumeSystem->getTrackingVolumeIdList();
-	trackingVolumeIdList.insert(trackingVolumeIdList.end(), markerTrackingVolumeIds.begin(), markerTrackingVolumeIds.end());
+	trackingVolumeIdList.insert(trackingVolumeIdList.end(), markerTrackingVolumeIds.begin(),
+								markerTrackingVolumeIds.end());
 
 	auto vrTrackingVolumeSystem= projectManager->getSystemOfType<VRTrackingVolumeSystem>();
 	auto vrTrackingVolumeIds= vrTrackingVolumeSystem->getTrackingVolumeIdList();
@@ -22,7 +23,8 @@ TrackingVolumeIdList getTrackingVolumeIdList(ProjectManagerConstPtr projectManag
 	return trackingVolumeIdList;
 }
 
-TrackingVolumeComponentPtr getTrackingVolumeById(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId)
+TrackingVolumeComponentPtr getTrackingVolumeById(ProjectManagerConstPtr projectManager,
+												 MikanTrackingVolumeID trackingVolumeId)
 {
 	auto markerTrackingVolumeSystem= projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
 	auto markerTrackingVolumePtr= markerTrackingVolumeSystem->getTypedComponentById(trackingVolumeId);

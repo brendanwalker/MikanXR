@@ -5,6 +5,4 @@ EventBus::EventBus()
 {
 }
 
-EventBus::~EventBus()
-{
-}
+EventBus::~EventBus() {}

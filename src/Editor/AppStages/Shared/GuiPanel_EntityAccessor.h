@@ -33,11 +33,8 @@ public:
 		return init(modelName, propertyDescriptors, functionDescriptors, onConstructCallback);
 	}
 
-	bool init(
-		const std::string& modelName,
-		const std::vector<PropertyDescriptorConstPtr>& propertyDescriptors,
-		const std::vector<FunctionDescriptorConstPtr>& functionDescriptors,
-		OnConstruct onConstructCallback= {});
+	bool init(const std::string& modelName, const std::vector<PropertyDescriptorConstPtr>& propertyDescriptors,
+			  const std::vector<FunctionDescriptorConstPtr>& functionDescriptors, OnConstruct onConstructCallback= {});
 
 	void drawPropertiesGui();
 	void drawPropertiesGui(const std::set<std::string>& propertyNames);
@@ -58,7 +55,8 @@ public:
 	// Register a custom renderer for a named property.
 	void setPropertyRenderer(const std::string& propName, PropertyRendererCallback renderer);
 
-	MulticastDelegate<void(IEntityAccessorPtr accessorPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnEntityPropertyChanged;
+	MulticastDelegate<void(IEntityAccessorPtr accessorPtr, const ConfigPropertyChangeSet& changedPropertySet)>
+		OnEntityPropertyChanged;
 
 protected:
 	void onEntityDisposed(const IEntityAccessor* selfPtr);

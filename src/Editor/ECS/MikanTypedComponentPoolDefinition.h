@@ -82,12 +82,9 @@ public:
 
 	ComponentDefinitionPtr getByName(const std::string& name) const
 	{
-		auto it= std::find_if(
-			m_definitions.begin(), m_definitions.end(),
-			[this, &name](DefinitionConstPtr definitionPtr)
-			{
-				return definitionPtr->getConfigName() == name;
-			});
+		auto it=
+			std::find_if(m_definitions.begin(), m_definitions.end(), [this, &name](DefinitionConstPtr definitionPtr)
+						 { return definitionPtr->getConfigName() == name; });
 
 		if (it != m_definitions.end())
 		{
@@ -100,12 +97,8 @@ public:
 	using PredFunction= std::function<bool(DefinitionConstPtr)>;
 	ComponentDefinitionPtr findByPredicate(PredFunction pred) const
 	{
-		auto it= std::find_if(
-			m_definitions.begin(), m_definitions.end(),
-			[this, &pred](DefinitionConstPtr definitionPtr)
-			{
-				return pred(definitionPtr);
-			});
+		auto it= std::find_if(m_definitions.begin(), m_definitions.end(),
+							  [this, &pred](DefinitionConstPtr definitionPtr) { return pred(definitionPtr); });
 		if (it != m_definitions.end())
 		{
 			return *it;
@@ -158,12 +151,8 @@ public:
 protected:
 	DefinitionListConstIter findDefinitionIteratorById(t_id_type id) const
 	{
-		return std::find_if(
-			m_definitions.begin(), m_definitions.end(),
-			[this, id](DefinitionConstPtr definitionPtr)
-			{
-				return definitionPtr->getComponentId() == id;
-			});
+		return std::find_if(m_definitions.begin(), m_definitions.end(), [this, id](DefinitionConstPtr definitionPtr)
+							{ return definitionPtr->getComponentId() == id; });
 	}
 
 private:

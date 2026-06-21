@@ -30,17 +30,14 @@ bool FunctionRequestHandler::startup(MainWindow* mainWindow)
 	messageServer->setRequestHandler(
 		InvokeComponentFunctionRequest::staticGetArchetype().getName(),
 		std::bind(&FunctionRequestHandler::invokeComponentFunctionRequestHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		GetFunctionListRequest::staticGetArchetype().getName(),
-		std::bind(&FunctionRequestHandler::getFunctionListHandler, this, _1, _2));
+	messageServer->setRequestHandler(GetFunctionListRequest::staticGetArchetype().getName(),
+									 std::bind(&FunctionRequestHandler::getFunctionListHandler, this, _1, _2));
 
 	return true;
 }
 
 // Function Request Handlers
-void FunctionRequestHandler::invokeSystemFunctionRequestHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void FunctionRequestHandler::invokeSystemFunctionRequestHandler(const ClientRequest& request, ClientResponse& response)
 {
 	InvokeComponentFunctionRequest invokeFunctionRequest;
 	if (!readTypedRequest(request.utf8RequestString, invokeFunctionRequest))
@@ -66,9 +63,8 @@ void FunctionRequestHandler::invokeSystemFunctionRequestHandler(
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void FunctionRequestHandler::invokeComponentFunctionRequestHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void FunctionRequestHandler::invokeComponentFunctionRequestHandler(const ClientRequest& request,
+																   ClientResponse& response)
 {
 	InvokeComponentFunctionRequest invokeFunctionRequest;
 	if (!readTypedRequest(request.utf8RequestString, invokeFunctionRequest))
@@ -101,9 +97,7 @@ void FunctionRequestHandler::invokeComponentFunctionRequestHandler(
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void FunctionRequestHandler::getFunctionListHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void FunctionRequestHandler::getFunctionListHandler(const ClientRequest& request, ClientResponse& response)
 {
 	GetFunctionListRequest getFunctionListRequest;
 	if (!readTypedRequest(request.utf8RequestString, getFunctionListRequest))
@@ -115,11 +109,8 @@ void FunctionRequestHandler::getFunctionListHandler(
 	FunctionDescriptorResponse propertyDescriptorResponse;
 
 	MikanFunctionDatabaseConstPtr propertyDatabase= getProjectManager()->getFunctionDatabaseConst();
-	FunctionDatabaseEnumerator enumerator(
-		propertyDatabase,
-		getFunctionListRequest.systemFilter.getValue(),
-		getFunctionListRequest.componentFilter.getValue(),
-		"");
+	FunctionDatabaseEnumerator enumerator(propertyDatabase, getFunctionListRequest.systemFilter.getValue(),
+										  getFunctionListRequest.componentFilter.getValue(), "");
 	while (enumerator.isValid())
 	{
 		int propertyIndex= enumerator.getCurrentFunctionIndex();

@@ -22,12 +22,8 @@ public:
 	{
 	}
 
-	GlTexture(
-		uint16_t width,
-		uint16_t height,
-		const uint8_t* textureMapData,
-		uint32_t textureFormat,
-		uint32_t bufferFormat)
+	GlTexture(uint16_t width, uint16_t height, const uint8_t* textureMapData, uint32_t textureFormat,
+			  uint32_t bufferFormat)
 		: m_width(width)
 		, m_height(height)
 		, m_textureMapData(textureMapData)
@@ -37,10 +33,7 @@ public:
 		determinePixelType();
 	}
 
-	virtual ~GlTexture()
-	{
-		disposeTexture();
-	}
+	virtual ~GlTexture() { disposeTexture(); }
 
 	virtual IMkTexture* setName(const std::string& name) override
 	{
@@ -108,15 +101,9 @@ public:
 		return this;
 	}
 
-	virtual void setImagePath(const std::filesystem::path& path) override
-	{
-		m_imagePath= path;
-	}
+	virtual void setImagePath(const std::filesystem::path& path) override { m_imagePath= path; }
 
-	virtual const std::filesystem::path getImagePath() const override
-	{
-		return m_imagePath;
-	}
+	virtual const std::filesystem::path getImagePath() const override { return m_imagePath; }
 
 	virtual bool reloadTextureFromImagePath() override
 	{
@@ -163,7 +150,8 @@ public:
 
 			if (!createTexture())
 			{
-				MIKAN_LOG_ERROR("reloadTextureFromImagePath") << "Failed to create GL Texture from image at path: " << m_imagePath;
+				MIKAN_LOG_ERROR("reloadTextureFromImagePath")
+					<< "Failed to create GL Texture from image at path: " << m_imagePath;
 			}
 		}
 
@@ -195,18 +183,12 @@ public:
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 			}
 
-			glTexImage2D(
-				GL_TEXTURE_2D, 0, m_textureFormat,
-				m_width, m_height, 0,
-				m_bufferFormat,
-				m_pixelType,
-				m_textureMapData);
+			glTexImage2D(GL_TEXTURE_2D, 0, m_textureFormat, m_width, m_height, 0, m_bufferFormat, m_pixelType,
+						 m_textureMapData);
 
 			bool bMipmapGenerated= false;
-			if (m_bGenerateMipMap &&
-				m_textureMapData != nullptr &&
-				m_textureFormat != GL_R8 &&
-				m_bufferFormat != GL_DEPTH_COMPONENT)
+			if (m_bGenerateMipMap && m_textureMapData != nullptr && m_textureFormat != GL_R8
+				&& m_bufferFormat != GL_DEPTH_COMPONENT)
 			{
 				glGenerateMipmap(GL_TEXTURE_2D);
 				bMipmapGenerated= true;
@@ -228,10 +210,9 @@ public:
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapMode);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapMode);
 
-			if (m_textureFormat == GL_R16UI ||
-				m_textureFormat == GL_R32F || m_textureFormat == GL_RG32F ||
-				m_textureFormat == GL_RGB32F || m_textureFormat == GL_RGBA32F ||
-				m_textureFormat == GL_DEPTH_COMPONENT32F)
+			if (m_textureFormat == GL_R16UI || m_textureFormat == GL_R32F || m_textureFormat == GL_RG32F
+				|| m_textureFormat == GL_RGB32F || m_textureFormat == GL_RGBA32F
+				|| m_textureFormat == GL_DEPTH_COMPONENT32F)
 			{
 				// Integer textures only support NEAREST filtering
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -363,8 +344,8 @@ public:
 			glBindTexture(GL_TEXTURE_2D, m_glTextureId);
 
 			// See http://www.songho.ca/opengl/gl_pbo.html#create
-			if (m_pboMode == PixelBufferObjectMode::SinglePBOWrite ||
-				m_pboMode == PixelBufferObjectMode::DoublePBOWrite)
+			if (m_pboMode == PixelBufferObjectMode::SinglePBOWrite
+				|| m_pboMode == PixelBufferObjectMode::DoublePBOWrite)
 			{
 				// Make sure buffer size matches the PBO size
 				assert(bufferSize == m_PBOByteSize);
@@ -387,16 +368,8 @@ public:
 				glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_glPixelBufferObjectIDs[m_pboWriteIndex]);
 
 				// Copy pixels from PBO to texture object
-				glTexSubImage2D(
-					GL_TEXTURE_2D,
-					0,
-					0,
-					0,
-					m_width,
-					m_height,
-					m_bufferFormat,
-					m_pixelType,
-					0); // Treated as offset instead of pointer to pixel data
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_bufferFormat, m_pixelType,
+								0); // Treated as offset instead of pointer to pixel data
 
 				// Bind PBO to fill in from main memory
 				glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_glPixelBufferObjectIDs[nextPBOIndex]);
@@ -425,16 +398,7 @@ public:
 			else
 			{
 				// Copy pixels from system memory to GPU memory
-				glTexSubImage2D(
-					GL_TEXTURE_2D,
-					0,
-					0,
-					0,
-					m_width,
-					m_height,
-					m_bufferFormat,
-					m_pixelType,
-					buffer);
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_width, m_height, m_bufferFormat, m_pixelType, buffer);
 			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -449,8 +413,7 @@ public:
 
 	virtual void copyTextureIntoBuffer(uint8_t* outBuffer, size_t bufferSize) override
 	{
-		if (m_pboMode == PixelBufferObjectMode::SinglePBORead ||
-			m_pboMode == PixelBufferObjectMode::DoublePBORead)
+		if (m_pboMode == PixelBufferObjectMode::SinglePBORead || m_pboMode == PixelBufferObjectMode::DoublePBORead)
 		{
 			// Make sure buffer size matches the PBO size
 			assert(bufferSize == m_PBOByteSize);
@@ -477,10 +440,7 @@ public:
 			glBindTexture(GL_TEXTURE_2D, m_glTextureId);
 
 			// Copy pixels from texture object to PBO
-			glGetTexImage(GL_TEXTURE_2D,
-						  0,
-						  m_bufferFormat,
-						  m_pixelType,
+			glGetTexImage(GL_TEXTURE_2D, 0, m_bufferFormat, m_pixelType,
 						  0); // Treated as offset instead of pointer to pixel data
 
 			// Bind PBO to fill in from main memory
@@ -544,11 +504,7 @@ public:
 		else
 		{
 			glBindTexture(GL_TEXTURE_2D, m_glTextureId);
-			glGetTexImage(GL_TEXTURE_2D,
-						  0,
-						  m_bufferFormat,
-						  m_pixelType,
-						  outBuffer);
+			glGetTexImage(GL_TEXTURE_2D, 0, m_bufferFormat, m_pixelType, outBuffer);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
@@ -715,14 +671,9 @@ protected:
 class GlExternalTexture : public IMkExternalTexture
 {
 public:
-	GlExternalTexture()
-	{
-	}
+	GlExternalTexture() {}
 
-	GlExternalTexture(const void* platformTexture)
-	{
-		setExternalPlatformTexture(const_cast<void*>(platformTexture));
-	}
+	GlExternalTexture(const void* platformTexture) { setExternalPlatformTexture(const_cast<void*>(platformTexture)); }
 
 	virtual void setExternalPlatformTexture(void* platformTexture) override
 	{
@@ -944,25 +895,15 @@ protected:
 	uint32_t m_pixelType= 0;
 };
 
-IMkTexturePtr CreateMkTexture()
-{
-	return std::make_shared<GlTexture>();
-}
+IMkTexturePtr CreateMkTexture() { return std::make_shared<GlTexture>(); }
 
-IMkTexturePtr CreateMkTexture(
-	uint16_t width,
-	uint16_t height,
-	const uint8_t* textureMapData,
-	uint32_t textureFormat,
-	uint32_t bufferFormat)
+IMkTexturePtr CreateMkTexture(uint16_t width, uint16_t height, const uint8_t* textureMapData, uint32_t textureFormat,
+							  uint32_t bufferFormat)
 {
 	return std::make_shared<GlTexture>(width, height, textureMapData, textureFormat, bufferFormat);
 }
 
-IMkExternalTexturePtr CreateMkExternalTexture()
-{
-	return std::make_shared<GlExternalTexture>();
-}
+IMkExternalTexturePtr CreateMkExternalTexture() { return std::make_shared<GlExternalTexture>(); }
 
 IMkExternalTexturePtr CreateMkExternalTexture(void* platformTexture)
 {

@@ -27,10 +27,7 @@ SdlWindowContextManager::SdlWindowContextManager()
 {
 }
 
-SdlWindowContextManager::~SdlWindowContextManager()
-{
-	assert(!m_sdlInitialized);
-}
+SdlWindowContextManager::~SdlWindowContextManager() { assert(!m_sdlInitialized); }
 
 bool SdlWindowContextManager::startup()
 {
@@ -186,9 +183,7 @@ void SdlWindowContextManager::pushCurrentWindowContext(IMkWindowContext* window)
 	else
 	{
 		MIKAN_LOG_WARNING("SdlWindowContextManager::pushCurrentWindowContext")
-			<< "Unable to push window "
-			<< window->getTitle()
-			<< " (already current)";
+			<< "Unable to push window " << window->getTitle() << " (already current)";
 	}
 }
 
@@ -201,7 +196,8 @@ void SdlWindowContextManager::popCurrentWindowContext(IMkWindowContext* window)
 {
 	if (checkHasAnyMkError("SdlWindowContextManager::popCurrentWindowContext", __FILE__, __LINE__))
 	{
-		MIKAN_LOG_ERROR("SdlWindowContextManager::popCurrentWindowContext") << "Unhandled Mk Error found before popping window";
+		MIKAN_LOG_ERROR("SdlWindowContextManager::popCurrentWindowContext")
+			<< "Unhandled Mk Error found before popping window";
 	}
 
 	if (m_mkWindowContextStack.size() > 0 && m_mkWindowContextStack.back() == window)
@@ -218,13 +214,8 @@ void SdlWindowContextManager::popCurrentWindowContext(IMkWindowContext* window)
 	else
 	{
 		MIKAN_LOG_WARNING("SdlWindowContextManager::popCurrentWindowContext")
-			<< "Unable to pop window "
-			<< window->getTitle()
-			<< " (not current)";
+			<< "Unable to pop window " << window->getTitle() << " (not current)";
 	}
 }
 
-IMkWindowContextManagerPtr createMkWindowContextManager()
-{
-	return std::make_shared<SdlWindowContextManager>();
-}
+IMkWindowContextManagerPtr createMkWindowContextManager() { return std::make_shared<SdlWindowContextManager>(); }

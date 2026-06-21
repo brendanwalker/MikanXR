@@ -7,10 +7,8 @@
 class SpoutDXDepthTexturePacker
 {
 public:
-	SpoutDXDepthTexturePacker(
-		SharedTextureLogger& logger,
-		spoutDX& spout,
-		const struct SharedTextureDescriptor* descriptor);
+	SpoutDXDepthTexturePacker(SharedTextureLogger& logger, spoutDX& spout,
+							  const struct SharedTextureDescriptor* descriptor);
 	virtual ~SpoutDXDepthTexturePacker();
 
 	bool init();
@@ -22,11 +20,8 @@ public:
 protected:
 	bool initQuadGeometry(ID3D11Device* d3dDevice);
 	bool initShader(ID3D11Device* d3dDevice);
-	HRESULT compileShaderFromString(
-		const std::string& shaderCode,
-		const char* szEntryPoint,
-		const char* szShaderModel,
-		ID3DBlob** ppBlobOut);
+	HRESULT compileShaderFromString(const std::string& shaderCode, const char* szEntryPoint, const char* szShaderModel,
+									ID3DBlob** ppBlobOut);
 	bool initInputDepthTextureSRV(ID3D11Device* d3dDevice, ID3D11Texture2D* inDepthTexture);
 	void disposeInputDepthTextureSRV();
 	bool initRenderTargetResources(ID3D11Device* d3dDevice, ID3D11Texture2D* inDepthTexture);

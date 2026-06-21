@@ -20,8 +20,7 @@ TrackingMountDefinition::TrackingMountDefinition()
 {
 }
 
-TrackingMountDefinition::TrackingMountDefinition(
-	MikanTrackingMountID trackingMountId)
+TrackingMountDefinition::TrackingMountDefinition(MikanTrackingMountID trackingMountId)
 	: MikanComponentDefinition(trackingMountId, "")
 {
 }
@@ -44,9 +43,8 @@ void TrackingMountDefinition::readFromJSON(const configuru::Config& pt)
 	m_socketName= pt.get_or<std::string>(k_socketNamePropertyId, m_socketName);
 }
 
-bool TrackingMountDefinition::readFromInitParams(
-	MikanObjectSystem* ownerObjectSystem,
-	const Serialization::PolymorphicObjectPtr& initParams)
+bool TrackingMountDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+												 const Serialization::PolymorphicObjectPtr& initParams)
 {
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
@@ -91,10 +89,7 @@ rfk::Struct const* TrackingMountComponent::getClientAPIValuesStructType() const
 	return &MikanTrackingMountComponentValues::staticGetArchetype();
 }
 
-void TrackingMountComponent::init()
-{
-	MikanComponent::init();
-}
+void TrackingMountComponent::init() { MikanComponent::init(); }
 
 TrackingMountObjectSystemPtr TrackingMountComponent::getOwnerTrackingMountSystem() const
 {
@@ -115,8 +110,7 @@ VRDevicePoseViewPtr TrackingMountComponent::makePoseView(eVRDevicePoseSpace spac
 	assert(trackingMount);
 
 	auto vrObjectSystem= getObjectSystemOfType<VRObjectSystem>();
-	VRDeviceComponentPtr vrDeviceComponent=
-		vrObjectSystem->getVRDeviceByPath(trackingMount->getDevicePath());
+	VRDeviceComponentPtr vrDeviceComponent= vrObjectSystem->getVRDeviceByPath(trackingMount->getDevicePath());
 
 	if (vrDeviceComponent)
 	{
@@ -143,22 +137,18 @@ void TrackingMountComponent::getPropertyDescriptors(std::vector<PropertyDescript
 {
 	MikanComponent::getPropertyDescriptors(outDescriptors);
 
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(TrackingMountDefinition::k_devicePathPropertyId,
+																  MikanVariantType::STRING));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(TrackingMountDefinition::k_socketNamePropertyId,
+																  MikanVariantType::STRING));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			TrackingMountDefinition::k_devicePathPropertyId, MikanVariantType::STRING));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			TrackingMountDefinition::k_socketNamePropertyId, MikanVariantType::STRING));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			TrackingMountComponent::k_availableSocketNameListPropertyId, MikanVariantType::STRING_ARRAY)
+		std::make_shared<PropertyDescriptor>(TrackingMountComponent::k_availableSocketNameListPropertyId,
+											 MikanVariantType::STRING_ARRAY)
 			->setReadOnly()
 			->setUIHidden());
 }
 
-bool TrackingMountComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
+bool TrackingMountComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
@@ -180,9 +170,7 @@ bool TrackingMountComponent::getPropertyValue(
 	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool TrackingMountComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
+bool TrackingMountComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
@@ -200,9 +188,8 @@ bool TrackingMountComponent::setPropertyValue(
 	return MikanComponent::setPropertyValue(propertyName, inValue);
 }
 
-void TrackingMountComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr,
-	const ConfigPropertyChangeSet& changedPropertySet)
+void TrackingMountComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+													 const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (changedPropertySet.hasPropertyName(TrackingMountDefinition::k_devicePathPropertyId))
 	{

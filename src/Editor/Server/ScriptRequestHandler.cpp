@@ -24,16 +24,13 @@ bool ScriptRequestHandler::startup(MainWindow* mainWindow)
 	messageServer->setRequestHandler(
 		InvokeComponentScriptTrigger::staticGetArchetype().getName(),
 		std::bind(&ScriptRequestHandler::invokeComponentScriptTriggerHandler, this, _1, _2));
-	messageServer->setRequestHandler(
-		SendScriptMessage::staticGetArchetype().getName(),
-		std::bind(&ScriptRequestHandler::invokeScriptMessageHandler, this, _1, _2));
+	messageServer->setRequestHandler(SendScriptMessage::staticGetArchetype().getName(),
+									 std::bind(&ScriptRequestHandler::invokeScriptMessageHandler, this, _1, _2));
 
 	return true;
 }
 
-void ScriptRequestHandler::shutdown()
-{
-}
+void ScriptRequestHandler::shutdown() {}
 
 void ScriptRequestHandler::bindScriptContect(CommonScriptContextPtr scriptContext)
 {
@@ -106,9 +103,7 @@ void ScriptRequestHandler::invokeComponentScriptTriggerHandler(const ClientReque
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
-void ScriptRequestHandler::invokeScriptMessageHandler(
-	const ClientRequest& request,
-	ClientResponse& response)
+void ScriptRequestHandler::invokeScriptMessageHandler(const ClientRequest& request, ClientResponse& response)
 {
 	SendScriptMessage scriptMessageRequest;
 	if (!readTypedRequest(request.utf8RequestString, scriptMessageRequest))

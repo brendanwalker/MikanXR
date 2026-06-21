@@ -118,10 +118,7 @@ public:
 
 	virtual NodePinPtr allocatePin() const= 0;
 
-	virtual NodePinConfigPtr allocatePinConfig() const
-	{
-		return std::make_shared<NodePinConfig>();
-	}
+	virtual NodePinConfigPtr allocatePinConfig() const { return std::make_shared<NodePinConfig>(); }
 
 	template <class t_factory_class>
 	static NodePinFactoryPtr createFactory()
@@ -148,13 +145,7 @@ class TypedNodePinFactory : public NodePinFactory
 public:
 	TypedNodePinFactory()= default;
 
-	virtual NodePinConfigPtr allocatePinConfig() const
-	{
-		return std::make_shared<t_pin_config_class>();
-	}
+	virtual NodePinConfigPtr allocatePinConfig() const { return std::make_shared<t_pin_config_class>(); }
 
-	virtual NodePinPtr allocatePin() const override
-	{
-		return std::make_shared<t_pin_class>();
-	}
+	virtual NodePinPtr allocatePin() const override { return std::make_shared<t_pin_class>(); }
 };
