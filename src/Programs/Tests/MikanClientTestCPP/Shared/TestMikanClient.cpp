@@ -2,30 +2,17 @@
 #include "TestLogUtils.h"
 
 #include "MikanAPI.h"
-#include "MikanAnchorTypes.h"
 #include "MikanCameraTypes.h"
 #include "MikanCameraRequests.h"
-#include "TestCameraRenderTarget.h"
-#include "MikanCompositorTypes.h"
-#include "MikanMarkerTypes.h"
+#include "MikanCameraEvents.h"
 #include "MikanClientRequests.h"
 #include "MikanClientEvents.h"
-#include "MikanScriptEvents.h"
-#include "MikanCameraEvents.h"
 #include "MikanPropertyRequests.h"
 #include "MikanPropertyEvents.h"
 #include "MikanPropertyTypes.h"
-#include "MikanSceneTypes.h"
-#include "MikanStageTypes.h"
-#include "MikanStencilRequests.h"
-#include "MikanTextureSourceTypes.h"
-#include "MikanTrackingMountTypes.h"
-#include "MikanTrackingVolumeTypes.h"
-#include "MikanVideoSourceEvents.h"
-#include "MikanVideoSourceRequests.h"
-#include "MikanVideoSourceTypes.h"
-#include "MikanVRDeviceTypes.h"
-#include "MikanMathTypes.h"
+
+#include "TestCameraRenderTarget.h"
+#include "TestObjectDataStore.h"
 
 #include "Logger.h"
 
@@ -34,6 +21,7 @@ using namespace std::chrono_literals;
 TestMikanClient::TestMikanClient(TestGraphicsContext* graphicsContext)
 	: m_graphicsContext(graphicsContext)
 	, m_mikanApi(IMikanAPI::createMikanAPI())
+	, m_dataStore(std::make_shared<TestObjectDataStore>())
 {
 }
 
@@ -52,6 +40,8 @@ bool TestMikanClient::init(const char* szClientName)
 		MIKAN_LOG_ERROR("startup") << "Failed to initialize Mikan Client API";
 		return false;
 	}
+
+	m_dataStore->initialize(m_mikanApi.get());
 
 	m_mikanInitialized= true;
 	m_mikanApi->setGraphicsDeviceInterface(m_graphicsContext->getGraphicsApi(),
@@ -236,29 +226,15 @@ void TestMikanClient::handleMikanConnected()
 
 	m_mikanApi->sendRequest(initClientRequest).awaitResponse();
 
-	// Fetch all Mikan Components
-	handleComponentListChanged<MikanAnchorComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanCameraComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanCompositorComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanMarkerComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanSceneComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanStageComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanQuadStencilComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanBoxStencilComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanModelStencilComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanTrackingMountComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanMarkerTrackingVolumeComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanVRTrackingVolumeComponentValues>(m_mikanApi);
-	handleComponentListChanged<MikanClientTextureSourceValues>(m_mikanApi);
-	handleComponentListChanged<MikanSpoutTextureSourceValues>(m_mikanApi);
-	handleComponentListChanged<MikanNetworkVideoSourceValues>(m_mikanApi);
-	handleComponentListChanged<MikanUSBVideoSourceValues>(m_mikanApi);
-	handleComponentListChanged<MikanVRDeviceComponentValues>(m_mikanApi);
+	// Initialize the datastore
+	m_dataStore->handleMikanConnected();
 }
 
 void TestMikanClient::handleMikanDisconnected(const MikanDisconnectedEvent& disconnectEvent)
 {
 	MIKAN_LOG_INFO("MikanDisconnectedEvent") << disconnectEvent.reason.getUtf8Value();
+
+	m_dataStore->handleMikanDisconnected();
 
 	if (disconnectEvent.code == MikanDisconnectCode_IncompatibleVersion)
 	{
@@ -341,161 +317,5 @@ void TestMikanClient::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& 
 													<< "systemClass: " << systemName << ", fieldName: " << fieldName;
 	}
 
-	if (systemName == MikanAnchorComponentValues::k_ownerSystemName)
-	{
-		handleAnchorPropertyUpdate(propertyUpdateEvent);
-	}
-	else if (systemName == MikanBoxStencilComponentValues::k_ownerSystemName)
-	{
-		handleBoxStencilPropertyUpdate(propertyUpdateEvent);
-	}
-	else if (systemName == MikanModelStencilComponentValues::k_ownerSystemName)
-	{
-		handleModelStencilPropertyUpdate(propertyUpdateEvent);
-	}
-	else if (systemName == MikanQuadStencilComponentValues::k_ownerSystemName)
-	{
-		handleQuadStencilPropertyUpdate(propertyUpdateEvent);
-	}
-	else if (systemName == MikanVRDeviceComponentValues::k_ownerSystemName)
-	{
-		handleVRDevicePropertyUpdate(propertyUpdateEvent);
-	}
-}
-
-void TestMikanClient::handleComponentPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	if (propertyUpdateEvent.propertyValue.fieldName == "component_name")
-	{
-		handleComponentNameChanged(propertyUpdateEvent);
-	}
-}
-
-void TestMikanClient::handleComponentNameChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getUtf8Value();
-	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8Value();
-
-	MIKAN_LOG_INFO("HandleComponentNameChanged")
-		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
-		<< "), Name Change: " << componentName;
-}
-
-// Transform Component Events
-void TestMikanClient::handleTransformPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	if (propertyUpdateEvent.propertyValue.fieldName == "relative_scale")
-	{
-		handleTransformScaleChanged(propertyUpdateEvent);
-	}
-	else if (propertyUpdateEvent.propertyValue.fieldName == "relative_quaternion")
-	{
-		handleTransformOrientationChanged(propertyUpdateEvent);
-	}
-	else if (propertyUpdateEvent.propertyValue.fieldName == "relative_position")
-	{
-		handleTransformPositionChanged(propertyUpdateEvent);
-	}
-	else
-	{
-		handleComponentPropertyUpdate(propertyUpdateEvent);
-	}
-}
-
-void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getUtf8Value();
-	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8Value();
-	const MikanVector3f& s= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
-
-	MIKAN_LOG_INFO("handleTransformScaleChanged")
-		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
-		<< "), Scale Change: " << s.x << ", " << s.y << ", " << s.z;
-}
-
-void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getUtf8Value();
-	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8Value();
-	const MikanQuatf& q= propertyUpdateEvent.propertyValue.fieldValue.getQuaternionfValue();
-
-	MIKAN_LOG_INFO("handleTransformOrientationChanged")
-		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
-		<< "), Orientation Change: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z;
-}
-
-void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getUtf8Value();
-	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8Value();
-	const MikanVector3f& v= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
-
-	MIKAN_LOG_INFO("handleTransformPositionChanged")
-		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
-		<< "), Position Change: " << v.x << ", " << v.y << ", " << v.z;
-}
-
-// VR Device Events
-void TestMikanClient::handleVRDevicePropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	if (propertyUpdateEvent.propertyValue.fieldName == "VRDeviceComponentIdList")
-	{
-		handleComponentListChanged<MikanVRDeviceComponentValues>(m_mikanApi);
-	}
-	else
-	{
-		handleTransformPropertyUpdate(propertyUpdateEvent);
-	}
-}
-
-// Anchor Events
-void TestMikanClient::handleAnchorPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	if (propertyUpdateEvent.propertyValue.fieldName == "AnchorComponentIdList")
-	{
-		handleComponentListChanged<MikanAnchorComponentValues>(m_mikanApi);
-	}
-	else
-	{
-		handleTransformPropertyUpdate(propertyUpdateEvent);
-	}
-}
-
-// Box Stencil Events
-void TestMikanClient::handleBoxStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	if (propertyUpdateEvent.propertyValue.fieldName == "BoxStencilComponentIdList")
-	{
-		handleComponentListChanged<MikanBoxStencilComponentValues>(m_mikanApi);
-	}
-	else
-	{
-		handleTransformPropertyUpdate(propertyUpdateEvent);
-	}
-}
-
-// Quad Stencil Events
-void TestMikanClient::handleQuadStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	if (propertyUpdateEvent.propertyValue.fieldName == "QuadStencilComponentIdList")
-	{
-		handleComponentListChanged<MikanQuadStencilComponentValues>(m_mikanApi);
-	}
-	else
-	{
-		handleTransformPropertyUpdate(propertyUpdateEvent);
-	}
-}
-
-// Model Stencil Events
-void TestMikanClient::handleModelStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
-{
-	if (propertyUpdateEvent.propertyValue.fieldName == "ModelStencilComponentIdList")
-	{
-		handleComponentListChanged<MikanModelStencilComponentValues>(m_mikanApi);
-	}
-	else
-	{
-		handleTransformPropertyUpdate(propertyUpdateEvent);
-	}
+	m_dataStore->handlePropertyUpdateEvent(propertyUpdateEvent);
 }

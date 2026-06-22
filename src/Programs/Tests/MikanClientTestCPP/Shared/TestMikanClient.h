@@ -33,17 +33,6 @@ protected:
 
 	// Property Change Events
 	void handlePropertyUpdateEvent(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleComponentPropertyUpdate(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleComponentNameChanged(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleTransformPropertyUpdate(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleTransformScaleChanged(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleTransformOrientationChanged(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleTransformPositionChanged(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleVRDevicePropertyUpdate(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleAnchorPropertyUpdate(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleBoxStencilPropertyUpdate(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleQuadStencilPropertyUpdate(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
-	void handleModelStencilPropertyUpdate(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
 
 	// Utility
 	void makeFakeCameraNewFrameEvent(struct MikanCameraNewFrameEvent& fakeNewFrameEvent);
@@ -51,6 +40,7 @@ protected:
 protected:
 	TestGraphicsContext* m_graphicsContext= nullptr;
 	IMikanAPIPtr m_mikanApi;
+	std::shared_ptr<class TestObjectDataStore> m_dataStore;
 	bool m_mikanInitialized= false;
 	MikanCameraID m_lastProcessedCamera= INVALID_MIKAN_ID;
 	bool m_bShutdownRequested= false;

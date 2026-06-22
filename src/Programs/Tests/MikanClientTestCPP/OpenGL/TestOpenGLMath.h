@@ -8,6 +8,7 @@
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& xform);
 glm::vec3 MikanVector3f_to_glm_vec3(const MikanVector3f& in);
 MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in);
+glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in);
 
 glm::mat4 mikan_camera_pose_to_glm_view_matrix(const MikanVector3f& cameraForward, const MikanVector3f& cameraUp,
 											   const MikanVector3f& cameraPosition);

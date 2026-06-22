@@ -18,6 +18,8 @@ glm::vec3 MikanVector3f_to_glm_vec3(const MikanVector3f& in) { return glm::vec3(
 
 MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in) { return {in.x, in.y, in.z}; }
 
+glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in) { return glm::quat(in.w, in.x, in.y, in.w); }
+
 glm::mat4 mikan_camera_pose_to_glm_view_matrix(const MikanVector3f& inForward, const MikanVector3f& inUp,
 											   const MikanVector3f& inPosition)
 {
