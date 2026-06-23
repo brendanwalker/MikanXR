@@ -56,10 +56,19 @@ public:
 	static const std::string k_hasValidApertureOffsetPropertyId;
 	bool hasValidApertureOffset() const { return m_bHasValidApertureOffset; }
 
-	// Don't send transform property updates when attached to a tracking mount since they update every frame
-	virtual bool isAutoNotifyTransformPropertyChangeDisabled() override
+	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const override
 	{
-		return m_trackingMountId != INVALID_MIKAN_ID;
+		// Don't trigger save when a transform value changed and attached to a tracking mount
+		// (since the position is going to change every frame
+		if (m_trackingMountId != INVALID_MIKAN_ID &&
+			(changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId) ||
+			 changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeQuaternionPropertyId) ||
+			 changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId)))
+		{
+			return false;
+		}
+
+		return TransformComponentDefinition::wantsSaveForPropertyChange(changedPropertySet);
 	}
 
 private:
