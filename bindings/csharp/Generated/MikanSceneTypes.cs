@@ -6,7 +6,6 @@ namespace MikanXR
 {
 	public class MikanSceneComponentValues : MikanTransformComponentValues
 	{
-		public int parent_stage_id;
 		public int display_compositor_id;
 	};
 

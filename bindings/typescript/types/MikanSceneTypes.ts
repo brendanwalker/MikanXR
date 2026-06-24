@@ -13,11 +13,9 @@ export class MikanSceneSystemValues extends MikanSystemValues {
 }
 
 export class MikanSceneComponentValues extends MikanTransformComponentValues {
-  parent_stage_id: number = -1;
   display_compositor_id: number = -1;
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'parent_stage_id', type: 'int32' },
     { name: 'display_compositor_id', type: 'int32' }
   ];
 }

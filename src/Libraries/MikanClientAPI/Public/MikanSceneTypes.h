@@ -31,7 +31,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSc
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD() MikanStageID parent_stage_id= INVALID_MIKAN_ID;
 	FIELD() MikanCompositorID display_compositor_id= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
