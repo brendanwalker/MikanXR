@@ -21,17 +21,12 @@ public:
 									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	MikanSceneID getSceneId() const { return getComponentId(); }
-
-	static const std::string k_parentStagePropertyId;
-	MikanStageID getParentStageId() const { return m_parentStageId; }
-	void setParentStageId(MikanStageID stageId);
-
+ 
 	static const std::string k_displayCompositorIdPropertyId;
 	MikanCompositorID getDisplayCompositorId() const { return m_displayCompositorId; }
 	void setDisplayCompositorId(MikanCompositorID compositorId);
 
 protected:
-	MikanStageID m_parentStageId= INVALID_MIKAN_ID;
 	MikanCompositorID m_displayCompositorId= INVALID_MIKAN_ID;
 };
 
@@ -65,7 +60,7 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 	// -- SceneComponent ----
-	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getSceneId(); }
+	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getComponentId(); }
 	MikanStageID getParentStageId() const;
 	StageComponentPtr getParentStage() const;
 	std::vector<MikanCompositorID> getOutputCompositorIDs() const;

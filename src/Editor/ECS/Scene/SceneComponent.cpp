@@ -29,18 +29,15 @@
 #include <queue>
 
 // -- SceneComponentDefinition -----
-const std::string SceneComponentDefinition::k_parentStagePropertyId= "parent_stage_id";
 const std::string SceneComponentDefinition::k_displayCompositorIdPropertyId= "display_compositor_id";
 
 SceneComponentDefinition::SceneComponentDefinition()
 	: TransformComponentDefinition()
-	, m_parentStageId(INVALID_MIKAN_ID)
 {
 }
 
 SceneComponentDefinition::SceneComponentDefinition(MikanSceneID sceneId)
 	: TransformComponentDefinition(sceneId, "", glm_transform_to_MikanTransform(GlmTransform()))
-	, m_parentStageId(INVALID_MIKAN_ID)
 {
 }
 
@@ -48,7 +45,6 @@ configuru::Config SceneComponentDefinition::writeToJSON()
 {
 	configuru::Config pt= TransformComponentDefinition::writeToJSON();
 
-	pt[k_parentStagePropertyId]= m_parentStageId;
 	pt[k_displayCompositorIdPropertyId]= m_displayCompositorId;
 
 	return pt;
@@ -58,7 +54,6 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_parentStageId= pt.get_or<int>(k_parentStagePropertyId, INVALID_MIKAN_ID);
 	m_displayCompositorId= pt.get_or<int>(k_displayCompositorIdPropertyId, INVALID_MIKAN_ID);
 }
 
@@ -71,33 +66,10 @@ bool SceneComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObject
 	const auto* componentValues= initParams.getTypedPointer<MikanSceneComponentValues>();
 	if (componentValues)
 	{
-		m_parentStageId= componentValues->parent_stage_id;
 		m_displayCompositorId= componentValues->display_compositor_id;
-
-		// Make sure our parent is always the stage component (if a stage was given)
-		if (m_parentStageId != INVALID_MIKAN_ID)
-		{
-			m_parentTransformId= m_parentStageId;
-		}
-	}
-
-	if (m_parentStageId == INVALID_MIKAN_ID)
-	{
-		auto stageObjectSystem= ownerObjectSystem->getObjectSystemOfType<StageObjectSystem>();
-
-		m_parentStageId= stageObjectSystem->getFirstComponentId();
 	}
 
 	return true;
-}
-
-void SceneComponentDefinition::setParentStageId(MikanStageID stageId)
-{
-	if (m_parentStageId != stageId)
-	{
-		m_parentStageId= stageId;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_parentStagePropertyId));
-	}
 }
 
 void SceneComponentDefinition::setDisplayCompositorId(MikanCompositorID compositorId)
@@ -121,7 +93,9 @@ rfk::Struct const* SceneComponent::getClientAPIValuesStructType() const
 	return &MikanSceneComponentValues::staticGetArchetype();
 }
 
-MikanStageID SceneComponent::getParentStageId() const { return getSceneComponentDefinition()->getParentStageId(); }
+MikanStageID SceneComponent::getParentStageId() const { 
+	return getSceneComponentDefinition()->getParentTransformId(); 
+}
 
 StageComponentPtr SceneComponent::getParentStage() const
 {
@@ -240,10 +214,6 @@ void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(SceneComponentDefinition::k_parentStagePropertyId, MikanVariantType::INT)
-			->setDefaultValue(-1)
-			->setUIHidden());
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 								 SceneComponentDefinition::k_displayCompositorIdPropertyId, MikanVariantType::INT)
 								 ->setDefaultValue(-1)
@@ -252,12 +222,7 @@ void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 
 bool SceneComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
-	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
-	{
-		outValue= getSceneComponentDefinition()->getParentStageId();
-		return true;
-	}
-	else if (propertyName == SceneComponentDefinition::k_displayCompositorIdPropertyId)
+	if (propertyName == SceneComponentDefinition::k_displayCompositorIdPropertyId)
 	{
 		outValue= getSceneComponentDefinition()->getDisplayCompositorId();
 		return true;
@@ -268,14 +233,7 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, MikanVari
 
 bool SceneComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
-	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
-	{
-		MikanStageID stageId= inValue.getIntValue();
-
-		attachToStage(stageId);
-		return true;
-	}
-	else if (propertyName == SceneComponentDefinition::k_displayCompositorIdPropertyId)
+	if (propertyName == SceneComponentDefinition::k_displayCompositorIdPropertyId)
 	{
 		MikanCompositorID compositorId= inValue.getIntValue();
 
@@ -314,7 +272,7 @@ void SceneComponent::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<SceneComponent, TransformComponent>(SceneComponent::k_componentClassName.c_str())
 		.addProperty("parentStageId", [](SceneComponent* component) -> int
-					 { return component->getSceneComponentDefinition()->getParentStageId(); })
+					 { return component->getParentStageId(); })
 		.addProperty("displayCompositorId", [](SceneComponent* component) -> int
 					 { return component->getSceneComponentDefinition()->getDisplayCompositorId(); })
 		.addFunction("showCompositorOutput", [](SceneComponent* c) { c->showCompositorOutput(); })

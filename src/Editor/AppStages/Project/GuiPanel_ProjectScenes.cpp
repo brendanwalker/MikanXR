@@ -453,7 +453,7 @@ void GuiPanel_ProjectScenes::onGui()
 					m_sceneSystem.lock()->addNewObjectByTypedDefinition(
 						[firstStageId](auto def)
 						{
-							def->setParentStageId(firstStageId);
+							def->setParentTransformId(firstStageId);
 							return true;
 						});
 				}
