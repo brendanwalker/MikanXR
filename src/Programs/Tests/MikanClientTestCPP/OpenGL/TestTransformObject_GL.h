@@ -10,7 +10,7 @@
 
 class TestTransformObject_GL : public TestObject
 {
-public: 
+public:
 	TestTransformObject_GL(TestObjectSystem* ownerSystem);
 
 	virtual void Initialize(const Serialization::PolymorphicObjectPtr& InValuesObject) override;

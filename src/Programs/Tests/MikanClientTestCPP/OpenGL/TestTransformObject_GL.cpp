@@ -17,8 +17,7 @@ TestTransformObject_GL::TestTransformObject_GL(TestObjectSystem* ownerSystem)
 {
 }
 
-void TestTransformObject_GL::Initialize(
-	const Serialization::PolymorphicObjectPtr& inValuesObject)
+void TestTransformObject_GL::Initialize(const Serialization::PolymorphicObjectPtr& inValuesObject)
 {
 	TestObject::Initialize(inValuesObject);
 
@@ -33,9 +32,7 @@ void TestTransformObject_GL::Initialize(
 	onMikanAttachmentChanged();
 }
 
-bool TestTransformObject_GL::ApplyMikanValue(
-	const std::string& fieldName, 
-	const MikanVariant& fieldValue)
+bool TestTransformObject_GL::ApplyMikanValue(const std::string& fieldName, const MikanVariant& fieldValue)
 {
 	if (fieldName == "parent_transform_id")
 	{
@@ -76,9 +73,9 @@ void TestTransformObject_GL::onMikanTransformDataChanged()
 	m_relativeTransform= translation * (rotation * scale);
 }
 
-void TestTransformObject_GL::onMikanAttachmentChanged() 
+void TestTransformObject_GL::onMikanAttachmentChanged()
 {
 	auto* ParentObject= GetOwnerSystem()->GetOwnerDataStore()->FindObject(m_parentTransformId);
 
-	m_parentTransformObject= reinterpret_cast<TestTransformObject_GL *>(ParentObject);
+	m_parentTransformObject= reinterpret_cast<TestTransformObject_GL*>(ParentObject);
 }

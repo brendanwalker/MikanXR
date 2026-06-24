@@ -8,15 +8,13 @@
 #include <vector>
 #include <ranges>
 
-TestObjectSystem::TestObjectSystem(TestObjectDataStore* ownerDataStore) 
+TestObjectSystem::TestObjectSystem(TestObjectDataStore* ownerDataStore)
 	: m_ownerDataStore(ownerDataStore)
 {
 }
 
-void TestObjectSystem::Initialize(
-	const char* inSystemName,
-	const char* inComponentClassName,
-	TestObjectSystem::TestObjectFactory factory)
+void TestObjectSystem::Initialize(const char* inSystemName, const char* inComponentClassName,
+								  TestObjectSystem::TestObjectFactory factory)
 {
 	m_systemName= inSystemName;
 	m_componentClassName= inComponentClassName;
@@ -38,8 +36,8 @@ bool TestObjectSystem::FetchAllComponents()
 		auto ComponentList= std::static_pointer_cast<ComponentListResponse>(ListResponse);
 		const auto& newIdList= ComponentList->componentIdList;
 
-		MIKAN_LOG_INFO("FetchAllComponents") << 
-			"Fetch Components of class " << m_componentClassName << " from System " << m_systemName;
+		MIKAN_LOG_INFO("FetchAllComponents")
+			<< "Fetch Components of class " << m_componentClassName << " from System " << m_systemName;
 
 		auto objectKeysView= m_objectDataTable | std::views::keys;
 		std::vector<MikanComponentID> existingIDs(objectKeysView.begin(), objectKeysView.end());
@@ -75,10 +73,9 @@ bool TestObjectSystem::FetchAllComponents()
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("FetchAllComponents") << 
-					"Failed to add new ComponentID " << componentId << 
-					" from System " << m_systemName <<
-					"(ErrorCode " << (int)valuesResponse->resultCode << ")";
+				MIKAN_LOG_ERROR("FetchAllComponents")
+					<< "Failed to add new ComponentID " << componentId << " from System " << m_systemName
+					<< "(ErrorCode " << (int)valuesResponse->resultCode << ")";
 			}
 		}
 	}
@@ -99,10 +96,8 @@ void TestObjectSystem::HandleMikanDisconnected() { FlushAllComponents(); }
 
 bool TestObjectSystem::HandleComponentListChanged() { return FetchAllComponents(); }
 
-void TestObjectSystem::ApplyMikanValue(
-	MikanComponentID componentId,
-	const std::string& fieldName,
-	const MikanVariant& fieldValue)
+void TestObjectSystem::ApplyMikanValue(MikanComponentID componentId, const std::string& fieldName,
+									   const MikanVariant& fieldValue)
 {
 	auto iter= m_objectDataTable.find(componentId);
 	if (iter != m_objectDataTable.end())
@@ -112,9 +107,8 @@ void TestObjectSystem::ApplyMikanValue(
 		// Try and apply the new value to the component data.
 		if (objectPtr->ApplyMikanValue(fieldName, fieldValue))
 		{
-			MIKAN_LOG_INFO("ApplyMikanValue") << 
-				"Applied update to Field " << fieldName << 
-				" on Component ID " << componentId << " in System" << m_systemName;
+			MIKAN_LOG_INFO("ApplyMikanValue") << "Applied update to Field " << fieldName << " on Component ID "
+											  << componentId << " in System" << m_systemName;
 		}
 	}
 	else

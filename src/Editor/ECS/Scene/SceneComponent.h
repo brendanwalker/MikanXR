@@ -21,7 +21,7 @@ public:
 									const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	MikanSceneID getSceneId() const { return getComponentId(); }
- 
+
 	static const std::string k_displayCompositorIdPropertyId;
 	MikanCompositorID getDisplayCompositorId() const { return m_displayCompositorId; }
 	void setDisplayCompositorId(MikanCompositorID compositorId);

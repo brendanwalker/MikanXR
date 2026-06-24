@@ -60,10 +60,10 @@ public:
 	{
 		// Don't trigger save when a transform value changed and attached to a tracking mount
 		// (since the position is going to change every frame
-		if (m_trackingMountId != INVALID_MIKAN_ID &&
-			(changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId) ||
-			 changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeQuaternionPropertyId) ||
-			 changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId)))
+		if (m_trackingMountId != INVALID_MIKAN_ID
+			&& (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId)
+				|| changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeQuaternionPropertyId)
+				|| changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId)))
 		{
 			return false;
 		}

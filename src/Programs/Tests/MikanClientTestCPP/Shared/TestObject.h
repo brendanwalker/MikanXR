@@ -15,7 +15,7 @@ class PolymorphicObjectPtr;
 
 class TestObject
 {
-public: 
+public:
 	TestObject(TestObjectSystem* ownerSystem);
 
 	virtual void Initialize(const Serialization::PolymorphicObjectPtr& InValuesObject);

@@ -6,27 +6,28 @@
 #include "MikanCameraTypes.h"
 #include "MikanPropertyEvents.h"
 
-void TestObjectDataStore::initialize(IMikanAPI* InMikanAPI) {
+void TestObjectDataStore::initialize(IMikanAPI* InMikanAPI)
+{
 	MikanAPI= InMikanAPI;
 
 	// Anchor
-	//AddTypedObjectSystem<MikanAnchorComponentValues, TestAnchorObject>();
+	// AddTypedObjectSystem<MikanAnchorComponentValues, TestAnchorObject>();
 	// Shapes
-	//AddTypedObjectSystem<MikanQuadShapeComponentValues, TestQuadShapeObject>();
-	//AddTypedObjectSystem<MikanBoxShapeComponentValues, TestBoxShapeObject>();
-	//AddTypedObjectSystem<MikanModelShapeComponentValues, TestModelShapeObject>();
+	// AddTypedObjectSystem<MikanQuadShapeComponentValues, TestQuadShapeObject>();
+	// AddTypedObjectSystem<MikanBoxShapeComponentValues, TestBoxShapeObject>();
+	// AddTypedObjectSystem<MikanModelShapeComponentValues, TestModelShapeObject>();
 	// Stencils
-	//AddTypedObjectSystem<MikanQuadStencilComponentValues, TestQuadStencilObject>();
-	//AddTypedObjectSystem<MikanBoxStencilComponentValues, TestBoxStencilObject>();
-	//AddTypedObjectSystem<MikanModelStencilComponentValues, TestModelStencilObject>();
+	// AddTypedObjectSystem<MikanQuadStencilComponentValues, TestQuadStencilObject>();
+	// AddTypedObjectSystem<MikanBoxStencilComponentValues, TestBoxStencilObject>();
+	// AddTypedObjectSystem<MikanModelStencilComponentValues, TestModelStencilObject>();
 	// Camera
 	AddTypedObjectSystem<MikanCameraComponentValues, TestCameraObject_GL>();
 	// Lights
-	//AddTypedObjectSystem<MikanRGBSpotLightComponentValues, TestRGBSpotLightObject>();
-	//AddTypedObjectSystem<MikanRGBPixelGridComponentValues, TestRGBPixelGridObject>();
+	// AddTypedObjectSystem<MikanRGBSpotLightComponentValues, TestRGBSpotLightObject>();
+	// AddTypedObjectSystem<MikanRGBPixelGridComponentValues, TestRGBPixelGridObject>();
 	// Stage & Scene
-	//AddTypedObjectSystem<MikanStageComponentValues, TestStageObject>();
-	//AddTypedObjectSystem<MikanSceneComponentValues, TestSceneObject>();
+	// AddTypedObjectSystem<MikanStageComponentValues, TestStageObject>();
+	// AddTypedObjectSystem<MikanSceneComponentValues, TestSceneObject>();
 }
 
 void TestObjectDataStore::AddObjectSystem(const char* OwnerSystemName, const char* ComponentClassName,
@@ -93,10 +94,9 @@ void TestObjectDataStore::FlushAllComponents()
 	}
 }
 
-void TestObjectDataStore::handleMikanConnected() {FetchAllComponents(); }
+void TestObjectDataStore::handleMikanConnected() { FetchAllComponents(); }
 
-void TestObjectDataStore::handleMikanDisconnected()
-{ FlushAllComponents(); }
+void TestObjectDataStore::handleMikanDisconnected() { FlushAllComponents(); }
 
 void TestObjectDataStore::HandleListChanged(const std::string& SystemName)
 {
@@ -122,7 +122,6 @@ void TestObjectDataStore::handlePropertyUpdateEvent(const struct MikanPropertyUp
 	}
 	else
 	{
-		MIKAN_LOG_INFO("handlePropertyUpdateEvent")
-			<< "Failed to update property. Unknown System " << systemName;
+		MIKAN_LOG_INFO("handlePropertyUpdateEvent") << "Failed to update property. Unknown System " << systemName;
 	}
 }

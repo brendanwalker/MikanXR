@@ -44,5 +44,5 @@ protected:
 	TestObjectFactory m_dataObjectFactory;
 
 	std::map<MikanComponentID, TestObjectPtr> m_objectDataTable;
-}; 
+};
 using TestObjectSystemPtr= std::shared_ptr<TestObjectSystem>;

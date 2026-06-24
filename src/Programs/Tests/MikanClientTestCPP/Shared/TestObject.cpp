@@ -5,13 +5,12 @@
 #include "MikanVariantTypes.h"
 #include "SerializableObjectPtr.h"
 
-TestObject::TestObject(TestObjectSystem* ownerSystem) 
+TestObject::TestObject(TestObjectSystem* ownerSystem)
 	: m_ownerSystem(ownerSystem)
 {
 }
 
-void TestObject::Initialize(
-	const Serialization::PolymorphicObjectPtr& inValuesObject)
+void TestObject::Initialize(const Serialization::PolymorphicObjectPtr& inValuesObject)
 {
 	const auto* componentValues= inValuesObject.getTypedPointer<MikanComponentValues>();
 
@@ -19,9 +18,7 @@ void TestObject::Initialize(
 	m_componentName= componentValues->component_name.getUtf8Value();
 }
 
-bool TestObject::ApplyMikanValue(
-	const std::string& fieldName, 
-	const MikanVariant& fieldValue)
+bool TestObject::ApplyMikanValue(const std::string& fieldName, const MikanVariant& fieldValue)
 {
 	if (fieldName == "component_id")
 	{

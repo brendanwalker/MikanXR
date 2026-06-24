@@ -29,7 +29,8 @@ public:
 	void AddTypedObjectSystem()
 	{
 		AddObjectSystem(MikanDataType::k_ownerSystemName, MikanDataType::k_componentClassName,
-						   [](TestObjectSystem* OwnerSystem) -> TestObjectPtr { return std::make_shared<TestObjectType>(OwnerSystem); });
+						[](TestObjectSystem* OwnerSystem) -> TestObjectPtr
+						{ return std::make_shared<TestObjectType>(OwnerSystem); });
 	}
 	void AddObjectSystem(const char* OwnerSystemName, const char* ComponentClassName, TestObjectFactory Factory);
 

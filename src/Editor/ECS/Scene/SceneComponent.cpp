@@ -93,9 +93,7 @@ rfk::Struct const* SceneComponent::getClientAPIValuesStructType() const
 	return &MikanSceneComponentValues::staticGetArchetype();
 }
 
-MikanStageID SceneComponent::getParentStageId() const { 
-	return getSceneComponentDefinition()->getParentTransformId(); 
-}
+MikanStageID SceneComponent::getParentStageId() const { return getSceneComponentDefinition()->getParentTransformId(); }
 
 StageComponentPtr SceneComponent::getParentStage() const
 {
@@ -271,8 +269,7 @@ void SceneComponent::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<SceneComponent, TransformComponent>(SceneComponent::k_componentClassName.c_str())
-		.addProperty("parentStageId", [](SceneComponent* component) -> int
-					 { return component->getParentStageId(); })
+		.addProperty("parentStageId", [](SceneComponent* component) -> int { return component->getParentStageId(); })
 		.addProperty("displayCompositorId", [](SceneComponent* component) -> int
 					 { return component->getSceneComponentDefinition()->getDisplayCompositorId(); })
 		.addFunction("showCompositorOutput", [](SceneComponent* c) { c->showCompositorOutput(); })
