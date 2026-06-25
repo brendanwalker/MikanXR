@@ -113,7 +113,7 @@ const char* MikanVRObjectSystemValues::k_systemName= "VRObjectSystem";
 // Static component class name and owner system name definitions
 // TODO: Make these come from the System and component classes
 const char* MikanAnchorComponentValues::k_componentClassName= "AnchorComponent";
-const char* MikanAnchorComponentValues::k_ownerSystemName= "AnchorObjectSystem";
+const char* MikanAnchorComponentValues::k_ownerSystemName= MikanAnchorSystemValues::k_systemName;
 
 const char* MikanCameraComponentValues::k_componentClassName= "CameraComponent";
 const char* MikanCameraComponentValues::k_ownerSystemName= "CameraObjectSystem";
@@ -125,16 +125,16 @@ const char* MikanMarkerComponentValues::k_componentClassName= "MarkerComponent";
 const char* MikanMarkerComponentValues::k_ownerSystemName= MikanMarkerSystemValues::k_systemName;
 
 const char* MikanSceneComponentValues::k_componentClassName= "SceneComponent";
-const char* MikanSceneComponentValues::k_ownerSystemName= "SceneObjectSystem";
+const char* MikanSceneComponentValues::k_ownerSystemName= MikanSceneSystemValues::k_systemName;
 
 const char* MikanStageComponentValues::k_componentClassName= "StageComponent";
 const char* MikanStageComponentValues::k_ownerSystemName= "StageObjectSystem";
 
 const char* MikanQuadStencilComponentValues::k_componentClassName= "QuadStencilComponent";
-const char* MikanQuadStencilComponentValues::k_ownerSystemName= "QuadStencilObjectSystem";
+const char* MikanQuadStencilComponentValues::k_ownerSystemName= MikanQuadStencilSystemValues::k_systemName;
 
 const char* MikanBoxStencilComponentValues::k_componentClassName= "BoxStencilComponent";
-const char* MikanBoxStencilComponentValues::k_ownerSystemName= "BoxStencilSystem";
+const char* MikanBoxStencilComponentValues::k_ownerSystemName= MikanBoxStencilSystemValues::k_systemName;
 
 const char* MikanRGBSpotLightComponentValues::k_componentClassName= "RGBSpotLightComponent";
 const char* MikanRGBSpotLightComponentValues::k_ownerSystemName= MikanRGBSpotLightSystemValues::k_systemName;
@@ -143,16 +143,16 @@ const char* MikanRGBPixelGridComponentValues::k_componentClassName= "RGBPixelGri
 const char* MikanRGBPixelGridComponentValues::k_ownerSystemName= MikanRGBPixelGridSystemValues::k_systemName;
 
 const char* MikanModelStencilComponentValues::k_componentClassName= "ModelStencilComponent";
-const char* MikanModelStencilComponentValues::k_ownerSystemName= "ModelStencilSystem";
+const char* MikanModelStencilComponentValues::k_ownerSystemName= MikanModelStencilSystemValues::k_systemName;
 
 const char* MikanQuadShapeComponentValues::k_componentClassName= "QuadShapeComponent";
-const char* MikanQuadShapeComponentValues::k_ownerSystemName= "QuadShapeSystem";
+const char* MikanQuadShapeComponentValues::k_ownerSystemName= MikanQuadShapeSystemValues::k_systemName;
 
 const char* MikanBoxShapeComponentValues::k_componentClassName= "BoxShapeComponent";
-const char* MikanBoxShapeComponentValues::k_ownerSystemName= "BoxShapeSystem";
+const char* MikanBoxShapeComponentValues::k_ownerSystemName= MikanBoxShapeSystemValues::k_systemName;
 
 const char* MikanModelShapeComponentValues::k_componentClassName= "ModelShapeComponent";
-const char* MikanModelShapeComponentValues::k_ownerSystemName= "ModelShapeSystem";
+const char* MikanModelShapeComponentValues::k_ownerSystemName= MikanModelShapeSystemValues::k_systemName;
 
 const char* MikanMarkerTrackingVolumeComponentValues::k_componentClassName= "MarkerTrackingVolumeComponent";
 const char* MikanMarkerTrackingVolumeComponentValues::k_ownerSystemName= "MarkerTrackingVolumeSystem";
@@ -179,7 +179,7 @@ const char* MikanUSBVideoSourceValues::k_componentClassName= "USBVideoSourceComp
 const char* MikanUSBVideoSourceValues::k_ownerSystemName= "USBVideoSourceSystem";
 
 const char* MikanVRDeviceComponentValues::k_componentClassName= "VRDeviceComponent";
-const char* MikanVRDeviceComponentValues::k_ownerSystemName= "VRObjectSystem";
+const char* MikanVRDeviceComponentValues::k_ownerSystemName= MikanVRObjectSystemValues::k_systemName;
 
 // -- MikanAPI Implementation -----
 class MikanAPI : public IMikanAPI
