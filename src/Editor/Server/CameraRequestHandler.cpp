@@ -200,8 +200,13 @@ void CameraRequestHandler::freeRenderTargetTexturesHandler(const ClientRequest& 
 		// Broadcast that the client render target was disposed
 		if (OnClientRenderTargetReleased)
 		{
-			OnClientRenderTargetReleased(clientState->getClientId(), renderTargetState->getRenderTargetReadAccessor(
-																		 freeRenderTargetTexturesRequest.camera_id));
+			SharedTextureReadAccessor* readAccessor=
+				renderTargetState->getRenderTargetReadAccessor(freeRenderTargetTexturesRequest.camera_id);
+
+			if (readAccessor != nullptr)
+			{
+				OnClientRenderTargetReleased(clientState->getClientId(), readAccessor);
+			}
 		}
 
 		// Free the render target texture
