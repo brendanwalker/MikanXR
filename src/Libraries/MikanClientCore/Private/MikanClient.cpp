@@ -19,6 +19,7 @@ MikanClient::MikanClient()
 	for (int i= 0; i < MikanClientGraphicsApi_COUNT; i++)
 	{
 		m_graphicsDeviceInterfaces[i]= nullptr;
+		m_graphicsCommandQueueInterfaces[i]= nullptr;
 	};
 
 	m_messageClient->setTextResponseHandler([this](const std::string& utf8ResponseString)
@@ -194,9 +195,11 @@ MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(MikanCameraID ca
 
 	// Fetch the cached graphics API interface, if any
 	void* apiInterface= nullptr;
+	void* apiCommandQueueInterface= nullptr;
 	if (mkDesiredDescriptor.graphicsAPI != MikanClientGraphicsApi_UNKNOWN)
 	{
 		Mikan_GetGraphicsDeviceInterface(this, mkDesiredDescriptor.graphicsAPI, &apiInterface);
+		Mikan_GetGraphicsCommandQueueInterface(this, mkDesiredDescriptor.graphicsAPI, &apiCommandQueueInterface);
 	}
 
 	SharedTextureDescriptor descriptor;
@@ -271,7 +274,7 @@ MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(MikanCameraID ca
 	// Create the shared texture
 	bool bSuccess= false;
 	const bool bEnableFrameCounter= false; // use frameRendered RPC to send frame index
-	if (renderTargetWriter->initialize(&descriptor, bEnableFrameCounter, apiInterface))
+	if (renderTargetWriter->initialize(&descriptor, bEnableFrameCounter, apiInterface, apiCommandQueueInterface))
 	{
 		resultCode= MikanCoreResult_Success;
 	}
@@ -440,5 +443,28 @@ MikanCoreResult MikanClient::getGraphicsDeviceInterface(MikanClientGraphicsApi a
 		return MikanCoreResult_NullParam;
 
 	*outGraphicsDeviceInterface= m_graphicsDeviceInterfaces[api];
+	return MikanCoreResult_Success;
+}
+
+MikanCoreResult MikanClient::setGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
+															 void* graphicsCommandQueueInterface)
+{
+	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
+		return MikanCoreResult_InvalidParam;
+
+	m_graphicsCommandQueueInterfaces[api]= graphicsCommandQueueInterface;
+
+	return MikanCoreResult_Success;
+}
+
+MikanCoreResult MikanClient::getGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
+															 void** outGraphicsCommandQueueInterface)
+{
+	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
+		return MikanCoreResult_InvalidParam;
+	if (outGraphicsCommandQueueInterface == nullptr)
+		return MikanCoreResult_NullParam;
+
+	*outGraphicsCommandQueueInterface= m_graphicsCommandQueueInterfaces[api];
 	return MikanCoreResult_Success;
 }

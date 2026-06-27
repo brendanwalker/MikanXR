@@ -207,6 +207,28 @@ MikanCoreResult Mikan_GetGraphicsDeviceInterface(MikanContext context, MikanClie
 	return mikanClient->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 }
 
+MikanCoreResult Mikan_SetGraphicsCommandQueueInterface(MikanContext context, MikanClientGraphicsApi api,
+													   void* graphicsCommandQueueInterface)
+{
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
+
+	if (mikanClient == nullptr)
+		return MikanCoreResult_Uninitialized;
+
+	return mikanClient->setGraphicsCommandQueueInterface(api, graphicsCommandQueueInterface);
+}
+
+MikanCoreResult Mikan_GetGraphicsCommandQueueInterface(MikanContext context, MikanClientGraphicsApi api,
+													   void** outGraphicsCommandQueueInterface)
+{
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
+
+	if (mikanClient == nullptr)
+		return MikanCoreResult_Uninitialized;
+
+	return mikanClient->getGraphicsCommandQueueInterface(api, outGraphicsCommandQueueInterface);
+}
+
 MikanCoreResult Mikan_Disconnect(MikanContext context, uint16_t code, const char* reason)
 {
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);

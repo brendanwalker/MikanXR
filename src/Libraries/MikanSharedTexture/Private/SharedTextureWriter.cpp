@@ -20,6 +20,7 @@ public:
 	inline SharedTextureLogger& getLogger() { return m_logger; }
 	inline SharedClientGraphicsApi getGraphicsApi() const { return m_graphicsAPI; }
 	inline void* getApiDeviceInterface() const { return m_apiDeviceInterface; }
+	inline void* getApiCommandQueueInterface() const { return m_apiCommandQueueInterface; }
 	inline const std::string& getColorSenderName() const { return m_colorSenderName; }
 	inline const std::string& getDepthSenderName() const { return m_depthSenderName; }
 	inline bool getEnableFrameCounter() const { return m_bEnableFrameCounter; }
@@ -28,7 +29,7 @@ public:
 	virtual void setLogCallback(SharedTextureLogCallback callback) override;
 
 	virtual bool initialize(const SharedTextureDescriptor* descriptor, bool bEnableFrameCounter,
-							void* apiDeviceInterface) override;
+							void* apiDeviceInterface, void* apiCommandQueueInterface) override;
 	virtual void dispose() override;
 
 	virtual const SharedTextureDescriptor* getRenderTargetDescriptor() const override;
@@ -45,6 +46,10 @@ private:
 	SharedTextureDescriptor m_renderTargetDescriptor;
 	bool m_bEnableFrameCounter= false;
 	void* m_apiDeviceInterface= nullptr;
+	// Optional native command queue (e.g. ID3D12CommandQueue*) the client renders on. When provided
+	// for D3D12, the D3D11On12 device is created against this queue so the shared-texture copy is
+	// serialized on the GPU after the client's rendering, instead of racing it on a separate queue.
+	void* m_apiCommandQueueInterface= nullptr;
 	union
 	{
 		class SpoutDX11TextureWriter* spoutDX11TextureWriter;
@@ -405,6 +410,10 @@ public:
 	{
 		const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
 		ID3D12Device* d3d12Device= (ID3D12Device*)m_parentAccessor->getApiDeviceInterface();
+		// Optional client command queue. When supplied, the D3D11On12 device shares it so the
+		// wrapped-resource copy is GPU-ordered after the client's rendering (no flicker/tearing).
+		IUnknown* commandQueue= (IUnknown*)m_parentAccessor->getApiCommandQueueInterface();
+		IUnknown** ppCommandQueue= (commandQueue != nullptr) ? &commandQueue : nullptr;
 		bool bSuccess= true;
 
 		dispose();
@@ -417,7 +426,7 @@ public:
 		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
 			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 		{
-			if (m_spoutColorFrame.OpenDirectX12(d3d12Device)
+			if (m_spoutColorFrame.OpenDirectX12(d3d12Device, ppCommandQueue)
 				&& m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
 			{
 				if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
@@ -449,7 +458,7 @@ public:
 		// Initialize the depth spout frame, if requested
 		if (descriptor->depth_buffer_type != SharedDepthBufferType::NODEPTH)
 		{
-			if (m_spoutDepthFrame.OpenDirectX12(d3d12Device)
+			if (m_spoutDepthFrame.OpenDirectX12(d3d12Device, ppCommandQueue)
 				&& m_spoutDepthFrame.SetSenderName(m_parentAccessor->getDepthSenderName().c_str()))
 			{
 				// Initialize the depth texture packer if we are sending float depth textures
@@ -516,9 +525,12 @@ public:
 					m_spoutDX11ColorTexture= nullptr;
 				}
 
+				// Wrap as GENERIC_READ to match the rest state (SRVMask) the client leaves the
+				// staging texture in. Combined with InState == OutState in WrapDX12Resource, this
+				// keeps 11on12 from issuing barriers that conflict with the client's state tracker.
 				if (dx12TextureResource != nullptr
 					&& m_spoutColorFrame.WrapDX12Resource(dx12TextureResource, &m_spoutDX11ColorTexture,
-														  D3D12_RESOURCE_STATE_COPY_SOURCE))
+														  D3D12_RESOURCE_STATE_GENERIC_READ))
 				{
 					m_spoutDX12ColorTexture= dx12TextureResource;
 				}
@@ -547,9 +559,11 @@ public:
 					m_spoutDX11DepthTexture= nullptr;
 				}
 
+				// See note in writeColorFrameTexture: GENERIC_READ matches the staging texture's
+				// SRVMask rest state so 11on12 never conflicts with the client's state tracker.
 				if (dx12TextureResource != nullptr
 					&& m_spoutDepthFrame.WrapDX12Resource(dx12TextureResource, &m_spoutDX11DepthTexture,
-														  D3D12_RESOURCE_STATE_COPY_SOURCE))
+														  D3D12_RESOURCE_STATE_GENERIC_READ))
 				{
 					m_spoutDX12DepthTexture= dx12TextureResource;
 				}
@@ -617,13 +631,14 @@ void SharedTextureWriteAccessor::setLogCallback(SharedTextureLogCallback callbac
 }
 
 bool SharedTextureWriteAccessor::initialize(const SharedTextureDescriptor* descriptor, bool bEnableFrameCounter,
-											void* apiDeviceInterface)
+											void* apiDeviceInterface, void* apiCommandQueueInterface)
 {
 	dispose();
 
 	m_renderTargetDescriptor= *descriptor;
 	m_bEnableFrameCounter= bEnableFrameCounter;
 	m_apiDeviceInterface= apiDeviceInterface;
+	m_apiCommandQueueInterface= apiCommandQueueInterface;
 
 	if (!makeSpoutSenderName(m_senderPrefix, m_cameraId, SharedTextureType::COLOR, m_colorSenderName))
 	{
@@ -711,6 +726,7 @@ void SharedTextureWriteAccessor::dispose()
 
 	m_bEnableFrameCounter= false;
 	m_apiDeviceInterface= nullptr;
+	m_apiCommandQueueInterface= nullptr;
 	m_graphicsAPI= SharedClientGraphicsApi::UNKNOWN;
 	m_bIsInitialized= false;
 }

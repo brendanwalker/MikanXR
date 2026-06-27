@@ -58,7 +58,7 @@ public:
 	virtual ~ISharedTextureWriteAccessor() {}
 
 	virtual bool initialize(const struct SharedTextureDescriptor* descriptor, bool bEnableFrameCounter,
-							void* apiDeviceInterface= nullptr)= 0;
+							void* apiDeviceInterface= nullptr, void* apiCommandQueueInterface= nullptr)= 0;
 	virtual void dispose()= 0;
 
 	virtual bool writeColorFrameTexture(void* ApiTexturePtr)= 0;

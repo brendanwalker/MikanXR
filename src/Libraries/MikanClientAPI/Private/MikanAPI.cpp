@@ -268,6 +268,16 @@ public:
 	{
 		return m_renderTargetAPI->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 	}
+	virtual MikanAPIResult setGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
+															void* graphicsCommandQueueInterface) override
+	{
+		return m_renderTargetAPI->setGraphicsCommandQueueInterface(api, graphicsCommandQueueInterface);
+	}
+	virtual MikanAPIResult getGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
+															void** outGraphicsCommandQueueInterface) override
+	{
+		return m_renderTargetAPI->getGraphicsCommandQueueInterface(api, outGraphicsCommandQueueInterface);
+	}
 
 	virtual MikanAPIResult getCameraPackDepthTextureResourcePtr(MikanCameraID cameraId, void** outResourcePtr) override
 	{

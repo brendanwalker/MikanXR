@@ -25,6 +25,22 @@ MikanAPIResult MikanRenderTargetAPI::getGraphicsDeviceInterface(MikanClientGraph
 	return (MikanAPIResult)Mikan_GetGraphicsDeviceInterface(context, api, outGraphicsDeviceInterface);
 }
 
+MikanAPIResult MikanRenderTargetAPI::setGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
+																	  void* graphicsCommandQueueInterface)
+{
+	MikanContext context= m_requestManager->getContext();
+
+	return (MikanAPIResult)Mikan_SetGraphicsCommandQueueInterface(context, api, graphicsCommandQueueInterface);
+}
+
+MikanAPIResult MikanRenderTargetAPI::getGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
+																	  void** outGraphicsCommandQueueInterface)
+{
+	MikanContext context= m_requestManager->getContext();
+
+	return (MikanAPIResult)Mikan_GetGraphicsCommandQueueInterface(context, api, outGraphicsCommandQueueInterface);
+}
+
 MikanAPIResult MikanRenderTargetAPI::getCameraPackDepthTextureResourcePtr(MikanCameraID cameraId, void** outResourcePtr)
 {
 	if (outResourcePtr != nullptr)

@@ -26,6 +26,14 @@ MIKAN_CORE_CAPI(MikanCoreResult)
 Mikan_GetGraphicsDeviceInterface(MikanContext context, MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
 
 MIKAN_CORE_CAPI(MikanCoreResult)
+Mikan_SetGraphicsCommandQueueInterface(MikanContext context, MikanClientGraphicsApi api,
+									   void* graphicsCommandQueueInterface);
+
+MIKAN_CORE_CAPI(MikanCoreResult)
+Mikan_GetGraphicsCommandQueueInterface(MikanContext context, MikanClientGraphicsApi api,
+									   void** outGraphicsCommandQueueInterface);
+
+MIKAN_CORE_CAPI(MikanCoreResult)
 Mikan_GetCameraRenderTargetDescriptor(MikanContext context, MikanCameraID camera_id,
 									  MikanRenderTargetDescriptor* out_descriptor);
 

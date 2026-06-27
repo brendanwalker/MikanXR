@@ -393,11 +393,18 @@ bool spoutDX12::WrapDX12Resource(ID3D12Resource* pDX12Resource, ID3D11Resource**
 	//        D3D12_RESOURCE_STATE_RENDER_TARGET for a sender (or as required by the application)
 	//    (2) when we are done using it in d3d11 (we release it back to d3d12)
 	//        these are the states our resource will be transitioned into
+	// IMPORTANT: OutState must equal InState. The wrapped resource is a client-owned texture
+	// (e.g. an Unreal Engine staging texture) whose D3D12 state is tracked by the client's own
+	// renderer. If 11on12 transitions the resource to a different state on Release (the old code
+	// used D3D12_RESOURCE_STATE_PRESENT here), the client's state tracker and the 11on12 runtime
+	// disagree about the resource's state, producing "before state does not match" barrier errors
+	// and intermittent corruption/flicker. Using InState == OutState makes Acquire/Release no-ops
+	// so 11on12 never fights the client's state tracking.
 	hr= m_pd3d11On12Device->CreateWrappedResource(
 		pDX12Resource, // A pointer to an already-created D3D12 resource or heap.
 		&d3d11Flags,
-		InitialState,                 // InState
-		D3D12_RESOURCE_STATE_PRESENT, // OutState
+		InitialState, // InState
+		InitialState, // OutState (must match InState - see note above)
 		IID_PPV_ARGS(ppWrapped11Resource));
 
 	if (FAILED(hr))
