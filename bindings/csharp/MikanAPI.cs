@@ -109,6 +109,20 @@ namespace MikanXR
 			return _renderTargetAPI.GetGraphicsDeviceInterface(api, out outGraphicsDeviceInterface);
 		}
 
+		public MikanAPIResult SetGraphicsCommandQueueInterface(
+			MikanClientGraphicsApi api,
+			IntPtr graphicsCommandQueueInterface)
+		{
+			return _renderTargetAPI.SetGraphicsCommandQueueInterface(api, graphicsCommandQueueInterface);
+		}
+
+		public MikanAPIResult GetGraphicsCommandQueueInterface(
+			MikanClientGraphicsApi api,
+			out IntPtr outGraphicsCommandQueueInterface)
+		{
+			return _renderTargetAPI.GetGraphicsCommandQueueInterface(api, out outGraphicsCommandQueueInterface);
+		}
+
 		public IntPtr GetCameraPackDepthTextureResourcePtr(int cameraId)
 		{
 			return _renderTargetAPI.GetCameraPackDepthTextureResourcePtr(cameraId);

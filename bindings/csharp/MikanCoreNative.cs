@@ -61,8 +61,20 @@ namespace MikanXR
 		[DllImport("MikanClientCore.dll")]
 		public static extern int Mikan_GetGraphicsDeviceInterface(
 			IntPtr context,
-			MikanClientGraphicsApi api, 
+			MikanClientGraphicsApi api,
 			out IntPtr outGraphicsDeviceInterface);
+
+		[DllImport("MikanClientCore.dll")]
+		public static extern int Mikan_SetGraphicsCommandQueueInterface(
+			IntPtr context,
+			MikanClientGraphicsApi api,
+			IntPtr graphicsCommandQueueInterface);
+
+		[DllImport("MikanClientCore.dll")]
+		public static extern int Mikan_GetGraphicsCommandQueueInterface(
+			IntPtr context,
+			MikanClientGraphicsApi api,
+			out IntPtr outGraphicsCommandQueueInterface);
 
 		[DllImport("MikanClientCore.dll")]
 		public static extern int Mikan_GetCameraRenderTargetDescriptor(

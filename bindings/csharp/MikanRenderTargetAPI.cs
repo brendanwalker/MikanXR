@@ -32,9 +32,29 @@ namespace MikanXR
 			MikanClientGraphicsApi api,
 			out IntPtr outGraphicsDeviceInterface)
 		{
-			int result = 
+			int result =
 				MikanCoreNative.Mikan_GetGraphicsDeviceInterface(
 					_mikanContext, api, out outGraphicsDeviceInterface);
+			return (MikanAPIResult)result;
+		}
+
+		public MikanAPIResult SetGraphicsCommandQueueInterface(
+			MikanClientGraphicsApi api,
+			IntPtr graphicsCommandQueueInterface)
+		{
+			int result =
+				MikanCoreNative.Mikan_SetGraphicsCommandQueueInterface(
+					_mikanContext, api, graphicsCommandQueueInterface);
+			return (MikanAPIResult)result;
+		}
+
+		public MikanAPIResult GetGraphicsCommandQueueInterface(
+			MikanClientGraphicsApi api,
+			out IntPtr outGraphicsCommandQueueInterface)
+		{
+			int result =
+				MikanCoreNative.Mikan_GetGraphicsCommandQueueInterface(
+					_mikanContext, api, out outGraphicsCommandQueueInterface);
 			return (MikanAPIResult)result;
 		}
 
