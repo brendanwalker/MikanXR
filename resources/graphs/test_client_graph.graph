@@ -1,6 +1,6 @@
 {
 	"class_name":      "CompositorNodeGraph",
-	"next_id":         51,
+	"next_id":         61,
 	"properties":      [
 		{
 			"class_name":      "GraphMaterialProperty",
@@ -15,6 +15,13 @@
 			"parent_id":       0,
 			"name":            "GraphMaterialProperty16",
 			"asset_ref_index": 1
+		},
+		{
+			"class_name":      "GraphMaterialProperty",
+			"id":              51,
+			"parent_id":       0,
+			"name":            "GraphMaterialProperty51",
+			"asset_ref_index": 2
 		}
 	],
 	"assetReferences": [
@@ -25,6 +32,10 @@
 		{
 			"class_name": "MaterialAssetReference",
 			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbaClientDepthMask/rgbaClientDepthMask.mat"
+		},
+		{
+			"class_name": "MaterialAssetReference",
+			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbInvAlphaClientDepthMask/rgbInvAlphaClientDepthMask.mat"
 		}
 	],
 	"nodes":           [
@@ -78,7 +89,7 @@
 		{
 			"class_name":                "DrawLayerNode",
 			"id":                        19,
-			"pins_in":                   [ 20, 21, 22, 25, 26, 27 ],
+			"pins_in":                   [ 20, 21, 22, 55, 56, 57 ],
 			"pins_out":                  [ 23 ],
 			"pos":                       [ 848.06787, 3.2984619 ],
 			"blend_mode":                "blendOn",
@@ -95,9 +106,9 @@
 			"id":                        29,
 			"pins_in":                   [ ],
 			"pins_out":                  [ 30 ],
-			"pos":                       [ 459.06787, 268.29846 ],
+			"pos":                       [ 459.06787, 262.29846 ],
 			"texture_source_color_type": "colorRGBA",
-			"texture_source_id":         1034,
+			"texture_source_id":         1065,
 			"vertical_flip":             false
 		},
 		{
@@ -107,7 +118,7 @@
 			"pins_out":                  [ 33 ],
 			"pos":                       [ 461.06787, 105.29846 ],
 			"texture_source_depth_type": "depthPackRGBA",
-			"texture_source_id":         1034,
+			"texture_source_id":         1065,
 			"vertical_flip":             false
 		},
 		{
@@ -148,6 +159,14 @@
 			"enable_quad_shapes":  true,
 			"enable_box_shapes":   true,
 			"enable_model_shapes": true
+		},
+		{
+			"class_name":           "MaterialNode",
+			"id":                   52,
+			"pins_in":              [ ],
+			"pins_out":             [ 53 ],
+			"pos":                  [ 524.0, -41.0 ],
+			"material_property_id": 51
 		}
 	],
 	"pins":            [
@@ -240,7 +259,7 @@
 			"id":                  18,
 			"direction":           "output",
 			"owner_node_id":       17,
-			"connected_links":     [ 24 ],
+			"connected_links":     [ ],
 			"has_default_value":   false,
 			"is_dynamic":          false,
 			"property_class_name": "GraphMaterialProperty"
@@ -261,7 +280,7 @@
 			"id":                  21,
 			"direction":           "input",
 			"owner_node_id":       19,
-			"connected_links":     [ 24 ],
+			"connected_links":     [ 54 ],
 			"has_default_value":   false,
 			"is_dynamic":          false,
 			"property_class_name": "GraphMaterialProperty"
@@ -289,41 +308,11 @@
 		},
 		{
 			"class_name":        "TexturePin",
-			"pin_name":          "clientDepth",
-			"id":                25,
-			"direction":         "input",
-			"owner_node_id":     19,
-			"connected_links":   [ 34 ],
-			"has_default_value": false,
-			"is_dynamic":        true
-		},
-		{
-			"class_name":        "TexturePin",
-			"pin_name":          "clientRGBA",
-			"id":                26,
-			"direction":         "input",
-			"owner_node_id":     19,
-			"connected_links":   [ 31 ],
-			"has_default_value": false,
-			"is_dynamic":        true
-		},
-		{
-			"class_name":        "TexturePin",
-			"pin_name":          "videoDepth",
-			"id":                27,
-			"direction":         "input",
-			"owner_node_id":     19,
-			"connected_links":   [ 41 ],
-			"has_default_value": false,
-			"is_dynamic":        true
-		},
-		{
-			"class_name":        "TexturePin",
 			"pin_name":          "texture",
 			"id":                30,
 			"direction":         "output",
 			"owner_node_id":     29,
-			"connected_links":   [ 31 ],
+			"connected_links":   [ 59 ],
 			"has_default_value": false,
 			"is_dynamic":        false
 		},
@@ -333,7 +322,7 @@
 			"id":                33,
 			"direction":         "output",
 			"owner_node_id":     32,
-			"connected_links":   [ 34 ],
+			"connected_links":   [ 58 ],
 			"has_default_value": false,
 			"is_dynamic":        false
 		},
@@ -354,7 +343,7 @@
 			"id":                37,
 			"direction":         "output",
 			"owner_node_id":     35,
-			"connected_links":   [ 41 ],
+			"connected_links":   [ 60 ],
 			"has_default_value": false,
 			"is_dynamic":        false
 		},
@@ -410,6 +399,47 @@
 			"has_default_value":  false,
 			"is_dynamic":         false,
 			"element_class_name": "GraphShapeProperty"
+		},
+		{
+			"class_name":          "PropertyPin",
+			"pin_name":            "material",
+			"id":                  53,
+			"direction":           "output",
+			"owner_node_id":       52,
+			"connected_links":     [ 54 ],
+			"has_default_value":   false,
+			"is_dynamic":          false,
+			"property_class_name": "GraphMaterialProperty"
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "clientDepth",
+			"id":                55,
+			"direction":         "input",
+			"owner_node_id":     19,
+			"connected_links":   [ 58 ],
+			"has_default_value": false,
+			"is_dynamic":        true
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "clientRGBA",
+			"id":                56,
+			"direction":         "input",
+			"owner_node_id":     19,
+			"connected_links":   [ 59 ],
+			"has_default_value": false,
+			"is_dynamic":        true
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "videoDepth",
+			"id":                57,
+			"direction":         "input",
+			"owner_node_id":     19,
+			"connected_links":   [ 60 ],
+			"has_default_value": false,
+			"is_dynamic":        true
 		}
 	],
 	"links":           [
@@ -429,34 +459,14 @@
 			"end_pin_id":   12
 		},
 		{
-			"id":           24,
-			"start_pin_id": 18,
-			"end_pin_id":   21
-		},
-		{
 			"id":           28,
 			"start_pin_id": 9,
 			"end_pin_id":   20
 		},
 		{
-			"id":           31,
-			"start_pin_id": 30,
-			"end_pin_id":   26
-		},
-		{
-			"id":           34,
-			"start_pin_id": 33,
-			"end_pin_id":   25
-		},
-		{
 			"id":           40,
 			"start_pin_id": 39,
 			"end_pin_id":   36
-		},
-		{
-			"id":           41,
-			"start_pin_id": 37,
-			"end_pin_id":   27
 		},
 		{
 			"id":           48,
@@ -467,6 +477,26 @@
 			"id":           50,
 			"start_pin_id": 23,
 			"end_pin_id":   43
+		},
+		{
+			"id":           54,
+			"start_pin_id": 53,
+			"end_pin_id":   21
+		},
+		{
+			"id":           58,
+			"start_pin_id": 33,
+			"end_pin_id":   55
+		},
+		{
+			"id":           59,
+			"start_pin_id": 30,
+			"end_pin_id":   56
+		},
+		{
+			"id":           60,
+			"start_pin_id": 37,
+			"end_pin_id":   57
 		}
 	]
 }
