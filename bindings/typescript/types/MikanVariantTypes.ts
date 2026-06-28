@@ -54,6 +54,14 @@ export class MikanUByteValue extends MikanVariantBase {
   ];
 }
 
+export class MikanUShortValue extends MikanVariantBase {
+  value: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'value', type: 'uint16' }
+  ];
+}
+
 export class MikanStringValue extends MikanVariantBase {
   value: string = '';
 
@@ -101,14 +109,6 @@ export class MikanBoolValue extends MikanVariantBase {
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'value', type: 'boolean' }
-  ];
-}
-
-export class MikanUShortValue extends MikanVariantBase {
-  value: number = 0;
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'value', type: 'uint16' }
   ];
 }
 

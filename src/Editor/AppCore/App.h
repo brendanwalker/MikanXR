@@ -39,7 +39,7 @@ public:
 	inline EventBus* getEventBus() const { return m_eventBus.get(); }
 	inline class LocalizationManager* getLocalizationManager() const { return m_localizationManager; }
 
-	inline double getSecondsSinceAppStart() const { return m_secondsSinceAppStart; }
+	double getSecondsSinceAppStart() const;
 	inline float getFPS() const { return m_fps; }
 
 	bool hasCommandLineFlag(const std::string& flag) const;
@@ -134,7 +134,7 @@ private:
 	std::set<std::string> m_commandLineFlags;
 
 	// Current FPS rate
-	double m_secondsSinceAppStart= 0.0;
+	std::chrono::steady_clock::time_point m_appStartTimestamp;
 	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 	float m_fps= 0.f;
 };

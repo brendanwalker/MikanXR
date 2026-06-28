@@ -6,7 +6,6 @@ namespace MikanXR
 {
 	public class MikanLightDMXDataChangedEvent : MikanEvent
 	{
-		public int light_id;
 		public MikanDMXData dmx_data;
 
 		public MikanLightDMXDataChangedEvent()

@@ -218,7 +218,8 @@ bool App::startup(int argc, char** argv)
 
 	if (success)
 	{
-		m_lastFrameTimestamp= std::chrono::steady_clock::now();
+		m_appStartTimestamp= std::chrono::steady_clock::now();
+		m_lastFrameTimestamp= m_appStartTimestamp;
 	}
 
 	return success;
@@ -269,6 +270,14 @@ void App::shutdown()
 #endif // _WIN32
 }
 
+double App::getSecondsSinceAppStart() const
+{
+	const auto now= std::chrono::steady_clock::now();
+	const double secondsSinceStart= std::chrono::duration<double>(now - m_appStartTimestamp).count();
+
+	return secondsSinceStart;
+}
+
 void App::tick()
 {
 	EASY_FUNCTION();
@@ -277,7 +286,6 @@ void App::tick()
 	const auto now= std::chrono::steady_clock::now();
 	const float deltaSeconds= fminf(std::chrono::duration<float>(now - m_lastFrameTimestamp).count(), 0.1f);
 	m_fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
-	m_secondsSinceAppStart+= deltaSeconds;
 	m_lastFrameTimestamp= now;
 
 	// Pump the CEF message loop so browser callbacks (including OnPaint) fire

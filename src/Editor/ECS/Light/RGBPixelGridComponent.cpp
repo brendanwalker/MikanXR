@@ -140,7 +140,6 @@ void RGBPixelGridComponent::setAllPixels(const uint8_t* rgbData, int count)
 {
 	const int copyCount= std::min(count, static_cast<int>(m_pixelData.size()));
 	std::memcpy(m_pixelData.data(), rgbData, copyCount);
-	notifyDMXDataChanged();
 }
 
 void RGBPixelGridComponent::fillPixels(uint8_t r, uint8_t g, uint8_t b)
@@ -151,14 +150,13 @@ void RGBPixelGridComponent::fillPixels(uint8_t r, uint8_t g, uint8_t b)
 		m_pixelData[i + 1]= g;
 		m_pixelData[i + 2]= b;
 	}
-
-	notifyDMXDataChanged();
 }
 
-void RGBPixelGridComponent::sendDMXData(IDMXManager* manager) const
+void RGBPixelGridComponent::sendDMXData() const
 {
+	DMXObjectSystemPtr dmxObjectSystem= getDMXObjectSystem();
 	RGBPixelGridDefinitionPtr def= getRGBPixelGridDefinition();
-	if (!def || def->getIsDisabled() || !manager)
+	if (!def || def->getIsDisabled() || !dmxObjectSystem)
 		return;
 
 	const std::vector<uint8_t>& pixelData= getPixelData();
@@ -183,23 +181,12 @@ void RGBPixelGridComponent::sendDMXData(IDMXManager* manager) const
 		const int slotsAvailableInUniverse= 512 - (slotInUniverse - 1);
 		const int chunkSize= std::min(channelsRemaining, slotsAvailableInUniverse);
 
-		manager->setChannels(targetUniverse, slotInUniverse, pixelData.data() + pixelDataOffset,
-							 static_cast<uint16_t>(chunkSize));
+		dmxObjectSystem->writeUniverseData(targetUniverse, slotInUniverse, pixelData.data() + pixelDataOffset,
+										   static_cast<uint16_t>(chunkSize));
 
 		pixelDataOffset+= chunkSize;
 		channelsRemaining-= chunkSize;
 	}
-}
-
-void RGBPixelGridComponent::getDMXData(MikanDMXData& outData) const
-{
-	outData.channel_data.assign(m_pixelData.data(), m_pixelData.data() + m_pixelData.size());
-}
-
-void RGBPixelGridComponent::setDMXData(const MikanDMXData& data)
-{
-	const auto& ch= data.channel_data;
-	setAllPixels(ch.data(), static_cast<int>(ch.size()));
 }
 
 // -- IEntityAccessor --

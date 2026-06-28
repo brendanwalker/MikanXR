@@ -1,6 +1,4 @@
 #include "RGBSpotLightSystem.h"
-#include "DMXObjectSystem.h"
-#include "IDMXManager.h"
 #include "MikanObject.h"
 #include "SelectionComponent.h"
 
@@ -27,21 +25,4 @@ void RGBSpotLightSystem::additionalComponentFactory(MikanObjectPtr ownerComponen
 	RGBSpotLightComponentPtr lightComponentPtr= ownerComponentObject->getComponentOfType<RGBSpotLightComponent>();
 	if (lightComponentPtr)
 		lightComponentPtr->rebuildMeshComponents();
-}
-
-void RGBSpotLightSystem::update(float deltaSeconds)
-{
-	Super::update(deltaSeconds);
-
-	IDMXManager* dmxManager= getObjectSystemOfType<DMXObjectSystem>()->getDMXManager();
-	if (!dmxManager || !dmxManager->getIsRunning())
-		return;
-
-	for (const auto& [lightId, componentWeakPtr] : Super::getComponentMap())
-	{
-		RGBSpotLightComponentPtr component= componentWeakPtr.lock();
-
-		if (component)
-			component->sendDMXData(dmxManager);
-	}
 }

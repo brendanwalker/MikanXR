@@ -34,8 +34,6 @@ public:
 	inline static const std::string k_objectSystemClassName= "RGBSpotLightSystem";
 	virtual std::string getObjectSystemClassName() const override { return k_objectSystemClassName; }
 
-	virtual void update(float deltaSeconds) override;
-
 	inline RGBSpotLightComponentPtr getLightById(MikanLightID lightId) const
 	{
 		return Super::getTypedComponentById(lightId);

@@ -4,6 +4,7 @@
 #include "MikanTypeFwd.h"
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -19,18 +20,30 @@ public:
 	virtual void shutdown() override;
 
 protected:
-	// DMX data change listener — subscribed to DMXFixtureComponent::OnDMXDataChanged
-	void onLightDMXDataChanged(MikanLightID lightId);
+	// DMX data change listener — subscribed to DMXObjectSystem::OnDMXDataChanged
+	void onDMXDataChanged();
 
 	// Request handlers
 	void setLightDMXDataSubscriptionHandler(const ClientRequest& request, ClientResponse& response);
-	void setLightDMXDataHandler(const ClientRequest& request, ClientResponse& response);
-	void getLightDMXDataHandler(const ClientRequest& request, ClientResponse& response);
+	void getDMXDataHandler(const ClientRequest& request, ClientResponse& response);
 
 private:
+	static constexpr MikanLightID k_AllLights= -1;
+
+	struct ClientLightSubscriptionInfo
+	{
+		std::string clientId;
+		std::set<MikanLightID> subscribedLights;
+	};
+	using ClientLightSubscriptionInfoPtr= std::shared_ptr<ClientLightSubscriptionInfo>;
+
+	// Helper: look up which universes contains a set of lights
+	void computeDMXUniverseIdsForLights(ClientLightSubscriptionInfoPtr subscriptionInfo,
+										std::set<uint16_t>& outUniverseIds) const;
+
 	// Helper: look up a DMXFixtureComponent from either the spot light or pixel grid system
 	std::shared_ptr<class DMXFixtureComponent> findLightById(MikanLightID lightId) const;
 
-	// light_id -> set of subscribed client connection IDs
-	std::map<MikanLightID, std::set<std::string>> m_lightSubscriptions;
+	// client connection ID -> set of subscribed lights
+	std::map<std::string, ClientLightSubscriptionInfoPtr> m_lightSubscriptions;
 };

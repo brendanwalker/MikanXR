@@ -1,6 +1,7 @@
 #include "DMXObjectSystem.h"
 #include "MikanPropertyDatabase.h"
 #include "MikanFunctionDatabase.h"
+#include "MikanLightTypes.h"
 #include "ProjectManager.h"
 #include "MikanLightTypes.h"
 #include "ProjectConfig.h"
@@ -96,6 +97,105 @@ void DMXObjectSystem::dispose()
 	}
 
 	MikanObjectSystem::dispose();
+}
+
+void DMXObjectSystem::update(float deltaSeconds)
+{
+	// See if any universe has been modified
+	bool bAnyUniverseMarkedDirty= false;
+	for (const auto& [_, universeData] : m_universeBuffers)
+	{
+		if (universeData->dirty)
+		{
+			bAnyUniverseMarkedDirty= true;
+			break;
+		}
+	}
+
+	if (bAnyUniverseMarkedDirty)
+	{
+		// Broadcast DMX channel channels to clients with light subscriptions
+		if (OnDMXDataChanged)
+			OnDMXDataChanged();
+
+		// Clear all dirty flags
+		for (const auto& [_, universeData] : m_universeBuffers)
+		{
+			universeData->dirty= false;
+		}
+	}
+}
+
+DMXObjectSystem::UniverseDataPtr DMXObjectSystem::getOrAddUniverseData(uint16_t universeId)
+{
+	UniverseDataPtr universeData;
+	auto it= m_universeBuffers.find(universeId);
+	if (it == m_universeBuffers.end())
+	{
+		universeData= std::make_shared<UniverseData>();
+		universeData->universeId= universeId;
+		std::memset(universeData->channelData, 0, kDMXUniverseChannelCount);
+		universeData->dirty= false;
+
+		m_universeBuffers.insert({universeId, universeData});
+	}
+	else
+	{
+		universeData= it->second;
+	}
+
+	return universeData;
+}
+
+void DMXObjectSystem::writeUniverseData(uint16_t universeId, uint16_t startChannel, const uint8_t* values,
+										uint16_t count)
+{
+	assert(startChannel >= 1 && startChannel <= 512);
+
+	// Forward universe data write directly on to the DMX E1.31 protocol handler
+	// to set the physical lights
+	m_dmxManager->setChannels(universeId, startChannel, values, count);
+
+	// Update the universe data and mark dirty
+	// This
+	auto universeData= getOrAddUniverseData(universeId);
+	if (universeData)
+	{
+		const uint16_t maxCount= static_cast<uint16_t>(512 - (startChannel - 1));
+		const uint16_t clampedCount= std::min(count, maxCount);
+
+		std::memcpy(&universeData->channelData[startChannel - 1], values, clampedCount);
+		universeData->dirty= true;
+	}
+}
+
+std::set<uint16_t> DMXObjectSystem::getActiveDMXUniverseIdSet() const
+{
+	std::set<uint16_t> result;
+
+	for (const auto& [universeId, _] : m_universeBuffers)
+	{
+		result.insert(universeId);
+	}
+
+	return result;
+}
+
+bool DMXObjectSystem::extractUniverseData(uint16_t universeId, MikanUniverseDMXData& outUniverseData)
+{
+	auto it= m_universeBuffers.find(universeId);
+	if (it != m_universeBuffers.end())
+	{
+		UniverseDataPtr universeData= it->second;
+		outUniverseData.dmx_universe_id= universeId;
+
+		// Only write out universes marked dirty
+		return universeData->dirty
+			   && mikanRLEEncodeDMXUniverseBuffer(kDMXUniverseChannelCount, universeData->channelData, &outUniverseData)
+					  > 0;
+	}
+
+	return false;
 }
 
 DMXObjectSystemDefinitionConstPtr DMXObjectSystem::getDMXObjectSystemConfigConst() const

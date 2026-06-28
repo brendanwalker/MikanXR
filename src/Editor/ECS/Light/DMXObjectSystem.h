@@ -11,6 +11,9 @@
 #include "ObjectSystemConfigFwd.h"
 #include "SceneFwd.h"
 
+#include <map>
+#include <memory>
+#include <set>
 #include <vector>
 
 class DMXObjectSystemDefinition : public MikanObjectSystemDefinition
@@ -56,6 +59,7 @@ public:
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
+	virtual void update(float deltaSeconds) override;
 
 	DMXObjectSystemDefinitionConstPtr getDMXObjectSystemConfigConst() const;
 	DMXObjectSystemDefinitionPtr getDMXObjectSystemConfig();
@@ -73,12 +77,13 @@ public:
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase) override;
 
-	/// The DMX manager owned by this system. RGBPixelGridSystem borrows this pointer.
-	IDMXManager* getDMXManager() const { return m_dmxManager.get(); }
+	// DMX Universe Data helpers
+	void writeUniverseData(uint16_t universeId, uint16_t startChannel, const uint8_t* values, uint16_t count);
+	std::set<uint16_t> getActiveDMXUniverseIdSet() const;
+	bool extractUniverseData(uint16_t universeId, struct MikanUniverseDMXData& outUniverseData);
 
-	/// Fired whenever any light fixture's DMX channel data changes.
-	/// Parameter is the light's component ID (== MikanLightID).
-	MulticastDelegate<void(MikanLightID)> OnDMXDataChanged;
+	/// Fired when DMX Universe data changed.
+	MulticastDelegate<void()> OnDMXDataChanged;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -93,9 +98,20 @@ public:
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);
 
-protected:
-	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
-
 private:
+	static constexpr size_t kDMXUniverseChannelCount= 512;
+	struct UniverseData
+	{
+		uint16_t universeId;
+		uint8_t channelData[kDMXUniverseChannelCount]= {}; // DMX channel data (slots 1-512)
+		bool dirty= false;
+	};
+	using UniverseDataPtr= std::shared_ptr<UniverseData>;
+	std::map<uint16_t, UniverseDataPtr> m_universeBuffers;
+
 	IDMXManagerUniquePtr m_dmxManager;
+
+protected:
+	UniverseDataPtr getOrAddUniverseData(uint16_t universeId);
+	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 };

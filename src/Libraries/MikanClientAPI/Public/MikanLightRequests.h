@@ -15,7 +15,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetL
 {
 	SetLightDMXDataSubcription(){MIKAN_REQUEST_TYPE_INFO_INIT(SetLightDMXDataSubcription)}
 
-	FIELD() MikanLightID light_id= INVALID_MIKAN_ID;
+	FIELD() Serialization::List<MikanLightID> light_ids;
 
 	FIELD() bool subscribe= false;
 
@@ -24,41 +24,25 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetL
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetLightDMXData : public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetDMXData : public MikanRequest
 {
-	SetLightDMXData(){MIKAN_REQUEST_TYPE_INFO_INIT(SetLightDMXData)}
+	GetDMXData(){MIKAN_REQUEST_TYPE_INFO_INIT(GetDMXData)}
 
-	FIELD() MikanLightID light_id= INVALID_MIKAN_ID;
+	FIELD() Serialization::List<int> dmx_universe_ids;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	GetDMXData_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanDMXDataResponse : public MikanResponse
+{
+	MikanDMXDataResponse(){MIKAN_RESPONSE_TYPE_INFO_INIT(MikanDMXDataResponse)}
 
 	FIELD() MikanDMXData dmx_data;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
-	SetLightDMXData_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetLightDMXData : public MikanRequest
-{
-	GetLightDMXData(){MIKAN_REQUEST_TYPE_INFO_INIT(GetLightDMXData)}
-
-	FIELD() MikanLightID light_id= INVALID_MIKAN_ID;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	GetLightDMXData_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanLightDMXDataResponse
-	: public MikanResponse
-{
-	MikanLightDMXDataResponse(){MIKAN_RESPONSE_TYPE_INFO_INIT(MikanLightDMXDataResponse)}
-
-	FIELD() MikanLightID light_id= INVALID_MIKAN_ID;
-
-	FIELD() MikanDMXData dmx_data;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanLightDMXDataResponse_GENERATED
+	MikanDMXDataResponse_GENERATED
 #endif
 };
 

@@ -3,6 +3,7 @@
 #include "TypeRegistry.h"
 #include "TrackerPoseCalibratorTests.h"
 #include "ClientApiPropertySchemaTests.h"
+#include "DMXUniverseRLETests.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -14,6 +15,7 @@ bool run_all_editor_unit_tests()
 	bool success= true;
 	success&= run_tracker_pose_calibrator_unit_tests();
 	success&= run_client_api_property_schema_tests();
+	success&= run_dmx_universe_rle_tests();
 	// Future: add more test modules here
 	return success;
 }

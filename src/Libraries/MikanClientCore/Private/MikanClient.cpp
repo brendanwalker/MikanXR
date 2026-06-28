@@ -447,7 +447,7 @@ MikanCoreResult MikanClient::getGraphicsDeviceInterface(MikanClientGraphicsApi a
 }
 
 MikanCoreResult MikanClient::setGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
-															 void* graphicsCommandQueueInterface)
+															  void* graphicsCommandQueueInterface)
 {
 	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
 		return MikanCoreResult_InvalidParam;
@@ -458,7 +458,7 @@ MikanCoreResult MikanClient::setGraphicsCommandQueueInterface(MikanClientGraphic
 }
 
 MikanCoreResult MikanClient::getGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
-															 void** outGraphicsCommandQueueInterface)
+															  void** outGraphicsCommandQueueInterface)
 {
 	if (api < 0 || api >= MikanClientGraphicsApi_COUNT)
 		return MikanCoreResult_InvalidParam;

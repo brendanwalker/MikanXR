@@ -4,38 +4,8 @@ import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
 import { MikanDMXData } from './MikanLightTypes.js';
 import type { SerializationField } from './SerializationTypes.js';
 
-export class MikanLightDMXDataResponse extends MikanResponse {
-  light_id: number = -1;
-  dmx_data: MikanDMXData = new MikanDMXData();
-
-  constructor() {
-    super();
-    this.responseTypeName = 'MikanLightDMXDataResponse';
-  }
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'light_id', type: 'int32' },
-    { name: 'dmx_data', type: 'MikanDMXData' }
-  ];
-}
-
-export class SetLightDMXData extends MikanRequest {
-  light_id: number = -1;
-  dmx_data: MikanDMXData = new MikanDMXData();
-
-  constructor() {
-    super();
-    this.requestTypeName = 'SetLightDMXData';
-  }
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'light_id', type: 'int32' },
-    { name: 'dmx_data', type: 'MikanDMXData' }
-  ];
-}
-
 export class SetLightDMXDataSubcription extends MikanRequest {
-  light_id: number = -1;
+  light_ids: number[] = [];
   subscribe: boolean = false;
 
   constructor() {
@@ -44,21 +14,34 @@ export class SetLightDMXDataSubcription extends MikanRequest {
   }
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'light_id', type: 'int32' },
+    { name: 'light_ids', type: 'int32', isArray: true },
     { name: 'subscribe', type: 'boolean' }
   ];
 }
 
-export class GetLightDMXData extends MikanRequest {
-  light_id: number = -1;
+export class GetDMXData extends MikanRequest {
+  dmx_universe_ids: number[] = [];
 
   constructor() {
     super();
-    this.requestTypeName = 'GetLightDMXData';
+    this.requestTypeName = 'GetDMXData';
   }
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'light_id', type: 'int32' }
+    { name: 'dmx_universe_ids', type: 'int32', isArray: true }
+  ];
+}
+
+export class MikanDMXDataResponse extends MikanResponse {
+  dmx_data: MikanDMXData = new MikanDMXData();
+
+  constructor() {
+    super();
+    this.responseTypeName = 'MikanDMXDataResponse';
+  }
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'dmx_data', type: 'MikanDMXData' }
   ];
 }
 

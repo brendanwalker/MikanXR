@@ -4,11 +4,18 @@ import { MikanSystemValues } from './MikanPropertyTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 import type { SerializationField } from './SerializationTypes.js';
 
+export enum MikanDMXBufferFormat {
+  DMXUncompressed = 0,
+  DMXRLEEncoded = 1
+}
+
 export class MikanDMXData {
-  channel_data: number[] = [];
+  server_time_seconds: number = 0;
+  universes: MikanUniverseDMXData[] = [];
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'channel_data', type: 'uint8', isArray: true }
+    { name: 'server_time_seconds', type: 'double' },
+    { name: 'universes', type: 'MikanUniverseDMXData', isArray: true }
   ];
 }
 
@@ -27,6 +34,18 @@ export class MikanDMXObjectSystemValues extends MikanSystemValues {
 export class MikanRGBSpotLightSystemValues extends MikanSystemValues {
 
   static __serializationMetadata: SerializationField[] = [
+  ];
+}
+
+export class MikanUniverseDMXData {
+  dmx_universe_id: number = 0;
+  buffer_format: MikanDMXBufferFormat = MikanDMXBufferFormat.DMXUncompressed;
+  buffer_data: number[] = [];
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'dmx_universe_id', type: 'uint16' },
+    { name: 'buffer_format', type: 'enum:MikanDMXBufferFormat' },
+    { name: 'buffer_data', type: 'uint8', isArray: true }
   ];
 }
 
@@ -53,16 +72,10 @@ export class MikanDMXFixtureComponentValues extends MikanTransformComponentValue
 }
 
 export class MikanRGBSpotLightComponentValues extends MikanDMXFixtureComponentValues {
-  red: number = 0;
-  green: number = 0;
-  blue: number = 0;
   cone_angle_degrees: number = 0;
   cone_range_meters: number = 0;
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'red', type: 'uint8' },
-    { name: 'green', type: 'uint8' },
-    { name: 'blue', type: 'uint8' },
     { name: 'cone_angle_degrees', type: 'float' },
     { name: 'cone_range_meters', type: 'float' }
   ];

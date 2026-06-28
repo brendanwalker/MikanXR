@@ -4,9 +4,16 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
+	public enum MikanDMXBufferFormat
+	{
+		DMXUncompressed= 0,
+		DMXRLEEncoded= 1,
+	};
+
 	public class MikanDMXData
 	{
-		public List<byte> channel_data;
+		public double server_time_seconds;
+		public List<MikanUniverseDMXData> universes;
 	};
 
 	public class MikanDMXFixtureComponentValues : MikanTransformComponentValues
@@ -37,15 +44,19 @@ namespace MikanXR
 
 	public class MikanRGBSpotLightComponentValues : MikanDMXFixtureComponentValues
 	{
-		public byte red;
-		public byte green;
-		public byte blue;
 		public float cone_angle_degrees;
 		public float cone_range_meters;
 	};
 
 	public class MikanRGBSpotLightSystemValues : MikanSystemValues
 	{
+	};
+
+	public class MikanUniverseDMXData
+	{
+		public ushort dmx_universe_id;
+		public MikanDMXBufferFormat buffer_format;
+		public List<byte> buffer_data;
 	};
 
 }

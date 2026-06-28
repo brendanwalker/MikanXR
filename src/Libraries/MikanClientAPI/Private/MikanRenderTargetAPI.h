@@ -12,7 +12,8 @@ public:
 	MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
 	MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
 	MikanAPIResult setGraphicsCommandQueueInterface(MikanClientGraphicsApi api, void* graphicsCommandQueueInterface);
-	MikanAPIResult getGraphicsCommandQueueInterface(MikanClientGraphicsApi api, void** outGraphicsCommandQueueInterface);
+	MikanAPIResult getGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
+													void** outGraphicsCommandQueueInterface);
 	MikanAPIResult getCameraPackDepthTextureResourcePtr(MikanCameraID cameraId, void** outResourcePtr);
 	MikanResponseFuture tryProcessRequest(MikanRequest& request);
 

@@ -152,14 +152,6 @@ void DMXFixtureComponent::init()
 	m_dmxObjectSystem= getObjectSystemOfType<DMXObjectSystem>();
 }
 
-void DMXFixtureComponent::notifyDMXDataChanged()
-{
-	DMXObjectSystemPtr dmxSystem= m_dmxObjectSystem.lock();
-
-	if (dmxSystem)
-		dmxSystem->OnDMXDataChanged(getComponentId());
-}
-
 StageComponentConstPtr DMXFixtureComponent::getOwnerStageComponent() const
 {
 	MikanStageID stageId= getDMXFixtureDefinition()->getOwnerStageId();

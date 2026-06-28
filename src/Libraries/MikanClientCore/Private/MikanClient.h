@@ -41,7 +41,8 @@ public:
 	MikanCoreResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
 	MikanCoreResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);
 	MikanCoreResult setGraphicsCommandQueueInterface(MikanClientGraphicsApi api, void* graphicsCommandQueueInterface);
-	MikanCoreResult getGraphicsCommandQueueInterface(MikanClientGraphicsApi api, void** outGraphicsCommandQueueInterface);
+	MikanCoreResult getGraphicsCommandQueueInterface(MikanClientGraphicsApi api,
+													 void** outGraphicsCommandQueueInterface);
 
 protected:
 	ISharedTextureWriteAccessorPtr getSharedTextureWriteAccessor(MikanCameraID camera_id) const;

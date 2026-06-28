@@ -14,8 +14,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightEvents")) MikanL
 {
 	MikanLightDMXDataChangedEvent(){MIKAN_EVENT_TYPE_INFO_INIT(MikanLightDMXDataChangedEvent)}
 
-	FIELD() MikanLightID light_id= INVALID_MIKAN_ID;
-
 	FIELD() MikanDMXData dmx_data;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

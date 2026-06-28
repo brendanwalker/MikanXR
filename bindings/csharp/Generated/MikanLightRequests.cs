@@ -4,41 +4,29 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class GetLightDMXData : MikanRequest
+	public class GetDMXData : MikanRequest
 	{
-		public int light_id;
+		public List<int> dmx_universe_ids;
 
-		public GetLightDMXData()
+		public GetDMXData()
 		{
-			requestTypeName = "GetLightDMXData";
+			requestTypeName = "GetDMXData";
 		}
 	};
 
-	public class MikanLightDMXDataResponse : MikanResponse
+	public class MikanDMXDataResponse : MikanResponse
 	{
-		public int light_id;
 		public MikanDMXData dmx_data;
 
-		public MikanLightDMXDataResponse()
+		public MikanDMXDataResponse()
 		{
-			responseTypeName = "MikanLightDMXDataResponse";
-		}
-	};
-
-	public class SetLightDMXData : MikanRequest
-	{
-		public int light_id;
-		public MikanDMXData dmx_data;
-
-		public SetLightDMXData()
-		{
-			requestTypeName = "SetLightDMXData";
+			responseTypeName = "MikanDMXDataResponse";
 		}
 	};
 
 	public class SetLightDMXDataSubcription : MikanRequest
 	{
-		public int light_id;
+		public List<int> light_ids;
 		public bool subscribe;
 
 		public SetLightDMXDataSubcription()

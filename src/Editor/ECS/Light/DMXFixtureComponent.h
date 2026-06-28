@@ -68,31 +68,19 @@ public:
 	{
 		return std::static_pointer_cast<DMXFixtureComponentDefinition>(m_definition);
 	}
+	inline DMXObjectSystemPtr getDMXObjectSystem() const { return m_dmxObjectSystem.lock(); }
 
 	StageComponentConstPtr getOwnerStageComponent() const;
 	eTrackingVolumeType getTrackingVolumeType() const;
 
 	virtual void init() override;
 
-	/// Write this fixture's current channel values to the DMX manager.
-	/// Called each frame by the owning object system.
-	virtual void sendDMXData(IDMXManager* manager) const= 0;
-
-	/// Get the current DMX channel data as a flat byte array.
-	virtual void getDMXData(MikanDMXData& outData) const= 0;
-
-	/// Apply a flat byte array of DMX channel data to this fixture.
-	/// Implementations should notify DMXObjectSystem::OnDMXDataChanged after updating.
-	virtual void setDMXData(const MikanDMXData& data)= 0;
-
 	// -- Lua Binding --
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	/// Cached pointer to the DMXObjectSystem for firing OnDMXDataChanged. Set during init().
+	/// Cached pointer to the DMXObjectSystem. Set during init().
 	DMXObjectSystemWeakPtr m_dmxObjectSystem;
-
-	void notifyDMXDataChanged();
 
 	// -- IEntityAccessor --
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

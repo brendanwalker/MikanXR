@@ -73,10 +73,8 @@ public:
 	/// Set all pixels to the same color.
 	void fillPixels(uint8_t r, uint8_t g, uint8_t b);
 
-	/// Write all pixel data across one or more E1.31 universes.
-	virtual void sendDMXData(IDMXManager* manager) const override;
-	virtual void getDMXData(MikanDMXData& outData) const override;
-	virtual void setDMXData(const MikanDMXData& data) override;
+	// Broadcast pixel data to DMX Listeners
+	void sendDMXData() const;
 
 	// -- IEntityAccessor --
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

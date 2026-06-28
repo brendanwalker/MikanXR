@@ -19,6 +19,7 @@ public:
 	virtual bool startup(class MainWindow* mainWindow)= 0;
 	virtual void shutdown() {};
 
+	double getServerTime() const;
 	ProjectManagerPtr getProjectManager() const;
 	ProjectConfigPtr getProjectConfig() const;
 	template <class t_object_system_type>

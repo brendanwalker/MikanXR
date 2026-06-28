@@ -373,37 +373,21 @@ void RGBSpotLightComponent::setRGB(uint8_t r, uint8_t g, uint8_t b)
 		m_green= g;
 		m_blue= b;
 
-		notifyDMXDataChanged();
 		updateWireframeMeshColor();
 		updateConeColor();
+		sendDMXData();
 	}
 }
 
-void RGBSpotLightComponent::sendDMXData(IDMXManager* manager) const
+void RGBSpotLightComponent::sendDMXData() const
 {
+	DMXObjectSystemPtr dmxObjectSystem= getDMXObjectSystem();
 	RGBSpotLightDefinitionPtr def= getRGBSpotLightDefinition();
-	if (!def || def->getIsDisabled() || !manager)
+	if (!def || def->getIsDisabled() || !dmxObjectSystem)
 		return;
 
 	const uint8_t rgb[3]= {getRed(), getGreen(), getBlue()};
-	manager->setChannels(def->getDMXUniverse(), def->getDMXStartChannel(), rgb, 3);
-}
-
-void RGBSpotLightComponent::getDMXData(MikanDMXData& outData) const
-{
-	outData.channel_data.clear();
-	outData.channel_data.push_back(m_red);
-	outData.channel_data.push_back(m_green);
-	outData.channel_data.push_back(m_blue);
-}
-
-void RGBSpotLightComponent::setDMXData(const MikanDMXData& data)
-{
-	const auto& ch= data.channel_data;
-	const uint8_t r= ch.size() > 0 ? ch[0] : 0;
-	const uint8_t g= ch.size() > 1 ? ch[1] : 0;
-	const uint8_t b= ch.size() > 2 ? ch[2] : 0;
-	setRGB(r, g, b);
+	dmxObjectSystem->writeUniverseData(def->getDMXUniverse(), def->getDMXStartChannel(), rgb, 3);
 }
 
 // -- IEntityAccessor --
@@ -417,12 +401,19 @@ void RGBSpotLightComponent::getPropertyDescriptors(std::vector<PropertyDescripto
 {
 	DMXFixtureComponent::getPropertyDescriptors(outDescriptors);
 
+	// Don't expose the DMX values in the ComponentValues ClientAPI struct
+	// since that data is sent via the DMX universe buffer update events
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_redPropertyId, MikanVariantType::UBYTE));
+		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_redPropertyId, MikanVariantType::UBYTE)
+			->setClientAPIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_greenPropertyId, MikanVariantType::UBYTE));
+		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_greenPropertyId, MikanVariantType::UBYTE)
+			->setClientAPIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_bluePropertyId, MikanVariantType::UBYTE));
+		std::make_shared<PropertyDescriptor>(RGBSpotLightComponent::k_bluePropertyId, MikanVariantType::UBYTE)
+			->setClientAPIHidden());
+
+	// Spotlight properties
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(RGBSpotLightDefinition::k_coneAngleDegreesPropertyId,
 																  MikanVariantType::FLOAT));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(RGBSpotLightDefinition::k_coneRangeMetersPropertyId,

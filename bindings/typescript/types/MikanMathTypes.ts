@@ -150,6 +150,20 @@ export class MikanVector2i {
   ];
 }
 
+export class MikanVector4d {
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+  w: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'x', type: 'double' },
+    { name: 'y', type: 'double' },
+    { name: 'z', type: 'double' },
+    { name: 'w', type: 'double' }
+  ];
+}
+
 export class MikanVector4f {
   x: number = 0;
   y: number = 0;
@@ -205,20 +219,6 @@ export class MikanVector3f {
     { name: 'x', type: 'float' },
     { name: 'y', type: 'float' },
     { name: 'z', type: 'float' }
-  ];
-}
-
-export class MikanVector4d {
-  x: number = 0;
-  y: number = 0;
-  z: number = 0;
-  w: number = 0;
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'x', type: 'double' },
-    { name: 'y', type: 'double' },
-    { name: 'z', type: 'double' },
-    { name: 'w', type: 'double' }
   ];
 }
 
