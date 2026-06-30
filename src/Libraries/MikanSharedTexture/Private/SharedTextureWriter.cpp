@@ -23,6 +23,7 @@ public:
 	inline void* getApiCommandQueueInterface() const { return m_apiCommandQueueInterface; }
 	inline const std::string& getColorSenderName() const { return m_colorSenderName; }
 	inline const std::string& getDepthSenderName() const { return m_depthSenderName; }
+	inline const std::string& getShadowSenderName() const { return m_shadowSenderName; }
 	inline bool getEnableFrameCounter() const { return m_bEnableFrameCounter; }
 
 	virtual bool getIsInitialized() const;
@@ -35,6 +36,7 @@ public:
 	virtual const SharedTextureDescriptor* getRenderTargetDescriptor() const override;
 	virtual bool writeColorFrameTexture(void* apiTexturePtr) override;
 	virtual bool writeDepthFrameTexture(void* apiTexturePtr, float zNear, float zFar) override;
+	virtual bool writeShadowFrameTexture(void* apiTexturePtr) override;
 	virtual void* getPackDepthTextureResourcePtr() const override;
 
 private:
@@ -43,6 +45,7 @@ private:
 	MikanCameraID m_cameraId= -1;
 	std::string m_colorSenderName;
 	std::string m_depthSenderName;
+	std::string m_shadowSenderName;
 	SharedTextureDescriptor m_renderTargetDescriptor;
 	bool m_bEnableFrameCounter= false;
 	void* m_apiDeviceInterface= nullptr;
@@ -69,6 +72,7 @@ public:
 		, m_logger(parentAccessor->getLogger())
 		, m_spoutColorFrame(nullptr)
 		, m_spoutDepthFrame(nullptr)
+		, m_spoutShadowFrame(nullptr)
 	{
 	}
 
@@ -156,6 +160,43 @@ public:
 			bSuccess= false;
 		}
 
+		// Initialize the (optional) shadow spout frame. It's a color-like RGBA8/BGRA8 buffer,
+		// so no depth packer is needed - it mirrors the color frame path.
+		if (descriptor->shadow_buffer_type == SharedShadowBufferType::RGBA32
+			|| descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
+		{
+			m_spoutShadowFrame= GetSpout();
+			if (m_spoutShadowFrame == nullptr)
+			{
+				m_logger.log(SharedTextureLogLevel::error,
+							 "SpoutOpenGLTextureWriter::init() - Failed to open spout api for shadow");
+				return false;
+			}
+
+			m_spoutShadowFrame->EnableSpoutLog();
+			m_spoutShadowFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+			m_spoutShadowFrame->SetSenderName(m_parentAccessor->getShadowSenderName().c_str());
+
+			if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
+				m_spoutShadowFrame->SetSenderFormat((DWORD)DXGI_FORMAT_B8G8R8A8_UNORM);
+			else
+				m_spoutShadowFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R8G8B8A8_UNORM);
+
+			m_spoutShadowFrame->SetFrameCount(m_parentAccessor->getEnableFrameCounter());
+		}
+		else if (descriptor->shadow_buffer_type == SharedShadowBufferType::NOSHADOW)
+		{
+			m_spoutShadowFrame= nullptr;
+		}
+		else
+		{
+			std::stringstream ss;
+			ss << "SpoutOpenGLTextureWriter::init() - shadow buffer type not supported: ";
+			ss << (int)descriptor->shadow_buffer_type;
+			m_logger.log(SharedTextureLogLevel::info, ss.str());
+			bSuccess= false;
+		}
+
 		return bSuccess;
 	}
 
@@ -177,6 +218,12 @@ public:
 		{
 			m_spoutDepthFrame->Release();
 			m_spoutDepthFrame= nullptr;
+		}
+
+		if (m_spoutShadowFrame != nullptr)
+		{
+			m_spoutShadowFrame->Release();
+			m_spoutShadowFrame= nullptr;
 		}
 	}
 
@@ -219,6 +266,18 @@ public:
 		return false;
 	}
 
+	bool writeShadowFrameTexture(GLuint textureID)
+	{
+		if (m_spoutShadowFrame != nullptr)
+		{
+			const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
+
+			return m_spoutShadowFrame->SendTexture(textureID, GL_TEXTURE_2D, descriptor->width, descriptor->height);
+		}
+
+		return false;
+	}
+
 	void* getPackDepthTextureResourcePtr() const
 	{
 		return m_depthTexturePacker != nullptr ? (void*)m_depthTexturePacker->getPackedDepthTextureResourcePtr()
@@ -230,6 +289,7 @@ private:
 	SharedTextureLogger& m_logger;
 	SPOUTLIBRARY* m_spoutColorFrame;
 	SPOUTLIBRARY* m_spoutDepthFrame;
+	SPOUTLIBRARY* m_spoutShadowFrame;
 	SpoutGLDepthTexturePacker* m_depthTexturePacker= nullptr;
 };
 
@@ -241,6 +301,7 @@ public:
 		, m_logger(parentAccessor->getLogger())
 		, m_spoutColorFrame()
 		, m_spoutDepthFrame()
+		, m_spoutShadowFrame()
 		, m_depthTexturePacker(nullptr)
 	{
 	}
@@ -326,6 +387,30 @@ public:
 			}
 		}
 
+		// Initialize the (optional) shadow spout frame. It's a color-like RGBA8/BGRA8 buffer.
+		if (descriptor->shadow_buffer_type != SharedShadowBufferType::NOSHADOW)
+		{
+			if (m_spoutShadowFrame.OpenDirectX11(d3d11Device)
+				&& m_spoutShadowFrame.SetSenderName(m_parentAccessor->getShadowSenderName().c_str()))
+			{
+				if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
+					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+				else
+					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
+				if (!m_parentAccessor->getEnableFrameCounter())
+					m_spoutShadowFrame.DisableFrameCount();
+
+				m_bIsShadowFrameInitialized= true;
+			}
+			else
+			{
+				m_logger.log(SharedTextureLogLevel::info,
+							 "SpoutDX11TextureWriter::init() - Error initializing shadow spout frame");
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -344,6 +429,10 @@ public:
 		m_spoutDepthFrame.ReleaseSender();
 		m_spoutDepthFrame.CloseDirectX11();
 		m_bIsDepthFrameInitialized= false;
+
+		m_spoutShadowFrame.ReleaseSender();
+		m_spoutShadowFrame.CloseDirectX11();
+		m_bIsShadowFrameInitialized= false;
 
 		DisableSpoutLog();
 	}
@@ -377,6 +466,11 @@ public:
 		return false;
 	}
 
+	bool writeShadowFrameTexture(ID3D11Texture2D* pTexture)
+	{
+		return m_bIsShadowFrameInitialized ? m_spoutShadowFrame.SendTexture(pTexture) : false;
+	}
+
 	void* getPackDepthTextureResourcePtr() const
 	{
 		return m_depthTexturePacker != nullptr ? m_depthTexturePacker->getPackedDepthTextureResourcePtr() : nullptr;
@@ -387,9 +481,11 @@ private:
 	SharedTextureLogger& m_logger;
 	spoutDX m_spoutColorFrame;
 	spoutDX m_spoutDepthFrame;
+	spoutDX m_spoutShadowFrame;
 	SpoutDXDepthTexturePacker* m_depthTexturePacker= nullptr;
 	bool m_bIsColorFrameInitialized= false;
 	bool m_bIsDepthFrameInitialized= false;
+	bool m_bIsShadowFrameInitialized= false;
 };
 
 class SpoutDX12TextureWriter
@@ -400,6 +496,7 @@ public:
 		, m_logger(parentAccessor->getLogger())
 		, m_spoutColorFrame()
 		, m_spoutDepthFrame()
+		, m_spoutShadowFrame()
 		, m_depthTexturePacker(nullptr)
 	{
 	}
@@ -489,6 +586,30 @@ public:
 			}
 		}
 
+		// Initialize the (optional) shadow spout frame. It's a color-like RGBA8/BGRA8 buffer.
+		if (descriptor->shadow_buffer_type != SharedShadowBufferType::NOSHADOW)
+		{
+			if (m_spoutShadowFrame.OpenDirectX12(d3d12Device, ppCommandQueue)
+				&& m_spoutShadowFrame.SetSenderName(m_parentAccessor->getShadowSenderName().c_str()))
+			{
+				if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
+					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
+				else
+					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
+
+				if (!m_parentAccessor->getEnableFrameCounter())
+					m_spoutShadowFrame.DisableFrameCount();
+
+				m_bIsShadowFrameInitialized= true;
+			}
+			else
+			{
+				m_logger.log(SharedTextureLogLevel::info,
+							 "SpoutDX12TextureWriter::init() - Error initializing shadow spout frame");
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -507,6 +628,10 @@ public:
 		m_spoutDepthFrame.ReleaseSender();
 		m_spoutDepthFrame.CloseDirectX12();
 		m_bIsDepthFrameInitialized= false;
+
+		m_spoutShadowFrame.ReleaseSender();
+		m_spoutShadowFrame.CloseDirectX12();
+		m_bIsShadowFrameInitialized= false;
 
 		DisableSpoutLog();
 	}
@@ -594,6 +719,39 @@ public:
 		return bSuccess;
 	}
 
+	bool writeShadowFrameTexture(ID3D12Resource* dx12TextureResource)
+	{
+		bool bSuccess= false;
+
+		if (m_bIsShadowFrameInitialized)
+		{
+			if (m_spoutDX12ShadowTexture != dx12TextureResource)
+			{
+				if (m_spoutDX11ShadowTexture != nullptr)
+				{
+					m_spoutDX11ShadowTexture->Release();
+					m_spoutDX11ShadowTexture= nullptr;
+				}
+
+				// See note in writeColorFrameTexture: GENERIC_READ matches the staging texture's
+				// SRVMask rest state so 11on12 never conflicts with the client's state tracker.
+				if (dx12TextureResource != nullptr
+					&& m_spoutShadowFrame.WrapDX12Resource(dx12TextureResource, &m_spoutDX11ShadowTexture,
+														   D3D12_RESOURCE_STATE_GENERIC_READ))
+				{
+					m_spoutDX12ShadowTexture= dx12TextureResource;
+				}
+			}
+
+			if (m_spoutDX11ShadowTexture != nullptr)
+			{
+				bSuccess= m_spoutShadowFrame.SendDX11Resource(m_spoutDX11ShadowTexture);
+			}
+		}
+
+		return bSuccess;
+	}
+
 	void* getPackDepthTextureResourcePtr() const
 	{
 		return m_depthTexturePacker != nullptr ? m_depthTexturePacker->getPackedDepthTextureResourcePtr() : nullptr;
@@ -608,9 +766,13 @@ private:
 	spoutDX12 m_spoutDepthFrame;
 	ID3D12Resource* m_spoutDX12DepthTexture= nullptr;
 	ID3D11Resource* m_spoutDX11DepthTexture= nullptr;
+	spoutDX12 m_spoutShadowFrame;
+	ID3D12Resource* m_spoutDX12ShadowTexture= nullptr;
+	ID3D11Resource* m_spoutDX11ShadowTexture= nullptr;
 	SpoutDXDepthTexturePacker* m_depthTexturePacker= nullptr;
 	bool m_bIsColorFrameInitialized= false;
 	bool m_bIsDepthFrameInitialized= false;
+	bool m_bIsShadowFrameInitialized= false;
 };
 
 //-- SharedTextureWriteAccessor -----
@@ -659,6 +821,20 @@ bool SharedTextureWriteAccessor::initialize(const SharedTextureDescriptor* descr
 	else
 	{
 		m_depthSenderName= "";
+	}
+
+	if (descriptor->shadow_buffer_type != SharedShadowBufferType::NOSHADOW)
+	{
+		if (!makeSpoutSenderName(m_senderPrefix, m_cameraId, SharedTextureType::SHADOW, m_shadowSenderName))
+		{
+			m_logger.log(SharedTextureLogLevel::error,
+						 "SharedTextureWriteAccessor::initialize() - Failed to create spout shadow texture sender name");
+			return false;
+		}
+	}
+	else
+	{
+		m_shadowSenderName= "";
 	}
 
 	if (descriptor->graphicsAPI == SharedClientGraphicsApi::OpenGL)
@@ -794,6 +970,36 @@ bool SharedTextureWriteAccessor::writeDepthFrameTexture(void* apiTexturePtr, flo
 	}
 
 	return true;
+}
+
+bool SharedTextureWriteAccessor::writeShadowFrameTexture(void* apiTexturePtr)
+{
+	bool bSuccess= false;
+
+	if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
+	{
+		GLuint* textureId= (GLuint*)apiTexturePtr;
+
+		bSuccess= m_writerApi.spoutOpenGLTextureWriter->writeShadowFrameTexture(*textureId);
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
+	{
+		ID3D11Texture2D* dx11Texture= (ID3D11Texture2D*)apiTexturePtr;
+
+		bSuccess= m_writerApi.spoutDX11TextureWriter->writeShadowFrameTexture(dx11Texture);
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
+	{
+		ID3D12Resource* dx12Texture= (ID3D12Resource*)apiTexturePtr;
+
+		bSuccess= m_writerApi.spoutDX12TextureWriter->writeShadowFrameTexture(dx12Texture);
+	}
+	else
+	{
+		bSuccess= false;
+	}
+
+	return bSuccess;
 }
 
 void* SharedTextureWriteAccessor::getPackDepthTextureResourcePtr() const

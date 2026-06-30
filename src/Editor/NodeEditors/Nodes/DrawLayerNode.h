@@ -27,7 +27,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eCompositorBlendMode blendMode= eCompositorBlendMode::blendOn;
+	eCompositorBlendMode blendMode= eCompositorBlendMode::blendNormal;
 	eCompositorStencilMode stencilMode= eCompositorStencilMode::insideStencil;
 	bool bVerticalFlip= false;
 	bool bInvertWhenCameraInside= false;
@@ -89,7 +89,7 @@ protected:
 	std::map<std::string, std::array<float, 3>> m_float3Defaults;
 	std::map<std::string, std::array<float, 4>> m_float4Defaults;
 
-	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendOn;
+	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendNormal;
 	eCompositorStencilMode m_stencilMode= eCompositorStencilMode::insideStencil;
 	bool m_bVerticalFlip= false;
 	bool m_bInvertWhenCameraInside= false;

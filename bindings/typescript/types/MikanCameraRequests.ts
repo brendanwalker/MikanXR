@@ -53,6 +53,21 @@ export class WriteCameraDepthRenderTargetTexture extends MikanRequest {
   ];
 }
 
+export class WriteCameraShadowRenderTargetTexture extends MikanRequest {
+  camera_id: number = -1;
+  api_shadow_texture_ptr: any = null;
+
+  constructor() {
+    super();
+    this.requestTypeName = 'WriteCameraShadowRenderTargetTexture';
+  }
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'camera_id', type: 'int32' },
+    { name: 'api_shadow_texture_ptr', type: 'any' }
+  ];
+}
+
 export class PublishCameraRenderTargetTextures extends MikanRequest {
   camera_id: number = -1;
   frame_index: bigint = 0n;

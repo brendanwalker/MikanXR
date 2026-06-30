@@ -60,4 +60,15 @@ namespace MikanXR
 		}
 	};
 
+	public class WriteCameraShadowRenderTargetTexture : MikanRequest
+	{
+		public int camera_id;
+		public IntPtr api_shadow_texture_ptr;
+
+		public WriteCameraShadowRenderTargetTexture()
+		{
+			requestTypeName = "WriteCameraShadowRenderTargetTexture";
+		}
+	};
+
 }

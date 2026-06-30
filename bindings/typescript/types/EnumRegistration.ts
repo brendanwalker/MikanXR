@@ -2,7 +2,7 @@
 
 import { EnumRegistry } from '../Serialization/EnumRegistry.js';
 import { MikanAPIResult } from './MikanAPITypes.js';
-import { MikanClientGraphicsApi, MikanColorBufferType, MikanConstants, MikanCoreResult, MikanDepthBufferType, MikanDisconnectCode, MikanLogLevel } from './MikanCoreConstants.js';
+import { MikanClientGraphicsApi, MikanColorBufferType, MikanConstants, MikanCoreResult, MikanDepthBufferType, MikanDisconnectCode, MikanLogLevel, MikanShadowBufferType } from './MikanCoreConstants.js';
 import { MikanDMXBufferFormat } from './MikanLightTypes.js';
 import { MikanMarkerDictionaryType } from './MikanMarkerTypes.js';
 import { MikanPropertyNotifyMode } from './MikanPropertyRequests.js';
@@ -22,6 +22,7 @@ export function registerAllEnums(): void {
   EnumRegistry.register('MikanDepthBufferType', MikanDepthBufferType);
   EnumRegistry.register('MikanDisconnectCode', MikanDisconnectCode);
   EnumRegistry.register('MikanLogLevel', MikanLogLevel);
+  EnumRegistry.register('MikanShadowBufferType', MikanShadowBufferType);
   EnumRegistry.register('MikanDMXBufferFormat', MikanDMXBufferFormat);
   EnumRegistry.register('MikanMarkerDictionaryType', MikanMarkerDictionaryType);
   EnumRegistry.register('MikanPropertyNotifyMode', MikanPropertyNotifyMode);

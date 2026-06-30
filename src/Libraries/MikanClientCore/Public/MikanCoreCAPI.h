@@ -51,6 +51,9 @@ MIKAN_CORE_CAPI(MikanCoreResult)
 Mikan_WriteCameraDepthRenderTargetTexture(MikanContext context, MikanCameraID camera_id, void* depth_texture,
 										  float z_near, float z_far);
 
+MIKAN_CORE_CAPI(MikanCoreResult)
+Mikan_WriteCameraShadowRenderTargetTexture(MikanContext context, MikanCameraID camera_id, void* shadow_texture);
+
 MIKAN_CORE_CAPI(void*)
 Mikan_GetCameraPackDepthTextureResourcePtr(MikanContext context, MikanCameraID camera_id);
 

@@ -11,6 +11,7 @@ enum class SharedTextureType : int
 
 	COLOR,
 	DEPTH,
+	SHADOW,
 };
 
 MIKAN_SHAREDTEXTURE_FUNC(bool) makeSpoutSenderName(const std::string prefix, MikanCameraID camera_id,

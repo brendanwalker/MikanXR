@@ -59,6 +59,21 @@ public:
 #endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) WriteCameraShadowRenderTargetTexture
+	: public MikanRequest
+{
+public:
+	WriteCameraShadowRenderTargetTexture(){MIKAN_REQUEST_TYPE_INFO_INIT(WriteCameraShadowRenderTargetTexture)}
+
+	FIELD() MikanCameraID camera_id= INVALID_MIKAN_ID;
+
+	FIELD() void* api_shadow_texture_ptr= nullptr;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	WriteCameraShadowRenderTargetTexture_GENERATED
+#endif
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequests")) PublishCameraRenderTargetTextures
 	: public MikanRequest
 {

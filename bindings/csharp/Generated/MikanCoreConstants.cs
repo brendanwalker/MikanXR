@@ -79,4 +79,12 @@ namespace MikanXR
 		Fatal= 5,
 	};
 
+	public enum MikanShadowBufferType
+	{
+		NOSHADOW= 0,
+		RGB24= 1,
+		RGBA32= 2,
+		BGRA32= 3,
+	};
+
 }

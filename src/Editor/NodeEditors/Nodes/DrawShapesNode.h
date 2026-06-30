@@ -20,7 +20,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eCompositorBlendMode blendMode= eCompositorBlendMode::blendOn;
+	eCompositorBlendMode blendMode= eCompositorBlendMode::blendNormal;
 	bool bDepthTest= false;
 };
 
@@ -62,7 +62,7 @@ protected:
 protected:
 	ArrayPinPtr m_shapesPin;
 
-	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendOn;
+	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendNormal;
 	bool m_bDepthTest= false;
 
 	friend class DrawShapesNodeFactory;

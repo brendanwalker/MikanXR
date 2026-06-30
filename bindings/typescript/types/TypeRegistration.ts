@@ -4,7 +4,7 @@ import { TypeRegistry } from '../Serialization/JsonDeserializer.js';
 import { MikanResponse, MikanEvent, MikanRequest } from './MikanAPITypes.js';
 import { MikanAnchorComponentValues, MikanAnchorSystemValues } from './MikanAnchorTypes.js';
 import { MikanCameraNewFrameEvent } from './MikanCameraEvents.js';
-import { AllocateCameraRenderTargetTextures, WriteCameraColorRenderTargetTexture, WriteCameraDepthRenderTargetTexture, PublishCameraRenderTargetTextures, FreeCameraRenderTargetTextures } from './MikanCameraRequests.js';
+import { AllocateCameraRenderTargetTextures, WriteCameraColorRenderTargetTexture, WriteCameraDepthRenderTargetTexture, WriteCameraShadowRenderTargetTexture, PublishCameraRenderTargetTextures, FreeCameraRenderTargetTextures } from './MikanCameraRequests.js';
 import { MikanCameraComponentValues } from './MikanCameraTypes.js';
 import { MikanConnectedEvent, MikanDisconnectedEvent } from './MikanClientEvents.js';
 import { InitClientRequest, DisposeClientRequest } from './MikanClientRequests.js';
@@ -57,6 +57,7 @@ export function registerAllTypes(): void {
   TypeRegistry.register('AllocateCameraRenderTargetTextures', AllocateCameraRenderTargetTextures);
   TypeRegistry.register('WriteCameraColorRenderTargetTexture', WriteCameraColorRenderTargetTexture);
   TypeRegistry.register('WriteCameraDepthRenderTargetTexture', WriteCameraDepthRenderTargetTexture);
+  TypeRegistry.register('WriteCameraShadowRenderTargetTexture', WriteCameraShadowRenderTargetTexture);
   TypeRegistry.register('PublishCameraRenderTargetTextures', PublishCameraRenderTargetTextures);
   TypeRegistry.register('FreeCameraRenderTargetTextures', FreeCameraRenderTargetTextures);
   TypeRegistry.register('MikanCameraComponentValues', MikanCameraComponentValues);

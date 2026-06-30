@@ -43,10 +43,24 @@ enum class SharedDepthBufferType : int
 	PACK_DEPTH_RGBA,
 };
 
+// Optional second color buffer carrying a per-channel shadow (light survival) factor.
+// Composited multiplicatively against the scene so it darkens/tints the background;
+// identity (no shadow) is white. Mirrors SharedColorBufferType.
+enum class SharedShadowBufferType : int
+{
+	NOSHADOW,
+	RGB24,
+	// DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
+	RGBA32,
+	// DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
+	BGRA32,
+};
+
 struct SharedTextureDescriptor
 {
 	SharedColorBufferType color_buffer_type= SharedColorBufferType::NOCOLOR;
 	SharedDepthBufferType depth_buffer_type= SharedDepthBufferType::NODEPTH;
+	SharedShadowBufferType shadow_buffer_type= SharedShadowBufferType::NOSHADOW;
 	uint32_t width= 0;
 	uint32_t height= 0;
 	SharedClientGraphicsApi graphicsAPI= SharedClientGraphicsApi::UNKNOWN;
@@ -63,6 +77,7 @@ public:
 
 	virtual bool writeColorFrameTexture(void* ApiTexturePtr)= 0;
 	virtual bool writeDepthFrameTexture(void* ApiTexturePtr, float zNear, float zFar)= 0;
+	virtual bool writeShadowFrameTexture(void* ApiTexturePtr)= 0;
 	virtual void* getPackDepthTextureResourcePtr() const= 0;
 	virtual bool getIsInitialized() const= 0;
 	virtual const SharedTextureDescriptor* getRenderTargetDescriptor() const= 0;

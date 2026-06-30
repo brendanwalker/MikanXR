@@ -37,6 +37,7 @@ public:
 	MikanCoreResult writeCameraColorRenderTargetTexture(MikanCameraID cameraId, void* ApiColorTexturePtr);
 	MikanCoreResult writeCameraDepthRenderTargetTexture(MikanCameraID cameraId, void* ApiDepthTexturePtr, float zNear,
 														float zFar);
+	MikanCoreResult writeCameraShadowRenderTargetTexture(MikanCameraID cameraId, void* ApiShadowTexturePtr);
 	void* getCameraPackDepthTextureResourcePtr(MikanCameraID cameraId) const;
 	MikanCoreResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
 	MikanCoreResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface);

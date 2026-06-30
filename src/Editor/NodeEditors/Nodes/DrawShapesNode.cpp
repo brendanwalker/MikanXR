@@ -58,7 +58,7 @@ void DrawShapesNodeConfig::readFromJSON(const configuru::Config& pt)
 	NodeConfig::readFromJSON(pt);
 
 	const std::string blendModeString=
-		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOn]);
+		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal]);
 	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
 	bDepthTest= pt.get_or<bool>("depth_test", false);
@@ -182,9 +182,14 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 	case eCompositorBlendMode::blendOff:
 		mkState->disableFlag(eMkStateFlagType::blend);
 		break;
-	case eCompositorBlendMode::blendOn:
+	case eCompositorBlendMode::blendNormal:
 		mkState->enableFlag(eMkStateFlagType::blend);
 		mkStateSetBlendFunc(mkState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
+		mkStateSetBlendEquation(mkState, eMkBlendEquation::ADD);
+		break;
+	case eCompositorBlendMode::blendMultiply:
+		mkState->enableFlag(eMkStateFlagType::blend);
+		mkStateSetBlendFunc(mkState, eMkBlendFunction::DST_COLOR, eMkBlendFunction::ZERO);
 		mkStateSetBlendEquation(mkState, eMkBlendEquation::ADD);
 		break;
 	}

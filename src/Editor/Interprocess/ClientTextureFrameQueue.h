@@ -9,6 +9,7 @@ struct ClientTextureFrameEntry
 {
 	IMkTexturePtr colorTexture;
 	IMkTexturePtr depthTexture;
+	IMkTexturePtr shadowTexture;
 	int64_t frameIndex= -1;
 };
 
@@ -24,6 +25,7 @@ public:
 	// Current slot being written to — assign to SharedTextureReadAccessor
 	IMkTexturePtr getPendingWriteColorTexture() const;
 	IMkTexturePtr getPendingWriteDepthTexture() const;
+	IMkTexturePtr getPendingWriteShadowTexture() const;
 
 	// Called from onClientRenderTargetUpdated: stamps frameIndex on current slot,
 	// advances pointer. Caller must then re-assign getPendingWrite*() to the accessor.
@@ -32,6 +34,7 @@ public:
 	// Lookup by frame index. Returns newest if frameIndex == -1 or not found.
 	IMkTexturePtr getColorTexture(int64_t frameIndex= -1) const;
 	IMkTexturePtr getDepthTexture(int64_t frameIndex= -1) const;
+	IMkTexturePtr getShadowTexture(int64_t frameIndex= -1) const;
 
 private:
 	ClientTextureFrameEntry* m_entries= nullptr;

@@ -14,6 +14,7 @@ public:
 		: m_parentAccessor(parentAccessor)
 		, m_spoutColorFrame(nullptr)
 		, m_spoutDepthFrame(nullptr)
+		, m_spoutShadowFrame(nullptr)
 	{
 	}
 
@@ -56,21 +57,45 @@ public:
 			}
 		}
 
+		if (descriptor->shadow_buffer_type != MikanShadowBuffer_NOSHADOW)
+		{
+			const std::string shadowSenderName= m_parentAccessor->getShadowSenderName();
+
+			m_spoutShadowFrame= GetSpout();
+			if (m_spoutShadowFrame != nullptr)
+			{
+				m_spoutShadowFrame->EnableSpoutLog();
+				m_spoutShadowFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+				m_spoutShadowFrame->SetReceiverName(shadowSenderName.c_str());
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("SpoutTextureReader") << "Failed to open spout for sender: " << shadowSenderName;
+				return false;
+			}
+		}
+
 		return true;
 	}
 
 	void dispose()
 	{
-		if (m_spoutDepthFrame != nullptr)
+		if (m_spoutColorFrame != nullptr)
 		{
-			m_spoutDepthFrame->Release();
-			m_spoutDepthFrame= nullptr;
+			m_spoutColorFrame->Release();
+			m_spoutColorFrame= nullptr;
 		}
 
 		if (m_spoutDepthFrame != nullptr)
 		{
 			m_spoutDepthFrame->Release();
 			m_spoutDepthFrame= nullptr;
+		}
+
+		if (m_spoutShadowFrame != nullptr)
+		{
+			m_spoutShadowFrame->Release();
+			m_spoutShadowFrame= nullptr;
 		}
 	}
 
@@ -112,6 +137,23 @@ public:
 			bSuccess&= m_spoutDepthFrame->ReceiveTexture(depthTexture->getGlTextureId(), GL_TEXTURE_2D);
 		}
 
+		IMkTexturePtr shadowTexture= m_parentAccessor->getShadowTexture();
+		if (shadowTexture != nullptr && m_spoutShadowFrame != nullptr)
+		{
+			EASY_BLOCK("receive shadow texture");
+
+			if (m_spoutShadowFrame->IsUpdated())
+			{
+				shadowTexture->disposeTexture();
+				shadowTexture->setSize(m_spoutShadowFrame->GetSenderWidth(), m_spoutShadowFrame->GetSenderHeight());
+				shadowTexture->setTextureFormat(GL_RGBA);
+				shadowTexture->setBufferFormat(GL_RGBA);
+				shadowTexture->createTexture();
+			}
+
+			bSuccess&= m_spoutShadowFrame->ReceiveTexture(shadowTexture->getGlTextureId(), GL_TEXTURE_2D);
+		}
+
 		return bSuccess;
 	}
 
@@ -119,6 +161,7 @@ private:
 	SharedTextureReadAccessor* m_parentAccessor;
 	SPOUTLIBRARY* m_spoutColorFrame;
 	SPOUTLIBRARY* m_spoutDepthFrame;
+	SPOUTLIBRARY* m_spoutShadowFrame;
 };
 
 //-- SharedTextureReadAccessor -----
@@ -136,6 +179,7 @@ SharedTextureReadAccessor::SharedTextureReadAccessor(const std::string& senderPr
 	, m_cameraId(cameraId)
 	, m_colorTexture(nullptr)
 	, m_depthTexture(nullptr)
+	, m_shadowTexture(nullptr)
 	, m_readerImpl(new RenderTargetReaderImpl)
 {
 	m_descriptor= MikanRenderTargetDescriptor();
@@ -178,6 +222,20 @@ bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* de
 	else
 	{
 		m_depthSenderName= "";
+	}
+
+	// Make a spout sender name for the (optional) shadow buffer
+	if (descriptor->shadow_buffer_type != MikanShadowBuffer_NOSHADOW)
+	{
+		if (!makeSpoutSenderName(m_senderPrefix, m_cameraId, SharedTextureType::SHADOW, m_shadowSenderName))
+		{
+			MIKAN_LOG_ERROR("SharedTextureReadAccessor") << "Failed to create spout shadow texture sender name.";
+			return false;
+		}
+	}
+	else
+	{
+		m_shadowSenderName= "";
 	}
 
 	// Allocate a reader implementation

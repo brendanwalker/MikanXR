@@ -49,8 +49,9 @@ enum class eCompositorBlendMode : int
 {
 	INVALID= -1,
 
-	blendOff,
-	blendOn,
+	blendOff= 0,
+	blendNormal = 1,
+	blendMultiply = 2,
 
 	COUNT
 };
@@ -72,9 +73,14 @@ extern const std::string* k_stencilCullModeStrings;
 enum class eTextureSourceColorType : int
 {
 	INVALID= -1,
-
+	// Base source color texture, intended to be composited using "Over"/"Normal" blending 
+	// i.e. result = source*a + video*(1-a)
 	colorRGB,
 	colorRGBA,
+	// Shadow (light survival) factor buffer, intended to be composited multiplicatively; identity is white.
+	// i.e. result = video*shadow
+	shadowRGB,
+	shadowRGBA,
 
 	COUNT
 };

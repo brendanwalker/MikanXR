@@ -79,6 +79,36 @@ bool ClientTextureFrameQueue::initialize(const MikanRenderTargetDescriptor& desc
 			bSuccess&= entry.depthTexture->createTexture();
 		}
 
+		// Create shadow texture (optional second color-like buffer)
+		switch (desc.shadow_buffer_type)
+		{
+		case MikanShadowBuffer_RGB24:
+			entry.shadowTexture= CreateMkTexture();
+			entry.shadowTexture->setTextureFormat(MK_RGB);
+			entry.shadowTexture->setBufferFormat(MK_RGB);
+			break;
+		case MikanShadowBuffer_RGBA32:
+			entry.shadowTexture= CreateMkTexture();
+			entry.shadowTexture->setTextureFormat(MK_RGBA);
+			entry.shadowTexture->setBufferFormat(MK_RGBA);
+			break;
+		case MikanShadowBuffer_BGRA32:
+			entry.shadowTexture= CreateMkTexture();
+			entry.shadowTexture->setTextureFormat(MK_RGBA);
+			entry.shadowTexture->setBufferFormat(MK_BGRA);
+			break;
+		}
+
+		if (entry.shadowTexture != nullptr)
+		{
+			entry.shadowTexture->setSize(desc.width, desc.height);
+			entry.shadowTexture->setGenerateMipMap(false);
+			entry.shadowTexture->setPixelBufferObjectMode(desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
+															  ? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
+															  : IMkTexture::PixelBufferObjectMode::NoPBO);
+			bSuccess&= entry.shadowTexture->createTexture();
+		}
+
 		if (!bSuccess)
 			break;
 	}
@@ -94,6 +124,7 @@ void ClientTextureFrameQueue::dispose()
 		{
 			m_entries[i].colorTexture= nullptr;
 			m_entries[i].depthTexture= nullptr;
+			m_entries[i].shadowTexture= nullptr;
 			m_entries[i].frameIndex= -1;
 		}
 	}
@@ -116,6 +147,15 @@ IMkTexturePtr ClientTextureFrameQueue::getPendingWriteDepthTexture() const
 	if (m_entries != nullptr && m_queueSize > 0)
 	{
 		return m_entries[m_pendingWriteIndex].depthTexture;
+	}
+	return IMkTexturePtr();
+}
+
+IMkTexturePtr ClientTextureFrameQueue::getPendingWriteShadowTexture() const
+{
+	if (m_entries != nullptr && m_queueSize > 0)
+	{
+		return m_entries[m_pendingWriteIndex].shadowTexture;
 	}
 	return IMkTexturePtr();
 }
@@ -181,6 +221,32 @@ IMkTexturePtr ClientTextureFrameQueue::getDepthTexture(int64_t frameIndex) const
 		if (m_lastWriteIndex >= 0)
 		{
 			return m_entries[m_lastWriteIndex].depthTexture;
+		}
+	}
+
+	return IMkTexturePtr();
+}
+
+IMkTexturePtr ClientTextureFrameQueue::getShadowTexture(int64_t frameIndex) const
+{
+	if (m_entries != nullptr)
+	{
+		// Search for a matching frame index
+		if (frameIndex != -1)
+		{
+			for (int i= 0; i < m_queueSize; ++i)
+			{
+				if (m_entries[i].frameIndex == frameIndex)
+				{
+					return m_entries[i].shadowTexture;
+				}
+			}
+		}
+
+		// Fall back to the most recently written slot
+		if (m_lastWriteIndex >= 0)
+		{
+			return m_entries[m_lastWriteIndex].shadowTexture;
 		}
 	}
 

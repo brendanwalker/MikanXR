@@ -14,6 +14,9 @@ bool makeSpoutSenderName(const std::string prefix, MikanCameraID camera_id, Shar
 	case SharedTextureType::DEPTH:
 		buffer_name= "depth";
 		break;
+	case SharedTextureType::SHADOW:
+		buffer_name= "shadow";
+		break;
 	default:
 		return false;
 	}

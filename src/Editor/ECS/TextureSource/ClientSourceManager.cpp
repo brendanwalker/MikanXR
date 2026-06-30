@@ -108,6 +108,9 @@ IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(const std::string
 		case eTextureSourceColorType::colorRGB:
 		case eTextureSourceColorType::colorRGBA:
 			return clientSource->textureQueue->getColorTexture(frameIndex);
+		case eTextureSourceColorType::shadowRGB:
+		case eTextureSourceColorType::shadowRGBA:
+			return clientSource->textureQueue->getShadowTexture(frameIndex);
 		}
 	}
 
@@ -195,6 +198,7 @@ bool ClientSourceManager::addClientSource(const char* clientId, const MikanClien
 		// Point the read accessor at the first pending write slot
 		readAccessor->setColorTexture(clientSource->textureQueue->getPendingWriteColorTexture());
 		readAccessor->setDepthTexture(clientSource->textureQueue->getPendingWriteDepthTexture());
+		readAccessor->setShadowTexture(clientSource->textureQueue->getPendingWriteShadowTexture());
 
 		// Add the client source to the data source table
 		const std::string tableKey= makeClientSourceTableKey(clientId, cameraId);
@@ -211,6 +215,7 @@ bool ClientSourceManager::addClientSource(const char* clientId, const MikanClien
 		// Clean up on failure
 		readAccessor->setColorTexture(nullptr);
 		readAccessor->setDepthTexture(nullptr);
+		readAccessor->setShadowTexture(nullptr);
 
 		clientSource->textureQueue->dispose();
 		delete clientSource->textureQueue;
@@ -231,6 +236,7 @@ bool ClientSourceManager::removeClientSource(const char* clientId, SharedTexture
 
 	readAccessor->setColorTexture(nullptr);
 	readAccessor->setDepthTexture(nullptr);
+	readAccessor->setShadowTexture(nullptr);
 
 	clientSource->textureQueue->dispose();
 	delete clientSource->textureQueue;
@@ -284,6 +290,7 @@ void ClientSourceManager::onClientRenderTargetUpdated(const char* clientId, Mika
 		{
 			clientSource->readAccessor->setColorTexture(clientSource->textureQueue->getPendingWriteColorTexture());
 			clientSource->readAccessor->setDepthTexture(clientSource->textureQueue->getPendingWriteDepthTexture());
+			clientSource->readAccessor->setShadowTexture(clientSource->textureQueue->getPendingWriteShadowTexture());
 		}
 	}
 }

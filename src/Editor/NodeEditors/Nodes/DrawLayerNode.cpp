@@ -74,8 +74,13 @@ void DrawLayerNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	const std::string blendModeString=
+	std::string blendModeString=
 		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOff]);
+	// TODO: Blend mode enum name change. Remove this after we upgrade all graphs
+	if (blendModeString == "blendOn")
+	{
+		blendModeString = k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal];
+	}
 	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
 	const std::string stencilModeString=
@@ -309,7 +314,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 				mkState->disableFlag(eMkStateFlagType::blend);
 			}
 			break;
-			case eCompositorBlendMode::blendOn:
+			case eCompositorBlendMode::blendNormal:
 			{
 				// https://www.andersriggelsen.dk/glblendfunc.php
 				// (sR*sA) + (dR*(1-sA)) = rR
@@ -319,6 +324,19 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 				mkState->enableFlag(eMkStateFlagType::blend);
 
 				mkStateSetBlendFunc(mkState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
+				mkStateSetBlendEquation(mkState, eMkBlendEquation::ADD);
+			}
+			break;
+			case eCompositorBlendMode::blendMultiply:
+			{
+				// https://www.andersriggelsen.dk/glblendfunc.php
+				// (sR*dR) + (dR*0) = rR
+				// (sG*dG) + (dG*0) = rG
+				// (sB*dB) + (dB*0) = rB
+				// (sA*dA) + (dA*0) = rA
+				mkState->enableFlag(eMkStateFlagType::blend);
+
+				mkStateSetBlendFunc(mkState, eMkBlendFunction::DST_COLOR, eMkBlendFunction::ZERO);
 				mkStateSetBlendEquation(mkState, eMkBlendEquation::ADD);
 			}
 			break;
@@ -394,7 +412,7 @@ void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState
 
 		// Blend Mode
 		int iBlendMode= (int)m_blendMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawLayerNodeBlendMode", "Blend Mode", "Blend Off\0Blend On\0",
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawLayerNodeBlendMode", "Blend Mode", "Blend Off\0Blend Normal\0Blend Multiply\0",
 													 iBlendMode, editorState.styleManager))
 		{
 			m_blendMode= (eCompositorBlendMode)iBlendMode;

@@ -73,6 +73,10 @@ MikanResponseFuture MikanRenderTargetAPI::tryProcessRequest(MikanRequest& reques
 	{
 		return writeDepthRenderTargetTexture(request);
 	}
+	else if (typeid(request) == typeid(WriteCameraShadowRenderTargetTexture))
+	{
+		return writeShadowRenderTargetTexture(request);
+	}
 	else if (typeid(request) == typeid(PublishCameraRenderTargetTextures))
 	{
 		return publishRenderTargetTextures(request);
@@ -135,6 +139,18 @@ MikanResponseFuture MikanRenderTargetAPI::writeDepthRenderTargetTexture(MikanReq
 	MikanContext context= m_requestManager->getContext();
 	MikanAPIResult result= (MikanAPIResult)Mikan_WriteCameraDepthRenderTargetTexture(context, writeRequest.camera_id,
 																					 apiDepthTexturePtr, zNear, zFar);
+
+	return MikanResponseFuture(result);
+}
+
+MikanResponseFuture MikanRenderTargetAPI::writeShadowRenderTargetTexture(MikanRequest& request)
+{
+	auto& writeRequest= static_cast<WriteCameraShadowRenderTargetTexture&>(request);
+	void* apiShadowTexturePtr= writeRequest.api_shadow_texture_ptr;
+
+	MikanContext context= m_requestManager->getContext();
+	MikanAPIResult result= (MikanAPIResult)Mikan_WriteCameraShadowRenderTargetTexture(
+		context, writeRequest.camera_id, apiShadowTexturePtr);
 
 	return MikanResponseFuture(result);
 }

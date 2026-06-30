@@ -148,12 +148,18 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 		{
 			auto* textureCache= getOwnerGraph()->getOwnerWindow()->getGraphicsContext()->getTextureCache();
 
-			if (m_clientTextureType == eTextureSourceColorType::colorRGBA)
+			switch (m_clientTextureType)
 			{
+			case eTextureSourceColorType::colorRGBA:
 				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT);
-			}
-			else
-			{
+			// Shadow buffers composite multiplicatively, so the "no data" identity is white
+			// (white * background == background, i.e. no shadow) rather than transparent black.
+			case eTextureSourceColorType::shadowRGBA:
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_WHITE_RGBA);
+			case eTextureSourceColorType::shadowRGB:
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_WHITE_RGB);
+			case eTextureSourceColorType::colorRGB:
+			default:
 				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGB);
 			}
 		}
@@ -166,8 +172,13 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 {
 	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
 
+	const bool bIsRGBAVariant= m_clientTextureType == eTextureSourceColorType::colorRGBA
+							   || m_clientTextureType == eTextureSourceColorType::shadowRGBA;
+
 	assert(m_clientTextureType == eTextureSourceColorType::colorRGBA
-		   || m_clientTextureType == eTextureSourceColorType::colorRGB);
+		   || m_clientTextureType == eTextureSourceColorType::colorRGB
+		   || m_clientTextureType == eTextureSourceColorType::shadowRGBA
+		   || m_clientTextureType == eTextureSourceColorType::shadowRGB);
 
 	// Create the color frame buffer if it doesn't exist yet and we want to flip the Y axis
 	if (m_colorFrameBuffer == nullptr && m_bVerticalFlip)
@@ -175,15 +186,8 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 		m_colorFrameBuffer= createMkFrameBuffer("ColorTextureSourceNode");
 		m_colorFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 
-		switch (m_clientTextureType)
-		{
-		case eTextureSourceColorType::colorRGB:
-			m_colorFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGB);
-			break;
-		case eTextureSourceColorType::colorRGBA:
-			m_colorFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
-			break;
-		}
+		m_colorFrameBuffer->setColorFormat(bIsRGBAVariant ? IMkFrameBuffer::eColorFormat::RGBA
+														  : IMkFrameBuffer::eColorFormat::RGB);
 	}
 	// Dispose the color frame buffer if it exists and we don't want to flip the Y axis
 	else if (m_colorFrameBuffer != nullptr && !m_bVerticalFlip)
@@ -206,9 +210,8 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 			m_colorFrameBuffer->createResources();
 
 			// Re-create the render material instance
-			const std::string colorMaterialName= m_clientTextureType == eTextureSourceColorType::colorRGBA
-													 ? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
-													 : INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
+			const std::string colorMaterialName= bIsRGBAVariant ? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
+																: INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
 			MkMaterialConstPtr colorMaterial= graphicsContext->getShaderCache()->getMaterialByName(colorMaterialName);
 			if (colorMaterial != nullptr)
 			{
@@ -245,7 +248,9 @@ void ColorTextureSourceNode::evaluateFlippedColorTexture(IMkState* glState, IMkT
 	if (auto materialBinding= material->bindMaterial())
 	{
 		// Bind the color texture
-		if (m_clientTextureType == eTextureSourceColorType::colorRGBA)
+		const bool bIsRGBAVariant= m_clientTextureType == eTextureSourceColorType::colorRGBA
+								   || m_clientTextureType == eTextureSourceColorType::shadowRGBA;
+		if (bIsRGBAVariant)
 		{
 			m_colorMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbaTexture, colorTexture);
 		}
@@ -314,7 +319,8 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 	{
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type", "colorRGB\0colorRGBA\0",
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type",
+													 "colorRGB\0colorRGBA\0shadowRGB\0shadowRGBA\0",
 													 iTextureType, editorState.styleManager))
 		{
 			m_clientTextureType= (eTextureSourceColorType)iTextureType;

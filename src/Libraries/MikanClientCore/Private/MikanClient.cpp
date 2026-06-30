@@ -236,6 +236,22 @@ MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(MikanCameraID ca
 		break;
 	}
 
+	switch (mkDesiredDescriptor.shadow_buffer_type)
+	{
+	case MikanShadowBuffer_NOSHADOW:
+		descriptor.shadow_buffer_type= SharedShadowBufferType::NOSHADOW;
+		break;
+	case MikanShadowBuffer_RGB24:
+		descriptor.shadow_buffer_type= SharedShadowBufferType::RGB24;
+		break;
+	case MikanShadowBuffer_RGBA32:
+		descriptor.shadow_buffer_type= SharedShadowBufferType::RGBA32;
+		break;
+	case MikanShadowBuffer_BGRA32:
+		descriptor.shadow_buffer_type= SharedShadowBufferType::BGRA32;
+		break;
+	}
+
 	switch (mkDesiredDescriptor.graphicsAPI)
 	{
 	case MikanClientGraphicsApi_Direct3D9:
@@ -327,6 +343,22 @@ MikanCoreResult MikanClient::getCameraRenderTargetDescriptor(MikanCameraID camer
 				break;
 			}
 
+			switch (desc->shadow_buffer_type)
+			{
+			case SharedShadowBufferType::NOSHADOW:
+				outDescriptor.shadow_buffer_type= MikanShadowBuffer_NOSHADOW;
+				break;
+			case SharedShadowBufferType::RGB24:
+				outDescriptor.shadow_buffer_type= MikanShadowBuffer_RGB24;
+				break;
+			case SharedShadowBufferType::RGBA32:
+				outDescriptor.shadow_buffer_type= MikanShadowBuffer_RGBA32;
+				break;
+			case SharedShadowBufferType::BGRA32:
+				outDescriptor.shadow_buffer_type= MikanShadowBuffer_BGRA32;
+				break;
+			}
+
 			switch (desc->graphicsAPI)
 			{
 			case SharedClientGraphicsApi::Direct3D9:
@@ -405,6 +437,25 @@ MikanCoreResult MikanClient::writeCameraDepthRenderTargetTexture(MikanCameraID c
 		if (depthBufferType != SharedDepthBufferType::NODEPTH)
 		{
 			if (renderTargetWriter->writeDepthFrameTexture(apiDepthTexturePtr, zNear, zFar))
+			{
+				return MikanCoreResult_Success;
+			}
+		}
+	}
+
+	return MikanCoreResult_RequestFailed;
+}
+
+MikanCoreResult MikanClient::writeCameraShadowRenderTargetTexture(MikanCameraID cameraId, void* apiShadowTexturePtr)
+{
+	ISharedTextureWriteAccessorPtr renderTargetWriter= getSharedTextureWriteAccessor(cameraId);
+	if (renderTargetWriter)
+	{
+		SharedShadowBufferType shadowBufferType= renderTargetWriter->getRenderTargetDescriptor()->shadow_buffer_type;
+
+		if (shadowBufferType != SharedShadowBufferType::NOSHADOW)
+		{
+			if (renderTargetWriter->writeShadowFrameTexture(apiShadowTexturePtr))
 			{
 				return MikanCoreResult_Success;
 			}

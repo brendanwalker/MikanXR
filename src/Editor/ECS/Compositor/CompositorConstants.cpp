@@ -30,7 +30,7 @@ const std::string g_compositorStencilModeStrings[(int)eCompositorStencilMode::CO
 																					   "outsideStencil"};
 const std::string* k_compositorStencilModeStrings= g_compositorStencilModeStrings;
 
-const std::string g_compositorBlendModeStrings[(int)eCompositorBlendMode::COUNT]= {"blendOff", "blendOn"};
+const std::string g_compositorBlendModeStrings[(int)eCompositorBlendMode::COUNT]= {"blendOff", "blendNormal", "blendMultiply" };
 const std::string* k_compositorBlendModeStrings= g_compositorBlendModeStrings;
 
 const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT]= {
@@ -41,7 +41,8 @@ const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT]= {
 };
 const std::string* k_stencilCullModeStrings= g_stencilCullModeStrings;
 
-const std::string g_textureSourceColorTypeStrings[(int)eTextureSourceColorType::COUNT]= {"colorRGB", "colorRGBA"};
+const std::string g_textureSourceColorTypeStrings[(int)eTextureSourceColorType::COUNT]= {"colorRGB", "colorRGBA",
+																						 "shadowRGB", "shadowRGBA"};
 const std::string* k_textureSourceColorTypeStrings= g_textureSourceColorTypeStrings;
 
 const std::string g_textureSourceDepthTypeStrings[(int)eTextureSourceDepthType::COUNT]= {"depthPackRGBA"};

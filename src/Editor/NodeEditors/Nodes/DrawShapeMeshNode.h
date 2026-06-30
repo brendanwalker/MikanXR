@@ -24,7 +24,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eCompositorBlendMode blendMode= eCompositorBlendMode::blendOn;
+	eCompositorBlendMode blendMode= eCompositorBlendMode::blendNormal;
 	bool bDepthTest= false;
 	std::map<std::string, float> m_floatDefaults;
 	std::map<std::string, std::array<float, 2>> m_float2Defaults;
@@ -74,7 +74,7 @@ protected:
 	std::map<std::string, std::array<float, 3>> m_float3Defaults;
 	std::map<std::string, std::array<float, 4>> m_float4Defaults;
 
-	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendOn;
+	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendNormal;
 	bool m_bDepthTest= false;
 
 	friend class DrawShapeMeshNodeFactory;

@@ -21,6 +21,7 @@ protected:
 	MikanResponseFuture allocateRenderTargetTextures(MikanRequest& request);
 	MikanResponseFuture writeColorRenderTargetTexture(MikanRequest& request);
 	MikanResponseFuture writeDepthRenderTargetTexture(MikanRequest& request);
+	MikanResponseFuture writeShadowRenderTargetTexture(MikanRequest& request);
 	MikanResponseFuture publishRenderTargetTextures(MikanRequest& request);
 	MikanResponseFuture freeRenderTargetTextures(MikanRequest& request);
 

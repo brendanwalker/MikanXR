@@ -110,6 +110,20 @@ MikanCoreResult Mikan_WriteCameraDepthRenderTargetTexture(MikanContext context, 
 	return mikanClient->writeCameraDepthRenderTargetTexture(camera_id, depth_texture, z_near, z_far);
 }
 
+MikanCoreResult Mikan_WriteCameraShadowRenderTargetTexture(MikanContext context, MikanCameraID camera_id,
+														   void* shadow_texture)
+{
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
+	if (mikanClient == nullptr)
+		return MikanCoreResult_Uninitialized;
+	if (!mikanClient->getIsConnected())
+		return MikanCoreResult_NotConnected;
+	if (shadow_texture == nullptr)
+		return MikanCoreResult_NullParam;
+
+	return mikanClient->writeCameraShadowRenderTargetTexture(camera_id, shadow_texture);
+}
+
 void* Mikan_GetCameraPackDepthTextureResourcePtr(MikanContext context, MikanCameraID camera_id)
 {
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);

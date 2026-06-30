@@ -100,6 +100,18 @@ enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanDepthBufferTy
 	MikanDepthBuffer_PACK_DEPTH_RGBA ENUMVALUE_STRING("PACK_DEPTH_RGBA"),
 };
 
+// Optional second color buffer carrying a per-channel shadow (light survival) factor,
+// composited multiplicatively against the scene (identity / no-shadow is white).
+enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanShadowBufferType
+{
+	MikanShadowBuffer_NOSHADOW ENUMVALUE_STRING("NOSHADOW"),
+	MikanShadowBuffer_RGB24 ENUMVALUE_STRING("RGB24"),
+	// DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
+	MikanShadowBuffer_RGBA32 ENUMVALUE_STRING("RGBA32"),
+	// DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
+	MikanShadowBuffer_BGRA32 ENUMVALUE_STRING("BGRA32"),
+};
+
 struct MIKAN_CORE_API STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientAPIVersion
 {
 	FIELD() int version= 0;
@@ -113,6 +125,7 @@ struct MIKAN_CORE_API STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) Mik
 {
 	FIELD() MikanColorBufferType color_buffer_type= MikanColorBufferType::MikanColorBuffer_NOCOLOR;
 	FIELD() MikanDepthBufferType depth_buffer_type= MikanDepthBufferType::MikanDepthBuffer_NODEPTH;
+	FIELD() MikanShadowBufferType shadow_buffer_type= MikanShadowBufferType::MikanShadowBuffer_NOSHADOW;
 	FIELD() uint32_t width= 0;
 	FIELD() uint32_t height= 0;
 	FIELD() MikanClientGraphicsApi graphicsAPI= MikanClientGraphicsApi_UNKNOWN;

@@ -13,6 +13,7 @@ namespace MikanXR
 	{
 		public MikanColorBufferType color_buffer_type;
 		public MikanDepthBufferType depth_buffer_type;
+		public MikanShadowBufferType shadow_buffer_type;
 		public uint width;
 		public uint height;
 		public MikanClientGraphicsApi graphicsAPI;
