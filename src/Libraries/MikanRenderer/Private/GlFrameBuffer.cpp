@@ -10,13 +10,34 @@
 
 namespace GlFrameBufferUtils
 {
-GLenum getGlColorFormat(IMkFrameBuffer::eColorFormat colorFormat)
+// The sized internal format used to allocate the texture storage
+GLenum getGlColorTextureFormat(IMkFrameBuffer::eColorFormat colorFormat)
 {
 	switch (colorFormat)
 	{
 	case IMkFrameBuffer::eColorFormat::RGB:
 		return GL_RGB;
 	case IMkFrameBuffer::eColorFormat::RGBA:
+		return GL_RGBA;
+	case IMkFrameBuffer::eColorFormat::RGB16:
+		return GL_RGB16;
+	case IMkFrameBuffer::eColorFormat::RGBA16:
+		return GL_RGBA16;
+	default:
+		return GL_RGB;
+	}
+}
+
+// The base (unsized) format used when transferring pixel data to/from the texture
+GLenum getGlColorBufferFormat(IMkFrameBuffer::eColorFormat colorFormat)
+{
+	switch (colorFormat)
+	{
+	case IMkFrameBuffer::eColorFormat::RGB:
+	case IMkFrameBuffer::eColorFormat::RGB16:
+		return GL_RGB;
+	case IMkFrameBuffer::eColorFormat::RGBA:
+	case IMkFrameBuffer::eColorFormat::RGBA16:
 		return GL_RGBA;
 	default:
 		return GL_RGB;
@@ -38,6 +59,8 @@ public:
 	{
 		RGB,
 		RGBA,
+		RGB16,
+		RGBA16,
 	};
 
 	GlFrameBuffer()= default;
@@ -88,13 +111,16 @@ public:
 		// Create a color attachment texture with a double buffered pixel-buffer-object for reading
 		if (!m_colorTexture)
 		{
-			const GLenum glColorFormat= GlFrameBufferUtils::getGlColorFormat(m_colorFormat);
+			const GLenum glTextureFormat= GlFrameBufferUtils::getGlColorTextureFormat(m_colorFormat);
+			const GLenum glBufferFormat= GlFrameBufferUtils::getGlColorBufferFormat(m_colorFormat);
 
 			assert(!m_bIsExternalTexture);
 			m_colorTexture= CreateMkTexture();
 			m_colorTexture->setSize(m_width, m_height);
-			m_colorTexture->setTextureFormat(glColorFormat);
-			m_colorTexture->setBufferFormat(glColorFormat);
+			// setTextureFormat() also derives the buffer format & pixel type, so set it first
+			// and then override the buffer format for sized internal formats (e.g. GL_RGB16).
+			m_colorTexture->setTextureFormat(glTextureFormat);
+			m_colorTexture->setBufferFormat(glBufferFormat);
 			m_colorTexture->setGenerateMipMap(false);
 			m_colorTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBORead);
 			m_colorTexture->createTexture();
@@ -192,13 +218,16 @@ public:
 		// Create a color attachment texture with a double buffered pixel-buffer-object for reading
 		if (!m_colorTexture)
 		{
-			const GLenum glColorFormat= GlFrameBufferUtils::getGlColorFormat(m_colorFormat);
+			const GLenum glTextureFormat= GlFrameBufferUtils::getGlColorTextureFormat(m_colorFormat);
+			const GLenum glBufferFormat= GlFrameBufferUtils::getGlColorBufferFormat(m_colorFormat);
 
 			assert(!m_bIsExternalTexture);
 			m_colorTexture= CreateMkTexture();
 			m_colorTexture->setSize(m_width, m_height);
-			m_colorTexture->setTextureFormat(glColorFormat);
-			m_colorTexture->setBufferFormat(glColorFormat);
+			// setTextureFormat() also derives the buffer format & pixel type, so set it first
+			// and then override the buffer format for sized internal formats (e.g. GL_RGB16).
+			m_colorTexture->setTextureFormat(glTextureFormat);
+			m_colorTexture->setBufferFormat(glBufferFormat);
 			m_colorTexture->setGenerateMipMap(false);
 			m_colorTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBORead);
 			m_colorTexture->createTexture();

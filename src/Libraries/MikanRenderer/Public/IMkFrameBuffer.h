@@ -24,6 +24,8 @@ public:
 	{
 		RGB,
 		RGBA,
+		RGB16,
+		RGBA16,
 	};
 
 	virtual ~IMkFrameBuffer() {}

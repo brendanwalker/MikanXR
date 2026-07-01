@@ -573,6 +573,8 @@ protected:
 			m_pixelType= GL_FLOAT;
 			break;
 		case GL_DEPTH_COMPONENT16:
+		case GL_RGB16:
+		case GL_RGBA16:
 			m_pixelType= GL_UNSIGNED_SHORT;
 			break;
 		default:
@@ -716,6 +718,14 @@ public:
 				case GL_R8:
 					m_bufferFormat= GL_RED;
 					m_pixelType= GL_UNSIGNED_BYTE;
+					break;
+				case GL_RGB16:
+					m_bufferFormat= GL_RGB;
+					m_pixelType= GL_UNSIGNED_SHORT;
+					break;
+				case GL_RGBA16:
+					m_bufferFormat= GL_RGBA;
+					m_pixelType= GL_UNSIGNED_SHORT;
 					break;
 				case GL_RGBA16F:
 					m_bufferFormat= GL_RGBA;
