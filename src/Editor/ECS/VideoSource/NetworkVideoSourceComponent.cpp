@@ -420,6 +420,21 @@ bool NetworkVideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, in
 	return false;
 }
 
+bool NetworkVideoSourceComponent::getVideoColorimetry(VideoColorimetry& outColorimetry) const
+{
+	if (m_networkVideoDevice != nullptr)
+	{
+		NetworkVideoStreamProperties streamProperties;
+		if (m_networkVideoDevice->getStreamProperties(streamProperties))
+		{
+			outColorimetry= streamProperties.colorimetry;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 // -- INetworkVideoDeviceListener ----
 void NetworkVideoSourceComponent::notifyVideoDeviceOpened(const INetworkVideoDevice* device)
 {

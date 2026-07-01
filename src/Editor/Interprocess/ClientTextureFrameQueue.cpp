@@ -41,6 +41,11 @@ bool ClientTextureFrameQueue::initialize(const MikanRenderTargetDescriptor& desc
 			entry.colorTexture->setTextureFormat(MK_RGBA);
 			entry.colorTexture->setBufferFormat(MK_BGRA);
 			break;
+		case MikanColorBuffer_RGBA16F:
+			entry.colorTexture= CreateMkTexture();
+			entry.colorTexture->setTextureFormat(MK_RGBA16F);
+			entry.colorTexture->setBufferFormat(MK_RGBA);
+			break;
 		}
 
 		if (entry.colorTexture != nullptr)
@@ -96,6 +101,11 @@ bool ClientTextureFrameQueue::initialize(const MikanRenderTargetDescriptor& desc
 			entry.shadowTexture= CreateMkTexture();
 			entry.shadowTexture->setTextureFormat(MK_RGBA);
 			entry.shadowTexture->setBufferFormat(MK_BGRA);
+			break;
+		case MikanShadowBuffer_RGBA16F:
+			entry.shadowTexture= CreateMkTexture();
+			entry.shadowTexture->setTextureFormat(MK_RGBA16F);
+			entry.shadowTexture->setBufferFormat(MK_RGBA);
 			break;
 		}
 

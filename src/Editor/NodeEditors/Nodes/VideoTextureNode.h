@@ -3,6 +3,7 @@
 #include "Node.h"
 #include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
+#include "IVideoDevice.h"
 
 class VideoTextureNodeConfig : public NodeConfig
 {
@@ -13,6 +14,7 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	eVideoTextureSource videoTextureSource;
+	eVideoTransferFunction transferFunctionOverride= eVideoTransferFunction::INVALID;
 };
 
 class VideoTextureNode : public Node
@@ -38,8 +40,17 @@ protected:
 	IMkTexturePtr getTextureResource() const;
 	IMkTexturePtr getPreviewTextureResource() const;
 
+	// Renders the raw (non-linear) video texture through the linearize material into
+	// m_linearFrameBuffer and returns the resulting linear-color-space texture.
+	IMkTexturePtr linearizeVideoTexture(NodeEvaluator& evaluator, IMkTexturePtr sourceTexture);
+	eVideoTransferFunction getColorTransferFunction() const;
+
 protected:
 	eVideoTextureSource m_videoTextureSource= eVideoTextureSource::video_texture;
+	eVideoTransferFunction m_transferFunctionOverride= eVideoTransferFunction::INVALID;
+
+	IMkFrameBufferPtr m_linearFrameBuffer;
+	MkMaterialInstancePtr m_linearizeMaterialInstance;
 };
 
 class VideoTextureNodeFactory : public TypedNodeFactory<VideoTextureNode, VideoTextureNodeConfig>

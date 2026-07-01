@@ -990,6 +990,154 @@ IMkShaderCodeConstPtr getPConeVolumeShaderCode()
 	return x_shaderCode;
 }
 
+IMkShaderCodeConstPtr getPTLinearizeRGBShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		// Converts a non-linear (gamma/sRGB encoded) RGB texture to linear color space.
+		// The transferFunction uniform carries the integer value of the eVideoTransferFunction
+		// enum (from IVideoDevice.h) as a float. Only a pragmatic subset is handled; anything
+		// unrecognized (HLG, PQ, log, INVALID, etc.) falls back to an sRGB decode.
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_LINEARIZE_RGB,
+										  // vertex shader
+										  R""""(
+				#version 330 core
+				layout (location = 0) in vec2 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+				}
+				)"""",
+										  // fragment shader
+										  R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in vec2 TexCoords;
+
+				uniform sampler2D rgbTexture;
+				uniform float transferFunction;
+
+				// eVideoTransferFunction enum values (see IVideoDevice.h)
+				const int TF_NoGamma   = 0;
+				const int TF_Gamma_1_0 = 1;
+				const int TF_Gamma_1_8 = 2;
+				const int TF_Gamma_2_0 = 3;
+				const int TF_Gamma_2_2 = 4;
+				const int TF_Gamma_2_6 = 5;
+				const int TF_Gamma_2_8 = 6;
+				const int TF_BT709     = 8;
+				const int TF_SRGB      = 14;
+
+				vec3 srgbToLinear(vec3 c)
+				{
+					vec3 lo = c / 12.92;
+					vec3 hi = pow((c + 0.055) / 1.055, vec3(2.4));
+					return mix(lo, hi, step(vec3(0.04045), c));
+				}
+
+				vec3 bt709ToLinear(vec3 c)
+				{
+					vec3 lo = c / 4.5;
+					vec3 hi = pow((c + 0.099) / 1.099, vec3(1.0 / 0.45));
+					return mix(lo, hi, step(vec3(0.081), c));
+				}
+
+				void main()
+				{
+					vec3 encoded = texture(rgbTexture, TexCoords).rgb;
+					int tf = int(floor(transferFunction + 0.5));
+
+					vec3 linearColor;
+					if (tf == TF_Gamma_1_0 || tf == TF_NoGamma)
+						linearColor = encoded; // already linear
+					else if (tf == TF_BT709)
+						linearColor = bt709ToLinear(encoded);
+					else if (tf == TF_Gamma_1_8)
+						linearColor = pow(encoded, vec3(1.8));
+					else if (tf == TF_Gamma_2_0)
+						linearColor = pow(encoded, vec3(2.0));
+					else if (tf == TF_Gamma_2_2)
+						linearColor = pow(encoded, vec3(2.2));
+					else if (tf == TF_Gamma_2_6)
+						linearColor = pow(encoded, vec3(2.6));
+					else if (tf == TF_Gamma_2_8)
+						linearColor = pow(encoded, vec3(2.8));
+					else // TF_SRGB and all unrecognized values fall back to sRGB decode
+						linearColor = srgbToLinear(encoded);
+
+					FragColor = vec4(linearColor, 1.0);
+				}
+				)"""");
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+		x_shaderCode->addUniform("transferFunction", eUniformSemantic::floatConstant0);
+	}
+
+	return x_shaderCode;
+}
+
+IMkShaderCodeConstPtr getPTLinearToSRGBShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		// Converts a linear RGB texture back to sRGB encoding (plain gamma encode, no tonemapping).
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_LINEAR_TO_SRGB,
+										  // vertex shader
+										  R""""(
+				#version 330 core
+				layout (location = 0) in vec2 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+				}
+				)"""",
+										  // fragment shader
+										  R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in vec2 TexCoords;
+
+				uniform sampler2D rgbTexture;
+
+				vec3 linearToSrgb(vec3 c)
+				{
+					c = clamp(c, 0.0, 1.0);
+					vec3 lo = c * 12.92;
+					vec3 hi = 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055;
+					return mix(lo, hi, step(vec3(0.0031308), c));
+				}
+
+				void main()
+				{
+					vec3 linearColor = texture(rgbTexture, TexCoords).rgb;
+					FragColor = vec4(linearToSrgb(linearColor), 1.0);
+				}
+				)"""");
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+	}
+
+	return x_shaderCode;
+}
+
 bool registerInternalShaders(IMkShaderCache* shaderCache)
 {
 	std::vector<IMkShaderCodeConstPtr> internalShaders= {
@@ -1008,6 +1156,8 @@ bool registerInternalShaders(IMkShaderCache* shaderCache)
 		getPTVisualizeGLDepthShaderCode(),
 		getPM5544TestCardShaderCode(),
 		getPConeVolumeShaderCode(),
+		getPTLinearizeRGBShaderCode(),
+		getPTLinearToSRGBShaderCode(),
 	};
 
 	bool bSuccess= true;

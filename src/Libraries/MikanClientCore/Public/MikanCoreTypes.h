@@ -87,6 +87,8 @@ enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanColorBufferTy
 	MikanColorBuffer_RGBA32 ENUMVALUE_STRING("RGBA32"),
 	// DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 	MikanColorBuffer_BGRA32 ENUMVALUE_STRING("BGRA32"),
+	// 16-bit-per-channel half-float (64bpp), RGBA order / DXGI_FORMAT_R16G16B16A16_FLOAT
+	MikanColorBuffer_RGBA16F ENUMVALUE_STRING("RGBA16F"),
 };
 
 enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanDepthBufferType
@@ -110,6 +112,8 @@ enum ENUM(Serialization::CodeGenModule("MikanCoreConstants")) MikanShadowBufferT
 	MikanShadowBuffer_RGBA32 ENUMVALUE_STRING("RGBA32"),
 	// DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 	MikanShadowBuffer_BGRA32 ENUMVALUE_STRING("BGRA32"),
+	// 16-bit-per-channel half-float (64bpp), RGBA order / DXGI_FORMAT_R16G16B16A16_FLOAT
+	MikanShadowBuffer_RGBA16F ENUMVALUE_STRING("RGBA16F"),
 };
 
 struct MIKAN_CORE_API STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) MikanClientAPIVersion

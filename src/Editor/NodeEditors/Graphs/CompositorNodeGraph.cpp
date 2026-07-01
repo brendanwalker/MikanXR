@@ -100,10 +100,24 @@ bool CompositorNodeGraph::createResources()
 {
 	assert(getOwnerWindow());
 
-	// Create the RGBA frame buffer, but don't init it's resources yet
+	// Create the 16-bit linear working frame buffer that the node graph composites into,
+	// but don't init it's resources yet. Compositing in linear color space keeps
+	// multiply/blend math correct; the extra bit depth avoids banding in linear space.
 	m_compositingFrameBuffer= createMkFrameBuffer("Compositing Node Graph Frame Buffer");
 	m_compositingFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
-	m_compositingFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
+	m_compositingFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA16);
+
+	// Create the 8-bit sRGB output frame buffer that the linear result is encoded into.
+	// Downstream consumers (Spout, viewport quad, PNG save) require an 8-bit RGBA texture.
+	m_outputFrameBuffer= createMkFrameBuffer("Compositing Node Graph Output Frame Buffer");
+	m_outputFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
+	m_outputFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
+
+	// Material used for the final linear->sRGB conversion pass
+	auto linearToSrgbMaterial=
+		getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_LINEAR_TO_SRGB);
+	assert(linearToSrgbMaterial);
+	m_linearToSrgbMaterialInstance= createMkMaterialInstance(linearToSrgbMaterial);
 
 	// Start listening for stencil changes
 	getObjectSystemOfType<QuadStencilSystem>()->getTypedDefinition()->OnPropertyChanged+=
@@ -125,8 +139,10 @@ bool CompositorNodeGraph::createResources()
 
 void CompositorNodeGraph::disposeResources()
 {
-	// Clean up the frame buffer
+	// Clean up the frame buffers
 	m_compositingFrameBuffer= nullptr;
+	m_outputFrameBuffer= nullptr;
+	m_linearToSrgbMaterialInstance= nullptr;
 
 	// Stop listening for stencil changes
 	getObjectSystemOfType<QuadStencilSystem>()->getTypedDefinition()->OnPropertyChanged-=
@@ -195,13 +211,16 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 			// Turn off depth testing for compositing
 			compositorFramebufferBinding.getMkState()->disableFlag(eMkStateFlagType::depthTest);
 
-			// Evaluate the composite frame nodes
+			// Evaluate the composite frame nodes (composites into the 16-bit linear working buffer)
 			evaluator.evaluateFlowPinChain(m_compositeFrameEventNode);
 		}
 		else
 		{
 			evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::evaluationError, "Broken frame buffer"));
 		}
+
+		// Final step: convert the linear composited result back to sRGB into the 8-bit output buffer
+		encodeLinearFrameToSRGB(evaluator);
 	}
 	else
 	{
@@ -212,9 +231,43 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 	return !evaluator.hasErrors();
 }
 
+void CompositorNodeGraph::encodeLinearFrameToSRGB(NodeEvaluator& evaluator)
+{
+	if (!m_outputFrameBuffer || !m_linearToSrgbMaterialInstance || !m_compositingFrameBuffer)
+		return;
+
+	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
+	MkScopedObjectBinding outputFramebufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+												   "Compositor Output Framebuffer Scope", m_outputFrameBuffer);
+	if (outputFramebufferBinding)
+	{
+		outputFramebufferBinding.getMkState()->disableFlag(eMkStateFlagType::depthTest);
+
+		MkMaterialConstPtr material= m_linearToSrgbMaterialInstance->getMaterial();
+		MkScopedMaterialBinding materialBinding= material->bindMaterial();
+		if (materialBinding)
+		{
+			m_linearToSrgbMaterialInstance->setTextureBySemantic(
+				eUniformSemantic::rgbTexture, m_compositingFrameBuffer->getColorTexture());
+
+			MkScopedMaterialInstanceBinding materialInstanceBinding=
+				m_linearToSrgbMaterialInstance->bindMaterialInstance(materialBinding);
+			if (materialInstanceBinding)
+			{
+				m_layerMesh->drawElements();
+			}
+		}
+	}
+	else
+	{
+		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::evaluationError, "Broken output frame buffer"));
+	}
+}
+
 IMkTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
 {
-	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getColorTexture() : IMkTextureConstPtr();
+	// Return the 8-bit sRGB output buffer (the linear working buffer is internal only)
+	return m_outputFrameBuffer ? m_outputFrameBuffer->getColorTexture() : IMkTextureConstPtr();
 }
 
 bool CompositorNodeGraph::bindToCompositorComponent(CompositorComponentPtr compositorComponent)
@@ -585,12 +638,17 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 	{
 		// Does nothing if the frame buffer is already the correct size
 		m_compositingFrameBuffer->setSize(frameWidth, frameHeight);
+		m_outputFrameBuffer->setSize(frameWidth, frameHeight);
 	}
 
-	// (Re)Initialize the frame buffer if it's in an invalid state
+	// (Re)Initialize the frame buffers if they're in an invalid state
 	if (!m_compositingFrameBuffer->isValid())
 	{
 		m_compositingFrameBuffer->createResources();
+	}
+	if (!m_outputFrameBuffer->isValid())
+	{
+		m_outputFrameBuffer->createResources();
 	}
 }
 

@@ -574,6 +574,10 @@ protected:
 		case GL_DEPTH_COMPONENT32F:
 			m_pixelType= GL_FLOAT;
 			break;
+		case GL_RGB16F:
+		case GL_RGBA16F:
+			m_pixelType= GL_HALF_FLOAT;
+			break;
 		case GL_DEPTH_COMPONENT16:
 		case GL_RGB16:
 		case GL_RGBA16:
@@ -595,6 +599,7 @@ protected:
 			break;
 		case GL_UNSIGNED_SHORT:
 		case GL_SHORT:
+		case GL_HALF_FLOAT:
 			bytesPerChannel= 2;
 			break;
 		case GL_FLOAT:

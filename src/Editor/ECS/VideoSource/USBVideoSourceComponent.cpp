@@ -820,6 +820,18 @@ bool USBVideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, int& o
 	return false;
 }
 
+bool USBVideoSourceComponent::getVideoColorimetry(VideoColorimetry& outColorimetry) const
+{
+	UsbVideoModeProperties modeProperties;
+	if (getVideoModeProperties(getVideoModeIndex(), modeProperties))
+	{
+		outColorimetry= modeProperties.colorimetry;
+		return true;
+	}
+
+	return false;
+}
+
 bool USBVideoSourceComponent::setDevicePath(const std::string& devicePath)
 {
 	USBVideoSourceDefinitionPtr definition= getUSBVideoSourceDefinition();

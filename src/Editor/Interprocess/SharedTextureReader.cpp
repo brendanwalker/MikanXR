@@ -7,6 +7,18 @@
 
 #include <easy/profiler.h>
 
+// Map the descriptor's color/shadow buffer type to the GL internal texture format used for
+// the receiving texture. RGBA16F carries HDR half-float values; everything else stays 8-bit RGBA.
+static GLint getReceiveColorTextureFormat(MikanColorBufferType colorBufferType)
+{
+	return (colorBufferType == MikanColorBuffer_RGBA16F) ? (GLint)MK_RGBA16F : GL_RGBA;
+}
+
+static GLint getReceiveShadowTextureFormat(MikanShadowBufferType shadowBufferType)
+{
+	return (shadowBufferType == MikanShadowBuffer_RGBA16F) ? (GLint)MK_RGBA16F : GL_RGBA;
+}
+
 class SpoutTextureReader
 {
 public:
@@ -110,9 +122,12 @@ public:
 
 			if (m_spoutColorFrame->IsUpdated())
 			{
+				const GLint colorTexFormat=
+					getReceiveColorTextureFormat(m_parentAccessor->getRenderTargetDescriptor().color_buffer_type);
+
 				colorTexture->disposeTexture();
 				colorTexture->setSize(m_spoutColorFrame->GetSenderWidth(), m_spoutColorFrame->GetSenderHeight());
-				colorTexture->setTextureFormat(GL_RGBA);
+				colorTexture->setTextureFormat(colorTexFormat);
 				colorTexture->setBufferFormat(GL_RGBA);
 				colorTexture->createTexture();
 			}
@@ -144,9 +159,12 @@ public:
 
 			if (m_spoutShadowFrame->IsUpdated())
 			{
+				const GLint shadowTexFormat=
+					getReceiveShadowTextureFormat(m_parentAccessor->getRenderTargetDescriptor().shadow_buffer_type);
+
 				shadowTexture->disposeTexture();
 				shadowTexture->setSize(m_spoutShadowFrame->GetSenderWidth(), m_spoutShadowFrame->GetSenderHeight());
-				shadowTexture->setTextureFormat(GL_RGBA);
+				shadowTexture->setTextureFormat(shadowTexFormat);
 				shadowTexture->setBufferFormat(GL_RGBA);
 				shadowTexture->createTexture();
 			}

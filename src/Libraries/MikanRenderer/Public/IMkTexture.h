@@ -13,6 +13,7 @@
 #define MK_RGB 0x1907
 #define MK_RGB16 0x8054
 #define MK_RGBA16 0x805B
+#define MK_RGBA16F 0x881A
 #define MK_BGR 0x80E0
 #define MK_BGRA 0x80E1
 #define MK_RG32F 0x8230

@@ -70,6 +70,7 @@ public:
 	virtual void closeVideoSource() override;
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
+	virtual bool getVideoColorimetry(VideoColorimetry& outColorimetry) const override;
 
 	// -- INetworkVideoDeviceListener ----
 	virtual void notifyVideoDeviceOpened(const class INetworkVideoDevice* device) override;

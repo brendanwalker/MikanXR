@@ -21,6 +21,7 @@ namespace MikanXR
 		RGB24= 1,
 		RGBA32= 2,
 		BGRA32= 3,
+		RGBA16F= 4,
 	};
 
 	public enum MikanConstants
@@ -85,6 +86,7 @@ namespace MikanXR
 		RGB24= 1,
 		RGBA32= 2,
 		BGRA32= 3,
+		RGBA16F= 4,
 	};
 
 }

@@ -218,6 +218,9 @@ MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(MikanCameraID ca
 	case MikanColorBuffer_BGRA32:
 		descriptor.color_buffer_type= SharedColorBufferType::BGRA32;
 		break;
+	case MikanColorBuffer_RGBA16F:
+		descriptor.color_buffer_type= SharedColorBufferType::RGBA16F;
+		break;
 	}
 
 	switch (mkDesiredDescriptor.depth_buffer_type)
@@ -249,6 +252,9 @@ MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(MikanCameraID ca
 		break;
 	case MikanShadowBuffer_BGRA32:
 		descriptor.shadow_buffer_type= SharedShadowBufferType::BGRA32;
+		break;
+	case MikanShadowBuffer_RGBA16F:
+		descriptor.shadow_buffer_type= SharedShadowBufferType::RGBA16F;
 		break;
 	}
 
@@ -325,6 +331,9 @@ MikanCoreResult MikanClient::getCameraRenderTargetDescriptor(MikanCameraID camer
 			case SharedColorBufferType::BGRA32:
 				outDescriptor.color_buffer_type= MikanColorBuffer_BGRA32;
 				break;
+			case SharedColorBufferType::RGBA16F:
+				outDescriptor.color_buffer_type= MikanColorBuffer_RGBA16F;
+				break;
 			}
 
 			switch (desc->depth_buffer_type)
@@ -356,6 +365,9 @@ MikanCoreResult MikanClient::getCameraRenderTargetDescriptor(MikanCameraID camer
 				break;
 			case SharedShadowBufferType::BGRA32:
 				outDescriptor.shadow_buffer_type= MikanShadowBuffer_BGRA32;
+				break;
+			case SharedShadowBufferType::RGBA16F:
+				outDescriptor.shadow_buffer_type= MikanShadowBuffer_RGBA16F;
 				break;
 			}
 

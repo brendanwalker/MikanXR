@@ -81,6 +81,7 @@ public:
 	virtual bool setVideoSetting(const eVideoSettingType property_type, float desiredFraction) override;
 	virtual bool getVideoSetting(const eVideoSettingType property_type, float& outFractionValue) const override;
 	virtual bool getFrameRate(float& outFrameRate) const override;
+	virtual bool getVideoColorimetry(VideoColorimetry& outColorimetry) const override;
 
 	// -- USB Video Mode
 	bool setDevicePath(const std::string& devicePath);

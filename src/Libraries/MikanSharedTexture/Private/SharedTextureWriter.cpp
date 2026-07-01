@@ -93,13 +93,16 @@ public:
 		}
 
 		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
-			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32
+			|| descriptor->color_buffer_type == SharedColorBufferType::RGBA16F)
 		{
 			m_spoutColorFrame->EnableSpoutLog();
 			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutColorFrame->SetSenderName(m_parentAccessor->getColorSenderName().c_str());
 
-			if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+			if (descriptor->color_buffer_type == SharedColorBufferType::RGBA16F)
+				m_spoutColorFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R16G16B16A16_FLOAT);
+			else if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 				m_spoutColorFrame->SetSenderFormat((DWORD)DXGI_FORMAT_B8G8R8A8_UNORM);
 			else
 				m_spoutColorFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -163,7 +166,8 @@ public:
 		// Initialize the (optional) shadow spout frame. It's a color-like RGBA8/BGRA8 buffer,
 		// so no depth packer is needed - it mirrors the color frame path.
 		if (descriptor->shadow_buffer_type == SharedShadowBufferType::RGBA32
-			|| descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
+			|| descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32
+			|| descriptor->shadow_buffer_type == SharedShadowBufferType::RGBA16F)
 		{
 			m_spoutShadowFrame= GetSpout();
 			if (m_spoutShadowFrame == nullptr)
@@ -177,7 +181,9 @@ public:
 			m_spoutShadowFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutShadowFrame->SetSenderName(m_parentAccessor->getShadowSenderName().c_str());
 
-			if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
+			if (descriptor->shadow_buffer_type == SharedShadowBufferType::RGBA16F)
+				m_spoutShadowFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R16G16B16A16_FLOAT);
+			else if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
 				m_spoutShadowFrame->SetSenderFormat((DWORD)DXGI_FORMAT_B8G8R8A8_UNORM);
 			else
 				m_spoutShadowFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -322,12 +328,15 @@ public:
 
 		// Initialize the color spout frame
 		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
-			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32
+			|| descriptor->color_buffer_type == SharedColorBufferType::RGBA16F)
 		{
 			if (m_spoutColorFrame.OpenDirectX11(d3d11Device)
 				&& m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
 			{
-				if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+				if (descriptor->color_buffer_type == SharedColorBufferType::RGBA16F)
+					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+				else if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
 				else
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -393,7 +402,9 @@ public:
 			if (m_spoutShadowFrame.OpenDirectX11(d3d11Device)
 				&& m_spoutShadowFrame.SetSenderName(m_parentAccessor->getShadowSenderName().c_str()))
 			{
-				if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
+				if (descriptor->shadow_buffer_type == SharedShadowBufferType::RGBA16F)
+					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+				else if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
 					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
 				else
 					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -521,12 +532,15 @@ public:
 
 		// Initialize the color spout frame
 		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
-			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32
+			|| descriptor->color_buffer_type == SharedColorBufferType::RGBA16F)
 		{
 			if (m_spoutColorFrame.OpenDirectX12(d3d12Device, ppCommandQueue)
 				&& m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
 			{
-				if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
+				if (descriptor->color_buffer_type == SharedColorBufferType::RGBA16F)
+					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+				else if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
 				else
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
@@ -592,7 +606,9 @@ public:
 			if (m_spoutShadowFrame.OpenDirectX12(d3d12Device, ppCommandQueue)
 				&& m_spoutShadowFrame.SetSenderName(m_parentAccessor->getShadowSenderName().c_str()))
 			{
-				if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
+				if (descriptor->shadow_buffer_type == SharedShadowBufferType::RGBA16F)
+					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_R16G16B16A16_FLOAT);
+				else if (descriptor->shadow_buffer_type == SharedShadowBufferType::BGRA32)
 					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
 				else
 					m_spoutShadowFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);

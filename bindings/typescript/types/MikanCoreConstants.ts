@@ -14,7 +14,8 @@ export enum MikanColorBufferType {
   NOCOLOR = 0,
   RGB24 = 1,
   RGBA32 = 2,
-  BGRA32 = 3
+  BGRA32 = 3,
+  RGBA16F = 4
 }
 
 export enum MikanConstants {
@@ -72,6 +73,7 @@ export enum MikanShadowBufferType {
   NOSHADOW = 0,
   RGB24 = 1,
   RGBA32 = 2,
-  BGRA32 = 3
+  BGRA32 = 3,
+  RGBA16F = 4
 }
 

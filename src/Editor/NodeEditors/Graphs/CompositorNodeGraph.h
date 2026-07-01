@@ -54,13 +54,16 @@ protected:
 	bool createQuadMeshes();
 	bool createBoxMeshes();
 	void updateCompositingFrameBufferSize(NodeEvaluator& evaluator);
+	void encodeLinearFrameToSRGB(class NodeEvaluator& evaluator);
 
 	// Stencil System Events
 	void onStencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
 	CompositorComponentWeakPtr m_boundCompositorComponent;
-	IMkFrameBufferPtr m_compositingFrameBuffer;
+	IMkFrameBufferPtr m_compositingFrameBuffer; // 16-bit linear working buffer
+	IMkFrameBufferPtr m_outputFrameBuffer;      // 8-bit sRGB final output buffer
+	MkMaterialInstancePtr m_linearToSrgbMaterialInstance;
 	IMkShaderPtr m_vertexOnlyStencilShader;
 	IMkTriangulatedMeshPtr m_stencilQuadMesh;
 	IMkTriangulatedMeshPtr m_stencilBoxMesh;

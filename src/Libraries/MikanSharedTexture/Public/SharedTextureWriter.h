@@ -29,6 +29,8 @@ enum class SharedColorBufferType : int
 	RGBA32,
 	// DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 	BGRA32,
+	// 16-bit-per-channel half-float (64bpp), RGBA order / DXGI_FORMAT_R16G16B16A16_FLOAT
+	RGBA16F,
 };
 
 enum class SharedDepthBufferType : int
@@ -54,6 +56,8 @@ enum class SharedShadowBufferType : int
 	RGBA32,
 	// DXGI_FORMAT_B8G8R8A8_UNORM / DXGI_FORMAT_B8G8R8A8_TYPELESS
 	BGRA32,
+	// 16-bit-per-channel half-float (64bpp), RGBA order / DXGI_FORMAT_R16G16B16A16_FLOAT
+	RGBA16F,
 };
 
 struct SharedTextureDescriptor

@@ -210,6 +210,8 @@ bool VideoSourceComponent::getVideoModeName(std::string& outVideoModeName) const
 
 bool VideoSourceComponent::getFrameRate(float& outFrameRate) const { return false; }
 
+bool VideoSourceComponent::getVideoColorimetry(VideoColorimetry& outColorimetry) const { return false; }
+
 bool VideoSourceComponent::areCameraIntrinsicsValid() const
 {
 	return getVideoSourceDefinition()->getCameraIntrinsicsType() != MikanIntrinsicsType::INVALID_CAMERA_INTRINSICS;
