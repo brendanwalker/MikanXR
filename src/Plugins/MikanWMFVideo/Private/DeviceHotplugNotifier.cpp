@@ -24,7 +24,7 @@
 GUID GUID_DEVCLASS_IMAGE= {0x6bdd1fc6, 0x810f, 0x11d0, 0xbe, 0xc7, 0x08, 0x00, 0x2b, 0xe2, 0x09, 0x2f};
 
 #define CLS_NAME "DEVICE_LISTENER_CLASS"
-#define HWND_MESSAGE ((HWND) - 3)
+#define HWND_MESSAGE_ONLY ((HWND) - 3)
 
 // -- globals ----
 struct DeviceHotplugNotifierImpl
@@ -64,7 +64,7 @@ bool DeviceHotplugNotifier::startup(IDeviceHotplugListener* listener)
 
 		if (RegisterClassEx(&m_impl->wx))
 		{
-			m_impl->hWnd= CreateWindow(CLS_NAME, "DevNotifWnd", WS_ICONIC, 0, 0, CW_USEDEFAULT, 0, HWND_MESSAGE, NULL,
+			m_impl->hWnd= CreateWindow(CLS_NAME, "DevNotifWnd", WS_ICONIC, 0, 0, CW_USEDEFAULT, 0, HWND_MESSAGE_ONLY, NULL,
 									   GetModuleHandle(0),
 									   this); // Pass 'this' as the window lpParam
 		}
