@@ -19,13 +19,14 @@ struct WMFDeviceFormatInfo
 	unsigned int height= 0;
 	unsigned int width= 0;
 
-	unsigned int yuv_matrix= 0;          // MFVideoTransferMatrix Enum
-	unsigned int video_lighting= 0;      // MFVideoLighting Enum
-	int default_stride= 0;               // Stride is positive for top-down images, and negative for bottom-up images.
-	unsigned int video_chroma_siting= 0; //  MFVideoChromaSubsampling Enum
+	unsigned int yuv_matrix= 0;               // https://learn.microsoft.com/en-us/windows/win32/api/mfobjects/ne-mfobjects-mfvideotransfermatrix
+	unsigned int transfer_function = 0;       // https://learn.microsoft.com/en-us/windows/win32/api/mfobjects/ne-mfobjects-mfvideotransferfunction
+	unsigned int video_nominal_range = 0;     // https://learn.microsoft.com/en-us/windows/win32/api/mfobjects/ne-mfobjects-mfnominalrange
+	unsigned int video_chroma_subsampling = 0; // https://learn.microsoft.com/en-us/windows/win32/api/mfobjects/ne-mfobjects-mfvideochromasubsampling
+	unsigned int video_lighting= 0;           // https://learn.microsoft.com/en-us/windows/win32/api/mfobjects/ne-mfobjects-mfvideolighting
 
+	int default_stride = 0;                   // Stride is positive for top-down images, and negative for bottom-up images.
 	unsigned int fixed_size_samples= 0;
-	unsigned int video_nominal_range= 0;
 	unsigned int frame_rate_numerator= 0;
 	unsigned int frame_rate_denominator= 0;
 	unsigned int pixel_aspect_ratio_horizontal= 0;
@@ -34,7 +35,7 @@ struct WMFDeviceFormatInfo
 	unsigned int frame_rate_range_min_numerator= 0;
 	unsigned int frame_rate_range_min_denominator= 0;
 	unsigned int sample_size= 0;
-	unsigned int video_primaries= 0;
+	unsigned int video_primaries= 0;                  // https://learn.microsoft.com/en-us/windows/win32/api/mfobjects/ne-mfobjects-mfvideoprimaries
 	unsigned int interlace_mode= 0;
 	unsigned int frame_rate_range_max_numerator= 0;
 	unsigned int frame_rate_range_max_denominator= 0;

@@ -278,7 +278,7 @@ void CompositorOutputEditorWindow::render()
 		CompositorComponentPtr compositor= m_compositorComponent.lock();
 		IMkTextureConstPtr frameTexture= compositor ? compositor->getCompositedFrameTexture() : nullptr;
 
-		// --- Layer 1: Compositor frame or scrolling background ---
+		// --- Layer 1: Compositor frame or no-video background ---
 		if (frameTexture && m_compositedFrameQuad)
 		{
 			// Render compositor output frame fullscreen

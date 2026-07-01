@@ -306,6 +306,22 @@ static WMFDeviceFormatInfo ParseWMFFormatType(int mediaTypeIndex, IMFMediaType* 
 		}
 	}
 
+	// If WMF couldn't provide a color transfer function try and infer one from type
+	if (result.transfer_function == MFVideoTransFunc_Unknown)
+	{
+		GUID nativeSubtype;
+		pWMFMediaType->GetGUID(MF_MT_SUBTYPE, &nativeSubtype);
+
+		if (nativeSubtype == MFVideoFormat_MJPG || nativeSubtype == MFVideoFormat_RGB24)
+		{
+			result.transfer_function = MFVideoTransFunc_sRGB;
+		}
+		else 
+		{
+			result.transfer_function = MFVideoTransFunc_709;
+		}
+	}
+
 	hr= pWMFMediaType->UnlockStore();
 	if (FAILED(hr))
 	{
@@ -374,6 +390,10 @@ static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes* pAttr, DWORD in
 			outMediaType.pixel_aspect_ratio_horizontal= uHigh;
 			outMediaType.pixel_aspect_ratio_vertical= uLow;
 		}
+		else if (guid == MF_MT_TRANSFER_FUNCTION)
+		{
+			outMediaType.transfer_function = var.ulVal;
+		}
 		else
 		{
 			switch (var.vt)
@@ -387,7 +407,7 @@ static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes* pAttr, DWORD in
 				else if (guid == MF_MT_DEFAULT_STRIDE)
 					outMediaType.default_stride= (int)var.ulVal;
 				else if (guid == MF_MT_VIDEO_CHROMA_SITING)
-					outMediaType.video_chroma_siting= var.ulVal;
+					outMediaType.video_chroma_subsampling= var.ulVal;
 				else if (guid == MF_MT_VIDEO_NOMINAL_RANGE)
 					outMediaType.video_nominal_range= var.ulVal;
 				else if (guid == MF_MT_ALL_SAMPLES_INDEPENDENT)

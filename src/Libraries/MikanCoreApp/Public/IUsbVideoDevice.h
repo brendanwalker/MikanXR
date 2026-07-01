@@ -5,13 +5,14 @@
 
 struct UsbVideoModeProperties
 {
-	size_t index;               // index of the video mode in the device's list of available modes
-	const char* name;           // name of the video mode (e.g., "1080p30", "720p60")
-	int width;                  // width of the video frame in pixels
-	int height;                 // height of the video frame in pixels
-	int frame_rate_numerator;   // numerator of the frame rate (e.g., 30 for 30 fps)
-	int frame_rate_demonenator; // denominator of the frame rate (e.g., 1 for 30 fps)
-	const char* format;         // name of the video format (e.g., "H264", "MJPG", "YUYV", etc)
+	size_t index;                   // index of the video mode in the device's list of available modes
+	const char* name;               // name of the video mode (e.g., "1080p30", "720p60")
+	int width;                      // width of the video frame in pixels
+	int height;                     // height of the video frame in pixels
+	int frame_rate_numerator;       // numerator of the frame rate (e.g., 30 for 30 fps)
+	int frame_rate_demonenator;     // denominator of the frame rate (e.g., 1 for 30 fps)
+	const char* format;             // name of the video format (e.g., "H264", "MJPG", "YUYV", etc)
+	VideoColorimetry colorimetry;   // color conversion information base on format
 };
 
 enum class eUSBVideoFrameBufferFormat : int
