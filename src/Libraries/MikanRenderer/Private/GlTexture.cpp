@@ -2,6 +2,8 @@
 #include "GlCommon.h"
 #include "Logger.h"
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -924,6 +926,7 @@ bool saveMkTextureToPNG(IMkTexturePtr texture, const char* filename)
 {
 	int channels= 0;
 	bool bIsBGR= false;
+	bool bIs16Bit= false;
 	switch (texture->getBufferFormat())
 	{
 	case MK_RGB:
@@ -940,6 +943,14 @@ bool saveMkTextureToPNG(IMkTexturePtr texture, const char* filename)
 		channels= 4;
 		bIsBGR= true;
 		break;
+	case MK_RGB16:
+		channels= 3;
+		bIs16Bit= true;
+		break;
+	case MK_RGBA16:
+		channels= 4;
+		bIs16Bit= true;
+		break;
 	default:
 		break;
 	}
@@ -952,24 +963,52 @@ bool saveMkTextureToPNG(IMkTexturePtr texture, const char* filename)
 		return false;
 	}
 
-	const size_t bufferSize= (size_t)width * height * channels;
+	const size_t bytesPerChannel= bIs16Bit ? 2 : 1;
+	const size_t bufferSize= (size_t)width * height * channels * bytesPerChannel;
 	uint8_t* buffer= new uint8_t[bufferSize];
 
 	texture->copyTextureIntoBuffer(buffer, bufferSize);
 
+	// Convert 16-bit HDR to 8-bit sRGB and optionally swap R/B
+	uint8_t* pngBuffer= nullptr;
+	if (bIs16Bit)
+	{
+		pngBuffer= new uint8_t[(size_t)width * height * channels];
+		for (size_t i= 0; i < (size_t)width * height * channels; i++)
+		{
+			// Reconstruct the 16-bit value (little-endian) and normalize to [0, 1]
+			float color= (float)(buffer[i * 2] | (buffer[i * 2 + 1] << 8)) / 65535.0f;
+
+			// Reinhard tonemapping: x / (x + 1)
+			color= color / (color + 1.0f);
+
+			// Gamma correction (linear to sRGB, gamma ~2.2)
+			color= std::pow(color, 1.0f / 2.2f);
+
+			// Clamp and quantize to 8-bit
+			color= std::clamp(color, 0.0f, 1.0f);
+			pngBuffer[i]= static_cast<uint8_t>(color * 255.0f);
+		}
+		delete[] buffer;
+	}
+	else
+	{
+		pngBuffer= buffer;
+	}
+
 	if (bIsBGR)
 	{
 		// Swap R and B channels so stbi_write_png outputs standard RGB(A)
-		for (size_t i= 0; i < bufferSize; i+= channels)
+		for (size_t i= 0; i < (size_t)width * height * channels; i+= channels)
 		{
-			std::swap(buffer[i], buffer[i + 2]);
+			std::swap(pngBuffer[i], pngBuffer[i + 2]);
 		}
 	}
 
 	const int stride= width * channels;
-	const bool bSuccess= stbi_write_png(filename, width, height, channels, buffer, stride) != 0;
+	const bool bSuccess= stbi_write_png(filename, width, height, channels, pngBuffer, stride) != 0;
 
-	delete[] buffer;
+	delete[] pngBuffer;
 
 	return bSuccess;
 }
