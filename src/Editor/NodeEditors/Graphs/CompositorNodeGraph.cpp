@@ -37,6 +37,7 @@
 #include "Properties/GraphTextureProperty.h"
 
 // Nodes
+#include "Nodes/ApplyMaterialNode.h"
 #include "Nodes/ArrayNode.h"
 #include "Nodes/ColorTextureSourceNode.h"
 #include "Nodes/DepthTextureSourceNode.h"
@@ -78,6 +79,7 @@ CompositorNodeGraph::CompositorNodeGraph()
 	addPropertyFactory<GraphStencilPropertyFactory>();
 
 	// Nodes this graph can spawn
+	addNodeFactory<ApplyMaterialNodeFactory>();
 	addNodeFactory<ArrayNodeFactory>();
 	addNodeFactory<ColorTextureSourceNodeFactory>();
 	addNodeFactory<DepthTextureSourceNodeFactory>();
