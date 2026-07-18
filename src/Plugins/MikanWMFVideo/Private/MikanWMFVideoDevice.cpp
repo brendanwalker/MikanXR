@@ -179,88 +179,122 @@ bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModePrope
 		switch (formatInfo.yuv_matrix)
 		{
 		case MFVideoTransferMatrix_Unknown:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::INVALID; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::INVALID;
+			break;
 		case MFVideoTransferMatrix_BT709:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::BT709; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::BT709;
+			break;
 		case MFVideoTransferMatrix_BT601:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::BT601; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::BT601;
+			break;
 		case MFVideoTransferMatrix_SMPTE240M:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::SMPTE240M; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::SMPTE240M;
+			break;
 		case MFVideoTransferMatrix_BT2020_10:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::BT2020_10; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::BT2020_10;
+			break;
 		case MFVideoTransferMatrix_BT2020_12:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::BT2020_12; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::BT2020_12;
+			break;
 		case MFVideoTransferMatrix_Identity:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::Identity; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::Identity;
+			break;
 		case MFVideoTransferMatrix_FCC47:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::FCC47; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::FCC47;
+			break;
 		case MFVideoTransferMatrix_YCgCo:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::YCgCo; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::YCgCo;
+			break;
 		case MFVideoTransferMatrix_SMPTE2085:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::SMPTE2085; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::SMPTE2085;
+			break;
 		case MFVideoTransferMatrix_Chroma:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::Chroma; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::Chroma;
+			break;
 		case MFVideoTransferMatrix_Chroma_const:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::Chroma_const; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::Chroma_const;
+			break;
 		case MFVideoTransferMatrix_ICtCp:
-			outProperties.colorimetry.colorMatrix = eVideoColorMatrix::ICtCp; break;
+			outProperties.colorimetry.colorMatrix= eVideoColorMatrix::ICtCp;
+			break;
 		}
 
 		switch (formatInfo.transfer_function)
 		{
 		case MFVideoTransFunc_Unknown:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::INVALID; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::INVALID;
+			break;
 		case MFVideoTransFunc_10:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::Gamma_1_0; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::Gamma_1_0;
+			break;
 		case MFVideoTransFunc_18:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::Gamma_1_8; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::Gamma_1_8;
+			break;
 		case MFVideoTransFunc_20:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::Gamma_2_0; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::Gamma_2_0;
+			break;
 		case MFVideoTransFunc_22:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::Gamma_2_2; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::Gamma_2_2;
+			break;
 		case MFVideoTransFunc_709:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::BT709; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::BT709;
+			break;
 		case MFVideoTransFunc_240M:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::SPMTE_240M; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::SPMTE_240M;
+			break;
 		case MFVideoTransFunc_sRGB:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::SRGB; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::SRGB;
+			break;
 		case MFVideoTransFunc_28:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::Gamma_2_8; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::Gamma_2_8;
+			break;
 		case MFVideoTransFunc_Log_100:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::LOG_100; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::LOG_100;
+			break;
 		case MFVideoTransFunc_Log_316:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::LOG_316; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::LOG_316;
+			break;
 		case MFVideoTransFunc_709_sym:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::BT709_SYM; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::BT709_SYM;
+			break;
 		case MFVideoTransFunc_2020_const:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::BT2020_CONST; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::BT2020_CONST;
+			break;
 		case MFVideoTransFunc_2020:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::BT2020; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::BT2020;
+			break;
 		case MFVideoTransFunc_26:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::Gamma_2_6; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::Gamma_2_6;
+			break;
 		case MFVideoTransFunc_2084:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::SMPTE_2084; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::SMPTE_2084;
+			break;
 		case MFVideoTransFunc_HLG:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::HLG; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::HLG;
+			break;
 		case MFVideoTransFunc_10_rel:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::NoGamma; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::NoGamma;
+			break;
 		case MFVideoTransFunc_BT1361_ECG:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::BT1361_ECG; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::BT1361_ECG;
+			break;
 		case MFVideoTransFunc_SMPTE428:
-			outProperties.colorimetry.transferFunction = eVideoTransferFunction::SMPTE_428; break;
+			outProperties.colorimetry.transferFunction= eVideoTransferFunction::SMPTE_428;
+			break;
 		}
-
 
 		switch (formatInfo.video_nominal_range)
 		{
 		case MFNominalRange_Normal:
-			outProperties.colorimetry.isFullRange = true; break;
+			outProperties.colorimetry.isFullRange= true;
+			break;
 		case MFNominalRange_Unknown:
 		case MFNominalRange_Wide:
 		case MFNominalRange_48_208:
 		case MFNominalRange_64_127:
 		default:
-			outProperties.colorimetry.isFullRange = false; break;
+			outProperties.colorimetry.isFullRange= false;
+			break;
 			break;
 		}
 

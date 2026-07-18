@@ -25,14 +25,14 @@ struct NetworkVideoConnectionSettings
 
 struct NetworkVideoStreamProperties
 {
-	char name[256];                      // name of the video mode (e.g., "1080p30", "720p60")
-	char bufferFormat[32];               // format of the video frame buffer (e.g., "YUY2", "MJPEG")
-	VideoColorimetry colorimetry;        // Color conversion information base on format
-	int width;                           // width of the video frame in pixels
-	int height;                          // height of the video frame in pixels
-	int stride;                          // stride is the number of bytes per row in the video frame buffer
-	int frame_rate_numerator;            // numerator of the frame rate (e.g., 30 for 30 fps)
-	int frame_rate_demonenator;          // denominator of the frame rate (e.g., 1 for 30 fps)
+	char name[256];               // name of the video mode (e.g., "1080p30", "720p60")
+	char bufferFormat[32];        // format of the video frame buffer (e.g., "YUY2", "MJPEG")
+	VideoColorimetry colorimetry; // Color conversion information base on format
+	int width;                    // width of the video frame in pixels
+	int height;                   // height of the video frame in pixels
+	int stride;                   // stride is the number of bytes per row in the video frame buffer
+	int frame_rate_numerator;     // numerator of the frame rate (e.g., 30 for 30 fps)
+	int frame_rate_demonenator;   // denominator of the frame rate (e.g., 1 for 30 fps)
 };
 
 struct NetworkVideoFrameBuffer

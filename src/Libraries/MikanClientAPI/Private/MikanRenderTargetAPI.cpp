@@ -149,8 +149,8 @@ MikanResponseFuture MikanRenderTargetAPI::writeShadowRenderTargetTexture(MikanRe
 	void* apiShadowTexturePtr= writeRequest.api_shadow_texture_ptr;
 
 	MikanContext context= m_requestManager->getContext();
-	MikanAPIResult result= (MikanAPIResult)Mikan_WriteCameraShadowRenderTargetTexture(
-		context, writeRequest.camera_id, apiShadowTexturePtr);
+	MikanAPIResult result= (MikanAPIResult)Mikan_WriteCameraShadowRenderTargetTexture(context, writeRequest.camera_id,
+																					  apiShadowTexturePtr);
 
 	return MikanResponseFuture(result);
 }

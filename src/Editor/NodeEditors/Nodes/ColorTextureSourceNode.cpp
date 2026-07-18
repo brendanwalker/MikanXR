@@ -320,8 +320,8 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
 		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type",
-													 "colorRGB\0colorRGBA\0shadowRGB\0shadowRGBA\0",
-													 iTextureType, editorState.styleManager))
+													 "colorRGB\0colorRGBA\0shadowRGB\0shadowRGBA\0", iTextureType,
+													 editorState.styleManager))
 		{
 			m_clientTextureType= (eTextureSourceColorType)iTextureType;
 		}

@@ -314,11 +314,11 @@ static WMFDeviceFormatInfo ParseWMFFormatType(int mediaTypeIndex, IMFMediaType* 
 
 		if (nativeSubtype == MFVideoFormat_MJPG || nativeSubtype == MFVideoFormat_RGB24)
 		{
-			result.transfer_function = MFVideoTransFunc_sRGB;
+			result.transfer_function= MFVideoTransFunc_sRGB;
 		}
-		else 
+		else
 		{
-			result.transfer_function = MFVideoTransFunc_709;
+			result.transfer_function= MFVideoTransFunc_709;
 		}
 	}
 
@@ -392,7 +392,7 @@ static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes* pAttr, DWORD in
 		}
 		else if (guid == MF_MT_TRANSFER_FUNCTION)
 		{
-			outMediaType.transfer_function = var.ulVal;
+			outMediaType.transfer_function= var.ulVal;
 		}
 		else
 		{

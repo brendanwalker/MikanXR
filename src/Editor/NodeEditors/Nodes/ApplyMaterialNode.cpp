@@ -222,8 +222,7 @@ bool ApplyMaterialNode::evaluateNode(NodeEvaluator& evaluator)
 
 	if (!sizeSourceTexture)
 	{
-		evaluator.addError(
-			NodeEvaluationError(eNodeEvaluationErrorCode::missingInput, "No input texture bound", this));
+		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::missingInput, "No input texture bound", this));
 		if (m_outTexturePin)
 			m_outTexturePin->setValue(IMkTexturePtr());
 

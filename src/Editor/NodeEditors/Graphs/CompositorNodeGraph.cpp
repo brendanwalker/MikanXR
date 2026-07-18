@@ -116,8 +116,8 @@ bool CompositorNodeGraph::createResources()
 	m_outputFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
 
 	// Material used for the final linear->sRGB conversion pass
-	auto linearToSrgbMaterial=
-		getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_LINEAR_TO_SRGB);
+	auto linearToSrgbMaterial= getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(
+		INTERNAL_MATERIAL_PT_LINEAR_TO_SRGB);
 	assert(linearToSrgbMaterial);
 	m_linearToSrgbMaterialInstance= createMkMaterialInstance(linearToSrgbMaterial);
 
@@ -249,8 +249,8 @@ void CompositorNodeGraph::encodeLinearFrameToSRGB(NodeEvaluator& evaluator)
 		MkScopedMaterialBinding materialBinding= material->bindMaterial();
 		if (materialBinding)
 		{
-			m_linearToSrgbMaterialInstance->setTextureBySemantic(
-				eUniformSemantic::rgbTexture, m_compositingFrameBuffer->getColorTexture());
+			m_linearToSrgbMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture,
+																 m_compositingFrameBuffer->getColorTexture());
 
 			MkScopedMaterialInstanceBinding materialInstanceBinding=
 				m_linearToSrgbMaterialInstance->bindMaterialInstance(materialBinding);
@@ -262,7 +262,8 @@ void CompositorNodeGraph::encodeLinearFrameToSRGB(NodeEvaluator& evaluator)
 	}
 	else
 	{
-		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::evaluationError, "Broken output frame buffer"));
+		evaluator.addError(
+			NodeEvaluationError(eNodeEvaluationErrorCode::evaluationError, "Broken output frame buffer"));
 	}
 }
 

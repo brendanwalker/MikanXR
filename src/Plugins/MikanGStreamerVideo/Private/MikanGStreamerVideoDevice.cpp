@@ -124,11 +124,11 @@ struct GStreamerImpl
 			// Iterate over each field
 #if GST_CAPS_DEBUGGING
 			{
-				int num_fields = gst_structure_n_fields(structure);
-				for (int i = 0; i < num_fields; ++i)
+				int num_fields= gst_structure_n_fields(structure);
+				for (int i= 0; i < num_fields; ++i)
 				{
 					// Get the field name
-					const gchar* field_name = gst_structure_nth_field_name(structure, i);
+					const gchar* field_name= gst_structure_nth_field_name(structure, i);
 					MIKAN_LOG_INFO("extractVideoFrameInfo") << "Field name: " << field_name;
 				}
 			}
@@ -174,29 +174,33 @@ struct GStreamerImpl
 		GstVideoInfo videoInfo;
 		if (gst_video_info_from_caps(&videoInfo, caps))
 		{
-			const GstVideoColorimetry& cinfo = GST_VIDEO_INFO_COLORIMETRY(&videoInfo);
+			const GstVideoColorimetry& cinfo= GST_VIDEO_INFO_COLORIMETRY(&videoInfo);
 
 			// Color matrix (YUV->RGB coefficients)
 			switch (cinfo.matrix)
 			{
 			case GST_VIDEO_COLOR_MATRIX_RGB:
-				colorimetry.colorMatrix = eVideoColorMatrix::Identity; break;
+				colorimetry.colorMatrix= eVideoColorMatrix::Identity;
+				break;
 			case GST_VIDEO_COLOR_MATRIX_FCC:
-				colorimetry.colorMatrix = eVideoColorMatrix::FCC47; break;
+				colorimetry.colorMatrix= eVideoColorMatrix::FCC47;
+				break;
 			case GST_VIDEO_COLOR_MATRIX_BT709:
-				colorimetry.colorMatrix = eVideoColorMatrix::BT709; break;
+				colorimetry.colorMatrix= eVideoColorMatrix::BT709;
+				break;
 			case GST_VIDEO_COLOR_MATRIX_BT601:
-				colorimetry.colorMatrix = eVideoColorMatrix::BT601; break;
+				colorimetry.colorMatrix= eVideoColorMatrix::BT601;
+				break;
 			case GST_VIDEO_COLOR_MATRIX_SMPTE240M:
-				colorimetry.colorMatrix = eVideoColorMatrix::SMPTE240M; break;
+				colorimetry.colorMatrix= eVideoColorMatrix::SMPTE240M;
+				break;
 			case GST_VIDEO_COLOR_MATRIX_BT2020:
-				colorimetry.colorMatrix = eVideoColorMatrix::BT2020_10; break;
+				colorimetry.colorMatrix= eVideoColorMatrix::BT2020_10;
+				break;
 			default:
 				// For HD content, assume BT.709 over BT.601
-				colorimetry.colorMatrix =
-					(outFrameInfo.width >= 1280)
-					? eVideoColorMatrix::BT709
-					: eVideoColorMatrix::BT601;
+				colorimetry.colorMatrix=
+					(outFrameInfo.width >= 1280) ? eVideoColorMatrix::BT709 : eVideoColorMatrix::BT601;
 				break;
 			}
 
@@ -205,53 +209,64 @@ struct GStreamerImpl
 			{
 
 			case GST_VIDEO_TRANSFER_GAMMA10:
-				colorimetry.transferFunction = eVideoTransferFunction::Gamma_1_0; break;
+				colorimetry.transferFunction= eVideoTransferFunction::Gamma_1_0;
+				break;
 			case GST_VIDEO_TRANSFER_GAMMA18:
-				colorimetry.transferFunction = eVideoTransferFunction::Gamma_1_8; break;
+				colorimetry.transferFunction= eVideoTransferFunction::Gamma_1_8;
+				break;
 			case GST_VIDEO_TRANSFER_GAMMA20:
-				colorimetry.transferFunction = eVideoTransferFunction::Gamma_2_0; break;
+				colorimetry.transferFunction= eVideoTransferFunction::Gamma_2_0;
+				break;
 			case GST_VIDEO_TRANSFER_GAMMA22:
-				colorimetry.transferFunction = eVideoTransferFunction::Gamma_2_2; break;
+				colorimetry.transferFunction= eVideoTransferFunction::Gamma_2_2;
+				break;
 			case GST_VIDEO_TRANSFER_BT709:
-				colorimetry.transferFunction = eVideoTransferFunction::BT709; break;
+				colorimetry.transferFunction= eVideoTransferFunction::BT709;
+				break;
 			case GST_VIDEO_TRANSFER_SMPTE240M:
-				colorimetry.transferFunction = eVideoTransferFunction::SPMTE_240M; break;
+				colorimetry.transferFunction= eVideoTransferFunction::SPMTE_240M;
+				break;
 			case GST_VIDEO_TRANSFER_SRGB:
-				colorimetry.transferFunction = eVideoTransferFunction::SRGB; break;
+				colorimetry.transferFunction= eVideoTransferFunction::SRGB;
+				break;
 			case GST_VIDEO_TRANSFER_GAMMA28:
-				colorimetry.transferFunction = eVideoTransferFunction::Gamma_2_8; break;
+				colorimetry.transferFunction= eVideoTransferFunction::Gamma_2_8;
+				break;
 			case GST_VIDEO_TRANSFER_LOG100:
-				colorimetry.transferFunction = eVideoTransferFunction::LOG_100; break;
+				colorimetry.transferFunction= eVideoTransferFunction::LOG_100;
+				break;
 			case GST_VIDEO_TRANSFER_LOG316:
-				colorimetry.transferFunction = eVideoTransferFunction::LOG_316; break;
+				colorimetry.transferFunction= eVideoTransferFunction::LOG_316;
+				break;
 			case GST_VIDEO_TRANSFER_BT2020_10:
 			case GST_VIDEO_TRANSFER_BT2020_12:
-				colorimetry.transferFunction = eVideoTransferFunction::BT2020; break;
+				colorimetry.transferFunction= eVideoTransferFunction::BT2020;
+				break;
 			case GST_VIDEO_TRANSFER_ADOBERGB:
 				// Technically this is supposed to be Gamma 2.19921875
-				colorimetry.transferFunction = eVideoTransferFunction::Gamma_2_0; break;
+				colorimetry.transferFunction= eVideoTransferFunction::Gamma_2_0;
+				break;
 			case GST_VIDEO_TRANSFER_SMPTE2084:
-				colorimetry.transferFunction = eVideoTransferFunction::SMPTE_2084; break;
+				colorimetry.transferFunction= eVideoTransferFunction::SMPTE_2084;
+				break;
 			case GST_VIDEO_TRANSFER_ARIB_STD_B67:
-				colorimetry.transferFunction = eVideoTransferFunction::HLG; break;
+				colorimetry.transferFunction= eVideoTransferFunction::HLG;
+				break;
 			case GST_VIDEO_TRANSFER_UNKNOWN:
 			default:
-				colorimetry.transferFunction = eVideoTransferFunction::INVALID; break;
+				colorimetry.transferFunction= eVideoTransferFunction::INVALID;
+				break;
 			}
 
 			// Luma/chroma range
-			colorimetry.isFullRange =
-				(cinfo.range == GST_VIDEO_COLOR_RANGE_0_255);
+			colorimetry.isFullRange= (cinfo.range == GST_VIDEO_COLOR_RANGE_0_255);
 		}
 		else
 		{
 			// gst_video_info_from_caps failed — apply safe defaults
-			colorimetry.colorMatrix =
-				(outFrameInfo.width >= 1280)
-				? eVideoColorMatrix::BT709
-				: eVideoColorMatrix::BT601;
-			colorimetry.transferFunction = eVideoTransferFunction::BT709;
-			colorimetry.isFullRange = false; // NV12 is almost always narrow range
+			colorimetry.colorMatrix= (outFrameInfo.width >= 1280) ? eVideoColorMatrix::BT709 : eVideoColorMatrix::BT601;
+			colorimetry.transferFunction= eVideoTransferFunction::BT709;
+			colorimetry.isFullRange= false; // NV12 is almost always narrow range
 		}
 	}
 

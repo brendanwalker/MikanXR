@@ -843,8 +843,9 @@ bool SharedTextureWriteAccessor::initialize(const SharedTextureDescriptor* descr
 	{
 		if (!makeSpoutSenderName(m_senderPrefix, m_cameraId, SharedTextureType::SHADOW, m_shadowSenderName))
 		{
-			m_logger.log(SharedTextureLogLevel::error,
-						 "SharedTextureWriteAccessor::initialize() - Failed to create spout shadow texture sender name");
+			m_logger.log(
+				SharedTextureLogLevel::error,
+				"SharedTextureWriteAccessor::initialize() - Failed to create spout shadow texture sender name");
 			return false;
 		}
 	}

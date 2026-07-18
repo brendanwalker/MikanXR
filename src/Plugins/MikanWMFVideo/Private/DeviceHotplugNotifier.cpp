@@ -64,8 +64,8 @@ bool DeviceHotplugNotifier::startup(IDeviceHotplugListener* listener)
 
 		if (RegisterClassEx(&m_impl->wx))
 		{
-			m_impl->hWnd= CreateWindow(CLS_NAME, "DevNotifWnd", WS_ICONIC, 0, 0, CW_USEDEFAULT, 0, HWND_MESSAGE_ONLY, NULL,
-									   GetModuleHandle(0),
+			m_impl->hWnd= CreateWindow(CLS_NAME, "DevNotifWnd", WS_ICONIC, 0, 0, CW_USEDEFAULT, 0, HWND_MESSAGE_ONLY,
+									   NULL, GetModuleHandle(0),
 									   this); // Pass 'this' as the window lpParam
 		}
 

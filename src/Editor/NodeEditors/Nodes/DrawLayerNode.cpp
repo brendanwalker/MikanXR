@@ -79,7 +79,7 @@ void DrawLayerNodeConfig::readFromJSON(const configuru::Config& pt)
 	// TODO: Blend mode enum name change. Remove this after we upgrade all graphs
 	if (blendModeString == "blendOn")
 	{
-		blendModeString = k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal];
+		blendModeString= k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal];
 	}
 	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
@@ -412,8 +412,9 @@ void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState
 
 		// Blend Mode
 		int iBlendMode= (int)m_blendMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawLayerNodeBlendMode", "Blend Mode", "Blend Off\0Blend Normal\0Blend Multiply\0",
-													 iBlendMode, editorState.styleManager))
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawLayerNodeBlendMode", "Blend Mode",
+													 "Blend Off\0Blend Normal\0Blend Multiply\0", iBlendMode,
+													 editorState.styleManager))
 		{
 			m_blendMode= (eCompositorBlendMode)iBlendMode;
 		}
