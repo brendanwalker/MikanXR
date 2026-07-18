@@ -37,6 +37,7 @@ public:
 	ProjectManagerPtr getProjectManager() const;
 	ProjectConfigPtr getProjectConfig() const;
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
+	inline class HttpInterprocessMessageServer* getHttpMessageServer() { return m_httpMessageServer; }
 	inline class CameraRequestHandler* getCameraRequestHandler() const { return m_cameraRequestHandler; }
 	inline class FunctionRequestHandler* getFunctionRequestHandler() const { return m_functionRequestHandler; }
 	inline class LightRequestHandler* getLightRequestHandler() const { return m_lightRequestHandler; }
@@ -86,6 +87,7 @@ private:
 	class MainWindow* m_ownerWindow= nullptr;
 
 	class IInterprocessMessageServer* m_messageServer;
+	class HttpInterprocessMessageServer* m_httpMessageServer;
 
 	class CameraRequestHandler* m_cameraRequestHandler;
 	class FunctionRequestHandler* m_functionRequestHandler;

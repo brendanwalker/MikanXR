@@ -27,6 +27,7 @@
 #include "VideoSourceRequestHandler.h"
 #include "Version.h"
 #include "WebsocketInterprocessMessageServer.h"
+#include "HttpInterprocessMessageServer.h"
 
 #include <Refureku/Refureku.h>
 #include <easy/profiler.h>
@@ -46,6 +47,7 @@ MikanServer* MikanServer::m_instance= nullptr;
 
 MikanServer::MikanServer()
 	: m_messageServer(new WebsocketInterprocessMessageServer())
+	, m_httpMessageServer(new HttpInterprocessMessageServer())
 	, m_cameraRequestHandler(new CameraRequestHandler(this))
 	, m_functionRequestHandler(new FunctionRequestHandler(this))
 	, m_lightRequestHandler(new LightRequestHandler(this))
@@ -74,6 +76,7 @@ MikanServer::~MikanServer()
 	delete m_lightRequestHandler;
 	delete m_functionRequestHandler;
 	delete m_cameraRequestHandler;
+	delete m_httpMessageServer;
 	delete m_messageServer;
 	m_instance= nullptr;
 }
@@ -90,6 +93,14 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to initialize interprocess message server";
 		return false;
+	}
+
+	// The HTTP trigger server is a secondary, best-effort feature (e.g. for Stream Deck style
+	// integrations) - failing to bind its port shouldn't prevent the primary websocket RPC server
+	// (and the rest of the app) from starting up.
+	if (!m_httpMessageServer->initialize())
+	{
+		MIKAN_LOG_WARNING("MikanServer::startup()") << "Failed to initialize HTTP interprocess message server";
 	}
 
 	if (!m_cameraRequestHandler->startup(mainWindow))
@@ -185,6 +196,7 @@ void MikanServer::update()
 
 		m_messageServer->processSocketEvents();
 		m_messageServer->processRequests();
+		m_httpMessageServer->processRequests();
 	}
 }
 
@@ -192,6 +204,7 @@ void MikanServer::shutdown()
 {
 	m_clientConnections.clear();
 	m_messageServer->dispose();
+	m_httpMessageServer->dispose();
 
 	m_cameraRequestHandler->shutdown();
 	m_functionRequestHandler->shutdown();

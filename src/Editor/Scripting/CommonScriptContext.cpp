@@ -347,6 +347,9 @@ void CommonScriptContext::bindCommonScriptFunctions()
 	contextNamespace.addFunction("registerMessageHandler",
 								 [this](const char* functionName) { m_messageHandlers.push_back(functionName); });
 
+	contextNamespace.addFunction("registerHttpTrigger", [this](const char* routeName, const char* triggerFunctionName)
+								 { m_httpTriggerBindings.push_back({routeName, triggerFunctionName}); });
+
 	contextNamespace.addFunction("broadcastMessage",
 								 [this](const char* message)
 								 {
@@ -368,6 +371,7 @@ void CommonScriptContext::bindCommonScriptFunctions()
 void CommonScriptContext::disposeScriptState()
 {
 	m_triggers.clear();
+	m_httpTriggerBindings.clear();
 
 	if (m_luaState != nullptr)
 	{

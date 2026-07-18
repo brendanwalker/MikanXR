@@ -185,6 +185,8 @@ void MikanComponent::dispose()
 
 	MikanObjectSystemPtr objectSystemPtr= getOwnerObject()->getOwnerSystem();
 
+	disposeScriptContext();
+
 	if (m_definition)
 	{
 		m_definition->OnPropertyChanged-= MakeDelegate(this, &MikanComponent::onDefinitionMarkedDirty);
@@ -342,7 +344,12 @@ void MikanComponent::reloadComponentScript()
 {
 	if (m_scriptContext)
 	{
+		// Unbind before reloading so any HTTP trigger routes the previous script version
+		// registered are dropped, then rebind afterward to pick up whatever the reloaded
+		// script (re)registers.
+		MikanServer::getInstance()->getScriptRequestHandler()->unbindScriptContect(m_scriptContext);
 		m_scriptContext->reloadScript();
+		MikanServer::getInstance()->getScriptRequestHandler()->bindScriptContect(m_scriptContext);
 	}
 }
 
