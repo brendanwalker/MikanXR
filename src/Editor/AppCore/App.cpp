@@ -227,34 +227,15 @@ bool App::startup(int argc, char** argv)
 
 void App::shutdown()
 {
-	// Tear down Chromium Embeded Framework
+	// Tear down Chromium Embedded Framework
 	CefShutdown();
 
-	// Dispose all app windows (but the main window)
+	// Dispose all app windows in reverse order (destroying main window last)
 	while (m_appWindows.size() > 0)
 	{
-		EditorWindow* appWindow= m_appWindows[0];
-
-		if (m_mainWindow != appWindow)
-		{
-			destroyAppWindow(appWindow);
-		}
-		else
-		{
-			auto it= std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
-			if (it != m_appWindows.end())
-			{
-				m_appWindows.erase(it);
-			}
-		}
+		destroyAppWindow(m_appWindows[m_appWindows.size() - 1]);
 	}
-
-	// Dispose the main window last
-	if (m_mainWindow != nullptr)
-	{
-		destroyAppWindow(m_mainWindow);
-		m_mainWindow= nullptr;
-	}
+	m_appWindows.clear();
 
 	assert(m_windowManager != nullptr);
 	m_windowManager->shutdown();
@@ -359,8 +340,16 @@ void App::tickWindows(const float deltaSeconds)
 
 		if (window->wantsDestroy())
 		{
-			// remove the window from the window list
-			destroyAppWindow(window);
+			if (window == m_mainWindow)
+			{
+				// Special case for main window
+				requestShutdown();
+			}
+			else
+			{
+				// remove the window from the window list
+				destroyAppWindow(window);
+			}
 		}
 	}
 }
