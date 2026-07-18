@@ -38,6 +38,10 @@ public:
 	ProjectConfigPtr getProjectConfig() const;
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
 	inline class HttpInterprocessMessageServer* getHttpMessageServer() { return m_httpMessageServer; }
+
+	// Stops and restarts the HTTP trigger server on a new port. Previously registered routes
+	// are preserved (dispose() only stops the listener, it doesn't clear the route table).
+	void restartHttpMessageServer(int port);
 	inline class CameraRequestHandler* getCameraRequestHandler() const { return m_cameraRequestHandler; }
 	inline class FunctionRequestHandler* getFunctionRequestHandler() const { return m_functionRequestHandler; }
 	inline class LightRequestHandler* getLightRequestHandler() const { return m_lightRequestHandler; }

@@ -117,6 +117,40 @@ void HttpInterprocessMessageServer::removeRouteHandler(const std::string& path)
 	m_routeHandlers.erase(path);
 }
 
+std::vector<std::string> HttpInterprocessMessageServer::getRegisteredRoutePaths() const
+{
+	std::vector<std::string> paths;
+
+	std::lock_guard<std::mutex> lock(m_routeHandlersMutex);
+	paths.reserve(m_routeHandlers.size());
+	for (const auto& entry : m_routeHandlers)
+	{
+		paths.push_back(entry.first);
+	}
+
+	return paths;
+}
+
+bool HttpInterprocessMessageServer::invokeRouteHandler(const std::string& path, HttpRouteResponse& outResponse,
+													   const std::string& method, const std::string& body)
+{
+	HttpRouteHandler handler;
+	{
+		std::lock_guard<std::mutex> lock(m_routeHandlersMutex);
+
+		auto handler_it= m_routeHandlers.find(path);
+		if (handler_it == m_routeHandlers.end())
+		{
+			return false;
+		}
+
+		handler= handler_it->second;
+	}
+
+	outResponse= handler(method, path, body);
+	return true;
+}
+
 ix::HttpResponsePtr HttpInterprocessMessageServer::handleIncomingRequest(ix::HttpRequestPtr request)
 {
 	auto pendingRequest= std::make_shared<PendingHttpRequest>();

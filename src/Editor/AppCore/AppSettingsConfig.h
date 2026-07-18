@@ -27,8 +27,13 @@ public:
 	inline const std::string& getScriptEditorCommand() const { return m_scriptEditorCommand; }
 	void setScriptEditorCommand(const std::string& command);
 
+	static const std::string k_httpServerPortPropertyId;
+	inline int getHttpServerPort() const { return m_httpServerPort; }
+	void setHttpServerPort(int port);
+
 protected:
 	std::filesystem::path m_lastProjectPath;
 	std::string m_appLanguage;
 	std::string m_scriptEditorCommand= "code --reuse-window";
+	int m_httpServerPort= 8090; // mirrors HTTP_SERVER_PORT in HttpInterprocessMessageServer.h
 };

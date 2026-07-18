@@ -130,7 +130,7 @@ function Quatf:normalize() end
 ScriptContext = {}
 
 --- Register a global Lua function as a trigger.
---- Triggers are called by Mikan in response to editor events (e.g. "onUpdate").
+--- Triggers are called by Mikan in response to UI Button Events.
 ---@param functionName string Name of the global function to register.
 function ScriptContext.registerTrigger(functionName) end
 
@@ -138,6 +138,13 @@ function ScriptContext.registerTrigger(functionName) end
 --- The handler receives a single string argument and should return true if handled.
 ---@param functionName string Name of the global function to register.
 function ScriptContext.registerMessageHandler(functionName) end
+
+--- Register a global Lua function as a http trigger.
+--- HTTP triggers are called by Mikan in response to HTTP requests.
+---@param routeName string HTTP route to register the trigger for.
+---@param functionName string Name of the global function to register.
+function ScriptContext.registerHttpTrigger(routeName, functionName) end
+
 
 --- Broadcast a string message to all registered message handlers in all contexts.
 ---@param message string

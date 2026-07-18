@@ -1,4 +1,6 @@
 //-- includes -----
+#include "App.h"
+#include "AppSettingsConfig.h"
 #include "CameraRequestHandler.h"
 #include "FunctionRequestHandler.h"
 #include "LightRequestHandler.h"
@@ -98,9 +100,13 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	// The HTTP trigger server is a secondary, best-effort feature (e.g. for Stream Deck style
 	// integrations) - failing to bind its port shouldn't prevent the primary websocket RPC server
 	// (and the rest of the app) from starting up.
-	if (!m_httpMessageServer->initialize())
 	{
-		MIKAN_LOG_WARNING("MikanServer::startup()") << "Failed to initialize HTTP interprocess message server";
+		const int httpPort= App::getInstance()->getAppSettings()->getHttpServerPort();
+		if (!m_httpMessageServer->initialize(httpPort))
+		{
+			MIKAN_LOG_WARNING("MikanServer::startup()")
+				<< "Failed to initialize HTTP interprocess message server on port " << httpPort;
+		}
 	}
 
 	if (!m_cameraRequestHandler->startup(mainWindow))
@@ -219,6 +225,15 @@ void MikanServer::shutdown()
 	m_videoSourceRequestHandler->shutdown();
 
 	m_ownerWindow= nullptr;
+}
+
+void MikanServer::restartHttpMessageServer(int port)
+{
+	m_httpMessageServer->dispose();
+	if (!m_httpMessageServer->initialize(port))
+	{
+		MIKAN_LOG_WARNING("MikanServer::restartHttpMessageServer") << "Failed to restart HTTP server on port " << port;
+	}
 }
 
 ProjectManagerPtr MikanServer::getProjectManager() const { return m_ownerWindow->getProjectManager(); }
