@@ -34,23 +34,28 @@ public:
 
 	virtual MikanModelResourceManager* getModelResourceManager() override;
 	virtual MikanTextureCache* getTextureCache() override;
-	// virtual ProjectManagerPtr getProjectManager() const = 0;
-	// virtual class MikanServer* getMikanServer() const = 0;
-	// virtual class IMkFontManager* getFontManager() const = 0;
-	// virtual class InputManager* getInputManager() const = 0;
-	// virtual class OpenCVManager* getOpenCVManager() const = 0;
-	// virtual class ClientSourceManager* getClientSourceManager() const = 0;
-	// virtual class LocalizationManager* getLocalizationManager() const = 0;
-	// virtual class EventBus* getEventBus() const = 0;
 	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
 
 	virtual IMkGraphicsContextPtr getGraphicsContext() const override;
 	virtual IMkWindowContextPtr getMkWindowContext() const override;
 	virtual class App* getOwnerApp() const override;
-	// virtual class AppStage* getCurrentAppStage() const = 0;
-	// virtual class AppStage* getParentAppStage() const = 0;
-	// virtual class AppStage* pushAppStage(const std::string& appStageName) = 0;
-	// virtual void popAppState() = 0;
+
+	// Default implementations delegate to the MainWindow, which is the only
+	// window type that actually owns these services. MainWindow overrides
+	// each of these to return its own members directly.
+	virtual class MainWindow* getMainWindow() const;
+	virtual ProjectManagerPtr getProjectManager() const override;
+	virtual class MikanServer* getMikanServer() const override;
+	virtual class IMkFontManager* getFontManager() const override;
+	virtual class InputManager* getInputManager() const override;
+	virtual class OpenCVManager* getOpenCVManager() const override;
+	virtual class ClientSourceManager* getClientSourceManager() const override;
+	virtual class LocalizationManager* getLocalizationManager() const override;
+	virtual class EventBus* getEventBus() const override;
+	virtual class AppStage* getCurrentAppStage() const override;
+	virtual class AppStage* getParentAppStage() const override;
+	virtual class AppStage* pushAppStage(const std::string& appStageName) override;
+	virtual void popAppState() override;
 
 	// -- IMkWindowContext Helpers ----
 	eWindowAPI getWindowAPI() const;
@@ -65,6 +70,11 @@ public:
 	bool hasKeyboardFocus() const;
 
 protected:
+	// Shares the MainWindow's GL context instead of creating a new one, so scene resources
+	// (VAOs, FBOs, textures) allocated on the MainWindow remain accessible. Used by satellite
+	// windows (e.g. NodeEditorWindow, CompositorOutputEditorWindow); MainWindow does not call this.
+	void shareGraphicsContextWithMainWindow();
+
 	bool startupWindow(const std::string& title, int width, int height);
 	bool startupGuiContext();
 	bool startupStyleManager();

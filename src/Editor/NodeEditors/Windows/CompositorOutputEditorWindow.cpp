@@ -56,11 +56,7 @@ static const int k_compositor_output_window_height= 720;
 CompositorOutputEditorWindow::CompositorOutputEditorWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 {
-	// Share the main window's GL context so all scene resources (VAOs, FBOs, textures) remain accessible
-	m_graphicsContext= ownerApp->getMainWindow()->getGraphicsContext();
-	m_mkWindowContext= createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
-	m_mkWindowContext->useExistingGLContext(); // attach to main window's context, don't create a new one
-	m_modelResourceManager= MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(m_graphicsContext.get()));
+	shareGraphicsContextWithMainWindow();
 }
 
 bool CompositorOutputEditorWindow::startup()
@@ -473,42 +469,3 @@ bool CompositorOutputEditorWindow::onWindowEvent(const MkWindowEvent& event)
 {
 	return m_guiContext->onWindowEvent(event);
 }
-
-// -- IEditorWindow service delegation --
-MainWindow* CompositorOutputEditorWindow::getMainWindow() const { return getOwnerApp()->getMainWindow(); }
-
-ProjectManagerPtr CompositorOutputEditorWindow::getProjectManager() const
-{
-	return getMainWindow()->getProjectManager();
-}
-
-MikanServer* CompositorOutputEditorWindow::getMikanServer() const { return getMainWindow()->getMikanServer(); }
-
-IMkFontManager* CompositorOutputEditorWindow::getFontManager() const { return getMainWindow()->getFontManager(); }
-
-InputManager* CompositorOutputEditorWindow::getInputManager() const { return getMainWindow()->getInputManager(); }
-
-OpenCVManager* CompositorOutputEditorWindow::getOpenCVManager() const { return getMainWindow()->getOpenCVManager(); }
-
-ClientSourceManager* CompositorOutputEditorWindow::getClientSourceManager() const
-{
-	return getMainWindow()->getClientSourceManager();
-}
-
-LocalizationManager* CompositorOutputEditorWindow::getLocalizationManager() const
-{
-	return getMainWindow()->getLocalizationManager();
-}
-
-EventBus* CompositorOutputEditorWindow::getEventBus() const { return getMainWindow()->getEventBus(); }
-
-AppStage* CompositorOutputEditorWindow::getCurrentAppStage() const { return getMainWindow()->getCurrentAppStage(); }
-
-AppStage* CompositorOutputEditorWindow::getParentAppStage() const { return getMainWindow()->getParentAppStage(); }
-
-AppStage* CompositorOutputEditorWindow::pushAppStage(const std::string& appStageName)
-{
-	return getMainWindow()->pushAppStage(appStageName);
-}
-
-void CompositorOutputEditorWindow::popAppState() { return getMainWindow()->popAppState(); }

@@ -23,7 +23,6 @@
 #include "IMkViewport.h"
 #include "MkStateStack.h"
 #include "IMkState.h"
-#include "MainWindow.h"
 #include "MkStateModifiers.h"
 #include "MkWindowEvent.h"
 #include "IMkTexture.h"
@@ -57,11 +56,7 @@
 NodeEditorWindow::NodeEditorWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 {
-	// Share the main window's GL context so all scene resources (VAOs, FBOs, textures) remain accessible
-	m_graphicsContext= ownerApp->getMainWindow()->getGraphicsContext();
-	m_mkWindowContext= createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
-	m_mkWindowContext->useExistingGLContext(); // attach to main window's context, don't create a new one
-	m_modelResourceManager= MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(m_graphicsContext.get()));
+	shareGraphicsContextWithMainWindow();
 }
 
 NodeEditorWindow::~NodeEditorWindow() {}
@@ -965,39 +960,3 @@ void NodeEditorWindow::shutdown()
 
 // -- IMkWindowEventListener
 bool NodeEditorWindow::onWindowEvent(const MkWindowEvent& event) { return m_guiContext->onWindowEvent(event); }
-
-// -- IEditorWindow
-MainWindow* NodeEditorWindow::getMainWindow() const { return getOwnerApp()->getMainWindow(); }
-
-ProjectManagerPtr NodeEditorWindow::getProjectManager() const { return getMainWindow()->getProjectManager(); }
-
-MikanServer* NodeEditorWindow::getMikanServer() const { return getMainWindow()->getMikanServer(); }
-
-IMkFontManager* NodeEditorWindow::getFontManager() const { return getMainWindow()->getFontManager(); }
-
-InputManager* NodeEditorWindow::getInputManager() const { return getMainWindow()->getInputManager(); }
-
-OpenCVManager* NodeEditorWindow::getOpenCVManager() const { return getMainWindow()->getOpenCVManager(); }
-
-ClientSourceManager* NodeEditorWindow::getClientSourceManager() const
-{
-	return getMainWindow()->getClientSourceManager();
-}
-
-LocalizationManager* NodeEditorWindow::getLocalizationManager() const
-{
-	return getMainWindow()->getLocalizationManager();
-}
-
-EventBus* NodeEditorWindow::getEventBus() const { return getMainWindow()->getEventBus(); }
-
-AppStage* NodeEditorWindow::getCurrentAppStage() const { return getMainWindow()->getCurrentAppStage(); }
-
-AppStage* NodeEditorWindow::getParentAppStage() const { return getMainWindow()->getParentAppStage(); }
-
-AppStage* NodeEditorWindow::pushAppStage(const std::string& appStageName)
-{
-	return getMainWindow()->pushAppStage(appStageName);
-}
-
-void NodeEditorWindow::popAppState() { return getMainWindow()->popAppState(); }

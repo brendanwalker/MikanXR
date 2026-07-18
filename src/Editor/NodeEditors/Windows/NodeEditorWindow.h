@@ -45,21 +45,6 @@ public:
 	// -- IMkWindowEventListener
 	virtual bool onWindowEvent(const MkWindowEvent& event) override;
 
-	// -- IEditorWindow
-	class MainWindow* getMainWindow() const;
-	virtual ProjectManagerPtr getProjectManager() const override;
-	virtual class MikanServer* getMikanServer() const override;
-	virtual class IMkFontManager* getFontManager() const override;
-	virtual class InputManager* getInputManager() const override;
-	virtual class OpenCVManager* getOpenCVManager() const override;
-	virtual class ClientSourceManager* getClientSourceManager() const override;
-	virtual class LocalizationManager* getLocalizationManager() const override;
-	virtual class EventBus* getEventBus() const override;
-	virtual class AppStage* getCurrentAppStage() const override;
-	virtual class AppStage* getParentAppStage() const override;
-	virtual class AppStage* pushAppStage(const std::string& appStageName) override;
-	virtual void popAppState() override;
-
 protected:
 	virtual void updateUI();
 

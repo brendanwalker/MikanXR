@@ -2,8 +2,10 @@
 #include "EditorWindow.h"
 #include "Logger.h"
 
+#include "App.h"
 #include "IMkWindowContext.h"
 #include "IMkGraphicsContext.h"
+#include "MainWindow.h"
 #include "MikanModelResourceManager.h"
 #include "MikanTextureCache.h"
 #include "MkGuiContext.h"
@@ -46,6 +48,38 @@ MkGuiStyleManager* EditorWindow::getMkGuiStyleManager() const { return m_styleMa
 
 App* EditorWindow::getOwnerApp() const { return m_ownerApp; }
 
+// -- MainWindow service delegation ----
+// Default implementations delegate to the MainWindow. MainWindow overrides all of these
+// to return its own members directly, so they never recurse through this delegation.
+MainWindow* EditorWindow::getMainWindow() const { return m_ownerApp->getMainWindow(); }
+
+ProjectManagerPtr EditorWindow::getProjectManager() const { return getMainWindow()->getProjectManager(); }
+
+MikanServer* EditorWindow::getMikanServer() const { return getMainWindow()->getMikanServer(); }
+
+IMkFontManager* EditorWindow::getFontManager() const { return getMainWindow()->getFontManager(); }
+
+InputManager* EditorWindow::getInputManager() const { return getMainWindow()->getInputManager(); }
+
+OpenCVManager* EditorWindow::getOpenCVManager() const { return getMainWindow()->getOpenCVManager(); }
+
+ClientSourceManager* EditorWindow::getClientSourceManager() const { return getMainWindow()->getClientSourceManager(); }
+
+LocalizationManager* EditorWindow::getLocalizationManager() const { return getMainWindow()->getLocalizationManager(); }
+
+EventBus* EditorWindow::getEventBus() const { return getMainWindow()->getEventBus(); }
+
+AppStage* EditorWindow::getCurrentAppStage() const { return getMainWindow()->getCurrentAppStage(); }
+
+AppStage* EditorWindow::getParentAppStage() const { return getMainWindow()->getParentAppStage(); }
+
+AppStage* EditorWindow::pushAppStage(const std::string& appStageName)
+{
+	return getMainWindow()->pushAppStage(appStageName);
+}
+
+void EditorWindow::popAppState() { getMainWindow()->popAppState(); }
+
 // -- IMkWindowContext delegation ----
 eWindowAPI EditorWindow::getWindowAPI() const { return m_mkWindowContext->getWindowAPI(); }
 
@@ -71,6 +105,14 @@ bool EditorWindow::hasMouseFocus() const { return m_mkWindowContext->hasMouseFoc
 bool EditorWindow::hasKeyboardFocus() const { return m_mkWindowContext->hasKeyboardFocus(); }
 
 // -- Protected startup/shutdown helpers ----
+
+void EditorWindow::shareGraphicsContextWithMainWindow()
+{
+	m_graphicsContext= getMainWindow()->getGraphicsContext();
+	m_mkWindowContext= createMkWindowContext(m_ownerApp->getWindowManager(), m_graphicsContext);
+	m_mkWindowContext->useExistingGLContext(); // attach to main window's context, don't create a new one
+	m_modelResourceManager= MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(m_graphicsContext.get()));
+}
 
 bool EditorWindow::startupWindow(const std::string& title, int width, int height)
 {
