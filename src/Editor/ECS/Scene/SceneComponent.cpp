@@ -270,8 +270,12 @@ void SceneComponent::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<SceneComponent, TransformComponent>(SceneComponent::k_componentClassName.c_str())
 		.addProperty("parentStageId", [](SceneComponent* component) -> int { return component->getParentStageId(); })
-		.addProperty("displayCompositorId", [](SceneComponent* component) -> int
-					 { return component->getSceneComponentDefinition()->getDisplayCompositorId(); })
+		.addProperty(
+			"displayCompositorId",
+			[](SceneComponent* component) -> int
+			{ return component->getSceneComponentDefinition()->getDisplayCompositorId(); },
+			[](SceneComponent* component, int compositorId)
+			{ component->getSceneComponentDefinition()->setDisplayCompositorId(compositorId); })
 		.addFunction("showCompositorOutput", [](SceneComponent* c) { c->showCompositorOutput(); })
 		.addFunction("getParentStage", [](SceneComponent* c) -> StageComponent* { return c->getParentStage().get(); })
 		.addFunction("getOutputCompositorCount",
