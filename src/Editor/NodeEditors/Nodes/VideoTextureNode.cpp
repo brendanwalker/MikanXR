@@ -114,8 +114,7 @@ bool VideoTextureNode::evaluateNode(NodeEvaluator& evaluator)
 	// The raw video texture is in a non-linear (gamma/sRGB) color space. Convert it to linear
 	// color space so downstream compositing math (multiply/blend) is performed correctly.
 	IMkTexturePtr outputTexture= textureResource;
-	if (m_videoTextureSource == eVideoTextureSource::video_texture &&
-		textureResource && textureResource->getIsValid())
+	if (m_videoTextureSource == eVideoTextureSource::video_texture && textureResource && textureResource->getIsValid())
 	{
 		IMkTexturePtr linearTexture= linearizeVideoTexture(evaluator, textureResource);
 		if (linearTexture)
@@ -278,12 +277,8 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 		static const eVideoTransferFunction k_tfOptions[]= {
 			eVideoTransferFunction::INVALID,   // Auto
 			eVideoTransferFunction::Gamma_1_0, // Linear
-			eVideoTransferFunction::Gamma_1_8,
-			eVideoTransferFunction::Gamma_2_0,
-			eVideoTransferFunction::Gamma_2_2,
-			eVideoTransferFunction::Gamma_2_6,
-			eVideoTransferFunction::Gamma_2_8,
-			eVideoTransferFunction::BT709,
+			eVideoTransferFunction::Gamma_1_8, eVideoTransferFunction::Gamma_2_0, eVideoTransferFunction::Gamma_2_2,
+			eVideoTransferFunction::Gamma_2_6, eVideoTransferFunction::Gamma_2_8, eVideoTransferFunction::BT709,
 			eVideoTransferFunction::SRGB,
 		};
 		const char* k_tfComboOptions=
