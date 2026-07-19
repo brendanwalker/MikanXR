@@ -84,11 +84,11 @@ void AppStage_MainMenu::onNewProject()
 		return;
 
 	std::filesystem::path projectFolderPath(picked);
-	std::string projectFileName = 
+	std::string projectFileName=
 		projectFolderPath.filename().string() + std::string(ProjectManager::k_mikanProjectFileExtension);
-	std::filesystem::path projectFilePath = std::filesystem::path(projectFolderPath) / projectFileName;
+	std::filesystem::path projectFilePath= std::filesystem::path(projectFolderPath) / projectFileName;
 
-	std::vector<std::string> parameters= { projectFilePath.string() };
+	std::vector<std::string> parameters= {projectFilePath.string()};
 	std::vector<std::string> outResults;
 	handleNewProjectCommand(parameters, outResults);
 }
@@ -252,7 +252,7 @@ bool AppStage_MainMenu::handleNewProjectCommand(const std::vector<std::string>& 
 {
 	if (!parameters.empty())
 	{
-		const std::string& projectFilePathStr = parameters[0];
+		const std::string& projectFilePathStr= parameters[0];
 
 		if (m_projectManager->newProject(projectFilePathStr))
 		{

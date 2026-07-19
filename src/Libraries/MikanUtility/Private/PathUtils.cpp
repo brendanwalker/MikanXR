@@ -109,15 +109,9 @@ std::filesystem::path getHomeDirectory()
 // Static variable to track the current project directory
 static std::filesystem::path g_projectDirectory;
 
-std::filesystem::path getProjectDirectory()
-{
-	return g_projectDirectory;
-}
+std::filesystem::path getProjectDirectory() { return g_projectDirectory; }
 
-void setProjectDirectory(const std::filesystem::path& projectDir)
-{
-	g_projectDirectory= projectDir;
-}
+void setProjectDirectory(const std::filesystem::path& projectDir) { g_projectDirectory= projectDir; }
 
 std::filesystem::path getProjectsRootDirectory()
 {
@@ -129,7 +123,7 @@ std::filesystem::path getProjectsRootDirectory()
 	getenv_s(&homedir_buffer_req_size, homedir_buffer, "USERPROFILE");
 	assert(homedir_buffer_req_size <= sizeof(homedir_buffer));
 	projectsRoot= homedir_buffer;
-	projectsRoot /= "Documents";
+	projectsRoot/= "Documents";
 #else
 	const char* homedir= getenv("HOME");
 	if (homedir)
@@ -141,7 +135,7 @@ std::filesystem::path getProjectsRootDirectory()
 		projectsRoot= "/";
 	}
 #endif
-	projectsRoot /= "MikanXR";
+	projectsRoot/= "MikanXR";
 
 	// Create the directory if it doesn't exist
 	if (!std::filesystem::exists(projectsRoot))
@@ -166,7 +160,7 @@ std::filesystem::path resolveProjectResource(const std::filesystem::path& path)
 		// Check project folder first
 		if (!g_projectDirectory.empty())
 		{
-			std::filesystem::path projectResourcePath = g_projectDirectory / path;
+			std::filesystem::path projectResourcePath= g_projectDirectory / path;
 			if (std::filesystem::exists(projectResourcePath))
 			{
 				return projectResourcePath;
@@ -174,7 +168,7 @@ std::filesystem::path resolveProjectResource(const std::filesystem::path& path)
 		}
 
 		// Fall	back to app resource folder
-		std::filesystem::path appResourcePath = getResourceDirectory() / path;
+		std::filesystem::path appResourcePath= getResourceDirectory() / path;
 		if (std::filesystem::exists(appResourcePath))
 		{
 			return appResourcePath;
@@ -250,8 +244,8 @@ std::vector<std::string> listVolumes()
 
 std::string makeTimestampedFileName(const std::string& prefix, const std::string& suffix)
 {
-	time_t t = time(0);
-	struct tm* now = localtime(&t);
+	time_t t= time(0);
+	struct tm* now= localtime(&t);
 
 	char dateTimeString[128];
 	strftime(dateTimeString, 80, "%Y_%m_%d_%H_%M_%S", now);

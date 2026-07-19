@@ -61,7 +61,7 @@ public:
 		m_componentPool.disposeAll();
 
 		// Clear the initialized flag
-		m_bIsInitialzed = false;
+		m_bIsInitialzed= false;
 	}
 
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override

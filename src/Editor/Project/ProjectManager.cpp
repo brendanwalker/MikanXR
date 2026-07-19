@@ -98,8 +98,8 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	AppSettingsConfigPtr appSettings= mainWindow->getOwnerApp()->getAppSettings();
 	if (!loadProject(appSettings->getLastProjectPath().string()))
 	{
-		const std::string defaultProjectFolderName = PathUtils::makeTimestampedFileName("Default", "");
-		const std::filesystem::path defaultProjectFilename = defaultProjectFolderName + k_mikanProjectFileExtension;
+		const std::string defaultProjectFolderName= PathUtils::makeTimestampedFileName("Default", "");
+		const std::filesystem::path defaultProjectFilename= defaultProjectFolderName + k_mikanProjectFileExtension;
 		const std::filesystem::path defaultProjectPath=
 			getDefaultProjectFolder() / defaultProjectFolderName / defaultProjectFilename;
 
@@ -204,7 +204,7 @@ bool ProjectManager::newProject(const std::string& projectFilePath)
 
 	// Copy bundled resources (models, scripts, graphs, shaders, textures) into the project folder
 	const std::filesystem::path resourcesDir= PathUtils::getResourceDirectory();
-	const std::vector<std::string> projectResourceFolders= { "models", "scripts", "graphs", "shaders", "textures" };
+	const std::vector<std::string> projectResourceFolders= {"models", "scripts", "graphs", "shaders", "textures"};
 
 	for (const std::string& folder : projectResourceFolders)
 	{
@@ -214,8 +214,8 @@ bool ProjectManager::newProject(const std::string& projectFilePath)
 		if (std::filesystem::exists(srcDir))
 		{
 			std::filesystem::copy(srcDir, dstDir,
-				std::filesystem::copy_options::recursive
-				| std::filesystem::copy_options::update_existing);
+								  std::filesystem::copy_options::recursive
+									  | std::filesystem::copy_options::update_existing);
 		}
 	}
 

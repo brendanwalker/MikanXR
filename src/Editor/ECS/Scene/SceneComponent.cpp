@@ -271,8 +271,7 @@ void SceneComponent::bindLuaFunctions(struct lua_State* L)
 		.deriveClass<SceneComponent, TransformComponent>(SceneComponent::k_componentClassName.c_str())
 		.addProperty("parentStageId", [](SceneComponent* component) -> int { return component->getParentStageId(); })
 		.addProperty(
-			"displayCompositorId",
-			[](SceneComponent* component) -> int
+			"displayCompositorId", [](SceneComponent* component) -> int
 			{ return component->getSceneComponentDefinition()->getDisplayCompositorId(); },
 			[](SceneComponent* component, int compositorId)
 			{ component->getSceneComponentDefinition()->setDisplayCompositorId(compositorId); })

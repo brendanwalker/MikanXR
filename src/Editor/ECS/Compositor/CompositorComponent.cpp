@@ -708,7 +708,7 @@ void CompositorComponent::setCompositorGraphAssetPath(const std::filesystem::pat
 void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem::path& newAssetRefPath)
 {
 	m_nodeGraphAssetRef->setAssetPath(newAssetRefPath);
-	
+
 	if (!newAssetRefPath.empty())
 	{
 		m_nodeGraph= std::dynamic_pointer_cast<CompositorNodeGraph>(

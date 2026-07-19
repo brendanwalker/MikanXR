@@ -17,4 +17,4 @@ NodeGraphAssetReferenceFactory::NodeGraphAssetReferenceFactory()
 	: TypedAssetReferenceFactory<NodeGraphAssetReference, AssetReferenceConfig>()
 {
 	m_defaultPath= (PathUtils::getProjectDirectory() / "graphs" / "").string();
-} 
+}

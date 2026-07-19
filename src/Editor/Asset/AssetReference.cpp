@@ -38,10 +38,7 @@ void AssetReference::saveToConfig(AssetReferenceConfigPtr config) const
 	config->assetPath= m_assetPath.string();
 }
 
-const std::filesystem::path& AssetReference::getInternalAssetPath() const
-{
-	return m_assetPath;
-}
+const std::filesystem::path& AssetReference::getInternalAssetPath() const { return m_assetPath; }
 
 const std::filesystem::path AssetReference::getResolvedAssetPath() const
 {

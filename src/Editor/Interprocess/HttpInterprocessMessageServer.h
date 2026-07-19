@@ -66,8 +66,8 @@ public:
 	// Invokes a registered route's handler directly, in-process, bypassing the HTTP
 	// request queue entirely (e.g. for a UI button that fires a trigger without a real HTTP
 	// round-trip). Returns false if no handler is registered for path. Main-thread-only.
-	bool invokeRouteHandler(const std::string& path, HttpRouteResponse& outResponse,
-						   const std::string& method= "GET", const std::string& body= "");
+	bool invokeRouteHandler(const std::string& path, HttpRouteResponse& outResponse, const std::string& method= "GET",
+							const std::string& body= "");
 
 protected:
 	// Runs on a per-connection background thread spawned by ix::SocketServer.
