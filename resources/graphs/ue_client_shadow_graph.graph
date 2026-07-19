@@ -34,19 +34,19 @@
 	"assetReferences": [
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbFrame/rgbFrame.mat"
+			"asset_path": "shaders/compositor/rgbFrame/rgbFrame.mat"
 		},
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbaFrame/rgbaFrame.mat"
+			"asset_path": "shaders/compositor/rgbaFrame/rgbaFrame.mat"
 		},
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbInvAlphaFrame/rgbInvAlphaFrame.mat"
+			"asset_path": "shaders/compositor/rgbInvAlphaFrame/rgbInvAlphaFrame.mat"
 		},
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/sensorGrain/sensorGrain.mat"
+			"asset_path": "shaders/compositor/sensorGrain/sensorGrain.mat"
 		}
 	],
 	"nodes":           [

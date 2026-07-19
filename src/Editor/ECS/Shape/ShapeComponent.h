@@ -64,7 +64,7 @@ public:
 	void renderShapeGraph(const glm::mat4& vpMatrix, class IMkGraphicsContext* graphicsContext);
 	const std::vector<NodeEvaluationError>& getLastNodeEvalErrors() const { return m_lastNodeEvalErrors; }
 
-	std::filesystem::path getShapeGraphAssetPath() const;
+	std::filesystem::path getShapeGraphAssetResolvedPath() const;
 	void setShapeGraphAssetPath(const std::filesystem::path& assetRefPath);
 
 	// Function ID constants for GUI button identifiers

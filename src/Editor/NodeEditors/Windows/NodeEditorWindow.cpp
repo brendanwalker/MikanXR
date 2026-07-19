@@ -844,7 +844,7 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 	// bring up the save path dialog
 	if (m_editorState.nodeGraphPath.empty() || bShowFileDialog)
 	{
-		std::string defautPath= (PathUtils::getResourceDirectory() / "graphs" / "new_graph.graph").string();
+		std::string defautPath= (PathUtils::getProjectDirectory() / "graphs" / "new_graph.graph").string();
 		const char* filterItems[1]= {"*.graph"};
 		const char* filterDesc= "Graph Files (*.graph)";
 

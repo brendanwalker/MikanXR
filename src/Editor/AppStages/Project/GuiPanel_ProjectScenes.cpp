@@ -68,7 +68,7 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 		[this](MikanComponentPtr comp) -> bool
 		{
 			auto compositor= std::static_pointer_cast<CompositorComponent>(comp);
-			return compositor->getCompositorDefinition()->getOwnerSceneId() == m_selectedSceneId;
+			return compositor && compositor->getCompositorDefinition()->getOwnerSceneId() == m_selectedSceneId;
 		});
 
 	// Listen for anchor changes

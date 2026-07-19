@@ -71,5 +71,5 @@ MaterialAssetReferenceFactory::MaterialAssetReferenceFactory()
 
 std::string MaterialAssetReferenceFactory::getDefaultMaterialPath()
 {
-	return (PathUtils::getResourceDirectory() / "shaders" / "compositor" / "").string();
+	return (PathUtils::getProjectDirectory() / "shaders" / "compositor" / "").string();
 }

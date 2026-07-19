@@ -1,4 +1,5 @@
 #include "AssetReference.h"
+#include "PathUtils.h"
 
 // -- Asset Reference Config -----
 configuru::Config AssetReferenceConfig::writeToJSON()
@@ -37,6 +38,16 @@ void AssetReference::saveToConfig(AssetReferenceConfigPtr config) const
 	config->assetPath= m_assetPath.string();
 }
 
+const std::filesystem::path& AssetReference::getInternalAssetPath() const
+{
+	return m_assetPath;
+}
+
+const std::filesystem::path AssetReference::getResolvedAssetPath() const
+{
+	return PathUtils::resolveProjectResource(m_assetPath);
+}
+
 void AssetReference::setAssetPath(const std::filesystem::path& inPath)
 {
 	if (m_assetPath != inPath)
@@ -46,7 +57,7 @@ void AssetReference::setAssetPath(const std::filesystem::path& inPath)
 	}
 }
 
-bool AssetReference::isValid() const { return !m_assetPath.empty() && std::filesystem::exists(m_assetPath); }
+bool AssetReference::isEmpty() const { return m_assetPath.empty(); }
 
 std::string AssetReference::getShortName() const
 {

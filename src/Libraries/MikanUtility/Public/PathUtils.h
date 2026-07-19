@@ -26,6 +26,18 @@ MIKAN_UTILITY_FUNC(std::filesystem::path) makeAbsoluteResourceFilePath(const std
 /// Get the "home" location where config files can be stored
 MIKAN_UTILITY_FUNC(std::filesystem::path) getHomeDirectory();
 
+/// Get the directory of the currently loaded project (empty if no project is loaded)
+MIKAN_UTILITY_FUNC(std::filesystem::path) getProjectDirectory();
+
+/// Set the project directory (called by ProjectManager when loading/creating a project)
+MIKAN_UTILITY_FUNC(void) setProjectDirectory(const std::filesystem::path& projectDir);
+
+/// Get the root directory for all projects (%USERPROFILE%/Documents/MikanXR)
+MIKAN_UTILITY_FUNC(std::filesystem::path) getProjectsRootDirectory();
+
+/// Resolve a resource path: check project folder first, fall back to bundled resources/
+MIKAN_UTILITY_FUNC(std::filesystem::path) resolveProjectResource(const std::filesystem::path& path);
+
 /// Attempts to build a list of all of the files in a directory
 MIKAN_UTILITY_FUNC(std::vector<std::string>) listFilenamesInDirectory(
 	const std::filesystem::path& path, const std::string& extension_filter= std::string());
@@ -36,6 +48,9 @@ MIKAN_UTILITY_FUNC(std::vector<std::string>) listVolumes();
 MIKAN_UTILITY_FUNC(std::string) removeFileExtension(std::string& filename);
 
 // Create a unique timestamped filename
+MIKAN_UTILITY_FUNC(std::string) makeTimestampedFileName(const std::string& prefix, const std::string& suffix);
+
+// Create a unique timestamped filepath
 MIKAN_UTILITY_FUNC(std::filesystem::path) makeTimestampedFilePath(const std::filesystem::path& parentDir,
 																  const std::string& prefix, const std::string& suffix);
 

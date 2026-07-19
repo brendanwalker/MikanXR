@@ -159,20 +159,25 @@ bool CommonConfig::load(const std::filesystem::path& path)
 {
 	bool bLoadedOk= false;
 
-	if (std::filesystem::exists(path))
+	std::filesystem::path absPath= PathUtils::resolveProjectResource(path);
+	if (!absPath.empty())
 	{
-		m_configFullFilePath= path;
+		m_configFullFilePath= absPath;
 
 		try
 		{
-			configuru::Config cfg= configuru::parse_file(path.string(), configuru::JSON);
+			configuru::Config cfg= configuru::parse_file(absPath.string(), configuru::JSON);
 			readFromJSON(cfg);
 			bLoadedOk= true;
 		}
 		catch (std::exception& e)
 		{
-			MIKAN_LOG_ERROR("CommonConfig::load") << "Failed to load config file: " << path << " - " << e.what();
+			MIKAN_LOG_ERROR("CommonConfig::load") << "Failed to load config file: " << absPath << " - " << e.what();
 		}
+	}
+	else
+	{
+		MIKAN_LOG_WARNING("CommonConfig::load") << "Config file does not exist: " << path;
 	}
 
 	return bLoadedOk;

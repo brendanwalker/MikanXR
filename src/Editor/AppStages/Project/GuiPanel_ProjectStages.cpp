@@ -47,7 +47,7 @@ bool GuiPanel_ProjectStages::init(ProjectGuiPanelContext* context)
 		[this](MikanComponentPtr comp) -> bool
 		{
 			auto camera= std::static_pointer_cast<CameraComponent>(comp);
-			return camera->getCameraDefinition()->getOwnerStageId() == m_selectedStageId;
+			return camera && camera->getCameraDefinition()->getOwnerStageId() == m_selectedStageId;
 		});
 
 	// Set initial state based on current scene

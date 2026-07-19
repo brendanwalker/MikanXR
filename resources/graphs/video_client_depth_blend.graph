@@ -13,7 +13,7 @@
 	"assetReferences": [
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/videoClientDepthBlend/videoClientDepthBlend.mat"
+			"asset_path": "shaders/compositor/videoClientDepthBlend/videoClientDepthBlend.mat"
 		}
 	],
 	"nodes":           [

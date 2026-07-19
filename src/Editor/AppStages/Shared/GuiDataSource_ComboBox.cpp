@@ -34,6 +34,9 @@ void GuiDataSource_ComboBox::refreshEntries()
 
 			for (MikanComponentPtr comp : batch)
 			{
+				if (!comp)
+					continue;
+
 				if (m_filter && !m_filter(comp))
 					continue;
 

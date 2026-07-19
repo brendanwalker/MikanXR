@@ -318,7 +318,7 @@ bool MikanComponent::hasValidComponentScript() const
 
 void MikanComponent::addNewComponentScript()
 {
-	const std::filesystem::path scriptsDir= PathUtils::getResourceDirectory() / "scripts";
+	const std::filesystem::path scriptsDir= PathUtils::getProjectDirectory() / "scripts";
 	std::filesystem::create_directories(scriptsDir);
 
 	const std::string prefix= getComponentClassName() + std::to_string(getDefinition()->getComponentId());
@@ -371,7 +371,7 @@ void MikanComponent::selectComponentScript()
 	{
 		std::filesystem::path newAssetPath(picked);
 
-		if (m_scriptAssetRef->getAssetPath() != newAssetPath)
+		if (m_scriptAssetRef->getResolvedAssetPath() != newAssetPath)
 		{
 			// Set the new script path in the component definition
 			// This will trigger the script context to be initialized via the definition dirty event
@@ -390,7 +390,7 @@ void MikanComponent::initScriptContext()
 	disposeScriptContext();
 
 	// Get the script path from the component definition
-	std::filesystem::path scriptPath= m_scriptAssetRef->getAssetPath();
+	std::filesystem::path scriptPath= m_scriptAssetRef->getResolvedAssetPath();
 	if (scriptPath.empty())
 		return;
 

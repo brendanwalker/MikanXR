@@ -13,7 +13,7 @@ MikanTextureCache::MikanTextureCache(IMkGraphicsContext* graphicsContext)
 
 bool MikanTextureCache::startup()
 {
-	std::filesystem::path texturePath= PathUtils::getResourceDirectory() / "textures";
+	std::filesystem::path texturePath= "textures";
 
 	bool bSuccess= true;
 	bSuccess&= loadTexturePath(texturePath / "whiteRGB.png", INTERNAL_TEXTURE_WHITE_RGB) != nullptr;
@@ -40,13 +40,15 @@ IMkTexturePtr MikanTextureCache::tryGetTextureByName(const std::string& textureN
 
 IMkTexturePtr MikanTextureCache::loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef)
 {
-	return loadTexturePath(textureAssetRef->getAssetPath());
+	return loadTexturePath(textureAssetRef->getResolvedAssetPath());
 }
 
 IMkTexturePtr MikanTextureCache::loadTexturePath(const std::filesystem::path& texturePath,
 												 const std::string& overrideName)
 {
-	return m_textureCache->loadTexturePath(texturePath, overrideName);
+	std::filesystem::path absTexturePath= PathUtils::resolveProjectResource(texturePath);
+
+	return m_textureCache->loadTexturePath(absTexturePath, overrideName);
 }
 
 bool MikanTextureCache::removeTexureFromCache(IMkTexturePtr texture)

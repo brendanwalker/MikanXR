@@ -696,7 +696,7 @@ void CompositorComponent::setCameraComponent(CameraComponentPtr newCameraCompone
 
 std::filesystem::path CompositorComponent::getCompositorGraphAssetPath() const
 {
-	return m_nodeGraphAssetRef->getAssetPath();
+	return m_nodeGraphAssetRef->getInternalAssetPath();
 }
 
 void CompositorComponent::setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath)
@@ -708,12 +708,11 @@ void CompositorComponent::setCompositorGraphAssetPath(const std::filesystem::pat
 void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem::path& newAssetRefPath)
 {
 	m_nodeGraphAssetRef->setAssetPath(newAssetRefPath);
-
-	if (m_nodeGraphAssetRef->isValid())
+	
+	if (!newAssetRefPath.empty())
 	{
 		m_nodeGraph= std::dynamic_pointer_cast<CompositorNodeGraph>(
 			NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
-
 		if (m_nodeGraph)
 		{
 			MIKAN_LOG_INFO("CompositorComponent::handleCompositorNodeGraphChanged")

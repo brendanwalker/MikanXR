@@ -42,12 +42,13 @@ public:
 	virtual std::string getAssetTypeName() const { return "Asset"; }
 	inline IMkTexturePtr getPreviewTexture() const { return m_previewTexture; }
 
-	inline const std::filesystem::path& getAssetPath() const { return m_assetPath; }
+	const std::filesystem::path& getInternalAssetPath() const;
+	const std::filesystem::path getResolvedAssetPath() const;
 	virtual void setAssetPath(const std::filesystem::path& inPath);
 
 	std::string getShortName() const;
 
-	bool isValid() const;
+	bool isEmpty() const;
 
 	virtual void editorHandleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) {}

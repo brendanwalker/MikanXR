@@ -20,11 +20,11 @@
 	"assetReferences": [
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat"
+			"asset_path": "shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat"
 		},
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbColorKeyFrame/rgbColorKeyFrame.mat"
+			"asset_path": "shaders/compositor/rgbColorKeyFrame/rgbColorKeyFrame.mat"
 		}
 	],
 	"nodes":           [

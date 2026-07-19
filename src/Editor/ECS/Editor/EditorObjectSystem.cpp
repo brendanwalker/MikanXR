@@ -420,7 +420,11 @@ void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class Ap
 		inputManager->fetchOrAddKeyBindings(MkKey::DELETE_KEYCODE)->OnKeyPressed+=
 			MakeDelegate(this, &EditorObjectSystem::onDeletePressed);
 
-		m_gizmoComponentWeakPtr.lock()->bindInput();
+		auto gizmoComponent= m_gizmoComponentWeakPtr.lock();
+		if (gizmoComponent)
+		{
+			gizmoComponent->bindInput();
+		}
 	}
 }
 

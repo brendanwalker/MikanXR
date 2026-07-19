@@ -76,7 +76,7 @@ void GraphModelProperty::saveToConfig(GraphPropertyConfigPtr config) const
 		if (propConfig->assetRefIndex == -1)
 		{
 			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig")
-				<< "Model property has orphaned asset reference: " << m_modelAssetRef->getAssetPath();
+				<< "Model property has orphaned asset reference: " << m_modelAssetRef->getInternalAssetPath();
 		}
 	}
 

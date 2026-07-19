@@ -125,7 +125,7 @@ void GraphTextureProperty::saveToConfig(GraphPropertyConfigPtr config) const
 		if (propConfig->assetRefIndex == -1)
 		{
 			MIKAN_LOG_ERROR("GraphTextureProperty::saveToConfig")
-				<< "Texture property has orphaned asset reference: " << m_textureAssetRef->getAssetPath();
+				<< "Texture property has orphaned asset reference: " << m_textureAssetRef->getInternalAssetPath();
 		}
 	}
 
@@ -139,10 +139,12 @@ void GraphTextureProperty::setTextureAssetReference(TextureAssetReferencePtr inA
 		m_textureAssetRef= inAssetRef;
 
 		// re-create a texture from the asset reference
-		if (m_textureAssetRef->isValid())
+		auto resolvedAssetPath= m_textureAssetRef->getResolvedAssetPath();
+		if (!resolvedAssetPath.empty())
 		{
+
 			m_texture= CreateMkTexture();
-			m_texture->setImagePath(inAssetRef->getAssetPath());
+			m_texture->setImagePath(resolvedAssetPath);
 			m_texture->reloadTextureFromImagePath();
 		}
 		else

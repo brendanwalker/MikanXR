@@ -52,6 +52,18 @@ public:
 		return true;
 	}
 
+	virtual void dispose() override
+	{
+		// Dispose all objects in the system first, which notifies components of deletion
+		MikanObjectSystem::dispose();
+
+		// Dispose all components in the pool
+		m_componentPool.disposeAll();
+
+		// Clear the initialized flag
+		m_bIsInitialzed = false;
+	}
+
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override
 	{
 		propertyDatabase->template registerPropertiesForSystem<TSystem>();

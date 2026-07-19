@@ -58,7 +58,7 @@ void AppStage_MainMenu::onResumeProject()
 
 void AppStage_MainMenu::onOpenProject()
 {
-	std::string defaultPath= (PathUtils::getHomeDirectory() / "").string();
+	std::string defaultPath= (PathUtils::getProjectsRootDirectory() / "").string();
 	static const char* filterItems[1]= {"*.mikanproj"};
 
 	const char* picked=
@@ -76,18 +76,19 @@ void AppStage_MainMenu::onOpenProject()
 
 void AppStage_MainMenu::onNewProject()
 {
-	std::string defaultPath= (PathUtils::getHomeDirectory() / "").string();
-	static const char* filterItems[1]= {"*.mikanproj"};
+	std::string defaultPath= (PathUtils::getProjectsRootDirectory() / "").string();
 
-	const char* picked=
-		tinyfd_saveFileDialog("New Project", defaultPath.c_str(), 1, filterItems, "Project Files (*.mikanproj)");
+	const char* picked= tinyfd_selectFolderDialog("New Project Folder", defaultPath.c_str());
 
 	if (picked == nullptr || picked[0] == '\0')
 		return;
 
-	std::filesystem::path projectFilePath(picked);
+	std::filesystem::path projectFolderPath(picked);
+	std::string projectFileName = 
+		projectFolderPath.filename().string() + std::string(ProjectManager::k_mikanProjectFileExtension);
+	std::filesystem::path projectFilePath = std::filesystem::path(projectFolderPath) / projectFileName;
 
-	std::vector<std::string> parameters= {projectFilePath.string()};
+	std::vector<std::string> parameters= { projectFilePath.string() };
 	std::vector<std::string> outResults;
 	handleNewProjectCommand(parameters, outResults);
 }
@@ -251,7 +252,7 @@ bool AppStage_MainMenu::handleNewProjectCommand(const std::vector<std::string>& 
 {
 	if (!parameters.empty())
 	{
-		const std::string& projectFilePathStr= parameters[0];
+		const std::string& projectFilePathStr = parameters[0];
 
 		if (m_projectManager->newProject(projectFilePathStr))
 		{

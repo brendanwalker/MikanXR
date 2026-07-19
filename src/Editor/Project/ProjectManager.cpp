@@ -98,8 +98,10 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	AppSettingsConfigPtr appSettings= mainWindow->getOwnerApp()->getAppSettings();
 	if (!loadProject(appSettings->getLastProjectPath().string()))
 	{
+		const std::string defaultProjectFolderName = PathUtils::makeTimestampedFileName("Default", "");
+		const std::filesystem::path defaultProjectFilename = defaultProjectFolderName + k_mikanProjectFileExtension;
 		const std::filesystem::path defaultProjectPath=
-			PathUtils::makeTimestampedFilePath(getDefaultProjectFolder(), "Default", k_mikanProjectFileExtension);
+			getDefaultProjectFolder() / defaultProjectFolderName / defaultProjectFilename;
 
 		if (newProject(defaultProjectPath.string()))
 		{
@@ -175,7 +177,7 @@ void ProjectManager::update(float deltaSeconds)
 	}
 }
 
-std::filesystem::path ProjectManager::getDefaultProjectFolder() { return PathUtils::getHomeDirectory() / "Mikan"; }
+std::filesystem::path ProjectManager::getDefaultProjectFolder() { return PathUtils::getProjectsRootDirectory(); }
 
 bool ProjectManager::hasLoadedProject() const { return m_projectConfig != nullptr; }
 
@@ -191,6 +193,32 @@ bool ProjectManager::isAnySystemLoading() const
 
 bool ProjectManager::newProject(const std::string& projectFilePath)
 {
+	// Determine the project directory (parent of the .mikanproj file)
+	std::filesystem::path projectDir= std::filesystem::path(projectFilePath).parent_path();
+
+	// Create the project directory if it doesn't exist
+	if (!std::filesystem::exists(projectDir))
+	{
+		std::filesystem::create_directories(projectDir);
+	}
+
+	// Copy bundled resources (models, scripts, graphs, shaders, textures) into the project folder
+	const std::filesystem::path resourcesDir= PathUtils::getResourceDirectory();
+	const std::vector<std::string> projectResourceFolders= { "models", "scripts", "graphs", "shaders", "textures" };
+
+	for (const std::string& folder : projectResourceFolders)
+	{
+		std::filesystem::path srcDir= resourcesDir / folder;
+		std::filesystem::path dstDir= projectDir / folder;
+
+		if (std::filesystem::exists(srcDir))
+		{
+			std::filesystem::copy(srcDir, dstDir,
+				std::filesystem::copy_options::recursive
+				| std::filesystem::copy_options::update_existing);
+		}
+	}
+
 	auto newProjectConfig= createEmptyProjectConfig();
 	newProjectConfig->save(projectFilePath);
 
@@ -215,6 +243,9 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 
 	// Unload the existing project first
 	unloadProject();
+
+	// Set the project directory so PathUtils can resolve project-relative resources
+	PathUtils::setProjectDirectory(std::filesystem::path(projectFilePath).parent_path());
 
 	// create an empty project config
 	m_projectConfig= createEmptyProjectConfig();
@@ -312,6 +343,9 @@ void ProjectManager::unloadProject()
 
 		system->dispose();
 	}
+
+	// Clear the current project directory so PathUtils doesn't resolve project-relative resources
+	PathUtils::setProjectDirectory(std::filesystem::path());
 
 	m_projectConfig= nullptr;
 }

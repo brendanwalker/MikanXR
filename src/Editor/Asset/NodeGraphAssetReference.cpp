@@ -16,5 +16,5 @@ void NodeGraphAssetReference::editorRenderPropertySheet(const NodeEditorState& e
 NodeGraphAssetReferenceFactory::NodeGraphAssetReferenceFactory()
 	: TypedAssetReferenceFactory<NodeGraphAssetReference, AssetReferenceConfig>()
 {
-	m_defaultPath= (PathUtils::getResourceDirectory() / "graphs" / "").string();
-}
+	m_defaultPath= (PathUtils::getProjectDirectory() / "graphs" / "").string();
+} 

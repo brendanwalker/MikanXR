@@ -16,5 +16,5 @@ void ModelAssetReference::editorRenderPropertySheet(const NodeEditorState& edito
 ModelAssetReferenceFactory::ModelAssetReferenceFactory()
 	: TypedAssetReferenceFactory<ModelAssetReference, AssetReferenceConfig>()
 {
-	m_defaultPath= (PathUtils::getResourceDirectory() / "models" / "").string();
+	m_defaultPath= (PathUtils::getProjectDirectory() / "models" / "").string();
 }

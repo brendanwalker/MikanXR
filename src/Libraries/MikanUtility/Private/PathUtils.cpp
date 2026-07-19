@@ -106,6 +106,84 @@ std::filesystem::path getHomeDirectory()
 	return home_dir;
 }
 
+// Static variable to track the current project directory
+static std::filesystem::path g_projectDirectory;
+
+std::filesystem::path getProjectDirectory()
+{
+	return g_projectDirectory;
+}
+
+void setProjectDirectory(const std::filesystem::path& projectDir)
+{
+	g_projectDirectory= projectDir;
+}
+
+std::filesystem::path getProjectsRootDirectory()
+{
+	std::filesystem::path projectsRoot;
+
+#if defined WIN32 || defined _WIN32 || defined WINCE
+	size_t homedir_buffer_req_size;
+	char homedir_buffer[512];
+	getenv_s(&homedir_buffer_req_size, homedir_buffer, "USERPROFILE");
+	assert(homedir_buffer_req_size <= sizeof(homedir_buffer));
+	projectsRoot= homedir_buffer;
+	projectsRoot /= "Documents";
+#else
+	const char* homedir= getenv("HOME");
+	if (homedir)
+	{
+		projectsRoot= homedir;
+	}
+	else
+	{
+		projectsRoot= "/";
+	}
+#endif
+	projectsRoot /= "MikanXR";
+
+	// Create the directory if it doesn't exist
+	if (!std::filesystem::exists(projectsRoot))
+	{
+		std::filesystem::create_directories(projectsRoot);
+	}
+
+	return projectsRoot;
+}
+
+std::filesystem::path resolveProjectResource(const std::filesystem::path& path)
+{
+	if (path.is_absolute())
+	{
+		if (std::filesystem::exists(path))
+		{
+			return path;
+		}
+	}
+	else
+	{
+		// Check project folder first
+		if (!g_projectDirectory.empty())
+		{
+			std::filesystem::path projectResourcePath = g_projectDirectory / path;
+			if (std::filesystem::exists(projectResourcePath))
+			{
+				return projectResourcePath;
+			}
+		}
+
+		// Fall	back to app resource folder
+		std::filesystem::path appResourcePath = getResourceDirectory() / path;
+		if (std::filesystem::exists(appResourcePath))
+		{
+			return appResourcePath;
+		}
+	}
+
+	return std::filesystem::path();
+}
+
 std::vector<std::string> listFilenamesInDirectory(const std::filesystem::path& path,
 												  const std::string& extension_filter)
 {
@@ -170,17 +248,21 @@ std::vector<std::string> listVolumes()
 	return result;
 }
 
+std::string makeTimestampedFileName(const std::string& prefix, const std::string& suffix)
+{
+	time_t t = time(0);
+	struct tm* now = localtime(&t);
+
+	char dateTimeString[128];
+	strftime(dateTimeString, 80, "%Y_%m_%d_%H_%M_%S", now);
+
+	return StringUtils::stringify(prefix, "_", dateTimeString, suffix);
+}
+
 std::filesystem::path makeTimestampedFilePath(const std::filesystem::path& parentDir, const std::string& prefix,
 											  const std::string& suffix)
 {
-	time_t t= time(0);
-	struct tm* now= localtime(&t);
-
-	char buffer[128];
-	strftime(buffer, 80, "%Y_%m_%d_%H_%M_%S", now);
-
-	char filename[256];
-	StringUtils::formatString(filename, 256, "%s_%s%s", prefix.c_str(), buffer, suffix.c_str());
+	const std::string filename= makeTimestampedFileName(prefix, suffix);
 
 	std::filesystem::path result= parentDir;
 	result/= filename;

@@ -204,9 +204,9 @@ void ShapeComponent::renderShapeGraph(const glm::mat4& vpMatrix, IMkGraphicsCont
 	}
 }
 
-std::filesystem::path ShapeComponent::getShapeGraphAssetPath() const
+std::filesystem::path ShapeComponent::getShapeGraphAssetResolvedPath() const
 {
-	return m_nodeGraphAssetRef ? m_nodeGraphAssetRef->getAssetPath() : std::filesystem::path();
+	return m_nodeGraphAssetRef ? m_nodeGraphAssetRef->getResolvedAssetPath() : std::filesystem::path();
 }
 
 void ShapeComponent::setShapeGraphAssetPath(const std::filesystem::path& assetRefPath)
@@ -225,7 +225,7 @@ void ShapeComponent::handleShapeNodeGraphChanged(const std::filesystem::path& ne
 
 	m_nodeGraphAssetRef->setAssetPath(newAssetRefPath);
 
-	if (m_nodeGraphAssetRef->isValid())
+	if (!m_nodeGraphAssetRef->isEmpty())
 	{
 		m_nodeGraph= std::dynamic_pointer_cast<ShapeNodeGraph>(
 			NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));

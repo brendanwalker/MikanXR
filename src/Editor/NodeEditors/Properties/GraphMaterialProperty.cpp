@@ -129,7 +129,7 @@ void GraphMaterialProperty::saveToConfig(GraphPropertyConfigPtr config) const
 		if (propConfig->assetRefIndex == -1)
 		{
 			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig")
-				<< "Material property has orphaned asset reference: " << m_materialAssetRef->getAssetPath();
+				<< "Material property has orphaned asset reference: " << m_materialAssetRef->getInternalAssetPath();
 		}
 	}
 
@@ -143,7 +143,7 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 		m_materialAssetRef= inAssetRef;
 
 		// re-create a material from the asset reference
-		if (m_materialAssetRef->isValid())
+		if (!m_materialAssetRef->isEmpty())
 		{
 			MikanShaderCache* shaderCache=
 				getOwnerGraph()->getOwnerWindow()->getModelResourceManager()->getShaderCache();

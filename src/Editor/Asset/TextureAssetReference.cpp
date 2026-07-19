@@ -20,7 +20,7 @@ void TextureAssetReference::rebuildPreview()
 		m_previewTexture= CreateMkTexture();
 	}
 
-	m_previewTexture->setImagePath(getAssetPath());
+	m_previewTexture->setImagePath(getResolvedAssetPath().string());
 	m_previewTexture->reloadTextureFromImagePath();
 }
 
@@ -79,5 +79,5 @@ TextureAssetReferenceFactory::TextureAssetReferenceFactory()
 
 std::string TextureAssetReferenceFactory::getDefaultTexturePath()
 {
-	return (PathUtils::getResourceDirectory() / "textures" / "").string();
+	return (PathUtils::getProjectDirectory() / "textures" / "").string();
 }

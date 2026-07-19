@@ -24,9 +24,9 @@ MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferenc
 {
 	MkMaterialPtr material;
 
-	if (materialAssetRef && materialAssetRef->isValid())
+	if (materialAssetRef && !materialAssetRef->isEmpty())
 	{
-		auto shaderFilePath= materialAssetRef->getAssetPath();
+		auto shaderFilePath= materialAssetRef->getInternalAssetPath();
 
 		MikanShaderConfig programConfig;
 		if (programConfig.load(shaderFilePath))
