@@ -4,6 +4,14 @@ file(GLOB UNIT_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
 )
 
+# MikanARKitVideo plugin sources under test don't have their own CMake target yet
+# (that lands with the plugin scaffolding), so pull the ones with unit test coverage
+# in directly.
+list(APPEND UNIT_TEST_SRC
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/RVLCodec.h
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/RVLCodec.cpp
+)
+
 list(APPEND UNIT_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${RFK_INCLUDE_DIR}
