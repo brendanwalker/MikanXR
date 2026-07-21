@@ -18,6 +18,7 @@ list(APPEND UNIT_TEST_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanMath/Public
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private
   ${ROOT_DIR}/thirdparty/glm/
 )
 
