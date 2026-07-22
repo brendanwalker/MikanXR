@@ -16,6 +16,8 @@ list(APPEND UNIT_TEST_SRC
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitDepthReceiver.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.h
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.cpp
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.h
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.cpp
 )
 
 list(APPEND UNIT_TEST_INCL_DIRS
