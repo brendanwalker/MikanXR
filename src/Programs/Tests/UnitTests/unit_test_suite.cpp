@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_rvl_codec_unit_tests);
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_rvl_swift_crosscheck_unit_tests);
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_udp_receive_socket_unit_tests);
+	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_depth_receiver_unit_tests);
 	UNIT_TEST_SUITE_END()
 
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;
