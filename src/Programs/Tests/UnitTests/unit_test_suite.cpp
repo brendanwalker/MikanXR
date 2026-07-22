@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_pose_receiver_unit_tests);
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_frame_correlator_unit_tests);
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_video_device_interfaces_unit_tests);
+	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_video_source_system_unit_tests);
 	UNIT_TEST_SUITE_END()
 
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;

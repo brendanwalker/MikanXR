@@ -6,6 +6,7 @@
 #include "App.h"
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
+#include "ARKitVideoSourceSystem.h"
 #include "ClientSourceManager.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
@@ -71,6 +72,7 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_mikanServer(new MikanServer())
 	, m_clientSourceManager(new ClientSourceManager(DEFAULT_VIDEO_FRAME_QUEUE_SIZE))
 	, m_inputManager(new InputManager(this))
+	, m_arkitVideoSourceSystem(new ARKitVideoSourceSystem())
 	, m_projectManager(std::make_shared<ProjectManager>(this))
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(createMkFontManager())
@@ -103,6 +105,7 @@ MainWindow::~MainWindow()
 	m_projectManager= nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
+	delete m_arkitVideoSourceSystem;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
 }
@@ -266,6 +269,9 @@ void MainWindow::update(float deltaSeconds)
 
 	// Poll rendered frames from client connections
 	m_mikanServer->update();
+
+	// Poll async ARKit video device plugin module load (ticket B8)
+	m_arkitVideoSourceSystem->update(deltaSeconds);
 
 	// Service Lua debugger socket I/O (between Lua script updates)
 	LuaDebugServer::getInstance()->poll();

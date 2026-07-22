@@ -18,6 +18,8 @@ list(APPEND UNIT_TEST_SRC
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.h
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.cpp
+  ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoSourceSystem.h
+  ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoSourceSystem.cpp
 )
 
 list(APPEND UNIT_TEST_INCL_DIRS
@@ -35,6 +37,7 @@ list(APPEND UNIT_TEST_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private
+  ${MIKAN_EDITOR_DIR}/ECS/VideoSource
   ${ROOT_DIR}/thirdparty/glm/
 )
 
