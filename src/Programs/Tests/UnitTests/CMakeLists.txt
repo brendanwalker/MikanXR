@@ -14,6 +14,8 @@ list(APPEND UNIT_TEST_SRC
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/UdpReceiveSocket.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitDepthReceiver.h
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitDepthReceiver.cpp
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.h
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.cpp
 )
 
 list(APPEND UNIT_TEST_INCL_DIRS
