@@ -75,6 +75,9 @@ add_dependencies(unit_test_suite_cpp MikanMath)
 add_dependencies(unit_test_suite_cpp MikanSerialization)
 add_dependencies(unit_test_suite_cpp MikanSharedTexture)
 add_dependencies(unit_test_suite_cpp MikanUtility)
+if(MIKAN_WITH_GSTREAMER)
+  add_dependencies(unit_test_suite_cpp MikanARKitVideo)
+endif()
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
@@ -126,6 +129,13 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	COMMAND ${CMAKE_COMMAND} -E copy
 	"${RFK_SHARED_LIBRARIES}"
 	$<TARGET_FILE_DIR:unit_test_suite_cpp>)
+  if(MIKAN_WITH_GSTREAMER)
+    add_custom_command(
+	  TARGET unit_test_suite_cpp POST_BUILD
+	  COMMAND ${CMAKE_COMMAND} -E copy
+	  $<TARGET_FILE_DIR:MikanARKitVideo>/MikanARKitVideo.dll
+	  $<TARGET_FILE_DIR:unit_test_suite_cpp>)
+  endif()
 ELSE() #Linux/Darwin
 ENDIF()
 

@@ -709,6 +709,9 @@ function(copy_mikan_runtime_deps mikan_target)
     add_custom_command(
       TARGET ${mikan_target} POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGStreamerVideo>/MikanGStreamerVideo.dll $<TARGET_FILE_DIR:${mikan_target}>)
+    add_custom_command(
+      TARGET ${mikan_target} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanARKitVideo>/MikanARKitVideo.dll $<TARGET_FILE_DIR:${mikan_target}>)
   endif()
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD

@@ -2,6 +2,8 @@
 if(MIKAN_WITH_GSTREAMER)
   MESSAGE(STATUS "Stepping into MikanGStreamerVideo")
   add_subdirectory(MikanGStreamerVideo)
+  MESSAGE(STATUS "Stepping into MikanARKitVideo")
+  add_subdirectory(MikanARKitVideo)
 endif()
 MESSAGE(STATUS "Stepping into MikanSteamVR")
 add_subdirectory(MikanSteamVR)
