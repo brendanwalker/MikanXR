@@ -134,6 +134,16 @@ if(MIKAN_WITH_GSTREAMER)
   find_package(GStreamerPluginsBase COMPONENTS app)
   find_package(GStreamerPluginsBase COMPONENTS video)
   find_package(GStreamerPluginsBase COMPONENTS rtp)
+  find_package(GStreamerPluginsBase COMPONENTS cuda)
+
+  # gst/cuda/*.h transitively include the real NVIDIA CUDA Toolkit's cuda.h/
+  # cudaGL.h/cudaD3D11.h for type definitions (CUdeviceptr, CUresult, ...) - the
+  # actual driver library is loaded dynamically at runtime by gstcuda-1.0.dll
+  # itself (gst_cuda_load_library()), so only the Toolkit's headers are needed
+  # here, not its import libs.
+  if(WIN32 AND DEFINED ENV{CUDA_PATH})
+    set(CUDA_TOOLKIT_INCLUDE_DIR "$ENV{CUDA_PATH}/include")
+  endif()
   find_package(GLIB2 REQUIRED)
   find_package(GObject REQUIRED)
   set(GSTREAMER_BIN_DIR ${GSTREAMER_ROOT}/bin)

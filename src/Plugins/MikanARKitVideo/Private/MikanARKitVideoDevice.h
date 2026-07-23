@@ -15,12 +15,14 @@
 // and pose (basePort+2) channel reception via ARKitDepthReceiver/ARKitPoseReceiver
 // (tickets B4/B5) plus their correlation via ARKitFrameCorrelator (ticket B6) are
 // started on open() (ticket C1); the video RTP receive pipeline itself
-// (udpsrc/rtph264depay/decodebin, on basePort+0) is built in openOnThread() and
-// polled in update() (ticket C2). ARKitRTPHeaderExtension (ticket C3) extracts the
+// (udpsrc/rtph264depay/nvh264dec, on basePort+0) is built in openOnThread() and
+// polled in update() (tickets C2/C4 - hardware-decodes straight to CUDA device
+// memory, no software fallback). ARKitRTPHeaderExtension (ticket C3) extracts the
 // frameSeq/captureTimestampUs carried by each RTP packet's header extension and
 // attaches it to the decoded buffer as ARKitFrameSeqMeta; update()'s appsink pull
-// site reads that meta and feeds frameSeq/timestamp (but not yet decoded pixel
-// data - see notifyFrameBundleReceived) into m_frameCorrelator.
+// site reads that meta and maps the buffer as CUDA memory (GST_MAP_CUDA) to get a
+// CUdeviceptr, feeding frameSeq/timestamp (but not yet the device pointer itself -
+// see notifyFrameBundleReceived) into m_frameCorrelator.
 class MikanARKitVideoDevice : public IARKitVideoDevice
 {
 public:

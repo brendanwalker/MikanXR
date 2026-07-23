@@ -3,7 +3,21 @@
 #include "MikanARKitVideoDeviceManager.h"
 #include "Logger.h"
 
+// gst/cuda/gstcudamemory.h transitively includes <cudaGL.h>/<d3d11.h>/<dxgi.h>
+// (via cuda-gst.h) for CUDA-GL/D3D11 interop declarations this file never calls -
+// none of that is needed here (Track D owns actual GL interop), but the headers
+// still get pulled in. Windows' own <GL/gl.h> (reached via cudaGL.h) expects
+// WINGDIAPI/APIENTRY to already be defined consistently by <windows.h>, so
+// <windows.h> must be included first or gl.h's declarations fail to parse.
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>
+#endif
+
 #include <gst/app/gstappsink.h>
+#include <gst/cuda/gstcudamemory.h>
 #include <gst/gst.h>
 
 #include <chrono>
@@ -13,12 +27,16 @@
 
 // -- GStreamerImpl -----
 // Holds the RTP/H.264 receive pipeline for the video channel (basePort+0):
-//   udpsrc ! rtpjitterbuffer ! rtph264depay ! h264parse ! decodebin ! videoconvert
-//   ! appsink
-// Software decode via decodebin for now (ticket C2) - nvh264dec/CUDA output lands
-// in Track C4. Kept as an opaque struct (rather than members directly on
-// MikanARKitVideoDevice) so GStreamer headers don't leak into this plugin's public
-// header, matching MikanGStreamerVideoDevice.h's m_impl pattern.
+//   udpsrc ! rtpjitterbuffer ! rtph264depay ! h264parse ! nvh264dec
+//   ! video/x-raw(memory:CUDAMemory) ! appsink
+// Hardware decode via nvh264dec straight to CUDA device memory (ticket C4) - no
+// software-decode fallback per the locked-in design decision (see the plan's
+// Track C4 edge cases): if nvh264dec/the nvcodec plugin isn't available,
+// openOnThread() fails cleanly rather than silently falling back to decodebin's
+// software path used by ticket C2's interim pipeline. Kept as an opaque struct
+// (rather than members directly on MikanARKitVideoDevice) so GStreamer headers
+// don't leak into this plugin's public header, matching
+// MikanGStreamerVideoDevice.h's m_impl pattern.
 struct GStreamerImpl
 {
 	uint16_t videoPort;
@@ -41,9 +59,8 @@ struct GStreamerImpl
 		   << "! rtpjitterbuffer latency=50 "
 		   << "! rtph264depay name=depay "
 		   << "! h264parse "
-		   << "! decodebin "
-		   << "! videoconvert "
-		   << "! video/x-raw,format=BGR "
+		   << "! nvh264dec "
+		   << "! video/x-raw(memory:CUDAMemory) "
 		   << "! appsink name=sink";
 		return ss.str();
 	}
@@ -208,11 +225,19 @@ bool MikanARKitVideoDevice::openOnThread()
 {
 	const std::string pipelineString= m_impl->buildPipelineString();
 
+	// nvh264dec is a hard dependency (v1 has no software-decode fallback per the
+	// locked-in design decision) - if the nvcodec plugin isn't installed, or an
+	// NVIDIA GPU/driver isn't present, gst_parse_launch fails synchronously here
+	// with a "no element \"nvh264dec\"" GError (an explicit element name, unlike
+	// ticket C2's decodebin, is resolved immediately rather than lazily on first
+	// buffer), which is logged below and surfaced as a device-open failure.
 	GError* error= nullptr;
 	m_impl->pipeline= gst_parse_launch(pipelineString.c_str(), &error);
 	if (error != nullptr)
 	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread") << "Failed to create pipeline: " << error->message;
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread")
+			<< "Failed to create pipeline (is an NVIDIA GPU/driver and the GStreamer nvcodec plugin available?): "
+			<< error->message;
 		g_error_free(error);
 		return false;
 	}
@@ -353,18 +378,30 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 
 			// Attached by ARKitRTPHeaderExtension (ticket C3) at the rtph264depay
 			// stage, from the RTP header extension carried on the encoded packets;
-			// must survive h264parse -> decodebin's internal buffer transforms to
+			// must survive h264parse -> nvh264dec's internal buffer transforms to
 			// still be present here (see ARKitFrameSeqMeta's transform function).
 			const ARKitFrameSeqMeta* frameSeqMeta= arkit_buffer_get_frame_seq_meta(buffer);
 
+			// GST_MAP_CUDA maps the buffer's device pointer itself rather than
+			// downloading to a host-readable copy (ticket C4) - map.data is a
+			// CUdeviceptr value, not CPU-readable memory; it must never be
+			// dereferenced from the CPU, only handed to CUDA APIs (see Track D's
+			// JBU kernel, which will consume this as its guide image).
 			GstMapInfo map;
-			if (gst_buffer_map(buffer, &map, GST_MAP_READ))
+			if (gst_buffer_map(buffer, &map, static_cast<GstMapFlags>(GST_MAP_READ | GST_MAP_CUDA)))
 			{
+				const CUdeviceptr devicePtr= reinterpret_cast<CUdeviceptr>(map.data);
+
+				// LoggerStream has no std::hex/std::dec manipulator support (unlike
+				// std::ostream) - its operator<<(const void*) already formats as a
+				// hex address, so log the pointer value that way instead.
+				const void* devicePtrForLogging= reinterpret_cast<const void*>(devicePtr);
+
 				if (frameSeqMeta != nullptr)
 				{
 					MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
-						<< "Decoded video frame: " << width << "x" << height << ", " << map.size
-						<< " bytes, frameSeq=" << frameSeqMeta->frameSeq;
+						<< "Decoded CUDA video frame: " << width << "x" << height
+						<< ", devicePtr=" << devicePtrForLogging << ", frameSeq=" << frameSeqMeta->frameSeq;
 
 					// videoFrameHandle is left null - correlating a stable,
 					// DLL-boundary-safe decoded-pixel handle across the bundle is a
@@ -380,15 +417,16 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 					// dropped the meta - not fed to the correlator since there's no
 					// frameSeq to key it by.
 					MIKAN_LOG_WARNING("MikanARKitVideoDevice::update")
-						<< "Decoded video frame: " << width << "x" << height << ", " << map.size
-						<< " bytes, but no frameSeq RTP header extension meta was present";
+						<< "Decoded CUDA video frame: " << width << "x" << height
+						<< ", devicePtr=" << devicePtrForLogging
+						<< ", but no frameSeq RTP header extension meta was present";
 				}
 
 				gst_buffer_unmap(buffer, &map);
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("MikanARKitVideoDevice::update") << "Failed to map decoded video buffer";
+				MIKAN_LOG_ERROR("MikanARKitVideoDevice::update") << "Failed to map decoded video buffer as CUDA memory";
 			}
 		}
 
