@@ -2,15 +2,112 @@
 #include "MikanARKitVideoDeviceManager.h"
 #include "Logger.h"
 
+#include <gst/app/gstappsink.h>
+#include <gst/gst.h>
+
 #include <chrono>
 #include <cstring>
+#include <sstream>
 #include <thread>
+
+// -- GStreamerImpl -----
+// Holds the RTP/H.264 receive pipeline for the video channel (basePort+0):
+//   udpsrc ! rtpjitterbuffer ! rtph264depay ! h264parse ! decodebin ! videoconvert
+//   ! appsink
+// Software decode via decodebin for now (ticket C2) - nvh264dec/CUDA output lands
+// in Track C4. Kept as an opaque struct (rather than members directly on
+// MikanARKitVideoDevice) so GStreamer headers don't leak into this plugin's public
+// header, matching MikanGStreamerVideoDevice.h's m_impl pattern.
+struct GStreamerImpl
+{
+	uint16_t videoPort;
+
+	GstElement* pipeline= nullptr;
+	GstElement* appsink= nullptr;
+	GstBus* bus= nullptr;
+
+	explicit GStreamerImpl(uint16_t inVideoPort)
+		: videoPort(inVideoPort)
+	{
+	}
+
+	std::string buildPipelineString() const
+	{
+		std::stringstream ss;
+		ss << "udpsrc port=" << videoPort << " "
+		   << "caps=\"application/x-rtp,media=video,encoding-name=H264,payload=96\" "
+		   << "! rtpjitterbuffer latency=50 "
+		   << "! rtph264depay "
+		   << "! h264parse "
+		   << "! decodebin "
+		   << "! videoconvert "
+		   << "! video/x-raw,format=BGR "
+		   << "! appsink name=sink";
+		return ss.str();
+	}
+
+	static bool extractFrameDimensions(GstCaps* caps, int& outWidth, int& outHeight)
+	{
+		outWidth= 0;
+		outHeight= 0;
+
+		if (caps == nullptr || gst_caps_is_empty(caps))
+			return false;
+
+		GstStructure* structure= gst_caps_get_structure(caps, 0);
+		if (structure == nullptr)
+			return false;
+
+		const bool bHasWidth= gst_structure_get_int(structure, "width", &outWidth) != FALSE;
+		const bool bHasHeight= gst_structure_get_int(structure, "height", &outHeight) != FALSE;
+
+		return bHasWidth && bHasHeight && outWidth > 0 && outHeight > 0;
+	}
+
+	static gboolean busCallback(GstBus*, GstMessage* msg, gpointer userData)
+	{
+		auto* videoDevice= reinterpret_cast<MikanARKitVideoDevice*>(userData);
+
+		switch (GST_MESSAGE_TYPE(msg))
+		{
+		case GST_MESSAGE_EOS:
+		{
+			MIKAN_LOG_INFO("MikanARKitVideoDevice::busCallback") << "End of video stream";
+			videoDevice->close();
+		}
+		break;
+		case GST_MESSAGE_ERROR:
+		{
+			GError* error= nullptr;
+			gchar* debugInfo= nullptr;
+			gst_message_parse_error(msg, &error, &debugInfo);
+
+			MIKAN_LOG_ERROR("MikanARKitVideoDevice::busCallback")
+				<< "Error from element " << GST_OBJECT_NAME(msg->src) << ": "
+				<< (error != nullptr ? error->message : "unknown");
+			MIKAN_LOG_ERROR("MikanARKitVideoDevice::busCallback")
+				<< "Debug info: " << (debugInfo != nullptr ? debugInfo : "none");
+
+			g_clear_error(&error);
+			g_free(debugInfo);
+
+			videoDevice->close();
+		}
+		break;
+		default:
+			break;
+		}
+
+		return TRUE;
+	}
+};
 
 MikanARKitVideoDevice::MikanARKitVideoDevice(MikanARKitVideoDeviceManager* ownerDeviceManager,
 											 const ARKitVideoConnectionSettings& connectionInfo)
 	: m_ownerDeviceManager(ownerDeviceManager)
 	, m_connectionInfo(connectionInfo)
 	, m_devicePath("arkit://" + std::to_string(connectionInfo.basePort))
+	, m_impl(new GStreamerImpl(connectionInfo.basePort))
 	, m_frameCorrelator(connectionInfo.depthStreamingEnabled)
 {
 	m_frameCorrelator.setBundleCallback([this](ARKitFrameBundle bundle) { notifyFrameBundleReceived(bundle); });
@@ -22,7 +119,11 @@ MikanARKitVideoDevice::MikanARKitVideoDevice(MikanARKitVideoDeviceManager* owner
 									{ m_frameCorrelator.notifyPoseArrived(std::move(frame)); });
 }
 
-MikanARKitVideoDevice::~MikanARKitVideoDevice() { close(); }
+MikanARKitVideoDevice::~MikanARKitVideoDevice()
+{
+	close();
+	delete m_impl;
+}
 
 // -- Device Listener -----
 void MikanARKitVideoDevice::addListener(IARKitVideoDeviceListener* listener)
@@ -72,9 +173,9 @@ eVideoOpeningStatus MikanARKitVideoDevice::open()
 		return eVideoOpeningStatus::failed;
 	}
 
-	// Launch the (eventually GStreamer-based - see Track C2) video pipeline setup
-	// on a background thread, matching MikanGStreamerVideoDevice's rationale
-	// (pipeline construction is slow on first call - loads GStreamer DLLs).
+	// Launch the GStreamer video pipeline setup on a background thread, matching
+	// MikanGStreamerVideoDevice's rationale (pipeline construction is slow on first
+	// call - loads GStreamer DLLs).
 	m_openState= eOpenState::opening;
 	auto promise= std::make_shared<std::promise<bool>>();
 	m_openFuture= promise->get_future();
@@ -85,14 +186,31 @@ eVideoOpeningStatus MikanARKitVideoDevice::open()
 
 bool MikanARKitVideoDevice::openOnThread()
 {
-	// TODO(Track C2): build the real udpsrc/rtph264depay/h264parse/nvh264dec RTP
-	// video pipeline here (see MikanGStreamerVideoDevice::openOnThread() for the
-	// GStreamer pipeline construction pattern this will follow, and
-	// ARKitWireProtocol.h for the RTP header extension carrying frameSeq that will
-	// feed ARKitFrameCorrelator::notifyVideoArrived). Stubbed to trivially succeed
-	// for now, per ticket C1's scope - this lets ARKitVideoSourceSystem's
-	// module-loading scaffold (ticket B8) exercise a real open/close cycle against
-	// this plugin before the video path exists.
+	const std::string pipelineString= m_impl->buildPipelineString();
+
+	GError* error= nullptr;
+	m_impl->pipeline= gst_parse_launch(pipelineString.c_str(), &error);
+	if (error != nullptr)
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread") << "Failed to create pipeline: " << error->message;
+		g_error_free(error);
+		return false;
+	}
+
+	m_impl->appsink= gst_bin_get_by_name(GST_BIN(m_impl->pipeline), "sink");
+	if (m_impl->appsink == nullptr)
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread") << "Failed to find appsink in pipeline";
+		return false;
+	}
+
+	m_impl->bus= gst_pipeline_get_bus(GST_PIPELINE(m_impl->pipeline));
+	if (m_impl->bus == nullptr)
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread") << "Failed to get pipeline bus";
+		return false;
+	}
+
 	return true;
 }
 
@@ -121,11 +239,29 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 			const bool bSuccess= m_openFuture.get();
 			if (bSuccess)
 			{
+				// Note: NOT gst_bus_add_watch() here - that attaches a GSource to the
+				// default GLib main context, but nothing in this codebase ever pumps
+				// that context (no g_main_loop_run/g_main_context_iteration anywhere),
+				// so a watch-based callback would simply never fire. Bus messages are
+				// instead polled explicitly each tick below, alongside the appsink
+				// pull.
+				gst_app_sink_set_emit_signals(GST_APP_SINK(m_impl->appsink), FALSE);
+				gst_app_sink_set_drop(GST_APP_SINK(m_impl->appsink), TRUE);
+				gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 1);
+
 				m_openState= eOpenState::open;
 
-				std::lock_guard<std::mutex> lock(m_listenersMutex);
-				for (IARKitVideoDeviceListener* listener : m_listeners)
-					listener->notifyDeviceOpened(this);
+				{
+					std::lock_guard<std::mutex> lock(m_listenersMutex);
+					for (IARKitVideoDeviceListener* listener : m_listeners)
+						listener->notifyDeviceOpened(this);
+				}
+
+				if (m_pendingStreamStartAfterOpen)
+				{
+					m_pendingStreamStartAfterOpen= false;
+					startVideoStream();
+				}
 			}
 			else
 			{
@@ -143,11 +279,79 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 	// ARKitDepthReceiver/ARKitPoseReceiver each drive their own worker thread
 	// already; the correlator is the one piece that needs an explicit periodic
 	// tick to evict stale (incomplete) pending frame bundles - see
-	// ARKitFrameCorrelator::sweepStaleFrames. Until Track C2 lands, no video
-	// notifications ever arrive, so bundles only ever complete via this stale-sweep
-	// path (depth+pose, or pose alone if depth streaming is disabled) - expected
-	// for this ticket's interim state.
+	// ARKitFrameCorrelator::sweepStaleFrames.
 	m_frameCorrelator.sweepStaleFrames(std::chrono::steady_clock::now());
+
+	// Non-blocking bus drain (see the note in the open-completion branch above for
+	// why this is polled explicitly rather than via gst_bus_add_watch).
+	while (GstMessage* msg=
+			   gst_bus_pop_filtered(m_impl->bus, static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS)))
+	{
+		GStreamerImpl::busCallback(m_impl->bus, msg, this);
+		gst_message_unref(msg);
+
+		if (m_openState != eOpenState::open)
+			return; // busCallback triggered close()
+	}
+
+	if (m_streamingStatus != eVideoStreamingStatus::started && m_streamingStatus != eVideoStreamingStatus::pendingStart)
+	{
+		return;
+	}
+
+	GstSample* sample= gst_app_sink_try_pull_sample(GST_APP_SINK(m_impl->appsink), 0);
+	if (sample != nullptr)
+	{
+		m_timeSinceLastFrameSeconds= 0.0f;
+
+		GstBuffer* buffer= gst_sample_get_buffer(sample);
+		GstCaps* caps= gst_sample_get_caps(sample);
+
+		int width= 0, height= 0;
+		if (buffer != nullptr && GStreamerImpl::extractFrameDimensions(caps, width, height))
+		{
+			if (m_streamingStatus == eVideoStreamingStatus::pendingStart)
+			{
+				MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
+					<< "Video stream started (" << width << "x" << height << ")";
+				m_streamingStatus= eVideoStreamingStatus::started;
+			}
+
+			GstMapInfo map;
+			if (gst_buffer_map(buffer, &map, GST_MAP_READ))
+			{
+				// TODO(Track C3): extract frameSeq/captureTimestampUs from the RTP
+				// header extension (ARKitWireProtocol.h's ARKitRTPExtensionPayload,
+				// propagated via a custom GstRTPHeaderExtension) and call
+				// m_frameCorrelator.notifyVideoArrived(frameSeq, timestampUs,
+				// map.data, ...) instead of just logging - correlation requires a
+				// real frameSeq, which this ticket's pipeline doesn't extract yet.
+				MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
+					<< "Decoded video frame: " << width << "x" << height << ", " << map.size << " bytes";
+
+				gst_buffer_unmap(buffer, &map);
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("MikanARKitVideoDevice::update") << "Failed to map decoded video buffer";
+			}
+		}
+
+		gst_sample_unref(sample);
+	}
+	else if (m_streamingStatus == eVideoStreamingStatus::started)
+	{
+		m_timeSinceLastFrameSeconds+= deltaSeconds;
+		if (m_timeSinceLastFrameSeconds >= k_streamTimeoutSeconds)
+		{
+			MIKAN_LOG_WARNING("MikanARKitVideoDevice::update")
+				<< "No video frame received for " << m_timeSinceLastFrameSeconds << "s - reopening video pipeline";
+
+			m_pendingStreamStartAfterOpen= true;
+			close();
+			open();
+		}
+	}
 }
 
 void MikanARKitVideoDevice::close()
@@ -170,11 +374,33 @@ void MikanARKitVideoDevice::close()
 
 	m_openState= eOpenState::closed;
 	m_streamingStatus= eVideoStreamingStatus::stopped;
+	m_timeSinceLastFrameSeconds= 0.0f;
 
 	m_depthReceiver.stop();
 	m_poseReceiver.stop();
 
-	// TODO(Track C2): tear down the real GStreamer pipeline here.
+	if (m_impl->pipeline != nullptr)
+	{
+		gst_element_set_state(m_impl->pipeline, GST_STATE_NULL);
+	}
+
+	if (m_impl->bus != nullptr)
+	{
+		gst_object_unref(m_impl->bus);
+		m_impl->bus= nullptr;
+	}
+
+	if (m_impl->appsink != nullptr)
+	{
+		gst_object_unref(m_impl->appsink);
+		m_impl->appsink= nullptr;
+	}
+
+	if (m_impl->pipeline != nullptr)
+	{
+		gst_object_unref(m_impl->pipeline);
+		m_impl->pipeline= nullptr;
+	}
 }
 
 // -- Video Settings -----
@@ -197,7 +423,13 @@ eVideoStreamingStatus MikanARKitVideoDevice::startVideoStream()
 {
 	if (m_openState == eOpenState::open)
 	{
-		m_streamingStatus= eVideoStreamingStatus::started;
+		if (m_streamingStatus == eVideoStreamingStatus::stopped)
+		{
+			m_timeSinceLastFrameSeconds= 0.0f;
+			gst_element_set_state(m_impl->pipeline, GST_STATE_PLAYING);
+			m_streamingStatus= eVideoStreamingStatus::pendingStart;
+		}
+
 		return m_streamingStatus;
 	}
 
@@ -206,7 +438,16 @@ eVideoStreamingStatus MikanARKitVideoDevice::startVideoStream()
 
 eVideoStreamingStatus MikanARKitVideoDevice::getVideoStreamingStatus() const { return m_streamingStatus; }
 
-void MikanARKitVideoDevice::stopVideoStream() { m_streamingStatus= eVideoStreamingStatus::stopped; }
+void MikanARKitVideoDevice::stopVideoStream()
+{
+	if (m_openState == eOpenState::open && m_impl->pipeline != nullptr)
+	{
+		gst_element_set_state(m_impl->pipeline, GST_STATE_PAUSED);
+	}
+
+	m_streamingStatus= eVideoStreamingStatus::stopped;
+	m_pendingStreamStartAfterOpen= false;
+}
 
 // -- Frame bundle conversion -----
 void MikanARKitVideoDevice::notifyFrameBundleReceived(const ARKitFrameBundle& internalBundle)

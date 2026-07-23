@@ -11,11 +11,14 @@
 #include <string>
 
 // Implements IARKitVideoDevice (ticket B7). Structurally mirrors
-// MikanGStreamerVideoDevice's async open/close/update pattern, but the video RTP
-// pipeline itself is stubbed here - see openOnThread() - and deferred to Track C2.
-// What IS real in this ticket (C1): depth (basePort+1) and pose (basePort+2)
-// channel reception via ARKitDepthReceiver/ARKitPoseReceiver (tickets B4/B5) and
-// their correlation via ARKitFrameCorrelator (ticket B6), started on open().
+// MikanGStreamerVideoDevice's async open/close/update pattern: depth (basePort+1)
+// and pose (basePort+2) channel reception via ARKitDepthReceiver/ARKitPoseReceiver
+// (tickets B4/B5) plus their correlation via ARKitFrameCorrelator (ticket B6) are
+// started on open() (ticket C1); the video RTP receive pipeline itself
+// (udpsrc/rtph264depay/decodebin, on basePort+0) is built in openOnThread() and
+// polled in update() (ticket C2). Decoded frames are not yet fed into
+// m_frameCorrelator - that needs the frameSeq RTP header extension, which is
+// Track C3's job - so for now they are only logged as proof the receive path works.
 class MikanARKitVideoDevice : public IARKitVideoDevice
 {
 public:
@@ -79,6 +82,15 @@ private:
 	eOpenState m_openState= eOpenState::closed;
 	std::future<bool> m_openFuture;
 	eVideoStreamingStatus m_streamingStatus= eVideoStreamingStatus::stopped;
+
+	// Opaque GStreamer pipeline state (pipeline/appsink/bus). Defined in the .cpp so
+	// this header stays free of GStreamer includes, matching
+	// MikanGStreamerVideoDevice.h's m_impl pattern.
+	struct GStreamerImpl* m_impl;
+
+	static constexpr float k_streamTimeoutSeconds= 10.0f;
+	float m_timeSinceLastFrameSeconds= 0.0f;
+	bool m_pendingStreamStartAfterOpen= false;
 
 	ARKitDepthReceiver m_depthReceiver;
 	ARKitPoseReceiver m_poseReceiver;
