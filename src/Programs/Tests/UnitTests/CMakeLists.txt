@@ -22,6 +22,17 @@ list(APPEND UNIT_TEST_SRC
   ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoSourceSystem.cpp
 )
 
+# NOTE: ARKitRTPHeaderExtension.h/.cpp (ticket C3) is deliberately NOT pulled in
+# here like the ARKit sources above. It registers named GObject/GstMeta types
+# (G_DEFINE_TYPE, gst_meta_api_type_register) - GLib's type registry is process-
+# global and shared across DLL boundaries, so compiling this file into both this
+# executable AND MikanARKitVideo.dll (which also globs it - see that plugin's
+# CMakeLists.txt) causes a duplicate-name type registration failure as soon as
+# both copies' registration code runs in the same process (confirmed empirically:
+# "cannot register existing type 'ARKitRTPHeaderExtension'" once the DLL is
+# loaded by arkit_video_source_system's tests). It's only exercised indirectly,
+# through the already-loaded plugin DLL, same as MikanARKitVideoDevice.cpp itself.
+
 list(APPEND UNIT_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${RFK_INCLUDE_DIR}

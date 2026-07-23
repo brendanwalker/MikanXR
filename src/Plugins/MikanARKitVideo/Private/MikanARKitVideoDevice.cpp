@@ -1,4 +1,5 @@
 #include "MikanARKitVideoDevice.h"
+#include "ARKitRTPHeaderExtension.h"
 #include "MikanARKitVideoDeviceManager.h"
 #include "Logger.h"
 
@@ -23,6 +24,7 @@ struct GStreamerImpl
 	uint16_t videoPort;
 
 	GstElement* pipeline= nullptr;
+	GstElement* depay= nullptr;
 	GstElement* appsink= nullptr;
 	GstBus* bus= nullptr;
 
@@ -37,13 +39,31 @@ struct GStreamerImpl
 		ss << "udpsrc port=" << videoPort << " "
 		   << "caps=\"application/x-rtp,media=video,encoding-name=H264,payload=96\" "
 		   << "! rtpjitterbuffer latency=50 "
-		   << "! rtph264depay "
+		   << "! rtph264depay name=depay "
 		   << "! h264parse "
 		   << "! decodebin "
 		   << "! videoconvert "
 		   << "! video/x-raw,format=BGR "
 		   << "! appsink name=sink";
 		return ss.str();
+	}
+
+	// Attaches ARKitRTPHeaderExtension (ticket C3) to the depayloader so the
+	// frameSeq/captureTimestampUs carried in each RTP packet's header extension
+	// (RFC 5285, extension id kARKitRTPHeaderExtensionId) is extracted and attached
+	// as ARKitFrameSeqMeta onto rtph264depay's output buffers.
+	bool attachFrameSeqExtension() const
+	{
+		GstRTPHeaderExtension* ext= arkit_rtp_header_extension_new();
+		if (ext == nullptr)
+			return false;
+
+		gst_rtp_header_extension_set_id(ext, kARKitRTPHeaderExtensionId);
+
+		g_signal_emit_by_name(depay, "add-extension", ext);
+		gst_object_unref(ext);
+
+		return true;
 	}
 
 	static bool extractFrameDimensions(GstCaps* caps, int& outWidth, int& outHeight)
@@ -204,6 +224,20 @@ bool MikanARKitVideoDevice::openOnThread()
 		return false;
 	}
 
+	m_impl->depay= gst_bin_get_by_name(GST_BIN(m_impl->pipeline), "depay");
+	if (m_impl->depay == nullptr)
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread") << "Failed to find rtph264depay in pipeline";
+		return false;
+	}
+
+	if (!m_impl->attachFrameSeqExtension())
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread")
+			<< "Failed to attach ARKit frameSeq RTP header extension";
+		return false;
+	}
+
 	m_impl->bus= gst_pipeline_get_bus(GST_PIPELINE(m_impl->pipeline));
 	if (m_impl->bus == nullptr)
 	{
@@ -317,17 +351,38 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 				m_streamingStatus= eVideoStreamingStatus::started;
 			}
 
+			// Attached by ARKitRTPHeaderExtension (ticket C3) at the rtph264depay
+			// stage, from the RTP header extension carried on the encoded packets;
+			// must survive h264parse -> decodebin's internal buffer transforms to
+			// still be present here (see ARKitFrameSeqMeta's transform function).
+			const ARKitFrameSeqMeta* frameSeqMeta= arkit_buffer_get_frame_seq_meta(buffer);
+
 			GstMapInfo map;
 			if (gst_buffer_map(buffer, &map, GST_MAP_READ))
 			{
-				// TODO(Track C3): extract frameSeq/captureTimestampUs from the RTP
-				// header extension (ARKitWireProtocol.h's ARKitRTPExtensionPayload,
-				// propagated via a custom GstRTPHeaderExtension) and call
-				// m_frameCorrelator.notifyVideoArrived(frameSeq, timestampUs,
-				// map.data, ...) instead of just logging - correlation requires a
-				// real frameSeq, which this ticket's pipeline doesn't extract yet.
-				MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
-					<< "Decoded video frame: " << width << "x" << height << ", " << map.size << " bytes";
+				if (frameSeqMeta != nullptr)
+				{
+					MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
+						<< "Decoded video frame: " << width << "x" << height << ", " << map.size
+						<< " bytes, frameSeq=" << frameSeqMeta->frameSeq;
+
+					// videoFrameHandle is left null - correlating a stable,
+					// DLL-boundary-safe decoded-pixel handle across the bundle is a
+					// later ticket's job (see ARKitFrameBundle's own comment); this
+					// only establishes that video arrived for this frameSeq, and when.
+					m_frameCorrelator.notifyVideoArrived(frameSeqMeta->frameSeq, frameSeqMeta->captureTimestampUs,
+														 nullptr);
+				}
+				else
+				{
+					// Expected if the sender doesn't attach the extension (e.g. a
+					// non-MikanARStreamer RTP source) or if an intervening element
+					// dropped the meta - not fed to the correlator since there's no
+					// frameSeq to key it by.
+					MIKAN_LOG_WARNING("MikanARKitVideoDevice::update")
+						<< "Decoded video frame: " << width << "x" << height << ", " << map.size
+						<< " bytes, but no frameSeq RTP header extension meta was present";
+				}
 
 				gst_buffer_unmap(buffer, &map);
 			}
@@ -396,6 +451,12 @@ void MikanARKitVideoDevice::close()
 		m_impl->appsink= nullptr;
 	}
 
+	if (m_impl->depay != nullptr)
+	{
+		gst_object_unref(m_impl->depay);
+		m_impl->depay= nullptr;
+	}
+
 	if (m_impl->pipeline != nullptr)
 	{
 		gst_object_unref(m_impl->pipeline);
@@ -457,7 +518,11 @@ void MikanARKitVideoDevice::notifyFrameBundleReceived(const ARKitFrameBundle& in
 	publicBundle.timestampUs= internalBundle.timestampUs;
 
 	publicBundle.hasVideo= internalBundle.hasVideo;
-	publicBundle.videoData= nullptr; // TODO(Track C2): populate once real decoded frames exist
+	// internalBundle.videoFrameHandle is intentionally left unused here - ticket C3
+	// only established frameSeq/timestamp correlation for video arrival (see
+	// MikanARKitVideoDevice::update's appsink pull site); handing decoded pixel data
+	// across the DLL boundary through this bundle is a later ticket's job.
+	publicBundle.videoData= nullptr;
 	publicBundle.videoWidth= 0;
 	publicBundle.videoHeight= 0;
 
