@@ -8,6 +8,7 @@
 namespace
 {
 constexpr const char* kKernelFunctionName= "jbu_upsample_u16_kernel";
+constexpr const char* kSurfaceKernelFunctionName= "jbu_upsample_u16_surface_kernel";
 
 bool readFileToString(const std::string& path, std::string& outContents)
 {
@@ -57,6 +58,15 @@ bool JBUKernel::init(const std::string& ptxFilePath)
 		return false;
 	}
 
+	if (!checkCudaResult(cuModuleGetFunction(&m_surfaceKernelFunc, m_module, kSurfaceKernelFunctionName),
+						 "cuModuleGetFunction(surface)"))
+	{
+		cuModuleUnload(m_module);
+		m_module= nullptr;
+		m_kernelFunc= nullptr;
+		return false;
+	}
+
 	// Non-default, non-blocking stream (ticket D3) - never implicitly serializes
 	// against the legacy default stream, so upsample() doesn't unnecessarily block
 	// on (or block) whatever stream Track C's nvh264dec decode is using.
@@ -101,6 +111,7 @@ void JBUKernel::shutdown()
 		cuModuleUnload(m_module);
 		m_module= nullptr;
 		m_kernelFunc= nullptr;
+		m_surfaceKernelFunc= nullptr;
 	}
 
 	m_hasTiming= false;
@@ -169,6 +180,69 @@ bool JBUKernel::upsample(CUdeviceptr depthLow, int lowW, int lowH, int lowStride
 	if (!checkCudaResult(
 			cuLaunchKernel(m_kernelFunc, gridX, gridY, 1, kBlockDim, kBlockDim, 1, 0, m_stream, args, nullptr),
 			"cuLaunchKernel"))
+		return false;
+
+	if (!checkCudaResult(cuEventRecord(m_stopEvent, m_stream), "cuEventRecord(stop)"))
+		return false;
+
+	m_hasTiming= true;
+	return true;
+}
+
+bool JBUKernel::upsampleToSurface(CUdeviceptr depthLow, int lowW, int lowH, int lowStrideBytes, CUdeviceptr confidence,
+								  int confidenceStrideBytes, CUdeviceptr guideRGB, int guideW, int guideH,
+								  int guideStrideBytes, CUsurfObject depthOutSurface, int outW, int outH,
+								  const JBUParams& params)
+{
+	if (!isInitialized())
+	{
+		MIKAN_LOG_ERROR("JBUKernel::upsampleToSurface") << "Kernel module not initialized";
+		return false;
+	}
+
+	m_hasTiming= false;
+
+	float scaleX= static_cast<float>(lowW) / static_cast<float>(outW);
+	float scaleY= static_cast<float>(lowH) / static_cast<float>(outH);
+	float invTwoSigmaSpatial2= 1.0f / (2.0f * params.sigmaSpatial * params.sigmaSpatial);
+	float invTwoSigmaColor2= 1.0f / (2.0f * params.sigmaColor * params.sigmaColor);
+	int radius= params.radius;
+	float confWeightLow= params.confWeightLow;
+	float confWeightMedium= params.confWeightMedium;
+
+	// Must match jbu_upsample_u16_surface_kernel's signature in JBUKernel.cu
+	// exactly (see the identical note on upsample()'s args array).
+	void* args[]= {&depthLow,
+				   &lowW,
+				   &lowH,
+				   &lowStrideBytes,
+				   &confidence,
+				   &confidenceStrideBytes,
+				   &confWeightLow,
+				   &confWeightMedium,
+				   &guideRGB,
+				   &guideW,
+				   &guideH,
+				   &guideStrideBytes,
+				   &depthOutSurface,
+				   &outW,
+				   &outH,
+				   &radius,
+				   &invTwoSigmaSpatial2,
+				   &invTwoSigmaColor2,
+				   &scaleX,
+				   &scaleY};
+
+	constexpr unsigned int kBlockDim= 16;
+	const unsigned int gridX= (static_cast<unsigned int>(outW) + kBlockDim - 1) / kBlockDim;
+	const unsigned int gridY= (static_cast<unsigned int>(outH) + kBlockDim - 1) / kBlockDim;
+
+	if (!checkCudaResult(cuEventRecord(m_startEvent, m_stream), "cuEventRecord(start)"))
+		return false;
+
+	if (!checkCudaResult(
+			cuLaunchKernel(m_surfaceKernelFunc, gridX, gridY, 1, kBlockDim, kBlockDim, 1, 0, m_stream, args, nullptr),
+			"cuLaunchKernel(surface)"))
 		return false;
 
 	if (!checkCudaResult(cuEventRecord(m_stopEvent, m_stream), "cuEventRecord(stop)"))

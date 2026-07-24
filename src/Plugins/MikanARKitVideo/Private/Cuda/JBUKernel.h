@@ -87,6 +87,18 @@ public:
 				  int confidenceStrideBytes, CUdeviceptr guideRGB, int guideW, int guideH, int guideStrideBytes,
 				  CUdeviceptr depthOut, int outW, int outH, int outStrideBytes, const JBUParams& params);
 
+	// Ticket D4: identical to upsample() above, but writes via a CUsurfObject
+	// instead of a linear/pitched CUdeviceptr - required when the destination is a
+	// CUDA-GL-interop-mapped CUarray (see CudaGLInterop.h), which is opaque,
+	// texture-optimized memory that can't be addressed via a raw pointer at all.
+	// depthOutSurface must wrap a single-channel 32-bit float (R32F) CUarray sized
+	// outW x outH. Same asynchronous/threading/error-handling contract as
+	// upsample() - see synchronize().
+	bool upsampleToSurface(CUdeviceptr depthLow, int lowW, int lowH, int lowStrideBytes, CUdeviceptr confidence,
+						   int confidenceStrideBytes, CUdeviceptr guideRGB, int guideW, int guideH,
+						   int guideStrideBytes, CUsurfObject depthOutSurface, int outW, int outH,
+						   const JBUParams& params);
+
 	// Blocks the calling thread until all work enqueued on this instance's stream
 	// (i.e. the most recent upsample() call) has completed. This is where an
 	// asynchronous kernel-execution error (e.g. an illegal memory access from a
@@ -106,6 +118,7 @@ public:
 private:
 	CUmodule m_module= nullptr;
 	CUfunction m_kernelFunc= nullptr;
+	CUfunction m_surfaceKernelFunc= nullptr;
 	CUstream m_stream= nullptr;
 	CUevent m_startEvent= nullptr;
 	CUevent m_stopEvent= nullptr;

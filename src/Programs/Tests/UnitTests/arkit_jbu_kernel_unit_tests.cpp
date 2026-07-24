@@ -19,7 +19,7 @@
 
 #include "JBUKernel.h"
 
-// Covers ticket D1's core correctness surface: JBUKernel's Driver-API-based
+// Covers ticket D1/D2/D3's core correctness surface: JBUKernel's Driver-API-based
 // upsample() against a plain CPU re-implementation of the exact same math (the
 // same cross-check philosophy as arkit_rvl_swift_crosscheck_unit_tests.cpp - two
 // independent implementations of one algorithm, compared against each other).
@@ -29,6 +29,14 @@
 // aren't suitable for this permanent, deterministic, GPU-optional suite (bundling
 // ~11MB of binary fixtures into this repo, and hard-failing on any machine without
 // an NVIDIA GPU, isn't acceptable for a CI-run test).
+//
+// Ticket D4 (CUDA-GL interop): this file covers upsampleToSurface()'s device-side
+// math (via a plain, non-GL-registered CUarray/CUsurfObject - surf2Dwrite behaves
+// identically regardless of how the backing CUarray was created, so this is a
+// faithful test of the kernel itself). CudaGLInterop.cpp's actual GL texture
+// creation/cuGraphicsGLRegisterImage/map-unmap lifecycle is covered separately, in
+// arkit_cuda_gl_interop_unit_tests.cpp, which creates its own minimal off-screen
+// WGL context for exactly that purpose (this file's tests stay GL-free/headless).
 namespace
 {
 // GST_MAP_CUDA/gst_cuda_load_library() aren't involved here - JBUKernel is
@@ -656,6 +664,130 @@ static bool arkit_jbu_kernel_test_mixed_confidence_matches_cpu_reference()
 	UNIT_TEST_COMPLETE()
 }
 
+static bool arkit_jbu_kernel_test_surface_kernel_matches_cpu_reference()
+{
+	UNIT_TEST_BEGIN(
+		"upsampleToSurface() (ticket D4) matches the CPU reference, writing via a plain CUarray/CUsurfObject "
+		"(no GL - see the file-level comment on what D4's GL-interop-specific code isn't covered by this suite)")
+
+	CUdevice device;
+	if (!cudaDeviceAvailable(device))
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	CUcontext context= nullptr;
+	success= (cuCtxCreate(&context, nullptr, 0, device) == CUDA_SUCCESS);
+	assert(success);
+
+	JBUKernel kernel;
+	success= success && kernel.init(JBU_KERNEL_PTX_PATH);
+	assert(success);
+
+	const int lowW= 16, lowH= 12;
+	const int outW= 64, outH= 48;
+
+	std::vector<uint16_t> depthLow;
+	std::vector<uint8_t> guide;
+	generateSyntheticInputs(lowW, lowH, outW, outH, depthLow, guide);
+	std::vector<uint8_t> confidence;
+	generateSyntheticConfidence(lowW, lowH, confidence);
+
+	JBUParams params;
+	params.radius= 8;
+	params.sigmaSpatial= 6.0f;
+	params.sigmaColor= 20.0f;
+	params.confWeightLow= 0.1f;
+	params.confWeightMedium= 0.5f;
+
+	std::vector<float> cpuOut(static_cast<size_t>(outW) * outH);
+	cpuJbuUpsampleReference(depthLow.data(), lowW, lowH, confidence.data(), guide.data(), outW, outH, cpuOut.data(),
+							outW, outH, params);
+
+	CUdeviceptr d_depthLow= 0, d_confidence= 0, d_guide= 0;
+	success= success && (cuMemAlloc(&d_depthLow, depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_confidence, confidence.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_guide, guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success && (cuMemcpyHtoD(d_depthLow, depthLow.data(), depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_confidence, confidence.data(), confidence.size()) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_guide, guide.data(), guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	// A plain CUDA array (not GL-registered) - surf2Dwrite works identically on
+	// any CUarray-backed surface object regardless of how the array was created,
+	// so this exercises the exact same device-side write path
+	// CudaGLInterop.cpp's GL-registered arrays would use, without needing a GL
+	// context (unavailable in this headless console test executable).
+	CUDA_ARRAY_DESCRIPTOR arrayDesc= {};
+	arrayDesc.Width= static_cast<size_t>(outW);
+	arrayDesc.Height= static_cast<size_t>(outH);
+	arrayDesc.Format= CU_AD_FORMAT_FLOAT;
+	arrayDesc.NumChannels= 1;
+
+	CUarray outArray= nullptr;
+	success= success && (cuArrayCreate(&outArray, &arrayDesc) == CUDA_SUCCESS);
+	assert(success);
+
+	CUsurfObject outSurface= 0;
+	if (success)
+	{
+		CUDA_RESOURCE_DESC resourceDesc= {};
+		resourceDesc.resType= CU_RESOURCE_TYPE_ARRAY;
+		resourceDesc.res.array.hArray= outArray;
+		success= success && (cuSurfObjectCreate(&outSurface, &resourceDesc) == CUDA_SUCCESS);
+		assert(success);
+	}
+
+	success=
+		success
+		&& kernel.upsampleToSurface(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), d_confidence,
+									lowW, d_guide, outW, outH, outW * 3, outSurface, outW, outH, params);
+	assert(success);
+	success= success && kernel.synchronize();
+	assert(success);
+
+	std::vector<float> gpuOut(static_cast<size_t>(outW) * outH);
+	if (success)
+	{
+		CUDA_MEMCPY2D copyParams= {};
+		copyParams.srcMemoryType= CU_MEMORYTYPE_ARRAY;
+		copyParams.srcArray= outArray;
+		copyParams.dstMemoryType= CU_MEMORYTYPE_HOST;
+		copyParams.dstHost= gpuOut.data();
+		copyParams.dstPitch= static_cast<size_t>(outW) * sizeof(float);
+		copyParams.WidthInBytes= static_cast<size_t>(outW) * sizeof(float);
+		copyParams.Height= static_cast<size_t>(outH);
+		success= success && (cuMemcpy2D(&copyParams) == CUDA_SUCCESS);
+		assert(success);
+	}
+
+	float maxAbsDiff= 0.0f;
+	for (size_t i= 0; i < gpuOut.size(); ++i)
+	{
+		maxAbsDiff= std::max(maxAbsDiff, std::fabs(gpuOut[i] - cpuOut[i]));
+	}
+	success= success && (maxAbsDiff < 1.0f);
+	assert(success);
+
+	if (outSurface != 0)
+		cuSurfObjectDestroy(outSurface);
+	if (outArray != nullptr)
+		cuArrayDestroy(outArray);
+	if (d_depthLow != 0)
+		cuMemFree(d_depthLow);
+	if (d_confidence != 0)
+		cuMemFree(d_confidence);
+	if (d_guide != 0)
+		cuMemFree(d_guide);
+	kernel.shutdown();
+	if (context != nullptr)
+		cuCtxDestroy(context);
+
+	UNIT_TEST_COMPLETE()
+}
+
 static bool arkit_jbu_kernel_test_timing_is_reported_and_reasonable()
 {
 	UNIT_TEST_BEGIN("getLastKernelMilliseconds() reports a real, sub-frame-budget elapsed time after synchronize()")
@@ -838,6 +970,7 @@ bool run_arkit_jbu_kernel_unit_tests()
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_high_confidence_matches_unweighted_baseline);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_all_low_confidence_degenerate_case_outputs_zero);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_mixed_confidence_matches_cpu_reference);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_surface_kernel_matches_cpu_reference);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_timing_is_reported_and_reasonable);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_upsample_without_init_fails_cleanly);
 	// Runs last - triggers a real GPU fault, which can leave its own throwaway

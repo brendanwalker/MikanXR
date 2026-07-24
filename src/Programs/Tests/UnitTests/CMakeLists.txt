@@ -33,25 +33,37 @@ list(APPEND UNIT_TEST_SRC
 # loaded by arkit_video_source_system's tests). It's only exercised indirectly,
 # through the already-loaded plugin DLL, same as MikanARKitVideoDevice.cpp itself.
 
-# JBUKernel.h/.cpp (ticket D1) is plain CUDA Driver API C++ - no GObject/GstMeta
-# registration, so (unlike ARKitRTPHeaderExtension.cpp above) it's safe to
-# dual-compile into both this executable and MikanARKitVideo.dll, matching
-# RVLCodec.cpp etc. Needs the CUDA Toolkit headers/driver lib, which - like
-# GStreamer's own CUDA support - are only available when MIKAN_WITH_GSTREAMER is ON
-# (see ThirdParty.cmake).
+# JBUKernel.h/.cpp (ticket D1) and CudaGLInterop.h/.cpp (ticket D4) are plain CUDA
+# Driver API C++ - no GObject/GstMeta registration, so (unlike
+# ARKitRTPHeaderExtension.cpp above) it's safe to dual-compile into both this
+# executable and MikanARKitVideo.dll, matching RVLCodec.cpp etc. Needs the CUDA
+# Toolkit headers/driver lib, which - like GStreamer's own CUDA support - are only
+# available when MIKAN_WITH_GSTREAMER is ON (see ThirdParty.cmake).
+# CudaGLInterop.cpp additionally needs MikanRenderer (IMkTexture) and GLEW
+# (GLuint/GL_TEXTURE_2D types, required before cudaGL.h) - compiling it here
+# proves it builds cleanly against the real headers/libs on every run, even
+# though its actual CUDA-GL registration/mapping behavior needs a live GL context
+# this headless console test executable doesn't have (see
+# arkit_jbu_kernel_unit_tests.cpp's own notes on what is/isn't covered here).
 if(MIKAN_WITH_GSTREAMER)
   list(APPEND UNIT_TEST_SRC
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/JBUKernel.h
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/JBUKernel.cpp
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.h
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.cpp
   )
 
   list(APPEND UNIT_TEST_INCL_DIRS
     ${CUDA_TOOLKIT_INCLUDE_DIR}
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda
+    ${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
+    ${GLEW_INCLUDE_DIRS}
   )
 
   list(APPEND UNIT_TEST_LIBS
     ${CUDA_DRIVER_LIBRARY}
+    ${GLEW_LIBRARIES}
+    MikanRenderer
   )
 endif()
 
@@ -171,6 +183,14 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	  TARGET unit_test_suite_cpp POST_BUILD
 	  COMMAND ${CMAKE_COMMAND} -E copy
 	  $<TARGET_FILE_DIR:MikanARKitVideo>/MikanARKitVideo.dll
+	  $<TARGET_FILE_DIR:unit_test_suite_cpp>)
+    # MikanARKitVideo.dll now links MikanRenderer (ticket D4, CudaGLInterop's
+    # IMkTexture usage) - needed alongside it for the DLL load to resolve, even
+    # though unit_test_suite_cpp itself never links MikanRenderer directly.
+    add_custom_command(
+	  TARGET unit_test_suite_cpp POST_BUILD
+	  COMMAND ${CMAKE_COMMAND} -E copy
+	  $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll
 	  $<TARGET_FILE_DIR:unit_test_suite_cpp>)
   endif()
 ELSE() #Linux/Darwin
