@@ -175,6 +175,9 @@ const char* MikanCEFTextureSourceValues::k_ownerSystemName= "CEFTextureSourceSys
 const char* MikanNetworkVideoSourceValues::k_componentClassName= "NetworkVideoSourceComponent";
 const char* MikanNetworkVideoSourceValues::k_ownerSystemName= "NetworkVideoSourceSystem";
 
+const char* MikanARKitVideoSourceValues::k_componentClassName= "ARKitVideoSourceComponent";
+const char* MikanARKitVideoSourceValues::k_ownerSystemName= "ARKitVideoSourceSystem";
+
 const char* MikanUSBVideoSourceValues::k_componentClassName= "USBVideoSourceComponent";
 const char* MikanUSBVideoSourceValues::k_ownerSystemName= "USBVideoSourceSystem";
 

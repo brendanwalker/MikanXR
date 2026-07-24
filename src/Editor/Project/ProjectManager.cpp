@@ -3,6 +3,7 @@
 #include "App.h"
 #include "AppSettingsConfig.h"
 #include "AnchorObjectSystem.h"
+#include "ARKitVideoSourceSystem.h"
 #include "ClientTextureSourceSystem.h"
 #include "CameraObjectSystem.h"
 #include "CompositorObjectSystem.h"
@@ -62,6 +63,7 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<CEFTextureSourceSystem>();
 	addSystem<NetworkVideoSourceSystem>();
 	addSystem<USBVideoSourceSystem>();
+	addSystem<ARKitVideoSourceSystem>();
 	addSystem<MarkerObjectSystem>();
 	addSystem<StageObjectSystem>();
 	addSystem<SceneObjectSystem>();

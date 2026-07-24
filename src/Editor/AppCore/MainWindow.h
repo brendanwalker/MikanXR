@@ -37,7 +37,6 @@ public:
 	virtual class EventBus* getEventBus() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
 	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
-	class ARKitVideoSourceSystem* getARKitVideoSourceSystem() const { return m_arkitVideoSourceSystem; }
 	virtual class ClientSourceManager* getClientSourceManager() const override { return m_clientSourceManager; }
 	virtual class InputManager* getInputManager() const override { return m_inputManager; }
 	virtual ProjectManagerPtr getProjectManager() const override { return m_projectManager; }
@@ -64,11 +63,6 @@ private:
 
 	// Input Manager
 	class InputManager* m_inputManager= nullptr;
-
-	// ARKit video device plugin module-loading scaffold (ticket B8) - not yet an
-	// ObjectSystem/ProjectManager-owned system, since it predates
-	// ARKitVideoSourceComponent (ticket E1); ticked manually like m_mikanServer.
-	class ARKitVideoSourceSystem* m_arkitVideoSourceSystem= nullptr;
 
 	// Object System manager
 	ProjectManagerPtr m_projectManager;

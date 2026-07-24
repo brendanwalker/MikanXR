@@ -1,5 +1,6 @@
 // -- includes -----
 #include "AnchorObjectSystem.h"
+#include "ARKitVideoSourceSystem.h"
 #include "BoxShapeSystem.h"
 #include "BoxStencilSystem.h"
 #include "CameraObjectSystem.h"
@@ -49,6 +50,8 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	// Create object system definitions for object systems with persistent components, using the shared persistent ID
 	// allocator
 	anchorConfig= addTypedDefinition<AnchorObjectSystemDefinition, AnchorObjectSystem>(persistentIDAllocator);
+	arkitVideoSourceSystemConfig=
+		addTypedDefinition<ARKitVideoSourceSystemDefinition, ARKitVideoSourceSystem>(persistentIDAllocator);
 	boxShapeSystemDefinition= addTypedDefinition<BoxShapeSystemDefinition, BoxShapeSystem>(persistentIDAllocator);
 	boxStencilSystemDefinition= addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>(persistentIDAllocator);
 	cameraConfig= addTypedDefinition<CameraObjectSystemDefinition, CameraObjectSystem>(persistentIDAllocator);

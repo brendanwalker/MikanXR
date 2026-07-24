@@ -227,6 +227,29 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 #endif // MIKANAPI_REFLECTION_ENABLED
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanARKitVideoSourceValues
+	: public MikanVideoSourceValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() int base_port;                ///< Video RTP on base_port+0, depth on base_port+1, pose on base_port+2
+	FIELD() bool depth_streaming_enabled; ///< Whether the iPhone sender is expected to stream LiDAR depth+confidence
+
+	// Joint Bilateral Upsampling tuning params (see JBUParams in
+	// MikanARKitVideo/Private/Cuda/JBUKernel.h - ticket D5 owns the empirically-tuned
+	// defaults these mirror)
+	FIELD() int jbu_radius;
+	FIELD() float jbu_sigma_spatial;
+	FIELD() float jbu_sigma_color;
+	FIELD() float jbu_conf_weight_low;
+	FIELD() float jbu_conf_weight_medium;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanARKitVideoSourceValues_GENERATED
+#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceValues
 	: public MikanVideoSourceValues
 {

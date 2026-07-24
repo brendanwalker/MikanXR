@@ -41,6 +41,7 @@ public:
 
 	// Object system definitions
 	AnchorObjectSystemDefinitionPtr anchorConfig;
+	ARKitVideoSourceSystemDefinitionPtr arkitVideoSourceSystemConfig;
 	BoxShapeSystemDefinitionPtr boxShapeSystemDefinition;
 	BoxStencilSystemDefinitionPtr boxStencilSystemDefinition;
 	CameraObjectSystemDefinitionPtr cameraConfig;

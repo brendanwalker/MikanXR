@@ -1,81 +1,63 @@
 #pragma once
 
+#include "ARKitVideoDeviceManagerLoader.h"
+#include "ARKitVideoSourceComponent.h"
+#include "ComponentFwd.h"
 #include "IARKitVideoDeviceManager.h"
+#include "MikanTypedObjectSystem.h"
+#include "MikanVideoSourceTypes.h"
+#include "ObjectSystemConfigFwd.h"
+#include "VideoSourceQueries.h"
 
-#include <functional>
-#include <future>
 #include <string>
-#include <vector>
 
-// Async module-loading scaffold for the MikanARKitVideo plugin, mirroring
-// NetworkVideoSourceSystem's load/startup/retry pattern (see
-// NetworkVideoSourceSystem.h/.cpp in this same directory).
-//
-// Unlike NetworkVideoSourceSystem, this is NOT (yet) a MikanTypedObjectSystem: that
-// template requires a fully-built ECS component/definition pair
-// (ARKitVideoSourceComponent/ARKitVideoSourceDefinition, ticket E1) with working
-// constructors and JSON serialization before it will even compile correctly, let
-// alone run safely (see MikanTypedObjectSystem.h's objectFactory()). Since E1
-// hasn't landed yet, this class is instead a plain, manually-ticked manager class,
-// modeled on MikanServer's pattern - MikanServer/ClientSourceManager/InputManager/
-// OpenCVManager are all owned as plain members of MainWindow and ticked directly
-// from MainWindow::update(), entirely bypassing ProjectManager/MikanObjectSystem
-// (see MainWindow.h/.cpp).
-//
-// Once ticket E1 lands, this scaffold's async-load/manager-ready-callback pattern
-// is what a real ARKitVideoSourceComponent should hook into to retry a deferred
-// openVideoSource() call: addManagerReadyCallback() is the component-agnostic
-// stand-in for NetworkVideoSourceSystem's direct "retry openVideoSource() on
-// pending components" component-map walk, since there's no component map here yet.
-class ARKitVideoSourceSystem
+class ARKitVideoSourceSystemDefinition
+	: public MikanTypedObjectSystemDefinition<ARKitVideoSourceComponent, ARKitVideoSourceDefinition, MikanVideoSourceID>
 {
 public:
-	ARKitVideoSourceSystem();
-	~ARKitVideoSourceSystem();
+	using Super=
+		MikanTypedObjectSystemDefinition<ARKitVideoSourceComponent, ARKitVideoSourceDefinition, MikanVideoSourceID>;
 
-	// Non-copyable
-	ARKitVideoSourceSystem(const ARKitVideoSourceSystem&)= delete;
-	ARKitVideoSourceSystem& operator=(const ARKitVideoSourceSystem&)= delete;
+	ARKitVideoSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
-	void update(float deltaTime);
-	void dispose();
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+};
 
-	enum class eARKitVideoManagerState
+// ECS object system for ARKit video sources (ticket E1). The async MikanARKitVideo
+// plugin/device-manager loading itself is delegated to ARKitVideoDeviceManagerLoader
+// (formerly this class, before ticket E1 - see that class's header comment) rather
+// than reimplemented inline, so its existing test coverage kept working unchanged.
+class ARKitVideoSourceSystem
+	: public MikanTypedObjectSystem<ARKitVideoSourceComponent, ARKitVideoSourceDefinition, MikanVideoSourceID,
+									ARKitVideoSourceSystem, ARKitVideoSourceSystemDefinition>
+{
+public:
+	using Super= MikanTypedObjectSystem<ARKitVideoSourceComponent, ARKitVideoSourceDefinition, MikanVideoSourceID,
+										ARKitVideoSourceSystem, ARKitVideoSourceSystemDefinition>;
+
+	ARKitVideoSourceSystem(ProjectManagerPtr ownerObjectSystem);
+
+	inline static const std::string k_objectSystemClassName= "ARKitVideoObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
+	virtual void update(float deltaTime) override;
+	virtual void dispose() override;
+	virtual bool isLoading() const override { return m_deviceManagerLoader.isLoading(); }
+
+	IARKitVideoDeviceManagerPtr getARKitVideoDeviceManager() const
 	{
-		uninitialized,
-		initializing,
-		ready,
-		failed
-	};
-	eARKitVideoManagerState getARKitVideoManagerState() const { return m_arkitVideoManagerState; }
-	bool isLoading() const { return m_arkitVideoManagerState == eARKitVideoManagerState::initializing; }
+		return m_deviceManagerLoader.getARKitVideoDeviceManager();
+	}
+	ARKitVideoDeviceManagerLoader::eARKitVideoManagerState getARKitVideoManagerState() const
+	{
+		return m_deviceManagerLoader.getARKitVideoManagerState();
+	}
 
-	IARKitVideoDeviceManagerPtr getARKitVideoDeviceManager() const { return m_arkitVideoDeviceManager; }
-
-	// Fires `callback` once the device manager becomes ready - immediately
-	// (synchronously) if it already is, otherwise once update() observes the
-	// initializing -> ready transition. Never fires on failure, matching
-	// NetworkVideoSourceSystem's retry loop, which likewise only runs on success -
-	// a failed manager has nothing pending components could usefully retry.
-	void addManagerReadyCallback(std::function<void()> callback);
-
-protected:
-	bool ensureARKitDeviceManager();
+	VideoSourceIdList getVideoSourceIdList() const;
 
 private:
-	struct ARKitVideoDeviceManagerInitResult
-	{
-		class IARKitVideoDeviceModule* module= nullptr;
-		IARKitVideoDeviceManagerPtr manager;
-	};
-	static ARKitVideoDeviceManagerInitResult initARKitVideoDeviceManagerOnThread(const std::string& moduleName);
-
-	void disposeARKitVideoDeviceManager();
-
-	eARKitVideoManagerState m_arkitVideoManagerState= eARKitVideoManagerState::uninitialized;
-	std::future<ARKitVideoDeviceManagerInitResult> m_arkitVideoManagerFuture;
-	class IARKitVideoDeviceModule* m_arkitVideoDeviceModule= nullptr;
-	IARKitVideoDeviceManagerPtr m_arkitVideoDeviceManager= nullptr;
-
-	std::vector<std::function<void()>> m_pendingManagerReadyCallbacks;
+	ARKitVideoDeviceManagerLoader m_deviceManagerLoader;
 };
+
+using ARKitVideoSourceSystemPtr= std::shared_ptr<ARKitVideoSourceSystem>;

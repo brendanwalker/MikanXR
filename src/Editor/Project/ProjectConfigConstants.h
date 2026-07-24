@@ -95,6 +95,7 @@ enum class eVideoSourceType : int
 
 	usb,
 	networked,
+	arkit,
 
 	COUNT
 };
@@ -130,3 +131,7 @@ extern const std::string* k_videoSourceTypeStrings;
 #define DEFAULT_RTSP_PORT 8554 // Default RTSP port for networked cameras
 #define DEFAULT_NETWORKED_CAMERA_ADDRESS "rtspstream:X14yQN79F7O4sgqDz45CR@zephyr.rtsp.stream"
 #define DEFAULT_NETWORKED_CAMERA_PATH "pattern"
+
+// video RTP on basePort+0, depth on basePort+1, pose on basePort+2 (see
+// ARKitWireProtocol.h)
+#define DEFAULT_ARKIT_BASE_PORT 27015

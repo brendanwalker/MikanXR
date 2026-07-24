@@ -15,7 +15,7 @@
 #pragma comment(lib, "Ws2_32.lib")
 #endif
 
-#include "ARKitVideoSourceSystem.h"
+#include "ARKitVideoDeviceManagerLoader.h"
 #include "ARKitWireProtocol.h"
 #include "IARKitVideoDeviceManager.h"
 #include "IARKitVideoDeviceModule.h"
@@ -24,7 +24,7 @@
 
 // As of ticket C1, MikanARKitVideo.dll genuinely exists and is copied alongside
 // this test executable (see UnitTests/CMakeLists.txt), so - unlike when these
-// tests were first written for ticket B8 - ARKitVideoSourceSystem's async module
+// tests were first written for ticket B8 - ARKitVideoDeviceManagerLoader's async module
 // load now actually succeeds in this environment. The tests below were updated
 // accordingly: what used to assert graceful failure (module absent) now asserts
 // successful load and a real open/close cycle against the loaded plugin, which is
@@ -32,10 +32,10 @@
 //
 // IMPORTANT process-lifetime constraint this file works around: MikanModuleManager
 // caches the loaded "MikanARKitVideo" module by name, so *loading* it from many
-// independent ARKitVideoSourceSystem instances is cheap and safe (later loads just
+// independent ARKitVideoDeviceManagerLoader instances is cheap and safe (later loads just
 // return the cached pointer - MikanARKitVideoModule::startup()/gst_init_check()
 // only actually runs once). *Disposing* it is a different story:
-// ARKitVideoSourceSystem::dispose() (called explicitly or via the destructor) tears
+// ARKitVideoDeviceManagerLoader::dispose() (called explicitly or via the destructor) tears
 // the cached module down via gst_deinit(), and GStreamer hard-errors
 // ("should not be deinitialized a second time") if that happens more than once in
 // the process's lifetime - matching how the real app only ever loads/disposes this
@@ -47,7 +47,7 @@
 // short-lived test process, not an oversight.
 namespace
 {
-// ARKitVideoSourceSystem calls getMikanModuleManager(), which asserts non-null
+// ARKitVideoDeviceManagerLoader calls getMikanModuleManager(), which asserts non-null
 // - the real app initializes this once at startup (see App.cpp); this is the
 // first unit test module that needs it, so ensure it exists. Safe/idempotent
 // to call more than once (see MikanModuleManager.cpp), and deliberately never
@@ -63,7 +63,7 @@ void ensureModuleManagerInitialized()
 // iteration - mirrors how a real per-frame update() loop would drive this
 // class. Returns false on timeout.
 template <typename Predicate>
-bool pollUntil(ARKitVideoSourceSystem& system, Predicate predicate,
+bool pollUntil(ARKitVideoDeviceManagerLoader& system, Predicate predicate,
 			   std::chrono::milliseconds timeout= std::chrono::seconds(10))
 {
 	const auto start= std::chrono::steady_clock::now();
@@ -77,10 +77,10 @@ bool pollUntil(ARKitVideoSourceSystem& system, Predicate predicate,
 	return predicate();
 }
 
-bool isTerminalState(ARKitVideoSourceSystem::eARKitVideoManagerState state)
+bool isTerminalState(ARKitVideoDeviceManagerLoader::eARKitVideoManagerState state)
 {
-	return state == ARKitVideoSourceSystem::eARKitVideoManagerState::ready
-		   || state == ARKitVideoSourceSystem::eARKitVideoManagerState::failed;
+	return state == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::ready
+		   || state == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::failed;
 }
 
 #if defined(_WIN32)
@@ -137,8 +137,9 @@ static bool arkit_video_source_system_test_initial_state()
 
 	ensureModuleManagerInitialized();
 
-	ARKitVideoSourceSystem system;
-	success= (system.getARKitVideoManagerState() == ARKitVideoSourceSystem::eARKitVideoManagerState::uninitialized);
+	ARKitVideoDeviceManagerLoader system;
+	success=
+		(system.getARKitVideoManagerState() == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::uninitialized);
 	assert(success);
 	success= success && !system.isLoading();
 	assert(success);
@@ -156,10 +157,11 @@ static bool arkit_video_source_system_test_real_plugin_loads_successfully_no_cra
 
 	// Intentionally leaked - see the file-level comment on why this file avoids
 	// disposing more than one successfully-loaded system.
-	ARKitVideoSourceSystem* system= new ARKitVideoSourceSystem();
+	ARKitVideoDeviceManagerLoader* system= new ARKitVideoDeviceManagerLoader();
 
 	system->update(0.016f);
-	success= (system->getARKitVideoManagerState() != ARKitVideoSourceSystem::eARKitVideoManagerState::uninitialized);
+	success=
+		(system->getARKitVideoManagerState() != ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::uninitialized);
 	assert(success);
 
 	const bool reachedTerminalState=
@@ -178,7 +180,7 @@ static bool arkit_video_source_system_test_real_plugin_loads_successfully_no_cra
 	success= success && !system->isLoading();
 	assert(success);
 
-	if (state == ARKitVideoSourceSystem::eARKitVideoManagerState::ready)
+	if (state == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::ready)
 	{
 		success= success && (system->getARKitVideoDeviceManager() != nullptr);
 		assert(success);
@@ -194,7 +196,7 @@ static bool arkit_video_source_system_test_repeated_update_while_initializing_is
 
 	ensureModuleManagerInitialized();
 
-	ARKitVideoSourceSystem* system= new ARKitVideoSourceSystem(); // intentionally leaked
+	ARKitVideoDeviceManagerLoader* system= new ARKitVideoDeviceManagerLoader(); // intentionally leaked
 
 	// Tick many times in a tight loop, mimicking many frames landing before the
 	// background thread has had a chance to resolve.
@@ -215,7 +217,7 @@ static bool arkit_video_source_system_test_manager_ready_callback_fires_on_succe
 
 	ensureModuleManagerInitialized();
 
-	ARKitVideoSourceSystem* system= new ARKitVideoSourceSystem(); // intentionally leaked
+	ARKitVideoDeviceManagerLoader* system= new ARKitVideoDeviceManagerLoader(); // intentionally leaked
 
 	int callbackCount= 0;
 	system->addManagerReadyCallback([&] { ++callbackCount; });
@@ -229,7 +231,7 @@ static bool arkit_video_source_system_test_manager_ready_callback_fires_on_succe
 	success= success && reachedTerminalState;
 	assert(success);
 
-	if (system->getARKitVideoManagerState() == ARKitVideoSourceSystem::eARKitVideoManagerState::ready)
+	if (system->getARKitVideoManagerState() == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::ready)
 	{
 		success= success && (callbackCount == 1);
 		assert(success);
@@ -259,11 +261,12 @@ static bool arkit_video_source_system_test_independent_instances()
 	ensureModuleManagerInitialized();
 
 	// Both intentionally leaked.
-	ARKitVideoSourceSystem* systemA= new ARKitVideoSourceSystem();
-	ARKitVideoSourceSystem* systemB= new ARKitVideoSourceSystem();
+	ARKitVideoDeviceManagerLoader* systemA= new ARKitVideoDeviceManagerLoader();
+	ARKitVideoDeviceManagerLoader* systemB= new ARKitVideoDeviceManagerLoader();
 
 	systemA->update(0.016f);
-	success= (systemB->getARKitVideoManagerState() == ARKitVideoSourceSystem::eARKitVideoManagerState::uninitialized);
+	success=
+		(systemB->getARKitVideoManagerState() == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::uninitialized);
 	assert(success);
 
 	const bool bothReachedTerminalState= pollUntil(*systemA,
@@ -283,7 +286,7 @@ static bool arkit_video_source_system_test_independent_instances()
 	// independent managers sharing one underlying module.
 	success= success && (systemA->getARKitVideoManagerState() == systemB->getARKitVideoManagerState());
 	assert(success);
-	if (systemA->getARKitVideoManagerState() == ARKitVideoSourceSystem::eARKitVideoManagerState::ready)
+	if (systemA->getARKitVideoManagerState() == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::ready)
 	{
 		success= success && (systemA->getARKitVideoDeviceManager() != systemB->getARKitVideoDeviceManager());
 		assert(success);
@@ -299,11 +302,14 @@ static bool arkit_video_source_system_test_full_open_close_cycle_via_loaded_plug
 
 	ensureModuleManagerInitialized();
 
-	ARKitVideoSourceSystem* system= new ARKitVideoSourceSystem(); // intentionally leaked
+	ARKitVideoDeviceManagerLoader* system= new ARKitVideoDeviceManagerLoader(); // intentionally leaked
 
-	const bool ready= pollUntil(
-		*system,
-		[&] { return system->getARKitVideoManagerState() == ARKitVideoSourceSystem::eARKitVideoManagerState::ready; });
+	const bool ready= pollUntil(*system,
+								[&]
+								{
+									return system->getARKitVideoManagerState()
+										   == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::ready;
+								});
 	if (!ready)
 	{
 		// GStreamer isn't installed on whatever machine ran this - the plugin
@@ -428,7 +434,7 @@ static bool arkit_video_source_system_test_dispose_blocks_on_inflight_init_and_i
 	// instead.
 	ensureModuleManagerInitialized();
 
-	ARKitVideoSourceSystem system;
+	ARKitVideoDeviceManagerLoader system;
 	system.update(0.016f); // launch the async load, don't wait for it
 
 	// dispose() while init may still be in flight must not crash or hang forever,

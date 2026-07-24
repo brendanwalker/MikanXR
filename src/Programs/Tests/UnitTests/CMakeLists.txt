@@ -18,8 +18,8 @@ list(APPEND UNIT_TEST_SRC
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.h
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.cpp
-  ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoSourceSystem.h
-  ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoSourceSystem.cpp
+  ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoDeviceManagerLoader.h
+  ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoDeviceManagerLoader.cpp
 )
 
 # NOTE: ARKitRTPHeaderExtension.h/.cpp (ticket C3) is deliberately NOT pulled in
