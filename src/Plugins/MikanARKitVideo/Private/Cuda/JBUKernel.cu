@@ -6,8 +6,20 @@
 // (cv::cuda::GpuMat)-coupled host wrapper and CUDA Runtime API (<<<>>>) launch
 // entirely, per ticket D1. extern "C" linkage keeps the exported symbol name
 // un-mangled so cuModuleGetFunction can look it up by plain string name.
+//
+// `confidence` (ticket D2) is optional - pass nullptr to get D1's original,
+// confidence-unaware behavior (every valid depth sample contributes full weight).
+// When supplied, it must be the same lowW x lowH dimensions as depthLow, with
+// ARKit's ARConfidenceLevel convention (0=low, 1=medium, 2=high - see
+// ARKitDepthReceiver.h). High confidence always contributes full weight;
+// low/medium are deweighted (not hard-skipped) via confWeightLow/confWeightMedium,
+// which degrades more gracefully than an outright cutoff at low confidence and
+// keeps the "all neighbors excluded" degenerate case (sumW == 0) working the same
+// way D1 already handles it, whether that's from all-invalid depth or
+// all-zero-weighted confidence.
 extern "C" __global__ void jbu_upsample_u16_kernel(
-	const unsigned short* depthLow, int lowW, int lowH, int lowStrideBytes, const unsigned char* guideRGB,
+	const unsigned short* depthLow, int lowW, int lowH, int lowStrideBytes, const unsigned char* confidence,
+	int confidenceStrideBytes, float confWeightLow, float confWeightMedium, const unsigned char* guideRGB,
 	int guideW, int guideH, int guideStrideBytes, float* depthOut, int outW, int outH, int outStrideBytes, int radius,
 	float invTwoSigmaSpatial2, float invTwoSigmaColor2, float scaleX, float scaleY)
 {
@@ -59,6 +71,21 @@ extern "C" __global__ void jbu_upsample_u16_kernel(
 				continue;
 			const float depthVal= static_cast<float>(dval);
 
+			// Confidence weight first (cheap: at most one extra byte read, no
+			// guide-image access) so a fully-deweighted sample (confWeightLow set
+			// to 0, the default when no confidence data changes behavior) skips
+			// the more expensive guide-color lookup below entirely.
+			float wConfidence= 1.0f;
+			if (confidence != nullptr)
+			{
+				const unsigned char* confRow=
+					reinterpret_cast<const unsigned char*>(confidence) + j * confidenceStrideBytes;
+				const unsigned char c= confRow[i];
+				wConfidence= (c >= 2) ? 1.0f : (c == 1) ? confWeightMedium : confWeightLow;
+				if (wConfidence <= 0.0f)
+					continue;
+			}
+
 			// High-res x-center of low-res column i
 			const float hx= (i + 0.5f) / scaleX - 0.5f;
 
@@ -81,7 +108,7 @@ extern "C" __global__ void jbu_upsample_u16_kernel(
 			const float color2= dr * dr + dg * dg + db * db;
 			const float wColor= __expf(-color2 * invTwoSigmaColor2);
 
-			const float w= wSpatial * wColor;
+			const float w= wSpatial * wColor * wConfidence;
 			sumW+= w;
 			sumD+= w * depthVal;
 		}

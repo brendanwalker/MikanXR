@@ -52,9 +52,11 @@ bool cudaDeviceAvailable(CUdevice& outDevice)
 // Plain host re-implementation of JBUKernel.cu's jbu_upsample_u16_kernel, line for
 // line, with CUDA device intrinsics swapped for their standard-library
 // equivalents (__expf -> std::exp, etc.). This is the correctness oracle the GPU
-// kernel's output is checked against below.
-void cpuJbuUpsampleReference(const uint16_t* depthLow, int lowW, int lowH, const uint8_t* guideRGB, int guideW,
-							 int guideH, float* depthOut, int outW, int outH, const JBUParams& params)
+// kernel's output is checked against below. `confidence` is optional (ticket D2),
+// matching the kernel's own nullable-confidence semantics.
+void cpuJbuUpsampleReference(const uint16_t* depthLow, int lowW, int lowH, const uint8_t* confidence,
+							 const uint8_t* guideRGB, int guideW, int guideH, float* depthOut, int outW, int outH,
+							 const JBUParams& params)
 {
 	const float scaleX= static_cast<float>(lowW) / static_cast<float>(outW);
 	const float scaleY= static_cast<float>(lowH) / static_cast<float>(outH);
@@ -99,6 +101,15 @@ void cpuJbuUpsampleReference(const uint16_t* depthLow, int lowW, int lowH, const
 						continue;
 					const float depthVal= static_cast<float>(dval);
 
+					float wConfidence= 1.0f;
+					if (confidence != nullptr)
+					{
+						const uint8_t c= confidence[static_cast<size_t>(j) * lowW + i];
+						wConfidence= (c >= 2) ? 1.0f : (c == 1) ? params.confWeightMedium : params.confWeightLow;
+						if (wConfidence <= 0.0f)
+							continue;
+					}
+
 					const float hx= (i + 0.5f) / scaleX - 0.5f;
 					const float dx= x - hx;
 					const float dy= y - hy;
@@ -118,7 +129,7 @@ void cpuJbuUpsampleReference(const uint16_t* depthLow, int lowW, int lowH, const
 					const float color2= dr * dr + dg * dg + db * db;
 					const float wColor= std::exp(-color2 * invTwoSigmaColor2);
 
-					const float w= wSpatial * wColor;
+					const float w= wSpatial * wColor * wConfidence;
 					sumW+= w;
 					sumD+= w * depthVal;
 				}
@@ -156,6 +167,20 @@ void generateSyntheticInputs(int lowW, int lowH, int guideW, int guideH, std::ve
 			outGuide[idx + 0]= static_cast<uint8_t>((x * 3) % 256);
 			outGuide[idx + 1]= static_cast<uint8_t>((y * 5) % 256);
 			outGuide[idx + 2]= static_cast<uint8_t>(((x + y) * 2) % 256);
+		}
+	}
+}
+
+// Deterministic mixed 0/1/2 confidence pattern (ticket D2) - varies across both
+// axes so the cross-check test exercises all three confidence tiers.
+void generateSyntheticConfidence(int lowW, int lowH, std::vector<uint8_t>& outConfidence)
+{
+	outConfidence.resize(static_cast<size_t>(lowW) * lowH);
+	for (int y= 0; y < lowH; ++y)
+	{
+		for (int x= 0; x < lowW; ++x)
+		{
+			outConfidence[y * lowW + x]= static_cast<uint8_t>((x + y * 2) % 3);
 		}
 	}
 }
@@ -248,8 +273,8 @@ static bool arkit_jbu_kernel_test_uniform_depth_propagates_unchanged()
 	JBUParams params;
 	success=
 		success
-		&& kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), d_guide, guideW, guideH,
-						   guideW * 3, d_out, guideW, guideH, guideW * static_cast<int>(sizeof(float)), params);
+		&& kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), 0, 0, d_guide, guideW,
+						   guideH, guideW * 3, d_out, guideW, guideH, guideW * static_cast<int>(sizeof(float)), params);
 	assert(success);
 	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
 	assert(success);
@@ -314,7 +339,8 @@ static bool arkit_jbu_kernel_test_matches_cpu_reference()
 	params.sigmaColor= 20.0f;
 
 	std::vector<float> cpuOut(static_cast<size_t>(outW) * outH);
-	cpuJbuUpsampleReference(depthLow.data(), lowW, lowH, guide.data(), outW, outH, cpuOut.data(), outW, outH, params);
+	cpuJbuUpsampleReference(depthLow.data(), lowW, lowH, nullptr, guide.data(), outW, outH, cpuOut.data(), outW, outH,
+							params);
 
 	CUdeviceptr d_depthLow= 0, d_guide= 0, d_out= 0;
 	success= success && (cuMemAlloc(&d_depthLow, depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
@@ -327,8 +353,8 @@ static bool arkit_jbu_kernel_test_matches_cpu_reference()
 	assert(success);
 
 	success= success
-			 && kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), d_guide, outW, outH,
-								outW * 3, d_out, outW, outH, outW * static_cast<int>(sizeof(float)), params);
+			 && kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), 0, 0, d_guide, outW,
+								outH, outW * 3, d_out, outW, outH, outW * static_cast<int>(sizeof(float)), params);
 	assert(success);
 	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
 	assert(success);
@@ -362,6 +388,274 @@ static bool arkit_jbu_kernel_test_matches_cpu_reference()
 	UNIT_TEST_COMPLETE()
 }
 
+static bool arkit_jbu_kernel_test_high_confidence_matches_unweighted_baseline()
+{
+	UNIT_TEST_BEGIN("an all-high-confidence plane produces identical output to passing no confidence plane at all")
+
+	CUdevice device;
+	if (!cudaDeviceAvailable(device))
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	CUcontext context= nullptr;
+	success= (cuCtxCreate(&context, nullptr, 0, device) == CUDA_SUCCESS);
+	assert(success);
+
+	JBUKernel kernel;
+	success= success && kernel.init(JBU_KERNEL_PTX_PATH);
+	assert(success);
+
+	const int lowW= 16, lowH= 12;
+	const int outW= 64, outH= 48;
+
+	std::vector<uint16_t> depthLow;
+	std::vector<uint8_t> guide;
+	generateSyntheticInputs(lowW, lowH, outW, outH, depthLow, guide);
+	std::vector<uint8_t> confidenceAllHigh(static_cast<size_t>(lowW) * lowH, 2);
+
+	JBUParams params;
+	params.radius= 8;
+
+	CUdeviceptr d_depthLow= 0, d_confidence= 0, d_guide= 0, d_outNoConf= 0, d_outHighConf= 0;
+	success= success && (cuMemAlloc(&d_depthLow, depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_confidence, confidenceAllHigh.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_guide, guide.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_outNoConf, static_cast<size_t>(outW) * outH * sizeof(float)) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_outHighConf, static_cast<size_t>(outW) * outH * sizeof(float)) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success && (cuMemcpyHtoD(d_depthLow, depthLow.data(), depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success=
+		success && (cuMemcpyHtoD(d_confidence, confidenceAllHigh.data(), confidenceAllHigh.size()) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_guide, guide.data(), guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	success=
+		success
+		&& kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), 0, 0, d_guide, outW, outH,
+						   outW * 3, d_outNoConf, outW, outH, outW * static_cast<int>(sizeof(float)), params);
+	success= success
+			 && kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), d_confidence, lowW,
+								d_guide, outW, outH, outW * 3, d_outHighConf, outW, outH,
+								outW * static_cast<int>(sizeof(float)), params);
+	assert(success);
+	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
+	assert(success);
+
+	std::vector<float> outNoConf(static_cast<size_t>(outW) * outH);
+	std::vector<float> outHighConf(static_cast<size_t>(outW) * outH);
+	success= success && (cuMemcpyDtoH(outNoConf.data(), d_outNoConf, outNoConf.size() * sizeof(float)) == CUDA_SUCCESS);
+	success= success
+			 && (cuMemcpyDtoH(outHighConf.data(), d_outHighConf, outHighConf.size() * sizeof(float)) == CUDA_SUCCESS);
+	assert(success);
+
+	// Same math path either way (wConfidence is exactly 1.0f in both cases) -
+	// should be bit-identical, not just close.
+	bool identical= true;
+	for (size_t i= 0; i < outNoConf.size(); ++i)
+	{
+		if (outNoConf[i] != outHighConf[i])
+		{
+			identical= false;
+			break;
+		}
+	}
+	success= success && identical;
+	assert(success);
+
+	if (d_depthLow != 0)
+		cuMemFree(d_depthLow);
+	if (d_confidence != 0)
+		cuMemFree(d_confidence);
+	if (d_guide != 0)
+		cuMemFree(d_guide);
+	if (d_outNoConf != 0)
+		cuMemFree(d_outNoConf);
+	if (d_outHighConf != 0)
+		cuMemFree(d_outHighConf);
+	kernel.shutdown();
+	if (context != nullptr)
+		cuCtxDestroy(context);
+
+	UNIT_TEST_COMPLETE()
+}
+
+static bool arkit_jbu_kernel_test_all_low_confidence_degenerate_case_outputs_zero()
+{
+	UNIT_TEST_BEGIN("an all-low-confidence plane (default confWeightLow=0) excludes every sample -> output is 0.0 "
+					"everywhere, not NaN/garbage")
+
+	CUdevice device;
+	if (!cudaDeviceAvailable(device))
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	CUcontext context= nullptr;
+	success= (cuCtxCreate(&context, nullptr, 0, device) == CUDA_SUCCESS);
+	assert(success);
+
+	JBUKernel kernel;
+	success= success && kernel.init(JBU_KERNEL_PTX_PATH);
+	assert(success);
+
+	const int lowW= 16, lowH= 12;
+	const int outW= 64, outH= 48;
+
+	std::vector<uint16_t> depthLow;
+	std::vector<uint8_t> guide;
+	generateSyntheticInputs(lowW, lowH, outW, outH, depthLow, guide);
+	// All-invalid depth would trivially hit the same fallback for a different
+	// reason (D1's own dval==0 skip) - use real, valid depth values here so this
+	// test genuinely exercises the confidence-driven exclusion path, not the
+	// pre-existing invalid-depth one.
+	for (uint16_t& d : depthLow)
+	{
+		if (d == 0)
+			d= 1000;
+	}
+	std::vector<uint8_t> confidenceAllLow(static_cast<size_t>(lowW) * lowH, 0);
+
+	JBUParams params; // confWeightLow defaults to 0.0
+	params.radius= 8;
+
+	CUdeviceptr d_depthLow= 0, d_confidence= 0, d_guide= 0, d_out= 0;
+	success= success && (cuMemAlloc(&d_depthLow, depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_confidence, confidenceAllLow.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_guide, guide.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_out, static_cast<size_t>(outW) * outH * sizeof(float)) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success && (cuMemcpyHtoD(d_depthLow, depthLow.data(), depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_confidence, confidenceAllLow.data(), confidenceAllLow.size()) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_guide, guide.data(), guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success
+			 && kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), d_confidence, lowW,
+								d_guide, outW, outH, outW * 3, d_out, outW, outH,
+								outW * static_cast<int>(sizeof(float)), params);
+	assert(success);
+	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
+	assert(success);
+
+	std::vector<float> out(static_cast<size_t>(outW) * outH);
+	success= success && (cuMemcpyDtoH(out.data(), d_out, out.size() * sizeof(float)) == CUDA_SUCCESS);
+	assert(success);
+
+	bool allZero= true;
+	for (float v : out)
+	{
+		if (v != 0.0f)
+		{
+			allZero= false;
+			break;
+		}
+	}
+	success= success && allZero;
+	assert(success);
+
+	if (d_depthLow != 0)
+		cuMemFree(d_depthLow);
+	if (d_confidence != 0)
+		cuMemFree(d_confidence);
+	if (d_guide != 0)
+		cuMemFree(d_guide);
+	if (d_out != 0)
+		cuMemFree(d_out);
+	kernel.shutdown();
+	if (context != nullptr)
+		cuCtxDestroy(context);
+
+	UNIT_TEST_COMPLETE()
+}
+
+static bool arkit_jbu_kernel_test_mixed_confidence_matches_cpu_reference()
+{
+	UNIT_TEST_BEGIN("GPU kernel with a mixed 0/1/2 confidence plane matches the CPU reference's confidence weighting")
+
+	CUdevice device;
+	if (!cudaDeviceAvailable(device))
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	CUcontext context= nullptr;
+	success= (cuCtxCreate(&context, nullptr, 0, device) == CUDA_SUCCESS);
+	assert(success);
+
+	JBUKernel kernel;
+	success= success && kernel.init(JBU_KERNEL_PTX_PATH);
+	assert(success);
+
+	const int lowW= 16, lowH= 12;
+	const int outW= 64, outH= 48;
+
+	std::vector<uint16_t> depthLow;
+	std::vector<uint8_t> guide;
+	generateSyntheticInputs(lowW, lowH, outW, outH, depthLow, guide);
+	std::vector<uint8_t> confidence;
+	generateSyntheticConfidence(lowW, lowH, confidence);
+
+	JBUParams params;
+	params.radius= 8;
+	params.sigmaSpatial= 6.0f;
+	params.sigmaColor= 20.0f;
+	params.confWeightLow= 0.1f;
+	params.confWeightMedium= 0.5f;
+
+	std::vector<float> cpuOut(static_cast<size_t>(outW) * outH);
+	cpuJbuUpsampleReference(depthLow.data(), lowW, lowH, confidence.data(), guide.data(), outW, outH, cpuOut.data(),
+							outW, outH, params);
+
+	CUdeviceptr d_depthLow= 0, d_confidence= 0, d_guide= 0, d_out= 0;
+	success= success && (cuMemAlloc(&d_depthLow, depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_confidence, confidence.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_guide, guide.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_out, static_cast<size_t>(outW) * outH * sizeof(float)) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success && (cuMemcpyHtoD(d_depthLow, depthLow.data(), depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_confidence, confidence.data(), confidence.size()) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_guide, guide.data(), guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success
+			 && kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), d_confidence, lowW,
+								d_guide, outW, outH, outW * 3, d_out, outW, outH,
+								outW * static_cast<int>(sizeof(float)), params);
+	assert(success);
+	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
+	assert(success);
+
+	std::vector<float> gpuOut(static_cast<size_t>(outW) * outH);
+	success= success && (cuMemcpyDtoH(gpuOut.data(), d_out, gpuOut.size() * sizeof(float)) == CUDA_SUCCESS);
+	assert(success);
+
+	float maxAbsDiff= 0.0f;
+	for (size_t i= 0; i < gpuOut.size(); ++i)
+	{
+		maxAbsDiff= std::max(maxAbsDiff, std::fabs(gpuOut[i] - cpuOut[i]));
+	}
+	success= success && (maxAbsDiff < 1.0f);
+	assert(success);
+
+	if (d_depthLow != 0)
+		cuMemFree(d_depthLow);
+	if (d_confidence != 0)
+		cuMemFree(d_confidence);
+	if (d_guide != 0)
+		cuMemFree(d_guide);
+	if (d_out != 0)
+		cuMemFree(d_out);
+	kernel.shutdown();
+	if (context != nullptr)
+		cuCtxDestroy(context);
+
+	UNIT_TEST_COMPLETE()
+}
+
 static bool arkit_jbu_kernel_test_upsample_without_init_fails_cleanly()
 {
 	UNIT_TEST_BEGIN("upsample() before init() fails cleanly instead of crashing")
@@ -378,7 +672,7 @@ static bool arkit_jbu_kernel_test_upsample_without_init_fails_cleanly()
 
 	JBUKernel kernel; // never initialized
 	JBUParams params;
-	success= success && !kernel.upsample(0, 1, 1, 2, 0, 1, 1, 3, 0, 1, 1, 4, params);
+	success= success && !kernel.upsample(0, 1, 1, 2, 0, 2, 0, 1, 1, 3, 0, 1, 1, 4, params);
 	assert(success);
 
 	if (context != nullptr)
@@ -394,6 +688,9 @@ bool run_arkit_jbu_kernel_unit_tests()
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_init_and_shutdown);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_uniform_depth_propagates_unchanged);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_matches_cpu_reference);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_high_confidence_matches_unweighted_baseline);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_all_low_confidence_degenerate_case_outputs_zero);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_mixed_confidence_matches_cpu_reference);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_upsample_without_init_fails_cleanly);
 	UNIT_TEST_MODULE_END()
 }

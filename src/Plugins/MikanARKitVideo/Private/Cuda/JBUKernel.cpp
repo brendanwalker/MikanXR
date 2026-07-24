@@ -87,9 +87,10 @@ void JBUKernel::shutdown()
 
 bool JBUKernel::isInitialized() const { return m_module != nullptr; }
 
-bool JBUKernel::upsample(CUdeviceptr depthLow, int lowW, int lowH, int lowStrideBytes, CUdeviceptr guideRGB, int guideW,
-						 int guideH, int guideStrideBytes, CUdeviceptr depthOut, int outW, int outH, int outStrideBytes,
-						 const JBUParams& params, CUstream stream)
+bool JBUKernel::upsample(CUdeviceptr depthLow, int lowW, int lowH, int lowStrideBytes, CUdeviceptr confidence,
+						 int confidenceStrideBytes, CUdeviceptr guideRGB, int guideW, int guideH, int guideStrideBytes,
+						 CUdeviceptr depthOut, int outW, int outH, int outStrideBytes, const JBUParams& params,
+						 CUstream stream)
 {
 	if (!isInitialized())
 	{
@@ -104,15 +105,34 @@ bool JBUKernel::upsample(CUdeviceptr depthLow, int lowW, int lowH, int lowStride
 	float invTwoSigmaSpatial2= 1.0f / (2.0f * params.sigmaSpatial * params.sigmaSpatial);
 	float invTwoSigmaColor2= 1.0f / (2.0f * params.sigmaColor * params.sigmaColor);
 	int radius= params.radius;
+	float confWeightLow= params.confWeightLow;
+	float confWeightMedium= params.confWeightMedium;
 
 	// Addresses of each argument, in exact kernel-parameter order/type - the
 	// Driver API launch path does no type checking, it just copies these bytes
 	// into the kernel's parameter space, so this must match
 	// jbu_upsample_u16_kernel's signature in JBUKernel.cu exactly.
-	void* args[]= {
-		&depthLow,          &lowW,     &lowH,  &lowStrideBytes, &guideRGB,       &guideW, &guideH,
-		&guideStrideBytes,  &depthOut, &outW,  &outH,           &outStrideBytes, &radius, &invTwoSigmaSpatial2,
-		&invTwoSigmaColor2, &scaleX,   &scaleY};
+	void* args[]= {&depthLow,
+				   &lowW,
+				   &lowH,
+				   &lowStrideBytes,
+				   &confidence,
+				   &confidenceStrideBytes,
+				   &confWeightLow,
+				   &confWeightMedium,
+				   &guideRGB,
+				   &guideW,
+				   &guideH,
+				   &guideStrideBytes,
+				   &depthOut,
+				   &outW,
+				   &outH,
+				   &outStrideBytes,
+				   &radius,
+				   &invTwoSigmaSpatial2,
+				   &invTwoSigmaColor2,
+				   &scaleX,
+				   &scaleY};
 
 	constexpr unsigned int kBlockDim= 16;
 	const unsigned int gridX= (static_cast<unsigned int>(outW) + kBlockDim - 1) / kBlockDim;
