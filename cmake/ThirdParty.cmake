@@ -143,6 +143,21 @@ if(MIKAN_WITH_GSTREAMER)
   # here, not its import libs.
   if(WIN32 AND DEFINED ENV{CUDA_PATH})
     set(CUDA_TOOLKIT_INCLUDE_DIR "$ENV{CUDA_PATH}/include")
+
+    # Track D (JBU depth upsample, ticket D1+) links the real CUDA Driver API
+    # directly (cuda.lib, next to nvcuda.dll) rather than going through
+    # gstcuda's dynamically-loaded Cu*-prefixed wrappers - unlike Track C, this
+    # module is deliberately GStreamer-agnostic (testable standalone, and the
+    # plan calls for Track D to be developable in parallel with Track C). Both
+    # paths ultimately resolve to the one system nvcuda.dll per process, so a
+    # CUDA context established via GStreamer's wrappers is just as usable here
+    # as one created directly - see JBUKernel.h's class comment.
+    find_library(CUDA_DRIVER_LIBRARY NAMES cuda HINTS "$ENV{CUDA_PATH}/lib/x64" "$ENV{CUDA_PATH}/lib")
+
+    # nvcc compiles JBUKernel.cu to PTX at build time (see
+    # MikanARKitVideo/CMakeLists.txt) - loaded via cuModuleLoadData at runtime,
+    # not linked into any host translation unit.
+    find_program(CUDA_NVCC_EXECUTABLE NAMES nvcc HINTS "$ENV{CUDA_PATH}/bin")
   endif()
   find_package(GLIB2 REQUIRED)
   find_package(GObject REQUIRED)

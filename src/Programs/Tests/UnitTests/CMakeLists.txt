@@ -33,6 +33,28 @@ list(APPEND UNIT_TEST_SRC
 # loaded by arkit_video_source_system's tests). It's only exercised indirectly,
 # through the already-loaded plugin DLL, same as MikanARKitVideoDevice.cpp itself.
 
+# JBUKernel.h/.cpp (ticket D1) is plain CUDA Driver API C++ - no GObject/GstMeta
+# registration, so (unlike ARKitRTPHeaderExtension.cpp above) it's safe to
+# dual-compile into both this executable and MikanARKitVideo.dll, matching
+# RVLCodec.cpp etc. Needs the CUDA Toolkit headers/driver lib, which - like
+# GStreamer's own CUDA support - are only available when MIKAN_WITH_GSTREAMER is ON
+# (see ThirdParty.cmake).
+if(MIKAN_WITH_GSTREAMER)
+  list(APPEND UNIT_TEST_SRC
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/JBUKernel.h
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/JBUKernel.cpp
+  )
+
+  list(APPEND UNIT_TEST_INCL_DIRS
+    ${CUDA_TOOLKIT_INCLUDE_DIR}
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda
+  )
+
+  list(APPEND UNIT_TEST_LIBS
+    ${CUDA_DRIVER_LIBRARY}
+  )
+endif()
+
 list(APPEND UNIT_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${RFK_INCLUDE_DIR}
@@ -69,6 +91,9 @@ target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_SERIALIZATION_REFL
 target_compile_definitions(unit_test_suite_cpp PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANAPI_REFLECTION)
+if(MIKAN_WITH_GSTREAMER)
+  target_compile_definitions(unit_test_suite_cpp PRIVATE JBU_KERNEL_PTX_PATH="${MIKAN_ARKIT_JBU_KERNEL_PTX}")
+endif()
 SET_TARGET_PROPERTIES(unit_test_suite_cpp PROPERTIES FOLDER Test)
 
 # Create the command to run RefurekuGenerator
@@ -88,6 +113,7 @@ add_dependencies(unit_test_suite_cpp MikanSharedTexture)
 add_dependencies(unit_test_suite_cpp MikanUtility)
 if(MIKAN_WITH_GSTREAMER)
   add_dependencies(unit_test_suite_cpp MikanARKitVideo)
+  add_dependencies(unit_test_suite_cpp MikanARKitVideoJBUKernelPTX)
 endif()
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
