@@ -935,6 +935,92 @@ static bool arkit_jbu_kernel_test_bad_output_pointer_fails_at_synchronize_not_pr
 	UNIT_TEST_COMPLETE()
 }
 
+static bool arkit_jbu_kernel_test_repeated_runs_on_identical_input_are_bit_identical()
+{
+	UNIT_TEST_BEGIN("running the same input through the kernel twice produces bit-identical output (ticket D5's "
+					"no-flicker rationale: the algorithm itself is deterministic, no randomness anywhere)")
+
+	CUdevice device;
+	if (!cudaDeviceAvailable(device))
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	CUcontext context= nullptr;
+	success= (cuCtxCreate(&context, nullptr, 0, device) == CUDA_SUCCESS);
+	assert(success);
+
+	JBUKernel kernel;
+	success= success && kernel.init(JBU_KERNEL_PTX_PATH);
+	assert(success);
+
+	const int lowW= 16, lowH= 12;
+	const int outW= 64, outH= 48;
+
+	std::vector<uint16_t> depthLow;
+	std::vector<uint8_t> guide;
+	generateSyntheticInputs(lowW, lowH, outW, outH, depthLow, guide);
+	std::vector<uint8_t> confidence;
+	generateSyntheticConfidence(lowW, lowH, confidence);
+
+	// The D5-tuned defaults specifically (not a hand-picked test-only radius/sigma
+	// like the other tests here) - this test is about confirming those defaults
+	// don't introduce any nondeterminism, not about cross-checking the math.
+	JBUParams params;
+
+	CUdeviceptr d_depthLow= 0, d_confidence= 0, d_guide= 0, d_out= 0;
+	success= success && (cuMemAlloc(&d_depthLow, depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_confidence, confidence.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_guide, guide.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_out, static_cast<size_t>(outW) * outH * sizeof(float)) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success && (cuMemcpyHtoD(d_depthLow, depthLow.data(), depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_confidence, confidence.data(), confidence.size()) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_guide, guide.data(), guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	std::vector<float> firstRun(static_cast<size_t>(outW) * outH);
+	std::vector<float> secondRun(static_cast<size_t>(outW) * outH);
+
+	for (std::vector<float>* out : {&firstRun, &secondRun})
+	{
+		success= success
+				 && kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), d_confidence,
+									lowW, d_guide, outW, outH, outW * 3, d_out, outW, outH,
+									outW * static_cast<int>(sizeof(float)), params);
+		success= success && kernel.synchronize();
+		success= success && (cuMemcpyDtoH(out->data(), d_out, out->size() * sizeof(float)) == CUDA_SUCCESS);
+		assert(success);
+	}
+
+	bool identical= true;
+	for (size_t i= 0; i < firstRun.size(); ++i)
+	{
+		if (firstRun[i] != secondRun[i])
+		{
+			identical= false;
+			break;
+		}
+	}
+	success= success && identical;
+	assert(success);
+
+	if (d_depthLow != 0)
+		cuMemFree(d_depthLow);
+	if (d_confidence != 0)
+		cuMemFree(d_confidence);
+	if (d_guide != 0)
+		cuMemFree(d_guide);
+	if (d_out != 0)
+		cuMemFree(d_out);
+	kernel.shutdown();
+	if (context != nullptr)
+		cuCtxDestroy(context);
+
+	UNIT_TEST_COMPLETE()
+}
+
 static bool arkit_jbu_kernel_test_upsample_without_init_fails_cleanly()
 {
 	UNIT_TEST_BEGIN("upsample() before init() fails cleanly instead of crashing")
@@ -972,6 +1058,7 @@ bool run_arkit_jbu_kernel_unit_tests()
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_mixed_confidence_matches_cpu_reference);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_surface_kernel_matches_cpu_reference);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_timing_is_reported_and_reasonable);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_repeated_runs_on_identical_input_are_bit_identical);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_upsample_without_init_fails_cleanly);
 	// Runs last - triggers a real GPU fault, which can leave its own throwaway
 	// CUDA context in a driver-defined "unusable" state after the fact (expected,
