@@ -1,4 +1,5 @@
 #include "JBUKernel.h"
+#include "CudaErrorHandling.h"
 #include "Logger.h"
 
 #include <fstream>
@@ -19,22 +20,6 @@ bool readFileToString(const std::string& path, std::string& outContents)
 	outContents= ss.str();
 
 	return !outContents.empty();
-}
-
-bool checkCudaResult(CUresult result, const char* what)
-{
-	if (result == CUDA_SUCCESS)
-		return true;
-
-	const char* errorName= nullptr;
-	const char* errorString= nullptr;
-	cuGetErrorName(result, &errorName);
-	cuGetErrorString(result, &errorString);
-
-	MIKAN_LOG_ERROR("JBUKernel") << what << " failed: " << (errorName != nullptr ? errorName : "?") << " - "
-								 << (errorString != nullptr ? errorString : "unknown error");
-
-	return false;
 }
 } // namespace
 
@@ -72,31 +57,68 @@ bool JBUKernel::init(const std::string& ptxFilePath)
 		return false;
 	}
 
+	// Non-default, non-blocking stream (ticket D3) - never implicitly serializes
+	// against the legacy default stream, so upsample() doesn't unnecessarily block
+	// on (or block) whatever stream Track C's nvh264dec decode is using.
+	if (!checkCudaResult(cuStreamCreate(&m_stream, CU_STREAM_NON_BLOCKING), "cuStreamCreate"))
+	{
+		shutdown();
+		return false;
+	}
+
+	if (!checkCudaResult(cuEventCreate(&m_startEvent, CU_EVENT_DEFAULT), "cuEventCreate(start)")
+		|| !checkCudaResult(cuEventCreate(&m_stopEvent, CU_EVENT_DEFAULT), "cuEventCreate(stop)"))
+	{
+		shutdown();
+		return false;
+	}
+
 	return true;
 }
 
 void JBUKernel::shutdown()
 {
+	if (m_startEvent != nullptr)
+	{
+		cuEventDestroy(m_startEvent);
+		m_startEvent= nullptr;
+	}
+
+	if (m_stopEvent != nullptr)
+	{
+		cuEventDestroy(m_stopEvent);
+		m_stopEvent= nullptr;
+	}
+
+	if (m_stream != nullptr)
+	{
+		cuStreamDestroy(m_stream);
+		m_stream= nullptr;
+	}
+
 	if (m_module != nullptr)
 	{
 		cuModuleUnload(m_module);
 		m_module= nullptr;
 		m_kernelFunc= nullptr;
 	}
+
+	m_hasTiming= false;
 }
 
 bool JBUKernel::isInitialized() const { return m_module != nullptr; }
 
 bool JBUKernel::upsample(CUdeviceptr depthLow, int lowW, int lowH, int lowStrideBytes, CUdeviceptr confidence,
 						 int confidenceStrideBytes, CUdeviceptr guideRGB, int guideW, int guideH, int guideStrideBytes,
-						 CUdeviceptr depthOut, int outW, int outH, int outStrideBytes, const JBUParams& params,
-						 CUstream stream)
+						 CUdeviceptr depthOut, int outW, int outH, int outStrideBytes, const JBUParams& params)
 {
 	if (!isInitialized())
 	{
 		MIKAN_LOG_ERROR("JBUKernel::upsample") << "Kernel module not initialized";
 		return false;
 	}
+
+	m_hasTiming= false;
 
 	// Non-const: cuLaunchKernel's kernelParams is a void* const[] of pointers to
 	// each argument's storage, and a const T* can't implicitly convert to void*.
@@ -138,7 +160,53 @@ bool JBUKernel::upsample(CUdeviceptr depthLow, int lowW, int lowH, int lowStride
 	const unsigned int gridX= (static_cast<unsigned int>(outW) + kBlockDim - 1) / kBlockDim;
 	const unsigned int gridY= (static_cast<unsigned int>(outH) + kBlockDim - 1) / kBlockDim;
 
-	return checkCudaResult(
-		cuLaunchKernel(m_kernelFunc, gridX, gridY, 1, kBlockDim, kBlockDim, 1, 0, stream, args, nullptr),
-		"cuLaunchKernel");
+	// Events bracket just the kernel launch itself (not the whole enqueue path),
+	// all on this instance's dedicated stream, so getLastKernelMilliseconds()
+	// reflects actual GPU execution time.
+	if (!checkCudaResult(cuEventRecord(m_startEvent, m_stream), "cuEventRecord(start)"))
+		return false;
+
+	if (!checkCudaResult(
+			cuLaunchKernel(m_kernelFunc, gridX, gridY, 1, kBlockDim, kBlockDim, 1, 0, m_stream, args, nullptr),
+			"cuLaunchKernel"))
+		return false;
+
+	if (!checkCudaResult(cuEventRecord(m_stopEvent, m_stream), "cuEventRecord(stop)"))
+		return false;
+
+	m_hasTiming= true;
+	return true;
+}
+
+bool JBUKernel::synchronize()
+{
+	if (!isInitialized())
+	{
+		MIKAN_LOG_ERROR("JBUKernel::synchronize") << "Kernel module not initialized";
+		return false;
+	}
+
+	// A kernel-execution error (e.g. an illegal memory access from a bad input
+	// pointer passed to upsample()) surfaces here, asynchronously, per normal CUDA
+	// semantics - not at the upsample() call that enqueued it.
+	return checkCudaResult(cuStreamSynchronize(m_stream), "cuStreamSynchronize");
+}
+
+float JBUKernel::getLastKernelMilliseconds() const
+{
+	if (!m_hasTiming)
+		return -1.0f;
+
+	float milliseconds= 0.0f;
+	// CUDA_ERROR_NOT_READY (the stop event hasn't completed yet, i.e. the caller
+	// hasn't synchronized) is expected and just means "not available yet" - only
+	// log genuinely unexpected failures.
+	const CUresult result= cuEventElapsedTime(&milliseconds, m_startEvent, m_stopEvent);
+	if (result == CUDA_SUCCESS)
+		return milliseconds;
+
+	if (result != CUDA_ERROR_NOT_READY)
+		checkCudaResult(result, "cuEventElapsedTime");
+
+	return -1.0f;
 }

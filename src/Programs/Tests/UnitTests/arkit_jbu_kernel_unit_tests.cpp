@@ -276,7 +276,7 @@ static bool arkit_jbu_kernel_test_uniform_depth_propagates_unchanged()
 		&& kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), 0, 0, d_guide, guideW,
 						   guideH, guideW * 3, d_out, guideW, guideH, guideW * static_cast<int>(sizeof(float)), params);
 	assert(success);
-	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
+	success= success && kernel.synchronize();
 	assert(success);
 
 	std::vector<float> out(static_cast<size_t>(guideW) * guideH);
@@ -356,7 +356,7 @@ static bool arkit_jbu_kernel_test_matches_cpu_reference()
 			 && kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), 0, 0, d_guide, outW,
 								outH, outW * 3, d_out, outW, outH, outW * static_cast<int>(sizeof(float)), params);
 	assert(success);
-	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
+	success= success && kernel.synchronize();
 	assert(success);
 
 	std::vector<float> gpuOut(static_cast<size_t>(outW) * outH);
@@ -440,7 +440,7 @@ static bool arkit_jbu_kernel_test_high_confidence_matches_unweighted_baseline()
 								d_guide, outW, outH, outW * 3, d_outHighConf, outW, outH,
 								outW * static_cast<int>(sizeof(float)), params);
 	assert(success);
-	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
+	success= success && kernel.synchronize();
 	assert(success);
 
 	std::vector<float> outNoConf(static_cast<size_t>(outW) * outH);
@@ -537,7 +537,7 @@ static bool arkit_jbu_kernel_test_all_low_confidence_degenerate_case_outputs_zer
 								d_guide, outW, outH, outW * 3, d_out, outW, outH,
 								outW * static_cast<int>(sizeof(float)), params);
 	assert(success);
-	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
+	success= success && kernel.synchronize();
 	assert(success);
 
 	std::vector<float> out(static_cast<size_t>(outW) * outH);
@@ -626,7 +626,7 @@ static bool arkit_jbu_kernel_test_mixed_confidence_matches_cpu_reference()
 								d_guide, outW, outH, outW * 3, d_out, outW, outH,
 								outW * static_cast<int>(sizeof(float)), params);
 	assert(success);
-	success= success && (cuCtxSynchronize() == CUDA_SUCCESS);
+	success= success && kernel.synchronize();
 	assert(success);
 
 	std::vector<float> gpuOut(static_cast<size_t>(outW) * outH);
@@ -652,6 +652,153 @@ static bool arkit_jbu_kernel_test_mixed_confidence_matches_cpu_reference()
 	kernel.shutdown();
 	if (context != nullptr)
 		cuCtxDestroy(context);
+
+	UNIT_TEST_COMPLETE()
+}
+
+static bool arkit_jbu_kernel_test_timing_is_reported_and_reasonable()
+{
+	UNIT_TEST_BEGIN("getLastKernelMilliseconds() reports a real, sub-frame-budget elapsed time after synchronize()")
+
+	CUdevice device;
+	if (!cudaDeviceAvailable(device))
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	CUcontext context= nullptr;
+	success= (cuCtxCreate(&context, nullptr, 0, device) == CUDA_SUCCESS);
+	assert(success);
+
+	JBUKernel kernel;
+	success= success && kernel.init(JBU_KERNEL_PTX_PATH);
+	assert(success);
+
+	// Not yet run - no timing available.
+	success= success && (kernel.getLastKernelMilliseconds() < 0.0f);
+	assert(success);
+
+	const int lowW= 16, lowH= 12;
+	const int outW= 64, outH= 48;
+
+	std::vector<uint16_t> depthLow;
+	std::vector<uint8_t> guide;
+	generateSyntheticInputs(lowW, lowH, outW, outH, depthLow, guide);
+
+	CUdeviceptr d_depthLow= 0, d_guide= 0, d_out= 0;
+	success= success && (cuMemAlloc(&d_depthLow, depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_guide, guide.size()) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_out, static_cast<size_t>(outW) * outH * sizeof(float)) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success && (cuMemcpyHtoD(d_depthLow, depthLow.data(), depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_guide, guide.data(), guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	JBUParams params;
+	params.radius= 8;
+
+	success= success
+			 && kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), 0, 0, d_guide, outW,
+								outH, outW * 3, d_out, outW, outH, outW * static_cast<int>(sizeof(float)), params);
+	assert(success);
+
+	success= success && kernel.synchronize();
+	assert(success);
+
+	const float ms= kernel.getLastKernelMilliseconds();
+	// A tiny 64x48 kernel launch should be well under a 30fps (33ms) frame
+	// budget, let alone 16ms - a generous upper bound here just catches gross
+	// regressions (e.g. accidentally measuring wall-clock host time instead of
+	// GPU time), not a tight performance assertion.
+	success= success && (ms >= 0.0f) && (ms < 16.0f);
+	assert(success);
+
+	if (d_depthLow != 0)
+		cuMemFree(d_depthLow);
+	if (d_guide != 0)
+		cuMemFree(d_guide);
+	if (d_out != 0)
+		cuMemFree(d_out);
+	kernel.shutdown();
+	if (context != nullptr)
+		cuCtxDestroy(context);
+
+	UNIT_TEST_COMPLETE()
+}
+
+static bool arkit_jbu_kernel_test_bad_output_pointer_fails_at_synchronize_not_process_crash()
+{
+	UNIT_TEST_BEGIN(
+		"a kernel fault from an invalid device pointer is caught at synchronize() (async CUDA error), not a crash")
+
+	CUdevice device;
+	if (!cudaDeviceAvailable(device))
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	CUcontext context= nullptr;
+	success= (cuCtxCreate(&context, nullptr, 0, device) == CUDA_SUCCESS);
+	assert(success);
+
+	JBUKernel kernel;
+	success= success && kernel.init(JBU_KERNEL_PTX_PATH);
+	assert(success);
+
+	const int lowW= 16, lowH= 12;
+	const int outW= 64, outH= 48;
+
+	std::vector<uint16_t> depthLow;
+	std::vector<uint8_t> guide;
+	generateSyntheticInputs(lowW, lowH, outW, outH, depthLow, guide);
+
+	CUdeviceptr d_depthLow= 0, d_guide= 0;
+	success= success && (cuMemAlloc(&d_depthLow, depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemAlloc(&d_guide, guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	success= success && (cuMemcpyHtoD(d_depthLow, depthLow.data(), depthLow.size() * sizeof(uint16_t)) == CUDA_SUCCESS);
+	success= success && (cuMemcpyHtoD(d_guide, guide.data(), guide.size()) == CUDA_SUCCESS);
+	assert(success);
+
+	// Deliberately invalid, unallocated device pointer (ticket D3's "inject a
+	// deliberate CUDA error" verification) - every thread writes to depthOut, so
+	// this reliably faults the kernel with an illegal address rather than merely
+	// producing garbage output. cuLaunchKernel itself only enqueues work and is
+	// expected to succeed; the fault is only observable asynchronously, at the
+	// next synchronization point (see JBUKernel::synchronize's comment).
+	const CUdeviceptr kBadDevicePtr= static_cast<CUdeviceptr>(0x1);
+
+	JBUParams params;
+	params.radius= 8;
+
+	const bool launchEnqueued=
+		kernel.upsample(d_depthLow, lowW, lowH, lowW * static_cast<int>(sizeof(uint16_t)), 0, 0, d_guide, outW, outH,
+						outW * 3, kBadDevicePtr, outW, outH, outW * static_cast<int>(sizeof(float)), params);
+	success= success && launchEnqueued;
+	assert(success);
+
+	// The fault must be reported here, as a normal false return - not a process
+	// crash/abort. This is the whole point of ticket D3's async error handling:
+	// the caller can log this and skip the frame's depth upsample rather than the
+	// app dying.
+	const bool synchronizeSucceeded= kernel.synchronize();
+	success= success && !synchronizeSucceeded;
+	assert(success);
+
+	// Deliberately NOT calling cuMemFree/kernel.shutdown()/cuCtxDestroy here.
+	// After an illegal-address fault, the CUDA context is left in a
+	// driver-defined broken state where further Driver API calls against it are
+	// not just error-returning but can themselves crash the host process
+	// (confirmed empirically while writing this test: cuMemFree/cuCtxDestroy on
+	// the post-fault context segfaulted this whole test binary, not just failed
+	// gracefully) - so once the fault is confirmed via synchronize(), this
+	// context and its allocations are simply abandoned/leaked for the remainder
+	// of the process, exactly as real production code must also do (see
+	// JBUKernel's class comment: on a real async fault, the right move is to
+	// treat the whole context/session as unrecoverable, not attempt to keep
+	// using it).
 
 	UNIT_TEST_COMPLETE()
 }
@@ -691,7 +838,13 @@ bool run_arkit_jbu_kernel_unit_tests()
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_high_confidence_matches_unweighted_baseline);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_all_low_confidence_degenerate_case_outputs_zero);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_mixed_confidence_matches_cpu_reference);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_timing_is_reported_and_reasonable);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_upsample_without_init_fails_cleanly);
+	// Runs last - triggers a real GPU fault, which can leave its own throwaway
+	// CUDA context in a driver-defined "unusable" state after the fact (expected,
+	// see the test's own comment); harmless since every test here uses its own
+	// fresh context, but keeping it last avoids any doubt.
+	UNIT_TEST_MODULE_CALL_TEST(arkit_jbu_kernel_test_bad_output_pointer_fails_at_synchronize_not_process_crash);
 	UNIT_TEST_MODULE_END()
 }
 
