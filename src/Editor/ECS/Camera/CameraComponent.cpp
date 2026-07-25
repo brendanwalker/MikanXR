@@ -1,6 +1,8 @@
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
 #include "CameraMath.h"
+
+#include <cmath>
 #include "App.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "AlignCameraByUtilityMarker/AppStage_AlignCameraByUtilityMarker.h"
@@ -238,11 +240,60 @@ void CameraComponent::update(float deltaSeconds)
 {
 	TransformComponent::update(deltaSeconds);
 
+	// Frame-coupled pose (ticket E4): if this camera's video source delivers pose
+	// alongside its video frames (currently just ARKit - see
+	// IFrameCoupledPoseProvider's own comment for why this is keyed off
+	// videoSourceId rather than trackingMountId), prefer that over polling a
+	// separate VR-tracked puck once per tick. Falls through to the existing
+	// tracking-mount path unchanged for every other camera (non-ARKit video
+	// source, or an ARKit source that hasn't received a pose yet) - see
+	// IFrameCoupledPoseProvider.h for the full backward-compatibility argument.
+	VideoSourceComponentPtr videoSourceComponent= getVideoSourceComponent();
+	if (auto poseProvider= std::dynamic_pointer_cast<IFrameCoupledPoseProvider>(videoSourceComponent))
+	{
+		glm::mat4 transform;
+		MikanVideoSourceIntrinsics intrinsics;
+		uint32_t frameSeq;
+		if (poseProvider->getLatestFrameCoupledPose(transform, intrinsics, frameSeq))
+		{
+			setRelativeTransform(GlmTransform(transform));
+			maybeUpdateFrameCoupledIntrinsics(videoSourceComponent, intrinsics);
+			return;
+		}
+	}
+
 	// If the camera is attached to a tracking puck, update the transform of the camera aperture
 	if (hasValidTrackingMountComponent())
 	{
 		updateAperturePoseFromTrackingMount();
 	}
+}
+
+void CameraComponent::maybeUpdateFrameCoupledIntrinsics(VideoSourceComponentPtr videoSourceComponent,
+														const MikanVideoSourceIntrinsics& newIntrinsics)
+{
+	if (!videoSourceComponent || newIntrinsics.intrinsics_type != MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+		return;
+
+	constexpr double k_relativeChangeThreshold= 0.01; // 1%, per this ticket's edge-case note
+
+	MikanVideoSourceIntrinsics currentIntrinsics;
+	if (videoSourceComponent->getCameraIntrinsics(currentIntrinsics)
+		&& currentIntrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+	{
+		const MikanMatrix3d& currentMatrix= currentIntrinsics.getMonoIntrinsics().undistorted_camera_matrix;
+		const MikanMatrix3d& newMatrix= newIntrinsics.getMonoIntrinsics().undistorted_camera_matrix;
+
+		const double fxChange=
+			currentMatrix.x0 != 0.0 ? std::abs(newMatrix.x0 - currentMatrix.x0) / std::abs(currentMatrix.x0) : 1.0;
+		const double fyChange=
+			currentMatrix.y1 != 0.0 ? std::abs(newMatrix.y1 - currentMatrix.y1) / std::abs(currentMatrix.y1) : 1.0;
+
+		if (fxChange < k_relativeChangeThreshold && fyChange < k_relativeChangeThreshold)
+			return; // Not a significant change - skip the recomputeCameraProjectionMatrix() this would trigger
+	}
+
+	videoSourceComponent->setCameraIntrinsics(newIntrinsics);
 }
 
 void CameraComponent::updateAperturePoseFromTrackingMount()

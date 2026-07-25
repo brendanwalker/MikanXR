@@ -1,8 +1,13 @@
 #pragma once
 
 #include "IARKitVideoDevice.h"
+#include "IFrameCoupledPoseProvider.h"
+#include "MikanVideoSourceTypes.h"
 #include "MkRendererFwd.h"
 #include "VideoSourceComponent.h"
+
+#include <atomic>
+#include <mutex>
 
 class ARKitVideoSourceDefinition : public VideoSourceDefinition
 {
@@ -66,7 +71,9 @@ private:
 	float m_jbuConfWeightMedium;
 };
 
-class ARKitVideoSourceComponent : public VideoSourceComponent, public IARKitVideoDeviceListener
+class ARKitVideoSourceComponent : public VideoSourceComponent,
+								  public IARKitVideoDeviceListener,
+								  public IFrameCoupledPoseProvider
 {
 public:
 	ARKitVideoSourceComponent(MikanObjectWeakPtr owner);
@@ -94,6 +101,17 @@ public:
 	// -- Zero-copy GPU texture access (ticket E3) ----
 	virtual IMkTexturePtr getDirectColorTexture() const override;
 	virtual IMkTexturePtr getDirectDepthTexture() const override;
+
+	// Latest bundle's frameSeq (video, depth, or pose - whichever arrived most
+	// recently), or -1 if none has arrived yet (ticket E4 - see
+	// VideoSourceComponent::getDirectFrameIndex()'s own comment for why this
+	// exists: it's what makes VideoFrameDistortionView's change-detection work
+	// again for this GPU-direct source).
+	virtual int64_t getDirectFrameIndex() const override;
+
+	// -- IFrameCoupledPoseProvider ----
+	virtual bool getLatestFrameCoupledPose(glm::mat4& outTransform, MikanVideoSourceIntrinsics& outIntrinsics,
+										   uint32_t& outFrameSeq) const override;
 
 	// -- IARKitVideoDeviceListener ----
 	virtual void notifyDeviceOpened(const class IARKitVideoDevice* device) override;
@@ -137,4 +155,28 @@ private:
 	// changed - see GlExternalTexture::setExternalPlatformTexture).
 	mutable IMkExternalTexturePtr m_colorTextureWrapper;
 	mutable IMkExternalTexturePtr m_depthTextureWrapper;
+
+	// Latest frame-coupled pose (ticket E4) - notifyFrameBundleReceived() can fire
+	// from a background receiver thread (see that method's own override in the
+	// .cpp and IARKitVideoDeviceListener's documented threading contract), while
+	// getLatestFrameCoupledPose()/getDirectFrameIndex() are read from the main/GL
+	// thread inside CameraComponent::update() - hence the mutex, same pattern as
+	// MikanARKitVideoDevice's own "latest depth" cache added in E3.
+	mutable std::mutex m_latestPoseMutex;
+	struct LatestPose
+	{
+		glm::mat4 transform= glm::mat4(1.0f);
+		MikanVideoSourceIntrinsics intrinsics;
+		uint32_t frameSeq= 0;
+		bool bValid= false;
+	};
+	LatestPose m_latestPose;
+
+	// Latest frameSeq seen across ANY bundle (video/depth/pose), not just ones with
+	// pose - getDirectFrameIndex() needs this to keep VideoFrameDistortionView's
+	// change-detection working even for bundles that arrive without a pose (e.g.
+	// depth streaming disabled, or an occasional dropped pose packet). A plain
+	// atomic rather than folding into m_latestPoseMutex since it's a single scalar
+	// updated unconditionally on every bundle, independent of pose validity.
+	std::atomic<int64_t> m_lastBundleFrameSeq{-1};
 };

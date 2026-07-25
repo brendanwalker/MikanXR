@@ -400,10 +400,18 @@ void VideoFrameDistortionView::writeStereoVideoFrameSection(const unsigned char*
 
 bool VideoFrameDistortionView::hasNewVideoFrame() const
 {
-	// GPU-direct sources (ticket E3) write straight into their own CUDA-GL-interop
-	// texture every decoded frame, with no CPU-side write/read index bookkeeping at
-	// all - treat "a live direct texture exists" as "always has a new frame" rather
-	// than trying to track discrete frame arrival at this layer.
+	// GPU-direct sources (ticket E3/E4): prefer a real frame index
+	// (VideoSourceComponent::getDirectFrameIndex(), e.g. ARKit's wire-protocol
+	// frameSeq) when the source provides one, so change-detection reflects actual
+	// new-frame arrivals rather than firing every single call.
+	const int64_t directFrameIndex= m_videoSourceComponent->getDirectFrameIndex();
+	if (directFrameIndex >= 0)
+		return m_lastVideoFrameReadIndex != directFrameIndex;
+
+	// Fallback for GPU-direct sources that don't provide a real frame index yet -
+	// write straight into their own CUDA-GL-interop texture every decoded frame,
+	// with no CPU-side write/read index bookkeeping at all, so just treat "a live
+	// direct texture exists" as "always has a new frame."
 	if (m_videoSourceComponent->getDirectColorTexture() != nullptr)
 		return true;
 
@@ -533,13 +541,18 @@ int64_t VideoFrameDistortionView::readAndProcessVideoFrame()
 
 	if (m_videoSourceComponent->getDirectColorTexture() != nullptr)
 	{
-		// GPU-direct source (ticket E3) - no CPU frame queue/undistortion pipeline
-		// to drive here; getVideoTexture() below already returns the live texture
-		// directly every call. Bump the read index by 1 each time so callers that
-		// compare it against a previously-seen value (e.g.
-		// CompositorComponent::tryEnqueueNewFrame) still see it advancing.
+		// GPU-direct source (ticket E3/E4) - no CPU frame queue/undistortion
+		// pipeline to drive here; getVideoTexture() below already returns the live
+		// texture directly every call. Track a real frame index when the source
+		// provides one (e.g. ARKit's frameSeq, via getDirectFrameIndex()) so
+		// callers that compare it against a previously-seen value (e.g.
+		// CompositorComponent::tryEnqueueNewFrame) only see it advance on an
+		// actual new frame, not every single call - falls back to a plain
+		// increment-per-call counter for any GPU-direct source that doesn't
+		// provide one.
+		const int64_t directFrameIndex= m_videoSourceComponent->getDirectFrameIndex();
 		m_bVideoIsStreaming= true;
-		m_lastVideoFrameReadIndex++;
+		m_lastVideoFrameReadIndex= (directFrameIndex >= 0) ? directFrameIndex : (m_lastVideoFrameReadIndex + 1);
 		return m_lastVideoFrameReadIndex;
 	}
 

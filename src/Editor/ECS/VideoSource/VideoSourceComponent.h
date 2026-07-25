@@ -99,6 +99,13 @@ public:
 	virtual IMkTexturePtr getDirectColorTexture() const { return IMkTexturePtr(); }
 	virtual IMkTexturePtr getDirectDepthTexture() const { return IMkTexturePtr(); }
 
+	// Frame index for GPU-direct sources (ticket E4), used by VideoFrameDistortionView
+	// as the "has a new frame arrived" change-detection key in place of the
+	// CPU-buffer m_lastVideoFrameWriteIndex (which GPU-direct sources never
+	// advance, since they never call writeVideoFrame()). Default -1 means "not
+	// applicable" - only overridden by GPU-direct sources (currently just ARKit).
+	virtual int64_t getDirectFrameIndex() const { return -1; }
+
 	virtual bool getVideoModeName(std::string& outVideoModeName) const;
 	virtual bool getFrameRate(float& outFrameRate) const;
 	virtual bool getVideoColorimetry(VideoColorimetry& outColorimetry) const;

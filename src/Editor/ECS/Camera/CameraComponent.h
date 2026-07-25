@@ -2,6 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "IFrameCoupledPoseProvider.h"
 #include "TransformComponent.h"
 #include "MikanTypeFwd.h"
 #include "MikanCameraTypes.h"
@@ -151,6 +152,13 @@ protected:
 	void rebuildStageSpacePoseView();
 	void updateAperturePoseFromTrackingMount();
 	void onActiveDeviceListChanged(eTrackingRuntime runtime);
+
+	// Frame-coupled pose (ticket E4) - only applies latest intrinsics to the video
+	// source if they changed meaningfully (>1% relative fx/fy), avoiding an
+	// unnecessary recomputeCameraProjectionMatrix() every single tick when (as
+	// expected) ARKit's reported intrinsics are essentially constant frame to frame.
+	void maybeUpdateFrameCoupledIntrinsics(VideoSourceComponentPtr videoSourceComponent,
+										   const struct MikanVideoSourceIntrinsics& newIntrinsics);
 
 private:
 	SelectionComponentWeakPtr m_selectionComponent;

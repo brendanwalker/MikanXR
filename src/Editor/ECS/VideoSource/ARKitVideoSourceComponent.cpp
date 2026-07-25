@@ -1,5 +1,6 @@
 #include "ARKitVideoSourceComponent.h"
 #include "ARKitVideoSourceSystem.h"
+#include "CameraMath.h"
 #include "IARKitVideoDeviceManager.h"
 #include "IMkTexture.h"
 #include "MikanObject.h"
@@ -422,6 +423,11 @@ void ARKitVideoSourceComponent::notifyFrameBundleReceived(const ARKitVideoFrameB
 {
 	assert(m_arkitVideoDevice != nullptr);
 
+	// Tracked unconditionally (independent of which fields this particular bundle
+	// carries) so getDirectFrameIndex() reflects the latest frameSeq seen at all,
+	// not just ones with a pose - see that method's declaration comment.
+	m_lastBundleFrameSeq.store(static_cast<int64_t>(bundle.frameSeq));
+
 	// As of ticket C4, the video pipeline hardware-decodes straight to CUDA device
 	// memory (see MikanARKitVideoDevice::notifyFrameBundleReceived) - bundle.videoData
 	// is always null today, so there's nothing to hand to writeVideoFrame() yet.
@@ -442,8 +448,62 @@ void ARKitVideoSourceComponent::notifyFrameBundleReceived(const ARKitVideoFrameB
 		writeVideoFrame(bundle.videoData, bufferDimensions, is_frame_flipped);
 	}
 
-	// bundle.depth is deliberately left untouched here - there's no depth-texture
-	// slot to write into yet (see ticket E3, which owns adding one).
+	// bundle.depth is deliberately left untouched here - MikanARKitVideoDevice's own
+	// CUDA-GL depth pipeline (ticket E3) reads depth via its own "latest depth"
+	// cache, decoupled from this correlator bundle entirely - see that class.
+
+	// Frame-coupled pose (ticket E4).
+	if (bundle.hasPose)
+	{
+		// ARKitPoseFrameBuffer::transform is row-major camera-to-world
+		// (IARKitVideoDevice.h) - glm::mat4's constructor/subscript operators are
+		// column-major, so this must be transposed, not just memcpy'd. This exact
+		// row/column-major mixup was flagged as the single most likely bug spot
+		// back when the wire format was first designed (Track A5) - get it wrong
+		// here and the camera pose will look like a scrambled/sheared transform,
+		// not an obviously-wrong one.
+		const float* t= bundle.pose.transform;
+		const glm::mat4 cameraToWorld(t[0], t[4], t[8], t[12], t[1], t[5], t[9], t[13], t[2], t[6], t[10], t[14], t[3],
+									  t[7], t[11], t[15]);
+
+		MikanVideoSourceIntrinsics intrinsics;
+		MikanMonoIntrinsics monoIntrinsics;
+		createDefautMonoIntrinsics(static_cast<int>(bundle.pose.imageWidth), static_cast<int>(bundle.pose.imageHeight),
+								   monoIntrinsics);
+		// Overwrite the synthetic fx/fy/cx/cy with ARKit's real, per-frame values -
+		// znear/zfar/pixel_width/pixel_height from the synthetic defaults are kept
+		// as-is (ARKit doesn't report clip planes, and pixel dimensions already
+		// match since they were used to build the synthetic intrinsics above).
+		// ARKit reports no distortion coefficients, so distorted == undistorted.
+		monoIntrinsics.undistorted_camera_matrix.x0= bundle.pose.fx;
+		monoIntrinsics.undistorted_camera_matrix.y1= bundle.pose.fy;
+		monoIntrinsics.undistorted_camera_matrix.x2= bundle.pose.cx;
+		monoIntrinsics.undistorted_camera_matrix.y2= bundle.pose.cy;
+		monoIntrinsics.distorted_camera_matrix= monoIntrinsics.undistorted_camera_matrix;
+		intrinsics.makeMonoIntrinsics()= monoIntrinsics;
+
+		std::lock_guard<std::mutex> lock(m_latestPoseMutex);
+		m_latestPose.transform= cameraToWorld;
+		m_latestPose.intrinsics= intrinsics;
+		m_latestPose.frameSeq= bundle.frameSeq;
+		m_latestPose.bValid= true;
+	}
+}
+
+int64_t ARKitVideoSourceComponent::getDirectFrameIndex() const { return m_lastBundleFrameSeq.load(); }
+
+bool ARKitVideoSourceComponent::getLatestFrameCoupledPose(glm::mat4& outTransform,
+														  MikanVideoSourceIntrinsics& outIntrinsics,
+														  uint32_t& outFrameSeq) const
+{
+	std::lock_guard<std::mutex> lock(m_latestPoseMutex);
+	if (!m_latestPose.bValid)
+		return false;
+
+	outTransform= m_latestPose.transform;
+	outIntrinsics= m_latestPose.intrinsics;
+	outFrameSeq= m_latestPose.frameSeq;
+	return true;
 }
 
 // -- IPropertyInterface ----
