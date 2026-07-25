@@ -768,6 +768,60 @@ IMkShaderCodeConstPtr getPTVisualizeGLDepthShaderCode()
 	return x_shaderCode;
 }
 
+IMkShaderCodeConstPtr getPTVisualizeARKitDepthShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		// Debug/verification tool (ticket E3 follow-up) - visualizes ARKit's
+		// zero-copy depth texture (CudaGLDepthTexture, MK_R32F), which is already
+		// LINEAR depth in millimeters (JBU-upsampled from ARKit's LiDAR sceneDepth -
+		// see JBUKernel.h), unlike INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH above which
+		// assumes a non-linear [0,1] GL depth-buffer value and un-projects it via
+		// zNear/zFar - not applicable here. 5000mm (5m) is a fixed, reasonable
+		// indoor-AR default range for visualization contrast, not derived from any
+		// real calibration; 0/invalid samples (JBUKernel's degenerate-case output)
+		// render black.
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_VISUALIZE_ARKIT_DEPTH,
+										  // vertex shader
+										  R""""(
+				#version 330 core
+				layout (location = 0) in vec2 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+				}
+				)"""",
+										  // fragment shader
+										  R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in vec2 TexCoords;
+
+				uniform sampler2D depthTexture;
+
+				void main()
+				{
+					float depthMM = texture(depthTexture, TexCoords).r;
+					float t = clamp(depthMM / 5000.0, 0.0, 1.0);
+					FragColor = vec4(t, t, t, 1.0);
+				}
+				)"""");
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("depthTexture", eUniformSemantic::depthTexture);
+	}
+
+	return x_shaderCode;
+}
+
 IMkShaderCodeConstPtr getPM5544TestCardShaderCode()
 {
 	static IMkShaderCodePtr x_shaderCode= nullptr;
@@ -1154,6 +1208,7 @@ bool registerInternalShaders(IMkShaderCache* shaderCache)
 		getPNTTexturedColoredShaderCode(),
 		getPLinearDepthShaderCode(),
 		getPTVisualizeGLDepthShaderCode(),
+		getPTVisualizeARKitDepthShaderCode(),
 		getPM5544TestCardShaderCode(),
 		getPConeVolumeShaderCode(),
 		getPTLinearizeRGBShaderCode(),

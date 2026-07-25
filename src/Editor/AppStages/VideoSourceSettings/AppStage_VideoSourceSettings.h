@@ -3,6 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include "ComponentFwd.h"
+#include "MkRendererFwd.h"
 
 #include <memory>
 #include <vector>
@@ -44,4 +45,15 @@ protected:
 
 	VideoSourceComponentWeakPtr m_videoSourceComponent;
 	VideoFrameDistortionViewPtr m_videoBufferView;
+
+	// ARKit depth preview (debug/verification tool) - only selectable when the
+	// current video source is ARKit, see ARKitVideoSourceComponent.
+	bool m_bIsARKitVideoSource= false;
+	enum class eDisplayMode
+	{
+		Color,
+		DepthPreview
+	};
+	eDisplayMode m_displayMode= eDisplayMode::Color;
+	IMkTriangulatedMeshPtr m_fullscreenDepthPreviewQuad;
 };

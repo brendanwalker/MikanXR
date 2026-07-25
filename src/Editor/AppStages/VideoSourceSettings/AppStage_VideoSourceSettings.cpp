@@ -1,13 +1,18 @@
 //-- inludes -----
 #include "VideoSourceSettings/AppStage_VideoSourceSettings.h"
+#include "ARKitVideoSourceComponent.h"
 #include "Shared/GuiPanel_USBVideoSourceComponent.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
+#include "IMkGraphicsContext.h"
+#include "IMkShaderCache.h"
+#include "IMkTriangulatedMesh.h"
 #include "MikanTextRenderer.h"
 #include "MainWindow.h"
 #include "MkGuiScopedWindow.h"
+#include "MkMaterialInstance.h"
 #include "MulticastDelegate.h"
 #include "NetworkVideoSourceComponent.h"
 #include "ProjectConfig.h"
@@ -63,6 +68,18 @@ void AppStage_VideoSourceSettings::enter()
 		// Register as a stream consumer (VideoSourceComponent::update() drives the retry loop)
 		videoSourceComponent->startVideoStream(m_videoBufferView.get());
 	}
+
+	// ARKit depth preview (debug/verification tool) - only ever selectable when the
+	// current video source is ARKit; force back to Color otherwise so switching
+	// away from an ARKit source doesn't leave the display stuck on an unavailable mode.
+	m_bIsARKitVideoSource= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(videoSourceComponent) != nullptr;
+	if (!m_bIsARKitVideoSource)
+		m_displayMode= eDisplayMode::Color;
+
+	IMkGraphicsContext* graphicsContext= m_ownerWindow->getGraphicsContext().get();
+	m_fullscreenDepthPreviewQuad= createFullscreenQuadMesh(
+		graphicsContext,
+		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_VISUALIZE_ARKIT_DEPTH), true);
 }
 
 void AppStage_VideoSourceSettings::exit()
@@ -134,13 +151,41 @@ void AppStage_VideoSourceSettings::onGui()
 		onReturnEvent();
 	ImGui::Separator();
 
+	if (m_bIsARKitVideoSource)
+	{
+		int displayModeInt= (int)m_displayMode;
+		ImGui::RadioButton("Color", &displayModeInt, (int)eDisplayMode::Color);
+		ImGui::RadioButton("Depth Preview", &displayModeInt, (int)eDisplayMode::DepthPreview);
+		m_displayMode= (eDisplayMode)displayModeInt;
+		ImGui::Separator();
+	}
+
 	for (IGuiPanel* guiPanel : m_guiPanels)
 		guiPanel->onGui();
 }
 
 void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 {
-	if (m_videoBufferView != nullptr)
+	IMkTexturePtr depthPreviewTexture= (m_displayMode == eDisplayMode::DepthPreview && m_videoBufferView != nullptr)
+										   ? m_videoBufferView->getDirectDepthTexture()
+										   : IMkTexturePtr();
+
+	if (depthPreviewTexture && m_fullscreenDepthPreviewQuad)
+	{
+		MkMaterialInstancePtr materialInstance= m_fullscreenDepthPreviewQuad->getMaterialInstance();
+		MkMaterialConstPtr material= materialInstance->getMaterial();
+
+		if (auto materialBinding= material->bindMaterial())
+		{
+			materialInstance->setTextureBySemantic(eUniformSemantic::depthTexture, depthPreviewTexture);
+
+			if (auto instanceBinding= materialInstance->bindMaterialInstance(materialBinding))
+			{
+				m_fullscreenDepthPreviewQuad->drawElements();
+			}
+		}
+	}
+	else if (m_videoBufferView != nullptr)
 	{
 		m_videoBufferView->renderSelectedVideoBuffers();
 	}
