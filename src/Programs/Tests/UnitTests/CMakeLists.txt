@@ -103,6 +103,9 @@ target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_SERIALIZATION_REFL
 target_compile_definitions(unit_test_suite_cpp PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANAPI_REFLECTION)
+# Real-device RVL cross-check fixture (ticket A9 follow-up) - see docs/README.md.
+# Baked in as an absolute path the same way JBU_KERNEL_PTX_PATH is below.
+target_compile_definitions(unit_test_suite_cpp PRIVATE ARKIT_RVL_TEST_VECTORS_PATH="${ROOT_DIR}/docs/rvl_test_vectors.json")
 if(MIKAN_WITH_GSTREAMER)
   target_compile_definitions(unit_test_suite_cpp PRIVATE JBU_KERNEL_PTX_PATH="${MIKAN_ARKIT_JBU_KERNEL_PTX}")
 endif()
