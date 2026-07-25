@@ -751,11 +751,11 @@ void MikanARKitVideoDevice::updateColorAndDepthTextures(GstBuffer* buffer, CUdev
 		CUsurfObject depthSurface= 0;
 		if (m_depthTexture.beginCudaAccess(depthSurface))
 		{
-			// D5-tuned defaults (see JBUParams in JBUKernel.h) - not yet wired to
-			// ARKitVideoSourceDefinition's own JBU tuning properties (stored since
-			// ticket E1 but not consumed by anything until now); a reasonable
-			// follow-up, not required for this ticket's zero-copy display goal.
 			JBUParams params;
+			{
+				std::lock_guard<std::mutex> paramsLock(m_jbuParamsMutex);
+				params= m_jbuParams;
+			}
 			m_jbuKernel.upsampleToSurface(m_depthLowBuffer, kARKitDepthWidth, kARKitDepthHeight,
 										  kARKitDepthWidth * static_cast<int>(sizeof(uint16_t)), m_confidenceLowBuffer,
 										  kARKitDepthWidth, m_guideRgbBuffer, width, height, m_guideStrideBytes,
@@ -776,6 +776,16 @@ uint32_t MikanARKitVideoDevice::getDepthTextureGlId() const
 {
 	IMkTexturePtr texture= m_depthTexture.getTexture();
 	return texture != nullptr ? texture->getGlTextureId() : 0;
+}
+
+void MikanARKitVideoDevice::setJBUParams(const ARKitJBUParams& params)
+{
+	std::lock_guard<std::mutex> lock(m_jbuParamsMutex);
+	m_jbuParams.radius= params.radius;
+	m_jbuParams.sigmaSpatial= params.sigmaSpatial;
+	m_jbuParams.sigmaColor= params.sigmaColor;
+	m_jbuParams.confWeightLow= params.confWeightLow;
+	m_jbuParams.confWeightMedium= params.confWeightMedium;
 }
 
 // -- Video Settings -----

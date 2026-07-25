@@ -14,6 +14,24 @@ struct ARKitVideoConnectionSettings
 	bool depthStreamingEnabled= true;
 };
 
+// Joint Bilateral Upsampling tuning params - the public, DLL-boundary-safe mirror of
+// the MikanARKitVideo plugin's private JBUParams (Cuda/JBUKernel.h), same rationale
+// as ARKitVideoFrameBundle mirroring ARKitFrameCorrelator::ARKitFrameBundle: this
+// header (MikanCoreApp) can't depend on a specific plugin's private headers. Field
+// defaults match JBUParams' own ticket-D5-tuned defaults. radius/sigmaSpatial/
+// sigmaColor are runtime-tunable (see setJBUParams()) - sigmaSpatial/sigmaColor of
+// exactly 0 would divide-by-zero in the kernel's Gaussian weighting, so callers
+// should keep them comfortably above 0 (ARKitVideoSourceDefinition's setters clamp
+// to a safe minimum).
+struct ARKitJBUParams
+{
+	int radius= 32;
+	float sigmaSpatial= 16.0f;
+	float sigmaColor= 15.0f;
+	float confWeightLow= 0.0f;
+	float confWeightMedium= 0.5f;
+};
+
 // Depth+confidence planes for one frame. Pointers are only valid for the duration
 // of the notifyFrameBundleReceived callback - copy out anything needed afterward.
 // Raw-pointer-and-count rather than std::vector/std::optional, matching this
@@ -119,6 +137,15 @@ public:
 	// pipeline.
 	virtual uint32_t getColorTextureGlId() const= 0;
 	virtual uint32_t getDepthTextureGlId() const= 0;
+
+	// -- JBU Tuning --
+	// Updates the live depth-upsample pipeline's Joint Bilateral Upsampling params.
+	// Safe to call at any time (including while streaming) - takes effect on the next
+	// frame's upsample, no reopen/restart needed. Implementations must make this
+	// safe to call from a different thread than update() (see
+	// MikanARKitVideoDevice's own listener/property threading notes elsewhere in
+	// this codebase for why that caution is warranted here).
+	virtual void setJBUParams(const ARKitJBUParams& params)= 0;
 };
 
 using IARKitVideoDevicePtr= std::shared_ptr<IARKitVideoDevice>;

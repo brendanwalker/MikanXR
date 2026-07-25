@@ -68,6 +68,11 @@ public:
 	uint32_t getColorTextureGlId() const override { return 0; }
 	uint32_t getDepthTextureGlId() const override { return 0; }
 
+	// JBU tuning - this stub doesn't run a real upsample pipeline, just record the
+	// most recent params so a test could assert on them if needed.
+	void setJBUParams(const ARKitJBUParams& params) override { m_lastJBUParams= params; }
+	ARKitJBUParams m_lastJBUParams;
+
 	// Test-only helper to exercise the listener dispatch path.
 	void simulateFrameBundle(const ARKitVideoFrameBundle& bundle)
 	{

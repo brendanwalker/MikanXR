@@ -34,12 +34,12 @@ public:
 	void setDepthStreamingEnabled(bool depthStreamingEnabled);
 
 	// Joint Bilateral Upsampling tuning params (ticket D5's JBUParams defaults - see
-	// MikanARKitVideo/Private/Cuda/JBUKernel.h). Not yet consumed by the live video
-	// pipeline as of ticket E1 - MikanARKitVideoDevice doesn't have a depth-upsample
-	// stage wired in yet (that's a later ticket's job, alongside the depth-texture
-	// slot mentioned in ticket E3); these are stored/exposed here now so client
-	// tooling and the future depth pipeline have a single source of truth to read
-	// from once it lands.
+	// MikanARKitVideo/Private/Cuda/JBUKernel.h). Live-applied to the running device
+	// via ARKitVideoSourceComponent::pushJBUParamsToDevice() - both on device-open
+	// and on every subsequent edit (see that component's onDefinitionMarkedDirty),
+	// so changing these at runtime takes effect immediately without a reconnect.
+	// Setters clamp to safe ranges (see the .cpp) since sigmaSpatial/sigmaColor of
+	// exactly 0 would divide-by-zero in the kernel.
 	static const std::string k_jbuRadiusPropertyId;
 	inline int getJbuRadius() const { return m_jbuRadius; }
 	void setJbuRadius(int jbuRadius);
@@ -133,6 +133,14 @@ protected:
 	virtual void stopVideoStreamInternal() override;
 
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+
+	// Pushes the definition's current JBU tuning properties to the live device (a
+	// no-op if the device isn't open yet). Called once on device-open (so a freshly
+	// opened device picks up the definition's stored values instead of JBUKernel's
+	// compiled-in defaults) and again on every live edit to those properties (see
+	// onDefinitionMarkedDirty) so runtime adjustments take effect immediately,
+	// without a reconnect.
+	void pushJBUParamsToDevice();
 
 private:
 	IARKitVideoDevicePtr m_arkitVideoDevice= nullptr;

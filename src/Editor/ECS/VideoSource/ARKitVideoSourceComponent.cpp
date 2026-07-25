@@ -12,6 +12,7 @@
 
 #include "opencv2/opencv.hpp"
 
+#include <algorithm>
 #include <assert.h>
 
 // -- ARKitVideoSourceDefinition -----
@@ -126,6 +127,11 @@ void ARKitVideoSourceDefinition::setDepthStreamingEnabled(bool depthStreamingEna
 
 void ARKitVideoSourceDefinition::setJbuRadius(int jbuRadius)
 {
+	// Clamped rather than left unbounded: the kernel itself tolerates any value
+	// (window bounds are clamped internally, see JBUKernel.cu), but an extreme
+	// radius (e.g. from a bad remote-client property set) would tank frame time by
+	// scanning a huge fraction of the low-res depth plane per output pixel.
+	jbuRadius= std::clamp(jbuRadius, 1, 128);
 	if (jbuRadius != m_jbuRadius)
 	{
 		m_jbuRadius= jbuRadius;
@@ -135,6 +141,9 @@ void ARKitVideoSourceDefinition::setJbuRadius(int jbuRadius)
 
 void ARKitVideoSourceDefinition::setJbuSigmaSpatial(float jbuSigmaSpatial)
 {
+	// Clamped above 0 - the kernel computes 1/(2*sigma^2) (see JBUKernel.cpp), so an
+	// exact 0 would divide-by-zero and propagate NaN into the upsampled depth output.
+	jbuSigmaSpatial= std::clamp(jbuSigmaSpatial, 0.1f, 128.0f);
 	if (jbuSigmaSpatial != m_jbuSigmaSpatial)
 	{
 		m_jbuSigmaSpatial= jbuSigmaSpatial;
@@ -144,6 +153,8 @@ void ARKitVideoSourceDefinition::setJbuSigmaSpatial(float jbuSigmaSpatial)
 
 void ARKitVideoSourceDefinition::setJbuSigmaColor(float jbuSigmaColor)
 {
+	// Same divide-by-zero rationale as setJbuSigmaSpatial above.
+	jbuSigmaColor= std::clamp(jbuSigmaColor, 0.1f, 255.0f);
 	if (jbuSigmaColor != m_jbuSigmaColor)
 	{
 		m_jbuSigmaColor= jbuSigmaColor;
@@ -153,6 +164,7 @@ void ARKitVideoSourceDefinition::setJbuSigmaColor(float jbuSigmaColor)
 
 void ARKitVideoSourceDefinition::setJbuConfWeightLow(float jbuConfWeightLow)
 {
+	jbuConfWeightLow= std::clamp(jbuConfWeightLow, 0.0f, 1.0f);
 	if (jbuConfWeightLow != m_jbuConfWeightLow)
 	{
 		m_jbuConfWeightLow= jbuConfWeightLow;
@@ -162,6 +174,7 @@ void ARKitVideoSourceDefinition::setJbuConfWeightLow(float jbuConfWeightLow)
 
 void ARKitVideoSourceDefinition::setJbuConfWeightMedium(float jbuConfWeightMedium)
 {
+	jbuConfWeightMedium= std::clamp(jbuConfWeightMedium, 0.0f, 1.0f);
 	if (jbuConfWeightMedium != m_jbuConfWeightMedium)
 	{
 		m_jbuConfWeightMedium= jbuConfWeightMedium;
@@ -400,6 +413,11 @@ void ARKitVideoSourceComponent::notifyDeviceOpened(const IARKitVideoDevice* devi
 	if (device != m_arkitVideoDevice.get())
 		return;
 
+	// Apply the definition's stored JBU tuning to the freshly opened device - without
+	// this it would silently run with JBUKernel.h's compiled-in defaults instead of
+	// whatever the user has configured (or previously tuned) for this source.
+	pushJBUParamsToDevice();
+
 	// Let any connected clients know that the video source opened
 	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceOpenedEvent();
 	if (OnOpened)
@@ -623,10 +641,8 @@ bool ARKitVideoSourceComponent::setPropertyValue(const std::string& propertyName
 void ARKitVideoSourceComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
 														const ConfigPropertyChangeSet& changedPropertySet)
 {
-	// Only basePort/depthStreamingEnabled affect the open connection - the JBU
-	// tuning params aren't consumed by open()/the live pipeline yet (see their
-	// declaration comment on ARKitVideoSourceDefinition), so changing them must not
-	// force a reconnect.
+	// Only basePort/depthStreamingEnabled affect the open connection - changing them
+	// must force a reconnect.
 	if (changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_basePortPropertyId)
 		|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_depthStreamingEnabledPropertyId))
 	{
@@ -635,6 +651,35 @@ void ARKitVideoSourceComponent::onDefinitionMarkedDirty(CommonConfigPtr configPt
 	}
 	else
 	{
+		// JBU tuning params live-apply to the running device with no reconnect
+		// needed - lets the user sweep values in real time while watching the depth
+		// preview (AppStage_VideoSourceSettings) for flicker/edge quality.
+		if (changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuRadiusPropertyId)
+			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuSigmaSpatialPropertyId)
+			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuSigmaColorPropertyId)
+			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuConfWeightLowPropertyId)
+			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuConfWeightMediumPropertyId))
+		{
+			pushJBUParamsToDevice();
+		}
+
 		VideoSourceComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 	}
+}
+
+void ARKitVideoSourceComponent::pushJBUParamsToDevice()
+{
+	if (m_arkitVideoDevice == nullptr)
+		return;
+
+	ARKitVideoSourceDefinitionPtr definition= getARKitVideoSourceDefinition();
+
+	ARKitJBUParams params;
+	params.radius= definition->getJbuRadius();
+	params.sigmaSpatial= definition->getJbuSigmaSpatial();
+	params.sigmaColor= definition->getJbuSigmaColor();
+	params.confWeightLow= definition->getJbuConfWeightLow();
+	params.confWeightMedium= definition->getJbuConfWeightMedium();
+
+	m_arkitVideoDevice->setJBUParams(params);
 }

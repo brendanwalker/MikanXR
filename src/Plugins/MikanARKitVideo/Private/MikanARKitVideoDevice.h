@@ -71,6 +71,9 @@ public:
 	virtual uint32_t getColorTextureGlId() const override;
 	virtual uint32_t getDepthTextureGlId() const override;
 
+	// -- JBU Tuning
+	virtual void setJBUParams(const ARKitJBUParams& params) override;
+
 protected:
 	bool openOnThread();
 
@@ -169,6 +172,16 @@ private:
 	CudaGLDepthTexture m_depthTexture;
 	NV12ConversionKernel m_nv12Kernel;
 	JBUKernel m_jbuKernel;
+
+	// Live-tunable JBU params (see IARKitVideoDevice::setJBUParams). Defaults to
+	// JBUParams' own D5-tuned defaults until a caller pushes real values (see
+	// ARKitVideoSourceComponent::pushJBUParamsToDevice(), called once on device-open
+	// and again on every subsequent live edit). Guarded by m_jbuParamsMutex since
+	// setJBUParams() can be called from whatever thread drives property changes
+	// (Editor GUI or a remote client's property-set RPC), while
+	// updateColorAndDepthTextures() reads it from the GL/main thread.
+	std::mutex m_jbuParamsMutex;
+	JBUParams m_jbuParams;
 
 	// Full-resolution packed-RGB guide buffer for JBUKernel (written by
 	// m_nv12Kernel, read by m_jbuKernel) - sized m_textureHeight * m_guideStrideBytes.
