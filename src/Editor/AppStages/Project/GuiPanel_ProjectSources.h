@@ -25,6 +25,7 @@ private:
 	VideoSourceComponentPtr getSelectedVideoSource() const;
 	USBVideoSourceComponentPtr getSelectedUSBVideoSource() const;
 	NetworkVideoSourceComponentPtr getSelectedNetworkVideoSource() const;
+	ARKitVideoSourceComponentPtr getSelectedARKitVideoSource() const;
 	TextureSourceComponentPtr getSelectedTextureSource() const;
 	ClientTextureSourceComponentPtr getSelectedClientTextureSource() const;
 	SpoutTextureSourceComponentPtr getSelectedSpoutTextureSource() const;
