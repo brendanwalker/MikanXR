@@ -41,6 +41,17 @@ namespace MikanXR
 		STEREO= 1,
 	};
 
+	public class MikanARKitVideoSourceValues : MikanVideoSourceValues
+	{
+		public int base_port;
+		public bool depth_streaming_enabled;
+		public int jbu_radius;
+		public float jbu_sigma_spatial;
+		public float jbu_sigma_color;
+		public float jbu_conf_weight_low;
+		public float jbu_conf_weight_medium;
+	};
+
 	public class MikanBaseIntrinsics : PolymorphicStruct
 	{
 		public double pixel_width;

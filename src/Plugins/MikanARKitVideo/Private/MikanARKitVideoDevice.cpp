@@ -1,5 +1,7 @@
 #include "MikanARKitVideoDevice.h"
 #include "ARKitRTPHeaderExtension.h"
+#include "Cuda/CudaErrorHandling.h"
+#include "IMkTexture.h"
 #include "MikanARKitVideoDeviceManager.h"
 #include "Logger.h"
 
@@ -19,6 +21,7 @@
 #include <gst/app/gstappsink.h>
 #include <gst/cuda/gstcudamemory.h>
 #include <gst/gst.h>
+#include <gst/video/video.h>
 
 #include <chrono>
 #include <cstring>
@@ -149,8 +152,18 @@ MikanARKitVideoDevice::MikanARKitVideoDevice(MikanARKitVideoDeviceManager* owner
 {
 	m_frameCorrelator.setBundleCallback([this](ARKitFrameBundle bundle) { notifyFrameBundleReceived(bundle); });
 
-	m_depthReceiver.setFrameCallback([this](ARKitDepthFrame frame)
-									 { m_frameCorrelator.notifyDepthArrived(std::move(frame)); });
+	m_depthReceiver.setFrameCallback(
+		[this](ARKitDepthFrame frame)
+		{
+			// Stash a copy for updateColorAndDepthTextures() (ticket E3) before
+			// handing the original off to the correlator (notifyDepthArrived takes
+			// it by value/move, so this must copy, not move, first).
+			{
+				std::lock_guard<std::mutex> lock(m_latestDepthMutex);
+				m_latestDepthFrame= frame;
+			}
+			m_frameCorrelator.notifyDepthArrived(std::move(frame));
+		});
 
 	m_poseReceiver.setFrameCallback([this](ARKitPoseFrame frame)
 									{ m_frameCorrelator.notifyPoseArrived(std::move(frame)); });
@@ -422,6 +435,12 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 						<< ", but no frameSeq RTP header extension meta was present";
 				}
 
+				// Zero-copy CUDA-GL texture pipeline (ticket E3): NV12->RGBA display
+				// texture + JBU-upsampled depth texture. Runs regardless of whether the
+				// frameSeq meta was present above - display shouldn't depend on pose
+				// correlation working.
+				updateColorAndDepthTextures(buffer, devicePtr, width, height);
+
 				gst_buffer_unmap(buffer, &map);
 			}
 			else
@@ -472,6 +491,50 @@ void MikanARKitVideoDevice::close()
 	m_depthReceiver.stop();
 	m_poseReceiver.stop();
 
+	// Tear down the whole CUDA-GL texture pipeline on close (ticket E3) rather than
+	// trying to keep it alive across reopen - the GStreamer pipeline's own
+	// GstCudaContext may not survive a close/reopen cycle intact (see project memory
+	// on CUDA context corruption after a fault), so the safest contract is "fully
+	// rebuilt on next successful decode", matching how m_impl->pipeline itself is
+	// unconditionally torn down and rebuilt below.
+	if (m_bTexturePipelineInitialized)
+	{
+		m_jbuKernel.shutdown();
+		m_nv12Kernel.shutdown();
+		m_colorTexture.shutdown();
+		m_depthTexture.shutdown();
+
+		if (m_guideRgbBuffer != 0)
+		{
+			cuMemFree(m_guideRgbBuffer);
+			m_guideRgbBuffer= 0;
+		}
+		if (m_depthLowBuffer != 0)
+		{
+			cuMemFree(m_depthLowBuffer);
+			m_depthLowBuffer= 0;
+		}
+		if (m_confidenceLowBuffer != 0)
+		{
+			cuMemFree(m_confidenceLowBuffer);
+			m_confidenceLowBuffer= 0;
+		}
+
+		m_bTexturePipelineInitialized= false;
+		m_textureWidth= 0;
+		m_textureHeight= 0;
+	}
+
+	// Independent of m_bTexturePipelineInitialized - ensureCudaContext() can
+	// succeed (creating m_cudaContext) even if a later texture-pipeline init step
+	// fails, so this must not be skipped just because the pipeline never finished
+	// initializing.
+	if (m_cudaContext != nullptr)
+	{
+		cuCtxDestroy(m_cudaContext);
+		m_cudaContext= nullptr;
+	}
+
 	if (m_impl->pipeline != nullptr)
 	{
 		gst_element_set_state(m_impl->pipeline, GST_STATE_NULL);
@@ -500,6 +563,219 @@ void MikanARKitVideoDevice::close()
 		gst_object_unref(m_impl->pipeline);
 		m_impl->pipeline= nullptr;
 	}
+}
+
+// -- Zero-copy CUDA-GL texture pipeline (ticket E3) -----
+bool MikanARKitVideoDevice::ensureCudaContext()
+{
+	if (m_cudaContext != nullptr)
+	{
+		// Re-assert as current every call (cheap no-op if already current) - see
+		// this method's declaration comment for why this can't be a one-time thing.
+		return checkCudaResult(cuCtxSetCurrent(m_cudaContext), "cuCtxSetCurrent");
+	}
+
+	if (!checkCudaResult(cuInit(0), "cuInit"))
+		return false;
+
+	CUdevice device;
+	if (!checkCudaResult(cuDeviceGet(&device, 0), "cuDeviceGet"))
+		return false;
+
+	// 4-arg cuCtxCreate (cuCtxCreate_v4, adds a CUctxCreateParams* param as of CUDA
+	// 13.1) - nullptr for that param matches every other call site in this codebase
+	// (see JBUKernel's own D1-era finding).
+	if (!checkCudaResult(cuCtxCreate(&m_cudaContext, nullptr, 0, device), "cuCtxCreate"))
+	{
+		m_cudaContext= nullptr;
+		return false;
+	}
+
+	// cuCtxCreate already makes the new context current on this thread, but
+	// asserting it explicitly costs nothing and keeps this function's contract
+	// simple ("returns true only if m_cudaContext is current on return").
+	return checkCudaResult(cuCtxSetCurrent(m_cudaContext), "cuCtxSetCurrent");
+}
+
+bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int height)
+{
+	if (m_bTexturePipelineInitialized && width == m_textureWidth && height == m_textureHeight)
+		return true;
+
+	if (m_bTexturePipelineInitialized)
+	{
+		// Dimensions changed mid-stream - shouldn't normally happen (ARKit's video
+		// resolution is fixed for a session), but resize cleanly rather than
+		// reuse/leak stale buffers if it does. Kernel modules themselves aren't
+		// size-dependent, so they're left alone.
+		m_colorTexture.shutdown();
+		m_depthTexture.shutdown();
+		if (m_guideRgbBuffer != 0)
+		{
+			cuMemFree(m_guideRgbBuffer);
+			m_guideRgbBuffer= 0;
+		}
+		m_bTexturePipelineInitialized= false;
+	}
+
+	if (!m_colorTexture.init(width, height))
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized") << "Failed to init color texture";
+		return false;
+	}
+
+	if (!m_depthTexture.init(width, height))
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized") << "Failed to init depth texture";
+		m_colorTexture.shutdown();
+		return false;
+	}
+
+	if (!m_nv12Kernel.isInitialized() && !m_nv12Kernel.init(NV12_KERNEL_PTX_PATH))
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized")
+			<< "Failed to init NV12 conversion kernel";
+		m_colorTexture.shutdown();
+		m_depthTexture.shutdown();
+		return false;
+	}
+
+	if (!m_jbuKernel.isInitialized() && !m_jbuKernel.init(JBU_KERNEL_PTX_PATH))
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized") << "Failed to init JBU kernel";
+		m_colorTexture.shutdown();
+		m_depthTexture.shutdown();
+		return false;
+	}
+
+	m_guideStrideBytes= width * 3;
+	if (!checkCudaResult(cuMemAlloc(&m_guideRgbBuffer, static_cast<size_t>(m_guideStrideBytes) * height),
+						 "cuMemAlloc(guideRgb)"))
+	{
+		m_colorTexture.shutdown();
+		m_depthTexture.shutdown();
+		return false;
+	}
+
+	if (m_depthLowBuffer == 0
+		&& !checkCudaResult(cuMemAlloc(&m_depthLowBuffer, kARKitDepthPixelCount * sizeof(uint16_t)),
+							"cuMemAlloc(depthLow)"))
+	{
+		cuMemFree(m_guideRgbBuffer);
+		m_guideRgbBuffer= 0;
+		m_colorTexture.shutdown();
+		m_depthTexture.shutdown();
+		return false;
+	}
+
+	if (m_confidenceLowBuffer == 0
+		&& !checkCudaResult(cuMemAlloc(&m_confidenceLowBuffer, kARKitDepthPixelCount), "cuMemAlloc(confidenceLow)"))
+	{
+		cuMemFree(m_guideRgbBuffer);
+		m_guideRgbBuffer= 0;
+		cuMemFree(m_depthLowBuffer);
+		m_depthLowBuffer= 0;
+		m_colorTexture.shutdown();
+		m_depthTexture.shutdown();
+		return false;
+	}
+
+	m_textureWidth= width;
+	m_textureHeight= height;
+	m_bTexturePipelineInitialized= true;
+	return true;
+}
+
+void MikanARKitVideoDevice::updateColorAndDepthTextures(GstBuffer* buffer, CUdeviceptr devicePtr, int width, int height)
+{
+	if (!ensureCudaContext())
+		return;
+
+	if (!ensureTexturePipelineInitialized(width, height))
+		return;
+
+	// NV12 plane layout (Y full-res, UV half-res interleaved) - stride/offset come
+	// from the buffer's own GstVideoMeta rather than being assumed, since CUDA
+	// memory allocations can be padded/aligned differently than a tightly-packed
+	// buffer would be.
+	GstVideoMeta* videoMeta= gst_buffer_get_video_meta(buffer);
+	if (videoMeta == nullptr || videoMeta->n_planes < 2)
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::updateColorAndDepthTextures")
+			<< "Missing/invalid GstVideoMeta on decoded NV12 buffer";
+		return;
+	}
+
+	const CUdeviceptr yPlane= devicePtr + videoMeta->offset[0];
+	const int yStrideBytes= static_cast<int>(videoMeta->stride[0]);
+	const CUdeviceptr uvPlane= devicePtr + videoMeta->offset[1];
+	const int uvStrideBytes= static_cast<int>(videoMeta->stride[1]);
+
+	// -- Color: NV12 -> RGBA (display) + RGB (JBU guide) --
+	CUsurfObject colorSurface= 0;
+	if (m_colorTexture.beginCudaAccess(colorSurface))
+	{
+		m_nv12Kernel.convert(yPlane, yStrideBytes, uvPlane, uvStrideBytes, width, height, colorSurface,
+							 m_guideRgbBuffer, m_guideStrideBytes);
+		// Block until the conversion completes before unmapping the color texture
+		// (endCudaAccess's stream param is for synchronizing the unmap against
+		// in-flight work on that same stream, which NV12ConversionKernel doesn't
+		// expose - synchronizing here is simpler and keeps the guide-RGB buffer
+		// write-complete guarantee below just as valid) - see NV12ConversionKernel.h.
+		m_nv12Kernel.synchronize();
+		m_colorTexture.endCudaAccess(nullptr);
+	}
+
+	// -- Depth: latest cached ARKit depth+confidence, JBU-upsampled against the
+	// guide-RGB buffer the color pass just wrote --
+	ARKitDepthFrame latestDepth;
+	bool bHasDepth= false;
+	{
+		std::lock_guard<std::mutex> lock(m_latestDepthMutex);
+		if (m_latestDepthFrame.has_value())
+		{
+			latestDepth= *m_latestDepthFrame;
+			bHasDepth= true;
+		}
+	}
+
+	if (bHasDepth)
+	{
+		checkCudaResult(
+			cuMemcpyHtoD(m_depthLowBuffer, latestDepth.depthMM.data(), latestDepth.depthMM.size() * sizeof(uint16_t)),
+			"cuMemcpyHtoD(depthLow)");
+		checkCudaResult(
+			cuMemcpyHtoD(m_confidenceLowBuffer, latestDepth.confidence.data(), latestDepth.confidence.size()),
+			"cuMemcpyHtoD(confidenceLow)");
+
+		CUsurfObject depthSurface= 0;
+		if (m_depthTexture.beginCudaAccess(depthSurface))
+		{
+			// D5-tuned defaults (see JBUParams in JBUKernel.h) - not yet wired to
+			// ARKitVideoSourceDefinition's own JBU tuning properties (stored since
+			// ticket E1 but not consumed by anything until now); a reasonable
+			// follow-up, not required for this ticket's zero-copy display goal.
+			JBUParams params;
+			m_jbuKernel.upsampleToSurface(m_depthLowBuffer, kARKitDepthWidth, kARKitDepthHeight,
+										  kARKitDepthWidth * static_cast<int>(sizeof(uint16_t)), m_confidenceLowBuffer,
+										  kARKitDepthWidth, m_guideRgbBuffer, width, height, m_guideStrideBytes,
+										  depthSurface, width, height, params);
+			m_jbuKernel.synchronize();
+			m_depthTexture.endCudaAccess(nullptr);
+		}
+	}
+}
+
+uint32_t MikanARKitVideoDevice::getColorTextureGlId() const
+{
+	IMkTexturePtr texture= m_colorTexture.getTexture();
+	return texture != nullptr ? texture->getGlTextureId() : 0;
+}
+
+uint32_t MikanARKitVideoDevice::getDepthTextureGlId() const
+{
+	IMkTexturePtr texture= m_depthTexture.getTexture();
+	return texture != nullptr ? texture->getGlTextureId() : 0;
 }
 
 // -- Video Settings -----

@@ -400,7 +400,24 @@ void VideoFrameDistortionView::writeStereoVideoFrameSection(const unsigned char*
 
 bool VideoFrameDistortionView::hasNewVideoFrame() const
 {
+	// GPU-direct sources (ticket E3) write straight into their own CUDA-GL-interop
+	// texture every decoded frame, with no CPU-side write/read index bookkeeping at
+	// all - treat "a live direct texture exists" as "always has a new frame" rather
+	// than trying to track discrete frame arrival at this layer.
+	if (m_videoSourceComponent->getDirectColorTexture() != nullptr)
+		return true;
+
 	return m_lastVideoFrameReadIndex != m_lastVideoFrameWriteIndex;
+}
+
+bool VideoFrameDistortionView::isReceivingFrames() const
+{
+	return m_lastVideoFrameWriteIndex > 0 || m_videoSourceComponent->getDirectColorTexture() != nullptr;
+}
+
+IMkTexturePtr VideoFrameDistortionView::getDirectDepthTexture() const
+{
+	return m_videoSourceComponent->getDirectDepthTexture();
 }
 
 int64_t VideoFrameDistortionView::readNextVideoFrameIndex()
@@ -514,6 +531,18 @@ int64_t VideoFrameDistortionView::readAndProcessVideoFrame()
 {
 	EASY_FUNCTION();
 
+	if (m_videoSourceComponent->getDirectColorTexture() != nullptr)
+	{
+		// GPU-direct source (ticket E3) - no CPU frame queue/undistortion pipeline
+		// to drive here; getVideoTexture() below already returns the live texture
+		// directly every call. Bump the read index by 1 each time so callers that
+		// compare it against a previously-seen value (e.g.
+		// CompositorComponent::tryEnqueueNewFrame) still see it advancing.
+		m_bVideoIsStreaming= true;
+		m_lastVideoFrameReadIndex++;
+		return m_lastVideoFrameReadIndex;
+	}
+
 	if (hasNewVideoFrame())
 	{
 		processVideoFrame(readNextVideoFrameIndex());
@@ -524,6 +553,9 @@ int64_t VideoFrameDistortionView::readAndProcessVideoFrame()
 
 IMkTexturePtr VideoFrameDistortionView::getVideoTexture(int64_t desiredFrameIndex) const
 {
+	if (IMkTexturePtr directTexture= m_videoSourceComponent->getDirectColorTexture())
+		return directTexture;
+
 	if (m_videoFrameQueue != nullptr)
 	{
 		// If a specific frame index was requested, then find it in the queue and return its texture

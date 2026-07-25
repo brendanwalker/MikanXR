@@ -379,6 +379,8 @@ IMkTexturePtr CompositorComponent::getVideoSourceTexture(eVideoTextureSource tex
 												  : IMkTexturePtr();
 	case eVideoTextureSource::distortion_texture:
 		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : IMkTexturePtr();
+	case eVideoTextureSource::float_depth_texture:
+		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDirectDepthTexture() : IMkTexturePtr();
 	}
 
 	return IMkTexturePtr();

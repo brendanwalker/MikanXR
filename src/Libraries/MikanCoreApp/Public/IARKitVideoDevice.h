@@ -102,6 +102,23 @@ public:
 	virtual eVideoStreamingStatus startVideoStream()= 0;
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const= 0;
 	virtual void stopVideoStream()= 0;
+
+	// -- Zero-copy CUDA-GL texture access (ticket E3) --
+	// Returns the GL texture id (name) of the most recently decoded/upsampled
+	// color/depth frame, or 0 if none has arrived yet. MikanCoreApp (this header's
+	// library) is a lower layer than MikanRenderer - it can't depend on
+	// IMkTexturePtr - so this crosses the boundary as a raw GL texture id;
+	// IARKitVideoDeviceListener's caller (Editor-side code, which does depend on
+	// MikanRenderer) is expected to wrap it via
+	// IMkExternalTexture::setExternalPlatformTexture(&glId) (see
+	// ARKitVideoSourceComponent::getDirectColorTexture/getDirectDepthTexture). Both
+	// textures are written in place every frame (CUDA WRITE_DISCARD - see
+	// CudaGLInterop.h), so the same non-zero id remains valid to keep reusing
+	// across frames; only a resize/reopen changes it. Must be called from the
+	// GL-context-owning thread, same as every other CUDA-GL interop call in this
+	// pipeline.
+	virtual uint32_t getColorTextureGlId() const= 0;
+	virtual uint32_t getDepthTextureGlId() const= 0;
 };
 
 using IARKitVideoDevicePtr= std::shared_ptr<IARKitVideoDevice>;

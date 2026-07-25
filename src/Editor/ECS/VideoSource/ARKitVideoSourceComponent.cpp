@@ -1,6 +1,7 @@
 #include "ARKitVideoSourceComponent.h"
 #include "ARKitVideoSourceSystem.h"
 #include "IARKitVideoDeviceManager.h"
+#include "IMkTexture.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
 #include "MikanVideoSourceTypes.h"
@@ -357,6 +358,39 @@ bool ARKitVideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, int&
 	}
 
 	return false;
+}
+
+// -- Zero-copy GPU texture access (ticket E3) ----
+IMkTexturePtr ARKitVideoSourceComponent::getDirectColorTexture() const
+{
+	if (m_arkitVideoDevice == nullptr)
+		return IMkTexturePtr();
+
+	uint32_t glId= m_arkitVideoDevice->getColorTextureGlId();
+	if (glId == 0)
+		return IMkTexturePtr();
+
+	if (m_colorTextureWrapper == nullptr)
+		m_colorTextureWrapper= CreateMkExternalTexture();
+
+	m_colorTextureWrapper->setExternalPlatformTexture(&glId);
+	return m_colorTextureWrapper;
+}
+
+IMkTexturePtr ARKitVideoSourceComponent::getDirectDepthTexture() const
+{
+	if (m_arkitVideoDevice == nullptr)
+		return IMkTexturePtr();
+
+	uint32_t glId= m_arkitVideoDevice->getDepthTextureGlId();
+	if (glId == 0)
+		return IMkTexturePtr();
+
+	if (m_depthTextureWrapper == nullptr)
+		m_depthTextureWrapper= CreateMkExternalTexture();
+
+	m_depthTextureWrapper->setExternalPlatformTexture(&glId);
+	return m_depthTextureWrapper;
 }
 
 // -- IARKitVideoDeviceListener ----

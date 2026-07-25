@@ -76,3 +76,45 @@ private:
 	int m_width= 0;
 	int m_height= 0;
 };
+
+// Zero-copy CUDA-GL interop for the decoded ARKit color video frame (ticket E3):
+// owns an IMkTexture (MK_RGBA, 8-bit-per-channel) and registers its backing GL
+// texture with CUDA, so NV12ConversionKernel can write the decoded/converted frame
+// directly into the GL texture's storage with no host round-trip. Otherwise
+// structurally identical to CudaGLDepthTexture above (same register/map/unmap/
+// surface-object contract and the same threading requirements - see that class's
+// header comment) - kept as a separate class rather than a shared/parameterized
+// base so CudaGLDepthTexture's existing, already-tested behavior/call sites are
+// never touched.
+class CudaGLColorTexture
+{
+public:
+	CudaGLColorTexture();
+	~CudaGLColorTexture();
+
+	CudaGLColorTexture(const CudaGLColorTexture&)= delete;
+	CudaGLColorTexture& operator=(const CudaGLColorTexture&)= delete;
+
+	bool init(int width, int height);
+	void shutdown();
+	bool isInitialized() const;
+
+	int getWidth() const;
+	int getHeight() const;
+	IMkTexturePtr getTexture() const;
+
+	bool resize(int width, int height);
+
+	bool beginCudaAccess(CUsurfObject& outSurface);
+	bool endCudaAccess(CUstream stream);
+
+private:
+	bool registerWithCuda();
+	void unregisterFromCuda();
+
+	IMkTexturePtr m_texture;
+	CUgraphicsResource m_graphicsResource= nullptr;
+	CUsurfObject m_currentSurface= 0;
+	int m_width= 0;
+	int m_height= 0;
+};

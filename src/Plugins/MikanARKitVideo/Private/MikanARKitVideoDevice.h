@@ -4,11 +4,20 @@
 #include "ARKitDepthReceiver.h"
 #include "ARKitPoseReceiver.h"
 #include "ARKitFrameCorrelator.h"
+#include "Cuda/CudaGLInterop.h"
+#include "Cuda/JBUKernel.h"
+#include "Cuda/NV12ConversionKernel.h"
 
 #include <future>
 #include <mutex>
+#include <optional>
 #include <set>
 #include <string>
+
+// Forward declaration matching GStreamer's own typedef (gst/gstbuffer.h) - kept
+// opaque here so this header doesn't need to pull in gst.h, same rationale as
+// GStreamerImpl below.
+typedef struct _GstBuffer GstBuffer;
 
 // Implements IARKitVideoDevice (ticket B7). Structurally mirrors
 // MikanGStreamerVideoDevice's async open/close/update pattern: depth (basePort+1)
@@ -58,8 +67,41 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
 
+	// -- Zero-copy CUDA-GL texture access (ticket E3)
+	virtual uint32_t getColorTextureGlId() const override;
+	virtual uint32_t getDepthTextureGlId() const override;
+
 protected:
 	bool openOnThread();
+
+	// Called from update()'s appsink-pull site once per successfully-decoded CUDA
+	// frame (ticket E3). Resizes the CUDA-GL textures/device buffers on dimension
+	// change, runs the NV12->RGB(A) conversion kernel (writing the display color
+	// texture + JBU's guide-RGB buffer), uploads the latest cached depth+confidence,
+	// and runs JBUKernel::upsampleToSurface into the depth texture. Must run on the
+	// GL-context-owning thread (same as update() itself already does - see
+	// CudaGLInterop.h's threading note).
+	void updateColorAndDepthTextures(GstBuffer* buffer, CUdeviceptr devicePtr, int width, int height);
+	bool ensureTexturePipelineInitialized(int width, int height);
+
+	// Live-tested finding (ticket E3): contrary to JBUKernel.h's original design
+	// note (which assumed upsample() could just reuse whatever CUDA context
+	// nvcodec's pipeline already has current), no context is actually current on
+	// this thread by the time update() runs cuGraphicsGLRegisterImage/kernel
+	// launches here - GST_MAP_CUDA's own context handling (if any) doesn't leave
+	// one current for callers afterward (confirmed via a live
+	// CUDA_ERROR_INVALID_CONTEXT failure). So this class creates and owns its own
+	// CUcontext instead, independent of nvcodec's internal GstCudaContext - safe
+	// because CUDA's Unified Virtual Addressing (the default on 64-bit
+	// platforms/modern CUDA) makes device pointers allocated under one context on a
+	// device valid to dereference from another context on that same device, within
+	// the same process - which is exactly what's needed to read a GST_MAP_CUDA
+	// pointer from our own context. Lazily created once; cuCtxSetCurrent() is
+	// re-asserted defensively at the start of every updateColorAndDepthTextures()
+	// call since anything else that ran on the main thread in between (including
+	// GStreamer's own internal context push/pop during gst_buffer_map) could have
+	// changed what's current.
+	bool ensureCudaContext();
 
 	// Converts the plugin-private ARKitFrameBundle (ARKitFrameCorrelator) into the
 	// public, DLL-boundary-safe ARKitVideoFrameBundle (IARKitVideoDevice) and fans
@@ -102,4 +144,39 @@ private:
 
 	std::mutex m_listenersMutex;
 	std::set<IARKitVideoDeviceListener*> m_listeners;
+
+	// -- Zero-copy CUDA-GL texture pipeline (ticket E3) --
+	// Latest depth+confidence sample, updated from ARKitDepthReceiver's callback
+	// (background thread) and read from updateColorAndDepthTextures() (GL/main
+	// thread) under m_latestDepthMutex. Deliberately independent of
+	// m_frameCorrelator's frameSeq-exact bundle matching (whose ~1s stale-sweep
+	// timeout suits pose/depth bookkeeping, not a tight real-time compositing
+	// loop) - JBU runs against whichever depth sample is freshest each time a new
+	// color frame decodes, tolerating a few ms of depth/color skew the same way any
+	// real-time occlusion compositor does.
+	std::mutex m_latestDepthMutex;
+	std::optional<ARKitDepthFrame> m_latestDepthFrame;
+
+	bool m_bTexturePipelineInitialized= false;
+	int m_textureWidth= 0;
+	int m_textureHeight= 0;
+
+	// This class's own CUDA context (see ensureCudaContext()'s comment for why) -
+	// independent of whatever context nvcodec's pipeline owns internally.
+	CUcontext m_cudaContext= nullptr;
+
+	CudaGLColorTexture m_colorTexture;
+	CudaGLDepthTexture m_depthTexture;
+	NV12ConversionKernel m_nv12Kernel;
+	JBUKernel m_jbuKernel;
+
+	// Full-resolution packed-RGB guide buffer for JBUKernel (written by
+	// m_nv12Kernel, read by m_jbuKernel) - sized m_textureHeight * m_guideStrideBytes.
+	CUdeviceptr m_guideRgbBuffer= 0;
+	int m_guideStrideBytes= 0;
+
+	// Low-res (kARKitDepthWidth x kARKitDepthHeight) device buffers the latest
+	// cached depth/confidence are uploaded into each frame before the JBU launch.
+	CUdeviceptr m_depthLowBuffer= 0;
+	CUdeviceptr m_confidenceLowBuffer= 0;
 };

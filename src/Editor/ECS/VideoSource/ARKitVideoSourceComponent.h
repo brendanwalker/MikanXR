@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IARKitVideoDevice.h"
+#include "MkRendererFwd.h"
 #include "VideoSourceComponent.h"
 
 class ARKitVideoSourceDefinition : public VideoSourceDefinition
@@ -90,6 +91,10 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 
+	// -- Zero-copy GPU texture access (ticket E3) ----
+	virtual IMkTexturePtr getDirectColorTexture() const override;
+	virtual IMkTexturePtr getDirectDepthTexture() const override;
+
 	// -- IARKitVideoDeviceListener ----
 	virtual void notifyDeviceOpened(const class IARKitVideoDevice* device) override;
 	virtual void notifyDeviceClosed(const class IARKitVideoDevice* device) override;
@@ -121,4 +126,15 @@ private:
 	// once a bundle actually arrives.
 	int m_lastVideoWidth= 0;
 	int m_lastVideoHeight= 0;
+
+	// Wrap the plugin's raw GL texture ids (IARKitVideoDevice::getColorTextureGlId/
+	// getDepthTextureGlId - see that header's comment on why this crosses the
+	// MikanCoreApp/MikanRenderer layering boundary as a raw id rather than an
+	// IMkTexturePtr) into IMkExternalTexture wrappers this Editor-side code can
+	// hand out via getDirectColorTexture/getDirectDepthTexture. Lazily created on
+	// first non-zero id; setExternalPlatformTexture() is cheap to call again every
+	// frame after that (it early-outs unless the underlying GL id actually
+	// changed - see GlExternalTexture::setExternalPlatformTexture).
+	mutable IMkExternalTexturePtr m_colorTextureWrapper;
+	mutable IMkExternalTexturePtr m_depthTextureWrapper;
 };

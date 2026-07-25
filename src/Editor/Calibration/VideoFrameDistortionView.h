@@ -29,7 +29,10 @@ public:
 	inline VideoFrameSection getVideoFrameSection() const { return m_videoFrameSection; }
 	inline int getFrameWidth() const { return m_frameWidth; }
 	inline int getFrameHeight() const { return m_frameHeight; }
-	inline bool isReceivingFrames() const { return m_lastVideoFrameWriteIndex > 0; }
+	// GPU-direct sources (ticket E3) never advance m_lastVideoFrameWriteIndex - it's
+	// only bumped by writeVideoFrame(), which such sources never call - so this also
+	// checks for a live direct-color texture, matching hasNewVideoFrame()'s bypass.
+	bool isReceivingFrames() const;
 	inline float getFPS() const { return m_fps; }
 
 	inline eVideoDisplayMode getVideoDisplayMode() const { return m_videoDisplayMode; }
@@ -48,6 +51,11 @@ public:
 	cv::Mat* getBGRUndistortBuffer() const;
 	cv::Mat* getBGRGsDisplayBuffer() const;
 	inline IMkTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
+
+	// Zero-copy GPU depth texture, if the underlying video source provides one
+	// (ticket E3 - see VideoSourceComponent::getDirectDepthTexture). Null for
+	// every video source type except ARKit today.
+	IMkTexturePtr getDirectDepthTexture() const;
 
 	void writeVideoFrame(const unsigned char* videoBuffer, const cv::Size& bufferDimensions, bool bIsFlipped);
 	void writeStereoVideoFrameSection(const unsigned char* videoBuffer, const cv::Size& bufferDimensions,

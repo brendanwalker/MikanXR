@@ -5,6 +5,7 @@
 #include "IVideoDevice.h"
 #include "MikanComponent.h"
 #include "MikanTypeFwd.h"
+#include "MkRendererFwd.h"
 #include "MikanVideoSourceTypes.h"
 #include "OpenCVFwd.h"
 #include "ObjectSystemConfigFwd.h"
@@ -88,6 +89,15 @@ public:
 	virtual void update(float deltaSeconds) override;
 
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const;
+
+	// Zero-copy GPU texture access (ticket E3) - only overridden by video sources
+	// whose decoded frames live in GPU memory the whole way through (currently
+	// just ARKit's CUDA-GL interop pipeline; see ARKitVideoSourceComponent). The
+	// default null return means every other video source type (USB/Network) is
+	// unaffected - VideoFrameDistortionView's CPU-buffer pipeline (writeVideoFrame
+	// et al.) remains the only path for them.
+	virtual IMkTexturePtr getDirectColorTexture() const { return IMkTexturePtr(); }
+	virtual IMkTexturePtr getDirectDepthTexture() const { return IMkTexturePtr(); }
 
 	virtual bool getVideoModeName(std::string& outVideoModeName) const;
 	virtual bool getFrameRate(float& outFrameRate) const;

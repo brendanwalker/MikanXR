@@ -44,6 +44,20 @@ add_custom_command(
 add_custom_target(MikanARKitVideoJBUKernelPTX DEPENDS "${MIKAN_ARKIT_JBU_KERNEL_PTX}")
 set_target_properties(MikanARKitVideoJBUKernelPTX PROPERTIES FOLDER Plugins)
 
+# NV12ConversionKernel.cu -> NV12ConversionKernel.ptx (ticket E3) - same pattern as
+# JBUKernel.cu above (compiled once, loaded at runtime via cuModuleLoadData, never
+# linked into any host translation unit).
+set(MIKAN_ARKIT_NV12_KERNEL_CU "${CMAKE_CURRENT_LIST_DIR}/Private/Cuda/NV12ConversionKernel.cu")
+set(MIKAN_ARKIT_NV12_KERNEL_PTX "${CMAKE_CURRENT_BINARY_DIR}/NV12ConversionKernel.ptx" CACHE INTERNAL "")
+add_custom_command(
+	OUTPUT "${MIKAN_ARKIT_NV12_KERNEL_PTX}"
+	COMMAND "${CUDA_NVCC_EXECUTABLE}" --ptx "${MIKAN_ARKIT_NV12_KERNEL_CU}" -o "${MIKAN_ARKIT_NV12_KERNEL_PTX}"
+	DEPENDS "${MIKAN_ARKIT_NV12_KERNEL_CU}"
+	COMMENT "Compiling NV12ConversionKernel.cu to PTX"
+	VERBATIM)
+add_custom_target(MikanARKitVideoNV12KernelPTX DEPENDS "${MIKAN_ARKIT_NV12_KERNEL_PTX}")
+set_target_properties(MikanARKitVideoNV12KernelPTX PROPERTIES FOLDER Plugins)
+
 list(APPEND MIKAN_ARKIT_VIDEO_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Public
 	${CMAKE_CURRENT_LIST_DIR}/Private
@@ -77,7 +91,9 @@ add_library(MikanARKitVideo SHARED ${MIKAN_ARKIT_VIDEO_SRC})
 target_include_directories(MikanARKitVideo PRIVATE ${MIKAN_ARKIT_VIDEO_INCL_DIRS})
 target_link_libraries(MikanARKitVideo PRIVATE ${MIKAN_ARKIT_VIDEO_REQ_LIBS})
 add_dependencies(MikanARKitVideo MikanARKitVideoJBUKernelPTX)
+add_dependencies(MikanARKitVideo MikanARKitVideoNV12KernelPTX)
 target_compile_definitions(MikanARKitVideo PRIVATE JBU_KERNEL_PTX_PATH="${MIKAN_ARKIT_JBU_KERNEL_PTX}")
+target_compile_definitions(MikanARKitVideo PRIVATE NV12_KERNEL_PTX_PATH="${MIKAN_ARKIT_NV12_KERNEL_PTX}")
 set_target_properties(MikanARKitVideo PROPERTIES FOLDER Plugins)
 set_target_properties(MikanARKitVideo PROPERTIES PUBLIC_HEADER "${MIKAN_ARKIT_VIDEO_HEADER}")
 set_target_properties(MikanARKitVideo PROPERTIES CXX_VISIBILITY_PRESET hidden)
