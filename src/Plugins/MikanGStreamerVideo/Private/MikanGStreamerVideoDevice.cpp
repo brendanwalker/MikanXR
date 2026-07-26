@@ -429,10 +429,17 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 				gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 1);
 
 				m_openState= eOpenState::open;
-				notifyVideoDeviceOpened();
 
-				// If this open was triggered by a watchdog restart, resume streaming
-				if (m_pendingStreamStartAfterOpen)
+				// A restart-driven reopen resumes an already-connected client transparently, so
+				// suppress the "opened" notification (we never fired "closed" for it either) and
+				// auto-resume streaming. A first-time open notifies and lets the caller start the
+				// stream.
+				const bool bIsRestartReopen= m_pendingStreamStartAfterOpen;
+				if (!bIsRestartReopen)
+				{
+					notifyVideoDeviceOpened();
+				}
+				else
 				{
 					m_pendingStreamStartAfterOpen= false;
 					startVideoStream();
@@ -584,7 +591,10 @@ void MikanGStreamerVideoDevice::restartStream()
 {
 	m_lastFrameTimestamp= std::chrono::steady_clock::now();
 	m_pendingStreamStartAfterOpen= true;
-	close();
+	// Reconnect the pipeline without notifying listeners of a close/open — connected clients
+	// keep their registration and their device pointer, so streaming resumes transparently once
+	// the async reopen completes (see the open-completion branch in update()).
+	closeInternal(false);
 	open();
 }
 
@@ -623,7 +633,9 @@ void MikanGStreamerVideoDevice::notifyVideoFrameReceived(const NetworkVideoFrame
 	}
 }
 
-void MikanGStreamerVideoDevice::close()
+void MikanGStreamerVideoDevice::close() { closeInternal(true); }
+
+void MikanGStreamerVideoDevice::closeInternal(bool bNotifyListeners)
 {
 	// If async open is in-flight, block until it completes so we can safely clean up
 	if (m_openState == eOpenState::opening && m_openFuture.valid())
@@ -631,8 +643,11 @@ void MikanGStreamerVideoDevice::close()
 		m_openFuture.get();
 		// Don't notify — the device was never fully open from the caller's perspective
 	}
-	else if (m_openState == eOpenState::open)
+	else if (m_openState == eOpenState::open && bNotifyListeners)
 	{
+		// Skipped during an internal restart (bNotifyListeners == false): notifying "closed"
+		// makes the owning NetworkVideoSourceComponent tear the whole video source down and drop
+		// its device pointer, so a transient reconnect would never resume. See restartStream().
 		notifyVideoDeviceClosed();
 	}
 

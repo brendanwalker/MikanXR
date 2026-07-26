@@ -59,6 +59,10 @@ private:
 	// Used both by the frame-timeout watchdog and the bus ERROR/EOS handler.
 	void restartStream();
 
+	// Shared close implementation. bNotifyListeners == false is used during an internal
+	// restart so connected clients aren't torn down for a transient reconnect.
+	void closeInternal(bool bNotifyListeners);
+
 	enum class eOpenState
 	{
 		closed,
