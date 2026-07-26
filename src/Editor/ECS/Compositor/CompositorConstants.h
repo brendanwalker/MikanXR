@@ -86,6 +86,24 @@ enum class eTextureSourceColorType : int
 };
 extern const std::string* k_textureSourceColorTypeStrings;
 
+// Fallback texture a ColorTextureSourceNode emits when no client texture is available yet.
+// The "identity" texture that composites as a no-op depends on the downstream material/blend
+// (e.g. an inverted-alpha "Normal" layer needs opaque black, a "Multiply" layer needs white),
+// which can't be inferred in C++ — so the graph author selects it per node. autoByType keeps the
+// legacy behavior of picking the default from the color type.
+enum class eColorTextureFallbackMode : int
+{
+	INVALID= -1,
+
+	autoByType,       // default derived from eTextureSourceColorType (backward compatible)
+	transparentBlack, // (0,0,0,0)
+	opaqueBlack,      // (0,0,0,1) — identity for an inverted-alpha "Normal"/"Over" layer
+	opaqueWhite,      // (1,1,1,1) — identity for a "Multiply" layer
+
+	COUNT
+};
+extern const std::string* k_colorTextureFallbackModeStrings;
+
 enum class eTextureSourceDepthType : int
 {
 	INVALID= -1,

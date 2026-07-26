@@ -42,6 +42,7 @@ configuru::Config ColorTextureSourceNodeConfig::writeToJSON()
 	configuru::Config pt= NodeConfig::writeToJSON();
 
 	pt["texture_source_color_type"]= k_textureSourceColorTypeStrings[(int)textureSourceColorType];
+	pt["fallback_mode"]= k_colorTextureFallbackModeStrings[(int)fallbackMode];
 	pt["texture_source_id"]= textureSourceId;
 	pt["vertical_flip"]= bVerticalFlip;
 
@@ -56,6 +57,17 @@ void ColorTextureSourceNodeConfig::readFromJSON(const configuru::Config& pt)
 		"texture_source_color_type", k_textureSourceColorTypeStrings[(int)eTextureSourceColorType::colorRGB]);
 	textureSourceColorType=
 		StringUtils::FindEnumValue<eTextureSourceColorType>(clientTextureTypeString, k_textureSourceColorTypeStrings);
+
+	const std::string fallbackModeString= pt.get_or<std::string>(
+		"fallback_mode", k_colorTextureFallbackModeStrings[(int)eColorTextureFallbackMode::autoByType]);
+	fallbackMode=
+		StringUtils::FindEnumValue<eColorTextureFallbackMode>(fallbackModeString, k_colorTextureFallbackModeStrings);
+	// Legacy graphs (and any unrecognized value) fall back to the backward-compatible auto behavior
+	if (fallbackMode == eColorTextureFallbackMode::INVALID)
+	{
+		fallbackMode= eColorTextureFallbackMode::autoByType;
+	}
+
 	bVerticalFlip= pt.get_or<bool>("vertical_flip", false);
 
 	textureSourceId= pt.get_or<int>("texture_source_id", INVALID_MIKAN_ID);
@@ -69,6 +81,7 @@ bool ColorTextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		auto textureSourceNodeConfig= std::static_pointer_cast<const ColorTextureSourceNodeConfig>(nodeConfig);
 
 		m_clientTextureType= textureSourceNodeConfig->textureSourceColorType;
+		m_fallbackMode= textureSourceNodeConfig->fallbackMode;
 		m_bVerticalFlip= textureSourceNodeConfig->bVerticalFlip;
 
 		// Get the client video source component corresponding to the saved video source id
@@ -91,6 +104,7 @@ void ColorTextureSourceNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	TextureSourceComponentPtr textureSourceComponent= getTextureSourceComponent();
 
 	textureSourceNodeConfig->textureSourceColorType= m_clientTextureType;
+	textureSourceNodeConfig->fallbackMode= m_fallbackMode;
 	textureSourceNodeConfig->bVerticalFlip= m_bVerticalFlip;
 	textureSourceNodeConfig->textureSourceId=
 		textureSourceComponent ? textureSourceComponent->getTextureSourceId() : INVALID_MIKAN_ID;
@@ -148,10 +162,28 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 		{
 			auto* textureCache= getOwnerGraph()->getOwnerWindow()->getGraphicsContext()->getTextureCache();
 
+			// An explicit per-node fallback override wins over the color-type default. This is how
+			// the graph author picks the identity texture appropriate for the downstream material
+			// (e.g. opaque black for an inverted-alpha layer, white for a multiply layer), which
+			// can't be inferred here.
+			switch (m_fallbackMode)
+			{
+			case eColorTextureFallbackMode::transparentBlack:
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT);
+			case eColorTextureFallbackMode::opaqueBlack:
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA);
+			case eColorTextureFallbackMode::opaqueWhite:
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_WHITE_RGBA);
+			case eColorTextureFallbackMode::autoByType:
+			default:
+				break;
+			}
+
+			// Auto: derive the identity from how this color type is normally composited.
 			switch (m_clientTextureType)
 			{
 			case eTextureSourceColorType::colorRGBA:
-				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT);
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA);
 			// Shadow buffers composite multiplicatively, so the "no data" identity is white
 			// (white * background == background, i.e. no shadow) rather than transparent black.
 			case eTextureSourceColorType::shadowRGBA:
@@ -324,6 +356,15 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 													 editorState.styleManager))
 		{
 			m_clientTextureType= (eTextureSourceColorType)iTextureType;
+		}
+
+		// No-client fallback texture (identity when no client renderer is attached)
+		int iFallbackMode= (int)m_fallbackMode;
+		if (NodeEditorUI::DrawSimpleComboBoxProperty("colorTextureFallbackMode", "No-Client Fallback",
+													 "Auto\0Transparent Black\0Opaque Black\0Opaque White\0",
+													 iFallbackMode, editorState.styleManager))
+		{
+			m_fallbackMode= (eColorTextureFallbackMode)iFallbackMode;
 		}
 
 		// Texture Type

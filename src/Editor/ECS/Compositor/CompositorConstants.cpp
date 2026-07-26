@@ -46,6 +46,10 @@ const std::string g_textureSourceColorTypeStrings[(int)eTextureSourceColorType::
 																						 "shadowRGB", "shadowRGBA"};
 const std::string* k_textureSourceColorTypeStrings= g_textureSourceColorTypeStrings;
 
+const std::string g_colorTextureFallbackModeStrings[(int)eColorTextureFallbackMode::COUNT]= {
+	"auto", "transparentBlack", "opaqueBlack", "opaqueWhite"};
+const std::string* k_colorTextureFallbackModeStrings= g_colorTextureFallbackModeStrings;
+
 const std::string g_textureSourceDepthTypeStrings[(int)eTextureSourceDepthType::COUNT]= {"depthPackRGBA"};
 const std::string* k_textureSourceDepthTypeStrings= g_textureSourceDepthTypeStrings;
 
