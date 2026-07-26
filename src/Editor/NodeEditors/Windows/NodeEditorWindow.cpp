@@ -840,9 +840,11 @@ bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 
 bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
-	// If no path was set or we explicitly want to show the file dialog,
+	auto resolvedPath= PathUtils::resolveProjectResource(m_editorState.nodeGraphPath);
+
+	// If no path was set (or non resolved) or we explicitly want to show the file dialog,
 	// bring up the save path dialog
-	if (m_editorState.nodeGraphPath.empty() || bShowFileDialog)
+	if (resolvedPath.empty() || bShowFileDialog)
 	{
 		std::string defautPath= (PathUtils::getProjectDirectory() / "graphs" / "new_graph.graph").string();
 		const char* filterItems[1]= {"*.graph"};
@@ -854,12 +856,13 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 		if (picked != nullptr && picked[0] != '\0')
 		{
 			m_editorState.nodeGraphPath= picked;
+			resolvedPath= picked;
 		}
 	}
 
-	if (!m_editorState.nodeGraphPath.empty() && m_editorState.nodeGraph)
+	if (!resolvedPath.empty() && m_editorState.nodeGraph)
 	{
-		NodeGraphFactory::saveNodeGraph(m_editorState.nodeGraphPath, m_editorState.nodeGraph);
+		NodeGraphFactory::saveNodeGraph(resolvedPath, m_editorState.nodeGraph);
 		return true;
 	}
 
