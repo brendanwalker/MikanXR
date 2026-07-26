@@ -23,6 +23,18 @@ struct ARKitVideoConnectionSettings
 // exactly 0 would divide-by-zero in the kernel's Gaussian weighting, so callers
 // should keep them comfortably above 0 (ARKitVideoSourceDefinition's setters clamp
 // to a safe minimum).
+// What the device renders into its R32F depth-preview texture each frame. jbu_upsampled
+// is the normal path (and what the compositor consumes); the other two are transient
+// debug views for the video-settings window that nearest-upsample the raw low-res planes
+// so you can see what's actually arriving (see IARKitVideoDevice::setDepthPreviewMode).
+enum class eARKitDepthPreviewMode : int
+{
+	jbu_upsampled= 0,
+	raw_depth_nearest,
+	matte_nearest,         // raw nearest-upsampled 0/1 stencil
+	refined_matte_nearest, // guided stencil-JBU (crisp alpha), scaled for the depth-preview shader
+};
+
 struct ARKitJBUParams
 {
 	int radius= 32;
@@ -30,6 +42,14 @@ struct ARKitJBUParams
 	float sigmaColor= 15.0f;
 	float confWeightLow= 0.0f;
 	float confWeightMedium= 0.5f;
+
+	// Person-segmentation silhouette gating (mirror of JBUParams' seg fields). When
+	// segGatingEnabled, the device gates the upsample against the streamed person matte
+	// so depth can't bleed across a person's silhouette; segEdgeStrength is the
+	// cross-boundary tap weight (1.0 == no gating, 0.0 == hard crisp edge, clamped to
+	// [0,1] by the definition layer). No effect on devices that never receive a matte.
+	bool segGatingEnabled= false;
+	float segEdgeStrength= 0.0f;
 };
 
 // Depth+confidence planes for one frame. Pointers are only valid for the duration
@@ -138,6 +158,18 @@ public:
 	virtual uint32_t getColorTextureGlId() const= 0;
 	virtual uint32_t getDepthTextureGlId() const= 0;
 
+	// -- Human-stencil (person matte) textures --
+	// Full-resolution R32F person alpha in [0,1], exposed as selectable compositor inputs
+	// (see eVideoTextureSource::human_stencil_texture / human_stencil_raw_texture). Refined
+	// is the guided-upsampled matte (crisp, edge snapped to the RGB guide - normally what
+	// you composite with); Raw is the nearest-upsampled 0/1 stencil (blocky but not
+	// color-dependent - a debugging ground truth when the guided upsample misbehaves in
+	// tricky lighting). Same GL-id-crossing-the-boundary contract as the depth texture;
+	// 0 until the video pipeline initializes, then all-zero alpha ("no person") until a
+	// matte arrives. Must be called from the GL-context-owning thread.
+	virtual uint32_t getHumanStencilRefinedTextureGlId() const= 0;
+	virtual uint32_t getHumanStencilRawTextureGlId() const= 0;
+
 	// -- JBU Tuning --
 	// Updates the live depth-upsample pipeline's Joint Bilateral Upsampling params.
 	// Safe to call at any time (including while streaming) - takes effect on the next
@@ -146,6 +178,15 @@ public:
 	// MikanARKitVideoDevice's own listener/property threading notes elsewhere in
 	// this codebase for why that caution is warranted here).
 	virtual void setJBUParams(const ARKitJBUParams& params)= 0;
+
+	// -- Depth preview mode (transient debug view) --
+	// Selects what the device renders into its depth-preview texture: the normal
+	// JBU-upsampled depth, or a nearest-upsampled view of the raw low-res depth or person
+	// matte. Safe to call from any thread at any time; takes effect on the next frame.
+	// NOTE: this repurposes the single shared depth texture, so while a debug view is
+	// selected the compositor sees that view too - callers should restore jbu_upsampled
+	// when leaving the preview UI.
+	virtual void setDepthPreviewMode(eARKitDepthPreviewMode mode)= 0;
 };
 
 using IARKitVideoDevicePtr= std::shared_ptr<IARKitVideoDevice>;

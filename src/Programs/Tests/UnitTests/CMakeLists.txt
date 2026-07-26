@@ -14,6 +14,8 @@ list(APPEND UNIT_TEST_SRC
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/UdpReceiveSocket.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitDepthReceiver.h
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitDepthReceiver.cpp
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitMatteReceiver.h
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitMatteReceiver.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.h
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.h

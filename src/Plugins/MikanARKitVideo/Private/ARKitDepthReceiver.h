@@ -26,6 +26,10 @@ struct ARKitDepthFrame
 	uint64_t captureTimestampUs= 0;
 	std::vector<uint16_t> depthMM;   // kARKitDepthPixelCount samples, millimeters, 0=invalid
 	std::vector<uint8_t> confidence; // kARKitDepthPixelCount samples, 0/1/2
+	// Optional person-segmentation matte (wire version >= 2). kARKitDepthPixelCount
+	// samples, 0=not-person / 1=person. Empty when the sender didn't include a matte
+	// (v1 stream, or matte disabled) - consumers must treat empty as "no gating".
+	std::vector<uint8_t> segmentation;
 };
 
 // Reassembles depth channel UDP fragments (see ARKitWireProtocol.h's
@@ -67,6 +71,7 @@ private:
 	struct FragmentAssemblyState
 	{
 		uint16_t fragCount= 0;
+		uint8_t version= 0; // depth wire version from the frame's first fragment (>=2 carries a matte)
 		uint64_t captureTimestampUs= 0;
 		std::vector<bool> receivedMask;
 		std::vector<std::vector<uint8_t>> fragmentPayloads;

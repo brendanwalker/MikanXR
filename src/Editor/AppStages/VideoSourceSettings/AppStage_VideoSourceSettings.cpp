@@ -97,6 +97,11 @@ void AppStage_VideoSourceSettings::exit()
 {
 	VideoSourceComponentPtr videoSourceComponent= m_videoSourceComponent.lock();
 
+	// Restore normal JBU depth production before leaving, so the compositor doesn't keep
+	// getting a raw-depth/matte debug view in the shared depth texture.
+	if (auto arkitComponent= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(videoSourceComponent))
+		arkitComponent->setDepthPreviewMode(eARKitDepthPreviewMode::jbu_upsampled);
+
 	if (videoSourceComponent && m_videoBufferView)
 	{
 		videoSourceComponent->stopVideoStream(m_videoBufferView.get());
@@ -109,6 +114,9 @@ void AppStage_VideoSourceSettings::exit()
 void AppStage_VideoSourceSettings::pause()
 {
 	VideoSourceComponentPtr videoSourceComponent= m_videoSourceComponent.lock();
+
+	if (auto arkitComponent= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(videoSourceComponent))
+		arkitComponent->setDepthPreviewMode(eARKitDepthPreviewMode::jbu_upsampled);
 
 	if (videoSourceComponent && m_videoBufferView)
 	{
@@ -166,8 +174,16 @@ void AppStage_VideoSourceSettings::onGui()
 	{
 		int displayModeInt= (int)m_displayMode;
 		ImGui::RadioButton("Color", &displayModeInt, (int)eDisplayMode::Color);
-		ImGui::RadioButton("Depth Preview", &displayModeInt, (int)eDisplayMode::DepthPreview);
+		ImGui::RadioButton("Depth (JBU)", &displayModeInt, (int)eDisplayMode::DepthPreview);
+		ImGui::RadioButton("Depth (raw)", &displayModeInt, (int)eDisplayMode::RawDepthPreview);
+		ImGui::RadioButton("Matte (raw)", &displayModeInt, (int)eDisplayMode::MattePreview);
+		ImGui::RadioButton("Matte (refined)", &displayModeInt, (int)eDisplayMode::RefinedMattePreview);
 		m_displayMode= (eDisplayMode)displayModeInt;
+
+		// Push the selected view to the live device so it renders the matching
+		// visualization into the shared depth-preview texture this frame.
+		applyDepthPreviewMode();
+
 		ImGui::Separator();
 	}
 
@@ -177,7 +193,9 @@ void AppStage_VideoSourceSettings::onGui()
 
 void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 {
-	IMkTexturePtr depthPreviewTexture= (m_displayMode == eDisplayMode::DepthPreview && m_videoBufferView != nullptr)
+	// Every non-Color mode (JBU / raw depth / matte) is drawn from the same device depth
+	// surface - the device decides what's rendered into it via setDepthPreviewMode().
+	IMkTexturePtr depthPreviewTexture= (m_displayMode != eDisplayMode::Color && m_videoBufferView != nullptr)
 										   ? m_videoBufferView->getDirectDepthTexture()
 										   : IMkTexturePtr();
 
@@ -207,6 +225,35 @@ void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 	style.verticalAlignment= eVerticalTextAlignment::Bottom;
 	drawTextAtScreenPosition(getGraphicsContext(), style, glm::vec2(0.f, m_ownerWindow->getHeight() - 1),
 							 L"Camera %.1ffps", m_videoBufferView ? m_videoBufferView->getFPS() : 0.f);
+}
+
+void AppStage_VideoSourceSettings::applyDepthPreviewMode()
+{
+	auto arkitComponent= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(m_videoSourceComponent.lock());
+	if (!arkitComponent)
+		return;
+
+	// Color and the JBU depth view both leave the device producing normal JBU depth (so
+	// the compositor keeps a valid depth); only the explicit raw/matte debug views
+	// repurpose the shared surface.
+	eARKitDepthPreviewMode deviceMode= eARKitDepthPreviewMode::jbu_upsampled;
+	switch (m_displayMode)
+	{
+	case eDisplayMode::RawDepthPreview:
+		deviceMode= eARKitDepthPreviewMode::raw_depth_nearest;
+		break;
+	case eDisplayMode::MattePreview:
+		deviceMode= eARKitDepthPreviewMode::matte_nearest;
+		break;
+	case eDisplayMode::RefinedMattePreview:
+		deviceMode= eARKitDepthPreviewMode::refined_matte_nearest;
+		break;
+	default:
+		deviceMode= eARKitDepthPreviewMode::jbu_upsampled;
+		break;
+	}
+
+	arkitComponent->setDepthPreviewMode(deviceMode);
 }
 
 void AppStage_VideoSourceSettings::onReturnEvent() { getOwnerWindow()->popAppState(); }

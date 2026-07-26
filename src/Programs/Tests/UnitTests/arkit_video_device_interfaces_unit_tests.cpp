@@ -67,11 +67,17 @@ public:
 	// texture, 0 is the documented "none yet" sentinel.
 	uint32_t getColorTextureGlId() const override { return 0; }
 	uint32_t getDepthTextureGlId() const override { return 0; }
+	uint32_t getHumanStencilRefinedTextureGlId() const override { return 0; }
+	uint32_t getHumanStencilRawTextureGlId() const override { return 0; }
 
 	// JBU tuning - this stub doesn't run a real upsample pipeline, just record the
 	// most recent params so a test could assert on them if needed.
 	void setJBUParams(const ARKitJBUParams& params) override { m_lastJBUParams= params; }
 	ARKitJBUParams m_lastJBUParams;
+
+	// Depth preview mode - record the most recent for potential assertions.
+	void setDepthPreviewMode(eARKitDepthPreviewMode mode) override { m_lastDepthPreviewMode= mode; }
+	eARKitDepthPreviewMode m_lastDepthPreviewMode= eARKitDepthPreviewMode::jbu_upsampled;
 
 	// Test-only helper to exercise the listener dispatch path.
 	void simulateFrameBundle(const ARKitVideoFrameBundle& bundle)

@@ -57,6 +57,11 @@ public:
 	// every video source type except ARKit today.
 	IMkTexturePtr getDirectDepthTexture() const;
 
+	// Zero-copy GPU human-stencil (person matte) textures, if the underlying video source
+	// provides them (ARKit). Refined = guided-upsampled crisp alpha; Raw = nearest 0/1.
+	IMkTexturePtr getDirectHumanStencilRefinedTexture() const;
+	IMkTexturePtr getDirectHumanStencilRawTexture() const;
+
 	void writeVideoFrame(const unsigned char* videoBuffer, const cv::Size& bufferDimensions, bool bIsFlipped);
 	void writeStereoVideoFrameSection(const unsigned char* videoBuffer, const cv::Size& bufferDimensions,
 									  const bool bIsFlipped, const cv::Rect& bufferBounds);

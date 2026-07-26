@@ -167,6 +167,16 @@ MikanARKitVideoDevice::MikanARKitVideoDevice(MikanARKitVideoDeviceManager* owner
 
 	m_poseReceiver.setFrameCallback([this](ARKitPoseFrame frame)
 									{ m_frameCorrelator.notifyPoseArrived(std::move(frame)); });
+
+	// Native-resolution person matte (basePort+3). Freshest-wins cache read by
+	// updateColorAndDepthTextures() for guide-res gating / preview - not correlated by
+	// frameSeq, same rationale as the depth cache above.
+	m_matteReceiver.setFrameCallback(
+		[this](ARKitMatteFrame frame)
+		{
+			std::lock_guard<std::mutex> lock(m_latestMatteMutex);
+			m_latestMatteFrame= std::move(frame);
+		});
 }
 
 MikanARKitVideoDevice::~MikanARKitVideoDevice()
@@ -219,6 +229,18 @@ eVideoOpeningStatus MikanARKitVideoDevice::open()
 	{
 		MIKAN_LOG_ERROR("MikanARKitVideoDevice::open") << "Failed to start pose receiver on port " << posePort;
 		m_depthReceiver.stop();
+		m_openState= eOpenState::failed;
+		return eVideoOpeningStatus::failed;
+	}
+
+	// Person-matte channel (basePort+3). Independent of depthStreamingEnabled - the matte
+	// is its own stream now; if the sender never streams it, this socket simply idles.
+	const uint16_t mattePort= static_cast<uint16_t>(m_connectionInfo.basePort + 3);
+	if (!m_matteReceiver.start(mattePort))
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::open") << "Failed to start matte receiver on port " << mattePort;
+		m_depthReceiver.stop();
+		m_poseReceiver.stop();
 		m_openState= eOpenState::failed;
 		return eVideoOpeningStatus::failed;
 	}
@@ -340,6 +362,7 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 				m_openState= eOpenState::failed;
 				m_depthReceiver.stop();
 				m_poseReceiver.stop();
+				m_matteReceiver.stop();
 			}
 		}
 		return;
@@ -490,6 +513,7 @@ void MikanARKitVideoDevice::close()
 
 	m_depthReceiver.stop();
 	m_poseReceiver.stop();
+	m_matteReceiver.stop();
 
 	// Tear down the whole CUDA-GL texture pipeline on close (ticket E3) rather than
 	// trying to keep it alive across reopen - the GStreamer pipeline's own
@@ -503,6 +527,8 @@ void MikanARKitVideoDevice::close()
 		m_nv12Kernel.shutdown();
 		m_colorTexture.shutdown();
 		m_depthTexture.shutdown();
+		m_humanStencilRefinedTexture.shutdown();
+		m_humanStencilRawTexture.shutdown();
 
 		if (m_guideRgbBuffer != 0)
 		{
@@ -518,6 +544,14 @@ void MikanARKitVideoDevice::close()
 		{
 			cuMemFree(m_confidenceLowBuffer);
 			m_confidenceLowBuffer= 0;
+		}
+		if (m_matteBuffer != 0)
+		{
+			cuMemFree(m_matteBuffer);
+			m_matteBuffer= 0;
+			m_matteBufferCapacity= 0;
+			m_matteWidth= 0;
+			m_matteHeight= 0;
 		}
 
 		m_bTexturePipelineInitialized= false;
@@ -610,6 +644,8 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 		// size-dependent, so they're left alone.
 		m_colorTexture.shutdown();
 		m_depthTexture.shutdown();
+		m_humanStencilRefinedTexture.shutdown();
+		m_humanStencilRawTexture.shutdown();
 		if (m_guideRgbBuffer != 0)
 		{
 			cuMemFree(m_guideRgbBuffer);
@@ -631,12 +667,25 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 		return false;
 	}
 
+	if (!m_humanStencilRefinedTexture.init(width, height) || !m_humanStencilRawTexture.init(width, height))
+	{
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized")
+			<< "Failed to init human-stencil texture(s)";
+		m_colorTexture.shutdown();
+		m_depthTexture.shutdown();
+		m_humanStencilRefinedTexture.shutdown();
+		m_humanStencilRawTexture.shutdown();
+		return false;
+	}
+
 	if (!m_nv12Kernel.isInitialized() && !m_nv12Kernel.init(NV12_KERNEL_PTX_PATH))
 	{
 		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized")
 			<< "Failed to init NV12 conversion kernel";
 		m_colorTexture.shutdown();
 		m_depthTexture.shutdown();
+		m_humanStencilRefinedTexture.shutdown();
+		m_humanStencilRawTexture.shutdown();
 		return false;
 	}
 
@@ -645,6 +694,8 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized") << "Failed to init JBU kernel";
 		m_colorTexture.shutdown();
 		m_depthTexture.shutdown();
+		m_humanStencilRefinedTexture.shutdown();
+		m_humanStencilRawTexture.shutdown();
 		return false;
 	}
 
@@ -654,6 +705,8 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 	{
 		m_colorTexture.shutdown();
 		m_depthTexture.shutdown();
+		m_humanStencilRefinedTexture.shutdown();
+		m_humanStencilRawTexture.shutdown();
 		return false;
 	}
 
@@ -665,6 +718,8 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 		m_guideRgbBuffer= 0;
 		m_colorTexture.shutdown();
 		m_depthTexture.shutdown();
+		m_humanStencilRefinedTexture.shutdown();
+		m_humanStencilRawTexture.shutdown();
 		return false;
 	}
 
@@ -677,8 +732,15 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 		m_depthLowBuffer= 0;
 		m_colorTexture.shutdown();
 		m_depthTexture.shutdown();
+		m_humanStencilRefinedTexture.shutdown();
+		m_humanStencilRawTexture.shutdown();
 		return false;
 	}
+
+	// Note: the person-matte device buffer (m_matteBuffer) is NOT allocated here - its
+	// size is the matte's native resolution (device-dependent, arrives on the wire), not
+	// tied to the video/guide resolution this function sizes for, so it's (re)allocated
+	// lazily in updateColorAndDepthTextures() when a matte is uploaded.
 
 	m_textureWidth= width;
 	m_textureHeight= height;
@@ -739,6 +801,46 @@ void MikanARKitVideoDevice::updateColorAndDepthTextures(GstBuffer* buffer, CUdev
 		}
 	}
 
+	// -- Person matte (native resolution, own basePort+3 channel). Freshest-wins like
+	// depth. Uploaded into the dynamically-sized matte device buffer here so both the JBU
+	// guide-res gate and the matte preview can read it; the buffer grows if the incoming
+	// dimensions exceed its current capacity. --
+	ARKitMatteFrame latestMatte;
+	bool bHasMatte= false;
+	{
+		std::lock_guard<std::mutex> lock(m_latestMatteMutex);
+		if (m_latestMatteFrame.has_value())
+		{
+			latestMatte= *m_latestMatteFrame;
+			bHasMatte= true;
+		}
+	}
+
+	bool bMatteUploaded= false;
+	if (bHasMatte && !latestMatte.matte.empty())
+	{
+		const size_t matteBytes= latestMatte.matte.size();
+		if (m_matteBuffer == 0 || matteBytes > m_matteBufferCapacity)
+		{
+			if (m_matteBuffer != 0)
+			{
+				cuMemFree(m_matteBuffer);
+				m_matteBuffer= 0;
+				m_matteBufferCapacity= 0;
+			}
+			if (checkCudaResult(cuMemAlloc(&m_matteBuffer, matteBytes), "cuMemAlloc(matte)"))
+				m_matteBufferCapacity= matteBytes;
+		}
+		if (m_matteBuffer != 0
+			&& checkCudaResult(cuMemcpyHtoD(m_matteBuffer, latestMatte.matte.data(), matteBytes),
+							   "cuMemcpyHtoD(matte)"))
+		{
+			m_matteWidth= latestMatte.width;
+			m_matteHeight= latestMatte.height;
+			bMatteUploaded= true;
+		}
+	}
+
 	if (bHasDepth)
 	{
 		checkCudaResult(
@@ -751,17 +853,151 @@ void MikanARKitVideoDevice::updateColorAndDepthTextures(GstBuffer* buffer, CUdev
 		CUsurfObject depthSurface= 0;
 		if (m_depthTexture.beginCudaAccess(depthSurface))
 		{
-			JBUParams params;
+			const eARKitDepthPreviewMode previewMode= static_cast<eARKitDepthPreviewMode>(m_depthPreviewMode.load());
+
+			if (previewMode == eARKitDepthPreviewMode::raw_depth_nearest)
 			{
-				std::lock_guard<std::mutex> paramsLock(m_jbuParamsMutex);
-				params= m_jbuParams;
+				// Debug view: the raw low-res depth (already uploaded above), nearest-
+				// upsampled with no bilateral filtering, so it visibly contrasts with JBU.
+				m_jbuKernel.visualizeDepthNearest(m_depthLowBuffer, kARKitDepthWidth, kARKitDepthHeight,
+												  kARKitDepthWidth * static_cast<int>(sizeof(uint16_t)), depthSurface,
+												  width, height);
 			}
-			m_jbuKernel.upsampleToSurface(m_depthLowBuffer, kARKitDepthWidth, kARKitDepthHeight,
-										  kARKitDepthWidth * static_cast<int>(sizeof(uint16_t)), m_confidenceLowBuffer,
-										  kARKitDepthWidth, m_guideRgbBuffer, width, height, m_guideStrideBytes,
-										  depthSurface, width, height, params);
+			else if (previewMode == eARKitDepthPreviewMode::matte_nearest)
+			{
+				// Debug view: the native-res person matte, nearest-upsampled. When no matte
+				// is available, show solid black ("matte not arriving") by vizzing a zeroed
+				// 1x1 buffer (every output samples label 0 -> 0).
+				if (bMatteUploaded)
+				{
+					m_jbuKernel.visualizeMatteNearest(m_matteBuffer, m_matteWidth, m_matteHeight, m_matteWidth,
+													  depthSurface, width, height, 5000.0f);
+				}
+				else
+				{
+					if (m_matteBuffer == 0 && checkCudaResult(cuMemAlloc(&m_matteBuffer, 1), "cuMemAlloc(matte)"))
+						m_matteBufferCapacity= 1;
+					if (m_matteBuffer != 0)
+					{
+						checkCudaResult(cuMemsetD8(m_matteBuffer, 0, 1), "cuMemsetD8(matte)");
+						m_jbuKernel.visualizeMatteNearest(m_matteBuffer, 1, 1, 1, depthSurface, width, height, 5000.0f);
+					}
+				}
+			}
+			else if (previewMode == eARKitDepthPreviewMode::refined_matte_nearest)
+			{
+				// Debug view: the guided stencil-JBU (the crisp "Human Stencil" matte), scaled
+				// x5000 so alpha 1.0 shows white under the /5000 depth-preview shader. Zeroed
+				// 1x1 stencil -> black when no matte, same as the raw matte view above.
+				JBUParams stencilParams;
+				{
+					std::lock_guard<std::mutex> paramsLock(m_jbuParamsMutex);
+					stencilParams= m_jbuParams;
+				}
+				if (bMatteUploaded)
+				{
+					m_jbuKernel.upsampleStencilToSurface(m_matteBuffer, m_matteWidth, m_matteHeight, m_matteWidth,
+														 m_guideRgbBuffer, width, height, m_guideStrideBytes,
+														 depthSurface, width, height, stencilParams, 5000.0f);
+				}
+				else
+				{
+					if (m_matteBuffer == 0 && checkCudaResult(cuMemAlloc(&m_matteBuffer, 1), "cuMemAlloc(matte)"))
+						m_matteBufferCapacity= 1;
+					if (m_matteBuffer != 0)
+					{
+						checkCudaResult(cuMemsetD8(m_matteBuffer, 0, 1), "cuMemsetD8(matte)");
+						m_jbuKernel.upsampleStencilToSurface(m_matteBuffer, 1, 1, 1, m_guideRgbBuffer, width, height,
+															 m_guideStrideBytes, depthSurface, width, height,
+															 stencilParams, 5000.0f);
+					}
+				}
+			}
+			else
+			{
+				JBUParams params;
+				{
+					std::lock_guard<std::mutex> paramsLock(m_jbuParamsMutex);
+					params= m_jbuParams;
+				}
+
+				// Gate at guide resolution against the native-res matte when gating is on
+				// and a matte is available; otherwise pass 0 so the kernel runs exactly as
+				// the confidence/color-only pipeline did.
+				CUdeviceptr matte= 0;
+				int matteW= 0, matteH= 0, matteStride= 0;
+				if (params.segGatingEnabled && bMatteUploaded)
+				{
+					matte= m_matteBuffer;
+					matteW= m_matteWidth;
+					matteH= m_matteHeight;
+					matteStride= m_matteWidth;
+				}
+
+				m_jbuKernel.upsampleToSurface(m_depthLowBuffer, kARKitDepthWidth, kARKitDepthHeight,
+											  kARKitDepthWidth * static_cast<int>(sizeof(uint16_t)),
+											  m_confidenceLowBuffer, kARKitDepthWidth, m_guideRgbBuffer, width, height,
+											  m_guideStrideBytes, depthSurface, width, height, params, matte, matteW,
+											  matteH, matteStride);
+			}
+
 			m_jbuKernel.synchronize();
 			m_depthTexture.endCudaAccess(nullptr);
+		}
+	}
+
+	// -- Human-stencil textures (compositor inputs): refined = guided stencil-JBU (crisp
+	// edge, snapped to the RGB guide); raw = nearest-upsampled 0/1 stencil (blocky ground
+	// truth). Always produced so the textures stay valid - a zeroed 1x1 stencil yields
+	// all-zero alpha ("no person") when no matte is available. --
+	{
+		CUdeviceptr stencilPtr= 0;
+		int stencilW= 0, stencilH= 0;
+		if (bMatteUploaded)
+		{
+			stencilPtr= m_matteBuffer;
+			stencilW= m_matteWidth;
+			stencilH= m_matteHeight;
+		}
+		else
+		{
+			if (m_matteBuffer == 0 && checkCudaResult(cuMemAlloc(&m_matteBuffer, 1), "cuMemAlloc(matte)"))
+				m_matteBufferCapacity= 1;
+			if (m_matteBuffer != 0)
+			{
+				checkCudaResult(cuMemsetD8(m_matteBuffer, 0, 1), "cuMemsetD8(matte)");
+				stencilPtr= m_matteBuffer;
+				stencilW= 1;
+				stencilH= 1;
+			}
+		}
+
+		if (stencilPtr != 0)
+		{
+			JBUParams stencilParams;
+			{
+				std::lock_guard<std::mutex> paramsLock(m_jbuParamsMutex);
+				stencilParams= m_jbuParams;
+			}
+
+			CUsurfObject refinedSurface= 0;
+			if (m_humanStencilRefinedTexture.beginCudaAccess(refinedSurface))
+			{
+				m_jbuKernel.upsampleStencilToSurface(stencilPtr, stencilW, stencilH, stencilW, m_guideRgbBuffer, width,
+													 height, m_guideStrideBytes, refinedSurface, width, height,
+													 stencilParams, 1.0f);
+				m_jbuKernel.synchronize();
+				m_humanStencilRefinedTexture.endCudaAccess(nullptr);
+			}
+
+			CUsurfObject rawSurface= 0;
+			if (m_humanStencilRawTexture.beginCudaAccess(rawSurface))
+			{
+				m_jbuKernel.visualizeMatteNearest(stencilPtr, stencilW, stencilH, stencilW, rawSurface, width, height,
+												  1.0f);
+				m_jbuKernel.synchronize();
+				m_humanStencilRawTexture.endCudaAccess(nullptr);
+			}
 		}
 	}
 }
@@ -778,6 +1014,18 @@ uint32_t MikanARKitVideoDevice::getDepthTextureGlId() const
 	return texture != nullptr ? texture->getGlTextureId() : 0;
 }
 
+uint32_t MikanARKitVideoDevice::getHumanStencilRefinedTextureGlId() const
+{
+	IMkTexturePtr texture= m_humanStencilRefinedTexture.getTexture();
+	return texture != nullptr ? texture->getGlTextureId() : 0;
+}
+
+uint32_t MikanARKitVideoDevice::getHumanStencilRawTextureGlId() const
+{
+	IMkTexturePtr texture= m_humanStencilRawTexture.getTexture();
+	return texture != nullptr ? texture->getGlTextureId() : 0;
+}
+
 void MikanARKitVideoDevice::setJBUParams(const ARKitJBUParams& params)
 {
 	std::lock_guard<std::mutex> lock(m_jbuParamsMutex);
@@ -786,6 +1034,13 @@ void MikanARKitVideoDevice::setJBUParams(const ARKitJBUParams& params)
 	m_jbuParams.sigmaColor= params.sigmaColor;
 	m_jbuParams.confWeightLow= params.confWeightLow;
 	m_jbuParams.confWeightMedium= params.confWeightMedium;
+	m_jbuParams.segGatingEnabled= params.segGatingEnabled;
+	m_jbuParams.segEdgeStrength= params.segEdgeStrength;
+}
+
+void MikanARKitVideoDevice::setDepthPreviewMode(eARKitDepthPreviewMode mode)
+{
+	m_depthPreviewMode.store(static_cast<int>(mode));
 }
 
 // -- Video Settings -----

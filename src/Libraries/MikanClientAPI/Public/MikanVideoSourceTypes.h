@@ -245,6 +245,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	FIELD() float jbu_conf_weight_low;
 	FIELD() float jbu_conf_weight_medium;
 
+	// Person-segmentation silhouette gating (Track E seg-gating). When enabled, depth
+	// upsampling is gated against the streamed person matte so it can't bleed across a
+	// person's silhouette; seg_edge_strength is the cross-boundary tap weight (1.0 == no
+	// gating, 0.0 == hard crisp edge, clamped to [0,1] by the definition setter).
+	FIELD() bool seg_gating_enabled;
+	FIELD() float seg_edge_strength;
+
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanARKitVideoSourceValues_GENERATED
 #endif // MIKANAPI_REFLECTION_ENABLED

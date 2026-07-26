@@ -381,6 +381,12 @@ IMkTexturePtr CompositorComponent::getVideoSourceTexture(eVideoTextureSource tex
 		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : IMkTexturePtr();
 	case eVideoTextureSource::float_depth_texture:
 		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDirectDepthTexture() : IMkTexturePtr();
+	case eVideoTextureSource::human_stencil_texture:
+		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDirectHumanStencilRefinedTexture()
+												  : IMkTexturePtr();
+	case eVideoTextureSource::human_stencil_raw_texture:
+		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDirectHumanStencilRawTexture()
+												  : IMkTexturePtr();
 	}
 
 	return IMkTexturePtr();

@@ -19,6 +19,7 @@ int main(int argc, char* argv[])
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_rvl_real_capture_unit_tests);
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_udp_receive_socket_unit_tests);
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_depth_receiver_unit_tests);
+	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_matte_receiver_unit_tests);
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_pose_receiver_unit_tests);
 	UNIT_TEST_SUITE_CALL_CPP_MODULE(run_arkit_frame_correlator_unit_tests);
 	// arkit_cuda_gl_interop must run BEFORE arkit_jbu_kernel, not after - confirmed

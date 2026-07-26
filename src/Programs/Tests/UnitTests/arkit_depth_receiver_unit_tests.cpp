@@ -191,6 +191,74 @@ std::vector<std::vector<uint8_t>> buildDepthFragments(uint32_t frameSeq, uint64_
 	return fragments;
 }
 
+// v2 payload: appends [uint32 segLen BE][seg RLE bytes] (person matte) after the
+// confidence section, matching DepthPacketFramer.swift's v2 buildPayload. The matte is
+// RLE-encoded with the same codec as confidence (0/1 stencil).
+std::vector<uint8_t> buildDepthPayloadV2(const std::vector<uint16_t>& depth, const std::vector<uint8_t>& confidence,
+										 const std::vector<uint8_t>& matte)
+{
+	std::vector<uint8_t> payload= buildDepthPayload(depth, confidence);
+	std::vector<uint8_t> segBytes= depthTestReferenceConfidenceRLEEncode(matte);
+
+	const size_t segLenOffset= payload.size();
+	payload.resize(payload.size() + 4);
+	writeU32BE(payload.data() + segLenOffset, static_cast<uint32_t>(segBytes.size()));
+	payload.insert(payload.end(), segBytes.begin(), segBytes.end());
+
+	return payload;
+}
+
+// Splits a v2 payload into wire fragments tagged with kARKitDepthWireVersion (2). Same
+// fragmentation as buildDepthFragments, but for the matte-carrying v2 payload/version.
+std::vector<std::vector<uint8_t>> buildDepthFragmentsV2(uint32_t frameSeq, uint64_t timestampUs,
+														const std::vector<uint16_t>& depth,
+														const std::vector<uint8_t>& confidence,
+														const std::vector<uint8_t>& matte,
+														size_t maxPayloadPerFragment= 1200)
+{
+	std::vector<uint8_t> payload= buildDepthPayloadV2(depth, confidence, matte);
+
+	const size_t totalChunks= std::max<size_t>(1, (payload.size() + maxPayloadPerFragment - 1) / maxPayloadPerFragment);
+
+	std::vector<std::vector<uint8_t>> fragments;
+	size_t offset= 0;
+	uint16_t fragIndex= 0;
+	while (offset < payload.size() || fragments.empty())
+	{
+		const size_t end= std::min(offset + maxPayloadPerFragment, payload.size());
+
+		ARKitDepthFragmentHeader header;
+		header.version= kARKitDepthWireVersion;
+		header.frameSeq= frameSeq;
+		header.captureTimestampUs= timestampUs;
+		header.fragIndex= fragIndex;
+		header.fragCount= static_cast<uint16_t>(totalChunks);
+
+		std::vector<uint8_t> datagram(ARKitDepthFragmentHeader::kWireSize + (end - offset));
+		writeARKitDepthFragmentHeader(datagram.data(), datagram.size(), header);
+		std::copy(payload.begin() + static_cast<ptrdiff_t>(offset), payload.begin() + static_cast<ptrdiff_t>(end),
+				  datagram.begin() + static_cast<ptrdiff_t>(ARKitDepthFragmentHeader::kWireSize));
+
+		fragments.push_back(std::move(datagram));
+
+		offset= end;
+		++fragIndex;
+	}
+
+	return fragments;
+}
+
+// A person matte with a single vertical silhouette (left half background/0, right half
+// person/1) - a realistic, RLE-friendly stencil with a real boundary.
+std::vector<uint8_t> makeSilhouetteMatte()
+{
+	std::vector<uint8_t> matte(kARKitDepthPixelCount);
+	for (int y= 0; y < kARKitDepthHeight; ++y)
+		for (int x= 0; x < kARKitDepthWidth; ++x)
+			matte[y * kARKitDepthWidth + x]= static_cast<uint8_t>(x >= kARKitDepthWidth / 2 ? 1 : 0);
+	return matte;
+}
+
 std::vector<uint16_t> makeRealisticDepth(unsigned int seed)
 {
 	std::mt19937 rng(seed);
@@ -714,6 +782,82 @@ static bool arkit_depth_receiver_test_end_to_end_over_real_socket()
 }
 #endif
 
+static bool arkit_depth_receiver_test_v2_matte_roundtrips()
+{
+	UNIT_TEST_BEGIN("a v2 (matte-carrying) frame decodes the person matte into ARKitDepthFrame.segmentation")
+
+	std::vector<uint16_t> depth= makeRealisticDepth(3);
+	std::vector<uint8_t> confidence= makeUniformConfidence(2);
+	std::vector<uint8_t> matte= makeSilhouetteMatte();
+
+	std::vector<std::vector<uint8_t>> fragments= buildDepthFragmentsV2(9, 6000, depth, confidence, matte);
+
+	ARKitDepthFragmentAssembler assembler;
+	int callbackCount= 0;
+	ARKitDepthFrame received;
+	assembler.setFrameCallback(
+		[&](ARKitDepthFrame frame)
+		{
+			++callbackCount;
+			received= std::move(frame);
+		});
+
+	const auto now= std::chrono::steady_clock::now();
+	for (const auto& fragment : fragments)
+	{
+		success= success && assembler.processFragment(fragment.data(), fragment.size(), now);
+		assert(success);
+	}
+
+	success= success && (callbackCount == 1);
+	assert(success);
+	success= success && (received.depthMM == depth);
+	assert(success);
+	success= success && (received.confidence == confidence);
+	assert(success);
+	// The whole point of S2: the matte survives the v2 wire round-trip intact.
+	success= success && (received.segmentation == matte);
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
+static bool arkit_depth_receiver_test_v1_leaves_matte_empty()
+{
+	UNIT_TEST_BEGIN("a v1 (no-matte) frame leaves ARKitDepthFrame.segmentation empty")
+
+	std::vector<uint16_t> depth= makeRealisticDepth(4);
+	std::vector<uint8_t> confidence= makeUniformConfidence(2);
+	// buildDepthFragments produces the v1 payload/version (no seg section).
+	std::vector<std::vector<uint8_t>> fragments= buildDepthFragments(11, 7000, depth, confidence);
+
+	ARKitDepthFragmentAssembler assembler;
+	int callbackCount= 0;
+	ARKitDepthFrame received;
+	assembler.setFrameCallback(
+		[&](ARKitDepthFrame frame)
+		{
+			++callbackCount;
+			received= std::move(frame);
+		});
+
+	const auto now= std::chrono::steady_clock::now();
+	for (const auto& fragment : fragments)
+	{
+		success= success && assembler.processFragment(fragment.data(), fragment.size(), now);
+		assert(success);
+	}
+
+	success= success && (callbackCount == 1);
+	assert(success);
+	success= success && (received.depthMM == depth);
+	assert(success);
+	success= success && received.segmentation.empty();
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
 //-- public interface -----
 bool run_arkit_depth_receiver_unit_tests()
 {
@@ -728,6 +872,8 @@ bool run_arkit_depth_receiver_unit_tests()
 	UNIT_TEST_MODULE_CALL_TEST(arkit_depth_receiver_test_rejects_fragcount_mismatch);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_depth_receiver_test_rejects_corrupted_length_fields_without_crashing);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_depth_receiver_test_fuzz_corrupted_fragments_no_crash);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_depth_receiver_test_v2_matte_roundtrips);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_depth_receiver_test_v1_leaves_matte_empty);
 #if defined(_WIN32)
 	UNIT_TEST_MODULE_CALL_TEST(arkit_depth_receiver_test_end_to_end_over_real_socket);
 #endif

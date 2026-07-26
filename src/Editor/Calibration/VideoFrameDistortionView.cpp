@@ -428,6 +428,16 @@ IMkTexturePtr VideoFrameDistortionView::getDirectDepthTexture() const
 	return m_videoSourceComponent->getDirectDepthTexture();
 }
 
+IMkTexturePtr VideoFrameDistortionView::getDirectHumanStencilRefinedTexture() const
+{
+	return m_videoSourceComponent->getDirectHumanStencilRefinedTexture();
+}
+
+IMkTexturePtr VideoFrameDistortionView::getDirectHumanStencilRawTexture() const
+{
+	return m_videoSourceComponent->getDirectHumanStencilRawTexture();
+}
+
 int64_t VideoFrameDistortionView::readNextVideoFrameIndex()
 {
 	EASY_FUNCTION();

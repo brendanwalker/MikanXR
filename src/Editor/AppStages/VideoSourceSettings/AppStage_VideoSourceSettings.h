@@ -51,9 +51,16 @@ protected:
 	bool m_bIsARKitVideoSource= false;
 	enum class eDisplayMode
 	{
-		Color,
-		DepthPreview
+		Color,              // normal color video
+		DepthPreview,       // JBU-upsampled depth
+		RawDepthPreview,    // raw low-res depth, nearest-upsampled (debug)
+		MattePreview,       // raw incoming person matte, nearest-upsampled (debug)
+		RefinedMattePreview // guided stencil-JBU person matte (crisp - the Human Stencil)
 	};
 	eDisplayMode m_displayMode= eDisplayMode::Color;
+
+	// Pushes m_displayMode to the ARKit device's transient depth-preview selector (no-op
+	// for non-ARKit sources). Called each frame from onGui() and reset on exit/pause.
+	void applyDepthPreviewMode();
 	IMkTriangulatedMeshPtr m_fullscreenDepthPreviewQuad;
 };

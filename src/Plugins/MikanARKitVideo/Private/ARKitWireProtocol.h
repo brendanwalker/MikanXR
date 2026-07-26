@@ -16,11 +16,32 @@
 constexpr uint16_t kARKitWireProtocolMagic= 0xAD01;
 constexpr uint8_t kARKitWireProtocolVersion= 1;
 
+// Depth channel (basePort+1) wire version. Bumped to 2 when the optional
+// person-segmentation matte section was appended to the depth payload (used by the
+// JBU seg-gating path). A v1 payload is [rvlLen][rvl][confLen][conf]; a v2 payload
+// always additionally ends with [segLen][seg] (segLen==0 when the matte is absent).
+// The depth reader accepts both versions; pose still uses kARKitWireProtocolVersion.
+constexpr uint8_t kARKitDepthWireVersion= 2;
+
 enum class eARKitPacketType : uint8_t
 {
 	Depth= 1,
-	Pose= 2
+	Pose= 2,
+	Matte= 3
 };
+
+// Matte channel (basePort+3) wire version. Independent of the depth/pose version. The
+// matte rides its own channel (not the depth payload) because it's the iPhone's native
+// full-resolution person-segmentation stencil, a different resolution than the 256x192
+// LiDAR depth grid - the reassembled payload therefore carries its own width/height:
+//   [uint32 width][uint32 height][uint32 rleLen][rle bytes]
+// where the rle bytes are packConfidenceRLE of a width*height 0/1 stencil (row-major).
+constexpr uint8_t kARKitMatteWireVersion= 1;
+
+// Defensive upper bound on a received matte's dimensions before allocating for it - a
+// corrupted/adversarial width/height field must never drive a huge allocation. Full-res
+// ARKit capture is ~1920x1440; 8192 leaves generous headroom without being unbounded.
+constexpr int kARKitMatteMaxDimension= 8192;
 
 // -- big-endian primitive helpers -----
 
@@ -177,8 +198,38 @@ inline bool readARKitDepthFragmentHeader(const uint8_t* buffer, size_t bufferSiz
 	outHeader.fragCount= readU16BE(buffer + offset);
 	offset+= sizeof(uint16_t);
 
-	return outHeader.magic == kARKitWireProtocolMagic && outHeader.version == kARKitWireProtocolVersion
-		   && outHeader.type == eARKitPacketType::Depth;
+	// Accept any known depth wire version in [kARKitWireProtocolVersion, kARKitDepthWireVersion]
+	// (v1 = depth+confidence, v2 = +matte) so an older sender still interoperates.
+	return outHeader.magic == kARKitWireProtocolMagic && outHeader.version >= kARKitWireProtocolVersion
+		   && outHeader.version <= kARKitDepthWireVersion && outHeader.type == eARKitPacketType::Depth;
+}
+
+// Matte channel (basePort+3) fragment header. Byte-for-byte identical layout to the depth
+// fragment header (ARKitDepthFragmentHeader is a generic 20-byte fragment header); only
+// the type field and accepted version differ, so it reuses that struct.
+inline bool readARKitMatteFragmentHeader(const uint8_t* buffer, size_t bufferSize, ARKitDepthFragmentHeader& outHeader)
+{
+	if (buffer == nullptr || bufferSize < ARKitDepthFragmentHeader::kWireSize)
+		return false;
+
+	size_t offset= 0;
+	outHeader.magic= readU16BE(buffer + offset);
+	offset+= sizeof(uint16_t);
+	outHeader.version= buffer[offset];
+	offset+= sizeof(uint8_t);
+	outHeader.type= static_cast<eARKitPacketType>(buffer[offset]);
+	offset+= sizeof(uint8_t);
+	outHeader.frameSeq= readU32BE(buffer + offset);
+	offset+= sizeof(uint32_t);
+	outHeader.captureTimestampUs= readU64BE(buffer + offset);
+	offset+= sizeof(uint64_t);
+	outHeader.fragIndex= readU16BE(buffer + offset);
+	offset+= sizeof(uint16_t);
+	outHeader.fragCount= readU16BE(buffer + offset);
+	offset+= sizeof(uint16_t);
+
+	return outHeader.magic == kARKitWireProtocolMagic && outHeader.version == kARKitMatteWireVersion
+		   && outHeader.type == eARKitPacketType::Matte;
 }
 
 inline size_t writeARKitPosePacket(uint8_t* buffer, size_t bufferSize, const ARKitPosePacket& packet)

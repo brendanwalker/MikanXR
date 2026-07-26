@@ -60,6 +60,19 @@ public:
 	inline float getJbuConfWeightMedium() const { return m_jbuConfWeightMedium; }
 	void setJbuConfWeightMedium(float jbuConfWeightMedium);
 
+	// Person-segmentation silhouette gating (Track E seg-gating). When enabled, the
+	// device gates the JBU upsample against the streamed person matte so depth can't
+	// bleed across a person's silhouette. seg_edge_strength is the cross-boundary tap
+	// weight (1.0 == no gating, 0.0 == hard crisp edge); its setter clamps to [0,1].
+	// Both live-apply to the running device (no reconnect) like the JBU tuning params.
+	static const std::string k_segGatingEnabledPropertyId;
+	inline bool getSegGatingEnabled() const { return m_bSegGatingEnabled; }
+	void setSegGatingEnabled(bool segGatingEnabled);
+
+	static const std::string k_segEdgeStrengthPropertyId;
+	inline float getSegEdgeStrength() const { return m_segEdgeStrength; }
+	void setSegEdgeStrength(float segEdgeStrength);
+
 private:
 	int m_basePort;
 	bool m_bDepthStreamingEnabled;
@@ -69,6 +82,9 @@ private:
 	float m_jbuSigmaColor;
 	float m_jbuConfWeightLow;
 	float m_jbuConfWeightMedium;
+
+	bool m_bSegGatingEnabled;
+	float m_segEdgeStrength;
 };
 
 class ARKitVideoSourceComponent : public VideoSourceComponent,
@@ -101,6 +117,13 @@ public:
 	// -- Zero-copy GPU texture access (ticket E3) ----
 	virtual IMkTexturePtr getDirectColorTexture() const override;
 	virtual IMkTexturePtr getDirectDepthTexture() const override;
+	virtual IMkTexturePtr getDirectHumanStencilRefinedTexture() const override;
+	virtual IMkTexturePtr getDirectHumanStencilRawTexture() const override;
+
+	// Selects what the live device renders into its depth-preview texture (JBU depth vs
+	// a raw-depth/matte debug view). Transient (not persisted) - driven by the video
+	// settings AppStage's preview toggle. No-op if the device isn't open.
+	void setDepthPreviewMode(eARKitDepthPreviewMode mode);
 
 	// Latest bundle's frameSeq (video, depth, or pose - whichever arrived most
 	// recently), or -1 if none has arrived yet (ticket E4 - see
@@ -163,6 +186,8 @@ private:
 	// changed - see GlExternalTexture::setExternalPlatformTexture).
 	mutable IMkExternalTexturePtr m_colorTextureWrapper;
 	mutable IMkExternalTexturePtr m_depthTextureWrapper;
+	mutable IMkExternalTexturePtr m_humanStencilRefinedTextureWrapper;
+	mutable IMkExternalTexturePtr m_humanStencilRawTextureWrapper;
 
 	// Latest frame-coupled pose (ticket E4) - notifyFrameBundleReceived() can fire
 	// from a background receiver thread (see that method's own override in the

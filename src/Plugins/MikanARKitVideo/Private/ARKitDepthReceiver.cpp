@@ -33,6 +33,7 @@ bool ARKitDepthFragmentAssembler::processFragment(const uint8_t* data, size_t le
 	{
 		FragmentAssemblyState state;
 		state.fragCount= header.fragCount;
+		state.version= header.version;
 		state.captureTimestampUs= header.captureTimestampUs;
 		state.receivedMask.assign(header.fragCount, false);
 		state.fragmentPayloads.resize(header.fragCount);
@@ -140,6 +141,48 @@ void ARKitDepthFragmentAssembler::tryCompleteFrame(uint32_t frameSeq)
 	}
 
 	const uint8_t* confBytes= payload.data() + offset;
+	offset+= confLen;
+
+	// Optional person-segmentation matte section (wire version >= 2):
+	// [uint32 segLen][seg RLE bytes], RLE-encoded the same way as confidence.
+	// segLen==0 means "matte disabled/absent" - leave the plane empty (not an error).
+	// A matte-decode failure is non-fatal: we keep depth+confidence flowing and just
+	// drop the matte for this frame (the JBU kernel treats an empty matte as no gating).
+	std::vector<uint8_t> segmentation;
+	if (state.version >= kARKitDepthWireVersion)
+	{
+		if (payload.size() - offset < kLengthFieldSize)
+		{
+			MIKAN_MT_LOG_WARNING("ARKitDepthFragmentAssembler::tryCompleteFrame")
+				<< "frameSeq " << frameSeq << " payload too short for segLen header";
+			++m_droppedMalformedCount;
+			m_pending.erase(it);
+			return;
+		}
+
+		const uint32_t segLen= readU32BE(payload.data() + offset);
+		offset+= kLengthFieldSize;
+
+		if (segLen > payload.size() - offset)
+		{
+			MIKAN_MT_LOG_WARNING("ARKitDepthFragmentAssembler::tryCompleteFrame")
+				<< "frameSeq " << frameSeq << " segLen " << segLen << " exceeds remaining payload";
+			++m_droppedMalformedCount;
+			m_pending.erase(it);
+			return;
+		}
+
+		if (segLen > 0)
+		{
+			const uint8_t* segBytes= payload.data() + offset;
+			segmentation= packConfidenceRLEDecode(segBytes, segLen, kARKitDepthPixelCount);
+			if (segmentation.empty())
+			{
+				MIKAN_MT_LOG_WARNING("ARKitDepthFragmentAssembler::tryCompleteFrame")
+					<< "frameSeq " << frameSeq << " matte RLE decode failed - dropping matte, keeping depth";
+			}
+		}
+	}
 
 	std::vector<uint16_t> depthMM= rvlDecode(rvlBytes, rvlLen, kARKitDepthPixelCount);
 	std::vector<uint8_t> confidence= packConfidenceRLEDecode(confBytes, confLen, kARKitDepthPixelCount);
@@ -158,6 +201,7 @@ void ARKitDepthFragmentAssembler::tryCompleteFrame(uint32_t frameSeq)
 	frame.captureTimestampUs= state.captureTimestampUs;
 	frame.depthMM= std::move(depthMM);
 	frame.confidence= std::move(confidence);
+	frame.segmentation= std::move(segmentation);
 
 	if (m_callback)
 		m_callback(std::move(frame));

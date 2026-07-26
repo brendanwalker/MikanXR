@@ -272,6 +272,8 @@ export class MikanARKitVideoSourceValues extends MikanVideoSourceValues {
   jbu_sigma_color: number = 0;
   jbu_conf_weight_low: number = 0;
   jbu_conf_weight_medium: number = 0;
+  seg_gating_enabled: boolean = false;
+  seg_edge_strength: number = 0;
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'base_port', type: 'int32' },
@@ -280,7 +282,9 @@ export class MikanARKitVideoSourceValues extends MikanVideoSourceValues {
     { name: 'jbu_sigma_spatial', type: 'float' },
     { name: 'jbu_sigma_color', type: 'float' },
     { name: 'jbu_conf_weight_low', type: 'float' },
-    { name: 'jbu_conf_weight_medium', type: 'float' }
+    { name: 'jbu_conf_weight_medium', type: 'float' },
+    { name: 'seg_gating_enabled', type: 'boolean' },
+    { name: 'seg_edge_strength', type: 'float' }
   ];
 }
 

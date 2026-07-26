@@ -70,6 +70,21 @@ struct JBUParams
 	// confidence data is available (Track E).
 	float confWeightLow= 0.0f;
 	float confWeightMedium= 0.5f;
+
+	// Person-segmentation edge gating (Track E, seg-gating). Only used when a matte
+	// plane is actually passed to upsample()/upsampleToSurface() (matte != 0);
+	// ignored otherwise, so it never changes confidence/color-only behavior. A tap
+	// whose person/background label differs from the output pixel's own label is
+	// multiplied by segEdgeStrength: 1.0 == no gating, 0.0 == hard-skip the tap
+	// (crispest silhouette), values between soften the boundary. Clamped to [0,1] by
+	// the definition layer (see ARKitVideoSourceComponent) before reaching here.
+	float segEdgeStrength= 0.0f;
+
+	// Master on/off for seg gating. When false, the device passes no matte plane to
+	// upsample() (matte == 0) so behavior is identical to the pre-seg pipeline even
+	// if a matte was received. Not read by the kernel itself - it only governs whether
+	// MikanARKitVideoDevice hands the matte buffer to the launch.
+	bool segGatingEnabled= false;
 };
 
 // Host-side wrapper around JBUKernel.cu's PTX module (Joint Bilateral Upsampling of
@@ -126,9 +141,16 @@ public:
 	// unpadded). Returns false if the launch itself could not be enqueued (logged)
 	// - this does NOT guarantee the kernel ran successfully, only that it was
 	// submitted; see synchronize().
+	// `matte` (person-segmentation gating) is optional - pass 0 to disable it (unchanged
+	// confidence/color-only behavior). When non-zero it is the NATIVE-resolution person
+	// stencil (matteW x matteH uint8 0/1), gated at the output/guide resolution: matte
+	// coords = output coords * (matteW/outW, matteH/outH), valid because the matte and the
+	// output share ARKit's capturedImage field of view. params.segEdgeStrength controls the
+	// cross-silhouette deweighting (see JBUParams).
 	bool upsample(CUdeviceptr depthLow, int lowW, int lowH, int lowStrideBytes, CUdeviceptr confidence,
 				  int confidenceStrideBytes, CUdeviceptr guideRGB, int guideW, int guideH, int guideStrideBytes,
-				  CUdeviceptr depthOut, int outW, int outH, int outStrideBytes, const JBUParams& params);
+				  CUdeviceptr depthOut, int outW, int outH, int outStrideBytes, const JBUParams& params,
+				  CUdeviceptr matte= 0, int matteW= 0, int matteH= 0, int matteStrideBytes= 0);
 
 	// Ticket D4: identical to upsample() above, but writes via a CUsurfObject
 	// instead of a linear/pitched CUdeviceptr - required when the destination is a
@@ -140,7 +162,32 @@ public:
 	bool upsampleToSurface(CUdeviceptr depthLow, int lowW, int lowH, int lowStrideBytes, CUdeviceptr confidence,
 						   int confidenceStrideBytes, CUdeviceptr guideRGB, int guideW, int guideH,
 						   int guideStrideBytes, CUsurfObject depthOutSurface, int outW, int outH,
-						   const JBUParams& params);
+						   const JBUParams& params, CUdeviceptr matte= 0, int matteW= 0, int matteH= 0,
+						   int matteStrideBytes= 0);
+
+	// Debug visualizations (Track E seg-gating diagnostics): nearest-upsample a raw
+	// low-res plane straight into the R32F depth-preview surface, bypassing JBU, so the
+	// video-settings window can show what's actually arriving. Same async/threading/error
+	// contract as upsampleToSurface() - call synchronize() before relying on the result.
+	// visualizeDepthNearest shows the unfiltered low-res uint16 depth (millimeters).
+	bool visualizeDepthNearest(CUdeviceptr depthLow, int lowW, int lowH, int lowStrideBytes,
+							   CUsurfObject depthOutSurface, int outW, int outH);
+	// visualizeMatteNearest shows the native-res 0/1 person matte: background -> 0 (black),
+	// person -> personValue (bright under the /5000 preview shader). matte coords map from
+	// output coords by matteW/outW, matteH/outH (same registration as the gate).
+	bool visualizeMatteNearest(CUdeviceptr matte, int matteW, int matteH, int matteStrideBytes,
+							   CUsurfObject depthOutSurface, int outW, int outH, float personValue);
+
+	// Guided upsampling of the low-res 0/1 person stencil against the RGB guide into a
+	// full-res soft alpha [0,1] on an R32F surface (the crisp "human stencil" matte - see
+	// jbu_upsample_stencil_surface_kernel). Uses params.radius/sigmaSpatial/sigmaColor for
+	// the weighting. outputScale is normally 1.0 (real matte texture); pass 5000.0 to write
+	// alpha into the /5000 depth-preview surface for the refined-matte debug view. Same
+	// async/threading/error contract as upsampleToSurface() - call synchronize() after.
+	bool upsampleStencilToSurface(CUdeviceptr stencil, int stencilW, int stencilH, int stencilStrideBytes,
+								  CUdeviceptr guideRGB, int guideW, int guideH, int guideStrideBytes,
+								  CUsurfObject outSurface, int outW, int outH, const JBUParams& params,
+								  float outputScale= 1.0f);
 
 	// Blocks the calling thread until all work enqueued on this instance's stream
 	// (i.e. the most recent upsample() call) has completed. This is where an
@@ -162,6 +209,9 @@ private:
 	CUmodule m_module= nullptr;
 	CUfunction m_kernelFunc= nullptr;
 	CUfunction m_surfaceKernelFunc= nullptr;
+	CUfunction m_vizDepthKernelFunc= nullptr;
+	CUfunction m_vizMatteKernelFunc= nullptr;
+	CUfunction m_stencilKernelFunc= nullptr;
 	CUstream m_stream= nullptr;
 	CUevent m_startEvent= nullptr;
 	CUevent m_stopEvent= nullptr;

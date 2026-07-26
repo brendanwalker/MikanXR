@@ -1,6 +1,8 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_CameraComponent.h"
 #include "MkGuiDrawUtils.h"
+#include "ARKitVideoSourceComponent.h"
+#include "ARKitVideoSourceSystem.h"
 #include "NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceSystem.h"
 #include "TrackingMountComponent.h"
@@ -13,7 +15,8 @@ GuiPanel_CameraComponent::GuiPanel_CameraComponent(AppStage* ownerAppStage)
 	, m_videoSourceDataSource(
 		  ownerAppStage->getProjectManager(),
 		  {{USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName},
-		   {NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName}})
+		   {NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName},
+		   {ARKitVideoSourceSystem::k_objectSystemClassName, ARKitVideoSourceComponent::k_componentClassName}})
 	, m_trackingMountDataSource(
 		  ownerAppStage->getProjectManager(),
 		  {{TrackingMountObjectSystem::k_objectSystemClassName, TrackingMountComponent::k_componentClassName}})

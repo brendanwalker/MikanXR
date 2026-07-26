@@ -2,12 +2,14 @@
 
 #include "IARKitVideoDevice.h"
 #include "ARKitDepthReceiver.h"
+#include "ARKitMatteReceiver.h"
 #include "ARKitPoseReceiver.h"
 #include "ARKitFrameCorrelator.h"
 #include "Cuda/CudaGLInterop.h"
 #include "Cuda/JBUKernel.h"
 #include "Cuda/NV12ConversionKernel.h"
 
+#include <atomic>
 #include <future>
 #include <mutex>
 #include <optional>
@@ -70,9 +72,14 @@ public:
 	// -- Zero-copy CUDA-GL texture access (ticket E3)
 	virtual uint32_t getColorTextureGlId() const override;
 	virtual uint32_t getDepthTextureGlId() const override;
+	virtual uint32_t getHumanStencilRefinedTextureGlId() const override;
+	virtual uint32_t getHumanStencilRawTextureGlId() const override;
 
 	// -- JBU Tuning
 	virtual void setJBUParams(const ARKitJBUParams& params) override;
+
+	// -- Depth preview mode (transient debug view - see IARKitVideoDevice)
+	virtual void setDepthPreviewMode(eARKitDepthPreviewMode mode) override;
 
 protected:
 	bool openOnThread();
@@ -142,6 +149,7 @@ private:
 	bool m_pendingStreamStartAfterOpen= false;
 
 	ARKitDepthReceiver m_depthReceiver;
+	ARKitMatteReceiver m_matteReceiver;
 	ARKitPoseReceiver m_poseReceiver;
 	ARKitFrameCorrelator m_frameCorrelator;
 
@@ -160,6 +168,14 @@ private:
 	std::mutex m_latestDepthMutex;
 	std::optional<ARKitDepthFrame> m_latestDepthFrame;
 
+	// Latest native-resolution person matte, updated from ARKitMatteReceiver's callback
+	// (background thread) and read from updateColorAndDepthTextures() (GL/main thread)
+	// under m_latestMatteMutex. Same freshest-wins policy as the depth cache above - the
+	// matte rides its own basePort+3 channel now (not the depth payload), so it's carried
+	// separately here rather than folded into ARKitDepthFrame.
+	std::mutex m_latestMatteMutex;
+	std::optional<ARKitMatteFrame> m_latestMatteFrame;
+
 	bool m_bTexturePipelineInitialized= false;
 	int m_textureWidth= 0;
 	int m_textureHeight= 0;
@@ -170,6 +186,11 @@ private:
 
 	CudaGLColorTexture m_colorTexture;
 	CudaGLDepthTexture m_depthTexture;
+	// Full-res R32F person alpha textures exposed as compositor inputs (see
+	// getHumanStencilRefinedTextureGlId/getHumanStencilRawTextureGlId). Refined = guided
+	// stencil-JBU (crisp); Raw = nearest-upsampled 0/1 stencil (blocky ground truth).
+	CudaGLDepthTexture m_humanStencilRefinedTexture;
+	CudaGLDepthTexture m_humanStencilRawTexture;
 	NV12ConversionKernel m_nv12Kernel;
 	JBUKernel m_jbuKernel;
 
@@ -183,6 +204,11 @@ private:
 	std::mutex m_jbuParamsMutex;
 	JBUParams m_jbuParams;
 
+	// Transient depth-preview selector (see setDepthPreviewMode). A plain atomic rather
+	// than folding into m_jbuParamsMutex - it's a single scalar written from the GUI
+	// thread and read on the GL/main thread, independent of the JBU tuning params.
+	std::atomic<int> m_depthPreviewMode{static_cast<int>(eARKitDepthPreviewMode::jbu_upsampled)};
+
 	// Full-resolution packed-RGB guide buffer for JBUKernel (written by
 	// m_nv12Kernel, read by m_jbuKernel) - sized m_textureHeight * m_guideStrideBytes.
 	CUdeviceptr m_guideRgbBuffer= 0;
@@ -192,4 +218,14 @@ private:
 	// cached depth/confidence are uploaded into each frame before the JBU launch.
 	CUdeviceptr m_depthLowBuffer= 0;
 	CUdeviceptr m_confidenceLowBuffer= 0;
+
+	// Native-resolution person matte (0/1 labels), uploaded from the latest-matte cache
+	// each frame when available. Feeds JBUKernel's guide-resolution silhouette gating and
+	// the matte debug preview. Dynamically sized: the matte's dimensions are device-
+	// dependent and travel on the wire (unlike depth's fixed 256x192 grid), so the buffer
+	// is (re)allocated to fit whenever the incoming dimensions grow.
+	CUdeviceptr m_matteBuffer= 0;
+	size_t m_matteBufferCapacity= 0;
+	int m_matteWidth= 0;
+	int m_matteHeight= 0;
 };

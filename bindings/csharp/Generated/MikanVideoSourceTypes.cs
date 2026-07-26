@@ -50,6 +50,8 @@ namespace MikanXR
 		public float jbu_sigma_color;
 		public float jbu_conf_weight_low;
 		public float jbu_conf_weight_medium;
+		public bool seg_gating_enabled;
+		public float seg_edge_strength;
 	};
 
 	public class MikanBaseIntrinsics : PolymorphicStruct

@@ -91,6 +91,28 @@ void GuiPanel_ARKitVideoSourceComponent::onConstruct()
 			}
 			return true;
 		});
+
+	// Person-segmentation edge strength (1.0 == no gating, 0.0 == hard crisp silhouette).
+	// seg_gating_enabled (bool) is left to the generic renderer, like depth_streaming_enabled.
+	m_entityAccessor->setPropertyRenderer(
+		ARKitVideoSourceDefinition::k_segEdgeStrengthPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			auto arkitComp= getARKitVideoSourceComponent();
+			if (!arkitComp)
+				return false;
+
+			ARKitVideoSourceDefinitionPtr definition= arkitComp->getARKitVideoSourceDefinition();
+			float value= definition->getSegEdgeStrength();
+			if (MkGui::drawFloatSliderProperty(
+					m_defaultGuiStyle,
+					arkitComp->makePropertyUIIdentifier(ARKitVideoSourceDefinition::k_segEdgeStrengthPropertyId),
+					"Seg Edge Strength", value, 0.0f, 1.0f, 0.0f, 1.0f))
+			{
+				addDeferredGuiEvent([definition, value]() { definition->setSegEdgeStrength(value); });
+			}
+			return true;
+		});
 }
 
 ARKitVideoSourceComponentPtr GuiPanel_ARKitVideoSourceComponent::getARKitVideoSourceComponent() const
