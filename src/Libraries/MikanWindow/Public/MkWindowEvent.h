@@ -111,14 +111,14 @@ constexpr MkKeySym F10= MK_SCANCODE_TO_KEYCODE(67);
 constexpr MkKeySym F11= MK_SCANCODE_TO_KEYCODE(68);
 constexpr MkKeySym F12= MK_SCANCODE_TO_KEYCODE(69);
 
-constexpr MkKeySym LEFT_CTRL = MK_SCANCODE_TO_KEYCODE(224);
-constexpr MkKeySym LEFT_SHIFT = MK_SCANCODE_TO_KEYCODE(225);
-constexpr MkKeySym LEFT_ALT = MK_SCANCODE_TO_KEYCODE(226); /**< alt, option */
-constexpr MkKeySym LEFT_GUI = MK_SCANCODE_TO_KEYCODE(227); /**< windows, command (apple), meta */
-constexpr MkKeySym RIGHT_CTRL = MK_SCANCODE_TO_KEYCODE(228);
-constexpr MkKeySym RIGHT_SHIFT = MK_SCANCODE_TO_KEYCODE(229);
-constexpr MkKeySym RIGHT_ALT = MK_SCANCODE_TO_KEYCODE(230); /**< alt gr, option */
-constexpr MkKeySym RIGHT_GUI = MK_SCANCODE_TO_KEYCODE(231); /**< windows, command (apple), meta */
+constexpr MkKeySym LEFT_CTRL= MK_SCANCODE_TO_KEYCODE(224);
+constexpr MkKeySym LEFT_SHIFT= MK_SCANCODE_TO_KEYCODE(225);
+constexpr MkKeySym LEFT_ALT= MK_SCANCODE_TO_KEYCODE(226); /**< alt, option */
+constexpr MkKeySym LEFT_GUI= MK_SCANCODE_TO_KEYCODE(227); /**< windows, command (apple), meta */
+constexpr MkKeySym RIGHT_CTRL= MK_SCANCODE_TO_KEYCODE(228);
+constexpr MkKeySym RIGHT_SHIFT= MK_SCANCODE_TO_KEYCODE(229);
+constexpr MkKeySym RIGHT_ALT= MK_SCANCODE_TO_KEYCODE(230); /**< alt gr, option */
+constexpr MkKeySym RIGHT_GUI= MK_SCANCODE_TO_KEYCODE(231); /**< windows, command (apple), meta */
 }; // namespace MkKey
 
 namespace MkMouseButton
