@@ -346,6 +346,63 @@ void findClosestIntersection(const KdTreeRaycastRequest& request, const KdTreeMe
 		findClosestIntersection(request, meshAccessor, treeData, rightNode, result);
 	}
 }
+
+void findClosestPoint(const glm::vec3& localPoint, const KdTreeMeshAccessor* meshAccessor, KdTreeData* treeData,
+					  KdTreeNode* currentNode, KdTreeClosestPointResult& result)
+{
+	if (currentNode == nullptr)
+		return;
+
+	// Prune this subtree if its bounding box can't possibly contain a closer surface point than the best so far
+	if (result.valid)
+	{
+		const float aabbDistSq= glm_point_aabb_distance_sq(localPoint, currentNode->getMin(), currentNode->getMax());
+		if (aabbDistSq >= result.distance * result.distance)
+			return;
+	}
+
+	// Test this node's own triangle
+	uint32_t i0, i1, i2;
+	meshAccessor->extractTriangleVertexIndices(currentNode->getTriangleIndex(), i0, i1, i2);
+
+	GlmTriangle tri;
+	tri.v0= meshAccessor->extractPosition3f(i0);
+	tri.v1= meshAccessor->extractPosition3f(i1);
+	tri.v2= meshAccessor->extractPosition3f(i2);
+
+	const glm::vec3 closestPoint= glm_closest_point_on_triangle(tri, localPoint);
+	const float distance= glm::distance(localPoint, closestPoint);
+	if (!result.valid || distance < result.distance)
+	{
+		result.valid= true;
+		result.distance= distance;
+		result.position= closestPoint;
+		result.normal= glm::normalize(glm::cross(tri.v1 - tri.v0, tri.v2 - tri.v0));
+		result.triangleIndex= currentNode->getTriangleIndex();
+	}
+
+	// Best-first traversal: descend into the nearer child first so the pruning bound tightens sooner
+	KdTreeNode* leftNode= treeData->getNode(currentNode->getLeftNodeIndex());
+	KdTreeNode* rightNode= treeData->getNode(currentNode->getRightNodeIndex());
+
+	const float leftDistSq= (leftNode != nullptr)
+								? glm_point_aabb_distance_sq(localPoint, leftNode->getMin(), leftNode->getMax())
+								: FLT_MAX;
+	const float rightDistSq= (rightNode != nullptr)
+								 ? glm_point_aabb_distance_sq(localPoint, rightNode->getMin(), rightNode->getMax())
+								 : FLT_MAX;
+
+	if (leftDistSq <= rightDistSq)
+	{
+		findClosestPoint(localPoint, meshAccessor, treeData, leftNode, result);
+		findClosestPoint(localPoint, meshAccessor, treeData, rightNode, result);
+	}
+	else
+	{
+		findClosestPoint(localPoint, meshAccessor, treeData, rightNode, result);
+		findClosestPoint(localPoint, meshAccessor, treeData, leftNode, result);
+	}
+}
 }; // namespace KdTree
 
 // -- StaticMeshKdTree -----
@@ -424,10 +481,20 @@ bool StaticMeshKdTree::computeRayIntersection(const KdTreeRaycastRequest& reques
 	return result.hit;
 }
 
+bool StaticMeshKdTree::computeClosestPoint(const glm::vec3& localPoint, KdTreeClosestPointResult& result) const
+{
+	if (m_treeData == nullptr || m_treeData->getNodeCount() <= 0)
+		return false;
+
+	KdTree::findClosestPoint(localPoint, m_meshAccessor, m_treeData, m_treeData->getNode(0), result);
+
+	return result.valid;
+}
+
 bool StaticMeshKdTree::computeClosestVertex(const glm::vec3& localPoint, const int triangleIndex,
 											glm::vec3& closestVertex) const
 {
-	if (m_meshAccessor != nullptr && triangleIndex > 0 && triangleIndex < m_meshAccessor->getTriangleCount())
+	if (m_meshAccessor != nullptr && triangleIndex >= 0 && triangleIndex < m_meshAccessor->getTriangleCount())
 	{
 		uint32_t i0, i1, i2;
 		m_meshAccessor->extractTriangleVertexIndices(triangleIndex, i0, i1, i2);
