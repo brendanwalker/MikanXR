@@ -526,7 +526,10 @@ void AppStage_PointCloudAlignment::onSkipRoiEvent()
 	setMenuState(ePointCloudAlignmentMenuState::captureFeatureCloud);
 }
 
-void AppStage_PointCloudAlignment::onStartCaptureEvent() { setMenuState(ePointCloudAlignmentMenuState::captureFeatureCloud); }
+void AppStage_PointCloudAlignment::onStartCaptureEvent()
+{
+	setMenuState(ePointCloudAlignmentMenuState::captureFeatureCloud);
+}
 
 void AppStage_PointCloudAlignment::onStopCaptureEvent() { setMenuState(ePointCloudAlignmentMenuState::reviewCloud); }
 

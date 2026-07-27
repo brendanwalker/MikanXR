@@ -268,8 +268,8 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(const std::fil
 		if (skippedFaceCount > 0)
 		{
 			MIKAN_LOG_WARNING("ObjModelImporter::importModelFromFile")
-				<< "Omitted " << skippedFaceCount << " non-triangle face(s) while importing "
-				<< modelPathString << ". Re-export with triangulated faces to include them.";
+				<< "Omitted " << skippedFaceCount << " non-triangle face(s) while importing " << modelPathString
+				<< ". Re-export with triangulated faces to include them.";
 		}
 
 		// Allocate the vertex and index buffers for each material instance.
