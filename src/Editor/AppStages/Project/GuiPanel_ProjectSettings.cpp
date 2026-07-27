@@ -79,6 +79,23 @@ void GuiPanel_ProjectSettings::onGui()
 			{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderModelStencilsFlag(renderModelStencils); });
 	}
 
+	int stencilDisplayIndex= (int)editorConfig->getModelStencilDisplayMode();
+	const char* k_stencilDisplayLabels[]= {"Solid", "Wireframe", "Both"};
+	if (ImGui::Combo("Model Stencil Display", &stencilDisplayIndex, k_stencilDisplayLabels,
+					 IM_ARRAYSIZE(k_stencilDisplayLabels)))
+	{
+		addDeferredGuiEvent(
+			[this, stencilDisplayIndex]()
+			{
+				m_editorSystem.lock()->getEditorSystemConfig()->setModelStencilDisplayMode(
+					(eStencilDisplayMode)stencilDisplayIndex);
+			});
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("Wireframe hides the opaque mesh so the real model in the video shows through.");
+	}
+
 	ImGui::Separator();
 
 	// Floor grid + ruler snapping
@@ -133,6 +150,19 @@ void GuiPanel_ProjectSettings::onGui()
 				m_editorSystem.lock()->getEditorSystemConfig()->setRulerDisplayUnits(
 					(eRulerDisplayUnits)rulerUnitsIndex);
 			});
+	}
+
+	bool debugCameraAlignment= editorConfig->getDebugCameraAlignment();
+	if (ImGui::Checkbox("Debug Camera Alignment", &debugCameraAlignment))
+	{
+		addDeferredGuiEvent(
+			[this, debugCameraAlignment]()
+			{ m_editorSystem.lock()->getEditorSystemConfig()->setDebugCameraAlignment(debugCameraAlignment); });
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("Overlays the MR alignment chain: axes at stage origin / puck / aperture,\n"
+						  "and a window with live vs calibrated intrinsics, resolution, and offsets.");
 	}
 
 	ImGui::Separator();

@@ -24,6 +24,14 @@ enum class eRulerDisplayUnits : int
 	millimeters,
 };
 
+// How model stencils are drawn in the editor debug view
+enum class eStencilDisplayMode : int
+{
+	solid,     // opaque textured mesh only
+	wireframe, // wireframe edges only (lets the background video show through)
+	both,      // solid mesh with wireframe overlaid
+};
+
 struct EditorSettings
 {
 	bool bRenderOrigin= true;
@@ -42,6 +50,8 @@ struct EditorSettings
 	float snapIncrement= 0.1f; // ruler / measurement snap increment
 	bool bSnapEnabled= false;  // ruler snap baseline; hold Shift while measuring to invert it
 	eRulerDisplayUnits rulerDisplayUnits= eRulerDisplayUnits::millimeters; // ruler readout units
+	bool bDebugCameraAlignment= false; // draw the MR camera-alignment debug overlay in the compositor view
+	eStencilDisplayMode modelStencilDisplayMode= eStencilDisplayMode::both; // how model stencils are drawn
 };
 
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
@@ -113,6 +123,14 @@ public:
 	static const std::string k_rulerDisplayUnitsPropertyId;
 	eRulerDisplayUnits getRulerDisplayUnits() const { return m_editorSettings.rulerDisplayUnits; }
 	void setRulerDisplayUnits(eRulerDisplayUnits units);
+
+	static const std::string k_debugCameraAlignmentPropertyId;
+	bool getDebugCameraAlignment() const { return m_editorSettings.bDebugCameraAlignment; }
+	void setDebugCameraAlignment(bool enabled);
+
+	static const std::string k_modelStencilDisplayModePropertyId;
+	eStencilDisplayMode getModelStencilDisplayMode() const { return m_editorSettings.modelStencilDisplayMode; }
+	void setModelStencilDisplayMode(eStencilDisplayMode mode);
 
 private:
 	EditorSettings m_editorSettings;

@@ -65,17 +65,6 @@ protected:
 	void setActivePanel(eProjectAppStageActivePanel newPanel);
 	void onActivePanelChanged();
 
-	// Camera
-	void createCompositorViewportCameras();
-	void disposeCompositorViewportCameras();
-	void updateCompositorCameras();
-	void cyclePreviousCompositorCamera();
-	void cycleNextCompositorCamera();
-
-	// Scene
-	void onSceneDeactivated(SceneComponentPtr oldScene);
-	void onSceneActivated(SceneComponentPtr newScene);
-
 	// Main Compositor UI Events
 	void onReturnEvent();
 
@@ -84,6 +73,10 @@ protected:
 
 	// Debug Rendering
 	void debugRenderOrigin() const;
+
+	// MR camera-alignment debug overlay (toggled by EditorSettings::bDebugCameraAlignment)
+	void renderCameraAlignmentDebug(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+	void renderCameraAlignmentGui();
 
 	// -- IRemoteControllable Interface -- //
 	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
@@ -126,7 +119,6 @@ protected:
 	eProjectAppStageActivePanel m_activePanel= eProjectAppStageActivePanel::INVALID;
 
 	MikanViewportPtr m_viewport;
-	std::vector<CompositorComponentWeakPtr> m_activeCompositors;
 	IMkScenePtr m_mkScene;
 
 	bool m_bAddingNewConfig= false;

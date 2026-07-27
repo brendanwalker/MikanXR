@@ -51,6 +51,8 @@ const std::string EditorObjectSystemDefinition::k_gridCellSizePropertyId= "grid_
 const std::string EditorObjectSystemDefinition::k_snapIncrementPropertyId= "snap_increment";
 const std::string EditorObjectSystemDefinition::k_snapEnabledPropertyId= "snap_enabled";
 const std::string EditorObjectSystemDefinition::k_rulerDisplayUnitsPropertyId= "ruler_display_units";
+const std::string EditorObjectSystemDefinition::k_debugCameraAlignmentPropertyId= "debug_camera_alignment";
+const std::string EditorObjectSystemDefinition::k_modelStencilDisplayModePropertyId= "model_stencil_display_mode";
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
@@ -70,6 +72,8 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_snapIncrementPropertyId]= m_editorSettings.snapIncrement;
 	pt[k_snapEnabledPropertyId]= m_editorSettings.bSnapEnabled;
 	pt[k_rulerDisplayUnitsPropertyId]= (int)m_editorSettings.rulerDisplayUnits;
+	pt[k_debugCameraAlignmentPropertyId]= m_editorSettings.bDebugCameraAlignment;
+	pt[k_modelStencilDisplayModePropertyId]= (int)m_editorSettings.modelStencilDisplayMode;
 
 	return pt;
 }
@@ -100,6 +104,10 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	m_editorSettings.bSnapEnabled= pt.get_or<bool>(k_snapEnabledPropertyId, m_editorSettings.bSnapEnabled);
 	m_editorSettings.rulerDisplayUnits=
 		(eRulerDisplayUnits)pt.get_or<int>(k_rulerDisplayUnitsPropertyId, (int)m_editorSettings.rulerDisplayUnits);
+	m_editorSettings.bDebugCameraAlignment=
+		pt.get_or<bool>(k_debugCameraAlignmentPropertyId, m_editorSettings.bDebugCameraAlignment);
+	m_editorSettings.modelStencilDisplayMode= (eStencilDisplayMode)pt.get_or<int>(
+		k_modelStencilDisplayModePropertyId, (int)m_editorSettings.modelStencilDisplayMode);
 }
 
 void EditorObjectSystemDefinition::setRenderOriginFlag(bool flag)
@@ -225,6 +233,24 @@ void EditorObjectSystemDefinition::setRulerDisplayUnits(eRulerDisplayUnits units
 	{
 		m_editorSettings.rulerDisplayUnits= units;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_rulerDisplayUnitsPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setDebugCameraAlignment(bool enabled)
+{
+	if (m_editorSettings.bDebugCameraAlignment != enabled)
+	{
+		m_editorSettings.bDebugCameraAlignment= enabled;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_debugCameraAlignmentPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setModelStencilDisplayMode(eStencilDisplayMode mode)
+{
+	if (m_editorSettings.modelStencilDisplayMode != mode)
+	{
+		m_editorSettings.modelStencilDisplayMode= mode;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelStencilDisplayModePropertyId));
 	}
 }
 
@@ -369,8 +395,7 @@ void EditorObjectSystem::dispose()
 	ModelStencilSystemPtr modelStencilSystem= getObjectSystemOfType<ModelStencilSystem>();
 	modelStencilSystem->OnComponentDisposed-= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	m_gizmoObjectWeakPtr.reset();
-	m_gizmoComponentWeakPtr.reset();
+	disposeSceneTransformGizmo();
 
 	MikanObjectSystem::dispose();
 }

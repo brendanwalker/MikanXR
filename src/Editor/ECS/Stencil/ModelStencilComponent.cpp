@@ -2,6 +2,7 @@
 #include "CameraObjectSystem.h"
 #include "CameraComponent.h"
 #include "Colors.h"
+#include "EditorObjectSystem.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "IEditorWindow.h"
@@ -172,6 +173,26 @@ void ModelStencilComponent::customRender(IMkGraphicsContext* graphicsContext, Mi
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
 	auto editorObjectSystem= getObjectSystemOfType<EditorObjectSystem>();
+
+	// Apply the editor's model-stencil display mode. The solid (textured) and wireframe mesh
+	// instances are separate scene renderables; toggling visibility here lets the user drop to
+	// wireframe-only so the background video model shows through for alignment checks.
+	if (editorObjectSystem)
+	{
+		const eStencilDisplayMode displayMode= editorObjectSystem->getEditorSettings().modelStencilDisplayMode;
+		const bool showSolid= (displayMode != eStencilDisplayMode::wireframe);
+		const bool showWireframe= (displayMode != eStencilDisplayMode::solid);
+
+		for (const StaticMeshComponentPtr& triMeshComponent : m_triMeshComponents)
+		{
+			if (IMkStaticMeshInstancePtr triMeshInstance= triMeshComponent->getStaticMesh())
+				triMeshInstance->setVisible(showSolid);
+		}
+		for (const IMkStaticMeshInstancePtr& wireframeMeshInstance : m_wireframeMeshes)
+		{
+			wireframeMeshInstance->setVisible(showWireframe);
+		}
+	}
 
 	if (!modelStencilDefinition->getIsDisabled())
 	{
