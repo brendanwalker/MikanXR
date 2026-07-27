@@ -51,6 +51,12 @@ public:
 	MikanCameraPtr addMikanCamera();
 	MikanCameraPtr getMikanCameraByIndex(int cameraIndex);
 
+	// Modifier keys (left and right tracked separately so releasing one side while the
+	// other is still held reports the correct state)
+	bool getIsCtrlPressed() const { return m_isLeftCtrlPressed || m_isRightCtrlPressed; }
+	bool getIsAltPressed() const { return m_isLeftAltPressed || m_isRightAltPressed; }
+	bool getIsShiftPressed() const { return m_isLeftShiftPressed || m_isRightShiftPressed; }
+
 	// Convert cursor pixel position from app window relative to viewport relative
 	bool getCursorViewportPixelPos(glm::vec2& outViewportLocation) const;
 
@@ -81,6 +87,19 @@ protected:
 	void onDownButtonPressed() { m_isDownPressed= true; }
 	void onDownButtonReleased() { m_isDownPressed= false; }
 
+	void onLeftCtrlPressed() { m_isLeftCtrlPressed= true; }
+	void onLeftCtrlReleased() { m_isLeftCtrlPressed= false; }
+	void onRightCtrlPressed() { m_isRightCtrlPressed= true; }
+	void onRightCtrlReleased() { m_isRightCtrlPressed= false; }
+	void onLeftAltPressed() { m_isLeftAltPressed= true; }
+	void onLeftAltReleased() { m_isLeftAltPressed= false; }
+	void onRightAltPressed() { m_isRightAltPressed= true; }
+	void onRightAltReleased() { m_isRightAltPressed= false; }
+	void onLeftShiftPressed() { m_isLeftShiftPressed= true; }
+	void onLeftShiftReleased() { m_isLeftShiftPressed= false; }
+	void onRightShiftPressed() { m_isRightShiftPressed= true; }
+	void onRightShiftReleased() { m_isRightShiftPressed= false; }
+
 private:
 	const IEditorWindow* m_ownerWindow;
 
@@ -93,6 +112,12 @@ private:
 	bool m_isBackwardPressed= false;
 	bool m_isUpPressed= false;
 	bool m_isDownPressed= false;
+	bool m_isLeftCtrlPressed= false;
+	bool m_isRightCtrlPressed= false;
+	bool m_isLeftAltPressed= false;
+	bool m_isRightAltPressed= false;
+	bool m_isLeftShiftPressed= false;
+	bool m_isRightShiftPressed= false;
 	bool m_isMouseInViewport= false;
 
 	glm::i32vec2 m_windowSize;

@@ -64,8 +64,65 @@ void MikanCamera::setCameraMovementMode(eCameraMovementMode newMode)
 		case stationary:
 			applyStationaryParamsToViewMatrix();
 			break;
+		case ortho:
+			applyOrthoParamsToViewMatrix();
+			break;
 		}
 		m_movementMode= newMode;
+	}
+}
+
+void MikanCamera::setProjectionMode(eCameraProjectionMode mode)
+{
+	if (m_projectionMode != mode)
+	{
+		m_projectionMode= mode;
+		rebuildProjectionMatrix();
+	}
+}
+
+void MikanCamera::setOrthographicViewpoint(eCameraViewpoint viewpoint)
+{
+	m_orthoViewpoint= viewpoint;
+	m_projectionMode= eCameraProjectionMode::orthographic;
+	m_movementMode= eCameraMovementMode::ortho;
+	applyOrthoParamsToViewMatrix();
+	rebuildProjectionMatrix();
+}
+
+void MikanCamera::setOrthoExtent(float extent)
+{
+	m_orthoExtent= fmaxf(extent, k_camera_min_zoom);
+	rebuildProjectionMatrix();
+}
+
+void MikanCamera::setOrthoTargetPosition(const glm::vec3& target)
+{
+	m_orthoTargetPosition= target;
+	applyOrthoParamsToViewMatrix();
+}
+
+void MikanCamera::adjustOrthoTargetPosition(const glm::vec3& deltaTarget)
+{
+	if (m_movementMode == eCameraMovementMode::ortho)
+	{
+		m_orthoTargetPosition+= deltaTarget;
+		applyOrthoParamsToViewMatrix();
+	}
+}
+
+void MikanCamera::setViewportAspect(float aspectRatio)
+{
+	if (aspectRatio > 0.f)
+	{
+		m_viewportAspectRatio= aspectRatio;
+
+		// Compositor cameras drive their projection from real lens intrinsics
+		// (applyMonoCameraIntrinsics), so only rebuild for the editor camera modes.
+		if (m_movementMode != eCameraMovementMode::stationary)
+		{
+			rebuildProjectionMatrix();
+		}
 	}
 }
 
@@ -299,6 +356,64 @@ void MikanCamera::applyOrbitParamsToViewMatrix()
 	}
 }
 
+void MikanCamera::applyOrthoParamsToViewMatrix()
+{
+	// Direction the camera looks along, and the world-space up used on screen,
+	// for each axis-aligned viewpoint (+Y is world up).
+	glm::vec3 forward;
+	glm::vec3 up;
+	switch (m_orthoViewpoint)
+	{
+	case eCameraViewpoint::top:
+		forward= glm::vec3(0.f, -1.f, 0.f);
+		up= glm::vec3(0.f, 0.f, -1.f);
+		break;
+	case eCameraViewpoint::bottom:
+		forward= glm::vec3(0.f, 1.f, 0.f);
+		up= glm::vec3(0.f, 0.f, 1.f);
+		break;
+	case eCameraViewpoint::front:
+		forward= glm::vec3(0.f, 0.f, -1.f);
+		up= glm::vec3(0.f, 1.f, 0.f);
+		break;
+	case eCameraViewpoint::back:
+		forward= glm::vec3(0.f, 0.f, 1.f);
+		up= glm::vec3(0.f, 1.f, 0.f);
+		break;
+	case eCameraViewpoint::left:
+		forward= glm::vec3(1.f, 0.f, 0.f);
+		up= glm::vec3(0.f, 1.f, 0.f);
+		break;
+	case eCameraViewpoint::right:
+		forward= glm::vec3(-1.f, 0.f, 0.f);
+		up= glm::vec3(0.f, 1.f, 0.f);
+		break;
+	}
+
+	// Pull the eye far back along the view axis so scene geometry at any reasonable
+	// stage depth stays between the near and far clip planes.
+	const float eyeDistance= m_zFar * 0.5f;
+	const glm::vec3 eye= m_orthoTargetPosition - forward * eyeDistance;
+
+	m_viewMatrix= glm::lookAt(eye, m_orthoTargetPosition, up);
+}
+
+void MikanCamera::rebuildProjectionMatrix()
+{
+	if (m_projectionMode == eCameraProjectionMode::orthographic)
+	{
+		const float halfHeight= fmaxf(m_orthoExtent, k_camera_min_zoom);
+		const float halfWidth= halfHeight * m_viewportAspectRatio;
+		m_projectionMatrix= glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, m_zNear, m_zFar);
+	}
+	else
+	{
+		m_projectionMatrix= glm::perspective(degrees_to_radians(m_vFOVDegrees), m_viewportAspectRatio, m_zNear, m_zFar);
+	}
+
+	m_aspectRatio= m_viewportAspectRatio;
+}
+
 glm::vec3 MikanCamera::getCameraPositionFromViewMatrix() const
 {
 	// Assumes no scaling
@@ -341,17 +456,31 @@ void MikanCamera::computeCameraRayThruPixel(MikanViewportConstPtr viewport, cons
 
 	// https://antongerdelan.net/opengl/raycasting.html
 	// Convert the pixel location into normalized device coordinates
-	const glm::vec3 ray_nds(((2.f * viewportPixelPos.x) / viewportWidth) - 1.f,
-							1.f - ((2.f * viewportPixelPos.y) / viewportHeight), 1.f);
+	const float ndcX= ((2.f * viewportPixelPos.x) / viewportWidth) - 1.f;
+	const float ndcY= 1.f - ((2.f * viewportPixelPos.y) / viewportHeight);
 
-	// Convert the nds ray into a 4d-clip space ray
-	const glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.f, 1.0);
+	if (m_projectionMode == eCameraProjectionMode::orthographic)
+	{
+		// In an orthographic projection every ray shares the camera-forward direction;
+		// it's the origin that varies across the near plane. Unproject the near-plane point.
+		const glm::mat4 invViewProj= glm::inverse(m_projectionMatrix * m_viewMatrix);
+		glm::vec4 nearPointWorld= invViewProj * glm::vec4(ndcX, ndcY, -1.f, 1.f);
+		nearPointWorld/= nearPointWorld.w;
 
-	// Convert the clip space ray back into an eye space ray
-	glm::vec4 ray_eye= glm::inverse(m_projectionMatrix) * ray_clip;
-	ray_eye= glm::vec4(ray_eye.x, ray_eye.y, -1.f, 0.f);
+		outRayOrigin= glm::vec3(nearPointWorld);
+		outRayDirection= getCameraForwardFromViewMatrix();
+	}
+	else
+	{
+		// Convert the nds ray into a 4d-clip space ray
+		const glm::vec4 ray_clip(ndcX, ndcY, -1.f, 1.0);
 
-	// Convert the eye space ray to world space
-	outRayDirection= glm::inverse(m_viewMatrix) * ray_eye;
-	outRayOrigin= getCameraPositionFromViewMatrix();
+		// Convert the clip space ray back into an eye space ray
+		glm::vec4 ray_eye= glm::inverse(m_projectionMatrix) * ray_clip;
+		ray_eye= glm::vec4(ray_eye.x, ray_eye.y, -1.f, 0.f);
+
+		// Convert the eye space ray to world space
+		outRayDirection= glm::inverse(m_viewMatrix) * ray_eye;
+		outRayOrigin= getCameraPositionFromViewMatrix();
+	}
 }

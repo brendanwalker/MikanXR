@@ -125,7 +125,7 @@ void AppStage_Project::enter()
 
 	// Setup Scene viewport
 	{
-		const glm::i32vec2 viewportOrigin= {0, 45};
+		const glm::i32vec2 viewportOrigin= {0, 0};
 		const glm::i32vec2 viewportSize= {1280, 720};
 
 		m_viewport= getFirstViewport();
@@ -252,6 +252,84 @@ void AppStage_Project::onGui()
 {
 	// Process deferred events emitted due to Gui interaction
 	AppStage::onGui();
+
+	// Viewport view-mode selector overlay (perspective / orthographic), editor camera only.
+	// Compositor cameras (pool index > 0) use real lens intrinsics and must not be switched.
+	if (m_viewport && m_viewport->getCurrentCameraIndex() == 0)
+	{
+		MikanCameraPtr camera= m_viewport->getMikanCameraByIndex(0);
+		if (camera)
+		{
+			const glm::i32vec2 vpOrigin= m_viewport->getViewportOrigin();
+			ImGui::SetNextWindowPos(ImVec2((float)vpOrigin.x + 8, (float)vpOrigin.y + 8), ImGuiCond_Always);
+
+			constexpr ImGuiWindowFlags k_overlayFlags= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
+													   | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar
+													   | ImGuiWindowFlags_AlwaysAutoResize;
+
+			MkGuiScopedWindow overlay("##ViewModeOverlay", nullptr, k_overlayFlags);
+			if (overlay)
+			{
+				static const char* k_viewLabels[]= {"Perspective", "Top", "Bottom", "Front", "Back", "Left", "Right"};
+
+				int currentIndex= 0;
+				if (camera->getProjectionMode() == eCameraProjectionMode::orthographic)
+				{
+					switch (camera->getOrthoViewpoint())
+					{
+					case eCameraViewpoint::top:
+						currentIndex= 1;
+						break;
+					case eCameraViewpoint::bottom:
+						currentIndex= 2;
+						break;
+					case eCameraViewpoint::front:
+						currentIndex= 3;
+						break;
+					case eCameraViewpoint::back:
+						currentIndex= 4;
+						break;
+					case eCameraViewpoint::left:
+						currentIndex= 5;
+						break;
+					case eCameraViewpoint::right:
+						currentIndex= 6;
+						break;
+					}
+				}
+
+				ImGui::SetNextItemWidth(110.f);
+				if (ImGui::Combo("##ViewMode", &currentIndex, k_viewLabels, IM_ARRAYSIZE(k_viewLabels)))
+				{
+					switch (currentIndex)
+					{
+					case 0:
+						camera->setProjectionMode(eCameraProjectionMode::perspective);
+						camera->setCameraMovementMode(eCameraMovementMode::fly);
+						break;
+					case 1:
+						camera->setOrthographicViewpoint(eCameraViewpoint::top);
+						break;
+					case 2:
+						camera->setOrthographicViewpoint(eCameraViewpoint::bottom);
+						break;
+					case 3:
+						camera->setOrthographicViewpoint(eCameraViewpoint::front);
+						break;
+					case 4:
+						camera->setOrthographicViewpoint(eCameraViewpoint::back);
+						break;
+					case 5:
+						camera->setOrthographicViewpoint(eCameraViewpoint::left);
+						break;
+					case 6:
+						camera->setOrthographicViewpoint(eCameraViewpoint::right);
+						break;
+					}
+				}
+			}
+		}
+	}
 
 	constexpr float k_panelWidth= 415.f;
 	const float displayWidth= m_ownerWindow->getWidth();
@@ -453,10 +531,22 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	// Render the 3d scene
 	m_mkScene->render(viewportCamera, graphicsContext->getMkStateStack());
 
-	// Draw tracking space
-	drawGrid(graphicsContext, glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
+	// Draw the floor grid using the configured extent / cell size
+	const EditorSettings& editorSettings= getEditorSettings();
+	const float gridExtent= (editorSettings.gridExtent > 0.f) ? editorSettings.gridExtent : 10.f;
+	const float gridCellSize= (editorSettings.gridCellSize > 0.f) ? editorSettings.gridCellSize : 0.5f;
+	int gridSubDiv= (int)((gridExtent / gridCellSize) + 0.5f);
+	if (gridSubDiv < 1)
+		gridSubDiv= 1;
+	drawGrid(graphicsContext, glm::mat4(1.f), gridExtent, gridExtent, gridSubDiv, gridSubDiv, Colors::GhostWhite);
 
-	if (getEditorSettings().bRenderOrigin)
+	// Draw the orthographic ruler overlay (no-op unless measuring in an ortho view)
+	if (auto editorSystem= m_editorSystem.lock())
+	{
+		editorSystem->renderRuler(graphicsContext, m_viewport);
+	}
+
+	if (editorSettings.bRenderOrigin)
 	{
 		debugRenderOrigin();
 	}
