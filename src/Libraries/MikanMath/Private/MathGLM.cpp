@@ -241,6 +241,91 @@ bool glm_intersect_tri_with_ray(const GlmTriangle& tri, const glm::vec3& ray_sta
 	return false;
 }
 
+glm::vec3 glm_closest_point_on_triangle(const GlmTriangle& tri, const glm::vec3& p)
+{
+	// Barycentric / Voronoi-region method from Christer Ericson, "Real-Time Collision Detection" (section 5.1.5).
+	const glm::vec3& a= tri.v0;
+	const glm::vec3& b= tri.v1;
+	const glm::vec3& c= tri.v2;
+
+	const glm::vec3 ab= b - a;
+	const glm::vec3 ac= c - a;
+	const glm::vec3 ap= p - a;
+
+	// Check if P is in the vertex region outside A
+	const float d1= glm::dot(ab, ap);
+	const float d2= glm::dot(ac, ap);
+	if (d1 <= 0.f && d2 <= 0.f)
+		return a; // barycentric (1, 0, 0)
+
+	// Check if P is in the vertex region outside B
+	const glm::vec3 bp= p - b;
+	const float d3= glm::dot(ab, bp);
+	const float d4= glm::dot(ac, bp);
+	if (d3 >= 0.f && d4 <= d3)
+		return b; // barycentric (0, 1, 0)
+
+	// Check if P is in the edge region of AB, if so return projection of P onto AB
+	const float vc= d1 * d4 - d3 * d2;
+	if (vc <= 0.f && d1 >= 0.f && d3 <= 0.f)
+	{
+		const float v= d1 / (d1 - d3);
+		return a + v * ab; // barycentric (1-v, v, 0)
+	}
+
+	// Check if P is in the vertex region outside C
+	const glm::vec3 cp= p - c;
+	const float d5= glm::dot(ab, cp);
+	const float d6= glm::dot(ac, cp);
+	if (d6 >= 0.f && d5 <= d6)
+		return c; // barycentric (0, 0, 1)
+
+	// Check if P is in the edge region of AC, if so return projection of P onto AC
+	const float vb= d5 * d2 - d1 * d6;
+	if (vb <= 0.f && d2 >= 0.f && d6 <= 0.f)
+	{
+		const float w= d2 / (d2 - d6);
+		return a + w * ac; // barycentric (1-w, 0, w)
+	}
+
+	// Check if P is in the edge region of BC, if so return projection of P onto BC
+	const float va= d3 * d6 - d5 * d4;
+	if (va <= 0.f && (d4 - d3) >= 0.f && (d5 - d6) >= 0.f)
+	{
+		const float w= (d4 - d3) / ((d4 - d3) + (d5 - d6));
+		return b + w * (c - b); // barycentric (0, 1-w, w)
+	}
+
+	// P is inside the face region. Compute the closest point through its barycentric coordinates (u, v, w)
+	const float denom= 1.f / (va + vb + vc);
+	const float v= vb * denom;
+	const float w= vc * denom;
+	return a + ab * v + ac * w;
+}
+
+float glm_point_aabb_distance_sq(const glm::vec3& p, const glm::vec3& aabb_min, const glm::vec3& aabb_max)
+{
+	float distanceSq= 0.f;
+
+	for (int axis= 0; axis < 3; ++axis)
+	{
+		const float value= p[axis];
+
+		if (value < aabb_min[axis])
+		{
+			const float delta= aabb_min[axis] - value;
+			distanceSq+= delta * delta;
+		}
+		else if (value > aabb_max[axis])
+		{
+			const float delta= value - aabb_max[axis];
+			distanceSq+= delta * delta;
+		}
+	}
+
+	return distanceSq;
+}
+
 bool glm_intersect_disk_with_ray(
 	const glm::vec3& ray_start,     // Ray origin, in world space
 	const glm::vec3& ray_direction, // Ray direction, in world space.
