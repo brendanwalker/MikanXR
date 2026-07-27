@@ -603,7 +603,7 @@ bool CameraComponent::makeNewCameraFrameEvent(int64_t frameIndex, int defaultWid
 			const MikanMatrix3d& cameraMatrix= fakeIntrinsics.undistorted_camera_matrix;
 
 			outNewFrameEvent.focal_length= {cameraMatrix.x0, cameraMatrix.y1};
-			outNewFrameEvent.principal_point= {cameraMatrix.x2, cameraMatrix.y2};
+			outNewFrameEvent.principal_point= {cameraMatrix.z0, cameraMatrix.z1};
 			outNewFrameEvent.pixel_size= {pixelWidth, pixelHeight};
 			outNewFrameEvent.z_bounds= {fakeIntrinsics.znear, fakeIntrinsics.zfar};
 
