@@ -16,6 +16,8 @@ bool run_math_glm_unit_tests()
 	UNIT_TEST_MODULE_CALL_TEST(math_glm_test_intersect_obb_with_ray);
 	UNIT_TEST_MODULE_CALL_TEST(math_glm_test_intersect_aabb_with_ray);
 	UNIT_TEST_MODULE_CALL_TEST(math_glm_test_mat4_composite);
+	UNIT_TEST_MODULE_CALL_TEST(math_glm_test_closest_point_on_triangle);
+	UNIT_TEST_MODULE_CALL_TEST(math_glm_test_point_aabb_distance_sq);
 	UNIT_TEST_MODULE_END()
 }
 
@@ -299,6 +301,67 @@ bool math_glm_test_intersect_aabb_with_ray()
 	assert(success);
 	success= no_intersect_unit_aabb(glm::vec3(0.f, 0.f, -1.f), glm::vec3(1.f, 0.f, 0.f));
 	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
+bool math_glm_test_closest_point_on_triangle()
+{
+	UNIT_TEST_BEGIN("closest point on triangle")
+
+	// Triangle in the z=0 plane: v0=(0,0,0), v1=(1,0,0), v2=(0,1,0)
+	GlmTriangle tri;
+	tri.v0= glm::vec3(0.f, 0.f, 0.f);
+	tri.v1= glm::vec3(1.f, 0.f, 0.f);
+	tri.v2= glm::vec3(0.f, 1.f, 0.f);
+
+	// Point above the face projects straight down onto the face
+	success= glm_vec3_is_nearly_equal(glm_closest_point_on_triangle(tri, glm::vec3(0.25f, 0.25f, 1.f)),
+									  glm::vec3(0.25f, 0.25f, 0.f), k_normal_epsilon);
+	assert(success);
+
+	// Point in the vertex region outside v0 clamps to v0
+	success= glm_vec3_is_nearly_equal(glm_closest_point_on_triangle(tri, glm::vec3(-1.f, -1.f, 0.f)),
+									  glm::vec3(0.f, 0.f, 0.f), k_normal_epsilon);
+	assert(success);
+
+	// Point beyond v1 clamps to v1
+	success= glm_vec3_is_nearly_equal(glm_closest_point_on_triangle(tri, glm::vec3(2.f, 0.f, 0.f)),
+									  glm::vec3(1.f, 0.f, 0.f), k_normal_epsilon);
+	assert(success);
+
+	// Point below edge v0-v1 projects onto that edge
+	success= glm_vec3_is_nearly_equal(glm_closest_point_on_triangle(tri, glm::vec3(0.5f, -1.f, 0.f)),
+									  glm::vec3(0.5f, 0.f, 0.f), k_normal_epsilon);
+	assert(success);
+
+	// Midpoint of the hypotenuse edge lies on the triangle boundary and maps to itself
+	success= glm_vec3_is_nearly_equal(glm_closest_point_on_triangle(tri, glm::vec3(0.5f, 0.5f, 0.f)),
+									  glm::vec3(0.5f, 0.5f, 0.f), k_normal_epsilon);
+
+	UNIT_TEST_COMPLETE()
+}
+
+bool math_glm_test_point_aabb_distance_sq()
+{
+	UNIT_TEST_BEGIN("point aabb distance squared")
+
+	const glm::vec3 aabbMin(-1.f, -1.f, -1.f);
+	const glm::vec3 aabbMax(1.f, 1.f, 1.f);
+
+	// Inside the box -> zero distance
+	success=
+		is_nearly_equal(glm_point_aabb_distance_sq(glm::vec3(0.f, 0.f, 0.f), aabbMin, aabbMax), 0.f, k_normal_epsilon);
+	assert(success);
+
+	// Outside along a single axis -> squared axis gap (3 units past the +x face = 9)
+	success=
+		is_nearly_equal(glm_point_aabb_distance_sq(glm::vec3(4.f, 0.f, 0.f), aabbMin, aabbMax), 9.f, k_normal_epsilon);
+	assert(success);
+
+	// Outside a corner -> sum of squared axis gaps (2^2 + 2^2 + 2^2 = 12)
+	success=
+		is_nearly_equal(glm_point_aabb_distance_sq(glm::vec3(3.f, 3.f, 3.f), aabbMin, aabbMax), 12.f, k_normal_epsilon);
 
 	UNIT_TEST_COMPLETE()
 }

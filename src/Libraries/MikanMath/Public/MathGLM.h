@@ -61,6 +61,11 @@ MIKAN_MATH_FUNC(bool) glm_intersect_plane_with_ray(const glm::vec3& point_on_pla
 MIKAN_MATH_FUNC(bool) glm_intersect_tri_with_ray(const GlmTriangle& tri, const glm::vec3& ray_start,
 												 const glm::vec3& ray_direction, float& outIntDistance,
 												 glm::vec3& outIntPoint, glm::vec3& outIntNormal);
+// Closest point on a triangle to an arbitrary point (Ericson, Real-Time Collision Detection, barycentric method).
+MIKAN_MATH_FUNC(glm::vec3) glm_closest_point_on_triangle(const GlmTriangle& tri, const glm::vec3& p);
+// Squared distance from a point to an axis-aligned box (0 if the point is inside the box).
+MIKAN_MATH_FUNC(float) glm_point_aabb_distance_sq(const glm::vec3& p, const glm::vec3& aabb_min,
+												  const glm::vec3& aabb_max);
 MIKAN_MATH_FUNC(bool) glm_intersect_disk_with_ray(
 	const glm::vec3& ray_start,     // Ray origin, in world space
 	const glm::vec3& ray_direction, // Ray direction, in world space.

@@ -96,6 +96,44 @@ bool MeshColliderComponent::computeRayIntersection(const ColliderRaycastHitReque
 	return outResult.hitValid;
 }
 
+bool MeshColliderComponent::computeClosestPointLocal(const glm::vec3& localPoint,
+													 KdTreeClosestPointResult& outResult) const
+{
+	if (!m_bEnabled || !m_kdTree)
+		return false;
+
+	return m_kdTree->computeClosestPoint(localPoint, outResult);
+}
+
+bool MeshColliderComponent::computeClosestPointWorld(const glm::vec3& worldPoint, glm::vec3& outWorldPoint,
+													 glm::vec3& outWorldNormal, float& outWorldDistance) const
+{
+	if (!m_bEnabled || !m_kdTree)
+		return false;
+
+	const glm::mat4& worldXform= getWorldTransform();
+	const glm::mat4 invWorldXform= glm::inverse(worldXform);
+	const glm::vec3 localPoint= invWorldXform * glm::vec4(worldPoint, 1.f);
+
+	KdTreeClosestPointResult kdTreeResult;
+	if (!m_kdTree->computeClosestPoint(localPoint, kdTreeResult))
+		return false;
+
+	outWorldPoint= worldXform * glm::vec4(kdTreeResult.position, 1.f);
+	outWorldNormal= glm::normalize(glm::vec3(worldXform * glm::vec4(kdTreeResult.normal, 0.f)));
+	outWorldDistance= glm::distance(worldPoint, outWorldPoint);
+
+	return true;
+}
+
+bool MeshColliderComponent::getLocalAABB(glm::vec3& outMin, glm::vec3& outMax) const
+{
+	if (!m_kdTree)
+		return false;
+
+	return m_kdTree->getLocalAABB(outMin, outMax);
+}
+
 void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr staticMeshWeakPtr)
 {
 	if (m_staticMeshWeakPtr.lock() != staticMeshWeakPtr.lock())
