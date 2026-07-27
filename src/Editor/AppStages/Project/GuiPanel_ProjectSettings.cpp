@@ -81,6 +81,62 @@ void GuiPanel_ProjectSettings::onGui()
 
 	ImGui::Separator();
 
+	// Floor grid + ruler snapping
+	ImGui::Text("Grid & Measurement");
+
+	float gridExtent= editorConfig->getGridExtent();
+	if (ImGui::InputFloat("Grid Extent (m)", &gridExtent, 0.5f, 1.f, "%.2f"))
+	{
+		if (gridExtent < 0.1f)
+			gridExtent= 0.1f;
+		addDeferredGuiEvent([this, gridExtent]()
+							{ m_editorSystem.lock()->getEditorSystemConfig()->setGridExtent(gridExtent); });
+	}
+
+	float gridCellSize= editorConfig->getGridCellSize();
+	if (ImGui::InputFloat("Grid Cell Size (m)", &gridCellSize, 0.05f, 0.1f, "%.3f"))
+	{
+		if (gridCellSize < 0.001f)
+			gridCellSize= 0.001f;
+		addDeferredGuiEvent([this, gridCellSize]()
+							{ m_editorSystem.lock()->getEditorSystemConfig()->setGridCellSize(gridCellSize); });
+	}
+
+	float snapIncrement= editorConfig->getSnapIncrement();
+	if (ImGui::InputFloat("Snap Increment (m)", &snapIncrement, 0.01f, 0.1f, "%.3f"))
+	{
+		if (snapIncrement < 0.f)
+			snapIncrement= 0.f;
+		addDeferredGuiEvent([this, snapIncrement]()
+							{ m_editorSystem.lock()->getEditorSystemConfig()->setSnapIncrement(snapIncrement); });
+	}
+
+	bool snapEnabled= editorConfig->getSnapEnabled();
+	if (ImGui::Checkbox("Ruler Snap To Grid By Default", &snapEnabled))
+	{
+		addDeferredGuiEvent([this, snapEnabled]()
+							{ m_editorSystem.lock()->getEditorSystemConfig()->setSnapEnabled(snapEnabled); });
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("Hold Shift while measuring to invert snapping.\n"
+						  "Off (default): hold Shift to snap, release to move freely.");
+	}
+
+	int rulerUnitsIndex= (int)editorConfig->getRulerDisplayUnits();
+	const char* k_rulerUnitLabels[]= {"Meters", "Centimeters", "Millimeters"};
+	if (ImGui::Combo("Ruler Units", &rulerUnitsIndex, k_rulerUnitLabels, IM_ARRAYSIZE(k_rulerUnitLabels)))
+	{
+		addDeferredGuiEvent(
+			[this, rulerUnitsIndex]()
+			{
+				m_editorSystem.lock()->getEditorSystemConfig()->setRulerDisplayUnits(
+					(eRulerDisplayUnits)rulerUnitsIndex);
+			});
+	}
+
+	ImGui::Separator();
+
 	// Language selector
 	AppStage_Project* ownerAppStage= m_context->getOwnerAppStage();
 	LocalizationManager* locManager= ownerAppStage->getOwnerWindow()->getLocalizationManager();
