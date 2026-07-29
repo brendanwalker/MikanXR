@@ -77,6 +77,57 @@ static bool arkit_wire_protocol_test_rtp_extension_payload_roundtrip()
 	UNIT_TEST_COMPLETE()
 }
 
+static bool arkit_wire_protocol_test_pose_in_rtp_payload_roundtrip()
+{
+	UNIT_TEST_BEGIN("pose-in-RTP payload (100-byte, header-less) roundtrip")
+
+	ARKitPoseInRTPPayload payload;
+	payload.frameSeq= 42;
+	payload.captureTimestampUs= 1234567890123ULL;
+	for (int i= 0; i < 16; ++i)
+	{
+		payload.transform[i]= (i == 0 || i == 5 || i == 10 || i == 15) ? 1.0f : 0.0f; // identity
+	}
+	payload.fx= 1428.5f;
+	payload.fy= 1428.5f;
+	payload.cx= 960.25f;
+	payload.cy= 540.75f;
+	payload.imageWidth= 1920.0f;
+	payload.imageHeight= 1080.0f;
+
+	uint8_t buffer[ARKitPoseInRTPPayload::kWireSize]= {};
+	size_t written= writeARKitPoseInRTPPayload(buffer, sizeof(buffer), payload);
+	success= (written == ARKitPoseInRTPPayload::kWireSize);
+	assert(success);
+
+	ARKitPoseInRTPPayload roundTripped;
+	success= success && readARKitPoseInRTPPayload(buffer, sizeof(buffer), roundTripped);
+	assert(success);
+
+	success= success && roundTripped.frameSeq == payload.frameSeq;
+	success= success && roundTripped.captureTimestampUs == payload.captureTimestampUs;
+	for (int i= 0; success && i < 16; ++i)
+	{
+		success= (roundTripped.transform[i] == payload.transform[i]);
+	}
+	assert(success);
+	success= success && roundTripped.fx == payload.fx;
+	success= success && roundTripped.fy == payload.fy;
+	success= success && roundTripped.cx == payload.cx;
+	success= success && roundTripped.cy == payload.cy;
+	success= success && roundTripped.imageWidth == payload.imageWidth;
+	success= success && roundTripped.imageHeight == payload.imageHeight;
+	assert(success);
+
+	// Undersized buffers must be rejected, not partially decoded.
+	success= (readARKitPoseInRTPPayload(buffer, ARKitPoseInRTPPayload::kWireSize - 1, roundTripped) == false);
+	assert(success);
+	success= (writeARKitPoseInRTPPayload(buffer, ARKitPoseInRTPPayload::kWireSize - 1, payload) == 0);
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
 static bool arkit_wire_protocol_test_be_primitive_helpers()
 {
 	UNIT_TEST_BEGIN("big-endian primitive helpers")
@@ -112,5 +163,6 @@ bool run_arkit_wire_protocol_unit_tests()
 	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_be_primitive_helpers);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_pose_packet_roundtrip);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_rtp_extension_payload_roundtrip);
+	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_pose_in_rtp_payload_roundtrip);
 	UNIT_TEST_MODULE_END()
 }

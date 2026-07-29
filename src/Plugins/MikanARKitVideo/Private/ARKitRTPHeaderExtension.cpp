@@ -21,6 +21,11 @@ static gboolean arkit_frame_seq_meta_init(GstMeta* meta, gpointer /*params*/, Gs
 	ARKitFrameSeqMeta* self= reinterpret_cast<ARKitFrameSeqMeta*>(meta);
 	self->frameSeq= 0;
 	self->captureTimestampUs= 0;
+	self->hasPose= false;
+	for (int i= 0; i < 16; ++i)
+		self->transform[i]= 0.f;
+	self->fx= self->fy= self->cx= self->cy= 0.f;
+	self->imageWidth= self->imageHeight= 0.f;
 	return TRUE;
 }
 
@@ -28,11 +33,26 @@ static gboolean arkit_frame_seq_meta_init(GstMeta* meta, gpointer /*params*/, Gs
 // requested - this is the mechanism that lets the meta survive across the
 // depay -> parse -> decoder chain's internal buffer transforms, the same way
 // GstReferenceTimestampMeta (e.g. the ONVIF timestamp extension) propagates.
+//
+// Must copy every field, not just frameSeq/captureTimestampUs - this is the
+// single highest-risk line in the pose-in-RTP reader: if hasPose/the pose fields
+// aren't propagated here, pose silently vanishes across the
+// rtph264depay -> h264parse -> nvh264dec buffer-copy chain with no error, just a
+// permanently-false hasPose on the other side.
 static gboolean arkit_frame_seq_meta_transform(GstBuffer* transbuf, GstMeta* meta, GstBuffer* /*buffer*/,
 											   GQuark /*type*/, gpointer /*data*/)
 {
 	const ARKitFrameSeqMeta* srcMeta= reinterpret_cast<const ARKitFrameSeqMeta*>(meta);
-	arkit_buffer_add_frame_seq_meta(transbuf, srcMeta->frameSeq, srcMeta->captureTimestampUs);
+	if (srcMeta->hasPose)
+	{
+		arkit_buffer_add_frame_seq_meta_with_pose(transbuf, srcMeta->frameSeq, srcMeta->captureTimestampUs,
+												  srcMeta->transform, srcMeta->fx, srcMeta->fy, srcMeta->cx,
+												  srcMeta->cy, srcMeta->imageWidth, srcMeta->imageHeight);
+	}
+	else
+	{
+		arkit_buffer_add_frame_seq_meta(transbuf, srcMeta->frameSeq, srcMeta->captureTimestampUs);
+	}
 	return TRUE;
 }
 
@@ -61,6 +81,30 @@ ARKitFrameSeqMeta* arkit_buffer_add_frame_seq_meta(GstBuffer* buffer, uint32_t f
 	{
 		meta->frameSeq= frameSeq;
 		meta->captureTimestampUs= captureTimestampUs;
+		meta->hasPose= false;
+	}
+
+	return meta;
+}
+
+ARKitFrameSeqMeta* arkit_buffer_add_frame_seq_meta_with_pose(GstBuffer* buffer, uint32_t frameSeq,
+															 uint64_t captureTimestampUs, const float transform[16],
+															 float fx, float fy, float cx, float cy, float imageWidth,
+															 float imageHeight)
+{
+	ARKitFrameSeqMeta* meta= arkit_buffer_add_frame_seq_meta(buffer, frameSeq, captureTimestampUs);
+
+	if (meta != nullptr)
+	{
+		meta->hasPose= true;
+		for (int i= 0; i < 16; ++i)
+			meta->transform[i]= transform[i];
+		meta->fx= fx;
+		meta->fy= fy;
+		meta->cx= cx;
+		meta->cy= cy;
+		meta->imageWidth= imageWidth;
+		meta->imageHeight= imageHeight;
 	}
 
 	return meta;
@@ -81,14 +125,18 @@ G_DEFINE_TYPE(ARKitRTPHeaderExtension, arkit_rtp_header_extension, GST_TYPE_RTP_
 
 static GstRTPHeaderExtensionFlags arkit_rtp_header_extension_get_supported_flags(GstRTPHeaderExtension* /*ext*/)
 {
-	// ARKitRTPExtensionPayload::kWireSize (12 bytes) fits within the one-byte
-	// header's 1-16 byte payload range.
-	return GST_RTP_HEADER_EXTENSION_ONE_BYTE;
+	// Both forms are supported (this is a flags enum, not exclusive): the legacy
+	// 12-byte ARKitRTPExtensionPayload fits the one-byte header's 1-16 byte
+	// payload range, but the newer 100-byte ARKitPoseInRTPPayload needs the
+	// two-byte header's larger range instead.
+	return static_cast<GstRTPHeaderExtensionFlags>(GST_RTP_HEADER_EXTENSION_ONE_BYTE
+												   | GST_RTP_HEADER_EXTENSION_TWO_BYTE);
 }
 
 static gsize arkit_rtp_header_extension_get_max_size(GstRTPHeaderExtension* /*ext*/, const GstBuffer* /*input_meta*/)
 {
-	return ARKitRTPExtensionPayload::kWireSize;
+	// The larger of the two payload shapes this reader accepts.
+	return ARKitPoseInRTPPayload::kWireSize;
 }
 
 static gssize arkit_rtp_header_extension_write(GstRTPHeaderExtension* /*ext*/, const GstBuffer* /*input_meta*/,
@@ -104,11 +152,30 @@ static gboolean arkit_rtp_header_extension_read(GstRTPHeaderExtension* /*ext*/,
 												GstRTPHeaderExtensionFlags /*read_flags*/, const guint8* data,
 												gsize size, GstBuffer* buffer)
 {
-	ARKitRTPExtensionPayload payload;
-	if (!readARKitRTPExtensionPayload(data, size, payload))
-		return FALSE;
+	// Dispatch on payload size: legacy 12-byte frameSeq-only, or the newer
+	// 100-byte pose-bearing shape. Anything else is rejected rather than guessed.
+	if (size == ARKitRTPExtensionPayload::kWireSize)
+	{
+		ARKitRTPExtensionPayload payload;
+		if (!readARKitRTPExtensionPayload(data, size, payload))
+			return FALSE;
 
-	return arkit_buffer_add_frame_seq_meta(buffer, payload.frameSeq, payload.captureTimestampUs) != nullptr;
+		return arkit_buffer_add_frame_seq_meta(buffer, payload.frameSeq, payload.captureTimestampUs) != nullptr;
+	}
+
+	if (size == ARKitPoseInRTPPayload::kWireSize)
+	{
+		ARKitPoseInRTPPayload payload;
+		if (!readARKitPoseInRTPPayload(data, size, payload))
+			return FALSE;
+
+		return arkit_buffer_add_frame_seq_meta_with_pose(buffer, payload.frameSeq, payload.captureTimestampUs,
+														 payload.transform, payload.fx, payload.fy, payload.cx,
+														 payload.cy, payload.imageWidth, payload.imageHeight)
+			   != nullptr;
+	}
+
+	return FALSE;
 }
 
 static void arkit_rtp_header_extension_class_init(ARKitRTPHeaderExtensionClass* klass)
@@ -123,10 +190,11 @@ static void arkit_rtp_header_extension_class_init(ARKitRTPHeaderExtensionClass* 
 
 	gst_rtp_header_extension_class_set_uri(rtpExtClass, ARKIT_RTP_HDREXT_URI);
 
-	gst_element_class_set_static_metadata(
-		elementClass, "ARKit frameSeq RTP Header Extension", GST_RTP_HDREXT_ELEMENT_CLASS,
-		"Extracts the frameSeq/captureTimestampUs RTP header extension carried by the MikanARStreamer iPhone app",
-		"MikanXR");
+	gst_element_class_set_static_metadata(elementClass, "ARKit frameSeq RTP Header Extension",
+										  GST_RTP_HDREXT_ELEMENT_CLASS,
+										  "Extracts the frameSeq/captureTimestampUs (and optionally pose) RTP header "
+										  "extension carried by the MikanARStreamer iPhone app",
+										  "MikanXR");
 }
 
 static void arkit_rtp_header_extension_init(ARKitRTPHeaderExtension* /*self*/) {}

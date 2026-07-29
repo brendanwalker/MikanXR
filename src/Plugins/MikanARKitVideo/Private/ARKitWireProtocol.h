@@ -106,13 +106,38 @@ struct ARKitPosePacket
 };
 
 // RTP header extension (RFC 5285) payload attached to every video-stream (basePort+0)
-// RTP packet, correlating a decoded video frame back to a frameSeq.
+// RTP packet, correlating a decoded video frame back to a frameSeq. This is the
+// legacy, frameSeq-only shape - see ARKitPoseInRTPPayload below for the newer,
+// pose-bearing shape the reader also accepts (dispatched on payload size).
 struct ARKitRTPExtensionPayload
 {
 	static constexpr size_t kWireSize= 12;
 
 	uint32_t frameSeq= 0;
 	uint64_t captureTimestampUs= 0;
+};
+
+// Pose-bearing RTP header extension (RFC 5285) payload - the same per-frame pose
+// fields as ARKitPosePacket (frame-correlated camera pose + intrinsics), but
+// without ARKitPosePacket's magic/version/type header: the RTP extension's own
+// id and length already identify and size the payload, so those 4 bytes would be
+// redundant here. Carried via the two-byte extension header form (100 bytes
+// exceeds the one-byte form's 16-byte payload limit). Once this rides on every
+// video RTP packet, the separate pose UDP channel (basePort+2, ARKitPosePacket)
+// becomes redundant and is removed - see the phased pose-in-RTP migration plan.
+struct ARKitPoseInRTPPayload
+{
+	static constexpr size_t kWireSize= 100;
+
+	uint32_t frameSeq= 0;
+	uint64_t captureTimestampUs= 0;
+	float transform[16]= {}; // row-major 4x4, camera-to-world
+	float fx= 0.f;
+	float fy= 0.f;
+	float cx= 0.f;
+	float cy= 0.f;
+	float imageWidth= 0.f;
+	float imageHeight= 0.f;
 };
 
 // -- (de)serialization -----
@@ -220,6 +245,72 @@ inline bool readARKitRTPExtensionPayload(const uint8_t* buffer, size_t bufferSiz
 	offset+= sizeof(uint32_t);
 	outPayload.captureTimestampUs= readU64BE(buffer + offset);
 	offset+= sizeof(uint64_t);
+
+	return true;
+}
+
+inline size_t writeARKitPoseInRTPPayload(uint8_t* buffer, size_t bufferSize, const ARKitPoseInRTPPayload& payload)
+{
+	if (buffer == nullptr || bufferSize < ARKitPoseInRTPPayload::kWireSize)
+		return 0;
+
+	size_t offset= 0;
+	writeU32BE(buffer + offset, payload.frameSeq);
+	offset+= sizeof(uint32_t);
+	writeU64BE(buffer + offset, payload.captureTimestampUs);
+	offset+= sizeof(uint64_t);
+
+	for (int i= 0; i < 16; ++i)
+	{
+		writeF32BE(buffer + offset, payload.transform[i]);
+		offset+= sizeof(float);
+	}
+
+	writeF32BE(buffer + offset, payload.fx);
+	offset+= sizeof(float);
+	writeF32BE(buffer + offset, payload.fy);
+	offset+= sizeof(float);
+	writeF32BE(buffer + offset, payload.cx);
+	offset+= sizeof(float);
+	writeF32BE(buffer + offset, payload.cy);
+	offset+= sizeof(float);
+	writeF32BE(buffer + offset, payload.imageWidth);
+	offset+= sizeof(float);
+	writeF32BE(buffer + offset, payload.imageHeight);
+	offset+= sizeof(float);
+
+	return offset;
+}
+
+inline bool readARKitPoseInRTPPayload(const uint8_t* buffer, size_t bufferSize, ARKitPoseInRTPPayload& outPayload)
+{
+	if (buffer == nullptr || bufferSize < ARKitPoseInRTPPayload::kWireSize)
+		return false;
+
+	size_t offset= 0;
+	outPayload.frameSeq= readU32BE(buffer + offset);
+	offset+= sizeof(uint32_t);
+	outPayload.captureTimestampUs= readU64BE(buffer + offset);
+	offset+= sizeof(uint64_t);
+
+	for (int i= 0; i < 16; ++i)
+	{
+		outPayload.transform[i]= readF32BE(buffer + offset);
+		offset+= sizeof(float);
+	}
+
+	outPayload.fx= readF32BE(buffer + offset);
+	offset+= sizeof(float);
+	outPayload.fy= readF32BE(buffer + offset);
+	offset+= sizeof(float);
+	outPayload.cx= readF32BE(buffer + offset);
+	offset+= sizeof(float);
+	outPayload.cy= readF32BE(buffer + offset);
+	offset+= sizeof(float);
+	outPayload.imageWidth= readF32BE(buffer + offset);
+	offset+= sizeof(float);
+	outPayload.imageHeight= readF32BE(buffer + offset);
+	offset+= sizeof(float);
 
 	return true;
 }
