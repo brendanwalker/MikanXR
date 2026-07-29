@@ -390,9 +390,11 @@ void MikanSteamVRManager::handleTrackedDeviceDeactivated(vr::TrackedDeviceIndex_
 		|| deviceClass == vr::TrackedDeviceClass_GenericTracker)
 	{
 		m_activeSteamVRDeviceIdSet.erase(deviceIndex);
-		auto it= std::remove_if(m_activeSteamVRDeviceList.begin(), m_activeSteamVRDeviceList.end(),
-								[deviceIndex](const IVRDevicePtr& device)
-								{ return device->getDeviceIndex() == deviceIndex; });
+		m_activeSteamVRDeviceList.erase(std::remove_if(m_activeSteamVRDeviceList.begin(),
+													   m_activeSteamVRDeviceList.end(),
+													   [deviceIndex](const IVRDevicePtr& device)
+													   { return !device || device->getDeviceIndex() == deviceIndex; }),
+										m_activeSteamVRDeviceList.end());
 
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{

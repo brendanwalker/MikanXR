@@ -29,6 +29,18 @@ void MikanViewport::setViewport(const glm::i32vec2& viewportOrigin, const glm::i
 	// Net valid until applyViewport
 	m_renderOrigin= glm::i32vec2();
 	m_renderSize= glm::i32vec2();
+
+	// Keep the current camera's projection matched to the real viewport aspect ratio
+	// (matters for orthographic bounds and ray picking). Guard for the constructor
+	// call, which runs before any camera exists.
+	if (m_viewportSize.y > 0 && getCameraCount() > 0)
+	{
+		MikanCameraPtr camera= getCurrentMikanCamera();
+		if (camera)
+		{
+			camera->setViewportAspect((float)m_viewportSize.x / (float)m_viewportSize.y);
+		}
+	}
 }
 
 void MikanViewport::setBackgroundColor(const glm::vec3& color) { m_backgroundColor= glm::vec4(color, 1.f); }
@@ -230,6 +242,33 @@ void MikanViewport::bindInput()
 		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyReleased+=
 			MakeDelegate(this, &MikanViewport::onDownButtonReleased);
 
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_CTRL)->OnKeyPressed+=
+			MakeDelegate(this, &MikanViewport::onLeftCtrlPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_CTRL)->OnKeyReleased+=
+			MakeDelegate(this, &MikanViewport::onLeftCtrlReleased);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_CTRL)->OnKeyPressed+=
+			MakeDelegate(this, &MikanViewport::onRightCtrlPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_CTRL)->OnKeyReleased+=
+			MakeDelegate(this, &MikanViewport::onRightCtrlReleased);
+
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_ALT)->OnKeyPressed+=
+			MakeDelegate(this, &MikanViewport::onLeftAltPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_ALT)->OnKeyReleased+=
+			MakeDelegate(this, &MikanViewport::onLeftAltReleased);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_ALT)->OnKeyPressed+=
+			MakeDelegate(this, &MikanViewport::onRightAltPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_ALT)->OnKeyReleased+=
+			MakeDelegate(this, &MikanViewport::onRightAltReleased);
+
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_SHIFT)->OnKeyPressed+=
+			MakeDelegate(this, &MikanViewport::onLeftShiftPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_SHIFT)->OnKeyReleased+=
+			MakeDelegate(this, &MikanViewport::onLeftShiftReleased);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_SHIFT)->OnKeyPressed+=
+			MakeDelegate(this, &MikanViewport::onRightShiftPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_SHIFT)->OnKeyReleased+=
+			MakeDelegate(this, &MikanViewport::onRightShiftReleased);
+
 		m_bIsInputBound= true;
 	}
 }
@@ -272,6 +311,33 @@ void MikanViewport::unbindInput()
 			MakeDelegate(this, &MikanViewport::onDownButtonPressed);
 		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyReleased-=
 			MakeDelegate(this, &MikanViewport::onDownButtonReleased);
+
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_CTRL)->OnKeyPressed-=
+			MakeDelegate(this, &MikanViewport::onLeftCtrlPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_CTRL)->OnKeyReleased-=
+			MakeDelegate(this, &MikanViewport::onLeftCtrlReleased);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_CTRL)->OnKeyPressed-=
+			MakeDelegate(this, &MikanViewport::onRightCtrlPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_CTRL)->OnKeyReleased-=
+			MakeDelegate(this, &MikanViewport::onRightCtrlReleased);
+
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_ALT)->OnKeyPressed-=
+			MakeDelegate(this, &MikanViewport::onLeftAltPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_ALT)->OnKeyReleased-=
+			MakeDelegate(this, &MikanViewport::onLeftAltReleased);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_ALT)->OnKeyPressed-=
+			MakeDelegate(this, &MikanViewport::onRightAltPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_ALT)->OnKeyReleased-=
+			MakeDelegate(this, &MikanViewport::onRightAltReleased);
+
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_SHIFT)->OnKeyPressed-=
+			MakeDelegate(this, &MikanViewport::onLeftShiftPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::LEFT_SHIFT)->OnKeyReleased-=
+			MakeDelegate(this, &MikanViewport::onLeftShiftReleased);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_SHIFT)->OnKeyPressed-=
+			MakeDelegate(this, &MikanViewport::onRightShiftPressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::RIGHT_SHIFT)->OnKeyReleased-=
+			MakeDelegate(this, &MikanViewport::onRightShiftReleased);
 
 		m_bIsInputBound= false;
 	}
@@ -320,27 +386,44 @@ void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 
 		if (m_isCameraRotateButtonPressed)
 		{
-			float deltaYaw= -(float)deltaX * k_camera_mouse_pan_scalar;
-			float deltaPitch= (float)deltaY * k_camera_mouse_pan_scalar;
+			if (camera->isOrthographic())
+			{
+				// In orthographic mode there is no rotation; right-drag pans the view.
+				const float viewportHeight= (float)m_viewportSize.y;
+				const float worldPerPixel=
+					(viewportHeight > 0.f) ? (2.f * camera->getOrthoExtent() / viewportHeight) : 0.f;
+				const glm::vec3 right= camera->getCameraRightFromViewMatrix();
+				const glm::vec3 up= camera->getCameraUpFromViewMatrix();
 
-			switch (camera->getCameraMovementMode())
+				// Grab-and-drag: move the target opposite the cursor's horizontal motion,
+				// and with the cursor's vertical motion (screen Y grows downward).
+				const glm::vec3 delta= (-(float)deltaX * right + (float)deltaY * up) * worldPerPixel;
+				camera->adjustOrthoTargetPosition(delta);
+			}
+			else
 			{
-			case eCameraMovementMode::fly:
-			{
-				if (!is_nearly_zero(deltaYaw))
-					camera->adjustFlyYaw(deltaYaw);
+				float deltaYaw= -(float)deltaX * k_camera_mouse_pan_scalar;
+				float deltaPitch= (float)deltaY * k_camera_mouse_pan_scalar;
 
-				if (!is_nearly_zero(deltaPitch))
-					camera->adjustFlyPitch(deltaPitch);
-			}
-			break;
-			case eCameraMovementMode::orbit:
-			{
-				camera->adjustOrbitAngles(deltaYaw, deltaPitch);
-			}
-			break;
-			default:
+				switch (camera->getCameraMovementMode())
+				{
+				case eCameraMovementMode::fly:
+				{
+					if (!is_nearly_zero(deltaYaw))
+						camera->adjustFlyYaw(deltaYaw);
+
+					if (!is_nearly_zero(deltaPitch))
+						camera->adjustFlyPitch(deltaPitch);
+				}
 				break;
+				case eCameraMovementMode::orbit:
+				{
+					camera->adjustOrbitAngles(deltaYaw, deltaPitch);
+				}
+				break;
+				default:
+					break;
+				}
 			}
 		}
 	}
@@ -363,7 +446,7 @@ void MikanViewport::onMouseButtonPressed(int button)
 	if (camera && getCursorViewportPixelPos(viewportPos))
 	{
 		glm::vec3 rayOrigin, rayDir;
-		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayOrigin);
+		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
 
 		// Broadcast to any viewport raycast listeners
 		if (OnMouseRayButtonDown)
@@ -384,7 +467,7 @@ void MikanViewport::onMouseButtonReleased(int button)
 	if (camera && getCursorViewportPixelPos(viewportPos))
 	{
 		glm::vec3 rayOrigin, rayDir;
-		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayOrigin);
+		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
 
 		// Broadcast to any viewport raycast listeners
 		if (OnMouseRayButtonUp)
@@ -399,11 +482,19 @@ void MikanViewport::onMouseButtonReleased(int button)
 
 void MikanViewport::onMouseWheel(int scrollAmount)
 {
-	float deltaRadius= (float)scrollAmount * k_camera_mouse_zoom_scalar;
-
 	MikanCameraPtr camera= std::static_pointer_cast<MikanCamera>(getCurrentCamera());
-	if (camera)
+	if (!camera)
+		return;
+
+	if (camera->isOrthographic())
 	{
+		// Scrolling up zooms in (shrinks the visible extent), scrolling down zooms out.
+		const float zoomFactor= fmaxf(0.1f, 1.f - (float)scrollAmount * k_camera_mouse_zoom_scalar);
+		camera->setOrthoExtent(camera->getOrthoExtent() * zoomFactor);
+	}
+	else
+	{
+		const float deltaRadius= (float)scrollAmount * k_camera_mouse_zoom_scalar;
 		camera->adjustOrbitRadius(deltaRadius);
 	}
 }

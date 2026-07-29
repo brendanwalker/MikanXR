@@ -15,6 +15,7 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	eTextureSourceColorType textureSourceColorType;
+	eColorTextureFallbackMode fallbackMode= eColorTextureFallbackMode::autoByType;
 	MikanTextureSourceID textureSourceId;
 	bool bVerticalFlip;
 };
@@ -50,6 +51,7 @@ protected:
 	IMkFrameBufferPtr m_colorFrameBuffer;
 	MkMaterialInstancePtr m_colorMaterialInstance;
 	eTextureSourceColorType m_clientTextureType= eTextureSourceColorType::colorRGB;
+	eColorTextureFallbackMode m_fallbackMode= eColorTextureFallbackMode::autoByType;
 	TextureSourceComponentWeakPtr m_textureSourceComponent;
 	bool m_bVerticalFlip= false;
 };

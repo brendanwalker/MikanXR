@@ -122,8 +122,15 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 	{
 		if (m_monoDistortionView->isReceivingFrames())
 		{
-			setupMonoLensCalibrator();
-			// State transition is handled inside setupMonoLensCalibrator()
+			// Process the first video frame to determine the resolution and initialize the calibrator
+			m_monoDistortionView->readAndProcessVideoFrame();
+
+			// If we have a valid frame size, we can initialize the calibrator
+			if (m_monoDistortionView->getFrameWidth() > 0 && m_monoDistortionView->getFrameHeight() > 0)
+			{
+				// State transition is handled inside setupMonoLensCalibrator()
+				setupMonoLensCalibrator();
+			}
 		}
 		else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
 		{

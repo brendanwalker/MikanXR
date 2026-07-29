@@ -1,6 +1,7 @@
 ///-- includes -----
 #include "App.h"
 #include "CameraComponent.h"
+#include "CameraMath.h"
 #include "ClientSourceManager.h"
 #include "Colors.h"
 #include "CompositorComponent.h"
@@ -70,11 +71,7 @@ AppStage_Project::AppStage_Project(IEditorWindow* ownerWindow)
 {
 }
 
-AppStage_Project::~AppStage_Project()
-{
-	m_viewport= nullptr;
-	m_activeCompositors.clear();
-}
+AppStage_Project::~AppStage_Project() { m_viewport= nullptr; }
 
 void AppStage_Project::enter()
 {
@@ -125,7 +122,7 @@ void AppStage_Project::enter()
 
 	// Setup Scene viewport
 	{
-		const glm::i32vec2 viewportOrigin= {0, 45};
+		const glm::i32vec2 viewportOrigin= {0, 0};
 		const glm::i32vec2 viewportSize= {1280, 720};
 
 		m_viewport= getFirstViewport();
@@ -137,32 +134,6 @@ void AppStage_Project::enter()
 
 		// Register the scene with the primary viewport
 		m_editorSystem.lock()->bindViewport(m_viewport);
-	}
-
-	// Listen for changes to the current active scene
-	{
-		SceneObjectSystemPtr sceneSystem= getSystemOfType<SceneObjectSystem>();
-
-		sceneSystem->OnSceneActivated+= MakeDelegate(this, &AppStage_Project::onSceneActivated);
-		sceneSystem->OnSceneDeactivated+= MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
-
-		// Rebuild compositor viewports for the active scene
-		SceneComponentPtr activeScene= sceneSystem->getCurrentScene();
-		if (activeScene)
-		{
-			onSceneActivated(activeScene);
-		}
-	}
-
-	// Setup hotkeys
-	{
-		InputManager* inputManager= getOwnerWindow()->getInputManager();
-
-		// Hotkeys for switching between viewport modes
-		inputManager->fetchOrAddKeyBindings(MkKey::COMMA)->OnKeyPressed+=
-			MakeDelegate(this, &AppStage_Project::cyclePreviousCompositorCamera);
-		inputManager->fetchOrAddKeyBindings(MkKey::PERIOD)->OnKeyPressed+=
-			MakeDelegate(this, &AppStage_Project::cycleNextCompositorCamera);
 	}
 
 	// Create ImGui GuiPanel context and project panels
@@ -212,20 +183,6 @@ void AppStage_Project::exit()
 	m_projectMarkersPanel= nullptr;
 	m_projectSettingsPanel= nullptr;
 
-	{
-		SceneObjectSystemPtr sceneSystem= m_sceneObjectSystem.lock();
-
-		// Rebuild compositor viewports for the active scene
-		SceneComponentPtr activeScene= sceneSystem->getCurrentScene();
-		if (activeScene)
-		{
-			onSceneDeactivated(activeScene);
-		}
-
-		sceneSystem->OnSceneActivated-= MakeDelegate(this, &AppStage_Project::onSceneActivated);
-		sceneSystem->OnSceneDeactivated-= MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
-	}
-
 	// Unregister all viewports from the editor
 	m_editorSystem.lock()->clearViewports();
 
@@ -243,15 +200,96 @@ void AppStage_Project::update(float deltaSeconds)
 
 	// Update the timing dependent state for the project GuiPanels
 	m_projectGuiPanelContext->update(deltaSeconds);
-
-	// Update the camera pose for the currently active camera
-	updateCompositorCameras();
 }
 
 void AppStage_Project::onGui()
 {
 	// Process deferred events emitted due to Gui interaction
 	AppStage::onGui();
+
+	// Viewport view-mode selector overlay (perspective / orthographic), editor camera only.
+	// Compositor cameras (pool index > 0) use real lens intrinsics and must not be switched.
+	if (m_viewport && m_viewport->getCurrentCameraIndex() == 0)
+	{
+		MikanCameraPtr camera= m_viewport->getMikanCameraByIndex(0);
+		if (camera)
+		{
+			const glm::i32vec2 vpOrigin= m_viewport->getViewportOrigin();
+			ImGui::SetNextWindowPos(ImVec2((float)vpOrigin.x + 8, (float)vpOrigin.y + 8), ImGuiCond_Always);
+
+			constexpr ImGuiWindowFlags k_overlayFlags= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize
+													   | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar
+													   | ImGuiWindowFlags_AlwaysAutoResize;
+
+			MkGuiScopedWindow overlay("##ViewModeOverlay", nullptr, k_overlayFlags);
+			if (overlay)
+			{
+				static const char* k_viewLabels[]= {"Perspective", "Top", "Bottom", "Front", "Back", "Left", "Right"};
+
+				int currentIndex= 0;
+				if (camera->getProjectionMode() == eCameraProjectionMode::orthographic)
+				{
+					switch (camera->getOrthoViewpoint())
+					{
+					case eCameraViewpoint::top:
+						currentIndex= 1;
+						break;
+					case eCameraViewpoint::bottom:
+						currentIndex= 2;
+						break;
+					case eCameraViewpoint::front:
+						currentIndex= 3;
+						break;
+					case eCameraViewpoint::back:
+						currentIndex= 4;
+						break;
+					case eCameraViewpoint::left:
+						currentIndex= 5;
+						break;
+					case eCameraViewpoint::right:
+						currentIndex= 6;
+						break;
+					}
+				}
+
+				ImGui::SetNextItemWidth(110.f);
+				if (ImGui::Combo("##ViewMode", &currentIndex, k_viewLabels, IM_ARRAYSIZE(k_viewLabels)))
+				{
+					switch (currentIndex)
+					{
+					case 0:
+						camera->setProjectionMode(eCameraProjectionMode::perspective);
+						camera->setCameraMovementMode(eCameraMovementMode::fly);
+						break;
+					case 1:
+						camera->setOrthographicViewpoint(eCameraViewpoint::top);
+						break;
+					case 2:
+						camera->setOrthographicViewpoint(eCameraViewpoint::bottom);
+						break;
+					case 3:
+						camera->setOrthographicViewpoint(eCameraViewpoint::front);
+						break;
+					case 4:
+						camera->setOrthographicViewpoint(eCameraViewpoint::back);
+						break;
+					case 5:
+						camera->setOrthographicViewpoint(eCameraViewpoint::left);
+						break;
+					case 6:
+						camera->setOrthographicViewpoint(eCameraViewpoint::right);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	// MR camera-alignment debug readout window
+	if (getEditorSettings().bDebugCameraAlignment)
+	{
+		renderCameraAlignmentGui();
+	}
 
 	constexpr float k_panelWidth= 415.f;
 	const float displayWidth= m_ownerWindow->getWidth();
@@ -321,95 +359,6 @@ void AppStage_Project::onActivePanelChanged()
 	}
 }
 
-// Scene
-void AppStage_Project::onSceneDeactivated(SceneComponentPtr oldScene) { disposeCompositorViewportCameras(); }
-
-void AppStage_Project::onSceneActivated(SceneComponentPtr newScene) { createCompositorViewportCameras(); }
-
-void AppStage_Project::createCompositorViewportCameras()
-{
-	// Create a camera for each active compositor in the scene
-	for (const CompositorComponentWeakPtr compositorWeakPtr : m_activeCompositors)
-	{
-		CompositorComponentPtr compositor= compositorWeakPtr.lock();
-		MikanCameraPtr mikanCamera= m_viewport->addMikanCamera();
-
-		mikanCamera->setName(compositor->getName());
-
-		// Camera transform will be updated each frame in updateCompositorCameras()
-		mikanCamera->setCameraMovementMode(eCameraMovementMode::stationary);
-
-		// Apply video source camera intrinsics to the camera
-		VideoSourceComponentPtr videoSourceComponent= compositor->getVideoSourceComponent();
-		if (videoSourceComponent != nullptr)
-		{
-			MikanVideoSourceIntrinsics cameraIntrinsics;
-			videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
-
-			mikanCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
-		}
-	}
-
-	// Apply initial camera transforms from the compositors
-	updateCompositorCameras();
-}
-
-void AppStage_Project::disposeCompositorViewportCameras()
-{
-	// Remove all but the first camera from the main viewport
-	while (m_viewport->getCameraCount() > 1)
-	{
-		m_viewport->removeCameraByIndex(m_viewport->getCameraCount() - 1);
-	}
-}
-
-void AppStage_Project::updateCompositorCameras()
-{
-	for (size_t compositorIndex= 0; compositorIndex < m_activeCompositors.size(); compositorIndex++)
-	{
-		size_t cameraIndex= compositorIndex + 1; // Skip the first camera which is the vr camera
-		CompositorComponentPtr compositor= m_activeCompositors[compositorIndex].lock();
-		MikanCameraPtr camera= m_viewport->getMikanCameraByIndex((int)cameraIndex);
-
-		if (compositor && camera)
-		{
-			CameraComponentPtr cameraComponent= compositor->getCameraComponent();
-			if (cameraComponent)
-			{
-				glm::mat4 cameraXform;
-				if (cameraComponent->getStageSpaceAperturePose(cameraXform))
-				{
-					camera->setCameraTransform(cameraXform);
-				}
-			}
-		}
-	}
-}
-
-void AppStage_Project::cyclePreviousCompositorCamera()
-{
-	if (m_viewport->getIsMouseInViewport())
-	{
-		int newCameraIndex= m_viewport->getCurrentCameraIndex() - 1;
-		if (newCameraIndex < 0)
-			newCameraIndex= m_viewport->getCameraCount() - 1;
-
-		m_viewport->setCurrentCamera(newCameraIndex);
-	}
-}
-
-void AppStage_Project::cycleNextCompositorCamera()
-{
-	if (m_viewport->getIsMouseInViewport())
-	{
-		int newCameraIndex= m_viewport->getCurrentCameraIndex() + 1;
-		if (newCameraIndex >= m_viewport->getCameraCount())
-			newCameraIndex= 0;
-
-		m_viewport->setCurrentCamera(newCameraIndex);
-	}
-}
-
 // Compositor Model UI Events
 void AppStage_Project::onReturnEvent() { m_ownerWindow->popAppState(); }
 
@@ -453,12 +402,29 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	// Render the 3d scene
 	m_mkScene->render(viewportCamera, graphicsContext->getMkStateStack());
 
-	// Draw tracking space
-	drawGrid(graphicsContext, glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
+	// Draw the floor grid using the configured extent / cell size
+	const EditorSettings& editorSettings= getEditorSettings();
+	const float gridExtent= (editorSettings.gridExtent > 0.f) ? editorSettings.gridExtent : 10.f;
+	const float gridCellSize= (editorSettings.gridCellSize > 0.f) ? editorSettings.gridCellSize : 0.5f;
+	int gridSubDiv= (int)((gridExtent / gridCellSize) + 0.5f);
+	if (gridSubDiv < 1)
+		gridSubDiv= 1;
+	drawGrid(graphicsContext, glm::mat4(1.f), gridExtent, gridExtent, gridSubDiv, gridSubDiv, Colors::GhostWhite);
 
-	if (getEditorSettings().bRenderOrigin)
+	// Draw the orthographic ruler overlay (no-op unless measuring in an ortho view)
+	if (auto editorSystem= m_editorSystem.lock())
+	{
+		editorSystem->renderRuler(graphicsContext, m_viewport);
+	}
+
+	if (editorSettings.bRenderOrigin)
 	{
 		debugRenderOrigin();
+	}
+
+	if (editorSettings.bDebugCameraAlignment)
+	{
+		renderCameraAlignmentDebug(graphicsContext, viewportCamera);
 	}
 }
 
@@ -744,6 +710,137 @@ void AppStage_Project::debugRenderOrigin() const
 
 	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.f, 1.f, 1.f);
 	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
+}
+
+void AppStage_Project::renderCameraAlignmentDebug(IMkGraphicsContext* graphicsContext,
+												  MikanCameraPtr viewportCamera) const
+{
+	TextStyle style= getDefaultTextStyle();
+
+	// Stage origin (identity) — the frame every calibrated transform is expressed relative to
+	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 0.25f, true);
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f), L"stage origin");
+
+	// For each compositor on the current scene, draw its tracking puck + camera aperture in stage
+	// space so the pose chain (VR->stage, puck->aperture lever arm) is directly inspectable in 3D.
+	SceneComponentConstPtr currentScene= getCurrentSceneConst();
+	if (!currentScene)
+		return;
+
+	for (const CompositorComponentPtr& compositor : currentScene->getOutputCompositors())
+	{
+		if (!compositor)
+			continue;
+
+		CameraComponentPtr cameraComponent= compositor->getCameraComponent();
+		if (!cameraComponent)
+			continue;
+
+		glm::mat4 aperturePose(1.f);
+		if (!cameraComponent->getStageSpaceAperturePose(aperturePose))
+			continue;
+
+		const glm::vec3 aperturePos= glm::vec3(aperturePose[3]);
+		drawTransformedAxes(graphicsContext, aperturePose, 0.1f, true);
+		drawTextAtWorldPosition(graphicsContext, style, aperturePos, L"aperture");
+
+		// aperturePose = puckStagePose * puckToApertureOffset  =>  puckStagePose = aperturePose * inverse(offset)
+		glm::mat4 offsetXform(1.f);
+		if (cameraComponent->hasValidApertureOffsetXform() && cameraComponent->getApertureOffsetXform(offsetXform))
+		{
+			const glm::mat4 puckPose= aperturePose * glm::inverse(offsetXform);
+			const glm::vec3 puckPos= glm::vec3(puckPose[3]);
+
+			drawTransformedAxes(graphicsContext, puckPose, 0.1f, true);
+			drawTextAtWorldPosition(graphicsContext, style, puckPos, L"puck");
+
+			// Lever arm from tracking puck to camera aperture
+			drawSegment(graphicsContext, glm::mat4(1.f), puckPos, aperturePos, glm::vec3(1.f, 0.5f, 0.f));
+		}
+	}
+}
+
+void AppStage_Project::renderCameraAlignmentGui()
+{
+	const glm::i32vec2 vpOrigin= m_viewport ? m_viewport->getViewportOrigin() : glm::i32vec2(0, 45);
+	ImGui::SetNextWindowPos(ImVec2((float)vpOrigin.x + 8, (float)vpOrigin.y + 44), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(340.f, 0.f), ImGuiCond_FirstUseEver);
+
+	if (ImGui::Begin("Camera Alignment Debug"))
+	{
+		const ImVec4 k_warnColor(1.f, 0.3f, 0.3f, 1.f);
+		int compositorCount= 0;
+
+		SceneComponentConstPtr currentScene= getCurrentSceneConst();
+		const std::vector<CompositorComponentPtr> compositors=
+			currentScene ? currentScene->getOutputCompositors() : std::vector<CompositorComponentPtr>();
+
+		for (const CompositorComponentPtr& compositor : compositors)
+		{
+			if (!compositor)
+				continue;
+
+			CameraComponentPtr cameraComponent= compositor->getCameraComponent();
+			VideoSourceComponentPtr videoSource= compositor->getVideoSourceComponent();
+			if (!cameraComponent || !videoSource)
+				continue;
+
+			ImGui::PushID(compositorCount++);
+			ImGui::Separator();
+			ImGui::Text("%s", compositor->getName().c_str());
+
+			// Resolution: live video mode vs the resolution the intrinsics were calibrated at.
+			// A mismatch silently invalidates the projection (no rescaling is done anywhere).
+			int liveWidth= 0, liveHeight= 0;
+			videoSource->getVideoPixelDimensions(liveWidth, liveHeight);
+
+			MikanVideoSourceIntrinsics intrinsics;
+			videoSource->getCameraIntrinsics(intrinsics);
+			if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+			{
+				const MikanMonoIntrinsics& mono= intrinsics.getMonoIntrinsics();
+				const int calibWidth= (int)mono.pixel_width;
+				const int calibHeight= (int)mono.pixel_height;
+
+				ImGui::Text("Live resolution:  %d x %d", liveWidth, liveHeight);
+				ImGui::Text("Calib resolution: %d x %d", calibWidth, calibHeight);
+				if (liveWidth != calibWidth || liveHeight != calibHeight)
+					ImGui::TextColored(k_warnColor, "RESOLUTION MISMATCH");
+
+				float fx= 0.f, fy= 0.f, cx= 0.f, cy= 0.f, skew= 0.f;
+				extractCameraIntrinsicMatrixParameters(mono.undistorted_camera_matrix, fx, fy, cx, cy, skew);
+				ImGui::Text("fx=%.1f  fy=%.1f", fx, fy);
+				ImGui::Text("cx=%.1f  cy=%.1f", cx, cy);
+				ImGui::Text("hfov=%.2f  vfov=%.2f deg", (float)mono.hfov, (float)mono.vfov);
+				ImGui::Text("znear=%.3f  zfar=%.1f m", (float)mono.znear, (float)mono.zfar);
+			}
+			else
+			{
+				ImGui::TextColored(k_warnColor, "No mono intrinsics");
+			}
+
+			// Tracking + calibrated offsets
+			CameraDefinitionPtr cameraDef= cameraComponent->getCameraDefinition();
+			ImGui::Text("Tracking frame delay: %d", cameraDef->getTrackingFrameDelay());
+			ImGui::Text("Puck pose valid: %s", cameraComponent->hasValidTrackingMountPoseView() ? "yes" : "no");
+
+			const bool offsetValid= cameraDef->hasValidApertureOffset();
+			ImGui::Text("Aperture offset valid: %s", offsetValid ? "yes" : "no");
+			if (offsetValid)
+			{
+				const MikanVector3d p= cameraDef->getApertureOffsetPosition();
+				const MikanQuatd q= cameraDef->getApertureOffsetOrientation();
+				ImGui::Text("  pos (mm): %.1f, %.1f, %.1f", p.x * 1000.0, p.y * 1000.0, p.z * 1000.0);
+				ImGui::Text("  quat: w%.4f x%.4f y%.4f z%.4f", q.w, q.x, q.y, q.z);
+			}
+
+			ImGui::PopID();
+		}
+
+		if (compositorCount == 0)
+			ImGui::TextDisabled("No active compositor cameras");
+	}
+	ImGui::End();
 }
 
 // -- IRemoteControllable Interface -- //

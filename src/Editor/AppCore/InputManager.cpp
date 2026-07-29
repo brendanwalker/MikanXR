@@ -25,18 +25,11 @@ bool InputManager::onWindowEvent(const MkWindowEvent& event)
 	case eMkWindowEventType::KeyDown:
 	{
 		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
-		if (keybinds != nullptr && keybinds->OnKeyPressed)
-		{
-			keybinds->OnKeyPressed();
-			bHandled= true;
-		}
-	}
-	break;
-	case eMkWindowEventType::KeyUp:
-	{
-		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
 		if (keybinds != nullptr)
 		{
+			// A held key generates repeated KeyDown events (key.repeat != 0). Only the
+			// initial press fires OnKeyPressed; repeats fire OnKeyRepeated. This keeps
+			// press/release balanced for state tracking and one-shot actions.
 			if (event.getKeyRepeat())
 			{
 				if (keybinds->OnKeyRepeated)
@@ -47,12 +40,22 @@ bool InputManager::onWindowEvent(const MkWindowEvent& event)
 			}
 			else
 			{
-				if (keybinds->OnKeyReleased)
+				if (keybinds->OnKeyPressed)
 				{
-					keybinds->OnKeyReleased();
+					keybinds->OnKeyPressed();
 					bHandled= true;
 				}
 			}
+		}
+	}
+	break;
+	case eMkWindowEventType::KeyUp:
+	{
+		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
+		if (keybinds != nullptr && keybinds->OnKeyReleased)
+		{
+			keybinds->OnKeyReleased();
+			bHandled= true;
 		}
 	}
 	break;

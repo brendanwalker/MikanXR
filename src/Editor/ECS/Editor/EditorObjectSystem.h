@@ -16,6 +16,22 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/quaternion_float.hpp"
 
+// Display units for the ruler/measurement readout (scene is natively meters)
+enum class eRulerDisplayUnits : int
+{
+	meters,
+	centimeters,
+	millimeters,
+};
+
+// How model stencils are drawn in the editor debug view
+enum class eStencilDisplayMode : int
+{
+	solid,     // opaque textured mesh only
+	wireframe, // wireframe edges only (lets the background video show through)
+	both,      // solid mesh with wireframe overlaid
+};
+
 struct EditorSettings
 {
 	bool bRenderOrigin= true;
@@ -27,6 +43,15 @@ struct EditorSettings
 	bool bDebugRenderBoxShapes= true;
 	bool bDebugRenderModelShapes= true;
 	float cameraSpeed= 1.f;
+
+	// Floor grid + measurement snapping (world units are meters)
+	float gridExtent= 10.f;    // total width/depth of the floor grid
+	float gridCellSize= 0.5f;  // size of a single grid cell
+	float snapIncrement= 0.1f; // ruler / measurement snap increment
+	bool bSnapEnabled= false;  // ruler snap baseline; hold Shift while measuring to invert it
+	eRulerDisplayUnits rulerDisplayUnits= eRulerDisplayUnits::millimeters; // ruler readout units
+	bool bDebugCameraAlignment= false; // draw the MR camera-alignment debug overlay in the compositor view
+	eStencilDisplayMode modelStencilDisplayMode= eStencilDisplayMode::both; // how model stencils are drawn
 };
 
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
@@ -79,6 +104,34 @@ public:
 	float getCameraSpeed() const { return m_editorSettings.cameraSpeed; }
 	void setCameraSpeed(float speed);
 
+	static const std::string k_gridExtentPropertyId;
+	float getGridExtent() const { return m_editorSettings.gridExtent; }
+	void setGridExtent(float extent);
+
+	static const std::string k_gridCellSizePropertyId;
+	float getGridCellSize() const { return m_editorSettings.gridCellSize; }
+	void setGridCellSize(float cellSize);
+
+	static const std::string k_snapIncrementPropertyId;
+	float getSnapIncrement() const { return m_editorSettings.snapIncrement; }
+	void setSnapIncrement(float increment);
+
+	static const std::string k_snapEnabledPropertyId;
+	bool getSnapEnabled() const { return m_editorSettings.bSnapEnabled; }
+	void setSnapEnabled(bool enabled);
+
+	static const std::string k_rulerDisplayUnitsPropertyId;
+	eRulerDisplayUnits getRulerDisplayUnits() const { return m_editorSettings.rulerDisplayUnits; }
+	void setRulerDisplayUnits(eRulerDisplayUnits units);
+
+	static const std::string k_debugCameraAlignmentPropertyId;
+	bool getDebugCameraAlignment() const { return m_editorSettings.bDebugCameraAlignment; }
+	void setDebugCameraAlignment(bool enabled);
+
+	static const std::string k_modelStencilDisplayModePropertyId;
+	eStencilDisplayMode getModelStencilDisplayMode() const { return m_editorSettings.modelStencilDisplayMode; }
+	void setModelStencilDisplayMode(eStencilDisplayMode mode);
+
 private:
 	EditorSettings m_editorSettings;
 };
@@ -98,6 +151,10 @@ public:
 	virtual void dispose() override;
 
 	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera);
+
+	// Draws the orthographic ruler/measurement overlay (no-op unless a measurement
+	// exists and the supplied camera is orthographic).
+	void renderRuler(IMkGraphicsContext* graphicsContext, MikanViewportPtr targetViewport);
 
 	EditorObjectSystemDefinitionConstPtr getEditorSystemConfigConst() const;
 	EditorObjectSystemDefinitionPtr getEditorSystemConfig();
@@ -120,6 +177,7 @@ public:
 	MulticastDelegate<void()> OnSelectionChanged;
 
 	inline MikanObjectPtr getGizmoObject() const { return m_gizmoObjectWeakPtr.lock(); }
+	MikanViewportPtr getPrimaryViewport() const;
 	MikanCameraPtr getPrimaryCamera() const;
 
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
@@ -176,4 +234,14 @@ protected:
 													 ColliderRaycastHitResult& outRaycastResult) const;
 	void clearHoveredComponent();
 	void clearSelectedComponent();
+
+	// Ruler / measurement tool (orthographic only)
+	glm::vec3 projectAndSnapMeasurePoint(const glm::vec3& worldPoint) const;
+	// Effective snap state: the configured baseline, inverted while Shift is held.
+	bool isRulerSnapActive(MikanViewportPtr targetViewport) const;
+
+	bool m_hasMeasurement= false;
+	bool m_isMeasuring= false;
+	glm::vec3 m_measureStart= glm::vec3(0.f);
+	glm::vec3 m_measureEnd= glm::vec3(0.f);
 };

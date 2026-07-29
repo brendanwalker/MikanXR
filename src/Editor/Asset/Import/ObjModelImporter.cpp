@@ -6,6 +6,7 @@
 #include "MkMaterialInstance.h"
 #include "MkMaterial.h"
 #include "IMkShader.h"
+#include "Logger.h"
 #include "MikanShaderCache.h"
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
@@ -39,6 +40,18 @@ public:
 		assert(m_vertexSize > 0);
 	}
 
+	~MaterialTriMeshData()
+	{
+		// The mesh-creation path copies this data into its own buffers, so we retain ownership of these.
+		delete[] m_vertexData;
+		delete[] m_indexData;
+		delete[] m_indexRemapData;
+	}
+
+	// Non-copyable: we own raw heap buffers and only ever hand these out via shared_ptr.
+	MaterialTriMeshData(const MaterialTriMeshData&)= delete;
+	MaterialTriMeshData& operator=(const MaterialTriMeshData&)= delete;
+
 	inline bool isValid() const { return m_vertexCount > 0 && m_indexCount > 0; }
 
 	inline const std::string& getMaterialName() const { return m_materialName; }
@@ -53,7 +66,7 @@ public:
 
 	inline void incTriangleCount() { m_triangleCount++; }
 
-	void allocateBuffers()
+	void allocateBuffers(size_t sourcePositionCount)
 	{
 		// Initially assume we need 3 vertices per triangle (max upper bound)
 		// The final mesh will be compacted to the actual number of vertices
@@ -61,9 +74,13 @@ public:
 		m_vertexData= new uint8_t[estVertexCount * m_vertexSize];
 		m_indexData= new uint32_t[estVertexCount];
 
-		// Remap buffer maps indices from the obj file's vertex list to the compacted vertex buffer
-		m_indexRemapData= new int32_t[estVertexCount + 1];
-		memset(m_indexRemapData, -1, sizeof(int32_t) * (estVertexCount + 1));
+		// Remap buffer maps indices from the obj file's (global) vertex list to the compacted vertex buffer.
+		// It's indexed by the source position index (fastObjIndex::p), which spans the whole file's position
+		// array (1..position_count) regardless of how many triangles this material owns, so it must be sized
+		// to the source position count -- not the per-material triangle vertex count.
+		m_indexRemapCount= sourcePositionCount + 1;
+		m_indexRemapData= new int32_t[m_indexRemapCount];
+		memset(m_indexRemapData, -1, sizeof(int32_t) * m_indexRemapCount);
 	}
 
 	void addTriangle(const fastObjMesh& objData, const fastObjIndex* elementIndices)
@@ -73,6 +90,7 @@ public:
 			const fastObjIndex elementIndex= elementIndices[i];
 			fastObjUInt sourcePositionIndex= elementIndex.p;
 			assert(sourcePositionIndex != 0);
+			assert(sourcePositionIndex < m_indexRemapCount);
 
 			uint32_t remappedIndex= m_indexRemapData[sourcePositionIndex];
 			if (remappedIndex != -1)
@@ -132,6 +150,7 @@ private:
 	uint32_t m_vertexCount= 0;
 	uint32_t* m_indexData= 0;
 	int32_t* m_indexRemapData= 0;
+	size_t m_indexRemapCount= 0;
 	uint32_t m_indexCount= 0;
 	uint32_t m_triangleCount= 0;
 };
@@ -220,6 +239,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(const std::fil
 		}
 
 		// Spin thru all the object faces counting up the number of triangles for each material
+		size_t skippedFaceCount= 0;
 		for (uint32_t objectIndex= 0; objectIndex < objData->object_count; objectIndex++)
 		{
 			const fastObjGroup& group= objData->objects[objectIndex];
@@ -230,19 +250,33 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(const std::fil
 				unsigned int faceVertexCount= objData->face_vertices[group.face_offset + faceIndex];
 				unsigned int faceMaterialId= objData->face_materials[group.face_offset + faceIndex];
 
-				if (faceVertexCount == 3 && faceMaterialId >= 0 && faceMaterialId < materialToTrimeshMap.size())
+				if (faceVertexCount == 3 && faceMaterialId < materialToTrimeshMap.size())
 				{
 					auto& triMeshData= materialToTrimeshMap[faceMaterialId];
 
 					triMeshData->incTriangleCount();
 				}
+				else if (faceVertexCount != 3)
+				{
+					// Only triangles are supported. Non-triangle faces (e.g. quads/n-gons) are omitted rather
+					// than triangulated, since we can't assume the faces are convex (no ear-clipping here).
+					skippedFaceCount++;
+				}
 			}
 		}
 
-		// Allocate the vertex and index buffers for each material instance
+		if (skippedFaceCount > 0)
+		{
+			MIKAN_LOG_WARNING("ObjModelImporter::importModelFromFile")
+				<< "Omitted " << skippedFaceCount << " non-triangle face(s) while importing " << modelPathString
+				<< ". Re-export with triangulated faces to include them.";
+		}
+
+		// Allocate the vertex and index buffers for each material instance.
+		// The remap table is indexed by the file's global position index, so size it to the position count.
 		for (auto& triMeshData : materialToTrimeshMap)
 		{
-			triMeshData->allocateBuffers();
+			triMeshData->allocateBuffers(objData->position_count);
 		};
 
 		// Spin back all the object faces and actually add triangles to each material instance
@@ -257,7 +291,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(const std::fil
 				unsigned int faceVertexCount= objData->face_vertices[group.face_offset + faceIndex];
 				unsigned int faceMaterialId= objData->face_materials[group.face_offset + faceIndex];
 
-				if (faceVertexCount == 3 && faceMaterialId >= 0 && faceMaterialId < materialToTrimeshMap.size())
+				if (faceVertexCount == 3 && faceMaterialId < materialToTrimeshMap.size())
 				{
 					auto& triMeshData= materialToTrimeshMap[faceMaterialId];
 					const fastObjIndex* elementIndices= &objData->indices[group.index_offset + groupElementIndex];

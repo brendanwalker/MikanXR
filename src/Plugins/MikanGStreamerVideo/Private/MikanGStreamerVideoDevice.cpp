@@ -269,42 +269,6 @@ struct GStreamerImpl
 			colorimetry.isFullRange= false; // NV12 is almost always narrow range
 		}
 	}
-
-	static gboolean busCallback(GstBus* bus, GstMessage* msg, gpointer data)
-	{
-		MikanGStreamerVideoDevice* videoDevice= reinterpret_cast<MikanGStreamerVideoDevice*>(data);
-
-		switch (GST_MESSAGE_TYPE(msg))
-		{
-		case GST_MESSAGE_EOS:
-		{
-			MIKAN_LOG_INFO("bus_call") << "End of stream";
-			videoDevice->close();
-		}
-		break;
-
-		case GST_MESSAGE_ERROR:
-		{
-			GError* err;
-			gchar* debug_info;
-
-			gst_message_parse_error(msg, &err, &debug_info);
-			MIKAN_LOG_ERROR("gstreamer::bus_call")
-				<< "Error received from element " << GST_OBJECT_NAME(msg->src) << ": " << err->message;
-			MIKAN_LOG_ERROR("gstreamer::bus_call") << "Debugging information: " << (debug_info ? debug_info : "none");
-			g_clear_error(&err);
-			g_free(debug_info);
-
-			videoDevice->close();
-		}
-		break;
-
-		default:
-			break;
-		}
-
-		return TRUE;
-	}
 };
 
 // -- MikanUsbVideoDevice -----
@@ -455,17 +419,27 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 			bool bSuccess= m_openFuture.get();
 			if (bSuccess)
 			{
-				// Complete the remaining setup on the main thread (GLib main context calls)
-				gst_bus_add_watch(m_impl->bus, GStreamerImpl::busCallback, this);
+				// NOT gst_bus_add_watch() here — that attaches a GSource to the default GLib
+				// main context, but nothing in this codebase ever pumps that context (no
+				// g_main_loop_run/g_main_context_iteration anywhere), so a watch-based callback
+				// would simply never fire. Bus messages are instead polled explicitly each tick
+				// in update() below, alongside the appsink pull.
 				gst_app_sink_set_emit_signals(GST_APP_SINK(m_impl->appsink), FALSE);
 				gst_app_sink_set_drop(GST_APP_SINK(m_impl->appsink), TRUE);
 				gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 1);
 
 				m_openState= eOpenState::open;
-				notifyVideoDeviceOpened();
 
-				// If this open was triggered by a watchdog restart, resume streaming
-				if (m_pendingStreamStartAfterOpen)
+				// A restart-driven reopen resumes an already-connected client transparently, so
+				// suppress the "opened" notification (we never fired "closed" for it either) and
+				// auto-resume streaming. A first-time open notifies and lets the caller start the
+				// stream.
+				const bool bIsRestartReopen= m_pendingStreamStartAfterOpen;
+				if (!bIsRestartReopen)
+				{
+					notifyVideoDeviceOpened();
+				}
+				else
 				{
 					m_pendingStreamStartAfterOpen= false;
 					startVideoStream();
@@ -499,11 +473,56 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 
 	assert(m_openState == eOpenState::open);
 
+	// Non-blocking bus drain. Polled explicitly rather than via gst_bus_add_watch() — see
+	// the note in the open-completion branch above for why a watch callback would never fire.
+	{
+		bool bStreamInterrupted= false;
+		while (GstMessage* msg=
+				   gst_bus_pop_filtered(m_impl->bus, static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS)))
+		{
+			switch (GST_MESSAGE_TYPE(msg))
+			{
+			case GST_MESSAGE_EOS:
+				MIKAN_LOG_INFO("GStreamerVideoDevice::update") << "End of stream";
+				bStreamInterrupted= true;
+				break;
+
+			case GST_MESSAGE_ERROR:
+			{
+				GError* err= nullptr;
+				gchar* debug_info= nullptr;
+				gst_message_parse_error(msg, &err, &debug_info);
+				MIKAN_LOG_ERROR("GStreamerVideoDevice::update")
+					<< "Error received from element " << GST_OBJECT_NAME(msg->src) << ": " << err->message;
+				MIKAN_LOG_ERROR("GStreamerVideoDevice::update")
+					<< "Debugging information: " << (debug_info ? debug_info : "none");
+				g_clear_error(&err);
+				g_free(debug_info);
+				bStreamInterrupted= true;
+			}
+			break;
+
+			default:
+				break;
+			}
+
+			gst_message_unref(msg);
+		}
+
+		if (bStreamInterrupted)
+		{
+			// close()/open() inside restartStream() invalidate m_impl->bus; bail out and let
+			// the reopen complete on a subsequent tick.
+			restartStream();
+			return;
+		}
+	}
+
 	GstSample* sample= gst_app_sink_try_pull_sample(GST_APP_SINK(m_impl->appsink), 0);
 	if (sample)
 	{
 		// Reset the watchdog whenever a frame arrives
-		m_timeSinceLastFrameSeconds= 0.0f;
+		m_lastFrameTimestamp= std::chrono::steady_clock::now();
 
 		GstBuffer* buffer= gst_sample_get_buffer(sample);
 		GstCaps* caps= gst_sample_get_caps(sample);
@@ -554,20 +573,29 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 	}
 	else if (m_streamingStatus == eVideoStreamingStatus::started)
 	{
-		// No frame arrived this tick — accumulate the watchdog timer.
-		// If update() was frozen (e.g. at a debugger breakpoint), deltaSeconds will be
-		// large on the first tick after resuming and immediately trigger the restart.
-		m_timeSinceLastFrameSeconds+= deltaSeconds;
-		if (m_timeSinceLastFrameSeconds >= k_streamTimeoutSeconds)
+		// No frame arrived this tick — check the wall-clock stall watchdog. Using steady_clock
+		// (rather than an accumulated deltaSeconds, which the App clamps to 0.1s) means a long
+		// freeze such as a debugger breakpoint is detected on the first tick after resuming.
+		const float secondsSinceLastFrame=
+			std::chrono::duration<float>(std::chrono::steady_clock::now() - m_lastFrameTimestamp).count();
+		if (secondsSinceLastFrame >= k_streamTimeoutSeconds)
 		{
 			MIKAN_LOG_WARNING("GStreamerVideoDevice::update")
-				<< "No frame received for " << m_timeSinceLastFrameSeconds << "s — restarting stream pipeline";
-			m_timeSinceLastFrameSeconds= 0.0f;
-			m_pendingStreamStartAfterOpen= true;
-			close();
-			open();
+				<< "No frame received for " << secondsSinceLastFrame << "s — restarting stream pipeline";
+			restartStream();
 		}
 	}
+}
+
+void MikanGStreamerVideoDevice::restartStream()
+{
+	m_lastFrameTimestamp= std::chrono::steady_clock::now();
+	m_pendingStreamStartAfterOpen= true;
+	// Reconnect the pipeline without notifying listeners of a close/open — connected clients
+	// keep their registration and their device pointer, so streaming resumes transparently once
+	// the async reopen completes (see the open-completion branch in update()).
+	closeInternal(false);
+	open();
 }
 
 void MikanGStreamerVideoDevice::notifyVideoDeviceOpened()
@@ -605,7 +633,9 @@ void MikanGStreamerVideoDevice::notifyVideoFrameReceived(const NetworkVideoFrame
 	}
 }
 
-void MikanGStreamerVideoDevice::close()
+void MikanGStreamerVideoDevice::close() { closeInternal(true); }
+
+void MikanGStreamerVideoDevice::closeInternal(bool bNotifyListeners)
 {
 	// If async open is in-flight, block until it completes so we can safely clean up
 	if (m_openState == eOpenState::opening && m_openFuture.valid())
@@ -613,8 +643,11 @@ void MikanGStreamerVideoDevice::close()
 		m_openFuture.get();
 		// Don't notify — the device was never fully open from the caller's perspective
 	}
-	else if (m_openState == eOpenState::open)
+	else if (m_openState == eOpenState::open && bNotifyListeners)
 	{
+		// Skipped during an internal restart (bNotifyListeners == false): notifying "closed"
+		// makes the owning NetworkVideoSourceComponent tear the whole video source down and drop
+		// its device pointer, so a transient reconnect would never resume. See restartStream().
 		notifyVideoDeviceClosed();
 	}
 
@@ -672,7 +705,9 @@ eVideoStreamingStatus MikanGStreamerVideoDevice::startVideoStream()
 	{
 		if (m_streamingStatus == eVideoStreamingStatus::stopped || m_streamingStatus == eVideoStreamingStatus::failed)
 		{
-			m_timeSinceLastFrameSeconds= 0.0f;
+			// Seed the stall watchdog from stream start so the first-frame latency is included
+			// in the timeout window.
+			m_lastFrameTimestamp= std::chrono::steady_clock::now();
 			gst_element_set_state(m_impl->pipeline, GST_STATE_PLAYING);
 			m_streamingStatus= eVideoStreamingStatus::pendingStart;
 		}

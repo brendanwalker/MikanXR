@@ -4,6 +4,7 @@
 #include "WorkerThread.h"
 
 #include <array>
+#include <chrono>
 #include <future>
 #include <string>
 #include <set>
@@ -54,6 +55,14 @@ protected:
 private:
 	bool openOnThread();
 
+	// Tear down and re-open the pipeline, resuming streaming once the reopen completes.
+	// Used both by the frame-timeout watchdog and the bus ERROR/EOS handler.
+	void restartStream();
+
+	// Shared close implementation. bNotifyListeners == false is used during an internal
+	// restart so connected clients aren't torn down for a transient reconnect.
+	void closeInternal(bool bNotifyListeners);
+
 	enum class eOpenState
 	{
 		closed,
@@ -72,7 +81,13 @@ private:
 	eOpenState m_openState= eOpenState::closed;
 	std::future<bool> m_openFuture;
 	eVideoStreamingStatus m_streamingStatus= eVideoStreamingStatus::stopped;
-	float m_timeSinceLastFrameSeconds= 0.0f;
+	// Wall-clock timestamp of the last received frame, used by the stall watchdog.
+	// Deliberately wall-clock (steady_clock) rather than an accumulated deltaSeconds:
+	// the App clamps deltaSeconds to 0.1s (App::tick), so a long freeze (e.g. a debugger
+	// breakpoint) would otherwise take ~k_streamTimeoutSeconds of real time *after*
+	// resuming to be detected. steady_clock keeps advancing while the thread is frozen,
+	// so the stall is caught on the first tick after resuming.
+	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 	bool m_pendingStreamStartAfterOpen= false;
 
 	std::set<INetworkVideoDeviceListener*> m_listeners;

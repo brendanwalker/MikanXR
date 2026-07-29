@@ -13,6 +13,24 @@ enum eCameraMovementMode : int
 	orbit,
 	fly,
 	stationary,
+	ortho,
+};
+
+enum class eCameraProjectionMode : int
+{
+	perspective,
+	orthographic,
+};
+
+// Axis-aligned orthographic viewpoints (UE-style)
+enum class eCameraViewpoint : int
+{
+	top,
+	bottom,
+	front,
+	back,
+	left,
+	right,
 };
 
 class MikanCamera : public IMkCamera
@@ -43,6 +61,23 @@ public:
 	eCameraMovementMode getCameraMovementMode() const { return m_movementMode; }
 	void setCameraMovementMode(eCameraMovementMode mode);
 
+	// Projection mode (perspective vs orthographic)
+	eCameraProjectionMode getProjectionMode() const { return m_projectionMode; }
+	bool isOrthographic() const { return m_projectionMode == eCameraProjectionMode::orthographic; }
+	void setProjectionMode(eCameraProjectionMode mode);
+
+	// Orthographic viewpoint controls
+	eCameraViewpoint getOrthoViewpoint() const { return m_orthoViewpoint; }
+	void setOrthographicViewpoint(eCameraViewpoint viewpoint);
+	float getOrthoExtent() const { return m_orthoExtent; }
+	void setOrthoExtent(float extent);
+	const glm::vec3& getOrthoTargetPosition() const { return m_orthoTargetPosition; }
+	void setOrthoTargetPosition(const glm::vec3& target);
+	void adjustOrthoTargetPosition(const glm::vec3& deltaTarget);
+
+	// Update the projection to match the actual viewport aspect ratio
+	void setViewportAspect(float aspectRatio);
+
 	void applyMonoCameraIntrinsics(struct MikanVideoSourceIntrinsics* cameraIntrinsics);
 
 	void setCameraTransform(const glm::mat4& poseXform);
@@ -71,6 +106,8 @@ protected:
 	void applyStationaryParamsToViewMatrix();
 	void applyFlyParamsToViewMatrix();
 	void applyOrbitParamsToViewMatrix();
+	void applyOrthoParamsToViewMatrix();
+	void rebuildProjectionMatrix();
 
 	const float k_default_aspect_ratio= 16.f / 9.f;
 	const float k_default_camera_vfov= 35.f;
@@ -87,6 +124,15 @@ protected:
 	float m_zFar;
 	glm::mat4 m_projectionMatrix;
 	glm::mat4 m_viewMatrix;
+
+	// Projection parameters
+	eCameraProjectionMode m_projectionMode= eCameraProjectionMode::perspective;
+	float m_viewportAspectRatio= 16.f / 9.f;
+
+	// Orthographic camera parameters
+	eCameraViewpoint m_orthoViewpoint= eCameraViewpoint::top;
+	glm::vec3 m_orthoTargetPosition= glm::vec3(0.f);
+	float m_orthoExtent= 5.f; // half-height of the view in world meters
 
 	// Stationary camera parameters
 	glm::mat4 m_stationaryTransform;

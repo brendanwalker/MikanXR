@@ -9,6 +9,10 @@
 #include "GizmoTransformComponent.h"
 #include "GizmoTranslateComponent.h"
 #include "MikanViewport.h"
+#include "MikanCamera.h"
+#include "MikanLineRenderer.h"
+#include "MikanTextRenderer.h"
+#include "TextStyle.h"
 #include "MikanPropertyDatabase.h"
 #include "MikanFunctionDatabase.h"
 #include "ObjectSystemColliderQueries.h"
@@ -28,6 +32,10 @@
 #include "ModelStencilSystem.h"
 #include "Transform.h"
 
+#include <cmath>
+
+#include "glm/geometric.hpp"
+
 // -- AnchorObjectSystemConfig -----
 const std::string EditorObjectSystemDefinition::k_renderOriginFlagPropertyId= "render_origin";
 const std::string EditorObjectSystemDefinition::k_renderAnchorsPropertyId= "render_anchors";
@@ -38,6 +46,13 @@ const std::string EditorObjectSystemDefinition::k_renderQuadShapesPropertyId= "r
 const std::string EditorObjectSystemDefinition::k_renderBoxShapesPropertyId= "render_box_shapes";
 const std::string EditorObjectSystemDefinition::k_renderModelShapesPropertyId= "render_model_shapes";
 const std::string EditorObjectSystemDefinition::k_cameraSpeedPropertyId= "camera_speed";
+const std::string EditorObjectSystemDefinition::k_gridExtentPropertyId= "grid_extent";
+const std::string EditorObjectSystemDefinition::k_gridCellSizePropertyId= "grid_cell_size";
+const std::string EditorObjectSystemDefinition::k_snapIncrementPropertyId= "snap_increment";
+const std::string EditorObjectSystemDefinition::k_snapEnabledPropertyId= "snap_enabled";
+const std::string EditorObjectSystemDefinition::k_rulerDisplayUnitsPropertyId= "ruler_display_units";
+const std::string EditorObjectSystemDefinition::k_debugCameraAlignmentPropertyId= "debug_camera_alignment";
+const std::string EditorObjectSystemDefinition::k_modelStencilDisplayModePropertyId= "model_stencil_display_mode";
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
@@ -52,6 +67,13 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_renderBoxShapesPropertyId]= m_editorSettings.bDebugRenderBoxShapes;
 	pt[k_renderModelShapesPropertyId]= m_editorSettings.bDebugRenderModelShapes;
 	pt[k_cameraSpeedPropertyId]= m_editorSettings.cameraSpeed;
+	pt[k_gridExtentPropertyId]= m_editorSettings.gridExtent;
+	pt[k_gridCellSizePropertyId]= m_editorSettings.gridCellSize;
+	pt[k_snapIncrementPropertyId]= m_editorSettings.snapIncrement;
+	pt[k_snapEnabledPropertyId]= m_editorSettings.bSnapEnabled;
+	pt[k_rulerDisplayUnitsPropertyId]= (int)m_editorSettings.rulerDisplayUnits;
+	pt[k_debugCameraAlignmentPropertyId]= m_editorSettings.bDebugCameraAlignment;
+	pt[k_modelStencilDisplayModePropertyId]= (int)m_editorSettings.modelStencilDisplayMode;
 
 	return pt;
 }
@@ -76,6 +98,16 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	m_editorSettings.bDebugRenderModelShapes=
 		pt.get_or<bool>(k_renderModelShapesPropertyId, m_editorSettings.bDebugRenderModelShapes);
 	m_editorSettings.cameraSpeed= pt.get_or<float>(k_cameraSpeedPropertyId, m_editorSettings.cameraSpeed);
+	m_editorSettings.gridExtent= pt.get_or<float>(k_gridExtentPropertyId, m_editorSettings.gridExtent);
+	m_editorSettings.gridCellSize= pt.get_or<float>(k_gridCellSizePropertyId, m_editorSettings.gridCellSize);
+	m_editorSettings.snapIncrement= pt.get_or<float>(k_snapIncrementPropertyId, m_editorSettings.snapIncrement);
+	m_editorSettings.bSnapEnabled= pt.get_or<bool>(k_snapEnabledPropertyId, m_editorSettings.bSnapEnabled);
+	m_editorSettings.rulerDisplayUnits=
+		(eRulerDisplayUnits)pt.get_or<int>(k_rulerDisplayUnitsPropertyId, (int)m_editorSettings.rulerDisplayUnits);
+	m_editorSettings.bDebugCameraAlignment=
+		pt.get_or<bool>(k_debugCameraAlignmentPropertyId, m_editorSettings.bDebugCameraAlignment);
+	m_editorSettings.modelStencilDisplayMode= (eStencilDisplayMode)pt.get_or<int>(
+		k_modelStencilDisplayModePropertyId, (int)m_editorSettings.modelStencilDisplayMode);
 }
 
 void EditorObjectSystemDefinition::setRenderOriginFlag(bool flag)
@@ -156,6 +188,69 @@ void EditorObjectSystemDefinition::setCameraSpeed(float speed)
 	{
 		m_editorSettings.cameraSpeed= speed;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraSpeedPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setGridExtent(float extent)
+{
+	if (m_editorSettings.gridExtent != extent)
+	{
+		m_editorSettings.gridExtent= extent;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_gridExtentPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setGridCellSize(float cellSize)
+{
+	if (m_editorSettings.gridCellSize != cellSize)
+	{
+		m_editorSettings.gridCellSize= cellSize;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_gridCellSizePropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setSnapIncrement(float increment)
+{
+	if (m_editorSettings.snapIncrement != increment)
+	{
+		m_editorSettings.snapIncrement= increment;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_snapIncrementPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setSnapEnabled(bool enabled)
+{
+	if (m_editorSettings.bSnapEnabled != enabled)
+	{
+		m_editorSettings.bSnapEnabled= enabled;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_snapEnabledPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRulerDisplayUnits(eRulerDisplayUnits units)
+{
+	if (m_editorSettings.rulerDisplayUnits != units)
+	{
+		m_editorSettings.rulerDisplayUnits= units;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_rulerDisplayUnitsPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setDebugCameraAlignment(bool enabled)
+{
+	if (m_editorSettings.bDebugCameraAlignment != enabled)
+	{
+		m_editorSettings.bDebugCameraAlignment= enabled;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_debugCameraAlignmentPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setModelStencilDisplayMode(eStencilDisplayMode mode)
+{
+	if (m_editorSettings.modelStencilDisplayMode != mode)
+	{
+		m_editorSettings.modelStencilDisplayMode= mode;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelStencilDisplayModePropertyId));
 	}
 }
 
@@ -300,8 +395,7 @@ void EditorObjectSystem::dispose()
 	ModelStencilSystemPtr modelStencilSystem= getObjectSystemOfType<ModelStencilSystem>();
 	modelStencilSystem->OnComponentDisposed-= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	m_gizmoObjectWeakPtr.reset();
-	m_gizmoComponentWeakPtr.reset();
+	disposeSceneTransformGizmo();
 
 	MikanObjectSystem::dispose();
 }
@@ -313,6 +407,88 @@ void EditorObjectSystem::customRender(IMkGraphicsContext* graphicsContext, Mikan
 	{
 		gizmoComponent->customRender(graphicsContext, viewportCamera);
 	}
+}
+
+bool EditorObjectSystem::isRulerSnapActive(MikanViewportPtr targetViewport) const
+{
+	// Hold Shift while measuring to invert the configured snap baseline
+	// (default off: Shift = snap, release = free).
+	const bool shiftHeld= targetViewport ? targetViewport->getIsShiftPressed() : false;
+	return getEditorSettings().bSnapEnabled != shiftHeld;
+}
+
+glm::vec3 EditorObjectSystem::projectAndSnapMeasurePoint(const glm::vec3& worldPoint) const
+{
+	glm::vec3 point= worldPoint;
+
+	// The orthographic ray origin lives on the near plane, far from the scene along the
+	// view axis. Project it onto the plane through the ortho target so the ruler line
+	// renders among the geometry (parallel projection keeps the on-screen result identical).
+	MikanViewportPtr viewport= getPrimaryViewport();
+	MikanCameraPtr camera= viewport ? viewport->getCurrentMikanCamera() : nullptr;
+	if (camera && camera->isOrthographic())
+	{
+		const glm::vec3 forward= camera->getCameraForwardFromViewMatrix();
+		const glm::vec3 target= camera->getOrthoTargetPosition();
+		point= point - forward * glm::dot(point - target, forward);
+	}
+
+	// Snap to the grid increment if snapping is currently active
+	const EditorSettings& settings= getEditorSettings();
+	if (isRulerSnapActive(viewport) && settings.snapIncrement > 0.f)
+	{
+		const float inc= settings.snapIncrement;
+		point.x= std::round(point.x / inc) * inc;
+		point.y= std::round(point.y / inc) * inc;
+		point.z= std::round(point.z / inc) * inc;
+	}
+
+	return point;
+}
+
+void EditorObjectSystem::renderRuler(IMkGraphicsContext* graphicsContext, MikanViewportPtr targetViewport)
+{
+	MikanCameraPtr viewportCamera= targetViewport->getCurrentMikanCamera();
+
+	if (!m_hasMeasurement || !viewportCamera || !viewportCamera->isOrthographic())
+		return;
+
+	const glm::vec3 color(1.f, 1.f, 0.f); // yellow
+
+	drawSegment(graphicsContext, glm::mat4(1.f), m_measureStart, m_measureEnd, color);
+	drawPoint(graphicsContext, glm::mat4(1.f), m_measureStart, color, 6.f);
+	drawPoint(graphicsContext, glm::mat4(1.f), m_measureEnd, color, 6.f);
+
+	const float distanceMeters= glm::length(m_measureEnd - m_measureStart);
+	const glm::vec3 midPoint= (m_measureStart + m_measureEnd) * 0.5f;
+
+	// Convert the world-space distance (meters) into the configured display units
+	float displayValue= distanceMeters;
+	const wchar_t* fmt= L"%.3f m";
+	const wchar_t* fmtSnap= L"%.3f m (snap)";
+	switch (getEditorSettings().rulerDisplayUnits)
+	{
+	case eRulerDisplayUnits::meters:
+		displayValue= distanceMeters;
+		fmt= L"%.3f m";
+		fmtSnap= L"%.3f m (snap)";
+		break;
+	case eRulerDisplayUnits::centimeters:
+		displayValue= distanceMeters * 100.f;
+		fmt= L"%.2f cm";
+		fmtSnap= L"%.2f cm (snap)";
+		break;
+	case eRulerDisplayUnits::millimeters:
+	default:
+		displayValue= distanceMeters * 1000.f;
+		fmt= L"%.1f mm";
+		fmtSnap= L"%.1f mm (snap)";
+		break;
+	}
+
+	TextStyle style= getDefaultTextStyle();
+	drawTextAtWorldPosition(graphicsContext, style, midPoint, isRulerSnapActive(targetViewport) ? fmtSnap : fmt,
+							displayValue);
 }
 
 EditorObjectSystemDefinitionConstPtr EditorObjectSystem::getEditorSystemConfigConst() const
@@ -347,11 +523,18 @@ bool EditorObjectSystem::getComponentIdList(const std::string& componentClassNam
 	return false;
 }
 
-MikanCameraPtr EditorObjectSystem::getPrimaryCamera() const
+MikanViewportPtr EditorObjectSystem::getPrimaryViewport() const
 {
 	if (!m_viewports.empty())
 		if (auto viewport= m_viewports[0].lock())
-			return viewport->getCurrentMikanCamera();
+			return viewport;
+	return nullptr;
+}
+
+MikanCameraPtr EditorObjectSystem::getPrimaryCamera() const
+{
+	if (auto viewport= getPrimaryViewport())
+		return viewport->getCurrentMikanCamera();
 	return nullptr;
 }
 
@@ -505,10 +688,29 @@ void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const 
 			newSelectedComponentPtr->notifyGrab(m_lastestRaycastResult);
 		}
 	}
+	else if (button == MkMouseButton::MIDDLE)
+	{
+		// Middle-mouse drag starts a ruler measurement (orthographic views only, where
+		// the near-plane hit point is an unambiguous in-plane world position).
+		MikanCameraPtr camera= getPrimaryCamera();
+		if (camera && camera->isOrthographic())
+		{
+			m_isMeasuring= true;
+			m_hasMeasurement= true;
+			m_measureStart= projectAndSnapMeasurePoint(rayOrigin);
+			m_measureEnd= m_measureStart;
+		}
+	}
 }
 
 void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
+	// Update the active ruler measurement, if any
+	if (m_isMeasuring)
+	{
+		m_measureEnd= projectAndSnapMeasurePoint(rayOrigin);
+	}
+
 	ColliderRaycastHitResult prevRaycastResult= m_lastestRaycastResult;
 	m_lastestRaycastResult= ColliderRaycastHitResult();
 
@@ -546,6 +748,12 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 
 void EditorObjectSystem::onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)
 {
+	if (button == MkMouseButton::MIDDLE)
+	{
+		// Finish the ruler drag; the measurement stays displayed until the next one begins.
+		m_isMeasuring= false;
+	}
+
 	SelectionComponentPtr currentSelectedPtr= m_selectedComponentWeakPtr.lock();
 	if (currentSelectedPtr)
 	{
