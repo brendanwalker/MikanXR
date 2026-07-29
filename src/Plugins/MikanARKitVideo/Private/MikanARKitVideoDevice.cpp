@@ -148,35 +148,12 @@ MikanARKitVideoDevice::MikanARKitVideoDevice(MikanARKitVideoDeviceManager* owner
 	, m_connectionInfo(connectionInfo)
 	, m_devicePath("arkit://" + std::to_string(connectionInfo.basePort))
 	, m_impl(new GStreamerImpl(connectionInfo.basePort))
-	, m_frameCorrelator(connectionInfo.depthStreamingEnabled)
+	, m_frameCorrelator()
 {
 	m_frameCorrelator.setBundleCallback([this](ARKitFrameBundle bundle) { notifyFrameBundleReceived(bundle); });
 
-	m_depthReceiver.setFrameCallback(
-		[this](ARKitDepthFrame frame)
-		{
-			// Stash a copy for updateColorAndDepthTextures() (ticket E3) before
-			// handing the original off to the correlator (notifyDepthArrived takes
-			// it by value/move, so this must copy, not move, first).
-			{
-				std::lock_guard<std::mutex> lock(m_latestDepthMutex);
-				m_latestDepthFrame= frame;
-			}
-			m_frameCorrelator.notifyDepthArrived(std::move(frame));
-		});
-
 	m_poseReceiver.setFrameCallback([this](ARKitPoseFrame frame)
 									{ m_frameCorrelator.notifyPoseArrived(std::move(frame)); });
-
-	// Native-resolution person matte (basePort+3). Freshest-wins cache read by
-	// updateColorAndDepthTextures() for guide-res gating / preview - not correlated by
-	// frameSeq, same rationale as the depth cache above.
-	m_matteReceiver.setFrameCallback(
-		[this](ARKitMatteFrame frame)
-		{
-			std::lock_guard<std::mutex> lock(m_latestMatteMutex);
-			m_latestMatteFrame= std::move(frame);
-		});
 }
 
 MikanARKitVideoDevice::~MikanARKitVideoDevice()
@@ -209,38 +186,14 @@ eVideoOpeningStatus MikanARKitVideoDevice::open()
 	if (m_openState == eOpenState::open || m_openState == eOpenState::opening)
 		return getVideoOpeningStatus();
 
-	// Depth/pose sockets bind quickly (a single non-blocking recvfrom-socket bind
-	// call each - see UdpReceiveSocket::open), unlike GStreamer pipeline
-	// construction (which genuinely needs backgrounding - see openOnThread()), so
-	// start them synchronously here rather than deferring to the background thread.
-	if (m_connectionInfo.depthStreamingEnabled)
-	{
-		const uint16_t depthPort= static_cast<uint16_t>(m_connectionInfo.basePort + 1);
-		if (!m_depthReceiver.start(depthPort))
-		{
-			MIKAN_LOG_ERROR("MikanARKitVideoDevice::open") << "Failed to start depth receiver on port " << depthPort;
-			m_openState= eOpenState::failed;
-			return eVideoOpeningStatus::failed;
-		}
-	}
-
+	// The pose socket binds quickly (a single non-blocking recvfrom-socket bind
+	// call - see UdpReceiveSocket::open), unlike GStreamer pipeline construction
+	// (which genuinely needs backgrounding - see openOnThread()), so start it
+	// synchronously here rather than deferring to the background thread.
 	const uint16_t posePort= static_cast<uint16_t>(m_connectionInfo.basePort + 2);
 	if (!m_poseReceiver.start(posePort))
 	{
 		MIKAN_LOG_ERROR("MikanARKitVideoDevice::open") << "Failed to start pose receiver on port " << posePort;
-		m_depthReceiver.stop();
-		m_openState= eOpenState::failed;
-		return eVideoOpeningStatus::failed;
-	}
-
-	// Person-matte channel (basePort+3). Independent of depthStreamingEnabled - the matte
-	// is its own stream now; if the sender never streams it, this socket simply idles.
-	const uint16_t mattePort= static_cast<uint16_t>(m_connectionInfo.basePort + 3);
-	if (!m_matteReceiver.start(mattePort))
-	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::open") << "Failed to start matte receiver on port " << mattePort;
-		m_depthReceiver.stop();
-		m_poseReceiver.stop();
 		m_openState= eOpenState::failed;
 		return eVideoOpeningStatus::failed;
 	}
@@ -360,9 +313,7 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 			else
 			{
 				m_openState= eOpenState::failed;
-				m_depthReceiver.stop();
 				m_poseReceiver.stop();
-				m_matteReceiver.stop();
 			}
 		}
 		return;
@@ -371,10 +322,9 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 	if (m_openState != eOpenState::open)
 		return;
 
-	// ARKitDepthReceiver/ARKitPoseReceiver each drive their own worker thread
-	// already; the correlator is the one piece that needs an explicit periodic
-	// tick to evict stale (incomplete) pending frame bundles - see
-	// ARKitFrameCorrelator::sweepStaleFrames.
+	// ARKitPoseReceiver drives its own worker thread already; the correlator is
+	// the one piece that needs an explicit periodic tick to evict stale
+	// (incomplete) pending frame bundles - see ARKitFrameCorrelator::sweepStaleFrames.
 	m_frameCorrelator.sweepStaleFrames(std::chrono::steady_clock::now());
 
 	// Non-blocking bus drain (see the note in the open-completion branch above for
@@ -421,8 +371,8 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 			// GST_MAP_CUDA maps the buffer's device pointer itself rather than
 			// downloading to a host-readable copy (ticket C4) - map.data is a
 			// CUdeviceptr value, not CPU-readable memory; it must never be
-			// dereferenced from the CPU, only handed to CUDA APIs (see Track D's
-			// JBU kernel, which will consume this as its guide image).
+			// dereferenced from the CPU, only handed to CUDA APIs (see
+			// NV12ConversionKernel, which reads it as the source NV12 frame).
 			GstMapInfo map;
 			if (gst_buffer_map(buffer, &map, static_cast<GstMapFlags>(GST_MAP_READ | GST_MAP_CUDA)))
 			{
@@ -459,10 +409,9 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 				}
 
 				// Zero-copy CUDA-GL texture pipeline (ticket E3): NV12->RGBA display
-				// texture + JBU-upsampled depth texture. Runs regardless of whether the
-				// frameSeq meta was present above - display shouldn't depend on pose
-				// correlation working.
-				updateColorAndDepthTextures(buffer, devicePtr, width, height);
+				// texture. Runs regardless of whether the frameSeq meta was present
+				// above - display shouldn't depend on pose correlation working.
+				updateColorTexture(buffer, devicePtr, width, height);
 
 				gst_buffer_unmap(buffer, &map);
 			}
@@ -511,9 +460,7 @@ void MikanARKitVideoDevice::close()
 	m_streamingStatus= eVideoStreamingStatus::stopped;
 	m_timeSinceLastFrameSeconds= 0.0f;
 
-	m_depthReceiver.stop();
 	m_poseReceiver.stop();
-	m_matteReceiver.stop();
 
 	// Tear down the whole CUDA-GL texture pipeline on close (ticket E3) rather than
 	// trying to keep it alive across reopen - the GStreamer pipeline's own
@@ -523,35 +470,13 @@ void MikanARKitVideoDevice::close()
 	// unconditionally torn down and rebuilt below.
 	if (m_bTexturePipelineInitialized)
 	{
-		m_jbuKernel.shutdown();
 		m_nv12Kernel.shutdown();
 		m_colorTexture.shutdown();
-		m_depthTexture.shutdown();
-		m_humanStencilRefinedTexture.shutdown();
-		m_humanStencilRawTexture.shutdown();
 
 		if (m_guideRgbBuffer != 0)
 		{
 			cuMemFree(m_guideRgbBuffer);
 			m_guideRgbBuffer= 0;
-		}
-		if (m_depthLowBuffer != 0)
-		{
-			cuMemFree(m_depthLowBuffer);
-			m_depthLowBuffer= 0;
-		}
-		if (m_confidenceLowBuffer != 0)
-		{
-			cuMemFree(m_confidenceLowBuffer);
-			m_confidenceLowBuffer= 0;
-		}
-		if (m_matteBuffer != 0)
-		{
-			cuMemFree(m_matteBuffer);
-			m_matteBuffer= 0;
-			m_matteBufferCapacity= 0;
-			m_matteWidth= 0;
-			m_matteHeight= 0;
 		}
 
 		m_bTexturePipelineInitialized= false;
@@ -618,7 +543,7 @@ bool MikanARKitVideoDevice::ensureCudaContext()
 
 	// 4-arg cuCtxCreate (cuCtxCreate_v4, adds a CUctxCreateParams* param as of CUDA
 	// 13.1) - nullptr for that param matches every other call site in this codebase
-	// (see JBUKernel's own D1-era finding).
+	// (matches every other cuCtxCreate call site in this codebase).
 	if (!checkCudaResult(cuCtxCreate(&m_cudaContext, nullptr, 0, device), "cuCtxCreate"))
 	{
 		m_cudaContext= nullptr;
@@ -640,12 +565,9 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 	{
 		// Dimensions changed mid-stream - shouldn't normally happen (ARKit's video
 		// resolution is fixed for a session), but resize cleanly rather than
-		// reuse/leak stale buffers if it does. Kernel modules themselves aren't
-		// size-dependent, so they're left alone.
+		// reuse/leak stale buffers if it does. The kernel module itself isn't
+		// size-dependent, so it's left alone.
 		m_colorTexture.shutdown();
-		m_depthTexture.shutdown();
-		m_humanStencilRefinedTexture.shutdown();
-		m_humanStencilRawTexture.shutdown();
 		if (m_guideRgbBuffer != 0)
 		{
 			cuMemFree(m_guideRgbBuffer);
@@ -660,42 +582,11 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 		return false;
 	}
 
-	if (!m_depthTexture.init(width, height))
-	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized") << "Failed to init depth texture";
-		m_colorTexture.shutdown();
-		return false;
-	}
-
-	if (!m_humanStencilRefinedTexture.init(width, height) || !m_humanStencilRawTexture.init(width, height))
-	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized")
-			<< "Failed to init human-stencil texture(s)";
-		m_colorTexture.shutdown();
-		m_depthTexture.shutdown();
-		m_humanStencilRefinedTexture.shutdown();
-		m_humanStencilRawTexture.shutdown();
-		return false;
-	}
-
 	if (!m_nv12Kernel.isInitialized() && !m_nv12Kernel.init(NV12_KERNEL_PTX_PATH))
 	{
 		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized")
 			<< "Failed to init NV12 conversion kernel";
 		m_colorTexture.shutdown();
-		m_depthTexture.shutdown();
-		m_humanStencilRefinedTexture.shutdown();
-		m_humanStencilRawTexture.shutdown();
-		return false;
-	}
-
-	if (!m_jbuKernel.isInitialized() && !m_jbuKernel.init(JBU_KERNEL_PTX_PATH))
-	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized") << "Failed to init JBU kernel";
-		m_colorTexture.shutdown();
-		m_depthTexture.shutdown();
-		m_humanStencilRefinedTexture.shutdown();
-		m_humanStencilRawTexture.shutdown();
 		return false;
 	}
 
@@ -704,43 +595,8 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 						 "cuMemAlloc(guideRgb)"))
 	{
 		m_colorTexture.shutdown();
-		m_depthTexture.shutdown();
-		m_humanStencilRefinedTexture.shutdown();
-		m_humanStencilRawTexture.shutdown();
 		return false;
 	}
-
-	if (m_depthLowBuffer == 0
-		&& !checkCudaResult(cuMemAlloc(&m_depthLowBuffer, kARKitDepthPixelCount * sizeof(uint16_t)),
-							"cuMemAlloc(depthLow)"))
-	{
-		cuMemFree(m_guideRgbBuffer);
-		m_guideRgbBuffer= 0;
-		m_colorTexture.shutdown();
-		m_depthTexture.shutdown();
-		m_humanStencilRefinedTexture.shutdown();
-		m_humanStencilRawTexture.shutdown();
-		return false;
-	}
-
-	if (m_confidenceLowBuffer == 0
-		&& !checkCudaResult(cuMemAlloc(&m_confidenceLowBuffer, kARKitDepthPixelCount), "cuMemAlloc(confidenceLow)"))
-	{
-		cuMemFree(m_guideRgbBuffer);
-		m_guideRgbBuffer= 0;
-		cuMemFree(m_depthLowBuffer);
-		m_depthLowBuffer= 0;
-		m_colorTexture.shutdown();
-		m_depthTexture.shutdown();
-		m_humanStencilRefinedTexture.shutdown();
-		m_humanStencilRawTexture.shutdown();
-		return false;
-	}
-
-	// Note: the person-matte device buffer (m_matteBuffer) is NOT allocated here - its
-	// size is the matte's native resolution (device-dependent, arrives on the wire), not
-	// tied to the video/guide resolution this function sizes for, so it's (re)allocated
-	// lazily in updateColorAndDepthTextures() when a matte is uploaded.
 
 	m_textureWidth= width;
 	m_textureHeight= height;
@@ -748,7 +604,7 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 	return true;
 }
 
-void MikanARKitVideoDevice::updateColorAndDepthTextures(GstBuffer* buffer, CUdeviceptr devicePtr, int width, int height)
+void MikanARKitVideoDevice::updateColorTexture(GstBuffer* buffer, CUdeviceptr devicePtr, int width, int height)
 {
 	if (!ensureCudaContext())
 		return;
@@ -763,7 +619,7 @@ void MikanARKitVideoDevice::updateColorAndDepthTextures(GstBuffer* buffer, CUdev
 	GstVideoMeta* videoMeta= gst_buffer_get_video_meta(buffer);
 	if (videoMeta == nullptr || videoMeta->n_planes < 2)
 	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::updateColorAndDepthTextures")
+		MIKAN_LOG_ERROR("MikanARKitVideoDevice::updateColorTexture")
 			<< "Missing/invalid GstVideoMeta on decoded NV12 buffer";
 		return;
 	}
@@ -773,7 +629,9 @@ void MikanARKitVideoDevice::updateColorAndDepthTextures(GstBuffer* buffer, CUdev
 	const CUdeviceptr uvPlane= devicePtr + videoMeta->offset[1];
 	const int uvStrideBytes= static_cast<int>(videoMeta->stride[1]);
 
-	// -- Color: NV12 -> RGBA (display) + RGB (JBU guide) --
+	// NV12 -> RGBA (display). m_guideRgbBuffer is a mandatory kernel output
+	// parameter that nothing reads anymore (see its declaration comment) - still
+	// passed through since NV12ConversionKernel::convert() requires a destination.
 	CUsurfObject colorSurface= 0;
 	if (m_colorTexture.beginCudaAccess(colorSurface))
 	{
@@ -782,223 +640,9 @@ void MikanARKitVideoDevice::updateColorAndDepthTextures(GstBuffer* buffer, CUdev
 		// Block until the conversion completes before unmapping the color texture
 		// (endCudaAccess's stream param is for synchronizing the unmap against
 		// in-flight work on that same stream, which NV12ConversionKernel doesn't
-		// expose - synchronizing here is simpler and keeps the guide-RGB buffer
-		// write-complete guarantee below just as valid) - see NV12ConversionKernel.h.
+		// expose - synchronizing here is simpler) - see NV12ConversionKernel.h.
 		m_nv12Kernel.synchronize();
 		m_colorTexture.endCudaAccess(nullptr);
-	}
-
-	// -- Depth: latest cached ARKit depth+confidence, JBU-upsampled against the
-	// guide-RGB buffer the color pass just wrote --
-	ARKitDepthFrame latestDepth;
-	bool bHasDepth= false;
-	{
-		std::lock_guard<std::mutex> lock(m_latestDepthMutex);
-		if (m_latestDepthFrame.has_value())
-		{
-			latestDepth= *m_latestDepthFrame;
-			bHasDepth= true;
-		}
-	}
-
-	// -- Person matte (native resolution, own basePort+3 channel). Freshest-wins like
-	// depth. Uploaded into the dynamically-sized matte device buffer here so both the JBU
-	// guide-res gate and the matte preview can read it; the buffer grows if the incoming
-	// dimensions exceed its current capacity. --
-	ARKitMatteFrame latestMatte;
-	bool bHasMatte= false;
-	{
-		std::lock_guard<std::mutex> lock(m_latestMatteMutex);
-		if (m_latestMatteFrame.has_value())
-		{
-			latestMatte= *m_latestMatteFrame;
-			bHasMatte= true;
-		}
-	}
-
-	bool bMatteUploaded= false;
-	if (bHasMatte && !latestMatte.matte.empty())
-	{
-		const size_t matteBytes= latestMatte.matte.size();
-		if (m_matteBuffer == 0 || matteBytes > m_matteBufferCapacity)
-		{
-			if (m_matteBuffer != 0)
-			{
-				cuMemFree(m_matteBuffer);
-				m_matteBuffer= 0;
-				m_matteBufferCapacity= 0;
-			}
-			if (checkCudaResult(cuMemAlloc(&m_matteBuffer, matteBytes), "cuMemAlloc(matte)"))
-				m_matteBufferCapacity= matteBytes;
-		}
-		if (m_matteBuffer != 0
-			&& checkCudaResult(cuMemcpyHtoD(m_matteBuffer, latestMatte.matte.data(), matteBytes),
-							   "cuMemcpyHtoD(matte)"))
-		{
-			m_matteWidth= latestMatte.width;
-			m_matteHeight= latestMatte.height;
-			bMatteUploaded= true;
-		}
-	}
-
-	if (bHasDepth)
-	{
-		checkCudaResult(
-			cuMemcpyHtoD(m_depthLowBuffer, latestDepth.depthMM.data(), latestDepth.depthMM.size() * sizeof(uint16_t)),
-			"cuMemcpyHtoD(depthLow)");
-		checkCudaResult(
-			cuMemcpyHtoD(m_confidenceLowBuffer, latestDepth.confidence.data(), latestDepth.confidence.size()),
-			"cuMemcpyHtoD(confidenceLow)");
-
-		CUsurfObject depthSurface= 0;
-		if (m_depthTexture.beginCudaAccess(depthSurface))
-		{
-			const eARKitDepthPreviewMode previewMode= static_cast<eARKitDepthPreviewMode>(m_depthPreviewMode.load());
-
-			if (previewMode == eARKitDepthPreviewMode::raw_depth_nearest)
-			{
-				// Debug view: the raw low-res depth (already uploaded above), nearest-
-				// upsampled with no bilateral filtering, so it visibly contrasts with JBU.
-				m_jbuKernel.visualizeDepthNearest(m_depthLowBuffer, kARKitDepthWidth, kARKitDepthHeight,
-												  kARKitDepthWidth * static_cast<int>(sizeof(uint16_t)), depthSurface,
-												  width, height);
-			}
-			else if (previewMode == eARKitDepthPreviewMode::matte_nearest)
-			{
-				// Debug view: the native-res person matte, nearest-upsampled. When no matte
-				// is available, show solid black ("matte not arriving") by vizzing a zeroed
-				// 1x1 buffer (every output samples label 0 -> 0).
-				if (bMatteUploaded)
-				{
-					m_jbuKernel.visualizeMatteNearest(m_matteBuffer, m_matteWidth, m_matteHeight, m_matteWidth,
-													  depthSurface, width, height, 5000.0f);
-				}
-				else
-				{
-					if (m_matteBuffer == 0 && checkCudaResult(cuMemAlloc(&m_matteBuffer, 1), "cuMemAlloc(matte)"))
-						m_matteBufferCapacity= 1;
-					if (m_matteBuffer != 0)
-					{
-						checkCudaResult(cuMemsetD8(m_matteBuffer, 0, 1), "cuMemsetD8(matte)");
-						m_jbuKernel.visualizeMatteNearest(m_matteBuffer, 1, 1, 1, depthSurface, width, height, 5000.0f);
-					}
-				}
-			}
-			else if (previewMode == eARKitDepthPreviewMode::refined_matte_nearest)
-			{
-				// Debug view: the guided stencil-JBU (the crisp "Human Stencil" matte), scaled
-				// x5000 so alpha 1.0 shows white under the /5000 depth-preview shader. Zeroed
-				// 1x1 stencil -> black when no matte, same as the raw matte view above.
-				JBUParams stencilParams;
-				{
-					std::lock_guard<std::mutex> paramsLock(m_jbuParamsMutex);
-					stencilParams= m_jbuParams;
-				}
-				if (bMatteUploaded)
-				{
-					m_jbuKernel.upsampleStencilToSurface(m_matteBuffer, m_matteWidth, m_matteHeight, m_matteWidth,
-														 m_guideRgbBuffer, width, height, m_guideStrideBytes,
-														 depthSurface, width, height, stencilParams, 5000.0f);
-				}
-				else
-				{
-					if (m_matteBuffer == 0 && checkCudaResult(cuMemAlloc(&m_matteBuffer, 1), "cuMemAlloc(matte)"))
-						m_matteBufferCapacity= 1;
-					if (m_matteBuffer != 0)
-					{
-						checkCudaResult(cuMemsetD8(m_matteBuffer, 0, 1), "cuMemsetD8(matte)");
-						m_jbuKernel.upsampleStencilToSurface(m_matteBuffer, 1, 1, 1, m_guideRgbBuffer, width, height,
-															 m_guideStrideBytes, depthSurface, width, height,
-															 stencilParams, 5000.0f);
-					}
-				}
-			}
-			else
-			{
-				JBUParams params;
-				{
-					std::lock_guard<std::mutex> paramsLock(m_jbuParamsMutex);
-					params= m_jbuParams;
-				}
-
-				// Gate at guide resolution against the native-res matte when gating is on
-				// and a matte is available; otherwise pass 0 so the kernel runs exactly as
-				// the confidence/color-only pipeline did.
-				CUdeviceptr matte= 0;
-				int matteW= 0, matteH= 0, matteStride= 0;
-				if (params.segGatingEnabled && bMatteUploaded)
-				{
-					matte= m_matteBuffer;
-					matteW= m_matteWidth;
-					matteH= m_matteHeight;
-					matteStride= m_matteWidth;
-				}
-
-				m_jbuKernel.upsampleToSurface(m_depthLowBuffer, kARKitDepthWidth, kARKitDepthHeight,
-											  kARKitDepthWidth * static_cast<int>(sizeof(uint16_t)),
-											  m_confidenceLowBuffer, kARKitDepthWidth, m_guideRgbBuffer, width, height,
-											  m_guideStrideBytes, depthSurface, width, height, params, matte, matteW,
-											  matteH, matteStride);
-			}
-
-			m_jbuKernel.synchronize();
-			m_depthTexture.endCudaAccess(nullptr);
-		}
-	}
-
-	// -- Human-stencil textures (compositor inputs): refined = guided stencil-JBU (crisp
-	// edge, snapped to the RGB guide); raw = nearest-upsampled 0/1 stencil (blocky ground
-	// truth). Always produced so the textures stay valid - a zeroed 1x1 stencil yields
-	// all-zero alpha ("no person") when no matte is available. --
-	{
-		CUdeviceptr stencilPtr= 0;
-		int stencilW= 0, stencilH= 0;
-		if (bMatteUploaded)
-		{
-			stencilPtr= m_matteBuffer;
-			stencilW= m_matteWidth;
-			stencilH= m_matteHeight;
-		}
-		else
-		{
-			if (m_matteBuffer == 0 && checkCudaResult(cuMemAlloc(&m_matteBuffer, 1), "cuMemAlloc(matte)"))
-				m_matteBufferCapacity= 1;
-			if (m_matteBuffer != 0)
-			{
-				checkCudaResult(cuMemsetD8(m_matteBuffer, 0, 1), "cuMemsetD8(matte)");
-				stencilPtr= m_matteBuffer;
-				stencilW= 1;
-				stencilH= 1;
-			}
-		}
-
-		if (stencilPtr != 0)
-		{
-			JBUParams stencilParams;
-			{
-				std::lock_guard<std::mutex> paramsLock(m_jbuParamsMutex);
-				stencilParams= m_jbuParams;
-			}
-
-			CUsurfObject refinedSurface= 0;
-			if (m_humanStencilRefinedTexture.beginCudaAccess(refinedSurface))
-			{
-				m_jbuKernel.upsampleStencilToSurface(stencilPtr, stencilW, stencilH, stencilW, m_guideRgbBuffer, width,
-													 height, m_guideStrideBytes, refinedSurface, width, height,
-													 stencilParams, 1.0f);
-				m_jbuKernel.synchronize();
-				m_humanStencilRefinedTexture.endCudaAccess(nullptr);
-			}
-
-			CUsurfObject rawSurface= 0;
-			if (m_humanStencilRawTexture.beginCudaAccess(rawSurface))
-			{
-				m_jbuKernel.visualizeMatteNearest(stencilPtr, stencilW, stencilH, stencilW, rawSurface, width, height,
-												  1.0f);
-				m_jbuKernel.synchronize();
-				m_humanStencilRawTexture.endCudaAccess(nullptr);
-			}
-		}
 	}
 }
 
@@ -1006,41 +650,6 @@ uint32_t MikanARKitVideoDevice::getColorTextureGlId() const
 {
 	IMkTexturePtr texture= m_colorTexture.getTexture();
 	return texture != nullptr ? texture->getGlTextureId() : 0;
-}
-
-uint32_t MikanARKitVideoDevice::getDepthTextureGlId() const
-{
-	IMkTexturePtr texture= m_depthTexture.getTexture();
-	return texture != nullptr ? texture->getGlTextureId() : 0;
-}
-
-uint32_t MikanARKitVideoDevice::getHumanStencilRefinedTextureGlId() const
-{
-	IMkTexturePtr texture= m_humanStencilRefinedTexture.getTexture();
-	return texture != nullptr ? texture->getGlTextureId() : 0;
-}
-
-uint32_t MikanARKitVideoDevice::getHumanStencilRawTextureGlId() const
-{
-	IMkTexturePtr texture= m_humanStencilRawTexture.getTexture();
-	return texture != nullptr ? texture->getGlTextureId() : 0;
-}
-
-void MikanARKitVideoDevice::setJBUParams(const ARKitJBUParams& params)
-{
-	std::lock_guard<std::mutex> lock(m_jbuParamsMutex);
-	m_jbuParams.radius= params.radius;
-	m_jbuParams.sigmaSpatial= params.sigmaSpatial;
-	m_jbuParams.sigmaColor= params.sigmaColor;
-	m_jbuParams.confWeightLow= params.confWeightLow;
-	m_jbuParams.confWeightMedium= params.confWeightMedium;
-	m_jbuParams.segGatingEnabled= params.segGatingEnabled;
-	m_jbuParams.segEdgeStrength= params.segEdgeStrength;
-}
-
-void MikanARKitVideoDevice::setDepthPreviewMode(eARKitDepthPreviewMode mode)
-{
-	m_depthPreviewMode.store(static_cast<int>(mode));
 }
 
 // -- Video Settings -----
@@ -1104,15 +713,6 @@ void MikanARKitVideoDevice::notifyFrameBundleReceived(const ARKitFrameBundle& in
 	publicBundle.videoData= nullptr;
 	publicBundle.videoWidth= 0;
 	publicBundle.videoHeight= 0;
-
-	if (internalBundle.depth.has_value())
-	{
-		publicBundle.hasDepth= true;
-		publicBundle.depth.width= kARKitDepthWidth;
-		publicBundle.depth.height= kARKitDepthHeight;
-		publicBundle.depth.depthMM= internalBundle.depth->depthMM.data();
-		publicBundle.depth.confidence= internalBundle.depth->confidence.data();
-	}
 
 	if (internalBundle.pose.has_value())
 	{

@@ -97,11 +97,6 @@ public:
 	// unaffected - VideoFrameDistortionView's CPU-buffer pipeline (writeVideoFrame
 	// et al.) remains the only path for them.
 	virtual IMkTexturePtr getDirectColorTexture() const { return IMkTexturePtr(); }
-	virtual IMkTexturePtr getDirectDepthTexture() const { return IMkTexturePtr(); }
-
-	// Zero-copy GPU human-stencil (person matte) textures. Null except for ARKit sources.
-	virtual IMkTexturePtr getDirectHumanStencilRefinedTexture() const { return IMkTexturePtr(); }
-	virtual IMkTexturePtr getDirectHumanStencilRawTexture() const { return IMkTexturePtr(); }
 
 	// Frame index for GPU-direct sources (ticket E4), used by VideoFrameDistortionView
 	// as the "has a new frame arrived" change-detection key in place of the

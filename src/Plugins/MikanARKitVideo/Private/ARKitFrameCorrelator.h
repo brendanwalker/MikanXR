@@ -1,7 +1,6 @@
 #pragma once
 
 // -- includes -----
-#include <atomic>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
@@ -11,16 +10,14 @@
 #include <optional>
 #include <vector>
 
-#include "ARKitDepthReceiver.h" // ARKitDepthFrame
-#include "ARKitPoseReceiver.h"  // ARKitPoseFrame
+#include "ARKitPoseReceiver.h" // ARKitPoseFrame
 
-// A frame-correlated bundle of video + (optional) depth + (optional) pose for the
-// same frameSeq, produced once the bundle is complete or has gone stale (see
-// ARKitFrameCorrelator below). hasVideo unset / depth or pose empty represents a
-// component that never arrived in time - not necessarily an error; downstream
-// consumers decide what a partial bundle is still useful for (e.g. pose alone still
-// drives camera tracking even without video/depth - see IFrameCoupledPoseProvider,
-// ticket E4).
+// A frame-correlated bundle of video + (optional) pose for the same frameSeq,
+// produced once the bundle is complete or has gone stale (see ARKitFrameCorrelator
+// below). hasVideo unset / pose empty represents a component that never arrived in
+// time - not necessarily an error; downstream consumers decide what a partial
+// bundle is still useful for (e.g. pose alone still drives camera tracking even
+// without video - see IFrameCoupledPoseProvider, ticket E4).
 struct ARKitFrameBundle
 {
 	uint32_t frameSeq= 0;
@@ -33,39 +30,33 @@ struct ARKitFrameBundle
 	// to a real typed handle once Track C exists.
 	void* videoFrameHandle= nullptr;
 
-	std::optional<ARKitDepthFrame> depth;
 	std::optional<ARKitPoseFrame> pose;
 };
 
-// Fans in video/depth/pose arrival notifications - from three independent producer
-// threads (Track C's GStreamer pipeline thread, ARKitDepthReceiver's worker thread,
-// ARKitPoseReceiver's worker thread) - keyed by the shared frameSeq, firing a bundle
-// callback once a frame is complete or has gone stale.
+// Fans in video/pose arrival notifications - from two independent producer threads
+// (Track C's GStreamer pipeline thread, ARKitPoseReceiver's worker thread) - keyed
+// by the shared frameSeq, firing a bundle callback once a frame is complete or has
+// gone stale.
 //
-// Purely reactive: unlike ARKitDepthReceiver/ARKitPoseReceiver, this class owns no
-// socket and no worker thread of its own. sweepStaleFrames() must be driven
-// periodically by whatever owns this correlator (e.g. a device's per-tick
-// update(deltaSeconds), matching the existing INetworkVideoDevice::update pattern
-// used elsewhere in this codebase).
+// Purely reactive: unlike ARKitPoseReceiver, this class owns no socket and no
+// worker thread of its own. sweepStaleFrames() must be driven periodically by
+// whatever owns this correlator (e.g. a device's per-tick update(deltaSeconds),
+// matching the existing INetworkVideoDevice::update pattern used elsewhere in this
+// codebase).
 //
 // Thread-safe: all public methods may be called from any thread, concurrently.
 class ARKitFrameCorrelator
 {
 public:
-	// staleTimeout should comfortably exceed ARKitDepthFragmentAssembler's own
-	// staleness window (500ms default) plus margin for video decode latency and
-	// network jitter - otherwise a depth frame that's still legitimately mid-
-	// assembly in B4 would routinely lose the race here and get delivered as a
-	// video+pose-only partial bundle even under normal conditions.
-	explicit ARKitFrameCorrelator(bool depthStreamingEnabled,
-								  std::chrono::milliseconds staleTimeout= std::chrono::milliseconds(1000));
-
-	void setDepthStreamingEnabled(bool enabled);
+	// staleTimeout comfortably exceeds normal video decode latency and network
+	// jitter, so a pose packet that's simply running a little behind the video
+	// packet for the same frameSeq isn't routinely delivered as a video-only
+	// partial bundle under normal conditions.
+	explicit ARKitFrameCorrelator(std::chrono::milliseconds staleTimeout= std::chrono::milliseconds(1000));
 
 	void setBundleCallback(std::function<void(ARKitFrameBundle)> callback);
 
 	void notifyVideoArrived(uint32_t frameSeq, uint64_t timestampUs, void* videoFrameHandle);
-	void notifyDepthArrived(ARKitDepthFrame depth);
 	void notifyPoseArrived(ARKitPoseFrame pose);
 
 	// Delivers (as partial bundles) and evicts any pending frameSeq entries older
@@ -84,7 +75,6 @@ private:
 		void* videoFrameHandle= nullptr;
 		uint64_t videoTimestampUs= 0;
 
-		std::optional<ARKitDepthFrame> depth;
 		std::optional<ARKitPoseFrame> pose;
 
 		std::chrono::steady_clock::time_point firstArrival;
@@ -105,7 +95,6 @@ private:
 
 	mutable std::mutex m_mutex;
 	std::map<uint32_t, PendingEntry> m_pending;
-	std::atomic<bool> m_depthStreamingEnabled;
 	std::chrono::milliseconds m_staleTimeout;
 	std::function<void(ARKitFrameBundle)> m_callback;
 	size_t m_completedCount= 0;

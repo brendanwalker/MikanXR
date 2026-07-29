@@ -8,14 +8,8 @@ file(GLOB UNIT_TEST_SRC
 # (that lands with the plugin scaffolding), so pull the ones with unit test coverage
 # in directly.
 list(APPEND UNIT_TEST_SRC
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/RVLCodec.h
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/RVLCodec.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/UdpReceiveSocket.h
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/UdpReceiveSocket.cpp
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitDepthReceiver.h
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitDepthReceiver.cpp
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitMatteReceiver.h
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitMatteReceiver.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.h
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.cpp
   ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.h
@@ -35,22 +29,22 @@ list(APPEND UNIT_TEST_SRC
 # loaded by arkit_video_source_system's tests). It's only exercised indirectly,
 # through the already-loaded plugin DLL, same as MikanARKitVideoDevice.cpp itself.
 
-# JBUKernel.h/.cpp (ticket D1) and CudaGLInterop.h/.cpp (ticket D4) are plain CUDA
-# Driver API C++ - no GObject/GstMeta registration, so (unlike
+# NV12ConversionKernel.h/.cpp (ticket E3) and CudaGLInterop.h/.cpp (ticket D4) are
+# plain CUDA Driver API C++ - no GObject/GstMeta registration, so (unlike
 # ARKitRTPHeaderExtension.cpp above) it's safe to dual-compile into both this
-# executable and MikanARKitVideo.dll, matching RVLCodec.cpp etc. Needs the CUDA
-# Toolkit headers/driver lib, which - like GStreamer's own CUDA support - are only
-# available when MIKAN_WITH_GSTREAMER is ON (see ThirdParty.cmake).
+# executable and MikanARKitVideo.dll. Needs the CUDA Toolkit headers/driver lib,
+# which - like GStreamer's own CUDA support - are only available when
+# MIKAN_WITH_GSTREAMER is ON (see ThirdParty.cmake).
 # CudaGLInterop.cpp additionally needs MikanRenderer (IMkTexture) and GLEW
 # (GLuint/GL_TEXTURE_2D types, required before cudaGL.h) - compiling it here
 # proves it builds cleanly against the real headers/libs on every run, even
 # though its actual CUDA-GL registration/mapping behavior needs a live GL context
 # this headless console test executable doesn't have (see
-# arkit_jbu_kernel_unit_tests.cpp's own notes on what is/isn't covered here).
+# arkit_cuda_gl_interop_unit_tests.cpp's own notes on what is/isn't covered here).
 if(MIKAN_WITH_GSTREAMER)
   list(APPEND UNIT_TEST_SRC
-    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/JBUKernel.h
-    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/JBUKernel.cpp
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/NV12ConversionKernel.h
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/NV12ConversionKernel.cpp
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.h
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.cpp
   )
@@ -105,11 +99,8 @@ target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_SERIALIZATION_REFL
 target_compile_definitions(unit_test_suite_cpp PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANAPI_REFLECTION)
-# Real-device RVL cross-check fixture (ticket A9 follow-up) - see docs/README.md.
-# Baked in as an absolute path the same way JBU_KERNEL_PTX_PATH is below.
-target_compile_definitions(unit_test_suite_cpp PRIVATE ARKIT_RVL_TEST_VECTORS_PATH="${ROOT_DIR}/docs/rvl_test_vectors.json")
 if(MIKAN_WITH_GSTREAMER)
-  target_compile_definitions(unit_test_suite_cpp PRIVATE JBU_KERNEL_PTX_PATH="${MIKAN_ARKIT_JBU_KERNEL_PTX}")
+  target_compile_definitions(unit_test_suite_cpp PRIVATE NV12_KERNEL_PTX_PATH="${MIKAN_ARKIT_NV12_KERNEL_PTX}")
 endif()
 SET_TARGET_PROPERTIES(unit_test_suite_cpp PROPERTIES FOLDER Test)
 
@@ -130,7 +121,7 @@ add_dependencies(unit_test_suite_cpp MikanSharedTexture)
 add_dependencies(unit_test_suite_cpp MikanUtility)
 if(MIKAN_WITH_GSTREAMER)
   add_dependencies(unit_test_suite_cpp MikanARKitVideo)
-  add_dependencies(unit_test_suite_cpp MikanARKitVideoJBUKernelPTX)
+  add_dependencies(unit_test_suite_cpp MikanARKitVideoNV12KernelPTX)
 endif()
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)

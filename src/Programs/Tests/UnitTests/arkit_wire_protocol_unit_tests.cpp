@@ -8,79 +8,6 @@
 #include "unit_test.h"
 
 //-- private functions -----
-static bool arkit_wire_protocol_test_depth_fragment_header_roundtrip()
-{
-	UNIT_TEST_BEGIN("depth fragment header roundtrip")
-
-	ARKitDepthFragmentHeader header;
-	header.frameSeq= 0xDEADBEEF;
-	header.captureTimestampUs= 0x0123456789ABCDEFULL;
-	header.fragIndex= 3;
-	header.fragCount= 7;
-
-	uint8_t buffer[ARKitDepthFragmentHeader::kWireSize]= {};
-	size_t written= writeARKitDepthFragmentHeader(buffer, sizeof(buffer), header);
-	success= (written == ARKitDepthFragmentHeader::kWireSize);
-	assert(success);
-
-	// Spot-check big-endian byte order directly, not just the round-trip, since a
-	// symmetric little-endian bug would otherwise round-trip cleanly and hide itself.
-	success= success && (buffer[0] == 0xAD && buffer[1] == 0x01); // magic
-	assert(success);
-	success= success && (buffer[4] == 0xDE && buffer[5] == 0xAD && buffer[6] == 0xBE && buffer[7] == 0xEF); // frameSeq
-	assert(success);
-
-	ARKitDepthFragmentHeader roundTripped;
-	success= success && readARKitDepthFragmentHeader(buffer, sizeof(buffer), roundTripped);
-	assert(success);
-
-	success= success && roundTripped.magic == header.magic;
-	success= success && roundTripped.version == header.version;
-	success= success && roundTripped.type == header.type;
-	success= success && roundTripped.frameSeq == header.frameSeq;
-	success= success && roundTripped.captureTimestampUs == header.captureTimestampUs;
-	success= success && roundTripped.fragIndex == header.fragIndex;
-	success= success && roundTripped.fragCount == header.fragCount;
-	assert(success);
-
-	UNIT_TEST_COMPLETE()
-}
-
-static bool arkit_wire_protocol_test_depth_fragment_header_rejects_short_buffer()
-{
-	UNIT_TEST_BEGIN("depth fragment header rejects undersized buffer")
-
-	ARKitDepthFragmentHeader header;
-	uint8_t buffer[ARKitDepthFragmentHeader::kWireSize]= {};
-
-	success= (writeARKitDepthFragmentHeader(buffer, ARKitDepthFragmentHeader::kWireSize - 1, header) == 0);
-	assert(success);
-
-	ARKitDepthFragmentHeader outHeader;
-	success=
-		success && (readARKitDepthFragmentHeader(buffer, ARKitDepthFragmentHeader::kWireSize - 1, outHeader) == false);
-	assert(success);
-
-	UNIT_TEST_COMPLETE()
-}
-
-static bool arkit_wire_protocol_test_depth_fragment_header_rejects_wrong_type()
-{
-	UNIT_TEST_BEGIN("depth fragment header rejects mismatched packet type")
-
-	// Fabricate a buffer whose type byte claims Pose, and confirm the depth reader
-	// (which validates eARKitPacketType::Depth) rejects it rather than parsing garbage.
-	ARKitPosePacket posePacket;
-	uint8_t buffer[ARKitPosePacket::kWireSize]= {};
-	writeARKitPosePacket(buffer, sizeof(buffer), posePacket);
-
-	ARKitDepthFragmentHeader outHeader;
-	success= (readARKitDepthFragmentHeader(buffer, ARKitDepthFragmentHeader::kWireSize, outHeader) == false);
-	assert(success);
-
-	UNIT_TEST_COMPLETE()
-}
-
 static bool arkit_wire_protocol_test_pose_packet_roundtrip()
 {
 	UNIT_TEST_BEGIN("pose packet roundtrip")
@@ -183,9 +110,6 @@ bool run_arkit_wire_protocol_unit_tests()
 {
 	UNIT_TEST_MODULE_BEGIN("arkit_wire_protocol")
 	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_be_primitive_helpers);
-	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_depth_fragment_header_roundtrip);
-	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_depth_fragment_header_rejects_short_buffer);
-	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_depth_fragment_header_rejects_wrong_type);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_pose_packet_roundtrip);
 	UNIT_TEST_MODULE_CALL_TEST(arkit_wire_protocol_test_rtp_extension_payload_roundtrip);
 	UNIT_TEST_MODULE_END()

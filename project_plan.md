@@ -1,3 +1,15 @@
+> **STATUS UPDATE:** After hands-on tuning, the JBU depth-upsampling pipeline
+> (Track D) and the person-segmentation "matte"/human-stencil pipeline it fed
+> proved too noisy to be useful for compositing and have been removed, along
+> with the RVL depth codec (A3/A9/B2), the depth/matte UDP receivers (A4/B4),
+> and the JBU tuning UI (E2's depth-preview slider work). Camera pose tracking
+> (A5/B5/B6/E4) is the part that remains valuable and is being carried forward
+> — the pose channel itself is being redesigned to ride inside the video RTP
+> stream's header extension instead of its own UDP channel (see the plan in
+> `.claude/plans/` for the current in-flight redesign). The ticket list below
+> is kept for historical context on the original design; tickets for removed
+> functionality are no longer applicable.
+
 I would like to draw up a plan for streaming video + depth data + camera pose from ARKit on an iPhone to MikanXR. 
 
 There are two major parts to this: 

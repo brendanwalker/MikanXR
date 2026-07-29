@@ -66,18 +66,6 @@ public:
 	// Zero-copy CUDA-GL texture access (ticket E3) - this stub never has a real GL
 	// texture, 0 is the documented "none yet" sentinel.
 	uint32_t getColorTextureGlId() const override { return 0; }
-	uint32_t getDepthTextureGlId() const override { return 0; }
-	uint32_t getHumanStencilRefinedTextureGlId() const override { return 0; }
-	uint32_t getHumanStencilRawTextureGlId() const override { return 0; }
-
-	// JBU tuning - this stub doesn't run a real upsample pipeline, just record the
-	// most recent params so a test could assert on them if needed.
-	void setJBUParams(const ARKitJBUParams& params) override { m_lastJBUParams= params; }
-	ARKitJBUParams m_lastJBUParams;
-
-	// Depth preview mode - record the most recent for potential assertions.
-	void setDepthPreviewMode(eARKitDepthPreviewMode mode) override { m_lastDepthPreviewMode= mode; }
-	eARKitDepthPreviewMode m_lastDepthPreviewMode= eARKitDepthPreviewMode::jbu_upsampled;
 
 	// Test-only helper to exercise the listener dispatch path.
 	void simulateFrameBundle(const ARKitVideoFrameBundle& bundle)
@@ -196,7 +184,6 @@ static bool arkit_video_device_interfaces_test_module_manager_device_chain()
 
 	ARKitVideoConnectionSettings settings;
 	settings.basePort= 27100;
-	settings.depthStreamingEnabled= true;
 
 	IARKitVideoDevicePtr device= manager->createVideoDevice(settings);
 	success= success && (device != nullptr);
@@ -281,9 +268,6 @@ static bool arkit_video_device_interfaces_test_listener_dispatch()
 	bundle.videoHeight= 1080;
 	bundle.hasPose= true;
 	bundle.pose.fx= 1428.5f;
-	bundle.hasDepth= true;
-	bundle.depth.width= 256;
-	bundle.depth.height= 192;
 
 	device.simulateFrameBundle(bundle);
 	success= success && (listener.bundleCount == 1);
@@ -292,7 +276,6 @@ static bool arkit_video_device_interfaces_test_listener_dispatch()
 	success= success && (listener.lastBundle.timestampUs == 123456789ULL);
 	success= success && (listener.lastBundle.hasVideo && listener.lastBundle.videoWidth == 1920);
 	success= success && (listener.lastBundle.hasPose && listener.lastBundle.pose.fx == 1428.5f);
-	success= success && (listener.lastBundle.hasDepth && listener.lastBundle.depth.width == 256);
 	assert(success);
 
 	device.close();
@@ -309,14 +292,12 @@ static bool arkit_video_device_interfaces_test_listener_dispatch()
 
 static bool arkit_video_device_interfaces_test_frame_bundle_default_state()
 {
-	UNIT_TEST_BEGIN("ARKitVideoFrameBundle/ARKitDepthFrameBuffer/ARKitPoseFrameBuffer default-construct cleanly")
+	UNIT_TEST_BEGIN("ARKitVideoFrameBundle/ARKitPoseFrameBuffer default-construct cleanly")
 
 	ARKitVideoFrameBundle bundle;
 	success= (bundle.frameSeq == 0 && bundle.timestampUs == 0);
 	assert(success);
 	success= success && (!bundle.hasVideo && bundle.videoData == nullptr && bundle.videoWidth == 0);
-	assert(success);
-	success= success && (!bundle.hasDepth && bundle.depth.width == 0 && bundle.depth.depthMM == nullptr);
 	assert(success);
 	success= success && (!bundle.hasPose && bundle.pose.fx == 0.f);
 	assert(success);

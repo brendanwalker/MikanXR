@@ -7,13 +7,9 @@
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
-#include "IMkGraphicsContext.h"
-#include "IMkShaderCache.h"
-#include "IMkTriangulatedMesh.h"
 #include "MikanTextRenderer.h"
 #include "MainWindow.h"
 #include "MkGuiScopedWindow.h"
-#include "MkMaterialInstance.h"
 #include "MulticastDelegate.h"
 #include "NetworkVideoSourceComponent.h"
 #include "ProjectConfig.h"
@@ -59,9 +55,6 @@ void AppStage_VideoSourceSettings::enter()
 			networkPanel->setComponent(networkVideoSourceComponent);
 		}
 
-		// Exposes the JBU depth-upsample tuning sliders right here, alongside the
-		// Depth Preview toggle below, so they can be adjusted live while watching
-		// the preview for flicker/edge quality (see GuiPanel_ARKitVideoSourceComponent).
 		auto* arkitPanel= addGuiPanel<GuiPanel_ARKitVideoSourceComponent>();
 		arkitPanel->init();
 		if (auto arkitVideoSourceComponent= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(videoSourceComponent))
@@ -79,28 +72,11 @@ void AppStage_VideoSourceSettings::enter()
 		// Register as a stream consumer (VideoSourceComponent::update() drives the retry loop)
 		videoSourceComponent->startVideoStream(m_videoBufferView.get());
 	}
-
-	// ARKit depth preview (debug/verification tool) - only ever selectable when the
-	// current video source is ARKit; force back to Color otherwise so switching
-	// away from an ARKit source doesn't leave the display stuck on an unavailable mode.
-	m_bIsARKitVideoSource= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(videoSourceComponent) != nullptr;
-	if (!m_bIsARKitVideoSource)
-		m_displayMode= eDisplayMode::Color;
-
-	IMkGraphicsContext* graphicsContext= m_ownerWindow->getGraphicsContext().get();
-	m_fullscreenDepthPreviewQuad= createFullscreenQuadMesh(
-		graphicsContext,
-		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_VISUALIZE_ARKIT_DEPTH), true);
 }
 
 void AppStage_VideoSourceSettings::exit()
 {
 	VideoSourceComponentPtr videoSourceComponent= m_videoSourceComponent.lock();
-
-	// Restore normal JBU depth production before leaving, so the compositor doesn't keep
-	// getting a raw-depth/matte debug view in the shared depth texture.
-	if (auto arkitComponent= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(videoSourceComponent))
-		arkitComponent->setDepthPreviewMode(eARKitDepthPreviewMode::jbu_upsampled);
 
 	if (videoSourceComponent && m_videoBufferView)
 	{
@@ -114,9 +90,6 @@ void AppStage_VideoSourceSettings::exit()
 void AppStage_VideoSourceSettings::pause()
 {
 	VideoSourceComponentPtr videoSourceComponent= m_videoSourceComponent.lock();
-
-	if (auto arkitComponent= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(videoSourceComponent))
-		arkitComponent->setDepthPreviewMode(eARKitDepthPreviewMode::jbu_upsampled);
 
 	if (videoSourceComponent && m_videoBufferView)
 	{
@@ -170,51 +143,13 @@ void AppStage_VideoSourceSettings::onGui()
 		onReturnEvent();
 	ImGui::Separator();
 
-	if (m_bIsARKitVideoSource)
-	{
-		int displayModeInt= (int)m_displayMode;
-		ImGui::RadioButton("Color", &displayModeInt, (int)eDisplayMode::Color);
-		ImGui::RadioButton("Depth (JBU)", &displayModeInt, (int)eDisplayMode::DepthPreview);
-		ImGui::RadioButton("Depth (raw)", &displayModeInt, (int)eDisplayMode::RawDepthPreview);
-		ImGui::RadioButton("Matte (raw)", &displayModeInt, (int)eDisplayMode::MattePreview);
-		ImGui::RadioButton("Matte (refined)", &displayModeInt, (int)eDisplayMode::RefinedMattePreview);
-		m_displayMode= (eDisplayMode)displayModeInt;
-
-		// Push the selected view to the live device so it renders the matching
-		// visualization into the shared depth-preview texture this frame.
-		applyDepthPreviewMode();
-
-		ImGui::Separator();
-	}
-
 	for (IGuiPanel* guiPanel : m_guiPanels)
 		guiPanel->onGui();
 }
 
 void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 {
-	// Every non-Color mode (JBU / raw depth / matte) is drawn from the same device depth
-	// surface - the device decides what's rendered into it via setDepthPreviewMode().
-	IMkTexturePtr depthPreviewTexture= (m_displayMode != eDisplayMode::Color && m_videoBufferView != nullptr)
-										   ? m_videoBufferView->getDirectDepthTexture()
-										   : IMkTexturePtr();
-
-	if (depthPreviewTexture && m_fullscreenDepthPreviewQuad)
-	{
-		MkMaterialInstancePtr materialInstance= m_fullscreenDepthPreviewQuad->getMaterialInstance();
-		MkMaterialConstPtr material= materialInstance->getMaterial();
-
-		if (auto materialBinding= material->bindMaterial())
-		{
-			materialInstance->setTextureBySemantic(eUniformSemantic::depthTexture, depthPreviewTexture);
-
-			if (auto instanceBinding= materialInstance->bindMaterialInstance(materialBinding))
-			{
-				m_fullscreenDepthPreviewQuad->drawElements();
-			}
-		}
-	}
-	else if (m_videoBufferView != nullptr)
+	if (m_videoBufferView != nullptr)
 	{
 		m_videoBufferView->renderSelectedVideoBuffers();
 	}
@@ -225,35 +160,6 @@ void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 	style.verticalAlignment= eVerticalTextAlignment::Bottom;
 	drawTextAtScreenPosition(getGraphicsContext(), style, glm::vec2(0.f, m_ownerWindow->getHeight() - 1),
 							 L"Camera %.1ffps", m_videoBufferView ? m_videoBufferView->getFPS() : 0.f);
-}
-
-void AppStage_VideoSourceSettings::applyDepthPreviewMode()
-{
-	auto arkitComponent= std::dynamic_pointer_cast<ARKitVideoSourceComponent>(m_videoSourceComponent.lock());
-	if (!arkitComponent)
-		return;
-
-	// Color and the JBU depth view both leave the device producing normal JBU depth (so
-	// the compositor keeps a valid depth); only the explicit raw/matte debug views
-	// repurpose the shared surface.
-	eARKitDepthPreviewMode deviceMode= eARKitDepthPreviewMode::jbu_upsampled;
-	switch (m_displayMode)
-	{
-	case eDisplayMode::RawDepthPreview:
-		deviceMode= eARKitDepthPreviewMode::raw_depth_nearest;
-		break;
-	case eDisplayMode::MattePreview:
-		deviceMode= eARKitDepthPreviewMode::matte_nearest;
-		break;
-	case eDisplayMode::RefinedMattePreview:
-		deviceMode= eARKitDepthPreviewMode::refined_matte_nearest;
-		break;
-	default:
-		deviceMode= eARKitDepthPreviewMode::jbu_upsampled;
-		break;
-	}
-
-	arkitComponent->setDepthPreviewMode(deviceMode);
 }
 
 void AppStage_VideoSourceSettings::onReturnEvent() { getOwnerWindow()->popAppState(); }

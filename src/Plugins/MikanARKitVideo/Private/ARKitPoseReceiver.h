@@ -13,8 +13,8 @@
 #include "UdpReceiveSocket.h"
 
 // A parsed pose channel (basePort+2) packet, ready for correlation with the
-// matching video frame and depth frame (see ARKitFrameCorrelator, ticket B6) or
-// direct frame-indexed lookup (see IFrameCoupledPoseProvider, ticket E4).
+// matching video frame (see ARKitFrameCorrelator, ticket B6) or direct
+// frame-indexed lookup (see IFrameCoupledPoseProvider, ticket E4).
 struct ARKitPoseFrame
 {
 	uint32_t frameSeq= 0;
@@ -35,13 +35,12 @@ bool parseARKitPoseDatagram(const uint8_t* data, size_t length, ARKitPoseFrame& 
 
 // Thread-safe fixed-capacity ring buffer of recently received pose frames, keyed by
 // frameSeq for O(log n) point lookup. Capacity is small (pose packets are tiny,
-// unfragmented, and should arrive promptly - unlike depth, there's no notion of an
-// "incomplete" pose frame, just recent-enough-to-still-be-useful ones). Eviction is
-// FIFO by insertion order, not by numeric frameSeq comparison - this sidesteps the
-// uint32 frameSeq-wraparound hazard entirely (same rationale as
-// ARKitDepthFragmentAssembler's staleness tracking), at the accepted cost that a
-// severely out-of-order late arrival could in principle evict a fresher entry; pose
-// packets are expected to arrive promptly enough in practice that this is rare and
+// unfragmented, and should arrive promptly - there's no notion of an "incomplete"
+// pose frame, just recent-enough-to-still-be-useful ones). Eviction is FIFO by
+// insertion order, not by numeric frameSeq comparison - this sidesteps the uint32
+// frameSeq-wraparound hazard entirely, at the accepted cost that a severely
+// out-of-order late arrival could in principle evict a fresher entry; pose packets
+// are expected to arrive promptly enough in practice that this is rare and
 // low-consequence (a missed lookup just falls back gracefully downstream).
 class ARKitPoseRingBuffer
 {

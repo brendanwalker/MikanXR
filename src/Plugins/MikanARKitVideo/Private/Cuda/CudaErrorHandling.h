@@ -4,8 +4,8 @@
 
 #include "Logger.h"
 
-// Shared CUDA Driver API error-checking helper for all of Track D's CUDA code
-// (JBUKernel, and eventually D4's GL interop). Logs via Mikan's normal
+// Shared CUDA Driver API error-checking helper for this plugin's CUDA code
+// (NV12ConversionKernel, CudaGLInterop). Logs via Mikan's normal
 // error-logging path and returns false - deliberately NOT exit()/abort() (unlike
 // the CudaDepthUpsample prototype's CUDA_SAFE_CALL macro, which called exit(-1) on
 // any error) and not a thrown exception either (ticket D3): CUDA errors here are

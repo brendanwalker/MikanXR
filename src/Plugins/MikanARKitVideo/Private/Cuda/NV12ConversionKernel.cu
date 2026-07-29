@@ -1,12 +1,10 @@
 #include <surface_indirect_functions.h>
 
 // NV12 -> RGB(A) conversion - device code only (compiled to PTX and loaded via the
-// CUDA Driver API by NV12ConversionKernel.cpp, matching JBUKernel.cu's pattern - see
-// that file's own header comment for why: this project hand-writes small CUDA
-// kernels rather than depending on GStreamer conversion elements whose in-process
-// availability on a given dev machine isn't reliable (see project memory
-// project_gstreamer_inprocess_decoder_plugin_gap - the same class of issue that
-// motivated JBUKernel already).
+// CUDA Driver API by NV12ConversionKernel.cpp). Hand-written rather than depending
+// on a GStreamer conversion element whose in-process availability on a given dev
+// machine isn't reliable (see project memory
+// project_gstreamer_inprocess_decoder_plugin_gap).
 //
 // nvh264dec's CUDA memory output is NV12 (see `gst-inspect-1.0 nvh264dec` -
 // video/x-raw(memory:CUDAMemory),format=NV12): a full-resolution 8-bit luma (Y)
@@ -16,15 +14,13 @@
 //  - RGBA8 via surf2Dwrite() into a CUDA-GL-interop-mapped surface (for display -
 //    see CudaGLColorTexture in CudaGLInterop.h).
 //  - Tightly-packed RGB (3 bytes/pixel, no alpha) into a plain linear device
-//    buffer - this becomes JBUKernel's `guideRGB` input (see JBUKernel.cu's
-//    computeJbuValue(), which indexes the guide image as 3 bytes/pixel), so the
-//    JBU depth upsample doesn't need its own separate color conversion pass.
+//    buffer - a mandatory output parameter of this kernel, though nothing
+//    currently reads it.
 //
 // Conversion assumes BT.601, limited (video) range - the conventional encoding for
 // H.264 video from a phone camera. If real captured colors look off (e.g.
 // washed-out/oversaturated), this is the first place to revisit - it hasn't been
-// empirically verified against a real ARKit capture the way JBUKernel's tuning
-// parameters were (ticket D5).
+// empirically verified against a real ARKit capture.
 extern "C" __global__ void nv12_to_rgb_kernel(const unsigned char* yPlane, int yStrideBytes,
 											  const unsigned char* uvPlane, int uvStrideBytes, int width, int height,
 											  cudaSurfaceObject_t rgbaSurface, unsigned char* guideRGBOut,

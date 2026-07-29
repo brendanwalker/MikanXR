@@ -17,52 +17,16 @@
 
 // -- ARKitVideoSourceDefinition -----
 const std::string ARKitVideoSourceDefinition::k_basePortPropertyId= "base_port";
-const std::string ARKitVideoSourceDefinition::k_depthStreamingEnabledPropertyId= "depth_streaming_enabled";
-const std::string ARKitVideoSourceDefinition::k_jbuRadiusPropertyId= "jbu_radius";
-const std::string ARKitVideoSourceDefinition::k_jbuSigmaSpatialPropertyId= "jbu_sigma_spatial";
-const std::string ARKitVideoSourceDefinition::k_jbuSigmaColorPropertyId= "jbu_sigma_color";
-const std::string ARKitVideoSourceDefinition::k_jbuConfWeightLowPropertyId= "jbu_conf_weight_low";
-const std::string ARKitVideoSourceDefinition::k_jbuConfWeightMediumPropertyId= "jbu_conf_weight_medium";
-const std::string ARKitVideoSourceDefinition::k_segGatingEnabledPropertyId= "seg_gating_enabled";
-const std::string ARKitVideoSourceDefinition::k_segEdgeStrengthPropertyId= "seg_edge_strength";
-
-// Mirrors JBUParams' own defaults (ticket D5 - see
-// MikanARKitVideo/Private/Cuda/JBUKernel.h). Duplicated here as plain literals
-// rather than including JBUKernel.h, since that header pulls in <cuda.h> and this
-// is Editor ECS code that doesn't otherwise depend on the CUDA Toolkit.
-#define DEFAULT_ARKIT_JBU_RADIUS 32
-#define DEFAULT_ARKIT_JBU_SIGMA_SPATIAL 16.0f
-#define DEFAULT_ARKIT_JBU_SIGMA_COLOR 15.0f
-#define DEFAULT_ARKIT_JBU_CONF_WEIGHT_LOW 0.0f
-#define DEFAULT_ARKIT_JBU_CONF_WEIGHT_MEDIUM 0.5f
-#define DEFAULT_ARKIT_SEG_GATING_ENABLED false
-#define DEFAULT_ARKIT_SEG_EDGE_STRENGTH 0.0f
 
 ARKitVideoSourceDefinition::ARKitVideoSourceDefinition()
 	: VideoSourceDefinition()
 	, m_basePort(DEFAULT_ARKIT_BASE_PORT)
-	, m_bDepthStreamingEnabled(true)
-	, m_jbuRadius(DEFAULT_ARKIT_JBU_RADIUS)
-	, m_jbuSigmaSpatial(DEFAULT_ARKIT_JBU_SIGMA_SPATIAL)
-	, m_jbuSigmaColor(DEFAULT_ARKIT_JBU_SIGMA_COLOR)
-	, m_jbuConfWeightLow(DEFAULT_ARKIT_JBU_CONF_WEIGHT_LOW)
-	, m_jbuConfWeightMedium(DEFAULT_ARKIT_JBU_CONF_WEIGHT_MEDIUM)
-	, m_bSegGatingEnabled(DEFAULT_ARKIT_SEG_GATING_ENABLED)
-	, m_segEdgeStrength(DEFAULT_ARKIT_SEG_EDGE_STRENGTH)
 {
 }
 
 ARKitVideoSourceDefinition::ARKitVideoSourceDefinition(MikanVideoSourceID videoSourceId)
 	: VideoSourceDefinition(videoSourceId)
 	, m_basePort(DEFAULT_ARKIT_BASE_PORT)
-	, m_bDepthStreamingEnabled(true)
-	, m_jbuRadius(DEFAULT_ARKIT_JBU_RADIUS)
-	, m_jbuSigmaSpatial(DEFAULT_ARKIT_JBU_SIGMA_SPATIAL)
-	, m_jbuSigmaColor(DEFAULT_ARKIT_JBU_SIGMA_COLOR)
-	, m_jbuConfWeightLow(DEFAULT_ARKIT_JBU_CONF_WEIGHT_LOW)
-	, m_jbuConfWeightMedium(DEFAULT_ARKIT_JBU_CONF_WEIGHT_MEDIUM)
-	, m_bSegGatingEnabled(DEFAULT_ARKIT_SEG_GATING_ENABLED)
-	, m_segEdgeStrength(DEFAULT_ARKIT_SEG_EDGE_STRENGTH)
 {
 }
 
@@ -71,14 +35,6 @@ configuru::Config ARKitVideoSourceDefinition::writeToJSON()
 	configuru::Config pt= VideoSourceDefinition::writeToJSON();
 
 	pt[k_basePortPropertyId]= m_basePort;
-	pt[k_depthStreamingEnabledPropertyId]= m_bDepthStreamingEnabled;
-	pt[k_jbuRadiusPropertyId]= m_jbuRadius;
-	pt[k_jbuSigmaSpatialPropertyId]= m_jbuSigmaSpatial;
-	pt[k_jbuSigmaColorPropertyId]= m_jbuSigmaColor;
-	pt[k_jbuConfWeightLowPropertyId]= m_jbuConfWeightLow;
-	pt[k_jbuConfWeightMediumPropertyId]= m_jbuConfWeightMedium;
-	pt[k_segGatingEnabledPropertyId]= m_bSegGatingEnabled;
-	pt[k_segEdgeStrengthPropertyId]= m_segEdgeStrength;
 
 	return pt;
 }
@@ -88,14 +44,6 @@ void ARKitVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	VideoSourceDefinition::readFromJSON(pt);
 
 	m_basePort= pt.get_or<int>(k_basePortPropertyId, m_basePort);
-	m_bDepthStreamingEnabled= pt.get_or<bool>(k_depthStreamingEnabledPropertyId, m_bDepthStreamingEnabled);
-	m_jbuRadius= pt.get_or<int>(k_jbuRadiusPropertyId, m_jbuRadius);
-	m_jbuSigmaSpatial= pt.get_or<float>(k_jbuSigmaSpatialPropertyId, m_jbuSigmaSpatial);
-	m_jbuSigmaColor= pt.get_or<float>(k_jbuSigmaColorPropertyId, m_jbuSigmaColor);
-	m_jbuConfWeightLow= pt.get_or<float>(k_jbuConfWeightLowPropertyId, m_jbuConfWeightLow);
-	m_jbuConfWeightMedium= pt.get_or<float>(k_jbuConfWeightMediumPropertyId, m_jbuConfWeightMedium);
-	m_bSegGatingEnabled= pt.get_or<bool>(k_segGatingEnabledPropertyId, m_bSegGatingEnabled);
-	m_segEdgeStrength= pt.get_or<float>(k_segEdgeStrengthPropertyId, m_segEdgeStrength);
 }
 
 bool ARKitVideoSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
@@ -108,14 +56,6 @@ bool ARKitVideoSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObje
 	if (componentValues)
 	{
 		m_basePort= componentValues->base_port;
-		m_bDepthStreamingEnabled= componentValues->depth_streaming_enabled;
-		m_jbuRadius= componentValues->jbu_radius;
-		m_jbuSigmaSpatial= componentValues->jbu_sigma_spatial;
-		m_jbuSigmaColor= componentValues->jbu_sigma_color;
-		m_jbuConfWeightLow= componentValues->jbu_conf_weight_low;
-		m_jbuConfWeightMedium= componentValues->jbu_conf_weight_medium;
-		m_bSegGatingEnabled= componentValues->seg_gating_enabled;
-		m_segEdgeStrength= componentValues->seg_edge_strength;
 	}
 
 	return true;
@@ -127,94 +67,6 @@ void ARKitVideoSourceDefinition::setBasePort(int basePort)
 	{
 		m_basePort= basePort;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_basePortPropertyId));
-	}
-}
-
-void ARKitVideoSourceDefinition::setDepthStreamingEnabled(bool depthStreamingEnabled)
-{
-	if (depthStreamingEnabled != m_bDepthStreamingEnabled)
-	{
-		m_bDepthStreamingEnabled= depthStreamingEnabled;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_depthStreamingEnabledPropertyId));
-	}
-}
-
-void ARKitVideoSourceDefinition::setJbuRadius(int jbuRadius)
-{
-	// Clamped rather than left unbounded: the kernel itself tolerates any value
-	// (window bounds are clamped internally, see JBUKernel.cu), but an extreme
-	// radius (e.g. from a bad remote-client property set) would tank frame time by
-	// scanning a huge fraction of the low-res depth plane per output pixel.
-	jbuRadius= std::clamp(jbuRadius, 1, 128);
-	if (jbuRadius != m_jbuRadius)
-	{
-		m_jbuRadius= jbuRadius;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_jbuRadiusPropertyId));
-	}
-}
-
-void ARKitVideoSourceDefinition::setJbuSigmaSpatial(float jbuSigmaSpatial)
-{
-	// Clamped above 0 - the kernel computes 1/(2*sigma^2) (see JBUKernel.cpp), so an
-	// exact 0 would divide-by-zero and propagate NaN into the upsampled depth output.
-	jbuSigmaSpatial= std::clamp(jbuSigmaSpatial, 0.1f, 128.0f);
-	if (jbuSigmaSpatial != m_jbuSigmaSpatial)
-	{
-		m_jbuSigmaSpatial= jbuSigmaSpatial;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_jbuSigmaSpatialPropertyId));
-	}
-}
-
-void ARKitVideoSourceDefinition::setJbuSigmaColor(float jbuSigmaColor)
-{
-	// Same divide-by-zero rationale as setJbuSigmaSpatial above.
-	jbuSigmaColor= std::clamp(jbuSigmaColor, 0.1f, 255.0f);
-	if (jbuSigmaColor != m_jbuSigmaColor)
-	{
-		m_jbuSigmaColor= jbuSigmaColor;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_jbuSigmaColorPropertyId));
-	}
-}
-
-void ARKitVideoSourceDefinition::setJbuConfWeightLow(float jbuConfWeightLow)
-{
-	jbuConfWeightLow= std::clamp(jbuConfWeightLow, 0.0f, 1.0f);
-	if (jbuConfWeightLow != m_jbuConfWeightLow)
-	{
-		m_jbuConfWeightLow= jbuConfWeightLow;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_jbuConfWeightLowPropertyId));
-	}
-}
-
-void ARKitVideoSourceDefinition::setJbuConfWeightMedium(float jbuConfWeightMedium)
-{
-	jbuConfWeightMedium= std::clamp(jbuConfWeightMedium, 0.0f, 1.0f);
-	if (jbuConfWeightMedium != m_jbuConfWeightMedium)
-	{
-		m_jbuConfWeightMedium= jbuConfWeightMedium;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_jbuConfWeightMediumPropertyId));
-	}
-}
-
-void ARKitVideoSourceDefinition::setSegGatingEnabled(bool segGatingEnabled)
-{
-	if (segGatingEnabled != m_bSegGatingEnabled)
-	{
-		m_bSegGatingEnabled= segGatingEnabled;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_segGatingEnabledPropertyId));
-	}
-}
-
-void ARKitVideoSourceDefinition::setSegEdgeStrength(float segEdgeStrength)
-{
-	// Cross-silhouette tap weight: 1.0 == no gating, 0.0 == hard crisp edge. Clamped
-	// to [0,1] here (not just at the GUI) so remote-client property sets and project
-	// loads are bounded too.
-	segEdgeStrength= std::clamp(segEdgeStrength, 0.0f, 1.0f);
-	if (segEdgeStrength != m_segEdgeStrength)
-	{
-		m_segEdgeStrength= segEdgeStrength;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_segEdgeStrengthPropertyId));
 	}
 }
 
@@ -299,7 +151,6 @@ bool ARKitVideoSourceComponent::openVideoSource()
 
 	ARKitVideoConnectionSettings connectionSettings;
 	connectionSettings.basePort= static_cast<uint16_t>(definition->getBasePort());
-	connectionSettings.depthStreamingEnabled= definition->getDepthStreamingEnabled();
 
 	m_arkitVideoDevice= arkitVideoDeviceManager->createVideoDevice(connectionSettings);
 	if (m_arkitVideoDevice == nullptr)
@@ -427,70 +278,11 @@ IMkTexturePtr ARKitVideoSourceComponent::getDirectColorTexture() const
 	return m_colorTextureWrapper;
 }
 
-IMkTexturePtr ARKitVideoSourceComponent::getDirectDepthTexture() const
-{
-	if (m_arkitVideoDevice == nullptr)
-		return IMkTexturePtr();
-
-	uint32_t glId= m_arkitVideoDevice->getDepthTextureGlId();
-	if (glId == 0)
-		return IMkTexturePtr();
-
-	if (m_depthTextureWrapper == nullptr)
-		m_depthTextureWrapper= CreateMkExternalTexture();
-
-	m_depthTextureWrapper->setExternalPlatformTexture(&glId);
-	return m_depthTextureWrapper;
-}
-
-IMkTexturePtr ARKitVideoSourceComponent::getDirectHumanStencilRefinedTexture() const
-{
-	if (m_arkitVideoDevice == nullptr)
-		return IMkTexturePtr();
-
-	uint32_t glId= m_arkitVideoDevice->getHumanStencilRefinedTextureGlId();
-	if (glId == 0)
-		return IMkTexturePtr();
-
-	if (m_humanStencilRefinedTextureWrapper == nullptr)
-		m_humanStencilRefinedTextureWrapper= CreateMkExternalTexture();
-
-	m_humanStencilRefinedTextureWrapper->setExternalPlatformTexture(&glId);
-	return m_humanStencilRefinedTextureWrapper;
-}
-
-IMkTexturePtr ARKitVideoSourceComponent::getDirectHumanStencilRawTexture() const
-{
-	if (m_arkitVideoDevice == nullptr)
-		return IMkTexturePtr();
-
-	uint32_t glId= m_arkitVideoDevice->getHumanStencilRawTextureGlId();
-	if (glId == 0)
-		return IMkTexturePtr();
-
-	if (m_humanStencilRawTextureWrapper == nullptr)
-		m_humanStencilRawTextureWrapper= CreateMkExternalTexture();
-
-	m_humanStencilRawTextureWrapper->setExternalPlatformTexture(&glId);
-	return m_humanStencilRawTextureWrapper;
-}
-
-void ARKitVideoSourceComponent::setDepthPreviewMode(eARKitDepthPreviewMode mode)
-{
-	if (m_arkitVideoDevice != nullptr)
-		m_arkitVideoDevice->setDepthPreviewMode(mode);
-}
-
 // -- IARKitVideoDeviceListener ----
 void ARKitVideoSourceComponent::notifyDeviceOpened(const IARKitVideoDevice* device)
 {
 	if (device != m_arkitVideoDevice.get())
 		return;
-
-	// Apply the definition's stored JBU tuning to the freshly opened device - without
-	// this it would silently run with JBUKernel.h's compiled-in defaults instead of
-	// whatever the user has configured (or previously tuned) for this source.
-	pushJBUParamsToDevice();
 
 	// Let any connected clients know that the video source opened
 	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceOpenedEvent();
@@ -539,10 +331,6 @@ void ARKitVideoSourceComponent::notifyFrameBundleReceived(const ARKitVideoFrameB
 
 		writeVideoFrame(bundle.videoData, bufferDimensions, is_frame_flipped);
 	}
-
-	// bundle.depth is deliberately left untouched here - MikanARKitVideoDevice's own
-	// CUDA-GL depth pipeline (ticket E3) reads depth via its own "latest depth"
-	// cache, decoupled from this correlator bundle entirely - see that class.
 
 	// Frame-coupled pose (ticket E4).
 	if (bundle.hasPose)
@@ -606,30 +394,6 @@ void ARKitVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescr
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(ARKitVideoSourceDefinition::k_basePortPropertyId, MikanVariantType::INT)
 			->setDefaultValue(DEFAULT_ARKIT_BASE_PORT));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-								 ARKitVideoSourceDefinition::k_depthStreamingEnabledPropertyId, MikanVariantType::BOOL)
-								 ->setDefaultValue(true));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(ARKitVideoSourceDefinition::k_jbuRadiusPropertyId, MikanVariantType::INT)
-			->setDefaultValue(DEFAULT_ARKIT_JBU_RADIUS));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-								 ARKitVideoSourceDefinition::k_jbuSigmaSpatialPropertyId, MikanVariantType::FLOAT)
-								 ->setDefaultValue(DEFAULT_ARKIT_JBU_SIGMA_SPATIAL));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(ARKitVideoSourceDefinition::k_jbuSigmaColorPropertyId,
-																  MikanVariantType::FLOAT)
-								 ->setDefaultValue(DEFAULT_ARKIT_JBU_SIGMA_COLOR));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-								 ARKitVideoSourceDefinition::k_jbuConfWeightLowPropertyId, MikanVariantType::FLOAT)
-								 ->setDefaultValue(DEFAULT_ARKIT_JBU_CONF_WEIGHT_LOW));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-								 ARKitVideoSourceDefinition::k_jbuConfWeightMediumPropertyId, MikanVariantType::FLOAT)
-								 ->setDefaultValue(DEFAULT_ARKIT_JBU_CONF_WEIGHT_MEDIUM));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-								 ARKitVideoSourceDefinition::k_segGatingEnabledPropertyId, MikanVariantType::BOOL)
-								 ->setDefaultValue(DEFAULT_ARKIT_SEG_GATING_ENABLED));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-								 ARKitVideoSourceDefinition::k_segEdgeStrengthPropertyId, MikanVariantType::FLOAT)
-								 ->setDefaultValue(DEFAULT_ARKIT_SEG_EDGE_STRENGTH));
 }
 
 bool ARKitVideoSourceComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
@@ -639,46 +403,6 @@ bool ARKitVideoSourceComponent::getPropertyValue(const std::string& propertyName
 	if (propertyName == ARKitVideoSourceDefinition::k_basePortPropertyId)
 	{
 		outValue= definition->getBasePort();
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_depthStreamingEnabledPropertyId)
-	{
-		outValue= definition->getDepthStreamingEnabled();
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuRadiusPropertyId)
-	{
-		outValue= definition->getJbuRadius();
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuSigmaSpatialPropertyId)
-	{
-		outValue= definition->getJbuSigmaSpatial();
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuSigmaColorPropertyId)
-	{
-		outValue= definition->getJbuSigmaColor();
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuConfWeightLowPropertyId)
-	{
-		outValue= definition->getJbuConfWeightLow();
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuConfWeightMediumPropertyId)
-	{
-		outValue= definition->getJbuConfWeightMedium();
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_segGatingEnabledPropertyId)
-	{
-		outValue= definition->getSegGatingEnabled();
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_segEdgeStrengthPropertyId)
-	{
-		outValue= definition->getSegEdgeStrength();
 		return true;
 	}
 
@@ -694,46 +418,6 @@ bool ARKitVideoSourceComponent::setPropertyValue(const std::string& propertyName
 		definition->setBasePort(inValue.getIntValue());
 		return true;
 	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_depthStreamingEnabledPropertyId)
-	{
-		definition->setDepthStreamingEnabled(inValue.getBoolValue());
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuRadiusPropertyId)
-	{
-		definition->setJbuRadius(inValue.getIntValue());
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuSigmaSpatialPropertyId)
-	{
-		definition->setJbuSigmaSpatial(inValue.getFloatValue());
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuSigmaColorPropertyId)
-	{
-		definition->setJbuSigmaColor(inValue.getFloatValue());
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuConfWeightLowPropertyId)
-	{
-		definition->setJbuConfWeightLow(inValue.getFloatValue());
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_jbuConfWeightMediumPropertyId)
-	{
-		definition->setJbuConfWeightMedium(inValue.getFloatValue());
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_segGatingEnabledPropertyId)
-	{
-		definition->setSegGatingEnabled(inValue.getBoolValue());
-		return true;
-	}
-	else if (propertyName == ARKitVideoSourceDefinition::k_segEdgeStrengthPropertyId)
-	{
-		definition->setSegEdgeStrength(inValue.getFloatValue());
-		return true;
-	}
 
 	return VideoSourceComponent::setPropertyValue(propertyName, inValue);
 }
@@ -741,49 +425,15 @@ bool ARKitVideoSourceComponent::setPropertyValue(const std::string& propertyName
 void ARKitVideoSourceComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
 														const ConfigPropertyChangeSet& changedPropertySet)
 {
-	// Only basePort/depthStreamingEnabled affect the open connection - changing them
-	// must force a reconnect.
-	if (changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_basePortPropertyId)
-		|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_depthStreamingEnabledPropertyId))
+	// basePort is the only property left that affects the open connection -
+	// changing it must force a reconnect.
+	if (changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_basePortPropertyId))
 	{
 		closeVideoSource();
 		openVideoSource();
 	}
 	else
 	{
-		// JBU tuning params live-apply to the running device with no reconnect
-		// needed - lets the user sweep values in real time while watching the depth
-		// preview (AppStage_VideoSourceSettings) for flicker/edge quality.
-		if (changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuRadiusPropertyId)
-			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuSigmaSpatialPropertyId)
-			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuSigmaColorPropertyId)
-			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuConfWeightLowPropertyId)
-			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_jbuConfWeightMediumPropertyId)
-			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_segGatingEnabledPropertyId)
-			|| changedPropertySet.hasPropertyName(ARKitVideoSourceDefinition::k_segEdgeStrengthPropertyId))
-		{
-			pushJBUParamsToDevice();
-		}
-
 		VideoSourceComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 	}
-}
-
-void ARKitVideoSourceComponent::pushJBUParamsToDevice()
-{
-	if (m_arkitVideoDevice == nullptr)
-		return;
-
-	ARKitVideoSourceDefinitionPtr definition= getARKitVideoSourceDefinition();
-
-	ARKitJBUParams params;
-	params.radius= definition->getJbuRadius();
-	params.sigmaSpatial= definition->getJbuSigmaSpatial();
-	params.sigmaColor= definition->getJbuSigmaColor();
-	params.confWeightLow= definition->getJbuConfWeightLow();
-	params.confWeightMedium= definition->getJbuConfWeightMedium();
-	params.segGatingEnabled= definition->getSegGatingEnabled();
-	params.segEdgeStrength= definition->getSegEdgeStrength();
-
-	m_arkitVideoDevice->setJBUParams(params);
 }

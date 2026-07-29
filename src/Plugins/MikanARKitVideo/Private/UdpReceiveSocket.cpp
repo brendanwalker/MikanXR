@@ -24,9 +24,8 @@ using SockLen= socklen_t;
 
 namespace
 {
-// Generous receive buffer: depth frames burst many ~1.2KB fragments in quick
-// succession, and an undersized kernel socket buffer silently drops datagrams
-// under load rather than surfacing an error.
+// Generous receive buffer: an undersized kernel socket buffer silently drops
+// datagrams under load rather than surfacing an error.
 constexpr int kReceiveBufferBytes= 1 << 20; // 1 MB
 
 // Bounded so a worker thread blocked in receive() stays responsive to a

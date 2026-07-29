@@ -233,24 +233,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD() int base_port;                ///< Video RTP on base_port+0, depth on base_port+1, pose on base_port+2
-	FIELD() bool depth_streaming_enabled; ///< Whether the iPhone sender is expected to stream LiDAR depth+confidence
-
-	// Joint Bilateral Upsampling tuning params (see JBUParams in
-	// MikanARKitVideo/Private/Cuda/JBUKernel.h - ticket D5 owns the empirically-tuned
-	// defaults these mirror)
-	FIELD() int jbu_radius;
-	FIELD() float jbu_sigma_spatial;
-	FIELD() float jbu_sigma_color;
-	FIELD() float jbu_conf_weight_low;
-	FIELD() float jbu_conf_weight_medium;
-
-	// Person-segmentation silhouette gating (Track E seg-gating). When enabled, depth
-	// upsampling is gated against the streamed person matte so it can't bleed across a
-	// person's silhouette; seg_edge_strength is the cross-boundary tap weight (1.0 == no
-	// gating, 0.0 == hard crisp edge, clamped to [0,1] by the definition setter).
-	FIELD() bool seg_gating_enabled;
-	FIELD() float seg_edge_strength;
+	FIELD() int base_port; ///< Video RTP on base_port+0, pose on base_port+2
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanARKitVideoSourceValues_GENERATED

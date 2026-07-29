@@ -132,14 +132,11 @@ static bool arkit_pose_receiver_test_parse_rejects_malformed_input()
 	success= success && (parseARKitPoseDatagram(buffer, sizeof(buffer) - 1, frame) == false);
 	assert(success);
 
-	// Wrong packet type - a depth fragment header fed to the pose parser.
-	ARKitDepthFragmentHeader depthHeader;
-	depthHeader.frameSeq= 1;
-	depthHeader.fragIndex= 0;
-	depthHeader.fragCount= 1;
-	uint8_t depthBuffer[ARKitDepthFragmentHeader::kWireSize]= {};
-	writeARKitDepthFragmentHeader(depthBuffer, sizeof(depthBuffer), depthHeader);
-	success= success && (parseARKitPoseDatagram(depthBuffer, sizeof(depthBuffer), frame) == false);
+	// Wrong packet type byte in an otherwise well-formed pose packet.
+	uint8_t corruptedType[ARKitPosePacket::kWireSize];
+	std::memcpy(corruptedType, buffer, sizeof(corruptedType));
+	corruptedType[3]= 0xFF; // type byte, offset = sizeof(magic)+sizeof(version)
+	success= success && (parseARKitPoseDatagram(corruptedType, sizeof(corruptedType), frame) == false);
 	assert(success);
 
 	// Corrupted magic byte in an otherwise well-formed pose packet.

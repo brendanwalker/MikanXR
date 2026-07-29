@@ -12,8 +12,8 @@ file(GLOB MIKAN_ARKIT_VIDEO_PRIVATE_SRC
 	"${CMAKE_CURRENT_LIST_DIR}/Private/*.cpp"
 )
 
-# Non-recursive GLOB above doesn't reach Private/Cuda/ - globbed separately (ticket
-# D1). Note JBUKernel.cu itself is NOT in this list / not a source of this target -
+# Non-recursive GLOB above doesn't reach Private/Cuda/ - globbed separately. Note
+# NV12ConversionKernel.cu itself is NOT in this list / not a source of this target -
 # it's compiled to PTX by a custom command below and loaded at runtime via
 # cuModuleLoadData, never linked into any host translation unit.
 file(GLOB MIKAN_ARKIT_VIDEO_CUDA_SRC
@@ -31,22 +31,10 @@ source_group("Public" FILES ${MIKAN_ARKIT_VIDEO_HEADER})
 source_group("Private" FILES ${MIKAN_ARKIT_VIDEO_PRIVATE_SRC})
 source_group("Private\\Cuda" FILES ${MIKAN_ARKIT_VIDEO_CUDA_SRC})
 
-# JBUKernel.cu -> JBUKernel.ptx (ticket D1). Compiled once here and reused by
-# unit_test_suite_cpp too (see UnitTests/CMakeLists.txt) via the same output path.
-set(MIKAN_ARKIT_JBU_KERNEL_CU "${CMAKE_CURRENT_LIST_DIR}/Private/Cuda/JBUKernel.cu")
-set(MIKAN_ARKIT_JBU_KERNEL_PTX "${CMAKE_CURRENT_BINARY_DIR}/JBUKernel.ptx" CACHE INTERNAL "")
-add_custom_command(
-	OUTPUT "${MIKAN_ARKIT_JBU_KERNEL_PTX}"
-	COMMAND "${CUDA_NVCC_EXECUTABLE}" --ptx "${MIKAN_ARKIT_JBU_KERNEL_CU}" -o "${MIKAN_ARKIT_JBU_KERNEL_PTX}"
-	DEPENDS "${MIKAN_ARKIT_JBU_KERNEL_CU}"
-	COMMENT "Compiling JBUKernel.cu to PTX"
-	VERBATIM)
-add_custom_target(MikanARKitVideoJBUKernelPTX DEPENDS "${MIKAN_ARKIT_JBU_KERNEL_PTX}")
-set_target_properties(MikanARKitVideoJBUKernelPTX PROPERTIES FOLDER Plugins)
-
-# NV12ConversionKernel.cu -> NV12ConversionKernel.ptx (ticket E3) - same pattern as
-# JBUKernel.cu above (compiled once, loaded at runtime via cuModuleLoadData, never
-# linked into any host translation unit).
+# NV12ConversionKernel.cu -> NV12ConversionKernel.ptx (ticket E3) - compiled once
+# here and reused by unit_test_suite_cpp too (see UnitTests/CMakeLists.txt) via the
+# same output path; loaded at runtime via cuModuleLoadData, never linked into any
+# host translation unit.
 set(MIKAN_ARKIT_NV12_KERNEL_CU "${CMAKE_CURRENT_LIST_DIR}/Private/Cuda/NV12ConversionKernel.cu")
 set(MIKAN_ARKIT_NV12_KERNEL_PTX "${CMAKE_CURRENT_BINARY_DIR}/NV12ConversionKernel.ptx" CACHE INTERNAL "")
 add_custom_command(
@@ -90,9 +78,7 @@ list(APPEND MIKAN_ARKIT_VIDEO_REQ_LIBS
 add_library(MikanARKitVideo SHARED ${MIKAN_ARKIT_VIDEO_SRC})
 target_include_directories(MikanARKitVideo PRIVATE ${MIKAN_ARKIT_VIDEO_INCL_DIRS})
 target_link_libraries(MikanARKitVideo PRIVATE ${MIKAN_ARKIT_VIDEO_REQ_LIBS})
-add_dependencies(MikanARKitVideo MikanARKitVideoJBUKernelPTX)
 add_dependencies(MikanARKitVideo MikanARKitVideoNV12KernelPTX)
-target_compile_definitions(MikanARKitVideo PRIVATE JBU_KERNEL_PTX_PATH="${MIKAN_ARKIT_JBU_KERNEL_PTX}")
 target_compile_definitions(MikanARKitVideo PRIVATE NV12_KERNEL_PTX_PATH="${MIKAN_ARKIT_NV12_KERNEL_PTX}")
 set_target_properties(MikanARKitVideo PROPERTIES FOLDER Plugins)
 set_target_properties(MikanARKitVideo PROPERTIES PUBLIC_HEADER "${MIKAN_ARKIT_VIDEO_HEADER}")

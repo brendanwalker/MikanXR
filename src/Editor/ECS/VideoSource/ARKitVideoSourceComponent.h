@@ -29,62 +29,8 @@ public:
 	inline int getBasePort() const { return m_basePort; }
 	void setBasePort(int basePort);
 
-	static const std::string k_depthStreamingEnabledPropertyId;
-	inline bool getDepthStreamingEnabled() const { return m_bDepthStreamingEnabled; }
-	void setDepthStreamingEnabled(bool depthStreamingEnabled);
-
-	// Joint Bilateral Upsampling tuning params (ticket D5's JBUParams defaults - see
-	// MikanARKitVideo/Private/Cuda/JBUKernel.h). Live-applied to the running device
-	// via ARKitVideoSourceComponent::pushJBUParamsToDevice() - both on device-open
-	// and on every subsequent edit (see that component's onDefinitionMarkedDirty),
-	// so changing these at runtime takes effect immediately without a reconnect.
-	// Setters clamp to safe ranges (see the .cpp) since sigmaSpatial/sigmaColor of
-	// exactly 0 would divide-by-zero in the kernel.
-	static const std::string k_jbuRadiusPropertyId;
-	inline int getJbuRadius() const { return m_jbuRadius; }
-	void setJbuRadius(int jbuRadius);
-
-	static const std::string k_jbuSigmaSpatialPropertyId;
-	inline float getJbuSigmaSpatial() const { return m_jbuSigmaSpatial; }
-	void setJbuSigmaSpatial(float jbuSigmaSpatial);
-
-	static const std::string k_jbuSigmaColorPropertyId;
-	inline float getJbuSigmaColor() const { return m_jbuSigmaColor; }
-	void setJbuSigmaColor(float jbuSigmaColor);
-
-	static const std::string k_jbuConfWeightLowPropertyId;
-	inline float getJbuConfWeightLow() const { return m_jbuConfWeightLow; }
-	void setJbuConfWeightLow(float jbuConfWeightLow);
-
-	static const std::string k_jbuConfWeightMediumPropertyId;
-	inline float getJbuConfWeightMedium() const { return m_jbuConfWeightMedium; }
-	void setJbuConfWeightMedium(float jbuConfWeightMedium);
-
-	// Person-segmentation silhouette gating (Track E seg-gating). When enabled, the
-	// device gates the JBU upsample against the streamed person matte so depth can't
-	// bleed across a person's silhouette. seg_edge_strength is the cross-boundary tap
-	// weight (1.0 == no gating, 0.0 == hard crisp edge); its setter clamps to [0,1].
-	// Both live-apply to the running device (no reconnect) like the JBU tuning params.
-	static const std::string k_segGatingEnabledPropertyId;
-	inline bool getSegGatingEnabled() const { return m_bSegGatingEnabled; }
-	void setSegGatingEnabled(bool segGatingEnabled);
-
-	static const std::string k_segEdgeStrengthPropertyId;
-	inline float getSegEdgeStrength() const { return m_segEdgeStrength; }
-	void setSegEdgeStrength(float segEdgeStrength);
-
 private:
 	int m_basePort;
-	bool m_bDepthStreamingEnabled;
-
-	int m_jbuRadius;
-	float m_jbuSigmaSpatial;
-	float m_jbuSigmaColor;
-	float m_jbuConfWeightLow;
-	float m_jbuConfWeightMedium;
-
-	bool m_bSegGatingEnabled;
-	float m_segEdgeStrength;
 };
 
 class ARKitVideoSourceComponent : public VideoSourceComponent,
@@ -116,16 +62,8 @@ public:
 
 	// -- Zero-copy GPU texture access (ticket E3) ----
 	virtual IMkTexturePtr getDirectColorTexture() const override;
-	virtual IMkTexturePtr getDirectDepthTexture() const override;
-	virtual IMkTexturePtr getDirectHumanStencilRefinedTexture() const override;
-	virtual IMkTexturePtr getDirectHumanStencilRawTexture() const override;
 
-	// Selects what the live device renders into its depth-preview texture (JBU depth vs
-	// a raw-depth/matte debug view). Transient (not persisted) - driven by the video
-	// settings AppStage's preview toggle. No-op if the device isn't open.
-	void setDepthPreviewMode(eARKitDepthPreviewMode mode);
-
-	// Latest bundle's frameSeq (video, depth, or pose - whichever arrived most
+	// Latest bundle's frameSeq (video or pose - whichever arrived most
 	// recently), or -1 if none has arrived yet (ticket E4 - see
 	// VideoSourceComponent::getDirectFrameIndex()'s own comment for why this
 	// exists: it's what makes VideoFrameDistortionView's change-detection work
@@ -157,14 +95,6 @@ protected:
 
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
-	// Pushes the definition's current JBU tuning properties to the live device (a
-	// no-op if the device isn't open yet). Called once on device-open (so a freshly
-	// opened device picks up the definition's stored values instead of JBUKernel's
-	// compiled-in defaults) and again on every live edit to those properties (see
-	// onDefinitionMarkedDirty) so runtime adjustments take effect immediately,
-	// without a reconnect.
-	void pushJBUParamsToDevice();
-
 private:
 	IARKitVideoDevicePtr m_arkitVideoDevice= nullptr;
 	bool m_bPendingOpen= false;
@@ -176,18 +106,15 @@ private:
 	int m_lastVideoWidth= 0;
 	int m_lastVideoHeight= 0;
 
-	// Wrap the plugin's raw GL texture ids (IARKitVideoDevice::getColorTextureGlId/
-	// getDepthTextureGlId - see that header's comment on why this crosses the
-	// MikanCoreApp/MikanRenderer layering boundary as a raw id rather than an
-	// IMkTexturePtr) into IMkExternalTexture wrappers this Editor-side code can
-	// hand out via getDirectColorTexture/getDirectDepthTexture. Lazily created on
-	// first non-zero id; setExternalPlatformTexture() is cheap to call again every
-	// frame after that (it early-outs unless the underlying GL id actually
-	// changed - see GlExternalTexture::setExternalPlatformTexture).
+	// Wrap the plugin's raw GL texture id (IARKitVideoDevice::getColorTextureGlId -
+	// see that header's comment on why this crosses the MikanCoreApp/MikanRenderer
+	// layering boundary as a raw id rather than an IMkTexturePtr) into an
+	// IMkExternalTexture wrapper this Editor-side code can hand out via
+	// getDirectColorTexture. Lazily created on first non-zero id;
+	// setExternalPlatformTexture() is cheap to call again every frame after that
+	// (it early-outs unless the underlying GL id actually changed - see
+	// GlExternalTexture::setExternalPlatformTexture).
 	mutable IMkExternalTexturePtr m_colorTextureWrapper;
-	mutable IMkExternalTexturePtr m_depthTextureWrapper;
-	mutable IMkExternalTexturePtr m_humanStencilRefinedTextureWrapper;
-	mutable IMkExternalTexturePtr m_humanStencilRawTextureWrapper;
 
 	// Latest frame-coupled pose (ticket E4) - notifyFrameBundleReceived() can fire
 	// from a background receiver thread (see that method's own override in the

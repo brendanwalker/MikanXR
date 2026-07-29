@@ -5,8 +5,8 @@
 #include <cstdint>
 
 // RAII wrapper for a UDP socket bound to receive datagrams on a fixed local port
-// from any sender (used for the ARKit depth/pose channels - see
-// ARKitWireProtocol.h). Windows: Winsock2. Linux/macOS: POSIX sockets. Modeled on
+// from any sender (used for the ARKit pose channel - see ARKitWireProtocol.h).
+// Windows: Winsock2. Linux/macOS: POSIX sockets. Modeled on
 // src/Libraries/MikanDMX/Private/UdpMulticastSocket.h's RAII/socket-handle pattern,
 // but receive-capable (that class is send-only) and unicast rather than multicast.
 class UdpReceiveSocket

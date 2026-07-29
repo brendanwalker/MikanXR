@@ -44,14 +44,6 @@ namespace MikanXR
 	public class MikanARKitVideoSourceValues : MikanVideoSourceValues
 	{
 		public int base_port;
-		public bool depth_streaming_enabled;
-		public int jbu_radius;
-		public float jbu_sigma_spatial;
-		public float jbu_sigma_color;
-		public float jbu_conf_weight_low;
-		public float jbu_conf_weight_medium;
-		public bool seg_gating_enabled;
-		public float seg_edge_strength;
 	};
 
 	public class MikanBaseIntrinsics : PolymorphicStruct

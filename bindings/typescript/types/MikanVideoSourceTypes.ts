@@ -266,25 +266,9 @@ export class MikanVideoSourceIntrinsics {
 
 export class MikanARKitVideoSourceValues extends MikanVideoSourceValues {
   base_port: number = 0;
-  depth_streaming_enabled: boolean = false;
-  jbu_radius: number = 0;
-  jbu_sigma_spatial: number = 0;
-  jbu_sigma_color: number = 0;
-  jbu_conf_weight_low: number = 0;
-  jbu_conf_weight_medium: number = 0;
-  seg_gating_enabled: boolean = false;
-  seg_edge_strength: number = 0;
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'base_port', type: 'int32' },
-    { name: 'depth_streaming_enabled', type: 'boolean' },
-    { name: 'jbu_radius', type: 'int32' },
-    { name: 'jbu_sigma_spatial', type: 'float' },
-    { name: 'jbu_sigma_color', type: 'float' },
-    { name: 'jbu_conf_weight_low', type: 'float' },
-    { name: 'jbu_conf_weight_medium', type: 'float' },
-    { name: 'seg_gating_enabled', type: 'boolean' },
-    { name: 'seg_edge_strength', type: 'float' }
+    { name: 'base_port', type: 'int32' }
   ];
 }
 

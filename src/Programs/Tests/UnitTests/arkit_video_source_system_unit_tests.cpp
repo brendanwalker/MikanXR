@@ -323,8 +323,7 @@ static bool arkit_video_source_system_test_full_open_close_cycle_via_loaded_plug
 	assert(success);
 
 	ARKitVideoConnectionSettings settings;
-	settings.basePort= 41400; // depth=41401, pose=41402 (see Wire Protocol Reference)
-	settings.depthStreamingEnabled= true;
+	settings.basePort= 41400; // pose=41402 (see Wire Protocol Reference)
 
 	IARKitVideoDevicePtr device= manager->createVideoDevice(settings);
 	success= success && (device != nullptr);

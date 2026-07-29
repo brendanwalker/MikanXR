@@ -1,13 +1,10 @@
 #include "ARKitFrameCorrelator.h"
 #include "Logger.h"
 
-ARKitFrameCorrelator::ARKitFrameCorrelator(bool depthStreamingEnabled, std::chrono::milliseconds staleTimeout)
-	: m_depthStreamingEnabled(depthStreamingEnabled)
-	, m_staleTimeout(staleTimeout)
+ARKitFrameCorrelator::ARKitFrameCorrelator(std::chrono::milliseconds staleTimeout)
+	: m_staleTimeout(staleTimeout)
 {
 }
-
-void ARKitFrameCorrelator::setDepthStreamingEnabled(bool enabled) { m_depthStreamingEnabled.store(enabled); }
 
 void ARKitFrameCorrelator::setBundleCallback(std::function<void(ARKitFrameBundle)> callback)
 {
@@ -30,8 +27,7 @@ std::map<uint32_t, ARKitFrameCorrelator::PendingEntry>::iterator ARKitFrameCorre
 
 bool ARKitFrameCorrelator::isComplete(const PendingEntry& entry) const
 {
-	const bool depthSatisfied= !m_depthStreamingEnabled.load() || entry.depth.has_value();
-	return entry.hasVideo && entry.pose.has_value() && depthSatisfied;
+	return entry.hasVideo && entry.pose.has_value();
 }
 
 ARKitFrameBundle ARKitFrameCorrelator::buildBundle(uint32_t frameSeq, const PendingEntry& entry) const
@@ -39,19 +35,16 @@ ARKitFrameBundle ARKitFrameCorrelator::buildBundle(uint32_t frameSeq, const Pend
 	ARKitFrameBundle bundle;
 	bundle.frameSeq= frameSeq;
 
-	// All three streams for the same frameSeq should carry the same
-	// captureTimestampUs (same originating ARKit frame) - this priority order is
-	// just a defensive fallback for whichever component actually showed up.
+	// Both streams for the same frameSeq should carry the same captureTimestampUs
+	// (same originating ARKit frame) - this priority order is just a defensive
+	// fallback for whichever component actually showed up.
 	if (entry.hasVideo)
 		bundle.timestampUs= entry.videoTimestampUs;
 	else if (entry.pose.has_value())
 		bundle.timestampUs= entry.pose->captureTimestampUs;
-	else if (entry.depth.has_value())
-		bundle.timestampUs= entry.depth->captureTimestampUs;
 
 	bundle.hasVideo= entry.hasVideo;
 	bundle.videoFrameHandle= entry.videoFrameHandle;
-	bundle.depth= entry.depth;
 	bundle.pose= entry.pose;
 
 	return bundle;
@@ -99,22 +92,6 @@ void ARKitFrameCorrelator::notifyVideoArrived(uint32_t frameSeq, uint64_t timest
 	deliverIfPresent(bundle);
 }
 
-void ARKitFrameCorrelator::notifyDepthArrived(ARKitDepthFrame depth)
-{
-	const uint32_t frameSeq= depth.frameSeq;
-
-	std::optional<ARKitFrameBundle> bundle;
-	{
-		std::lock_guard<std::mutex> lock(m_mutex);
-
-		auto it= getOrCreateLocked(frameSeq);
-		it->second.depth= std::move(depth);
-
-		bundle= tryFinalizeLocked(it);
-	}
-	deliverIfPresent(bundle);
-}
-
 void ARKitFrameCorrelator::notifyPoseArrived(ARKitPoseFrame pose)
 {
 	const uint32_t frameSeq= pose.frameSeq;
@@ -145,7 +122,7 @@ void ARKitFrameCorrelator::sweepStaleFrames(std::chrono::steady_clock::time_poin
 			{
 				MIKAN_MT_LOG_WARNING("ARKitFrameCorrelator::sweepStaleFrames")
 					<< "delivering partial bundle for frameSeq " << it->first << " (video=" << it->second.hasVideo
-					<< " depth=" << it->second.depth.has_value() << " pose=" << it->second.pose.has_value() << ")";
+					<< " pose=" << it->second.pose.has_value() << ")";
 
 				staleBundles.push_back(buildBundle(it->first, it->second));
 				++m_partialDeliveredCount;

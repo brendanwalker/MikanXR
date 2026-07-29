@@ -43,10 +43,6 @@ enum class eVideoTextureSource : int
 
 	video_texture,
 	distortion_texture,
-	float_depth_texture,
-	color_mapped_depth_texture,
-	human_stencil_texture,     // guided-upsampled person matte (crisp alpha [0,1])
-	human_stencil_raw_texture, // nearest-upsampled 0/1 person stencil (blocky ground truth)
 
 	COUNT
 };
