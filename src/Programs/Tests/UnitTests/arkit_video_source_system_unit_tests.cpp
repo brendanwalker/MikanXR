@@ -6,17 +6,7 @@
 #include <chrono>
 #include <thread>
 
-#if defined(_WIN32)
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment(lib, "Ws2_32.lib")
-#endif
-
 #include "ARKitVideoDeviceManagerLoader.h"
-#include "ARKitWireProtocol.h"
 #include "IARKitVideoDeviceManager.h"
 #include "IARKitVideoDeviceModule.h"
 #include "MikanModuleManager.h"
@@ -83,39 +73,8 @@ bool isTerminalState(ARKitVideoDeviceManagerLoader::eARKitVideoManagerState stat
 		   || state == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::failed;
 }
 
-#if defined(_WIN32)
-void sourceSystemTestEnsureWinsockInitialized()
-{
-	static const int result= []
-	{
-		WSADATA wsaData;
-		return ::WSAStartup(MAKEWORD(2, 2), &wsaData);
-	}();
-	(void)result;
-}
-
-bool sourceSystemTestSendLoopbackDatagram(uint16_t port, const uint8_t* data, size_t length)
-{
-	sourceSystemTestEnsureWinsockInitialized();
-
-	SOCKET sock= ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (sock == INVALID_SOCKET)
-		return false;
-
-	sockaddr_in dest{};
-	dest.sin_family= AF_INET;
-	dest.sin_port= htons(port);
-	::inet_pton(AF_INET, "127.0.0.1", &dest.sin_addr);
-
-	const int sent= ::sendto(sock, reinterpret_cast<const char*>(data), static_cast<int>(length), 0,
-							 reinterpret_cast<const sockaddr*>(&dest), sizeof(dest));
-	::closesocket(sock);
-
-	return sent == static_cast<int>(length);
-}
-
-// Minimal listener used only to prove the real depth/pose receivers started by
-// MikanARKitVideoDevice::open() are genuinely listening - mirrors
+// Minimal listener registered purely to prove addListener()/notifyDeviceOpened()
+// work end-to-end against a real opened device - mirrors
 // arkit_video_device_interfaces_unit_tests.cpp's RecordingListener, but under a
 // distinct name (this project's Unity build concatenates all test .cpp files
 // into one translation unit, so same-named symbols across test files collide).
@@ -127,7 +86,6 @@ public:
 	void notifyDeviceClosed(const IARKitVideoDevice*) override {}
 	void notifyFrameBundleReceived(const ARKitVideoFrameBundle&) override { ++bundleCount; }
 };
-#endif
 } // namespace
 
 //-- private functions -----
@@ -367,41 +325,29 @@ static bool arkit_video_source_system_test_full_open_close_cycle_via_loaded_plug
 
 	if (device->getVideoOpeningStatus() != eVideoOpeningStatus::open)
 	{
-		// nvh264dec/CUDA unavailable - open() (and with it, the depth/pose
-		// receivers it starts) never completed, so there's nothing further this
-		// test can exercise. Still tear down cleanly.
+		// nvh264dec/CUDA unavailable - open() never completed, so there's nothing
+		// further this test can exercise. Still tear down cleanly.
 		device->close();
 		manager->destroyVideoDevice(device);
 		UNIT_TEST_COMPLETE()
 	}
 
-	// Prove the real depth and pose UDP receivers ARKitVideoDevice::open() started
-	// (tickets B4/B5) are genuinely bound, listening, and wired all the way through
-	// to a device listener - not just that the video pipeline opened.
-	// magic=0xAD01, version=1, type=2 (Pose); frameSeq/timestamp/transform/
-	// intrinsics all zero is a well-formed (if degenerate) pose packet for
-	// frameSeq=0 - it will actually parse (see arkit_pose_receiver_unit_tests.cpp
-	// for dedicated parse-correctness coverage; this test only cares that the
-	// socket is live end-to-end). Must be the full ARKitPosePacket::kWireSize (104
-	// bytes) - readARKitPoseDatagram rejects anything shorter outright.
-	const uint8_t posePacket[ARKitPosePacket::kWireSize]= {0xAD, 0x01, 1, 2};
-	success= success && sourceSystemTestSendLoopbackDatagram(41402, posePacket, sizeof(posePacket));
-	assert(success);
-
-	// This test never sends real RTP video packets, so this frameSeq can only
-	// complete via ARKitFrameCorrelator's stale-sweep (default 1000ms timeout,
-	// ticked from
-	// MikanARKitVideoDevice::update) as a pose-only partial bundle - wait
-	// comfortably past that.
-	bool bundleArrived= false;
-	for (int attempt= 0; attempt < 150 && !bundleArrived; ++attempt)
+	// Pose now rides inside the video RTP stream's own header extension (see
+	// ARKitRTPHeaderExtension.h) rather than arriving on a separate UDP channel -
+	// there's no longer a standalone pose socket this test could poke with a
+	// synthetic datagram the way earlier versions of this test did. Exercising
+	// frame-bundle delivery (with or without pose) now requires a real encoded
+	// H.264 RTP stream, which this unit test doesn't synthesize - that's covered
+	// by manual/live verification against a real iPhone sender instead (same
+	// category of limitation as the hardware video-decode path itself, just
+	// above). What this test still proves at this point: a real device reached
+	// eVideoOpeningStatus::open against the loaded plugin, and update() can be
+	// ticked without crashing before a clean close().
+	for (int i= 0; i < 5; ++i)
 	{
 		device->update(0.016f);
-		bundleArrived= (listener.bundleCount.load() >= 1);
 		std::this_thread::sleep_for(std::chrono::milliseconds(20));
 	}
-	success= success && bundleArrived;
-	assert(success);
 
 	device->close();
 	success= success && (device->getVideoOpeningStatus() == eVideoOpeningStatus::closed);

@@ -1,8 +1,6 @@
 #pragma once
 
 #include "IARKitVideoDevice.h"
-#include "ARKitPoseReceiver.h"
-#include "ARKitFrameCorrelator.h"
 #include "Cuda/CudaGLInterop.h"
 #include "Cuda/NV12ConversionKernel.h"
 
@@ -17,20 +15,22 @@
 typedef struct _GstBuffer GstBuffer;
 
 // Implements IARKitVideoDevice (ticket B7). Structurally mirrors
-// MikanGStreamerVideoDevice's async open/close/update pattern: pose (basePort+2)
-// channel reception via ARKitPoseReceiver (ticket B5) plus its correlation with
-// video via ARKitFrameCorrelator (ticket B6) are started on open() (ticket C1);
-// the video RTP receive pipeline itself (udpsrc/rtph264depay/nvh264dec, on
-// basePort+0) is built in openOnThread() and polled in update() (tickets C2/C4 -
-// hardware-decodes straight to CUDA device memory, no software fallback).
-// ARKitRTPHeaderExtension (ticket C3) extracts the frameSeq/captureTimestampUs
+// MikanGStreamerVideoDevice's async open/close/update pattern: the video RTP
+// receive pipeline (udpsrc/rtph264depay/nvh264dec, on basePort+0) is built in
+// openOnThread() and polled in update() (tickets C2/C4 - hardware-decodes
+// straight to CUDA device memory, no software fallback). ARKitRTPHeaderExtension
+// (ticket C3) extracts the frameSeq/captureTimestampUs (and, when the sender
+// attaches it, the frame-coupled camera pose - see ARKitFrameSeqMeta's hasPose)
 // carried by each RTP packet's header extension and attaches it to the decoded
-// buffer as ARKitFrameSeqMeta; update()'s appsink pull site reads that meta and
-// maps the buffer as CUDA memory (GST_MAP_CUDA) to get a CUdeviceptr, feeding
-// frameSeq/timestamp (but not yet the device pointer itself - see
-// notifyFrameBundleReceived) into m_frameCorrelator. (JBU depth/matte upsampling
-// and the human-stencil pipeline were removed - too noisy in practice to be
-// useful for compositing; pose tracking is the part that remains valuable.)
+// buffer as ARKitFrameSeqMeta; update()'s appsink pull site reads that meta,
+// builds an ARKitVideoFrameBundle directly from it, and maps the buffer as CUDA
+// memory (GST_MAP_CUDA) to get a CUdeviceptr for the color-texture pipeline.
+// (The separate pose UDP channel (basePort+2) and its ARKitPoseReceiver/
+// ARKitFrameCorrelator plumbing were removed once pose started riding inside the
+// video RTP stream's own header extension instead - see project history for the
+// prior architecture. JBU depth/matte upsampling and the human-stencil pipeline
+// were removed earlier still - too noisy in practice to be useful for
+// compositing; pose tracking is the part that remains valuable.)
 class MikanARKitVideoDevice : public IARKitVideoDevice
 {
 public:
@@ -97,14 +97,12 @@ protected:
 	// changed what's current.
 	bool ensureCudaContext();
 
-	// Converts the plugin-private ARKitFrameBundle (ARKitFrameCorrelator) into the
-	// public, DLL-boundary-safe ARKitVideoFrameBundle (IARKitVideoDevice) and fans
-	// it out to listeners. NOTE: this can be invoked from ARKitPoseReceiver's
-	// worker thread (whichever notify*() call finalized the bundle), not
-	// necessarily the thread that calls update() - listeners must treat
-	// notifyFrameBundleReceived the same way that receiver's own callback is
-	// documented: safe to call from a background thread.
-	void notifyFrameBundleReceived(const ARKitFrameBundle& internalBundle);
+	// Fans an already-built ARKitVideoFrameBundle out to listeners. Called from
+	// update()'s appsink-pull site, on the main/GL thread - unlike before pose
+	// moved into the video RTP stream, this no longer fires from a separate
+	// receiver worker thread, so listeners that assumed a background-thread call
+	// (e.g. for locking purposes) should be re-examined.
+	void notifyFrameBundleReceived(const ARKitVideoFrameBundle& bundle);
 
 private:
 	enum class eOpenState
@@ -131,9 +129,6 @@ private:
 	static constexpr float k_streamTimeoutSeconds= 10.0f;
 	float m_timeSinceLastFrameSeconds= 0.0f;
 	bool m_pendingStreamStartAfterOpen= false;
-
-	ARKitPoseReceiver m_poseReceiver;
-	ARKitFrameCorrelator m_frameCorrelator;
 
 	std::mutex m_listenersMutex;
 	std::set<IARKitVideoDeviceListener*> m_listeners;

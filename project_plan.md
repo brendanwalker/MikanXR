@@ -9,6 +9,30 @@
 > `.claude/plans/` for the current in-flight redesign). The ticket list below
 > is kept for historical context on the original design; tickets for removed
 > functionality are no longer applicable.
+>
+> **Phase 5 update:** the pose-in-RTP redesign is now live — the separate
+> basePort+2 pose UDP channel, `ARKitPoseReceiver`, and `ARKitFrameCorrelator`
+> have all been deleted; `MikanARKitVideoDevice::update()` builds and dispatches
+> an `ARKitVideoFrameBundle` directly from the video RTP stream's per-packet
+> header extension (`ARKitFrameSeqMeta`). This is a real behavioral change, not
+> just an internal refactor:
+> - **~8% RTP bandwidth overhead** from the larger (108-byte, up from 20-byte)
+>   per-packet header extension now carried on every video RTP packet.
+> - **Pose latency is now decode-pipeline-bound** (`rtpjitterbuffer latency=50`
+>   + H.264 decode time) instead of arriving independently/immediately over its
+>   own UDP socket.
+> - **Pose can no longer arrive without video.** Previously `ARKitFrameCorrelator`
+>   could deliver a partial, pose-only bundle via its stale-sweep timeout if a
+>   video packet was lost; now pose and video are perfectly coupled — `frameSeq`,
+>   `getDirectFrameIndex()`, and pose all advance together as a single unit.
+>   Arguably an improvement (simpler mental model, no partial-bundle case to
+>   handle downstream) but a genuine semantic change from the original design.
+> - **`IARKitVideoDeviceListener::notifyFrameBundleReceived` now fires on the
+>   main/GL thread** (from `MikanARKitVideoDevice::update()`), not a separate
+>   pose-receiver worker thread. `ARKitVideoSourceComponent::m_latestPoseMutex`
+>   was reviewed and deliberately kept (defensive — the listener interface
+>   doesn't formally guarantee a calling thread) even though writer and reader
+>   are now same-thread in practice.
 
 I would like to draw up a plan for streaming video + depth data + camera pose from ARKit on an iPhone to MikanXR. 
 

@@ -8,9 +8,9 @@ struct MikanVideoSourceIntrinsics;
 
 // Implemented by video sources that deliver camera pose coupled to each video
 // frame (currently just ARKitVideoSourceComponent - an iPhone's ARKit session
-// reports pose alongside each captured frame, correlated by a shared frameSeq -
-// see ARKitPoseReceiver.h/ARKitFrameCorrelator.h), as opposed to every other video
-// source type, whose camera pose comes from polling a separate SteamVR-style
+// reports pose alongside each captured frame, riding inside the video RTP
+// stream's own header extension - see ARKitRTPHeaderExtension.h), as opposed to
+// every other video source type, whose camera pose comes from polling a separate SteamVR-style
 // tracked puck once per engine tick (CameraComponent::updateAperturePoseFromTrackingMount)
 // independent of when a video frame actually arrives (ticket E4).
 //

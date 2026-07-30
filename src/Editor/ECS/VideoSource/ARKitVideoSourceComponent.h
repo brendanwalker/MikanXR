@@ -116,12 +116,17 @@ private:
 	// GlExternalTexture::setExternalPlatformTexture).
 	mutable IMkExternalTexturePtr m_colorTextureWrapper;
 
-	// Latest frame-coupled pose (ticket E4) - notifyFrameBundleReceived() can fire
-	// from a background receiver thread (see that method's own override in the
-	// .cpp and IARKitVideoDeviceListener's documented threading contract), while
-	// getLatestFrameCoupledPose()/getDirectFrameIndex() are read from the main/GL
-	// thread inside CameraComponent::update() - hence the mutex, same pattern as
-	// MikanARKitVideoDevice's own "latest depth" cache added in E3.
+	// Latest frame-coupled pose (ticket E4). Historically notifyFrameBundleReceived()
+	// could fire from a background pose-receiver worker thread while
+	// getLatestFrameCoupledPose()/getDirectFrameIndex() were read from the main/GL
+	// thread inside CameraComponent::update(), which is what originally motivated
+	// this mutex. Since pose moved into the video RTP stream's own header
+	// extension, notifyFrameBundleReceived() now fires from
+	// MikanARKitVideoDevice::update() - the same main/GL thread as the reader -
+	// making writer and reader same-thread in practice. The mutex is kept anyway:
+	// IARKitVideoDeviceListener's contract still doesn't guarantee a specific
+	// calling thread, so removing it would be relying on an implementation detail
+	// rather than the documented interface.
 	mutable std::mutex m_latestPoseMutex;
 	struct LatestPose
 	{

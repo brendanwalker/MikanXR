@@ -4,22 +4,15 @@ file(GLOB UNIT_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
 )
 
-# MikanARKitVideo plugin sources under test don't have their own CMake target yet
-# (that lands with the plugin scaffolding), so pull the ones with unit test coverage
-# in directly.
+# ARKitVideoDeviceManagerLoader doesn't have its own CMake target yet (that lands
+# with the plugin scaffolding), so pull it in directly.
 list(APPEND UNIT_TEST_SRC
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/UdpReceiveSocket.h
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/UdpReceiveSocket.cpp
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.h
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitPoseReceiver.cpp
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.h
-  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/ARKitFrameCorrelator.cpp
   ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoDeviceManagerLoader.h
   ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoDeviceManagerLoader.cpp
 )
 
 # NOTE: ARKitRTPHeaderExtension.h/.cpp (ticket C3) is deliberately NOT pulled in
-# here like the ARKit sources above. It registers named GObject/GstMeta types
+# here directly. It registers named GObject/GstMeta types
 # (G_DEFINE_TYPE, gst_meta_api_type_register) - GLib's type registry is process-
 # global and shared across DLL boundaries, so compiling this file into both this
 # executable AND MikanARKitVideo.dll (which also globs it - see that plugin's

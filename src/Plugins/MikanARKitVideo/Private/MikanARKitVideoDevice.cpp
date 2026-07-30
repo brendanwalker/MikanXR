@@ -148,12 +148,7 @@ MikanARKitVideoDevice::MikanARKitVideoDevice(MikanARKitVideoDeviceManager* owner
 	, m_connectionInfo(connectionInfo)
 	, m_devicePath("arkit://" + std::to_string(connectionInfo.basePort))
 	, m_impl(new GStreamerImpl(connectionInfo.basePort))
-	, m_frameCorrelator()
 {
-	m_frameCorrelator.setBundleCallback([this](ARKitFrameBundle bundle) { notifyFrameBundleReceived(bundle); });
-
-	m_poseReceiver.setFrameCallback([this](ARKitPoseFrame frame)
-									{ m_frameCorrelator.notifyPoseArrived(std::move(frame)); });
 }
 
 MikanARKitVideoDevice::~MikanARKitVideoDevice()
@@ -185,18 +180,6 @@ eVideoOpeningStatus MikanARKitVideoDevice::open()
 {
 	if (m_openState == eOpenState::open || m_openState == eOpenState::opening)
 		return getVideoOpeningStatus();
-
-	// The pose socket binds quickly (a single non-blocking recvfrom-socket bind
-	// call - see UdpReceiveSocket::open), unlike GStreamer pipeline construction
-	// (which genuinely needs backgrounding - see openOnThread()), so start it
-	// synchronously here rather than deferring to the background thread.
-	const uint16_t posePort= static_cast<uint16_t>(m_connectionInfo.basePort + 2);
-	if (!m_poseReceiver.start(posePort))
-	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::open") << "Failed to start pose receiver on port " << posePort;
-		m_openState= eOpenState::failed;
-		return eVideoOpeningStatus::failed;
-	}
 
 	// Launch the GStreamer video pipeline setup on a background thread, matching
 	// MikanGStreamerVideoDevice's rationale (pipeline construction is slow on first
@@ -313,7 +296,6 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 			else
 			{
 				m_openState= eOpenState::failed;
-				m_poseReceiver.stop();
 			}
 		}
 		return;
@@ -321,11 +303,6 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 
 	if (m_openState != eOpenState::open)
 		return;
-
-	// ARKitPoseReceiver drives its own worker thread already; the correlator is
-	// the one piece that needs an explicit periodic tick to evict stale
-	// (incomplete) pending frame bundles - see ARKitFrameCorrelator::sweepStaleFrames.
-	m_frameCorrelator.sweepStaleFrames(std::chrono::steady_clock::now());
 
 	// Non-blocking bus drain (see the note in the open-completion branch above for
 	// why this is polled explicitly rather than via gst_bus_add_watch).
@@ -387,14 +364,39 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 				{
 					MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
 						<< "Decoded CUDA video frame: " << width << "x" << height
-						<< ", devicePtr=" << devicePtrForLogging << ", frameSeq=" << frameSeqMeta->frameSeq;
+						<< ", devicePtr=" << devicePtrForLogging << ", frameSeq=" << frameSeqMeta->frameSeq
+						<< (frameSeqMeta->hasPose ? " (pose attached)" : " (no pose)");
 
-					// videoFrameHandle is left null - correlating a stable,
-					// DLL-boundary-safe decoded-pixel handle across the bundle is a
-					// later ticket's job (see ARKitFrameBundle's own comment); this
-					// only establishes that video arrived for this frameSeq, and when.
-					m_frameCorrelator.notifyVideoArrived(frameSeqMeta->frameSeq, frameSeqMeta->captureTimestampUs,
-														 nullptr);
+					// Bundle is built directly from the RTP extension meta and
+					// dispatched immediately - no separate video/pose correlation
+					// step anymore now that pose rides inside the same RTP packet
+					// that carries the video frame it belongs to.
+					ARKitVideoFrameBundle bundle;
+					bundle.frameSeq= frameSeqMeta->frameSeq;
+					bundle.timestampUs= frameSeqMeta->captureTimestampUs;
+
+					bundle.hasVideo= true;
+					// videoData intentionally left null - decode goes straight to CUDA
+					// device memory (GST_MAP_CUDA, see this method's own comment
+					// above); handing decoded pixel data across the DLL boundary
+					// through this bundle is a later ticket's job.
+					bundle.videoData= nullptr;
+					bundle.videoWidth= 0;
+					bundle.videoHeight= 0;
+
+					if (frameSeqMeta->hasPose)
+					{
+						bundle.hasPose= true;
+						std::memcpy(bundle.pose.transform, frameSeqMeta->transform, sizeof(bundle.pose.transform));
+						bundle.pose.fx= frameSeqMeta->fx;
+						bundle.pose.fy= frameSeqMeta->fy;
+						bundle.pose.cx= frameSeqMeta->cx;
+						bundle.pose.cy= frameSeqMeta->cy;
+						bundle.pose.imageWidth= frameSeqMeta->imageWidth;
+						bundle.pose.imageHeight= frameSeqMeta->imageHeight;
+					}
+
+					notifyFrameBundleReceived(bundle);
 				}
 				else
 				{
@@ -459,8 +461,6 @@ void MikanARKitVideoDevice::close()
 	m_openState= eOpenState::closed;
 	m_streamingStatus= eVideoStreamingStatus::stopped;
 	m_timeSinceLastFrameSeconds= 0.0f;
-
-	m_poseReceiver.stop();
 
 	// Tear down the whole CUDA-GL texture pipeline on close (ticket E3) rather than
 	// trying to keep it alive across reopen - the GStreamer pipeline's own
@@ -698,35 +698,10 @@ void MikanARKitVideoDevice::stopVideoStream()
 	m_pendingStreamStartAfterOpen= false;
 }
 
-// -- Frame bundle conversion -----
-void MikanARKitVideoDevice::notifyFrameBundleReceived(const ARKitFrameBundle& internalBundle)
+// -- Frame bundle dispatch -----
+void MikanARKitVideoDevice::notifyFrameBundleReceived(const ARKitVideoFrameBundle& bundle)
 {
-	ARKitVideoFrameBundle publicBundle;
-	publicBundle.frameSeq= internalBundle.frameSeq;
-	publicBundle.timestampUs= internalBundle.timestampUs;
-
-	publicBundle.hasVideo= internalBundle.hasVideo;
-	// internalBundle.videoFrameHandle is intentionally left unused here - ticket C3
-	// only established frameSeq/timestamp correlation for video arrival (see
-	// MikanARKitVideoDevice::update's appsink pull site); handing decoded pixel data
-	// across the DLL boundary through this bundle is a later ticket's job.
-	publicBundle.videoData= nullptr;
-	publicBundle.videoWidth= 0;
-	publicBundle.videoHeight= 0;
-
-	if (internalBundle.pose.has_value())
-	{
-		publicBundle.hasPose= true;
-		std::memcpy(publicBundle.pose.transform, internalBundle.pose->transform, sizeof(publicBundle.pose.transform));
-		publicBundle.pose.fx= internalBundle.pose->fx;
-		publicBundle.pose.fy= internalBundle.pose->fy;
-		publicBundle.pose.cx= internalBundle.pose->cx;
-		publicBundle.pose.cy= internalBundle.pose->cy;
-		publicBundle.pose.imageWidth= internalBundle.pose->imageWidth;
-		publicBundle.pose.imageHeight= internalBundle.pose->imageHeight;
-	}
-
 	std::lock_guard<std::mutex> lock(m_listenersMutex);
 	for (IARKitVideoDeviceListener* listener : m_listeners)
-		listener->notifyFrameBundleReceived(publicBundle);
+		listener->notifyFrameBundleReceived(bundle);
 }

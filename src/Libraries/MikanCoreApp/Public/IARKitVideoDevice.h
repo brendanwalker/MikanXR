@@ -10,7 +10,10 @@
 
 struct ARKitVideoConnectionSettings
 {
-	uint16_t basePort= 0; // video RTP on basePort+0, pose on basePort+2
+	// Video RTP on basePort+0, carrying frame-coupled pose in its own per-packet
+	// header extension (see ARKitRTPHeaderExtension.h) - there is no longer a
+	// separate pose UDP channel.
+	uint16_t basePort= 0;
 };
 
 struct ARKitPoseFrameBuffer
@@ -24,14 +27,14 @@ struct ARKitPoseFrameBuffer
 	float imageHeight= 0.f;
 };
 
-// A frame-correlated bundle of video + (optional) pose for the same frameSeq.
-// hasVideo/hasPose unset represents a component that never arrived in time - not
-// necessarily an error; e.g. pose alone is still useful to drive camera tracking
-// even without video (see IFrameCoupledPoseProvider, ticket E4). This is the
-// public, DLL-boundary-safe equivalent of the MikanARKitVideo plugin's internal
-// ARKitFrameCorrelator::ARKitFrameBundle type - the two intentionally aren't
-// shared directly, since MikanCoreApp (built before Plugins) can't depend on a
-// specific plugin's private headers.
+// A bundle of video + (optional) pose for the same frameSeq, built directly from
+// the video RTP stream's per-packet header extension (see
+// ARKitRTPHeaderExtension.h in the MikanARKitVideo plugin) - hasVideo is always
+// true when this bundle is dispatched; hasPose reflects whether the sender
+// attached the pose-bearing extension payload to this particular packet (see
+// IFrameCoupledPoseProvider, ticket E4). Pose can no longer arrive decoupled from
+// video the way it could under the old separate-pose-channel design, since both
+// now travel in the same RTP packet.
 struct ARKitVideoFrameBundle
 {
 	uint32_t frameSeq= 0;
@@ -55,7 +58,7 @@ public:
 	// Called when the video source has been disconnected
 	virtual void notifyDeviceClosed(const class IARKitVideoDevice* device)= 0;
 
-	// Called when a correlated video/depth/pose bundle is ready for a frameSeq
+	// Called when a decoded video frame (with optional pose) is ready for a frameSeq
 	virtual void notifyFrameBundleReceived(const ARKitVideoFrameBundle& bundle)= 0;
 };
 
