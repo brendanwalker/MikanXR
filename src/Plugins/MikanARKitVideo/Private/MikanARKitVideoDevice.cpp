@@ -29,16 +29,17 @@
 #include <thread>
 
 // -- GStreamerImpl -----
-// Holds the RTP/H.264 receive pipeline for the video channel (basePort+0):
-//   udpsrc ! rtpjitterbuffer ! rtph264depay ! h264parse ! nvh264dec
-//   ! video/x-raw(memory:CUDAMemory) ! appsink
-// Hardware decode via nvh264dec straight to CUDA device memory (ticket C4) - no
-// software-decode fallback per the locked-in design decision (see the plan's
-// Track C4 edge cases): if nvh264dec/the nvcodec plugin isn't available,
-// openOnThread() fails cleanly rather than silently falling back to decodebin's
-// software path used by ticket C2's interim pipeline. Kept as an opaque struct
-// (rather than members directly on MikanARKitVideoDevice) so GStreamer headers
-// don't leak into this plugin's public header, matching
+// Holds the RTP/H.264 receive pipeline for the video channel (basePort+0).
+// Two explicit-element pipeline tiers ("Phase 7" - see MikanARKitVideoDevice.h's
+// own doc comment for the full rationale), both built from the same
+// udpsrc/rtpjitterbuffer/rtph264depay/h264parse prefix:
+//   Hardware: ... ! nvh264dec ! video/x-raw(memory:CUDAMemory) ! appsink
+//   Software: ... ! openh264dec ! videoconvert ! video/x-raw,format=BGR ! appsink
+// Never decodebin for either tier - an explicit element name is resolved
+// immediately by gst_parse_launch rather than lazily on first buffer, which is
+// what makes synchronous tier-probing at open()-time possible at all. Kept as
+// an opaque struct (rather than members directly on MikanARKitVideoDevice) so
+// GStreamer headers don't leak into this plugin's public header, matching
 // MikanGStreamerVideoDevice.h's m_impl pattern.
 struct GStreamerImpl
 {
@@ -54,7 +55,7 @@ struct GStreamerImpl
 	{
 	}
 
-	std::string buildPipelineString() const
+	std::string buildHardwarePipelineString() const
 	{
 		std::stringstream ss;
 		ss << "udpsrc port=" << videoPort << " "
@@ -64,6 +65,26 @@ struct GStreamerImpl
 		   << "! h264parse "
 		   << "! nvh264dec "
 		   << "! video/x-raw(memory:CUDAMemory) "
+		   << "! appsink name=sink";
+		return ss.str();
+	}
+
+	// openh264dec is 8-bit 4:2:0-only (see MikanARKitVideoDevice.h's own note) -
+	// a reasonable software-only fallback since it's the only vendor-agnostic
+	// H.264 decoder confirmed to load in-process on this project's GStreamer
+	// distribution (see project memory on the in-process decoder-plugin gap;
+	// avdec_h264/gst-libav is not installed).
+	std::string buildSoftwarePipelineString() const
+	{
+		std::stringstream ss;
+		ss << "udpsrc port=" << videoPort << " "
+		   << "caps=\"application/x-rtp,media=video,encoding-name=H264,payload=96\" "
+		   << "! rtpjitterbuffer latency=50 "
+		   << "! rtph264depay name=depay "
+		   << "! h264parse "
+		   << "! openh264dec "
+		   << "! videoconvert "
+		   << "! video/x-raw,format=BGR "
 		   << "! appsink name=sink";
 		return ss.str();
 	}
@@ -194,23 +215,47 @@ eVideoOpeningStatus MikanARKitVideoDevice::open()
 
 bool MikanARKitVideoDevice::openOnThread()
 {
-	const std::string pipelineString= m_impl->buildPipelineString();
+	// Two-tier decode ("Phase 7" - see this class's own header comment). Try the
+	// hardware pipeline first; an explicit element name (unlike decodebin) means
+	// gst_parse_launch fails synchronously right here if nvh264dec/the nvcodec
+	// plugin isn't available, which is exactly what makes falling back to the
+	// software pipeline cleanly possible at open()-time rather than discovering
+	// the failure lazily on first buffer.
+	const std::string hardwarePipelineString= m_impl->buildHardwarePipelineString();
 
-	// nvh264dec is a hard dependency (v1 has no software-decode fallback per the
-	// locked-in design decision) - if the nvcodec plugin isn't installed, or an
-	// NVIDIA GPU/driver isn't present, gst_parse_launch fails synchronously here
-	// with a "no element \"nvh264dec\"" GError (an explicit element name, unlike
-	// ticket C2's decodebin, is resolved immediately rather than lazily on first
-	// buffer), which is logged below and surfaced as a device-open failure.
 	GError* error= nullptr;
-	m_impl->pipeline= gst_parse_launch(pipelineString.c_str(), &error);
+	m_impl->pipeline= gst_parse_launch(hardwarePipelineString.c_str(), &error);
 	if (error != nullptr)
 	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread")
-			<< "Failed to create pipeline (is an NVIDIA GPU/driver and the GStreamer nvcodec plugin available?): "
-			<< error->message;
+		MIKAN_LOG_WARNING("MikanARKitVideoDevice::openOnThread")
+			<< "Hardware decode pipeline unavailable (is an NVIDIA GPU/driver and the GStreamer nvcodec plugin "
+			   "installed?): "
+			<< error->message << " - falling back to software decode (openh264dec)";
 		g_error_free(error);
-		return false;
+		error= nullptr;
+
+		if (m_impl->pipeline != nullptr)
+		{
+			gst_object_unref(m_impl->pipeline);
+			m_impl->pipeline= nullptr;
+		}
+
+		const std::string softwarePipelineString= m_impl->buildSoftwarePipelineString();
+		m_impl->pipeline= gst_parse_launch(softwarePipelineString.c_str(), &error);
+		if (error != nullptr)
+		{
+			MIKAN_LOG_ERROR("MikanARKitVideoDevice::openOnThread")
+				<< "Failed to create software decode pipeline (is the GStreamer openh264 plugin installed?): "
+				<< error->message;
+			g_error_free(error);
+			return false;
+		}
+
+		m_decodeTier= eDecodeTier::software;
+	}
+	else
+	{
+		m_decodeTier= eDecodeTier::hardware;
 	}
 
 	m_impl->appsink= gst_bin_get_by_name(GST_BIN(m_impl->pipeline), "sink");
@@ -335,92 +380,143 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 			if (m_streamingStatus == eVideoStreamingStatus::pendingStart)
 			{
 				MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
-					<< "Video stream started (" << width << "x" << height << ")";
+					<< "Video stream started (" << width << "x" << height << ", "
+					<< (m_decodeTier == eDecodeTier::hardware ? "hardware" : "software") << " decode)";
 				m_streamingStatus= eVideoStreamingStatus::started;
 			}
 
 			// Attached by ARKitRTPHeaderExtension (ticket C3) at the rtph264depay
 			// stage, from the RTP header extension carried on the encoded packets;
-			// must survive h264parse -> nvh264dec's internal buffer transforms to
-			// still be present here (see ARKitFrameSeqMeta's transform function).
+			// must survive h264parse's (and, for the hardware tier, nvh264dec's)
+			// internal buffer transforms to still be present here (see
+			// ARKitFrameSeqMeta's transform function) - tier-independent, since pose
+			// rides in the RTP extension regardless of which decoder produced this
+			// buffer.
 			const ARKitFrameSeqMeta* frameSeqMeta= arkit_buffer_get_frame_seq_meta(buffer);
 
-			// GST_MAP_CUDA maps the buffer's device pointer itself rather than
-			// downloading to a host-readable copy (ticket C4) - map.data is a
-			// CUdeviceptr value, not CPU-readable memory; it must never be
-			// dereferenced from the CPU, only handed to CUDA APIs (see
-			// CudaGLColorTexture::copyFromDevice, which reads it as the source NV12
-			// frame).
-			GstMapInfo map;
-			if (gst_buffer_map(buffer, &map, static_cast<GstMapFlags>(GST_MAP_READ | GST_MAP_CUDA)))
+			// Bundle is built directly from the RTP extension meta and dispatched
+			// immediately - no separate video/pose correlation step anymore now that
+			// pose rides inside the same RTP packet that carries the video frame it
+			// belongs to. The video-specific fields (hasVideo/videoData/
+			// videoWidth/videoHeight) are filled in per-tier below, once the buffer
+			// has been mapped the right way for that tier.
+			ARKitVideoFrameBundle bundle;
+			bool bHaveFrameSeqMeta= false;
+			if (frameSeqMeta != nullptr)
 			{
-				const CUdeviceptr devicePtr= reinterpret_cast<CUdeviceptr>(map.data);
+				bundle.frameSeq= frameSeqMeta->frameSeq;
+				bundle.timestampUs= frameSeqMeta->captureTimestampUs;
 
-				// LoggerStream has no std::hex/std::dec manipulator support (unlike
-				// std::ostream) - its operator<<(const void*) already formats as a
-				// hex address, so log the pointer value that way instead.
-				const void* devicePtrForLogging= reinterpret_cast<const void*>(devicePtr);
-
-				if (frameSeqMeta != nullptr)
+				if (frameSeqMeta->hasPose)
 				{
-					MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
-						<< "Decoded CUDA video frame: " << width << "x" << height
-						<< ", devicePtr=" << devicePtrForLogging << ", frameSeq=" << frameSeqMeta->frameSeq
-						<< (frameSeqMeta->hasPose ? " (pose attached)" : " (no pose)");
-
-					// Bundle is built directly from the RTP extension meta and
-					// dispatched immediately - no separate video/pose correlation
-					// step anymore now that pose rides inside the same RTP packet
-					// that carries the video frame it belongs to.
-					ARKitVideoFrameBundle bundle;
-					bundle.frameSeq= frameSeqMeta->frameSeq;
-					bundle.timestampUs= frameSeqMeta->captureTimestampUs;
-
-					bundle.hasVideo= true;
-					// videoData intentionally left null - decode goes straight to CUDA
-					// device memory (GST_MAP_CUDA, see this method's own comment
-					// above); handing decoded pixel data across the DLL boundary
-					// through this bundle is a later ticket's job.
-					bundle.videoData= nullptr;
-					bundle.videoWidth= 0;
-					bundle.videoHeight= 0;
-
-					if (frameSeqMeta->hasPose)
-					{
-						bundle.hasPose= true;
-						std::memcpy(bundle.pose.transform, frameSeqMeta->transform, sizeof(bundle.pose.transform));
-						bundle.pose.fx= frameSeqMeta->fx;
-						bundle.pose.fy= frameSeqMeta->fy;
-						bundle.pose.cx= frameSeqMeta->cx;
-						bundle.pose.cy= frameSeqMeta->cy;
-						bundle.pose.imageWidth= frameSeqMeta->imageWidth;
-						bundle.pose.imageHeight= frameSeqMeta->imageHeight;
-					}
-
-					notifyFrameBundleReceived(bundle);
-				}
-				else
-				{
-					// Expected if the sender doesn't attach the extension (e.g. a
-					// non-MikanARStreamer RTP source) or if an intervening element
-					// dropped the meta - not fed to the correlator since there's no
-					// frameSeq to key it by.
-					MIKAN_LOG_WARNING("MikanARKitVideoDevice::update")
-						<< "Decoded CUDA video frame: " << width << "x" << height
-						<< ", devicePtr=" << devicePtrForLogging
-						<< ", but no frameSeq RTP header extension meta was present";
+					bundle.hasPose= true;
+					std::memcpy(bundle.pose.transform, frameSeqMeta->transform, sizeof(bundle.pose.transform));
+					bundle.pose.fx= frameSeqMeta->fx;
+					bundle.pose.fy= frameSeqMeta->fy;
+					bundle.pose.cx= frameSeqMeta->cx;
+					bundle.pose.cy= frameSeqMeta->cy;
+					bundle.pose.imageWidth= frameSeqMeta->imageWidth;
+					bundle.pose.imageHeight= frameSeqMeta->imageHeight;
 				}
 
-				// Zero-copy CUDA-GL texture pipeline (ticket E3): NV12->RGBA display
-				// texture. Runs regardless of whether the frameSeq meta was present
-				// above - display shouldn't depend on pose correlation working.
-				updateColorTexture(buffer, devicePtr, width, height);
-
-				gst_buffer_unmap(buffer, &map);
+				bHaveFrameSeqMeta= true;
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("MikanARKitVideoDevice::update") << "Failed to map decoded video buffer as CUDA memory";
+				// Expected if the sender doesn't attach the extension (e.g. a
+				// non-MikanARStreamer RTP source) or if an intervening element
+				// dropped the meta - nothing to dispatch since there's no frameSeq
+				// to key a bundle by.
+				MIKAN_LOG_WARNING("MikanARKitVideoDevice::update")
+					<< "Decoded video frame: " << width << "x" << height
+					<< ", but no frameSeq RTP header extension meta was present";
+			}
+
+			if (m_decodeTier == eDecodeTier::hardware)
+			{
+				// GST_MAP_CUDA maps the buffer's device pointer itself rather than
+				// downloading to a host-readable copy (ticket C4) - map.data is a
+				// CUdeviceptr value, not CPU-readable memory; it must never be
+				// dereferenced from the CPU, only handed to CUDA APIs (see
+				// CudaGLColorTexture::copyFromDevice, which reads it as the source
+				// NV12 frame).
+				GstMapInfo map;
+				if (gst_buffer_map(buffer, &map, static_cast<GstMapFlags>(GST_MAP_READ | GST_MAP_CUDA)))
+				{
+					const CUdeviceptr devicePtr= reinterpret_cast<CUdeviceptr>(map.data);
+
+					// LoggerStream has no std::hex/std::dec manipulator support (unlike
+					// std::ostream) - its operator<<(const void*) already formats as a
+					// hex address, so log the pointer value that way instead.
+					const void* devicePtrForLogging= reinterpret_cast<const void*>(devicePtr);
+
+					if (bHaveFrameSeqMeta)
+					{
+						MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
+							<< "Decoded CUDA video frame: " << width << "x" << height
+							<< ", devicePtr=" << devicePtrForLogging << ", frameSeq=" << bundle.frameSeq
+							<< (bundle.hasPose ? " (pose attached)" : " (no pose)");
+
+						bundle.hasVideo= true;
+						// videoData intentionally left null - decode goes straight to CUDA
+						// device memory (GST_MAP_CUDA, see this method's own comment
+						// above); handing decoded pixel data across the DLL boundary
+						// through this bundle only happens for the software tier below.
+						bundle.videoData= nullptr;
+						bundle.videoWidth= 0;
+						bundle.videoHeight= 0;
+
+						notifyFrameBundleReceived(bundle);
+					}
+
+					// Zero-copy CUDA-GL texture pipeline (ticket E3; "Phase 6"):
+					// NV12 planes for the GLSL display-conversion pass. Runs
+					// regardless of whether the frameSeq meta was present above -
+					// display shouldn't depend on pose correlation working.
+					updateColorTexture(buffer, devicePtr, width, height);
+
+					gst_buffer_unmap(buffer, &map);
+				}
+				else
+				{
+					MIKAN_LOG_ERROR("MikanARKitVideoDevice::update")
+						<< "Failed to map decoded video buffer as CUDA memory";
+				}
+			}
+			else // eDecodeTier::software
+			{
+				// Software tier decodes straight to packed BGR host memory
+				// (videoconvert ! video/x-raw,format=BGR - see
+				// GStreamerImpl::buildSoftwarePipelineString) - a plain GST_MAP_READ
+				// is all that's needed, no CUDA involved. bundle.videoData is only
+				// valid for the duration of this callback (see
+				// ARKitVideoFrameBundle's own doc comment) - notifyFrameBundleReceived
+				// must run, and any listener must finish copying it, before
+				// gst_buffer_unmap() below.
+				GstMapInfo map;
+				if (gst_buffer_map(buffer, &map, GST_MAP_READ))
+				{
+					if (bHaveFrameSeqMeta)
+					{
+						MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
+							<< "Decoded software video frame: " << width << "x" << height
+							<< ", frameSeq=" << bundle.frameSeq << (bundle.hasPose ? " (pose attached)" : " (no pose)");
+
+						bundle.hasVideo= true;
+						bundle.videoData= map.data;
+						bundle.videoWidth= width;
+						bundle.videoHeight= height;
+
+						notifyFrameBundleReceived(bundle);
+					}
+
+					gst_buffer_unmap(buffer, &map);
+				}
+				else
+				{
+					MIKAN_LOG_ERROR("MikanARKitVideoDevice::update")
+						<< "Failed to map decoded video buffer for CPU read";
+				}
 			}
 		}
 
@@ -462,6 +558,11 @@ void MikanARKitVideoDevice::close()
 	m_openState= eOpenState::closed;
 	m_streamingStatus= eVideoStreamingStatus::stopped;
 	m_timeSinceLastFrameSeconds= 0.0f;
+
+	// Always retry hardware first on the next open() - driver/GPU availability
+	// can change between sessions (see eDecodeTier's own comment), so a
+	// software-tier session shouldn't permanently downgrade future ones.
+	m_decodeTier= eDecodeTier::hardware;
 
 	// Tear down the whole CUDA-GL texture pipeline on close (ticket E3) rather than
 	// trying to keep it alive across reopen - the GStreamer pipeline's own

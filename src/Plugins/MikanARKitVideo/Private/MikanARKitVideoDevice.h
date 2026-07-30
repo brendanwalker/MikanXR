@@ -15,21 +15,39 @@ typedef struct _GstBuffer GstBuffer;
 
 // Implements IARKitVideoDevice (ticket B7). Structurally mirrors
 // MikanGStreamerVideoDevice's async open/close/update pattern: the video RTP
-// receive pipeline (udpsrc/rtph264depay/nvh264dec, on basePort+0) is built in
-// openOnThread() and polled in update() (tickets C2/C4 - hardware-decodes
-// straight to CUDA device memory, no software fallback). ARKitRTPHeaderExtension
-// (ticket C3) extracts the frameSeq/captureTimestampUs (and, when the sender
-// attaches it, the frame-coupled camera pose - see ARKitFrameSeqMeta's hasPose)
-// carried by each RTP packet's header extension and attaches it to the decoded
-// buffer as ARKitFrameSeqMeta; update()'s appsink pull site reads that meta,
-// builds an ARKitVideoFrameBundle directly from it, and maps the buffer as CUDA
-// memory (GST_MAP_CUDA) to get a CUdeviceptr for the color-texture pipeline.
+// receive pipeline (udpsrc/rtph264depay, on basePort+0) is built in
+// openOnThread() and polled in update(). ARKitRTPHeaderExtension (ticket C3)
+// extracts the frameSeq/captureTimestampUs (and, when the sender attaches it,
+// the frame-coupled camera pose - see ARKitFrameSeqMeta's hasPose) carried by
+// each RTP packet's header extension and attaches it to the decoded buffer as
+// ARKitFrameSeqMeta; update()'s appsink pull site reads that meta and builds an
+// ARKitVideoFrameBundle directly from it.
 // (The separate pose UDP channel (basePort+2) and its ARKitPoseReceiver/
 // ARKitFrameCorrelator plumbing were removed once pose started riding inside the
 // video RTP stream's own header extension instead - see project history for the
 // prior architecture. JBU depth/matte upsampling and the human-stencil pipeline
 // were removed earlier still - too noisy in practice to be useful for
 // compositing; pose tracking is the part that remains valuable.)
+//
+// Two-tier decode ("Phase 7"): openOnThread() tries an explicit-element
+// hardware pipeline (nvh264dec, straight to CUDA device memory - tickets
+// C2/C4) first; if gst_parse_launch fails synchronously to build it (no
+// NVIDIA GPU/driver, or the nvcodec plugin isn't installed), it falls back to
+// an explicit-element software pipeline (openh264dec, straight to packed BGR
+// system memory) - see eDecodeTier. Both tiers share the same udpsrc/
+// rtpjitterbuffer/rtph264depay/h264parse prefix and RTP-extension pose
+// delivery; only the decode+output tail differs. The hardware tier maps the
+// decoded buffer as CUDA memory (GST_MAP_CUDA) for the CUDA-GL color-texture
+// pipeline; the software tier maps it as plain host memory (GST_MAP_READ) and
+// hands the packed BGR bytes to ARKitVideoFrameBundle::videoData, which
+// ARKitVideoSourceComponent's existing dormant CPU-buffer guard (writeVideoFrame)
+// was already written in anticipation of. getDirectColorTexture() returning
+// null vs. non-null (already VideoFrameDistortionView's existing GPU-direct
+// discriminator) is what naturally routes between the two tiers downstream -
+// no new code needed there. Constraint: openh264dec is 8-bit 4:2:0-only - if
+// the sender ever encodes High 10/4:2:2, this fallback tier silently fails to
+// decode (same "explicit element, fail synchronously at open()-time" behavior
+// as the hardware tier failing, not a crash).
 class MikanARKitVideoDevice : public IARKitVideoDevice
 {
 public:
@@ -115,6 +133,19 @@ private:
 		open,
 		failed
 	};
+
+	// Which pipeline tier openOnThread() actually built ("Phase 7") - determines
+	// how update()'s appsink-pull site maps the decoded buffer (CUDA vs. host
+	// memory) and which ARKitVideoFrameBundle fields it populates. Reset to
+	// hardware on close() so a reopen always retries hardware first (driver/GPU
+	// availability can change between sessions - e.g. app started under RDP,
+	// or a GPU mode toggle - so a permanent downgrade would be wrong).
+	enum class eDecodeTier
+	{
+		hardware,
+		software
+	};
+	eDecodeTier m_decodeTier= eDecodeTier::hardware;
 
 	class MikanARKitVideoDeviceManager* m_ownerDeviceManager;
 	ARKitVideoConnectionSettings m_connectionInfo;

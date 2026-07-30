@@ -297,16 +297,17 @@ static bool arkit_video_source_system_test_full_open_close_cycle_via_loaded_plug
 	success= success && (openResult == eVideoOpeningStatus::opening);
 	assert(success);
 
-	// As of ticket C4, the video pipeline hardware-decodes via nvh264dec with no
-	// software fallback (a deliberate design decision) - so on a machine without a
-	// working NVIDIA GPU/driver/nvcodec plugin, open() failing is the correct,
-	// graceful outcome (see MikanARKitVideoDevice::openOnThread's error handling),
-	// not a bug. This environment's own gap is already documented separately (the
-	// nvcodec plugin fails to load in-process on this dev machine even though an
-	// NVIDIA GPU is present - see project memory) - so both "open" (real hardware
-	// decode available) and "failed" (this environment's known gap, or genuinely no
-	// NVIDIA GPU) are acceptable terminal states here; only "still opening forever"
-	// or a crash would be a real failure.
+	// As of "Phase 7", openOnThread() tries hardware (nvh264dec) first and falls
+	// back to software (openh264dec) if that pipeline fails to build - see
+	// MikanARKitVideoDevice::openOnThread. On this dev machine, nvh264dec is known
+	// to fail to load in-process (see project memory on the in-process
+	// decoder-plugin gap) but openh264dec is confirmed to work in-process, so
+	// open() is now expected to reach eVideoOpeningStatus::open via the software
+	// tier rather than eVideoOpeningStatus::failed. Both are still accepted as
+	// terminal states here rather than asserting on which one - a machine with
+	// neither a working NVIDIA GPU/driver/nvcodec plugin nor the GStreamer
+	// openh264 plugin installed should still fail open() gracefully, not crash or
+	// hang; only "still opening forever" or a crash would be a real failure.
 	const auto start= std::chrono::steady_clock::now();
 	bool reachedTerminalOpenState= false;
 	while (std::chrono::steady_clock::now() - start < std::chrono::seconds(5))

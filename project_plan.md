@@ -50,6 +50,23 @@
 > caps-driven colorimetry. Live color output has not yet been verified on real
 > hardware — compare against a pre-Phase-6 build and the phone's own camera
 > preview.
+>
+> **Phase 7 update:** `MikanARKitVideoDevice::openOnThread()` now tries the
+> hardware (`nvh264dec`) pipeline first and falls back to a software
+> (`openh264dec`) pipeline if hardware pipeline construction fails
+> synchronously — no separate opt-in setting, this is automatic. The software
+> tier decodes to packed BGR host memory and routes through the existing CPU
+> `VideoFrameDistortionView` pipeline (`ARKitVideoSourceComponent`'s dormant
+> `writeVideoFrame` guard, written in a prior phase specifically for this) —
+> confirmed via grep that no downstream code changes were needed. Live-confirmed
+> in this dev environment (which is documented to have `nvh264dec` fail
+> in-process while `openh264dec` works in-process): the software tier actually
+> activates and the pipeline builds successfully here — this was verified via a
+> temporary diagnostic in an existing test, not just inferred from passing
+> assertions. `openh264dec` is 8-bit 4:2:0-only — if the sender ever encodes
+> High 10/4:2:2, this fallback tier fails to decode. Actual video content over
+> a live RTP stream through this tier hasn't been confirmed yet — needs a real
+> iPhone sender, ideally on a machine without a working NVIDIA GPU/driver.
 
 I would like to draw up a plan for streaming video + depth data + camera pose from ARKit on an iPhone to MikanXR. 
 
