@@ -37,11 +37,27 @@ bool CudaGLColorTexture::init(int width, int height)
 		return false;
 	}
 
-	m_texture= CreateMkTexture(static_cast<uint16_t>(width), static_cast<uint16_t>(height), nullptr, MK_RGBA, MK_RGBA);
-	if (m_texture == nullptr || !m_texture->createTexture())
+	// Luma: full-resolution, single-channel 8-bit. Chroma: half-resolution (both
+	// dimensions) two-channel 8-bit, interleaved U/V - matches NV12's 4:2:0 layout.
+	m_lumaTexture=
+		CreateMkTexture(static_cast<uint16_t>(width), static_cast<uint16_t>(height), nullptr, MK_RED, MK_RED);
+	if (m_lumaTexture == nullptr || !m_lumaTexture->createTexture())
 	{
-		MIKAN_LOG_ERROR("CudaGLColorTexture::init") << "Failed to create MK_RGBA texture";
-		m_texture.reset();
+		MIKAN_LOG_ERROR("CudaGLColorTexture::init") << "Failed to create MK_RED luma texture";
+		m_lumaTexture.reset();
+		return false;
+	}
+
+	const int chromaWidth= width / 2;
+	const int chromaHeight= height / 2;
+	m_chromaTexture=
+		CreateMkTexture(static_cast<uint16_t>(chromaWidth), static_cast<uint16_t>(chromaHeight), nullptr, MK_RG, MK_RG);
+	if (m_chromaTexture == nullptr || !m_chromaTexture->createTexture())
+	{
+		MIKAN_LOG_ERROR("CudaGLColorTexture::init") << "Failed to create MK_RG chroma texture";
+		m_lumaTexture->disposeTexture();
+		m_lumaTexture.reset();
+		m_chromaTexture.reset();
 		return false;
 	}
 
@@ -50,8 +66,10 @@ bool CudaGLColorTexture::init(int width, int height)
 
 	if (!registerWithCuda())
 	{
-		m_texture->disposeTexture();
-		m_texture.reset();
+		m_lumaTexture->disposeTexture();
+		m_lumaTexture.reset();
+		m_chromaTexture->disposeTexture();
+		m_chromaTexture.reset();
 		m_width= 0;
 		m_height= 0;
 		return false;
@@ -62,56 +80,73 @@ bool CudaGLColorTexture::init(int width, int height)
 
 bool CudaGLColorTexture::registerWithCuda()
 {
-	// WRITE_DISCARD | SURFACE_LDST: NV12ConversionKernel overwrites the entire
-	// texture every frame via surf2Dwrite, never reads back prior contents.
-	const unsigned int registerFlags=
-		CU_GRAPHICS_REGISTER_FLAGS_WRITE_DISCARD | CU_GRAPHICS_REGISTER_FLAGS_SURFACE_LDST;
+	// WRITE_DISCARD: copyFromDevice() overwrites the entire texture every frame,
+	// never reads back prior contents. Unlike the previous kernel-based design,
+	// nothing here does a surface load/store (surf2Dwrite) - copyFromDevice() maps
+	// each plane as a CUDA array and cuMemcpy2Ds into it directly - so
+	// CU_GRAPHICS_REGISTER_FLAGS_SURFACE_LDST is not needed.
+	const unsigned int registerFlags= CU_GRAPHICS_REGISTER_FLAGS_WRITE_DISCARD;
 
-	return checkCudaResult(
-		cuGraphicsGLRegisterImage(&m_graphicsResource, m_texture->getGlTextureId(), GL_TEXTURE_2D, registerFlags),
-		"cuGraphicsGLRegisterImage");
+	const bool lumaOk=
+		checkCudaResult(cuGraphicsGLRegisterImage(&m_lumaGraphicsResource, m_lumaTexture->getGlTextureId(),
+												  GL_TEXTURE_2D, registerFlags),
+						"cuGraphicsGLRegisterImage(luma)");
+	const bool chromaOk=
+		checkCudaResult(cuGraphicsGLRegisterImage(&m_chromaGraphicsResource, m_chromaTexture->getGlTextureId(),
+												  GL_TEXTURE_2D, registerFlags),
+						"cuGraphicsGLRegisterImage(chroma)");
+
+	return lumaOk && chromaOk;
 }
 
 void CudaGLColorTexture::unregisterFromCuda()
 {
-	if (m_graphicsResource != nullptr)
+	if (m_lumaGraphicsResource != nullptr)
 	{
-		checkCudaResult(cuGraphicsUnregisterResource(m_graphicsResource), "cuGraphicsUnregisterResource");
-		m_graphicsResource= nullptr;
+		checkCudaResult(cuGraphicsUnregisterResource(m_lumaGraphicsResource), "cuGraphicsUnregisterResource(luma)");
+		m_lumaGraphicsResource= nullptr;
+	}
+
+	if (m_chromaGraphicsResource != nullptr)
+	{
+		checkCudaResult(cuGraphicsUnregisterResource(m_chromaGraphicsResource), "cuGraphicsUnregisterResource(chroma)");
+		m_chromaGraphicsResource= nullptr;
 	}
 }
 
 void CudaGLColorTexture::shutdown()
 {
-	if (m_currentSurface != 0)
-	{
-		MIKAN_LOG_WARNING("CudaGLColorTexture::shutdown")
-			<< "Shutting down with an in-flight CUDA mapping (missing endCudaAccess() call) - cleaning up anyway";
-		cuSurfObjectDestroy(m_currentSurface);
-		m_currentSurface= 0;
-		if (m_graphicsResource != nullptr)
-			cuGraphicsUnmapResources(1, &m_graphicsResource, nullptr);
-	}
-
 	unregisterFromCuda();
 
-	if (m_texture != nullptr)
+	if (m_lumaTexture != nullptr)
 	{
-		m_texture->disposeTexture();
-		m_texture.reset();
+		m_lumaTexture->disposeTexture();
+		m_lumaTexture.reset();
+	}
+
+	if (m_chromaTexture != nullptr)
+	{
+		m_chromaTexture->disposeTexture();
+		m_chromaTexture.reset();
 	}
 
 	m_width= 0;
 	m_height= 0;
 }
 
-bool CudaGLColorTexture::isInitialized() const { return m_texture != nullptr && m_graphicsResource != nullptr; }
+bool CudaGLColorTexture::isInitialized() const
+{
+	return m_lumaTexture != nullptr && m_chromaTexture != nullptr && m_lumaGraphicsResource != nullptr
+		   && m_chromaGraphicsResource != nullptr;
+}
 
 int CudaGLColorTexture::getWidth() const { return m_width; }
 
 int CudaGLColorTexture::getHeight() const { return m_height; }
 
-IMkTexturePtr CudaGLColorTexture::getTexture() const { return m_texture; }
+IMkTexturePtr CudaGLColorTexture::getLumaTexture() const { return m_lumaTexture; }
+
+IMkTexturePtr CudaGLColorTexture::getChromaTexture() const { return m_chromaTexture; }
 
 bool CudaGLColorTexture::resize(int width, int height)
 {
@@ -122,61 +157,58 @@ bool CudaGLColorTexture::resize(int width, int height)
 	return init(width, height);
 }
 
-bool CudaGLColorTexture::beginCudaAccess(CUsurfObject& outSurface)
+bool CudaGLColorTexture::copyFromDevice(CUdeviceptr yPlane, int yStrideBytes, CUdeviceptr uvPlane, int uvStrideBytes)
 {
-	outSurface= 0;
-
 	if (!isInitialized())
 	{
-		MIKAN_LOG_ERROR("CudaGLColorTexture::beginCudaAccess") << "Not initialized";
+		MIKAN_LOG_ERROR("CudaGLColorTexture::copyFromDevice") << "Not initialized";
 		return false;
 	}
 
-	if (m_currentSurface != 0)
+	CUgraphicsResource resources[2]= {m_lumaGraphicsResource, m_chromaGraphicsResource};
+	if (!checkCudaResult(cuGraphicsMapResources(2, resources, nullptr), "cuGraphicsMapResources"))
+		return false;
+
+	bool bSuccess= true;
+
+	CUarray lumaArray= nullptr;
+	bSuccess= bSuccess
+			  && checkCudaResult(cuGraphicsSubResourceGetMappedArray(&lumaArray, m_lumaGraphicsResource, 0, 0),
+								 "cuGraphicsSubResourceGetMappedArray(luma)");
+
+	CUarray chromaArray= nullptr;
+	bSuccess= bSuccess
+			  && checkCudaResult(cuGraphicsSubResourceGetMappedArray(&chromaArray, m_chromaGraphicsResource, 0, 0),
+								 "cuGraphicsSubResourceGetMappedArray(chroma)");
+
+	if (bSuccess)
 	{
-		MIKAN_LOG_ERROR("CudaGLColorTexture::beginCudaAccess") << "Already mapped - missing endCudaAccess() call";
-		return false;
+		// Y plane: full resolution, 1 byte/pixel (MK_RED/R8).
+		CUDA_MEMCPY2D lumaCopy= {};
+		lumaCopy.srcMemoryType= CU_MEMORYTYPE_DEVICE;
+		lumaCopy.srcDevice= yPlane;
+		lumaCopy.srcPitch= static_cast<size_t>(yStrideBytes);
+		lumaCopy.dstMemoryType= CU_MEMORYTYPE_ARRAY;
+		lumaCopy.dstArray= lumaArray;
+		lumaCopy.WidthInBytes= static_cast<size_t>(m_width);
+		lumaCopy.Height= static_cast<size_t>(m_height);
+		bSuccess= bSuccess && checkCudaResult(cuMemcpy2D(&lumaCopy), "cuMemcpy2D(luma)");
+
+		// UV plane: half resolution in each dimension, 2 bytes/pixel interleaved
+		// U/V (MK_RG/RG8) - a full-width row of interleaved UV bytes is exactly
+		// m_width bytes (half as many pixel pairs, 2 bytes each).
+		CUDA_MEMCPY2D chromaCopy= {};
+		chromaCopy.srcMemoryType= CU_MEMORYTYPE_DEVICE;
+		chromaCopy.srcDevice= uvPlane;
+		chromaCopy.srcPitch= static_cast<size_t>(uvStrideBytes);
+		chromaCopy.dstMemoryType= CU_MEMORYTYPE_ARRAY;
+		chromaCopy.dstArray= chromaArray;
+		chromaCopy.WidthInBytes= static_cast<size_t>(m_width);
+		chromaCopy.Height= static_cast<size_t>(m_height / 2);
+		bSuccess= bSuccess && checkCudaResult(cuMemcpy2D(&chromaCopy), "cuMemcpy2D(chroma)");
 	}
 
-	if (!checkCudaResult(cuGraphicsMapResources(1, &m_graphicsResource, nullptr), "cuGraphicsMapResources"))
-		return false;
+	const bool unmapOk= checkCudaResult(cuGraphicsUnmapResources(2, resources, nullptr), "cuGraphicsUnmapResources");
 
-	CUarray mappedArray= nullptr;
-	if (!checkCudaResult(cuGraphicsSubResourceGetMappedArray(&mappedArray, m_graphicsResource, 0, 0),
-						 "cuGraphicsSubResourceGetMappedArray"))
-	{
-		cuGraphicsUnmapResources(1, &m_graphicsResource, nullptr);
-		return false;
-	}
-
-	CUDA_RESOURCE_DESC resourceDesc= {};
-	resourceDesc.resType= CU_RESOURCE_TYPE_ARRAY;
-	resourceDesc.res.array.hArray= mappedArray;
-
-	if (!checkCudaResult(cuSurfObjectCreate(&m_currentSurface, &resourceDesc), "cuSurfObjectCreate"))
-	{
-		m_currentSurface= 0;
-		cuGraphicsUnmapResources(1, &m_graphicsResource, nullptr);
-		return false;
-	}
-
-	outSurface= m_currentSurface;
-	return true;
-}
-
-bool CudaGLColorTexture::endCudaAccess(CUstream stream)
-{
-	if (m_currentSurface == 0)
-	{
-		MIKAN_LOG_ERROR("CudaGLColorTexture::endCudaAccess") << "Not currently mapped - missing beginCudaAccess() call";
-		return false;
-	}
-
-	const bool destroyOk= checkCudaResult(cuSurfObjectDestroy(m_currentSurface), "cuSurfObjectDestroy");
-	m_currentSurface= 0;
-
-	const bool unmapOk=
-		checkCudaResult(cuGraphicsUnmapResources(1, &m_graphicsResource, stream), "cuGraphicsUnmapResources");
-
-	return destroyOk && unmapOk;
+	return bSuccess && unmapOk;
 }

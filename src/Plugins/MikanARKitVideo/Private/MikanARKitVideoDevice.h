@@ -2,7 +2,6 @@
 
 #include "IARKitVideoDevice.h"
 #include "Cuda/CudaGLInterop.h"
-#include "Cuda/NV12ConversionKernel.h"
 
 #include <future>
 #include <mutex>
@@ -66,17 +65,21 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
 
-	// -- Zero-copy CUDA-GL texture access (ticket E3)
-	virtual uint32_t getColorTextureGlId() const override;
+	// -- Zero-copy CUDA-GL texture access (ticket E3; NV12 planes as of "Phase 6")
+	virtual uint32_t getLumaTextureGlId() const override;
+	virtual uint32_t getChromaTextureGlId() const override;
 
 protected:
 	bool openOnThread();
 
 	// Called from update()'s appsink-pull site once per successfully-decoded CUDA
-	// frame (ticket E3). Resizes the CUDA-GL color texture on dimension change and
-	// runs the NV12->RGBA conversion kernel to write the display color texture.
-	// Must run on the GL-context-owning thread (same as update() itself already
-	// does - see CudaGLInterop.h's threading note).
+	// frame (ticket E3). Resizes the CUDA-GL luma/chroma textures on dimension
+	// change and copies the decoded NV12 planes into them - no CUDA kernel
+	// involved anymore (see "Phase 6"): the actual NV12->RGBA color conversion is
+	// now a GLSL shader pass on the Editor side (see ARKitVideoSourceComponent),
+	// since this plugin has no GL context/shader-cache access of its own. Must run
+	// on the GL-context-owning thread (same as update() itself already does - see
+	// CudaGLInterop.h's threading note).
 	void updateColorTexture(GstBuffer* buffer, CUdeviceptr devicePtr, int width, int height);
 	bool ensureTexturePipelineInitialized(int width, int height);
 
@@ -142,14 +145,4 @@ private:
 	CUcontext m_cudaContext= nullptr;
 
 	CudaGLColorTexture m_colorTexture;
-	NV12ConversionKernel m_nv12Kernel;
-
-	// Full-resolution packed-RGB "guide" buffer NV12ConversionKernel::convert()
-	// writes alongside the RGBA display texture - a mandatory output parameter of
-	// that kernel (originally consumed by the now-removed JBU depth upsampler as
-	// its guide image). Nothing reads it anymore; kept only because the kernel
-	// still requires a valid destination to write to. Sized
-	// m_textureHeight * m_guideStrideBytes.
-	CUdeviceptr m_guideRgbBuffer= 0;
-	int m_guideStrideBytes= 0;
 };

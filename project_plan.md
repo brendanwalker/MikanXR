@@ -33,6 +33,23 @@
 >   was reviewed and deliberately kept (defensive — the listener interface
 >   doesn't formally guarantee a calling thread) even though writer and reader
 >   are now same-thread in practice.
+>
+> **Phase 6 update:** the ARKit color pipeline's CUDA kernel
+> (`NV12ConversionKernel`) has been deleted — the plugin now only copies
+> decoded NV12 Y/UV planes into two GL textures (`CudaGLColorTexture`, luma +
+> chroma) via `cuMemcpy2D`, and a new GLSL shader
+> (`INTERNAL_MATERIAL_PT_CONVERT_NV12_TO_RGBA`) on the Editor side
+> (`ARKitVideoSourceComponent::processDirectVideoFrame`) does the actual
+> YUV→RGB conversion into the texture `getDirectColorTexture()` returns. No
+> `nvcc`/PTX build step remains in this plugin. The shader selects BT.601 vs
+> BT.709 coefficients based on frame resolution (`width >= 1280`) rather than
+> real per-frame colorimetry metadata — ARKit's decode pipeline doesn't
+> currently surface `GstVideoInfo` colorimetry the way `MikanGStreamerVideoDevice`
+> does for Network sources; this is a real, working improvement over the old
+> kernel's single hardcoded-BT.601 assumption, just narrower in scope than full
+> caps-driven colorimetry. Live color output has not yet been verified on real
+> hardware — compare against a pre-Phase-6 build and the phone's own camera
+> preview.
 
 I would like to draw up a plan for streaming video + depth data + camera pose from ARKit on an iPhone to MikanXR. 
 

@@ -2,10 +2,20 @@
 #include "ARKitVideoSourceSystem.h"
 #include "CameraMath.h"
 #include "IARKitVideoDeviceManager.h"
+#include "IMkFrameBuffer.h"
+#include "IMkGraphicsContext.h"
+#include "IMkShaderCache.h"
 #include "IMkTexture.h"
+#include "IMkTriangulatedMesh.h"
+#include "Logger.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
 #include "MikanVideoSourceTypes.h"
+#include "MkMaterial.h"
+#include "MkMaterialInstance.h"
+#include "MkScopedObjectBinding.h"
+#include "MkShaderConstants.h"
+#include "MkStateStack.h"
 #include "ProjectConfigConstants.h"
 #include "ThreadUtils.h"
 #include "VideoSourceRequestHandler.h"
@@ -261,21 +271,104 @@ bool ARKitVideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, int&
 	return false;
 }
 
-// -- Zero-copy GPU texture access (ticket E3) ----
+// -- Zero-copy GPU texture access (ticket E3; NV12->RGBA shader pass as of "Phase 6") ----
 IMkTexturePtr ARKitVideoSourceComponent::getDirectColorTexture() const
 {
+	if (m_nv12ConversionFrameBuffer == nullptr)
+		return IMkTexturePtr();
+
+	// The conversion pass itself runs in processDirectVideoFrame() (called once
+	// per tick by VideoFrameDistortionView::readAndProcessVideoFrame(), before
+	// this is read) - this just returns whatever it last wrote.
+	return m_nv12ConversionFrameBuffer->getColorTexture();
+}
+
+void ARKitVideoSourceComponent::processDirectVideoFrame()
+{
 	if (m_arkitVideoDevice == nullptr)
-		return IMkTexturePtr();
+		return;
 
-	uint32_t glId= m_arkitVideoDevice->getColorTextureGlId();
-	if (glId == 0)
-		return IMkTexturePtr();
+	uint32_t lumaGlId= m_arkitVideoDevice->getLumaTextureGlId();
+	uint32_t chromaGlId= m_arkitVideoDevice->getChromaTextureGlId();
+	if (lumaGlId == 0 || chromaGlId == 0)
+		return; // no decoded frame yet this session
 
-	if (m_colorTextureWrapper == nullptr)
-		m_colorTextureWrapper= CreateMkExternalTexture();
+	if (m_lumaTextureWrapper == nullptr)
+		m_lumaTextureWrapper= CreateMkExternalTexture();
+	m_lumaTextureWrapper->setExternalPlatformTexture(&lumaGlId);
 
-	m_colorTextureWrapper->setExternalPlatformTexture(&glId);
-	return m_colorTextureWrapper;
+	if (m_chromaTextureWrapper == nullptr)
+		m_chromaTextureWrapper= CreateMkExternalTexture();
+	m_chromaTextureWrapper->setExternalPlatformTexture(&chromaGlId);
+
+	const int width= m_lumaTextureWrapper->getTextureWidth();
+	const int height= m_lumaTextureWrapper->getTextureHeight();
+	if (width <= 0 || height <= 0)
+		return;
+
+	IMkGraphicsContext* graphicsContext= getGraphicsContext();
+	if (graphicsContext == nullptr)
+		return;
+
+	// Lazily create the conversion pipeline's fixed resources on first use -
+	// mirrors GLVideoFrameProcessor's FBO + lazy-resource-creation pattern.
+	// m_nv12ConversionFrameBuffer never has an external texture attached, so it
+	// creates and owns its own RGBA color texture internally (see
+	// IMkFrameBuffer::attachColorTexture's own doc comment on this default).
+	if (m_nv12ConversionFrameBuffer == nullptr)
+	{
+		m_nv12ConversionFrameBuffer= createMkFrameBuffer("ARKit NV12 Conversion Frame Buffer");
+		m_nv12ConversionFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
+		m_nv12ConversionFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
+
+		m_nv12ConversionMaterial=
+			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_CONVERT_NV12_TO_RGBA);
+		m_nv12ConversionMaterialInstance= createMkMaterialInstance(m_nv12ConversionMaterial);
+		m_nv12ConversionQuad= createFullscreenQuadMesh(graphicsContext, m_nv12ConversionMaterial, true);
+	}
+
+	if (width != m_nv12ConversionWidth || height != m_nv12ConversionHeight)
+	{
+		m_nv12ConversionFrameBuffer->setSize(width, height);
+		m_nv12ConversionWidth= width;
+		m_nv12ConversionHeight= height;
+	}
+
+	if (!m_nv12ConversionFrameBuffer->isValid())
+	{
+		if (!m_nv12ConversionFrameBuffer->createResources())
+		{
+			MIKAN_LOG_ERROR("ARKitVideoSourceComponent::processDirectVideoFrame")
+				<< "Failed to create NV12 conversion framebuffer";
+			return;
+		}
+	}
+
+	// BT.601 (SD) vs BT.709 (HD) coefficient selection, resolution-based - see
+	// getPTConvertNV12ToRGBAQuad()'s own comment for why this isn't driven from
+	// real caps colorimetry (ARKit's decode pipeline doesn't currently surface
+	// per-frame colorimetry metadata at this layer, unlike
+	// MikanGStreamerVideoDevice::extractColorimetryInfo for Network sources).
+	const float isHD= (width >= 1280) ? 1.0f : 0.0f;
+
+	MkScopedObjectBinding frameBufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+											 "ARKitVideoSourceComponent NV12 Conversion Scope",
+											 m_nv12ConversionFrameBuffer);
+	if (frameBufferBinding)
+	{
+		if (auto materialBinding= m_nv12ConversionMaterial->bindMaterial())
+		{
+			m_nv12ConversionMaterialInstance->setTextureBySemantic(eUniformSemantic::lumaTexture, m_lumaTextureWrapper);
+			m_nv12ConversionMaterialInstance->setTextureBySemantic(eUniformSemantic::chromaTexture,
+																   m_chromaTextureWrapper);
+			m_nv12ConversionMaterialInstance->setFloatBySemantic(eUniformSemantic::floatConstant0, isHD);
+
+			if (auto materialInstanceBinding= m_nv12ConversionMaterialInstance->bindMaterialInstance(materialBinding))
+			{
+				m_nv12ConversionQuad->drawElements();
+			}
+		}
+	}
 }
 
 // -- IARKitVideoDeviceListener ----

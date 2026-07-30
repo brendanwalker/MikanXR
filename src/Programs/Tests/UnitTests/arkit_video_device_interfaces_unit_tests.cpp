@@ -63,9 +63,10 @@ public:
 	eVideoStreamingStatus getVideoStreamingStatus() const override { return m_streamingStatus; }
 	void stopVideoStream() override { m_streamingStatus= eVideoStreamingStatus::stopped; }
 
-	// Zero-copy CUDA-GL texture access (ticket E3) - this stub never has a real GL
-	// texture, 0 is the documented "none yet" sentinel.
-	uint32_t getColorTextureGlId() const override { return 0; }
+	// Zero-copy CUDA-GL texture access (ticket E3; NV12 planes as of "Phase 6") -
+	// this stub never has a real GL texture, 0 is the documented "none yet" sentinel.
+	uint32_t getLumaTextureGlId() const override { return 0; }
+	uint32_t getChromaTextureGlId() const override { return 0; }
 
 	// Test-only helper to exercise the listener dispatch path.
 	void simulateFrameBundle(const ARKitVideoFrameBundle& bundle)

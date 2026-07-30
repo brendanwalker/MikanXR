@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include "unit_test.h"
 
-// Same compile-time guard as before - this file needs CUDA (NV12_KERNEL_PTX_PATH
-// is only defined when MIKAN_WITH_GSTREAMER is ON).
-#if defined(NV12_KERNEL_PTX_PATH)
+// Same compile-time guard as before - this file needs CUDA (only available
+// when MIKAN_WITH_GSTREAMER is ON - see UnitTests/CMakeLists.txt, which defines
+// MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE for exactly this).
+#if defined(MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE)
 
 #if defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
@@ -25,20 +26,23 @@
 
 #include "CudaGLInterop.h"
 #include "IMkTexture.h"
-#include "NV12ConversionKernel.h"
 
-// Full end-to-end coverage for ticket D4/E3's CudaGLColorTexture - the one piece of
-// this CUDA-GL interop pipeline that genuinely needs a live OpenGL context, which
-// this otherwise-headless console test executable doesn't normally have. This file
-// creates a minimal, hidden, off-screen WGL context purely for this one test's own
-// use (no SDL/MikanWindow dependency - self-contained Win32+WGL, in the same
-// spirit as MikanARKitVideoDevice.cpp's own direct <windows.h> usage). Feeds a
-// small constant-color NV12 input through NV12ConversionKernel::convert() and
-// confirms the RGBA output is visible via a glGetTexImage readback - the same
-// round-trip MikanARKitVideoDevice::updateColorTexture() performs live per frame.
-// Still gated at runtime (skips gracefully, doesn't fail) if window/GL/CUDA-GL-
-// interop context creation fails, since a headless CI runner with no display
-// adapter is a real possibility this repo has no other precedent for handling.
+// Full end-to-end coverage for ticket D4/E3/"Phase 6"'s CudaGLColorTexture - the
+// one piece of this CUDA-GL interop pipeline that genuinely needs a live OpenGL
+// context, which this otherwise-headless console test executable doesn't
+// normally have. This file creates a minimal, hidden, off-screen WGL context
+// purely for this one test's own use (no SDL/MikanWindow dependency -
+// self-contained Win32+WGL, in the same spirit as MikanARKitVideoDevice.cpp's
+// own direct <windows.h> usage). Feeds constant-value Y/UV planes through
+// CudaGLColorTexture::copyFromDevice() and confirms both planes are visible via
+// a glGetTexImage readback - the same round-trip
+// MikanARKitVideoDevice::updateColorTexture() performs live per frame. As of
+// "Phase 6" there's no CUDA kernel/color-conversion math to verify here anymore
+// (that moved to a GLSL shader on the Editor side) - this test only proves the
+// raw NV12 bytes survive the device-to-array copy unmodified. Still gated at
+// runtime (skips gracefully, doesn't fail) if window/GL/CUDA-GL-interop context
+// creation fails, since a headless CI runner with no display adapter is a real
+// possibility this repo has no other precedent for handling.
 namespace
 {
 bool cudaGlInteropTestCreateHiddenGLContext(HWND& outWindow, HDC& outDC, HGLRC& outGLRC)
@@ -147,7 +151,7 @@ bool cudaGlInteropTestCudaDeviceAvailable(CUdevice& outDevice)
 static bool arkit_cuda_gl_interop_test_writeback_visible_via_gl_readback()
 {
 	UNIT_TEST_BEGIN(
-		"CudaGLColorTexture: an NV12ConversionKernel write is visible when the texture is read back through GL")
+		"CudaGLColorTexture: a copyFromDevice() plane write is visible when the texture is read back through GL")
 
 	HWND window= nullptr;
 	HDC dc= nullptr;
@@ -171,79 +175,75 @@ static bool arkit_cuda_gl_interop_test_writeback_visible_via_gl_readback()
 	success= (cuCtxCreate(&context, nullptr, 0, device) == CUDA_SUCCESS);
 	assert(success);
 
-	NV12ConversionKernel kernel;
-	success= success && kernel.init(NV12_KERNEL_PTX_PATH);
-	assert(success);
-
 	CudaGLColorTexture colorTexture;
 	success= success && colorTexture.init(64, 48);
 	assert(success);
 
-	const int outW= colorTexture.getWidth();
-	const int outH= colorTexture.getHeight();
+	const int lumaW= colorTexture.getWidth();
+	const int lumaH= colorTexture.getHeight();
+	const int chromaW= lumaW / 2;
+	const int chromaH= lumaH / 2;
 
-	// Y=235/U=128/V=128 is a constant, chosen so BT.601 limited-range decode
-	// (see NV12ConversionKernel.cu) yields RGBA(254,254,254,255) uniformly:
-	// fy = 1.164 * (235 - 16) = 254.916 -> 254; fu=fv=0 so fr=fg=fb=fy.
-	const int yStrideBytes= outW;
-	const int uvStrideBytes= outW; // interleaved UV, half-height, same row stride as Y
-	std::vector<uint8_t> yPlane(static_cast<size_t>(yStrideBytes) * outH, 235);
-	std::vector<uint8_t> uvPlane(static_cast<size_t>(uvStrideBytes) * (outH / 2), 128);
+	// Arbitrary constant Y/UV values - this test only checks the bytes survive
+	// the device-to-array copy unmodified, not any color-conversion math (that
+	// now lives in a GLSL shader on the Editor side, not in this plugin).
+	const uint8_t yValue= 200;
+	const uint8_t uvValue= 40;
 
-	const int guideStrideBytes= outW * 3;
-	std::vector<uint8_t> guideReadback(static_cast<size_t>(guideStrideBytes) * outH, 0);
+	const int yStrideBytes= lumaW;
+	const int uvStrideBytes= lumaW; // interleaved UV, half-height, same row stride as Y (bytes)
+	std::vector<uint8_t> yPlane(static_cast<size_t>(yStrideBytes) * lumaH, yValue);
+	std::vector<uint8_t> uvPlane(static_cast<size_t>(uvStrideBytes) * chromaH, uvValue);
 
-	CUdeviceptr d_yPlane= 0, d_uvPlane= 0, d_guideRgb= 0;
+	CUdeviceptr d_yPlane= 0, d_uvPlane= 0;
 	success= success && (cuMemAlloc(&d_yPlane, yPlane.size()) == CUDA_SUCCESS);
 	success= success && (cuMemAlloc(&d_uvPlane, uvPlane.size()) == CUDA_SUCCESS);
-	success= success && (cuMemAlloc(&d_guideRgb, guideReadback.size()) == CUDA_SUCCESS);
 	assert(success);
 
 	success= success && (cuMemcpyHtoD(d_yPlane, yPlane.data(), yPlane.size()) == CUDA_SUCCESS);
 	success= success && (cuMemcpyHtoD(d_uvPlane, uvPlane.data(), uvPlane.size()) == CUDA_SUCCESS);
 	assert(success);
 
-	CUsurfObject surface= 0;
-	success= success && colorTexture.beginCudaAccess(surface);
+	success= success && colorTexture.copyFromDevice(d_yPlane, yStrideBytes, d_uvPlane, uvStrideBytes);
 	assert(success);
 
-	success= success
-			 && kernel.convert(d_yPlane, yStrideBytes, d_uvPlane, uvStrideBytes, outW, outH, surface, d_guideRgb,
-							   guideStrideBytes);
-	assert(success);
-	success= success && kernel.synchronize();
-	assert(success);
-
-	success= success && colorTexture.endCudaAccess(nullptr);
-	assert(success);
-
-	std::vector<uint8_t> readback(static_cast<size_t>(outW) * outH * 4, 0);
+	std::vector<uint8_t> lumaReadback(static_cast<size_t>(lumaW) * lumaH, 0);
 	if (success)
 	{
-		glBindTexture(GL_TEXTURE_2D, colorTexture.getTexture()->getGlTextureId());
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, readback.data());
+		glBindTexture(GL_TEXTURE_2D, colorTexture.getLumaTexture()->getGlTextureId());
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, lumaReadback.data());
 		glBindTexture(GL_TEXTURE_2D, 0);
 		success= success && (glGetError() == GL_NO_ERROR);
 		assert(success);
 	}
 
-	bool allMatch= true;
-	for (size_t i= 0; i + 3 < readback.size() && allMatch; i+= 4)
+	std::vector<uint8_t> chromaReadback(static_cast<size_t>(chromaW) * chromaH * 2, 0);
+	if (success)
 	{
-		allMatch=
-			(readback[i + 0] == 254 && readback[i + 1] == 254 && readback[i + 2] == 254 && readback[i + 3] == 255);
+		glBindTexture(GL_TEXTURE_2D, colorTexture.getChromaTexture()->getGlTextureId());
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_UNSIGNED_BYTE, chromaReadback.data());
+		glBindTexture(GL_TEXTURE_2D, 0);
+		success= success && (glGetError() == GL_NO_ERROR);
+		assert(success);
 	}
-	success= success && allMatch;
+
+	bool lumaMatches= true;
+	for (size_t i= 0; i < lumaReadback.size() && lumaMatches; ++i)
+		lumaMatches= (lumaReadback[i] == yValue);
+	success= success && lumaMatches;
+	assert(success);
+
+	bool chromaMatches= true;
+	for (size_t i= 0; i < chromaReadback.size() && chromaMatches; ++i)
+		chromaMatches= (chromaReadback[i] == uvValue);
+	success= success && chromaMatches;
 	assert(success);
 
 	if (d_yPlane != 0)
 		cuMemFree(d_yPlane);
 	if (d_uvPlane != 0)
 		cuMemFree(d_uvPlane);
-	if (d_guideRgb != 0)
-		cuMemFree(d_guideRgb);
 	colorTexture.shutdown();
-	kernel.shutdown();
 	if (context != nullptr)
 		cuCtxDestroy(context);
 	cudaGlInteropTestDestroyHiddenGLContext(window, dc, glrc);
@@ -259,7 +259,7 @@ bool run_arkit_cuda_gl_interop_unit_tests()
 	UNIT_TEST_MODULE_END()
 }
 
-#else // !defined(NV12_KERNEL_PTX_PATH)
+#else // !defined(MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE)
 
 bool run_arkit_cuda_gl_interop_unit_tests()
 {
@@ -268,4 +268,4 @@ bool run_arkit_cuda_gl_interop_unit_tests()
 	return true;
 }
 
-#endif // defined(NV12_KERNEL_PTX_PATH)
+#endif // defined(MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE)

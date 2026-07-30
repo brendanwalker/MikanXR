@@ -534,6 +534,14 @@ int64_t VideoFrameDistortionView::readAndProcessVideoFrame()
 {
 	EASY_FUNCTION();
 
+	// GPU-direct sources (ticket E3/E4/"Phase 6") may need an explicit per-tick
+	// processing pass before their direct texture is safe to read (e.g. ARKit's
+	// NV12->RGBA shader conversion) - run it unconditionally (cheap no-op for
+	// every other source type) before checking getDirectColorTexture() below, so
+	// callers that read the texture later this same tick (e.g.
+	// CompositorComponent::getVideoSourceTexture) never see a stale/blank target.
+	m_videoSourceComponent->processDirectVideoFrame();
+
 	if (m_videoSourceComponent->getDirectColorTexture() != nullptr)
 	{
 		// GPU-direct source (ticket E3/E4) - no CPU frame queue/undistortion

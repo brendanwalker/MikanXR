@@ -349,7 +349,8 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 			// downloading to a host-readable copy (ticket C4) - map.data is a
 			// CUdeviceptr value, not CPU-readable memory; it must never be
 			// dereferenced from the CPU, only handed to CUDA APIs (see
-			// NV12ConversionKernel, which reads it as the source NV12 frame).
+			// CudaGLColorTexture::copyFromDevice, which reads it as the source NV12
+			// frame).
 			GstMapInfo map;
 			if (gst_buffer_map(buffer, &map, static_cast<GstMapFlags>(GST_MAP_READ | GST_MAP_CUDA)))
 			{
@@ -470,14 +471,7 @@ void MikanARKitVideoDevice::close()
 	// unconditionally torn down and rebuilt below.
 	if (m_bTexturePipelineInitialized)
 	{
-		m_nv12Kernel.shutdown();
 		m_colorTexture.shutdown();
-
-		if (m_guideRgbBuffer != 0)
-		{
-			cuMemFree(m_guideRgbBuffer);
-			m_guideRgbBuffer= 0;
-		}
 
 		m_bTexturePipelineInitialized= false;
 		m_textureWidth= 0;
@@ -565,36 +559,14 @@ bool MikanARKitVideoDevice::ensureTexturePipelineInitialized(int width, int heig
 	{
 		// Dimensions changed mid-stream - shouldn't normally happen (ARKit's video
 		// resolution is fixed for a session), but resize cleanly rather than
-		// reuse/leak stale buffers if it does. The kernel module itself isn't
-		// size-dependent, so it's left alone.
+		// reuse/leak stale buffers if it does.
 		m_colorTexture.shutdown();
-		if (m_guideRgbBuffer != 0)
-		{
-			cuMemFree(m_guideRgbBuffer);
-			m_guideRgbBuffer= 0;
-		}
 		m_bTexturePipelineInitialized= false;
 	}
 
 	if (!m_colorTexture.init(width, height))
 	{
 		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized") << "Failed to init color texture";
-		return false;
-	}
-
-	if (!m_nv12Kernel.isInitialized() && !m_nv12Kernel.init(NV12_KERNEL_PTX_PATH))
-	{
-		MIKAN_LOG_ERROR("MikanARKitVideoDevice::ensureTexturePipelineInitialized")
-			<< "Failed to init NV12 conversion kernel";
-		m_colorTexture.shutdown();
-		return false;
-	}
-
-	m_guideStrideBytes= width * 3;
-	if (!checkCudaResult(cuMemAlloc(&m_guideRgbBuffer, static_cast<size_t>(m_guideStrideBytes) * height),
-						 "cuMemAlloc(guideRgb)"))
-	{
-		m_colorTexture.shutdown();
 		return false;
 	}
 
@@ -629,26 +601,22 @@ void MikanARKitVideoDevice::updateColorTexture(GstBuffer* buffer, CUdeviceptr de
 	const CUdeviceptr uvPlane= devicePtr + videoMeta->offset[1];
 	const int uvStrideBytes= static_cast<int>(videoMeta->stride[1]);
 
-	// NV12 -> RGBA (display). m_guideRgbBuffer is a mandatory kernel output
-	// parameter that nothing reads anymore (see its declaration comment) - still
-	// passed through since NV12ConversionKernel::convert() requires a destination.
-	CUsurfObject colorSurface= 0;
-	if (m_colorTexture.beginCudaAccess(colorSurface))
-	{
-		m_nv12Kernel.convert(yPlane, yStrideBytes, uvPlane, uvStrideBytes, width, height, colorSurface,
-							 m_guideRgbBuffer, m_guideStrideBytes);
-		// Block until the conversion completes before unmapping the color texture
-		// (endCudaAccess's stream param is for synchronizing the unmap against
-		// in-flight work on that same stream, which NV12ConversionKernel doesn't
-		// expose - synchronizing here is simpler) - see NV12ConversionKernel.h.
-		m_nv12Kernel.synchronize();
-		m_colorTexture.endCudaAccess(nullptr);
-	}
+	// Copy the decoded NV12 planes straight into the registered luma/chroma GL
+	// textures - no kernel launch, just two device-to-array cuMemcpy2D calls (see
+	// CudaGLInterop.h). The actual color conversion happens later as a GLSL
+	// shader pass on the Editor side.
+	m_colorTexture.copyFromDevice(yPlane, yStrideBytes, uvPlane, uvStrideBytes);
 }
 
-uint32_t MikanARKitVideoDevice::getColorTextureGlId() const
+uint32_t MikanARKitVideoDevice::getLumaTextureGlId() const
 {
-	IMkTexturePtr texture= m_colorTexture.getTexture();
+	IMkTexturePtr texture= m_colorTexture.getLumaTexture();
+	return texture != nullptr ? texture->getGlTextureId() : 0;
+}
+
+uint32_t MikanARKitVideoDevice::getChromaTextureGlId() const
+{
+	IMkTexturePtr texture= m_colorTexture.getChromaTexture();
 	return texture != nullptr ? texture->getGlTextureId() : 0;
 }
 

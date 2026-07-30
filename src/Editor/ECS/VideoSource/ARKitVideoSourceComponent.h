@@ -60,8 +60,9 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 
-	// -- Zero-copy GPU texture access (ticket E3) ----
+	// -- Zero-copy GPU texture access (ticket E3; NV12->RGBA shader pass as of "Phase 6") ----
 	virtual IMkTexturePtr getDirectColorTexture() const override;
+	virtual void processDirectVideoFrame() override;
 
 	// Latest bundle's frameSeq (video or pose - whichever arrived most
 	// recently), or -1 if none has arrived yet (ticket E4 - see
@@ -106,15 +107,26 @@ private:
 	int m_lastVideoWidth= 0;
 	int m_lastVideoHeight= 0;
 
-	// Wrap the plugin's raw GL texture id (IARKitVideoDevice::getColorTextureGlId -
-	// see that header's comment on why this crosses the MikanCoreApp/MikanRenderer
-	// layering boundary as a raw id rather than an IMkTexturePtr) into an
-	// IMkExternalTexture wrapper this Editor-side code can hand out via
-	// getDirectColorTexture. Lazily created on first non-zero id;
-	// setExternalPlatformTexture() is cheap to call again every frame after that
-	// (it early-outs unless the underlying GL id actually changed - see
-	// GlExternalTexture::setExternalPlatformTexture).
-	mutable IMkExternalTexturePtr m_colorTextureWrapper;
+	// NV12->RGBA GLSL conversion pipeline ("Phase 6"). The plugin only exposes raw
+	// luma/chroma GL texture ids (IARKitVideoDevice::getLumaTextureGlId/
+	// getChromaTextureGlId - see that header's comment on why this crosses the
+	// MikanCoreApp/MikanRenderer layering boundary as raw ids rather than
+	// IMkTexturePtrs, and on why the plugin can't do the shader pass itself: no GL
+	// context/shader-cache access at that layer). This component wraps each id in
+	// an IMkExternalTexture (setExternalPlatformTexture() is cheap to call again
+	// every frame - it early-outs unless the underlying GL id actually changed,
+	// see GlExternalTexture::setExternalPlatformTexture) and owns the actual
+	// two-sampler fullscreen shader pass that converts them into a displayable
+	// RGBA output texture. processDirectVideoFrame() runs the pass once per tick;
+	// getDirectColorTexture() just returns the already-converted output.
+	IMkExternalTexturePtr m_lumaTextureWrapper;
+	IMkExternalTexturePtr m_chromaTextureWrapper;
+	IMkFrameBufferPtr m_nv12ConversionFrameBuffer;
+	MkMaterialConstPtr m_nv12ConversionMaterial;
+	MkMaterialInstancePtr m_nv12ConversionMaterialInstance;
+	IMkTriangulatedMeshPtr m_nv12ConversionQuad;
+	int m_nv12ConversionWidth= 0;
+	int m_nv12ConversionHeight= 0;
 
 	// Latest frame-coupled pose (ticket E4). Historically notifyFrameBundleReceived()
 	// could fire from a background pose-receiver worker thread while

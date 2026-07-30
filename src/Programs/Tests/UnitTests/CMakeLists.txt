@@ -22,22 +22,23 @@ list(APPEND UNIT_TEST_SRC
 # loaded by arkit_video_source_system's tests). It's only exercised indirectly,
 # through the already-loaded plugin DLL, same as MikanARKitVideoDevice.cpp itself.
 
-# NV12ConversionKernel.h/.cpp (ticket E3) and CudaGLInterop.h/.cpp (ticket D4) are
-# plain CUDA Driver API C++ - no GObject/GstMeta registration, so (unlike
+# CudaGLInterop.h/.cpp (ticket D4; NV12 planes as of "Phase 6") is plain CUDA
+# Driver API C++ - no GObject/GstMeta registration, so (unlike
 # ARKitRTPHeaderExtension.cpp above) it's safe to dual-compile into both this
 # executable and MikanARKitVideo.dll. Needs the CUDA Toolkit headers/driver lib,
 # which - like GStreamer's own CUDA support - are only available when
 # MIKAN_WITH_GSTREAMER is ON (see ThirdParty.cmake).
-# CudaGLInterop.cpp additionally needs MikanRenderer (IMkTexture) and GLEW
-# (GLuint/GL_TEXTURE_2D types, required before cudaGL.h) - compiling it here
-# proves it builds cleanly against the real headers/libs on every run, even
-# though its actual CUDA-GL registration/mapping behavior needs a live GL context
-# this headless console test executable doesn't have (see
-# arkit_cuda_gl_interop_unit_tests.cpp's own notes on what is/isn't covered here).
+# Additionally needs MikanRenderer (IMkTexture) and GLEW (GLuint/GL_TEXTURE_2D
+# types, required before cudaGL.h) - compiling it here proves it builds cleanly
+# against the real headers/libs on every run, even though its actual CUDA-GL
+# registration/mapping behavior needs a live GL context this headless console
+# test executable doesn't have (see arkit_cuda_gl_interop_unit_tests.cpp's own
+# notes on what is/isn't covered here). MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE
+# gates that test file's actual test body (vs. a skip stub) on this block having
+# run - there's no PTX/kernel module to gate on anymore since "Phase 6" moved
+# NV12->RGBA conversion out of CUDA entirely.
 if(MIKAN_WITH_GSTREAMER)
   list(APPEND UNIT_TEST_SRC
-    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/NV12ConversionKernel.h
-    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/NV12ConversionKernel.cpp
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.h
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.cpp
   )
@@ -93,7 +94,7 @@ target_compile_definitions(unit_test_suite_cpp PRIVATE JSON_DISABLE_ENUM_SERIALI
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANAPI_REFLECTION)
 if(MIKAN_WITH_GSTREAMER)
-  target_compile_definitions(unit_test_suite_cpp PRIVATE NV12_KERNEL_PTX_PATH="${MIKAN_ARKIT_NV12_KERNEL_PTX}")
+  target_compile_definitions(unit_test_suite_cpp PRIVATE MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE)
 endif()
 SET_TARGET_PROPERTIES(unit_test_suite_cpp PROPERTIES FOLDER Test)
 
@@ -114,7 +115,6 @@ add_dependencies(unit_test_suite_cpp MikanSharedTexture)
 add_dependencies(unit_test_suite_cpp MikanUtility)
 if(MIKAN_WITH_GSTREAMER)
   add_dependencies(unit_test_suite_cpp MikanARKitVideo)
-  add_dependencies(unit_test_suite_cpp MikanARKitVideoNV12KernelPTX)
 endif()
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)

@@ -89,19 +89,26 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const= 0;
 	virtual void stopVideoStream()= 0;
 
-	// -- Zero-copy CUDA-GL texture access (ticket E3) --
-	// Returns the GL texture id (name) of the most recently decoded color frame,
-	// or 0 if none has arrived yet. MikanCoreApp (this header's library) is a
-	// lower layer than MikanRenderer - it can't depend on IMkTexturePtr - so this
-	// crosses the boundary as a raw GL texture id; IARKitVideoDeviceListener's
-	// caller (Editor-side code, which does depend on MikanRenderer) is expected to
-	// wrap it via IMkExternalTexture::setExternalPlatformTexture(&glId) (see
-	// ARKitVideoSourceComponent::getDirectColorTexture). The texture is written in
+	// -- Zero-copy CUDA-GL texture access (ticket E3; NV12 planes as of "Phase 6") --
+	// Return the GL texture id (name) of the most recently decoded frame's luma
+	// (Y, full-resolution, single-channel) and chroma (UV, half-resolution,
+	// two-channel interleaved) planes, or 0 if none has arrived yet. This plugin
+	// has no GL context/shader-cache access of its own (see MikanARKitVideoDevice's
+	// own notes), so it stops at exposing the raw decoded planes - it does not
+	// produce a displayable RGBA texture itself. MikanCoreApp (this header's
+	// library) is also a lower layer than MikanRenderer - it can't depend on
+	// IMkTexturePtr - so both cross the boundary as raw GL texture ids;
+	// IARKitVideoDeviceListener's caller (Editor-side code, which does depend on
+	// MikanRenderer and does have shader-cache access) is expected to wrap each via
+	// IMkExternalTexture::setExternalPlatformTexture(&glId) and run its own
+	// NV12->RGBA GLSL conversion pass (see ARKitVideoSourceComponent::
+	// getDirectColorTexture/processDirectVideoFrame). Each texture is written in
 	// place every frame (CUDA WRITE_DISCARD - see CudaGLInterop.h), so the same
 	// non-zero id remains valid to keep reusing across frames; only a
 	// resize/reopen changes it. Must be called from the GL-context-owning thread,
 	// same as every other CUDA-GL interop call in this pipeline.
-	virtual uint32_t getColorTextureGlId() const= 0;
+	virtual uint32_t getLumaTextureGlId() const= 0;
+	virtual uint32_t getChromaTextureGlId() const= 0;
 };
 
 using IARKitVideoDevicePtr= std::shared_ptr<IARKitVideoDevice>;
