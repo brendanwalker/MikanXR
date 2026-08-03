@@ -1,91 +1,96 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for Claude Code when working in this repository. MikanXR is a Windows tool for mixed-reality camera calibration and video compositing: a C++ editor/server application (`Mikan.exe` / `MikanCmd.exe`) exposing a websocket RPC API consumed by client applications through generated C++/C#/TypeScript bindings.
 
-## What this is
+## Project docs
 
-MikanXR is a Windows tool for mixed-reality camera calibration and video compositing. It's a C++ editor/server application (`Mikan.exe` / `MikanCmd.exe`) that exposes a websocket RPC API consumed by client applications (game engines, etc.) via generated C++/C#/TypeScript bindings.
+Read these for context, and keep them current as part of doing work:
 
-## Build
+- **[README.md](./README.md)**: what MikanXR is and how to use it. Update when setup, usage, or layout changes.
 
-Windows only (Win10/11), MSVC/Visual Studio 2022, CMake >= 3.15.
+[docs/](./docs/)
+- **[plan.md](./docs/plan.md)**: the living plan (Now / Next / Later / Open questions). After completing meaningful work, update it to reflect the current state.
 
-First-time setup (downloads prebuilt deps into `deps/`, ~large download):
-```
-InitialSetup_x64.bat
-```
+[docs/reference/](./docs/reference/)
+- **[build.md](./docs/reference/build.md)**: the build-system view (toolchain, `InitialSetup_x64.bat`, CMake options and targets, the CI Ninja configuration, unity-build and C#-generator gotchas). Keep it current as the build conventions evolve.
+- **[calibration.md](./docs/reference/calibration.md)**: the calibration flows (lens intrinsics, camera-to-tracker alignment, marker alignment, triangulation and ICP tools), their OpenCV entry points, and where results persist. Keep it current as flows are added or their math changes.
+- **[commands.md](./docs/reference/commands.md)**: cheat sheet of the handy repo commands (setup, generate, build, tests, formatting, bindings codegen, installer). Add new tooling commands here as they arrive.
+- **[compositor.md](./docs/reference/compositor.md)**: the compositing pipeline (frame-event queue pacing, client texture arrival, the compositor node graph, stencils, materials, Spout output) plus the frame anatomy of one `App::tick`. Keep it current as nodes, outputs, or the frame loop change.
+- **[conventions.md](./docs/reference/conventions.md)**: the math and coordinate conventions (matrix order, world space and units, OpenCV vs OpenGL camera space and the single conversion points, tracking spaces, intrinsics, the image Y-flip story). Governs spatial semantics, where standards.md governs code style. Update the named conversion points if they move.
+- **[debugging.md](./docs/reference/debugging.md)**: the debugging surface (logging, the two test suites, crash-with-no-output triage, the delta clamp watchdog trap, in-process GStreamer decode failures, easy_profiler, the Lua debugger). Keep it current as diagnostic facilities evolve.
+- **[layout.md](./docs/reference/layout.md)**: thorough reference for the directory hierarchy (annotated tree, `deps/` vs `thirdparty/`, generated trees that are never hand-edited). Keep it current as libraries, plugins, and tools are added.
+- **[modules.md](./docs/reference/modules.md)**: the libraries, plugins, programs, and editor subtrees with what each wraps and the dependency direction between them (the architectural view, vs layout.md's directory view). Keep it current as modules are added or their boundaries move.
+- **[objects.md](./docs/reference/objects.md)**: the editor scene object system (`MikanObject`/`MikanComponent`, definition-as-source-of-truth, the typed object systems, IDs, transforms, persistence, the property/function databases, selection and gizmos). Keep it current as the ECS machinery evolves.
+- **[scripting.md](./docs/reference/scripting.md)**: the node graph system (graph/node/pin/link model, evaluation, persistence) and Lua component scripting (script contexts, triggers, the LRDB debugger). Keep it current as node types or the script surface change.
+- **[standards.md](./docs/reference/standards.md)**: the observed coding standards (`.clang-format` summary, naming, file layout, pointer idioms, the codebase-specific rules). A living doc: when a code convention is decided, record it here so it is applied consistently.
+- **[videosources.md](./docs/reference/videosources.md)**: the video source system (ECS components, the plugin DLL contract, the four backends and their caveats, frame delivery, intrinsics persistence, pose association, the shared-texture and Spout process-boundary paths). Keep it current as backends or the frame pipeline change.
+- **[wire-protocol.md](./docs/reference/wire-protocol.md)**: the foundational contract (the `MikanClientAPI`/`MikanClientCore` structs, Refureku annotations, bindings codegen, the serialization traps, request routing, the three-legged property contract and its guard test, the shared-texture seam). Read it before touching anything client-facing. Keep it current as the protocol evolves.
 
-Generate VS2022 solution (`build/Mikan.sln`):
-```
-GenerateProjectFiles_X64_VS2022.bat
-```
+## Working agreements
 
-CI instead configures with the Ninja generator (for sccache) and `-DMIKAN_WITH_GSTREAMER=OFF -DCMAKE_UNITY_BUILD=ON` — see `.github/workflows/*.yml` for the exact invocation if reproducing a CI build locally.
+### Design pacing
 
-Key CMake targets:
-- `Mikan` — the editor GUI app
-- `MikanCmd` — headless/console entry point, also used to run the interprocess/API test suite
-- `unit_test_suite_cpp` — C++ unit tests (Programs/Tests/UnitTests)
-- `FormatFix` / `FormatCheck` — clang-format wrapper targets (see Formatting below)
+- Exploration and design conversations end with an explicit user instruction to begin. Until then, propose and stop: no implementation, no task scaffolding, no builds, no delegation.
+- A stated proposal stays unresolved until the user accepts it. Open questions get answered or explicitly parked, never carried as assumptions while work proceeds.
+- Design and preparation phases run in plan mode, so the gate into implementation is plan approval rather than conversational momentum.
 
-The project is split into `src/` (add_subdirectory: `Libraries`, `Plugins`, `Programs`, `Editor`), `bindings/` (csharp, typescript — generated client bindings), and `thirdparty/` (git submodules).
+### Engineering judgment
 
-## Tests
+- The editor and its client API serve real client applications (game engines, streaming rigs): judge decisions by how they scale to shipped integrations, not by demo expedience.
+- Build systems complete rather than minimal: leave each one in the flexible state the next developer would expect to find, sized to its present consumers plus the next obvious need. plan.md's named items are real needs, so designing toward one is not speculation. Generality nothing named asks for stays unbuilt. When deferring and building ahead both look defensible, weigh retrofit cost: cheap to add later defers, retrofit-hostile lands now. When it is unclear whether a need is obvious or invented, consult rather than letting the rule decide.
+- When formalizing a rule or invariant from discussion, adopt the weakest rule that protects the stated concern, not the strongest statement the wording supports. An implication that reaches past what was said is raised as a question, never folded into the rule.
+- Optimizations and bug fixes must also weigh developer readability/maintainability among their selection criteria.
+- When optimizing performance or fixing a bug, stop before changing code and enumerate the option space: list the plausible causes and courses of action, including which options subsume others, and weigh expected effect against effort for each.
+- Ground designs and estimates in the read definition, not analogy to neighboring machinery: read the struct or function the work operates on before proposing, and size it only after.
+- Model invariants get read, not inferred: before claiming what crosses the wire, what a property exposes, or which space a transform lives in, read that model's section in wire-protocol.md, objects.md, or conventions.md. Coordinate conventions have single named conversion points; do not add a second flip or transpose on a hunch.
+- The wire protocol is the load-bearing invariant. Changing a struct or enum in `MikanClientAPI`/`MikanClientCore` changes the protocol and the generated bindings: wire all three property legs (values struct, descriptor, `getPropertyValue`), regenerate the bindings through the codegen targets, and never hand-edit anything under `bindings/*/Generated`, `bindings/typescript/types`, or the Refureku output.
 
-```
-build\bin\MikanCmd.exe -runTests       # interprocess/client-API integration tests (see CmdApp.cpp)
-build\bin\unit_test_suite_cpp.exe      # C++ unit tests
-```
+### Verification
 
-Both must pass in CI (`.github/workflows/*.yml`, `build` job). `MikanCmd.exe -runTests` writes results to `MikanCmd.log` in addition to stdout — check that file if a run fails with no console output (e.g. a crash).
+- Verification is objective: run `MikanCmd.exe -runTests` and `unit_test_suite_cpp.exe` rather than assuming behavior, and read `MikanCmd.log` when a run dies silently (debugging.md).
+- A change to client-facing types is not done until the schema-guard test passes and the bindings are regenerated.
+- Review changed code against the conventions before calling it done: read the diff against standards.md (naming, layout, idioms) and conventions.md (spatial semantics), and cut what violates them rather than assuming it came out clean.
+- Format before commit: `FormatCheck` with clang-format 19.1.x (commands.md). CI rejects other major versions' output.
 
-## Formatting
+### Delegation
 
-Only `src/` is formatted with clang-format (`thirdparty/` is left untouched). Use **clang-format 19.1.x** to match CI — a different major version reformats differently and CI will reject it. VS2022 bundles a compatible copy at `VC\Tools\Llvm\bin\clang-format.exe`; otherwise `pip install clang-format==19.1.5`.
+- Delegate confidently-specifiable work (mechanical refactors, migrations against a settled contract, well-specced isolated features) to subagents with disjoint file ownership, and review each diff on return. Design, contracts, and final verification stay in the main session.
+- Match the delegated model to the judgment the brief leaves unresolved: the least capable tier that will do the task reliably. A tight spec makes work mechanical, and mechanical work never pays for a premium model.
+- Delegated agents build their touched targets and verify their own surface only. The global gates (both test suites, FormatCheck) run once in the main session before each commit.
 
-```
-cmake --build build --target FormatFix      # reformat in place
-cmake --build build --target FormatCheck    # check only (what CI runs)
-```
+### Git
 
-CI also runs a standalone `format-check` job on Linux that needs no build tree — it just runs `cmake -P cmake/RunClangFormat.cmake -- --check`.
+- Git is handled by the user: query state read-only (status/log/diff) between tasks, and perform write operations (stash, add, commit) only when asked.
+- When granted explicit permission for git operations by the user, commit messages are single line messages in the style of the other commits, with no tags or attribution.
+- A session spanning several concerns commits them one concern at a time for IDE review, reconstructed from a stash, with shared files hand-split so each commit carries only its own changes.
+- While a background agent shares the working tree, stage explicit paths, never `git add -A`.
 
-The repo-wide reformat commit is excluded from `git blame` via `.git-blame-ignore-revs`; run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once locally to benefit from that.
+### Tracking and docs
 
-## Architecture
+- When an open question in plan.md gets resolved, remove it from plan.md.
+- When a plan.md item is completed, remove it rather than leaving it checked in plan.md.
+- A deferred item enters plan.md in its owning group at the moment of deferral, as part of that task's doc pass, never tracked only in conversation.
+- Concrete facts about MikanXR belong in the reference docs, not the memory system, where they are durable, portable, and reviewable. The memory system is reserved for two things: knowledge about sibling repos (MikanARStreamer, MikanMediaPipe, the UE plugin) and environmental observations about a particular dev machine (driver quirks, locally installed tooling, transient hardware state).
+- Keep README.md aimed at humans. Keep this file aimed at Claude.
 
-### Process model
+## Writing conventions (docs, comments, commit-adjacent text)
 
-`Mikan`/`MikanCmd` is a single editor/server process. It hosts a websocket server (`src/Editor/Interprocess/WebsocketInterprocessMessageServer`) that speaks the Mikan RPC protocol. External client applications connect over that websocket and drive the editor (query/set scene state, subscribe to video frames, etc.) using the generated client API rather than linking directly into the editor process. Video frames are handed to clients out-of-band via shared texture memory (`SharedTextureReader`, `MikanSharedTexture` library), not over the websocket.
+- Doc weight is proportional to significance: trivial changes get no doc at all (git is their record). A must-know convention gets a sentence, design weight gets a paragraph.
+- conventions.md states conventions as plain fact. Verification history and adoption dates stay out.
+- Code carries no doc citations: source and build-file comments never point at a doc file. A comment states what the code needs in place. The docs are reached through CLAUDE.md/README, not breadcrumbs in the tree that rot when a doc moves. Docs cross-linking docs is fine. Code citing docs is not.
+- Docs may go public: stay neutral toward evaluated third-party projects, framing rejections as fit-with-goals rather than judgment.
+- Plain text only: no em dashes, no icons or emoji, sparing use of semicolons.
+- Prefer short sentences over semicolon chains. A semicolon joining two full clauses is almost always better as two sentences. When semicolons separate three or more parallel items in a reference doc, that enumeration is usually better as a bullet list. Semicolons inside code spans are code, not prose, and stay.
+- In reference docs, an inline enumeration of three or more concrete parallel items (commands, targets, type names, file kinds) becomes a nested bullet list under the sentence that introduces it, one short item per line, no terminal period on bare items. Conceptual lists woven into an argument stay prose.
+- Paths and path-like placeholders in markdown are always backticked (`docs/reference/build.md`, `build/RfkGenerated/<Library>`): backticks read as code, and a bare `<Library>` otherwise parses as an open HTML tag and vanishes from rendered markdown.
+- Markdown paragraphs and list items stay on one line (soft wrap only). Plan and multi-part progress items are "[ ]"/"[x]" checkboxes. Checking one off adds no inline rationale.
+- A bulleted list whose items run two or more sentences is a loose list: one blank line between each pair of sibling items. Short single-sentence inventories stay tight. A level that mixes the two goes loose as a whole. Nested levels are judged independently. plan.md is exempt: its checkbox lists stay tight regardless of item length.
+- Nested list items indent with tabs, one tab per nesting level, never spaces.
 
-### `src/Editor/Server` — RPC surface
+## Communication norms
 
-`MikanServer` owns the websocket server and routes incoming requests to a set of per-domain `IServerRequestHandler` implementations (`CameraRequestHandler`, `StageRequestHandler`, `StencilRequestHandler`, `VideoSourceRequestHandler`, `MarkerRequestHandler`, `LightRequestHandler`, `PropertyRequestHandler`, `ScriptRequestHandler`, `ShapeRequestHandler`, `TextureSourceRequestHandler`, `FunctionRequestHandler`, ...). Adding a new remote-controllable capability generally means adding a handler here plus the corresponding request/response types in `MikanClientAPI` (see below), not modifying `MikanServer` itself. `RemoteControlManager` / `IRemoteControllable` is the interface objects implement to become remotely queryable/settable (backs the client "properties" system).
-
-### `src/Libraries/MikanClientAPI` and `MikanClientCore` — the wire contract
-
-These two libraries define the public request/response/event structs and enums that cross the process boundary. They are annotated for **Refureku** (C++ static reflection, invoked at build time) so that `src/Programs/ClientCodeGen` can walk the reflected struct/enum metadata and emit equivalent C# and TypeScript types into `bindings/csharp/Generated` and `bindings/typescript`. **Changing a struct in `MikanClientAPI`/`MikanClientCore` changes the wire protocol and the generated bindings — do not hand-edit files under `bindings/*/Generated` or `bindings/typescript/types`, regenerate them.** There's a schema-guard integration test (`App::runTests`, exercised via `MikanCmd -runTests`) that checks the values-struct ↔ descriptor ↔ `getPropertyValue` contract stays consistent — keep new client-facing properties wired through all three.
-
-`bindings/csharp` only builds under the Visual Studio generator (C# isn't supported under Ninja), so it's skipped in CI and when configuring with Ninja.
-
-### `src/Libraries/MikanSerialization`
-
-Wire/config (de)serialization layer. `Serialization::String` is a `const char*`-only type for cross-CRT safety across the DLL/EXE boundary — don't widen it to `std::string` at that interface, and watch for the `const char*`→`bool` implicit-conversion trap when writing `to_binary` overloads (easy to accidentally bind to the wrong overload).
-
-### `src/Editor` layout
-
-- `AppCore` — app/process entry points (`EntryPoint.cpp` for `Mikan`, `CmdEntryPoint.cpp`/`CmdApp` for `MikanCmd`) and top-level app state machine (`AppStages`)
-- `ECS` — entity/component scene representation used by the editor (stages, cameras, stencils, anchors, lights, etc.)
-- `Calibration` — camera/mixed-reality calibration algorithms (built on `OpenCV`)
-- `NodeEditors` / `Scripting` — visual scripting / node graph editor, backed by Lua (`LuaBridge3`)
-- `Renderer` — editor viewport rendering (built on `MikanRenderer`)
-- `Interprocess`, `Server` — see above
-- `Project`, `Config`, `Asset` — persisted project/scene/asset state (Configuru-backed config files)
-
-### `src/Plugins`
-
-Optional video-source backends compiled as separate plugin modules: `MikanWMFVideo` (Windows Media Foundation), `MikanGStreamerVideo` (off by default in CI via `MIKAN_WITH_GSTREAMER=OFF`), `MikanSteamVR` (OpenVR tracking integration).
-
-### Unity build gotcha
-
-The default build uses `CMAKE_UNITY_BUILD=ON`. This means translation units from unrelated files get concatenated, so a transitively-included `windows.h` can rewrite a same-named method (e.g. `GetObject` → `GetObjectA`) and produce a confusing `LNK2019` far from the actual conflict. Avoid method names that collide with Win32 macros (`GetObject`, `SendMessage`, `CreateWindow`, etc.).
+- Plain tone.
+- No editorializing, just facts.
+- No validation openers.
+- No hedging or qualifying.
+- Never use the word "honest".
