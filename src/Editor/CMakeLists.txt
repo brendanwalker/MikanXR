@@ -66,6 +66,12 @@ file(GLOB MIKAN_APP_STAGES_LIGHT_FIXTURE_CALIBRATION_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/LightFixtureCalibration/*.h"
 )
 source_group("AppStages\\LightFixtureCalibration" FILES ${MIKAN_APP_STAGES_LIGHT_FIXTURE_CALIBRATION_SRC})
+## SceneLightingCapture
+file(GLOB MIKAN_APP_STAGES_SCENE_LIGHTING_CAPTURE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/SceneLightingCapture/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/SceneLightingCapture/*.h"
+)
+source_group("AppStages\\SceneLightingCapture" FILES ${MIKAN_APP_STAGES_SCENE_LIGHTING_CAPTURE_SRC})
 ## MainMenu
 file(GLOB MIKAN_APP_STAGES_MAIN_MENU_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/MainMenu/*.cpp"
@@ -153,6 +159,7 @@ set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_ALIGN_CAMERA_BY_ORIGIN_MARKER_SRC}
     ${MIKAN_APP_STAGES_ANCHOR_CALIBRATION_SRC}
     ${MIKAN_APP_STAGES_LIGHT_FIXTURE_CALIBRATION_SRC}
+    ${MIKAN_APP_STAGES_SCENE_LIGHTING_CAPTURE_SRC}
     ${MIKAN_APP_STAGES_MAIN_MENU_SRC}
     ${MIKAN_APP_STAGES_MODAL_CONFIRM_SRC}
     ${MIKAN_APP_STAGES_MODAL_MESSAGE_BOX_SRC}
@@ -521,6 +528,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Light
   ${MIKAN_LIBRARIES_DIR}/MikanDMX/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanOnnx/Public
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
@@ -598,6 +606,7 @@ list(APPEND MIKAN_REQ_LIBS
   MikanDMX
   MikanGUI
   MikanMath
+  MikanOnnx
   MikanRenderer
   MikanSerialization
   MikanSharedTexture
@@ -742,6 +751,12 @@ function(copy_mikan_runtime_deps mikan_target)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:${mikan_target}>)
+  # ONNX Runtime + DirectML (scene lighting estimator)
+  add_custom_command(
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${ONNXRUNTIME_SHARED_LIBRARIES}
+    $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy

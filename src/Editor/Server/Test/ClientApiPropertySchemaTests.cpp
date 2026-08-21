@@ -38,6 +38,7 @@
 #include "Light/DMXFixtureComponent.h"
 #include "Light/DMXObjectSystem.h"
 #include "Light/RGBPixelGridComponent.h"
+#include "Light/LightEnvironmentComponent.h"
 #include "Light/RGBSpotLightComponent.h"
 #include "Marker/MarkerComponent.h"
 #include "Marker/MarkerObjectSystem.h"
@@ -225,6 +226,7 @@ const SchemaTestEntry k_schemaTestEntries[]= {
 	// RGBSpotLightComponent / RGBPixelGridComponent entries below.
 	SCHEMA_ENTRY(RGBPixelGridComponent, MikanRGBPixelGridComponentValues),
 	SCHEMA_ENTRY(RGBSpotLightComponent, MikanRGBSpotLightComponentValues),
+	SCHEMA_ENTRY(LightEnvironmentComponent, MikanLightEnvironmentComponentValues),
 	SCHEMA_ENTRY(MarkerComponent, MikanMarkerComponentValues),
 	SCHEMA_ENTRY(SceneComponent, MikanSceneComponentValues),
 	SCHEMA_ENTRY(TransformComponent, MikanTransformComponentValues),

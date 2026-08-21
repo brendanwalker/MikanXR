@@ -167,6 +167,18 @@ if (WIN32)
   set (SPOUT2_SHARED_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.dll)
 endif()
 
+# ONNX Runtime w/ DirectML (from nuget packages, fetched by InitialSetup_x64.bat).
+# Used by the scene lighting estimator to run the Marigold models in-process.
+if (WIN32)
+  set (ONNXRUNTIME_DIR ${ROOT_DIR}/deps/onnxruntime)
+  set (ONNXRUNTIME_INCLUDE_DIRS ${ONNXRUNTIME_DIR}/build/native/include)
+  set (ONNXRUNTIME_LIBRARIES ${ONNXRUNTIME_DIR}/runtimes/win-x64/native/onnxruntime.lib)
+  list (APPEND ONNXRUNTIME_SHARED_LIBRARIES
+    ${ONNXRUNTIME_DIR}/runtimes/win-x64/native/onnxruntime.dll
+    ${ROOT_DIR}/deps/directml/bin/x64-win/DirectML.dll
+  )
+endif()
+
 # CEF (Chromium Embedded Framework)
 # Note: CEF_ROOT can be overridden via command line -DCEF_ROOT=...
 if (WIN32 AND NOT DEFINED CEF_ROOT)

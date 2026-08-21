@@ -205,6 +205,40 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+:: ONNX Runtime (DirectML flavor) - used by the scene lighting estimator.
+:: A .nupkg is a zip. Contains headers + onnxruntime.dll built against DirectML.
+echo "Downloading ONNX Runtime DirectML 1.20.1..."
+curl -L https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime.directml/1.20.1/microsoft.ml.onnxruntime.directml.1.20.1.nupkg --output onnxruntime-directml.nupkg
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading Microsoft.ML.OnnxRuntime.DirectML 1.20.1"
+  goto failure
+)
+%UNZIP_EXE% x onnxruntime-directml.nupkg -oonnxruntime -y > nul
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping onnxruntime-directml.nupkg"
+  goto failure
+)
+del onnxruntime-directml.nupkg
+
+echo "Downloading DirectML 1.15.4..."
+curl -L https://api.nuget.org/v3-flatcontainer/microsoft.ai.directml/1.15.4/microsoft.ai.directml.1.15.4.nupkg --output directml.nupkg
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading Microsoft.AI.DirectML 1.15.4"
+  goto failure
+)
+%UNZIP_EXE% x directml.nupkg -odirectml -y > nul
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping directml.nupkg"
+  goto failure
+)
+del directml.nupkg
+
+:: The package ships every architecture (arm, x86, linux, xbox) at ~350MB total.
+:: Only x64-win is ever used, so drop the rest to keep deps/ (and the CI cache) small.
+for /d %%A in (directml\bin\*) do (
+  if /I NOT "%%~nxA"=="x64-win" rmdir /s /q "%%A"
+)
+
 :: NuGet tool used to fetch c# packages
 echo "Downloading nuget..."
 curl -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe --output nuget.exe

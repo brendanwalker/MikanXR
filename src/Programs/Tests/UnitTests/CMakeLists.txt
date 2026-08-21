@@ -16,6 +16,7 @@ list(APPEND UNIT_TEST_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
   ${MIKAN_LIBRARIES_DIR}/MikanMath/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanOnnx/Public
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${ROOT_DIR}/thirdparty/glm/
@@ -27,6 +28,7 @@ list(APPEND UNIT_TEST_LIBS
   MikanClientAPI
   MikanCoreApp
   MikanMath
+  MikanOnnx
   MikanSerialization
   MikanUtility
 )
@@ -81,6 +83,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET unit_test_suite_cpp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:unit_test_suite_cpp>)
+  # ONNX Runtime + DirectML (needed by the onnx unit test module)
+  add_custom_command(
+    TARGET unit_test_suite_cpp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${ONNXRUNTIME_SHARED_LIBRARIES}
+    $<TARGET_FILE_DIR:unit_test_suite_cpp>)
   add_custom_command(
 	TARGET unit_test_suite_cpp POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy

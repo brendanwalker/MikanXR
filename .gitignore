@@ -26,9 +26,17 @@
 *.a
 *.lib
 
+# Python bytecode from the tools/ developer scripts
+__pycache__/
+*.pyc
+
 # Deep Neural Network Models
 *.pt
 *.onnx
+# Weights of models too large for the 2GB protobuf limit live in a sidecar
+# next to the .onnx graph (unet_*.onnx.data is ~3.4GB each).
+*.onnx.data
+models/
 
 # Executables
 *.exe

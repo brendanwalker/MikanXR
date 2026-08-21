@@ -20,12 +20,6 @@ export class MikanPropertyValue {
   ];
 }
 
-export class MikanSystemValues extends PolymorphicStruct {
-
-  static __serializationMetadata: SerializationField[] = [
-  ];
-}
-
 export class MikanPropertyDescriptor {
   ownerSystemClass: string = '';
   ownerComponentClass: string = '';
@@ -39,6 +33,12 @@ export class MikanPropertyDescriptor {
     { name: 'fieldName', type: 'string' },
     { name: 'fieldType', type: 'enum:MikanVariantType' },
     { name: 'isReadOnly', type: 'boolean' }
+  ];
+}
+
+export class MikanSystemValues extends PolymorphicStruct {
+
+  static __serializationMetadata: SerializationField[] = [
   ];
 }
 

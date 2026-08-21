@@ -26,6 +26,7 @@ private:
 
 	// Command handlers (return a process exit code)
 	int runTests() const;
+	int estimateLighting() const;
 
 	// Command line arguments parsed at startup
 	std::map<std::string, std::string> m_commandLineParams;

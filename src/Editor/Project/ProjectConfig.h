@@ -65,6 +65,7 @@ public:
 	DMXObjectSystemDefinitionPtr dmxObjectSystemDefinition;
 	RGBSpotLightSystemDefinitionPtr rgbSpotLightSystemDefinition;
 	RGBPixelGridSystemDefinitionPtr rgbPixelGridSystemDefinition;
+	LightEnvironmentSystemDefinitionPtr lightEnvironmentSystemDefinition;
 
 protected:
 	// Max transient component ID (used for runtime-only components that aren't saved to the project file)
