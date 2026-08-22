@@ -42,6 +42,10 @@ public:
 	inline MikanVideoSourceID getVideoSourceId() const { return m_videoSourceId; }
 	void setVideoSourceId(MikanVideoSourceID videoSourceId);
 
+	static const std::string k_lightEnvironmentIdPropertyId;
+	inline MikanLightID getLightEnvironmentId() const { return m_lightEnvionmentId; }
+	void setLightEnvironmentId(MikanLightID lightEnvironmentId);
+
 	static const std::string k_trackingFrameDelayPropertyId;
 	inline int getTrackingFrameDelay() const { return m_trackingFrameDelay; }
 	void setTrackingFrameDelay(int trackingFrameDelay);
@@ -73,6 +77,7 @@ public:
 
 private:
 	MikanStageID m_stageId= INVALID_MIKAN_ID;
+	MikanLightID m_lightEnvionmentId= INVALID_MIKAN_ID;
 	MikanTrackingMountID m_trackingMountId= INVALID_MIKAN_ID;
 	MikanVideoSourceID m_videoSourceId= INVALID_MIKAN_ID;
 	int m_trackingFrameDelay= 0;
@@ -138,10 +143,12 @@ public:
 
 	// -- IFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;
+	static const std::string k_captureSceneLightingFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void alignCamera();
+	void captureSceneLighting();
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

@@ -20,6 +20,7 @@
 #include "QuadStencilSystem.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
+#include "LightEnvironmentSystem.h"
 #include "SceneObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
@@ -84,6 +85,8 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 		addTypedDefinition<RGBSpotLightSystemDefinition, RGBSpotLightSystem>(persistentIDAllocator);
 	rgbPixelGridSystemDefinition=
 		addTypedDefinition<RGBPixelGridSystemDefinition, RGBPixelGridSystem>(persistentIDAllocator);
+	lightEnvironmentSystemDefinition=
+		addTypedDefinition<LightEnvironmentSystemDefinition, LightEnvironmentSystem>(persistentIDAllocator);
 
 	// Create object system definitions for the runtime only components, using the transient ID allocator
 	vrObjectConfig= addTypedDefinition<VRObjectSystemDefinition, VRObjectSystem>(transientIDAllocator);

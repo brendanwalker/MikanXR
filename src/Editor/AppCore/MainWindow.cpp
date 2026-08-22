@@ -45,6 +45,7 @@
 #include "AlignCameraByOriginMarker/AppStage_AlignCameraByOriginMarker.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
 #include "LightFixtureCalibration/AppStage_LightFixtureCalibration.h"
+#include "SceneLightingCapture/AppStage_SceneLightingCapture.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "Project/AppStage_Project.h"
@@ -89,6 +90,7 @@ MainWindow::MainWindow(App* ownerApp)
 	m_appStageFactory.addAppStageConstructor<AppStage_AlignCameraByOriginMarker>();
 	m_appStageFactory.addAppStageConstructor<AppStage_AnchorTriangulation>();
 	m_appStageFactory.addAppStageConstructor<AppStage_LightFixtureCalibration>();
+	m_appStageFactory.addAppStageConstructor<AppStage_SceneLightingCapture>();
 	m_appStageFactory.addAppStageConstructor<AppStage_MainMenu>();
 	m_appStageFactory.addAppStageConstructor<AppStage_MonoLensCalibration>();
 	m_appStageFactory.addAppStageConstructor<AppStage_Project>();

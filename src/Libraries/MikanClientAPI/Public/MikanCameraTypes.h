@@ -25,6 +25,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraTypes")) MikanC
 	FIELD() MikanStageID stage_id= INVALID_MIKAN_ID;
 	FIELD() MikanTrackingMountID tracking_mount_id= INVALID_MIKAN_ID;
 	FIELD() MikanVideoSourceID video_source_id= INVALID_MIKAN_ID;
+	FIELD() MikanLightID light_environment_id= INVALID_MIKAN_ID;
 	FIELD() int tracking_frame_delay= 0;
 	FIELD() MikanQuatd aperture_orientation_offset;
 	FIELD() MikanVector3d aperture_position_offset;
