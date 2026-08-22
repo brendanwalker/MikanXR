@@ -49,6 +49,13 @@ protected:
 	void runCapture();
 	bool createStencilFromMesh();
 
+	/// Looks for any of the project's ArUco markers in the captured frame and,
+	/// if one is found, compares its solvePnP corner depths against the
+	/// sampled model depths to produce a scale correction factor.
+	/// outCornerSpread is the worst per-corner disagreement with that factor -
+	/// a consistency check on the geometry, not just the scale.
+	bool tryComputeMarkerScaleCorrection(float& outFactor, float& outCornerSpread);
+
 	/// Draws the recovered depth as colored points over the video frame so the
 	/// silhouette alignment can be judged visually.
 	void renderDepthPreview();
@@ -74,6 +81,11 @@ private:
 	DepthMeshGenerator::Mesh m_mesh;
 	DepthMeshGenerator::Stats m_meshStats;
 	bool m_bHasResult= false;
+
+	// Scale calibration state for the current capture
+	eDepthScaleCorrectionSource m_scaleCorrectionSource= eDepthScaleCorrectionSource::none;
+	float m_appliedScaleCorrection= 1.f;
+	float m_markerCornerSpread= 0.f;
 
 	MikanCameraPtr m_mkCamera;
 };

@@ -23,3 +23,15 @@ enum class eDepthMeshCaptureMenuState : int
 	COUNT
 };
 extern const std::string* k_DepthMeshCaptureMenuStateStrings;
+
+/// Where the metric scale correction applied to a capture came from.
+/// MoGe-2's scale head guesses scale from image appearance, so an unusual lens
+/// can be off by an integer factor; an ArUco marker of known size in the
+/// captured frame gives ground truth to correct against, and the factor is
+/// persisted on the camera for marker-less captures.
+enum class eDepthScaleCorrectionSource : int
+{
+	none,           ///< no marker visible and nothing stored - depth is the model's raw guess
+	storedOnCamera, ///< reusing the factor from a previous marker calibration
+	arucoMarker,    ///< computed from a marker in this capture; persisted on Create Stencil
+};

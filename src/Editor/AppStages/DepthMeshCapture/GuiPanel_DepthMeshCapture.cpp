@@ -30,6 +30,9 @@ void GuiPanel_DepthMeshCapture::onGui()
 						   "the floor and nearby surfaces that should catch its shadow. Thin structures "
 						   "and transparent surfaces reconstruct poorly.");
 		ImGui::Spacing();
+		ImGui::TextWrapped("If one of the project's ArUco markers is visible in the frame, it is used to "
+						   "calibrate the metric scale automatically.");
+		ImGui::Spacing();
 		if (!m_executionProvider.empty())
 		{
 			ImGui::TextWrapped("Inference backend: %s", m_executionProvider.c_str());
@@ -87,6 +90,37 @@ void GuiPanel_DepthMeshCapture::onGui()
 	{
 		ImGui::TextWrapped("Proxy mesh: %d vertices, %d triangles.", m_vertexCount, m_triangleCount);
 		ImGui::TextWrapped("Depth range: %.2f - %.2f m", m_nearDepth, m_farDepth);
+
+		// Metric scale is the model's weakest output, so its correction status
+		// is surfaced as prominently as the confidence numbers elsewhere.
+		switch (m_scaleCorrectionSource)
+		{
+		case eDepthScaleCorrectionSource::arucoMarker:
+			ImGui::TextColored(ImVec4(0.4f, 1.f, 0.4f, 1.f), "Scale correction: %.3f (ArUco marker, spread %.1f%%)",
+							   m_scaleCorrectionFactor, m_scaleCornerSpread * 100.f);
+			if (m_scaleCornerSpread > 0.05f)
+			{
+				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f),
+								   "The marker corners disagree on the factor - the marker may be at a "
+								   "grazing angle or on a depth edge. Reposition it and redo.");
+			}
+			else
+			{
+				ImGui::TextWrapped("Creating the stencil saves this factor to the camera for future "
+								   "marker-less captures.");
+			}
+			break;
+		case eDepthScaleCorrectionSource::storedOnCamera:
+			ImGui::TextWrapped("Scale correction: %.3f (stored on camera)", m_scaleCorrectionFactor);
+			break;
+		case eDepthScaleCorrectionSource::none:
+			ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "No scale calibration");
+			ImGui::TextWrapped("Metric scale is the model's raw guess and can be off by a large factor. "
+							   "Place an ArUco marker of known size in view and redo to calibrate.");
+			break;
+		default:
+			break;
+		}
 		if (m_culledCells > 0)
 		{
 			ImGui::TextWrapped("%d cells cut at depth discontinuities (expected along silhouettes - "
@@ -123,8 +157,14 @@ void GuiPanel_DepthMeshCapture::onGui()
 	{
 		ImGui::TextWrapped("Created model stencil '%s'.", m_createdStencilName.c_str());
 		ImGui::Spacing();
-		ImGui::TextWrapped("The stencil is parented at the capturing camera's pose; connected clients "
-						   "pick it up automatically.");
+		ImGui::TextWrapped("The stencil is parented under the stage at the capturing camera's pose; "
+						   "connected clients pick it up automatically.");
+		if (m_scaleCorrectionSource == eDepthScaleCorrectionSource::arucoMarker)
+		{
+			ImGui::TextWrapped("Scale correction %.3f was saved to the camera and will apply to future "
+							   "captures without a marker in view.",
+							   m_scaleCorrectionFactor);
+		}
 		ImGui::Spacing();
 		if (ImGui::Button("Ok"))
 		{

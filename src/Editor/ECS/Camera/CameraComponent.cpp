@@ -43,6 +43,7 @@ const std::string CameraDefinition::k_trackingMountIdPropertyId= "tracking_mount
 const std::string CameraDefinition::k_videoSourceIdPropertyId= "video_source_id";
 const std::string CameraDefinition::k_lightEnvironmentIdPropertyId= "light_environment_id";
 const std::string CameraDefinition::k_trackingFrameDelayPropertyId= "tracking_frame_delay";
+const std::string CameraDefinition::k_depthMeshScaleCorrectionPropertyId= "depth_mesh_scale_correction";
 const std::string CameraDefinition::k_apertureOrientationOffsetPropertyId= "aperture_orientation_offset";
 const std::string CameraDefinition::k_aperturePositionOffsetPropertyId= "aperture_position_offset";
 const std::string CameraDefinition::k_hasValidApertureOffsetPropertyId= "has_valid_aperture_offset";
@@ -76,6 +77,7 @@ configuru::Config CameraDefinition::writeToJSON()
 	pt["video_source_id"]= m_videoSourceId;
 	pt["light_environment_id"]= m_lightEnvionmentId;
 	pt["tracking_frame_delay"]= m_trackingFrameDelay;
+	pt["depth_mesh_scale_correction"]= m_depthMeshScaleCorrection;
 
 	writeQuaderntiond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
 	writeVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
@@ -93,6 +95,7 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 	m_videoSourceId= pt.get_or<int>("video_source_id", m_videoSourceId);
 	m_lightEnvionmentId= pt.get_or<int>("light_environment_id", m_lightEnvionmentId);
 	m_trackingFrameDelay= pt.get_or<int>("tracking_frame_delay", m_trackingFrameDelay);
+	m_depthMeshScaleCorrection= pt.get_or<float>("depth_mesh_scale_correction", m_depthMeshScaleCorrection);
 
 	readQuaterniond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
 	readVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
@@ -167,6 +170,15 @@ void CameraDefinition::setLightEnvironmentId(MikanLightID lightEnvironmentId)
 	{
 		m_lightEnvionmentId= lightEnvironmentId;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_lightEnvironmentIdPropertyId));
+	}
+}
+
+void CameraDefinition::setDepthMeshScaleCorrection(float scaleCorrection)
+{
+	if (scaleCorrection != m_depthMeshScaleCorrection)
+	{
+		m_depthMeshScaleCorrection= scaleCorrection;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_depthMeshScaleCorrectionPropertyId));
 	}
 }
 

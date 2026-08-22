@@ -304,6 +304,12 @@ bool MoGeInference::run(const cv::Mat& bgrImage, float fovXDegrees, Result& outR
 		aspectRatio / std::sqrt(1.f + aspectRatio * aspectRatio) / std::tan(fovXDegrees * 3.14159265f / 360.f);
 	const float shift= solveDepthShift(rawPoints, mask, focal);
 
+	// Metric scale rides directly on the FOV conditioning, so record exactly
+	// what was used - a wrong FOV here is the first suspect when a proxy mesh
+	// comes out the wrong size.
+	MIKAN_LOG_INFO("MoGeInference::run") << "fov_x=" << fovXDegrees << " deg (" << width << "x" << height
+										 << "), shift=" << shift << ", metric_scale=" << metricScale;
+
 	// Normalized intrinsics: fx in units of width, fy of height, center 0.5.
 	const float fx= focal / 2.f * std::sqrt(1.f + aspectRatio * aspectRatio) / aspectRatio;
 	const float fy= focal / 2.f * std::sqrt(1.f + aspectRatio * aspectRatio);

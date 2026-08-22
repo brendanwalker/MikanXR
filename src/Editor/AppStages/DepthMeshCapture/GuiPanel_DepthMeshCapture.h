@@ -33,6 +33,13 @@ public:
 		m_farDepth= farDepth;
 	}
 
+	void setScaleCorrection(eDepthScaleCorrectionSource source, float factor, float cornerSpread)
+	{
+		m_scaleCorrectionSource= source;
+		m_scaleCorrectionFactor= factor;
+		m_scaleCornerSpread= cornerSpread;
+	}
+
 	std::function<void()> OnCaptureEvent;
 	std::function<void()> OnApplyEvent;
 	std::function<void()> OnRedoEvent;
@@ -50,4 +57,8 @@ private:
 	int m_culledCells= 0;
 	float m_nearDepth= 0.f;
 	float m_farDepth= 0.f;
+
+	eDepthScaleCorrectionSource m_scaleCorrectionSource= eDepthScaleCorrectionSource::none;
+	float m_scaleCorrectionFactor= 1.f;
+	float m_scaleCornerSpread= 0.f;
 };

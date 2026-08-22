@@ -97,9 +97,40 @@ What Create Stencil does:
   stale mesh.
 - Creates a `ModelStencilComponent` through `ModelStencilSystem::addNewObjectByTypedDefinition`
   with the **absolute** OBJ path (the importer loads the stored path verbatim; a relative one
-  silently fails to resolve).
-- Sets the stencil's world transform to the capturing camera's `getStageSpaceAperturePose`. The
-  vertices are camera-local, so the stencil rides the camera pose and the OBJ stays reusable.
+  silently fails to resolve), **parented under the camera's stage** - an unparented component does
+  not appear in the scene outliner hierarchy.
+- Sets the stencil's world transform to the capturing camera's `getStageSpaceAperturePose`
+  (back-solved into a stage-relative transform by `setWorldTransform`). The vertices are
+  camera-local, so the stencil rides the camera pose and the OBJ stays reusable.
+
+## Metric scale calibration
+
+The model's scale is its weakest output. The `metric_scale` scalar is predicted from image
+*appearance* (the ViT's class token) - the FOV conditioning above only resolves the Z shift - so a
+camera whose image "doesn't look like" its true FOV (long lens, crop) can be off by an **integer
+factor** while the shape stays excellent. Observed in practice: a proxy ~5x too large.
+
+The correction is measured against an ArUco marker of known size:
+
+- During each capture, every marker defined in the project's marker system is searched for in the
+  captured frame (`CalibrationPatternFinder_Aruco`, the same detection + solvePnP path the
+  camera-alignment tools use). If one is found, its four subpixel corners give ground-truth
+  camera-space depths; each is compared against the median model depth in a 5x5 window at that
+  pixel, and the **median ratio of at least 3 valid corners** is the correction factor.
+- The **corner spread** (worst per-corner disagreement with the factor) is surfaced in the panel as
+  a consistency check - a marker at a grazing angle or on a depth edge produces a high spread and
+  an amber warning rather than a silently bad factor.
+- The factor is applied to the geometry *before* mesh generation, so the stats, the depth overlay,
+  and the OBJ are all corrected.
+- **Creating the stencil persists the factor on the camera** (`depth_mesh_scale_correction` in the
+  camera definition). Marker-less captures from that camera reuse it automatically - the scale
+  error is a property of the camera/lens, not the frame - so the marker only needs to be in view
+  when (re)calibrating, and production shots stay clean. A capture with neither a marker nor a
+  stored factor shows an amber "No scale calibration" warning.
+
+`MoGeInference::run` logs the FOV, shift, and metric scale it used
+(`fov_x=... shift=... metric_scale=...` in the log); a wrong FOV reaching the model is the first
+suspect when a proxy comes out the wrong size, and that line settles it.
 
 Nothing further is needed for connected clients: creating the stencil fires the component-id-list
 property event, clients refetch the stencil list, and the render geometry ships over the wire via
@@ -129,7 +160,7 @@ the negative-z pole case), discontinuity culling, mask/max-depth rejection, and 
 - **Single viewpoint**: surfaces the camera cannot see do not exist in the proxy. Disocclusions
   are holes, not hallucinated geometry - correct for a shadow catcher, insufficient for occluding
   a character walking behind real furniture (occlusion-grade edges are a separate problem).
-- **Residual metric error**: with the calibrated FOV supplied, what remains is the model's own
-  scale error (typically single-digit percent). If it matters, the tracked floor plane or visible
-  anchors give ground-truth depths to fit a residual scale against - deferred until the raw
-  output demonstrably isn't good enough.
+- **Metric scale without calibration**: the model's raw scale guess can be off by an integer
+  factor on unusual lenses (see "Metric scale calibration" above). With a marker calibration
+  stored on the camera the remaining error is the marker measurement itself, well under a percent.
+  A future zero-hardware alternative is fitting against the tracked floor plane.
