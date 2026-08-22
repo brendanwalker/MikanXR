@@ -64,7 +64,12 @@ public:
 	static bool generateMesh(const MoGeInference::Result& geometry, const Config& config, Mesh& outMesh,
 							 Stats& outStats);
 
-	/// Writes a standalone .obj (positions, normals, UVs, triangles). No .mtl:
-	/// the importer supplies a default material when the file declares none.
-	static bool saveObj(const Mesh& mesh, const std::string& path, const std::string& objectName);
+	/// Writes an .obj (positions, normals, UVs, triangles). When
+	/// textureFileName is non-empty it also writes a sibling .mtl whose
+	/// diffuse map references that file (expected to sit next to the .obj), so
+	/// the captured frame can be projected back onto the proxy. With no
+	/// texture, no .mtl is written and the importer supplies a default
+	/// material.
+	static bool saveObj(const Mesh& mesh, const std::string& path, const std::string& objectName,
+						const std::string& textureFileName= std::string());
 };

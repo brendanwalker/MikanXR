@@ -276,7 +276,16 @@ int CmdApp::generateDepthMesh() const
 	fprintf(stdout, "depth  : %.2f - %.2f m\n", stats.nearDepth, stats.farDepth);
 
 	const std::string objPath= getCommandLineStringArg("obj", "depth_mesh.obj");
-	if (!DepthMeshGenerator::saveObj(mesh, objPath, "DepthProxyMesh"))
+
+	// The source frame doubles as the proxy's projected texture.
+	const std::filesystem::path texturePath= std::filesystem::path(objPath).replace_extension(".png");
+	std::string textureFileName;
+	if (cv::imwrite(texturePath.string(), bgrImage))
+		textureFileName= texturePath.filename().string();
+	else
+		fprintf(stdout, "warning: failed to write '%s'; mesh will be untextured\n", texturePath.string().c_str());
+
+	if (!DepthMeshGenerator::saveObj(mesh, objPath, "DepthProxyMesh", textureFileName))
 	{
 		fprintf(stdout, "error: failed to write '%s'\n", objPath.c_str());
 		return EXIT_FAILURE;

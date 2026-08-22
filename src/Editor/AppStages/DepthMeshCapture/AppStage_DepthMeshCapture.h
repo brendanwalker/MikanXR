@@ -80,6 +80,9 @@ private:
 	MoGeInference::Result m_geometry;
 	DepthMeshGenerator::Mesh m_mesh;
 	DepthMeshGenerator::Stats m_meshStats;
+	/// The frame the geometry was inferred from, kept so Create Stencil can
+	/// save it as the proxy's projected texture.
+	cv::Mat m_capturedFrame;
 	bool m_bHasResult= false;
 
 	// Scale calibration state for the current capture

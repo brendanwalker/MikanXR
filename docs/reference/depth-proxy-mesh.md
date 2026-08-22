@@ -73,8 +73,24 @@ Geometry beyond `maxDepth` (default 20m) is dropped - distant background adds tr
 receive a meaningful contact shadow.
 
 The OBJ written per capture carries positions (camera-space metres), per-vertex normals, and
-video-frame UVs (so the plate or a live feed can be projected back onto the proxy). No `.mtl`: the
-in-editor importer supplies a default material when a file declares none.
+video-frame UVs. **Triangle winding is counter-clockwise around the toward-camera vertex normals**
+(the standard OBJ front-face convention), and this is load-bearing: the Unreal client copies
+triangle indices verbatim through a handedness-flipping coordinate conversion, so a mesh wound the
+other way shows every surface as a back face in-engine - the first version of the generator did
+exactly that. A unit test now locks winding to the vertex normals.
+
+The captured frame is saved as `<name>.png` next to the OBJ and referenced by a sibling `.mtl`
+(`map_Kd`), so the plate projects back onto the proxy through the frame UVs:
+
+- **In the editor** this is free - the OBJ importer already loads `map_Kd` textures.
+- **In Unreal** the stencil actor loads the sibling `.png` of `model_path` (same machine as the
+  editor, which frame delivery via shared texture memory already assumes) and applies it to the
+  placement mesh through the `TexturedPlacementMaterial` parent material - assignable per-actor or
+  as a default on `AMikanClient` (`ModelStencilTexturedPlacementMaterial`), and it needs a Texture
+  parameter named **`BaseTexture`**. When unset or no texture exists, the placement mesh keeps the
+  plain color material. The actor also flips the V coordinate when building mesh sections - Mikan
+  ships OBJ/GL-convention UVs (V up) and Unreal samples V down; the stock capture materials are
+  untextured, so only the textured placement preview observes this.
 
 ## The capture tool
 

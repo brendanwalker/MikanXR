@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 
 // ---- Helpers ----
 
@@ -156,6 +157,57 @@ bool depth_mesh_test_discontinuity_is_cut()
 	UNIT_TEST_COMPLETE()
 }
 
+// Triangle winding must be counter-clockwise around the toward-camera vertex
+// normals (the standard OBJ front-face convention). The Unreal client copies
+// indices verbatim through a handedness-flipping conversion, so a mesh wound
+// the other way shows every surface as a back face - which is exactly the bug
+// this locks out.
+bool depth_mesh_test_winding_matches_normals()
+{
+	UNIT_TEST_BEGIN("triangle winding is CCW around the vertex normals")
+
+	// A tilted plane so the winding check is not degenerate to the flat case.
+	const int size= 16;
+	cv::Mat depth(size, size, CV_32FC1);
+	for (int y= 0; y < size; ++y)
+		for (int x= 0; x < size; ++x)
+			depth.at<float>(y, x)= 2.f + 0.02f * (float)x + 0.01f * (float)y;
+
+	MoGeInference::Result geometry= make_synthetic_geometry(depth, 60.f);
+
+	DepthMeshGenerator::Config config;
+	config.vertexStride= 1;
+
+	DepthMeshGenerator::Mesh mesh;
+	DepthMeshGenerator::Stats stats;
+	if (!DepthMeshGenerator::generateMesh(geometry, config, mesh, stats))
+	{
+		fprintf(stdout, "    generateMesh failed\n");
+		success= false;
+	}
+	else
+	{
+		int backwardsTriangles= 0;
+		for (size_t i= 0; i + 2 < mesh.indices.size(); i+= 3)
+		{
+			const glm::vec3& a= mesh.vertices[mesh.indices[i]];
+			const glm::vec3& b= mesh.vertices[mesh.indices[i + 1]];
+			const glm::vec3& c= mesh.vertices[mesh.indices[i + 2]];
+			const glm::vec3 geometricNormal= glm::cross(b - a, c - a);
+			const glm::vec3& vertexNormal= mesh.normals[mesh.indices[i]];
+			if (glm::dot(geometricNormal, vertexNormal) <= 0.f)
+				backwardsTriangles++;
+		}
+		if (backwardsTriangles > 0)
+		{
+			fprintf(stdout, "    %d triangles wound against their vertex normals\n", backwardsTriangles);
+			success= false;
+		}
+	}
+
+	UNIT_TEST_COMPLETE()
+}
+
 // Invalid-mask pixels and beyond-max-depth pixels must produce no vertices,
 // and the depth stats must reflect only what was meshed.
 bool depth_mesh_test_masking_and_depth_cut()
@@ -251,6 +303,37 @@ bool depth_mesh_test_obj_export()
 		std::filesystem::remove(objPath);
 	}
 
+	// With a texture: a sibling .mtl referencing it, and the obj wired to it.
+	if (success && !DepthMeshGenerator::saveObj(mesh, objPath, "test", "test_texture.png"))
+	{
+		fprintf(stdout, "    textured saveObj failed\n");
+		success= false;
+	}
+	if (success)
+	{
+		const std::filesystem::path mtlPath= std::filesystem::path(objPath).replace_extension(".mtl");
+		std::ifstream mtlFile(mtlPath);
+		std::string mtlContents((std::istreambuf_iterator<char>(mtlFile)), std::istreambuf_iterator<char>());
+		if (mtlContents.find("map_Kd test_texture.png") == std::string::npos)
+		{
+			fprintf(stdout, "    mtl does not reference the texture\n");
+			success= false;
+		}
+
+		std::ifstream objFile(objPath);
+		std::string objContents((std::istreambuf_iterator<char>(objFile)), std::istreambuf_iterator<char>());
+		if (objContents.find("mtllib") == std::string::npos || objContents.find("usemtl test") == std::string::npos)
+		{
+			fprintf(stdout, "    obj does not reference the material\n");
+			success= false;
+		}
+
+		mtlFile.close();
+		objFile.close();
+		std::filesystem::remove(objPath);
+		std::filesystem::remove(mtlPath);
+	}
+
 	UNIT_TEST_COMPLETE()
 }
 
@@ -261,6 +344,7 @@ bool run_depth_mesh_generator_unit_tests()
 	UNIT_TEST_MODULE_BEGIN("depth_mesh_generator")
 	UNIT_TEST_MODULE_CALL_TEST(depth_mesh_test_shift_solver_recovers_known_shift);
 	UNIT_TEST_MODULE_CALL_TEST(depth_mesh_test_discontinuity_is_cut);
+	UNIT_TEST_MODULE_CALL_TEST(depth_mesh_test_winding_matches_normals);
 	UNIT_TEST_MODULE_CALL_TEST(depth_mesh_test_masking_and_depth_cut);
 	UNIT_TEST_MODULE_CALL_TEST(depth_mesh_test_obj_export);
 	UNIT_TEST_MODULE_END()

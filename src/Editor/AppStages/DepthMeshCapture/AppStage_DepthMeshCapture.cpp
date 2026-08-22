@@ -256,6 +256,11 @@ void AppStage_DepthMeshCapture::runCapture()
 		return;
 	}
 
+	// Keep the frame the geometry came from; Create Stencil saves it as the
+	// proxy's projected texture. Cloned because the buffer is reused by the
+	// video pipeline.
+	m_capturedFrame= bgrBuffer->clone();
+
 	// -- metric scale correction. A marker visible in this capture gives ground
 	// truth and wins; otherwise fall back to the factor persisted from a
 	// previous marker calibration on this camera.
@@ -427,7 +432,23 @@ bool AppStage_DepthMeshCapture::createStencilFromMesh()
 	std::filesystem::create_directories(modelsDirectory);
 	const std::filesystem::path objPath= modelsDirectory / (std::string(stencilName) + ".obj");
 
-	if (!DepthMeshGenerator::saveObj(m_mesh, objPath.string(), stencilName))
+	// The captured frame becomes the proxy's projected texture: the mesh's UVs
+	// are the frame's pixel coordinates, so the plate maps back onto the
+	// geometry exactly. Written before the obj so the mtl never dangles.
+	std::string textureFileName;
+	if (!m_capturedFrame.empty())
+	{
+		textureFileName= std::string(stencilName) + ".png";
+		const std::filesystem::path texturePath= modelsDirectory / textureFileName;
+		if (!cv::imwrite(texturePath.string(), m_capturedFrame))
+		{
+			MIKAN_LOG_WARNING("AppStage_DepthMeshCapture")
+				<< "Failed to write capture texture " << texturePath.string() << "; stencil will be untextured";
+			textureFileName.clear();
+		}
+	}
+
+	if (!DepthMeshGenerator::saveObj(m_mesh, objPath.string(), stencilName, textureFileName))
 	{
 		m_capturePanel->setFailureReason(
 			StringUtils::stringify("Failed to write the mesh to '", objPath.string(), "'."));
