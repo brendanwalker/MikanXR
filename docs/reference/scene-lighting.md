@@ -367,6 +367,31 @@ projects, so a hard reference to project content would fail to resolve elsewhere
 level; the actor logs a warning at BeginPlay if it is unset, because an unassigned material produces
 a black dome that contributes no light and is otherwise indistinguishable from a bad estimate.
 
+### The skydome material MUST have "Is Sky" enabled
+
+This is the single most misleading failure in the whole feature, so it is worth stating plainly.
+
+A Sky Light in Real Time Capture mode does **not** capture arbitrary scene meshes. It renders
+`MainView.SkyMeshBatches` through `FSkyPassMeshProcessor`, and that processor accepts a mesh only if
+its material returns `IsSky()` (`SkyPassRendering.cpp`, and the capture loop in
+`ReflectionEnvironmentRealTimeCapture.cpp`). The flag is `bIsSky` on `UMaterial` — in the editor it
+lives under **Details → Material → Advanced → Is Sky**, collapsed by default.
+
+Without it the dome still renders normally in the main view, so the SH coefficients visibly drive the
+dome and everything looks correct — while the capture sees an empty sky and the Sky Light
+contributes **zero** lighting. Confirmed live: enabling `Is Sky` was the entire fix.
+
+Two related gates, both handled in the actor:
+
+- `UPrimitiveComponent::bVisibleInRealTimeSkyCaptures` must be true (engine default, set explicitly).
+- The material must be Unlit and Opaque, which the documented constraint on `bIsSky` requires.
+
+`AMikanLightEnvironmentActor::BeginPlay` logs a warning if the assigned material lacks `bIsSky`.
+
+Diagnostic that isolates this quickly: switch the Sky Light to `SLS_Specified Cubemap` with any
+engine cubemap. If the scene lights up, the Sky Light is fine and the problem is on the capture-input
+side — i.e. the dome is not being captured.
+
 ### Interaction with the shadow catcher
 
 The Mikan capture components use `PRM_UseShowOnlyList`, so the skydome is not tagged and never
