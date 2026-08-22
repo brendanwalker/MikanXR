@@ -190,8 +190,7 @@ bool light_environment_test_apply_notifies_listeners()
 	// goes through them rather than through setLightingEnvironment.
 	PropertyChangeListener exposureListener;
 	auto exposureDefinition= std::make_shared<LightEnvironmentDefinition>();
-	exposureDefinition->OnPropertyChanged+=
-		MakeDelegate(&exposureListener, &PropertyChangeListener::onPropertyChanged);
+	exposureDefinition->OnPropertyChanged+= MakeDelegate(&exposureListener, &PropertyChangeListener::onPropertyChanged);
 	exposureDefinition->setExposureScale(3.f);
 
 	success&= (exposureListener.notificationCount == 1);
