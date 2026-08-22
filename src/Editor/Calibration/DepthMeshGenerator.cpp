@@ -1,0 +1,181 @@
+//-- includes -----
+#include "DepthMeshGenerator.h"
+
+#include "Logger.h"
+
+#include <opencv2/opencv.hpp>
+
+#include <cmath>
+#include <cstdio>
+#include <fstream>
+
+//-- helpers -----
+/// True if the two depths sit on the same continuous surface.
+static bool isContinuous(float depthA, float depthB, float discontinuityRatio)
+{
+	const float nearDepth= std::min(depthA, depthB);
+	const float farDepth= std::max(depthA, depthB);
+	return farDepth <= nearDepth * discontinuityRatio;
+}
+
+//-- DepthMeshGenerator -----
+bool DepthMeshGenerator::generateMesh(const MoGeInference::Result& geometry, const Config& config, Mesh& outMesh,
+									  Stats& outStats)
+{
+	outMesh= Mesh();
+	outStats= Stats();
+
+	if (geometry.depth.empty() || geometry.points.empty() || geometry.normals.empty() || geometry.mask.empty())
+	{
+		MIKAN_LOG_ERROR("DepthMeshGenerator::generateMesh") << "Geometry result is empty";
+		return false;
+	}
+
+	const int height= geometry.depth.rows;
+	const int width= geometry.depth.cols;
+	const int stride= std::max(1, config.vertexStride);
+	const int gridWidth= (width - 1) / stride + 1;
+	const int gridHeight= (height - 1) / stride + 1;
+
+	// -- vertices: one per valid grid sample, with an index map for the
+	// triangle pass. -1 marks samples with no vertex.
+	std::vector<int32_t> vertexIndexGrid((size_t)gridWidth * gridHeight, -1);
+	std::vector<float> vertexDepthGrid((size_t)gridWidth * gridHeight, 0.f);
+
+	float nearDepth= std::numeric_limits<float>::infinity();
+	float farDepth= 0.f;
+
+	for (int gridY= 0; gridY < gridHeight; ++gridY)
+	{
+		const int y= gridY * stride;
+		const float* depthRow= geometry.depth.ptr<float>(y);
+		const cv::Vec3f* pointRow= geometry.points.ptr<cv::Vec3f>(y);
+		const cv::Vec3f* normalRow= geometry.normals.ptr<cv::Vec3f>(y);
+		const uint8_t* maskRow= geometry.mask.ptr<uint8_t>(y);
+
+		for (int gridX= 0; gridX < gridWidth; ++gridX)
+		{
+			const int x= gridX * stride;
+			if (maskRow[x] == 0)
+				continue;
+
+			const float depth= depthRow[x];
+			if (!std::isfinite(depth) || (config.maxDepth > 0.f && depth > config.maxDepth))
+				continue;
+
+			const size_t gridIndex= (size_t)gridY * gridWidth + gridX;
+			vertexIndexGrid[gridIndex]= (int32_t)outMesh.vertices.size();
+			vertexDepthGrid[gridIndex]= depth;
+
+			const cv::Vec3f& p= pointRow[x];
+			const cv::Vec3f& n= normalRow[x];
+			outMesh.vertices.push_back(glm::vec3(p[0], p[1], p[2]));
+			outMesh.normals.push_back(glm::vec3(n[0], n[1], n[2]));
+			// OBJ v runs up while image y runs down.
+			outMesh.texCoords.push_back(
+				glm::vec2(((float)x + 0.5f) / (float)width, 1.f - ((float)y + 0.5f) / (float)height));
+
+			outStats.validPixelCount++;
+			nearDepth= std::min(nearDepth, depth);
+			farDepth= std::max(farDepth, depth);
+		}
+	}
+
+	if (outMesh.vertices.empty())
+	{
+		MIKAN_LOG_ERROR("DepthMeshGenerator::generateMesh") << "No valid geometry to mesh";
+		return false;
+	}
+
+	outStats.nearDepth= nearDepth;
+	outStats.farDepth= farDepth;
+
+	// -- triangles: two per grid cell, each emitted only when all three
+	// corners exist and are pairwise continuous. In Mikan camera space +X runs
+	// right and +Y runs UP, so the image-order winding (a, b, c) =
+	// (top-left, top-right, bottom-left) is counter-clockwise from the camera.
+	const auto tryEmitTriangle= [&](size_t gridIndexA, size_t gridIndexB, size_t gridIndexC)
+	{
+		const int32_t a= vertexIndexGrid[gridIndexA];
+		const int32_t b= vertexIndexGrid[gridIndexB];
+		const int32_t c= vertexIndexGrid[gridIndexC];
+		if (a < 0 || b < 0 || c < 0)
+			return;
+
+		const float depthA= vertexDepthGrid[gridIndexA];
+		const float depthB= vertexDepthGrid[gridIndexB];
+		const float depthC= vertexDepthGrid[gridIndexC];
+		if (!isContinuous(depthA, depthB, config.discontinuityRatio)
+			|| !isContinuous(depthB, depthC, config.discontinuityRatio)
+			|| !isContinuous(depthA, depthC, config.discontinuityRatio))
+		{
+			outStats.culledDiscontinuityEdges++;
+			return;
+		}
+
+		outMesh.indices.push_back((uint32_t)a);
+		outMesh.indices.push_back((uint32_t)b);
+		outMesh.indices.push_back((uint32_t)c);
+	};
+
+	for (int gridY= 0; gridY + 1 < gridHeight; ++gridY)
+	{
+		for (int gridX= 0; gridX + 1 < gridWidth; ++gridX)
+		{
+			const size_t topLeft= (size_t)gridY * gridWidth + gridX;
+			const size_t topRight= topLeft + 1;
+			const size_t bottomLeft= topLeft + gridWidth;
+			const size_t bottomRight= bottomLeft + 1;
+
+			tryEmitTriangle(topLeft, topRight, bottomLeft);
+			tryEmitTriangle(topRight, bottomRight, bottomLeft);
+		}
+	}
+
+	return !outMesh.indices.empty();
+}
+
+bool DepthMeshGenerator::saveObj(const Mesh& mesh, const std::string& path, const std::string& objectName)
+{
+	if (mesh.vertices.empty() || mesh.indices.empty())
+		return false;
+
+	std::ofstream file(path);
+	if (!file)
+	{
+		MIKAN_LOG_ERROR("DepthMeshGenerator::saveObj") << "Could not open " << path << " for writing";
+		return false;
+	}
+
+	file << "# Mikan depth proxy mesh - camera-space metres, generated by MoGe-2\n";
+	file << "o " << objectName << "\n";
+
+	char line[128];
+	for (const glm::vec3& v : mesh.vertices)
+	{
+		snprintf(line, sizeof(line), "v %.5f %.5f %.5f\n", v.x, v.y, v.z);
+		file << line;
+	}
+	for (const glm::vec2& t : mesh.texCoords)
+	{
+		snprintf(line, sizeof(line), "vt %.5f %.5f\n", t.x, t.y);
+		file << line;
+	}
+	for (const glm::vec3& n : mesh.normals)
+	{
+		snprintf(line, sizeof(line), "vn %.4f %.4f %.4f\n", n.x, n.y, n.z);
+		file << line;
+	}
+
+	for (size_t i= 0; i + 2 < mesh.indices.size(); i+= 3)
+	{
+		// OBJ indices are 1-based and vertex/uv/normal arrays are parallel here.
+		const uint32_t a= mesh.indices[i] + 1;
+		const uint32_t b= mesh.indices[i + 1] + 1;
+		const uint32_t c= mesh.indices[i + 2] + 1;
+		snprintf(line, sizeof(line), "f %u/%u/%u %u/%u/%u %u/%u/%u\n", a, a, a, b, b, b, c, c, c);
+		file << line;
+	}
+
+	return file.good();
+}

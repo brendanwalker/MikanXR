@@ -64,8 +64,8 @@ void GuiPanel_SceneLightingCapture::onGui()
 	{
 		ImGui::TextWrapped("Estimating scene lighting...");
 		ImGui::Spacing();
-		ImGui::TextWrapped("Running two diffusion models over the captured frame. This takes several "
-						   "seconds on the GPU and the window will not update until it finishes.");
+		ImGui::TextWrapped("Running the shading and geometry models over the captured frame. This takes "
+						   "several seconds on the GPU and the window will not update until it finishes.");
 	}
 	break;
 

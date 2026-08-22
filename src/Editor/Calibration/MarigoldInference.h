@@ -47,6 +47,14 @@ public:
 		/// reproducible; the denoise loop starts from noise, so an unseeded RNG
 		/// would make two runs on the same frame disagree.
 		unsigned int seed= 1234u;
+
+		/// When false, unet_normals.onnx is neither loaded (3.4GB) nor run and
+		/// Result::normals is left empty. The lighting estimator disables it:
+		/// normals now come from MoGe-2, whose directly-predicted normal head
+		/// matched Marigold's within the seed spread on the reference plates
+		/// (see docs/reference/scene-lighting.md). Marigold remains the source
+		/// of the IID decomposition, which has no feed-forward replacement.
+		bool bEnableNormals= true;
 	};
 
 	struct Result
@@ -54,7 +62,8 @@ public:
 		cv::Mat albedo;   ///< CV_32FC3, linear space, [0,1]
 		cv::Mat shading;  ///< CV_32FC3, linear space, up to a global scale
 		cv::Mat residual; ///< CV_32FC3, non-diffuse remainder
-		cv::Mat normals;  ///< CV_32FC3, unit length, CAMERA space
+		cv::Mat normals;  ///< CV_32FC3, unit length, CAMERA space; empty when
+						  ///< Config::bEnableNormals is false
 	};
 
 	MarigoldInference();

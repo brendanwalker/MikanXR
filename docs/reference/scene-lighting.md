@@ -49,12 +49,22 @@ a standalone tool.
 
 ## Models
 
-Two Marigold checkpoints, run in-process through ONNX Runtime with the DirectML execution provider.
+Two checkpoints, run in-process through ONNX Runtime with the DirectML execution provider.
 
 | Checkpoint | Role |
 |---|---|
 | `prs-eth/marigold-iid-lighting-v1-1` | albedo, **diffuse shading**, non-diffuse residual |
-| `prs-eth/marigold-normals-v1-1` | camera-space surface normals |
+| `Ruicheng/moge-2-vitl-normal` (ONNX export) | camera-space surface normals + metric depth/points |
+
+Normals originally came from `prs-eth/marigold-normals-v1-1` (a second 3.4GB diffusion UNet and
+denoise loop). After the swap was measured to preserve the recovered lighting within Marigold's own
+seed-to-seed spread (see "The directly-predicted-normals experiment" below), MoGe-2's
+directly-predicted normal head replaced it: one 331M-parameter feed-forward pass that also supplies
+the metric geometry for the depth proxy mesh (see [depth-proxy-mesh.md](./depth-proxy-mesh.md)).
+`MarigoldInference` retains the normals path behind `Config::bEnableNormals` but the estimator
+disables it; `unet_normals.onnx` is neither loaded nor required on disk.
+
+Facts about the Marigold checkpoints, all of which shape the export:
 
 Facts verified by inspecting the downloaded checkpoints, all of which shape the export:
 
@@ -303,7 +313,9 @@ so multiple probes remain possible without a wire-format change.
 | `empty_text_embedding.bin` | float32 `[1,2,1024]` |
 | `scheduler.json` | `alphas_cumprod` plus the DDIM config the C++ step needs |
 
-Total ~6.8GB. `models/` and `*.onnx.data` are gitignored.
+Total ~6.8GB. `models/` and `*.onnx.data` are gitignored. Since the MoGe-2 swap the estimator no
+longer loads `unet_normals.onnx` (3.4GB), but the export script still produces it so the Marigold
+normals path remains reproducible for comparisons.
 
 Three things that are easy to get wrong:
 
@@ -487,6 +499,12 @@ Developer-only. Neither ships with Mikan nor is invoked at runtime.
   DDIM `v_prediction` loop, per-target decode, and postprocessing all map 1:1.
 - `tools/validate_onnx_pipeline.py` — feeds both implementations the same fixed initial latents so
   the comparison is exact rather than statistical.
+- `tools/fetch_moge2_onnx.py` — downloads the official MoGe-2 ONNX export into `models/moge2`.
+  There is no local export step for this model.
+- `tools/moge2_onnx_pipeline.py` — MoGe-2 inference in ONNX Runtime + numpy only, no torch.
+  **This is the executable specification for the C++ `MoGeInference`**: preprocessing, the forward
+  pass, and the shift/scale recovery map 1:1. Validated against the PyTorch reference (depth within
+  0.04%, normals within 0.03°); the C++ port matches it per-vertex to 0.001% at p99.
 - `tools/moge2_proxy_eval.py` — evaluates MoGe-2 as the geometry source for the depth-proxy work:
   silhouette alignment of depth edges, metric-depth sensitivity to FOV conditioning, and the SH fit
   re-run with MoGe-2's directly-predicted normals. Needs `moge` + `utils3d`, installed with
@@ -505,14 +523,12 @@ rejects.
 - Whether a single global probe is good enough in practice, or whether region-of-interest probes
   near the character's position are needed. Answerable only by the end-to-end look in Unreal.
 - Whether the exposure scalar can be calibrated automatically rather than by hand per shoot.
-- Depth-derived proxy geometry for the shadow catcher, replacing hand-placed model stencils.
-  Marigold depth is affine-invariant and is **not** the right source for this — MoGe-2 with known-FOV
-  conditioning is. Measured on the reference plates (`tools/moge2_proxy_eval.py`): depth
-  discontinuities land at median 1.0px / p95 ~2px from the nearest image edge, cast shadows produce
-  no spurious depth edges, and boundaries commit to near-or-far rather than averaging (disocclusion
-  holes, not skirts, in the oblique renders). Zero-shot metric depth is plausible, but scale rides
-  on the assumed focal length — a 45° guess against a ~56° estimate shifts depth 22–36% — so the
-  calibrated FOV must be fed in, with tracked anchors / the floor plane available to absorb the
-  residual model scale error. Known weak spots: thin structures and transparent surfaces.
-  Remaining unknown before C++ integration: DirectML compatibility of the exported graph
-  (`Ruicheng/moge-2-vitl-normal-onnx` exists to test against before touching export tooling).
+- ~~Depth-derived proxy geometry for the shadow catcher~~ — **implemented**; see
+  [depth-proxy-mesh.md](./depth-proxy-mesh.md). The measurements that de-risked it
+  (`tools/moge2_proxy_eval.py`): depth discontinuities land at median 1.0px / p95 ~2px from the
+  nearest image edge, cast shadows produce no spurious depth edges, boundaries commit to
+  near-or-far rather than averaging, and metric scale rides on the assumed FOV (a 45° guess
+  against a ~56° estimate shifts depth 22–36%), which is why the capture stage feeds the
+  calibrated FOV in. DirectML compatibility of the official ONNX export was verified (identical
+  output to CPU, ~7× faster). Still open there: residual metric scale refinement against tracked
+  anchors / the floor plane, and occlusion-grade silhouette edges.

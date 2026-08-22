@@ -258,10 +258,11 @@ bool MarigoldInference::startup(const Config& config)
 		OnnxSession* session;
 		const char* fileName;
 	};
-	const ModelToLoad models[]= {{&m_impl->vaeEncoder, "vae_encoder.onnx"},
-								 {&m_impl->vaeDecoder, "vae_decoder.onnx"},
-								 {&m_impl->unetIid, "unet_iid_lighting.onnx"},
-								 {&m_impl->unetNormals, "unet_normals.onnx"}};
+	std::vector<ModelToLoad> models= {{&m_impl->vaeEncoder, "vae_encoder.onnx"},
+									  {&m_impl->vaeDecoder, "vae_decoder.onnx"},
+									  {&m_impl->unetIid, "unet_iid_lighting.onnx"}};
+	if (config.bEnableNormals)
+		models.push_back({&m_impl->unetNormals, "unet_normals.onnx"});
 
 	for (const ModelToLoad& model : models)
 	{
@@ -405,6 +406,12 @@ bool MarigoldInference::run(const cv::Mat& bgrImage, Result& outResult)
 	}
 
 	// -- normals --
+	if (!m_impl->config.bEnableNormals)
+	{
+		outResult.normals= cv::Mat();
+		return true;
+	}
+
 	std::vector<float> normalsLatent;
 	if (!m_impl->denoise(m_impl->unetNormals, imageLatent, latentH, latentW, 1, m_impl->config.seed + 1, normalsLatent))
 	{

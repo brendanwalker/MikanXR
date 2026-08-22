@@ -17,22 +17,40 @@ bool SceneLightingEstimator::startup(const Config& config)
 	inferenceConfig.processingResolution= config.processingResolution;
 	inferenceConfig.preferGpu= config.preferGpu;
 	inferenceConfig.seed= config.seed;
+	// Normals come from MoGe-2 below; skipping the normals UNet drops 3.4GB of
+	// model load and one of the two denoise loops.
+	inferenceConfig.bEnableNormals= false;
 
 	if (!m_inference.startup(inferenceConfig))
 		return false;
 
+	MoGeInference::Config geometryConfig;
+	geometryConfig.modelDirectory= config.mogeModelDirectory;
+	geometryConfig.preferGpu= config.preferGpu;
+
+	if (!m_geometryInference.startup(geometryConfig))
+	{
+		m_inference.shutdown();
+		return false;
+	}
+
 	MIKAN_LOG_INFO("SceneLightingEstimator::startup")
-		<< "Ready (execution provider: " << m_inference.getActiveExecutionProvider() << ")";
+		<< "Ready (IID: " << m_inference.getActiveExecutionProvider()
+		<< ", geometry: " << m_geometryInference.getActiveExecutionProvider() << ")";
 
 	return true;
 }
 
-void SceneLightingEstimator::shutdown() { m_inference.shutdown(); }
+void SceneLightingEstimator::shutdown()
+{
+	m_inference.shutdown();
+	m_geometryInference.shutdown();
+}
 
 bool SceneLightingEstimator::estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation,
-									  Result& outResult)
+									  float fovXDegrees, Result& outResult)
 {
-	if (!m_inference.getIsInitialized())
+	if (!getIsInitialized())
 	{
 		MIKAN_LOG_ERROR("SceneLightingEstimator::estimate") << "Not initialized";
 		return false;
@@ -41,6 +59,15 @@ bool SceneLightingEstimator::estimate(const cv::Mat& bgrImage, const glm::mat3& 
 	MarigoldInference::Result modelOutputs;
 	if (!m_inference.run(bgrImage, modelOutputs))
 		return false;
+
+	MoGeInference::Result geometry;
+	if (!m_geometryInference.run(bgrImage, fovXDegrees, geometry))
+		return false;
+
+	// MoGe-2 normals are already in the fit's camera convention (+Z toward the
+	// viewer) and zeroed where the validity mask rejected a pixel - a zero
+	// normal fails the fit's unit-length check, so masking needs no extra code.
+	modelOutputs.normals= geometry.normals;
 
 	return fitFromModelOutputs(modelOutputs, cameraToWorldRotation, outResult);
 }
@@ -103,7 +130,7 @@ bool SceneLightingEstimator::fitFromModelOutputs(const MarigoldInference::Result
 		return false;
 	}
 
-	// Marigold returns camera-space normals, so the solved environment is in
+	// The model returns camera-space normals, so the solved environment is in
 	// camera space too. Rotate it into Mikan world space with the tracked pose.
 	outResult.environment= outResult.cameraSpaceEnvironment.rotated(cameraToWorldRotation);
 

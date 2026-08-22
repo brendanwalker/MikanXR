@@ -144,11 +144,13 @@ public:
 	// -- IFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;
 	static const std::string k_captureSceneLightingFunctionId;
+	static const std::string k_captureDepthMeshFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void alignCamera();
 	void captureSceneLighting();
+	void captureDepthMesh();
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

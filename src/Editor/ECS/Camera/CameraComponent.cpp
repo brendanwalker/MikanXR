@@ -5,6 +5,7 @@
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "AlignCameraByUtilityMarker/AppStage_AlignCameraByUtilityMarker.h"
 #include "AlignCameraByOriginMarker/AppStage_AlignCameraByOriginMarker.h"
+#include "DepthMeshCapture/AppStage_DepthMeshCapture.h"
 #include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "Colors.h"
 #include "IEditorWindow.h"
@@ -206,6 +207,7 @@ void CameraDefinition::clearAperturePoseOffset()
 // -- CameraComponent -----
 const std::string CameraComponent::k_alignCameraFunctionId= "align_camera";
 const std::string CameraComponent::k_captureSceneLightingFunctionId= "capture_scene_lighting";
+const std::string CameraComponent::k_captureDepthMeshFunctionId= "capture_depth_mesh";
 
 CameraComponent::CameraComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
@@ -784,6 +786,7 @@ void CameraComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_alignCameraFunctionId, "Align Camera"));
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_captureSceneLightingFunctionId, "Capture Scene Lighting"));
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_captureDepthMeshFunctionId, "Capture Depth Mesh"));
 }
 
 bool CameraComponent::invokeFunction(const std::string& functionName)
@@ -795,6 +798,10 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 	else if (functionName == CameraComponent::k_captureSceneLightingFunctionId)
 	{
 		captureSceneLighting();
+	}
+	else if (functionName == CameraComponent::k_captureDepthMeshFunctionId)
+	{
+		captureDepthMesh();
 	}
 
 	return TransformComponent::invokeFunction(functionName);
@@ -854,6 +861,12 @@ void CameraComponent::captureSceneLighting()
 	lightEnvironmentComponent->captureSceneLighting();
 }
 
+void CameraComponent::captureDepthMesh()
+{
+	auto* captureStage= getOwnerEditorWindow()->pushAppStageOfType<AppStage_DepthMeshCapture>();
+	captureStage->setSourceCamera(getSelfPtr<CameraComponent>());
+}
+
 // -- Lua Binding ----
 void CameraComponent::bindLuaFunctions(struct lua_State* L)
 {
@@ -865,6 +878,7 @@ void CameraComponent::bindLuaFunctions(struct lua_State* L)
 			[](CameraComponent* c, int v) { c->getCameraDefinition()->setTrackingFrameDelay(v); })
 		.addFunction("alignCamera", [](CameraComponent* c) { c->alignCamera(); })
 		.addFunction("captureSceneLighting", [](CameraComponent* c) { c->captureSceneLighting(); })
+		.addFunction("captureDepthMesh", [](CameraComponent* c) { c->captureDepthMesh(); })
 		.addProperty("ownerStageId",
 					 [](CameraComponent* c) -> int { return c->getCameraDefinition()->getOwnerStageId(); })
 		.addProperty("trackingMountId",

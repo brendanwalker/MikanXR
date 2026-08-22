@@ -27,9 +27,10 @@
 
 const char* AppStage_SceneLightingCapture::APP_STAGE_NAME= "SceneLightingCapture";
 
-// Model directory relative to the working directory, matching the convention
+// Model directories relative to the working directory, matching the convention
 // used elsewhere in the Mikan family (see docs/reference/scene-lighting.md).
 static const char* k_defaultModelSubdirectory= "models/marigold";
+static const char* k_defaultMoGeModelSubdirectory= "models/moge2";
 
 AppStage_SceneLightingCapture::AppStage_SceneLightingCapture(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, APP_STAGE_NAME)
@@ -174,16 +175,20 @@ void AppStage_SceneLightingCapture::runCapture()
 	if (m_estimator == nullptr)
 	{
 		const std::filesystem::path modelDirectory= std::filesystem::current_path() / k_defaultModelSubdirectory;
+		const std::filesystem::path mogeModelDirectory=
+			std::filesystem::current_path() / k_defaultMoGeModelSubdirectory;
 
 		SceneLightingEstimator::Config config;
 		config.modelDirectory= modelDirectory.string();
+		config.mogeModelDirectory= mogeModelDirectory.string();
 
 		auto estimator= std::make_unique<SceneLightingEstimator>();
 		if (!estimator->startup(config))
 		{
 			m_capturePanel->setFailureReason(StringUtils::stringify(
-				"Could not load the Marigold models from '", modelDirectory.string(),
-				"'. Run tools/export_marigold_onnx.py to produce them. See MikanCmd.log for details."));
+				"Could not load the models from '", modelDirectory.string(), "' and '", mogeModelDirectory.string(),
+				"'. Run tools/export_marigold_onnx.py and tools/fetch_moge2_onnx.py to produce them. See MikanCmd.log"
+				" for details."));
 			setMenuState(eSceneLightingCaptureMenuState::failedInference);
 			return;
 		}
@@ -204,7 +209,7 @@ void AppStage_SceneLightingCapture::runCapture()
 		return;
 	}
 
-	// Marigold returns camera-space normals, so the fit needs the camera's
+	// The models return camera-space normals, so the fit needs the camera's
 	// orientation to place the recovered environment in world space.
 	glm::mat4 cameraPose(1.f);
 	if (!m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
@@ -215,7 +220,13 @@ void AppStage_SceneLightingCapture::runCapture()
 	}
 	const glm::mat3 cameraToWorldRotation(cameraPose);
 
-	if (!m_estimator->estimate(*bgrBuffer, cameraToWorldRotation, m_result))
+	// The calibrated FOV only affects MoGe-2's metric depth recovery, not the
+	// normals the fit consumes, but the real value is available here so pass it.
+	MikanVideoSourceIntrinsics cameraIntrinsics;
+	m_currentSceneCameraComponent->getApertureIntrinsics(cameraIntrinsics);
+	const float fovXDegrees= (float)cameraIntrinsics.getMonoIntrinsics().hfov;
+
+	if (!m_estimator->estimate(*bgrBuffer, cameraToWorldRotation, fovXDegrees, m_result))
 	{
 		m_capturePanel->setFailureReason("Lighting estimation failed. See MikanCmd.log for details.");
 		setMenuState(eSceneLightingCaptureMenuState::failedInference);
