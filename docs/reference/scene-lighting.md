@@ -247,6 +247,35 @@ Omnidata) would sidestep the affine ambiguity entirely and is the experiment act
 Alternatively the deferred multi-frame proxy-geometry work would resolve scale and shift against the
 tracked camera, which would fix the normals as a side effect.
 
+### The directly-predicted-normals experiment was run, and it holds up
+
+`tools/moge2_proxy_eval.py` re-ran the swap above with MoGe-2 ViT-L (`Ruicheng/moge-2-vitl-normal`,
+331M parameters, single forward pass, MIT code and weights) whose normal head predicts normals
+directly rather than deriving them from depth. Same shading in every row, only the normals differ:
+
+| Plate | vs Marigold normals | `l1/l0` (Marigold → MoGe-2) | SH direction apart |
+|---|---|---|---|
+| Still life (directional) | median **2.5°**, p90 7.8° | 1.127 → **1.061** | **5.8°** |
+| Office (near-ambient) | median 10.4° | 0.226 → 0.245 | 31.3° |
+
+Contrast with the depth-derived attempt: 41° median normal error, directionality crushed 40–50%,
+direction swinging 4.4°–40° with parameters untunable from one image. The direct head preserves
+directionality within 6% on the plate where it matters, lands the key direction inside Marigold's
+own seed-to-seed spread (8–17°), and matches ambient within 7%. The office's 31° direction gap is
+in the regime already established as meaningless — both fits sit at the `l1/l0 ≈ 0.25` warning
+threshold on a plate whose split-half disagreement is 21–44°, and both correctly classify it as
+near-ambient. Confidence classification agrees on both plates.
+
+Two further measurements from the same run:
+
+- **The normal head is decoupled from the scale ambiguity.** Sweeping the FOV conditioning moved
+  metric depth by up to 36% and the predicted normals by exactly 0.0° — the property depth-derived
+  normals structurally lack.
+- MoGe-2 also delivers the geometry needed by the deferred depth-proxy work (see open questions),
+  so one model plausibly replaces the 3.4GB normals UNet *and* provides the proxy mesh. The IID
+  lighting decomposition keeps Marigold — diffuse shading has no comparable feed-forward
+  replacement.
+
 ### The single-environment assumption is the real limit
 
 A single probe assumes spatially-invariant lighting. Measured disagreement in recovered direction
@@ -458,6 +487,12 @@ Developer-only. Neither ships with Mikan nor is invoked at runtime.
   DDIM `v_prediction` loop, per-target decode, and postprocessing all map 1:1.
 - `tools/validate_onnx_pipeline.py` — feeds both implementations the same fixed initial latents so
   the comparison is exact rather than statistical.
+- `tools/moge2_proxy_eval.py` — evaluates MoGe-2 as the geometry source for the depth-proxy work:
+  silhouette alignment of depth edges, metric-depth sensitivity to FOV conditioning, and the SH fit
+  re-run with MoGe-2's directly-predicted normals. Needs `moge` + `utils3d`, installed with
+  `pip install --user --no-deps` from the microsoft/MoGe and EasternJournalist/utils3d repos so the
+  pinned diffusers/torch environment is untouched. Writes to `build/moge2_eval/`, including oblique
+  point-splat renders for eyeballing silhouette skirts.
 
 These need `diffusers` pinned to **0.34.0**. Newer versions (0.39) fail to import under torch 2.4.1:
 they register a flash-attention custom op whose PEP 604 annotations torch 2.4's schema inference
@@ -471,4 +506,13 @@ rejects.
   near the character's position are needed. Answerable only by the end-to-end look in Unreal.
 - Whether the exposure scalar can be calibrated automatically rather than by hand per shoot.
 - Depth-derived proxy geometry for the shadow catcher, replacing hand-placed model stencils.
-  Marigold depth is affine-invariant so it needs a scale/shift solve against the tracked camera.
+  Marigold depth is affine-invariant and is **not** the right source for this — MoGe-2 with known-FOV
+  conditioning is. Measured on the reference plates (`tools/moge2_proxy_eval.py`): depth
+  discontinuities land at median 1.0px / p95 ~2px from the nearest image edge, cast shadows produce
+  no spurious depth edges, and boundaries commit to near-or-far rather than averaging (disocclusion
+  holes, not skirts, in the oblique renders). Zero-shot metric depth is plausible, but scale rides
+  on the assumed focal length — a 45° guess against a ~56° estimate shifts depth 22–36% — so the
+  calibrated FOV must be fed in, with tracked anchors / the floor plane available to absorb the
+  residual model scale error. Known weak spots: thin structures and transparent surfaces.
+  Remaining unknown before C++ integration: DirectML compatibility of the exported graph
+  (`Ruicheng/moge-2-vitl-normal-onnx` exists to test against before touching export tooling).
