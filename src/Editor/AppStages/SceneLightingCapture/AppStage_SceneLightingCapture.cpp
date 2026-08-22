@@ -279,7 +279,7 @@ void AppStage_SceneLightingCapture::renderLitSpherePreview()
 	// This is the same construction as the lit sphere in
 	// tools/sh_lighting_fit.py, so the two can be compared directly.
 	const float radius= fminf(frameWidth, frameHeight) * 0.18f;
-	const glm::vec2 center(frameWidth - radius - 16.f, radius + 16.f);
+	const glm::vec2 center(frameWidth / 2.f, frameHeight / 2.f);
 	const int steps= 48;
 
 	// Normalize against the brightest sample so the preview is readable

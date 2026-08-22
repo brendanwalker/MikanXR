@@ -683,6 +683,10 @@ void CameraComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 			->setDefaultValue(-1)
 			->setUIHidden());
 	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_lightEnvironmentIdPropertyId, MikanVariantType::INT)
+			->setDefaultValue(-1)
+			->setUIHidden());
+	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId, MikanVariantType::INT)
 			->setDefaultValue(0));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
@@ -717,6 +721,11 @@ bool CameraComponent::getPropertyValue(const std::string& propertyName, MikanVar
 	else if (propertyName == CameraDefinition::k_videoSourceIdPropertyId)
 	{
 		outValue= getCameraDefinition()->getVideoSourceId();
+		return true;
+	}
+	else if (propertyName == CameraDefinition::k_lightEnvironmentIdPropertyId)
+	{
+		outValue= getCameraDefinition()->getLightEnvironmentId();
 		return true;
 	}
 	else if (propertyName == CameraDefinition::k_trackingFrameDelayPropertyId)

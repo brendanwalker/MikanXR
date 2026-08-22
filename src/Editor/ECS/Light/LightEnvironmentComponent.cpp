@@ -30,6 +30,11 @@ LightEnvironmentDefinition::LightEnvironmentDefinition(MikanLightID lightId)
 {
 }
 
+// Every setter must call notifyPropertyChanged. It is not just a UI hint: it
+// arms the config auto-save cooldown AND fires CommonConfig::OnPropertyChanged,
+// which is what PropertyRequestHandler forwards to connected clients. Writing
+// the member without notifying leaves the value live in memory only - it never
+// reaches the project file and no client ever learns it changed.
 void LightEnvironmentDefinition::setSHCoefficients(const std::vector<float>& coefficients)
 {
 	// Normalize the length here so every reader can index unconditionally.
@@ -37,15 +42,29 @@ void LightEnvironmentDefinition::setSHCoefficients(const std::vector<float>& coe
 	const size_t count= std::min(coefficients.size(), (size_t)k_shCoefficientFloatCount);
 	for (size_t i= 0; i < count; ++i)
 		m_shCoefficients[i]= coefficients[i];
+
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_shCoefficientsPropertyId));
 }
 
-void LightEnvironmentDefinition::setExposureScale(float scale) { m_exposureScale= scale; }
+void LightEnvironmentDefinition::setExposureScale(float scale)
+{
+	m_exposureScale= scale;
 
-void LightEnvironmentDefinition::setDirectionality(float directionality) { m_directionality= directionality; }
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_exposureScalePropertyId));
+}
+
+void LightEnvironmentDefinition::setDirectionality(float directionality)
+{
+	m_directionality= directionality;
+
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_directionalityPropertyId));
+}
 
 void LightEnvironmentDefinition::setKeyLightDirection(const MikanVector3f& direction)
 {
 	m_keyLightDirection= direction;
+
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_keyLightDirectionPropertyId));
 }
 
 SHLightingEnvironment LightEnvironmentDefinition::getLightingEnvironment() const
@@ -79,6 +98,15 @@ void LightEnvironmentDefinition::setLightingEnvironment(const SHLightingEnvironm
 
 	const glm::vec3 keyDirection= environment.getDominantDirection();
 	m_keyLightDirection= {keyDirection.x, keyDirection.y, keyDirection.z};
+
+	// Members are assigned directly above rather than through the individual
+	// setters so this lands as ONE change set. Going through the setters would
+	// re-arm the auto-save and emit a client event three times for what is a
+	// single logical update.
+	notifyPropertyChanged(ConfigPropertyChangeSet()
+							  .addPropertyName(k_shCoefficientsPropertyId)
+							  .addPropertyName(k_directionalityPropertyId)
+							  .addPropertyName(k_keyLightDirectionPropertyId));
 }
 
 configuru::Config LightEnvironmentDefinition::writeToJSON()
