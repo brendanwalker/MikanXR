@@ -47,8 +47,14 @@ void SceneLightingEstimator::shutdown()
 	m_geometryInference.shutdown();
 }
 
+void SceneLightingEstimator::requestCancel()
+{
+	m_inference.requestCancel();
+	m_geometryInference.requestCancel();
+}
+
 bool SceneLightingEstimator::estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation,
-									  float fovXDegrees, Result& outResult)
+									  float fovXDegrees, Result& outResult, const Progress& progress)
 {
 	if (!getIsInitialized())
 	{
@@ -56,13 +62,41 @@ bool SceneLightingEstimator::estimate(const cv::Mat& bgrImage, const glm::mat3& 
 		return false;
 	}
 
-	MarigoldInference::Result modelOutputs;
-	if (!m_inference.run(bgrImage, modelOutputs))
+	const auto report= [&progress](eSceneLightingEstimatePhase phase, int completedUnits, int totalUnits)
+	{
+		if (progress.onProgress)
+			progress.onProgress(phase, completedUnits, totalUnits);
+	};
+	const auto bIsCancelled= [&progress]() { return progress.isCancelled && progress.isCancelled(); };
+
+	if (bIsCancelled())
 		return false;
 
+	// -- diffuse shading, the long one: a VAE encode, the DDIM loop, and three
+	// decodes, each of which reports a unit as it lands.
+	report(eSceneLightingEstimatePhase::decomposingShading, 0, 1);
+	MarigoldInference::Result modelOutputs;
+	const auto stepCallback= [&report, &bIsCancelled](int completedUnits, int totalUnits) -> bool
+	{
+		report(eSceneLightingEstimatePhase::decomposingShading, completedUnits, totalUnits);
+		return !bIsCancelled();
+	};
+	if (!m_inference.run(bgrImage, modelOutputs, stepCallback))
+		return false;
+
+	if (bIsCancelled())
+		return false;
+
+	// -- surface normals: one opaque forward pass, so no sub-progress to report.
+	report(eSceneLightingEstimatePhase::estimatingGeometry, 0, 1);
 	MoGeInference::Result geometry;
 	if (!m_geometryInference.run(bgrImage, fovXDegrees, geometry))
 		return false;
+
+	if (bIsCancelled())
+		return false;
+
+	report(eSceneLightingEstimatePhase::fittingLighting, 0, 1);
 
 	// MoGe-2 normals are already in the fit's camera convention (+Z toward the
 	// viewer) and zeroed where the validity mask rejected a pixel - a zero

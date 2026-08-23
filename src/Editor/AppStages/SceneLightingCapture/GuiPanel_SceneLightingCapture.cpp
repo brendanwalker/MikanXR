@@ -2,6 +2,9 @@
 
 #include "imgui.h"
 
+#include <cfloat>
+#include <cstdio>
+
 // Below this the recovered environment is effectively uniform ambient and the
 // key light direction carries no information. Matches
 // SceneLightingEstimator's warning threshold.
@@ -62,10 +65,53 @@ void GuiPanel_SceneLightingCapture::onGui()
 
 	case eSceneLightingCaptureMenuState::runningInference:
 	{
-		ImGui::TextWrapped("Estimating scene lighting...");
+		const char* phaseLabel= "Working...";
+		int stepIndex= 1;
+		switch (m_estimatePhase)
+		{
+		case eSceneLightingEstimatePhase::loadingModels:
+			phaseLabel= "Loading the lighting and geometry models...";
+			stepIndex= 1;
+			break;
+		case eSceneLightingEstimatePhase::decomposingShading:
+			phaseLabel= "Decomposing the frame into diffuse shading...";
+			stepIndex= 2;
+			break;
+		case eSceneLightingEstimatePhase::estimatingGeometry:
+			phaseLabel= "Estimating surface normals...";
+			stepIndex= 3;
+			break;
+		case eSceneLightingEstimatePhase::fittingLighting:
+			phaseLabel= "Fitting the lighting environment...";
+			stepIndex= 4;
+			break;
+		default:
+			break;
+		}
+
+		if (m_bCancellingEstimate)
+			ImGui::TextWrapped("Cancelling...");
+		else
+			ImGui::TextWrapped("%s", phaseLabel);
+
+		// The diffusion decomposition is a sequence of discrete pieces - a VAE
+		// encode, one denoise step per scheduler timestep, then the decodes - so
+		// unlike a single opaque ONNX Run it reports real sub-progress, and the
+		// bar moves through the step that dominates the wall clock. The elapsed
+		// clock covers the steps that cannot report anything.
+		char overlay[32];
+		snprintf(overlay, sizeof(overlay), "Step %d of %d", stepIndex, k_sceneLightingEstimateStepCount);
+		ImGui::ProgressBar(m_estimateFraction, ImVec2(-FLT_MIN, 0.f), overlay);
+		ImGui::TextWrapped("%.1f s elapsed", m_estimateElapsedSeconds);
+
 		ImGui::Spacing();
-		ImGui::TextWrapped("Running the shading and geometry models over the captured frame. This takes "
-						   "several seconds on the GPU and the window will not update until it finishes.");
+		ImGui::BeginDisabled(m_bCancellingEstimate);
+		if (ImGui::Button("Cancel Capture"))
+		{
+			if (OnCancelCaptureEvent)
+				OnCancelCaptureEvent();
+		}
+		ImGui::EndDisabled();
 	}
 	break;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Constants_SceneLightingCapture.h"
+#include "SceneLightingEstimator.h"
 #include "Shared/GuiPanel.h"
 
 #include <functional>
@@ -34,7 +35,18 @@ public:
 		m_negativeSolidAngleFraction= negativeSolidAngleFraction;
 	}
 
+	/// Pushed every frame while an estimate runs so the progress readout tracks
+	/// the worker.
+	void setEstimateProgress(eSceneLightingEstimatePhase phase, float fraction, float elapsedSeconds, bool bCancelling)
+	{
+		m_estimatePhase= phase;
+		m_estimateFraction= fraction;
+		m_estimateElapsedSeconds= elapsedSeconds;
+		m_bCancellingEstimate= bCancelling;
+	}
+
 	std::function<void()> OnCaptureEvent;
+	std::function<void()> OnCancelCaptureEvent;
 	std::function<void()> OnApplyEvent;
 	std::function<void()> OnRedoEvent;
 	std::function<void()> OnCancelEvent;
@@ -51,4 +63,9 @@ private:
 	std::string m_ambient;
 	int m_sampleCount= 0;
 	float m_negativeSolidAngleFraction= 0.f;
+
+	eSceneLightingEstimatePhase m_estimatePhase= eSceneLightingEstimatePhase::idle;
+	float m_estimateFraction= 0.f;
+	float m_estimateElapsedSeconds= 0.f;
+	bool m_bCancellingEstimate= false;
 };

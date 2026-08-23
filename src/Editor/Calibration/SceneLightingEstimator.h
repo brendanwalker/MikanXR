@@ -7,7 +7,23 @@
 
 #include <glm/glm.hpp>
 
+#include <functional>
 #include <string>
+
+/// Stage of an in-flight estimate, in execution order. Only the diffusion
+/// decomposition reports sub-steps; the rest are single opaque calls.
+enum class eSceneLightingEstimatePhase : int
+{
+	idle,
+	loadingModels,      ///< several GB of ONNX across the two models
+	decomposingShading, ///< Marigold IID: VAE encode, the DDIM loop, the decodes
+	estimatingGeometry, ///< MoGe-2 forward pass for the surface normals
+	fittingLighting,    ///< the order-2 SH least squares
+	complete,
+};
+
+/// Number of steps shown in the estimate progress readout.
+static constexpr int k_sceneLightingEstimateStepCount= 4;
 
 //-- types -----
 /// Recovers the scene's low-frequency lighting from one captured frame.
@@ -87,8 +103,26 @@ public:
 		MarigoldInference::Result modelOutputs;
 	};
 
+	/// Optional hooks so a UI can follow a long estimate and abandon it.
+	struct Progress
+	{
+		/// Called on the estimating thread as work completes. completedUnits /
+		/// totalUnits are only meaningful within the reported phase, and only
+		/// the diffusion phase reports more than one unit.
+		std::function<void(eSceneLightingEstimatePhase phase, int completedUnits, int totalUnits)> onProgress;
+
+		/// Polled at each checkpoint; returning true abandons the estimate,
+		/// which then fails like any other error. Cancelling is the caller's
+		/// own flag to distinguish - see AppStage_SceneLightingCapture.
+		std::function<bool()> isCancelled;
+	};
+
 	bool startup(const Config& config);
 	void shutdown();
+
+	/// Asks an in-flight estimate() to give up as soon as ONNX Runtime notices.
+	/// Safe to call from another thread.
+	void requestCancel();
 
 	bool getIsInitialized() const { return m_inference.getIsInitialized() && m_geometryInference.getIsInitialized(); }
 	/// The IID diffusion pipeline dominates the cost, so its execution provider
@@ -101,8 +135,8 @@ public:
 	/// the normals the fit consumes are FOV-independent (measured 0.0 degrees
 	/// across a 45-70 sweep), but MoGe-2's metric depth recovery needs it, so
 	/// pass the real value where one exists.
-	bool estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation, float fovXDegrees,
-				  Result& outResult);
+	bool estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation, float fovXDegrees, Result& outResult,
+				  const Progress& progress= {});
 
 	/// Fit only, for tests and for re-fitting cached model output without
 	/// paying for inference again.

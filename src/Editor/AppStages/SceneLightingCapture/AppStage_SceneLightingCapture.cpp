@@ -32,6 +32,35 @@ const char* AppStage_SceneLightingCapture::APP_STAGE_NAME= "SceneLightingCapture
 static const char* k_defaultModelSubdirectory= "models/marigold";
 static const char* k_defaultMoGeModelSubdirectory= "models/moge2";
 
+/// Where each step sits in the progress bar, weighted by how long it actually
+/// takes. The diffusion decomposition dominates and is the only step that
+/// reports sub-progress - it is a sequence of discrete VAE and denoise calls
+/// rather than one opaque Run - so it gets the widest band and moves smoothly
+/// through it. The others can only jump.
+static float computeEstimateProgressFraction(eSceneLightingEstimatePhase phase, int completedUnits, int totalUnits)
+{
+	switch (phase)
+	{
+	case eSceneLightingEstimatePhase::loadingModels:
+		return 0.03f;
+	case eSceneLightingEstimatePhase::decomposingShading:
+	{
+		constexpr float k_bandStart= 0.15f;
+		constexpr float k_bandEnd= 0.80f;
+		const float unitFraction= (totalUnits > 0) ? (float)completedUnits / (float)totalUnits : 0.f;
+		return k_bandStart + unitFraction * (k_bandEnd - k_bandStart);
+	}
+	case eSceneLightingEstimatePhase::estimatingGeometry:
+		return 0.85f;
+	case eSceneLightingEstimatePhase::fittingLighting:
+		return 0.96f;
+	case eSceneLightingEstimatePhase::complete:
+		return 1.f;
+	default:
+		return 0.f;
+	}
+}
+
 AppStage_SceneLightingCapture::AppStage_SceneLightingCapture(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, APP_STAGE_NAME)
 {
@@ -74,12 +103,15 @@ void AppStage_SceneLightingCapture::enter()
 	m_capturePanel= addGuiPanel<GuiPanel_SceneLightingCapture>();
 	m_capturePanel->setProbeName(m_targetProbe ? m_targetProbe->getName() : std::string("<none>"));
 	m_capturePanel->OnCaptureEvent= [this]() { onCaptureEvent(); };
+	m_capturePanel->OnCancelCaptureEvent= [this]() { onCancelCaptureEvent(); };
 	m_capturePanel->OnApplyEvent= [this]() { onApplyEvent(); };
 	m_capturePanel->OnRedoEvent= [this]() { onRedoEvent(); };
 	m_capturePanel->OnCancelEvent= [this]() { onCancelEvent(); };
 	m_capturePanel->OnOkEvent= [this]() { onCancelEvent(); };
 
 	m_bHasResult= false;
+
+	startEstimateWorker();
 
 	setMenuState(eSceneLightingCaptureMenuState::pendingVideoStartStreamRequest);
 }
@@ -88,8 +120,10 @@ void AppStage_SceneLightingCapture::exit()
 {
 	setMenuState(eSceneLightingCaptureMenuState::inactive);
 
-	// Free the ONNX sessions before anything else; they hold gigabytes.
-	m_estimator= nullptr;
+	// Stop the worker before anything else: it cancels any estimate in flight,
+	// joins, and frees the ONNX sessions (gigabytes) on the thread that created
+	// them.
+	stopEstimateWorker();
 
 	m_currentSceneCameraComponent= nullptr;
 	m_mkCamera= nullptr;
@@ -134,10 +168,32 @@ void AppStage_SceneLightingCapture::update(float deltaSeconds)
 	}
 
 	// Keep the undistorted color buffer current while the operator is framing
-	// the shot; runCapture() reads whatever the last processed frame produced.
+	// the shot; the capture reads whatever the last processed frame produced.
 	if (menuState == eSceneLightingCaptureMenuState::verifyCameraSetup)
 	{
 		m_monoDistortionView->readAndProcessVideoFrame();
+		return;
+	}
+
+	if (menuState == eSceneLightingCaptureMenuState::runningInference)
+	{
+		// Push the worker's progress every frame, then pick the result up once
+		// it lands.
+		m_estimateElapsedSeconds+= deltaSeconds;
+
+		const eSceneLightingEstimatePhase phase= (eSceneLightingEstimatePhase)m_estimatePhase.load();
+		const float fraction=
+			computeEstimateProgressFraction(phase, m_estimateUnitsCompleted.load(), m_estimateUnitsTotal.load());
+		m_capturePanel->setEstimateProgress(phase, fraction, m_estimateElapsedSeconds, m_bCancelRequested.load());
+
+		bool bEstimateFinished= false;
+		{
+			std::lock_guard<std::mutex> lock(m_workerMutex);
+			bEstimateFinished= m_bEstimateFinished;
+		}
+
+		if (bEstimateFinished)
+			consumeEstimateOutput();
 	}
 }
 
@@ -163,42 +219,8 @@ void AppStage_SceneLightingCapture::onGui()
 
 void AppStage_SceneLightingCapture::onCaptureEvent()
 {
-	// Show the "running" state before the blocking inference call so the panel
-	// does not sit on "Capture" for the several seconds this takes.
-	setMenuState(eSceneLightingCaptureMenuState::runningInference);
-
-	runCapture();
-}
-
-void AppStage_SceneLightingCapture::runCapture()
-{
-	if (m_estimator == nullptr)
-	{
-		const std::filesystem::path modelDirectory= std::filesystem::current_path() / k_defaultModelSubdirectory;
-		const std::filesystem::path mogeModelDirectory=
-			std::filesystem::current_path() / k_defaultMoGeModelSubdirectory;
-
-		SceneLightingEstimator::Config config;
-		config.modelDirectory= modelDirectory.string();
-		config.mogeModelDirectory= mogeModelDirectory.string();
-
-		auto estimator= std::make_unique<SceneLightingEstimator>();
-		if (!estimator->startup(config))
-		{
-			m_capturePanel->setFailureReason(StringUtils::stringify(
-				"Could not load the models from '", modelDirectory.string(), "' and '", mogeModelDirectory.string(),
-				"'. Run tools/export_marigold_onnx.py and tools/fetch_moge2_onnx.py to produce them. See MikanCmd.log"
-				" for details."));
-			setMenuState(eSceneLightingCaptureMenuState::failedInference);
-			return;
-		}
-
-		m_estimator= std::move(estimator);
-		m_capturePanel->setExecutionProvider(m_estimator->getActiveExecutionProvider());
-	}
-
-	// Make sure the buffer reflects the newest frame rather than whatever was
-	// last processed.
+	// Gather everything the worker needs here: the video buffers and the
+	// tracked camera pose belong to the UI thread.
 	m_monoDistortionView->readAndProcessVideoFrame();
 
 	cv::Mat* bgrBuffer= m_monoDistortionView->getBGRUndistortBuffer();
@@ -218,21 +240,219 @@ void AppStage_SceneLightingCapture::runCapture()
 		setMenuState(eSceneLightingCaptureMenuState::failedInference);
 		return;
 	}
-	const glm::mat3 cameraToWorldRotation(cameraPose);
 
 	// The calibrated FOV only affects MoGe-2's metric depth recovery, not the
 	// normals the fit consumes, but the real value is available here so pass it.
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_currentSceneCameraComponent->getApertureIntrinsics(cameraIntrinsics);
-	const float fovXDegrees= (float)cameraIntrinsics.getMonoIntrinsics().hfov;
 
-	if (!m_estimator->estimate(*bgrBuffer, cameraToWorldRotation, fovXDegrees, m_result))
+	EstimateRequest request;
+	// Cloned because the video pipeline reuses the buffer as soon as the next
+	// frame arrives, and the worker reads it for seconds afterwards.
+	request.bgrFrame= bgrBuffer->clone();
+	request.cameraToWorldRotation= glm::mat3(cameraPose);
+	request.fovXDegrees= (float)cameraIntrinsics.getMonoIntrinsics().hfov;
+
+	m_bCancelRequested= false;
+	m_estimatePhase= (int)eSceneLightingEstimatePhase::loadingModels;
+	m_estimateUnitsCompleted= 0;
+	m_estimateUnitsTotal= 0;
+	m_estimateElapsedSeconds= 0.f;
+
 	{
-		m_capturePanel->setFailureReason("Lighting estimation failed. See MikanCmd.log for details.");
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		m_pendingRequest= std::move(request);
+		m_bEstimateRequested= true;
+		m_bEstimateFinished= false;
+	}
+	m_workerSignal.notify_one();
+
+	setMenuState(eSceneLightingCaptureMenuState::runningInference);
+}
+
+void AppStage_SceneLightingCapture::onCancelCaptureEvent()
+{
+	m_bCancelRequested= true;
+
+	// Also tell ONNX Runtime to abandon whichever run is in flight. Without
+	// this the cancel would not land until the current denoise step finished,
+	// and on the CPU fallback a single step is most of the wait.
+	std::lock_guard<std::mutex> lock(m_workerMutex);
+	if (m_estimator)
+		m_estimator->requestCancel();
+}
+
+void AppStage_SceneLightingCapture::startEstimateWorker()
+{
+	if (m_workerThread.joinable())
+		return;
+
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		m_bWorkerShutdownRequested= false;
+		m_bEstimateRequested= false;
+		m_bEstimateFinished= false;
+	}
+
+	m_workerThread= std::thread([this]() { estimateWorkerMain(); });
+}
+
+void AppStage_SceneLightingCapture::stopEstimateWorker()
+{
+	if (!m_workerThread.joinable())
+		return;
+
+	// Cancel anything in flight first, otherwise the join waits out a full
+	// estimate while the window is closing.
+	m_bCancelRequested= true;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		if (m_estimator)
+			m_estimator->requestCancel();
+		m_bWorkerShutdownRequested= true;
+	}
+	m_workerSignal.notify_one();
+
+	m_workerThread.join();
+}
+
+void AppStage_SceneLightingCapture::estimateWorkerMain()
+{
+	for (;;)
+	{
+		EstimateRequest request;
+		{
+			std::unique_lock<std::mutex> lock(m_workerMutex);
+			m_workerSignal.wait(lock, [this]() { return m_bWorkerShutdownRequested || m_bEstimateRequested; });
+
+			if (m_bWorkerShutdownRequested)
+			{
+				// The ONNX sessions have to be destroyed on the thread that
+				// created and ran them.
+				m_estimator= nullptr;
+				return;
+			}
+
+			request= std::move(m_pendingRequest);
+			m_bEstimateRequested= false;
+		}
+
+		EstimateOutput output;
+		runEstimateRequest(request, output);
+
+		{
+			std::lock_guard<std::mutex> lock(m_workerMutex);
+			m_estimateOutput= std::move(output);
+			m_bEstimateFinished= true;
+		}
+
+		m_estimatePhase= (int)eSceneLightingEstimatePhase::complete;
+	}
+}
+
+void AppStage_SceneLightingCapture::runEstimateRequest(const EstimateRequest& request, EstimateOutput& outOutput)
+{
+	const auto bIsCancelled= [this]() { return m_bCancelRequested.load(); };
+
+	// -- step 1: model load (first capture only) --
+	m_estimatePhase= (int)eSceneLightingEstimatePhase::loadingModels;
+
+	SceneLightingEstimator* estimator= nullptr;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		estimator= m_estimator.get();
+	}
+
+	if (estimator == nullptr)
+	{
+		const std::filesystem::path modelDirectory= std::filesystem::current_path() / k_defaultModelSubdirectory;
+		const std::filesystem::path mogeModelDirectory=
+			std::filesystem::current_path() / k_defaultMoGeModelSubdirectory;
+
+		SceneLightingEstimator::Config config;
+		config.modelDirectory= modelDirectory.string();
+		config.mogeModelDirectory= mogeModelDirectory.string();
+
+		// startup() pulls in several gigabytes, so it runs outside the lock.
+		auto newEstimator= std::make_unique<SceneLightingEstimator>();
+		if (!newEstimator->startup(config))
+		{
+			outOutput.failureReason= StringUtils::stringify(
+				"Could not load the models from '", modelDirectory.string(), "' and '", mogeModelDirectory.string(),
+				"'. Run tools/export_marigold_onnx.py and tools/fetch_moge2_onnx.py to produce them. See MikanCmd.log"
+				" for details.");
+			return;
+		}
+
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		estimator= newEstimator.get();
+		m_estimator= std::move(newEstimator);
+	}
+	outOutput.executionProvider= estimator->getActiveExecutionProvider();
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
+		return;
+	}
+
+	// -- steps 2-4: the estimate reports its own phases as it goes --
+	SceneLightingEstimator::Progress progress;
+	progress.onProgress= [this](eSceneLightingEstimatePhase phase, int completedUnits, int totalUnits)
+	{
+		m_estimatePhase= (int)phase;
+		m_estimateUnitsCompleted= completedUnits;
+		m_estimateUnitsTotal= totalUnits;
+	};
+	progress.isCancelled= [this]() { return m_bCancelRequested.load(); };
+
+	if (!estimator->estimate(request.bgrFrame, request.cameraToWorldRotation, request.fovXDegrees, outOutput.result,
+							 progress))
+	{
+		// A cancelled estimate fails the same way a broken one does, so the
+		// cancel flag is what tells the two apart.
+		if (bIsCancelled())
+			outOutput.bCancelled= true;
+		else
+			outOutput.failureReason= "Lighting estimation failed. See MikanCmd.log for details.";
+		return;
+	}
+
+	outOutput.bSucceeded= true;
+}
+
+void AppStage_SceneLightingCapture::consumeEstimateOutput()
+{
+	EstimateOutput output;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		output= std::move(m_estimateOutput);
+		m_estimateOutput= EstimateOutput();
+		m_bEstimateFinished= false;
+	}
+
+	if (!output.executionProvider.empty())
+		m_capturePanel->setExecutionProvider(output.executionProvider);
+
+	m_estimatePhase= (int)eSceneLightingEstimatePhase::idle;
+
+	if (output.bCancelled)
+	{
+		// Back to framing rather than out of the tool: cancelling should not
+		// throw away the framing or the loaded models.
+		MIKAN_LOG_INFO("AppStage_SceneLightingCapture") << "Lighting estimate cancelled";
+		setMenuState(eSceneLightingCaptureMenuState::verifyCameraSetup);
+		return;
+	}
+
+	if (!output.bSucceeded)
+	{
+		m_capturePanel->setFailureReason(output.failureReason);
 		setMenuState(eSceneLightingCaptureMenuState::failedInference);
 		return;
 	}
 
+	m_result= std::move(output.result);
 	m_bHasResult= true;
 
 	const glm::vec3 ambient= m_result.environment.coefficients[0] * 0.282095f * 3.14159265f;

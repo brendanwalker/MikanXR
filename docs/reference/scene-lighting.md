@@ -478,9 +478,28 @@ Two deliberate choices:
   meaningful in world space if the frame's camera pose is known, so an untracked camera should fail
   loudly rather than silently produce a mis-oriented environment.
 
-The ONNX sessions are held by the AppStage, not the object system: the models are several gigabytes,
-so they load when the tool opens and are freed when it closes. Inference blocks the UI for several
-seconds, which is why `runningInference` is its own menu state.
+### The estimate runs on a worker thread
+
+The ONNX sessions are held by the AppStage rather than the object system, because the models are
+several gigabytes and should not outlive the tool. They are owned specifically by a **worker
+thread** the stage starts on entry: `OnnxSession` requires a session to be created, run, and
+destroyed on one thread, and the estimate has to be off the UI thread for the progress readout and
+the Cancel button to work at all. The frame and the tracked camera pose are gathered on the UI
+thread and handed over as plain data; `update()` polls for the result.
+
+**The progress bar is genuinely sub-step accurate for the part that matters.** Unlike a single
+opaque ONNX `Run`, the Marigold pipeline is a sequence of discrete pieces — one VAE encode, one
+denoise step per scheduler timestep, one decode per target — so `MarigoldInference::run` reports a
+unit as each lands (8 units with the normals UNet disabled). That step is also the one that
+dominates the wall clock, so it gets the widest band in the bar and moves smoothly through it. The
+model load, the MoGe-2 forward pass, and the SH fit can only jump, and an elapsed-seconds readout
+covers them.
+
+**Cancel abandons an in-flight run**, not just the gaps between steps: `requestCancel` sets ONNX
+Runtime's terminate flag on every session (see `OnnxSession::requestTerminate`, the one method
+there that is safe to call cross-thread), and the denoise loop also checks the cancel flag between
+steps. A cancelled estimate fails like any other error, so the stage's own cancel flag is what
+distinguishes the two. Cancelling returns to framing with the models still loaded.
 
 ---
 

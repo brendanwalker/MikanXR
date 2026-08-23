@@ -5,6 +5,7 @@
 // are not enough here.
 #include <opencv2/core.hpp>
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -78,8 +79,20 @@ public:
 	/// seconds of inference into minutes.
 	const char* getActiveExecutionProvider() const;
 
+	/// Called as work units complete inside run(). Unlike a single ONNX Run,
+	/// this pipeline is a sequence of discrete pieces - one VAE encode, one
+	/// denoise step per scheduler timestep, one decode per target - so it can
+	/// report real progress. Return false to abandon the run, which then fails
+	/// like any other error.
+	using StepCallback= std::function<bool(int completedUnits, int totalUnits)>;
+
 	/// bgrImage is CV_8UC3 as it comes out of the video frame pipeline.
-	bool run(const cv::Mat& bgrImage, Result& outResult);
+	bool run(const cv::Mat& bgrImage, Result& outResult, const StepCallback& stepCallback= {});
+
+	/// Asks an in-flight run() to give up as soon as ONNX Runtime notices; it
+	/// then returns false. Safe to call from another thread - see
+	/// OnnxSession::requestTerminate.
+	void requestCancel();
 
 private:
 	struct Impl;
