@@ -4,6 +4,8 @@
 #include "SceneLightingEstimator.h"
 #include "TypeRegistry.h"
 #include "TrackerPoseCalibratorTests.h"
+#include "AutomationProtocolTests.h"
+#include "AutomationVariantTextTests.h"
 #include "ClientApiPropertySchemaTests.h"
 #include "DepthMeshGeneratorTests.h"
 #include "DMXUniverseRLETests.h"
@@ -21,6 +23,8 @@ bool run_all_editor_unit_tests()
 {
 	bool success= true;
 	success&= run_tracker_pose_calibrator_unit_tests();
+	success&= run_automation_protocol_tests();
+	success&= run_automation_variant_text_tests();
 	success&= run_client_api_property_schema_tests();
 	success&= run_depth_mesh_generator_unit_tests();
 	success&= run_dmx_universe_rle_tests();

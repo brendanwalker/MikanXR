@@ -12,6 +12,7 @@ Read these for context, and keep them current as part of doing work:
 - **[plan.md](./docs/plan.md)**: the living plan (Now / Next / Later / Open questions). After completing meaningful work, update it to reflect the current state.
 
 [docs/reference/](./docs/reference/)
+- **[automation.md](./docs/reference/automation.md)**: the automation server (the loopback TCP text command channel in `Mikan.exe`): the protocol, the command namespaces, the `tools/automate.py` client, and the drive and verify loop. The preferred way to test features that need a running editor. Keep it current as command namespaces are added.
 - **[build.md](./docs/reference/build.md)**: the build-system view (toolchain, `InitialSetup_x64.bat`, CMake options and targets, the CI Ninja configuration, unity-build and C#-generator gotchas). Keep it current as the build conventions evolve.
 - **[calibration.md](./docs/reference/calibration.md)**: the calibration flows (lens intrinsics, camera-to-tracker alignment, marker alignment, triangulation and ICP tools), their OpenCV entry points, and where results persist. Keep it current as flows are added or their math changes.
 - **[commands.md](./docs/reference/commands.md)**: cheat sheet of the handy repo commands (setup, generate, build, tests, formatting, bindings codegen, installer). Add new tooling commands here as they arrive.

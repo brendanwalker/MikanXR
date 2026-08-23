@@ -58,6 +58,9 @@ private:
 	// Mikan API Server
 	class MikanServer* m_mikanServer= nullptr;
 
+	// Automation text command server
+	class AutomationServer* m_automationServer= nullptr;
+
 	// Client Source Manager
 	class ClientSourceManager* m_clientSourceManager= nullptr;
 

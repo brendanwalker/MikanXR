@@ -4,8 +4,10 @@
 #include "Version.h"
 
 #include "App.h"
+#include "AppSettingsConfig.h"
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
+#include "AutomationServer.h"
 #include "ClientSourceManager.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
@@ -38,6 +40,7 @@
 #include "TextStyle.h"
 
 #include <chrono>
+#include <cstdlib>
 
 // App Stages
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
@@ -71,6 +74,7 @@ static const glm::vec3 k_frustum_color= glm::vec3(0.1f, 0.7f, 0.3f);
 MainWindow::MainWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 	, m_mikanServer(new MikanServer())
+	, m_automationServer(new AutomationServer())
 	, m_clientSourceManager(new ClientSourceManager(DEFAULT_VIDEO_FRAME_QUEUE_SIZE))
 	, m_inputManager(new InputManager(this))
 	, m_projectManager(std::make_shared<ProjectManager>(this))
@@ -107,6 +111,7 @@ MainWindow::~MainWindow()
 	m_projectManager= nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
+	delete m_automationServer;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
 }
@@ -235,6 +240,18 @@ bool MainWindow::startup()
 		LuaDebugServer::getInstance()->startListening();
 	}
 
+	if (success && !m_ownerApp->hasCommandLineFlag("noAutomationServer"))
+	{
+		// Start the automation text command server (loopback only).
+		// A failed bind is logged and tolerated.
+		int automationPort= m_ownerApp->getAppSettings()->getAutomationServerPort();
+		const std::string portOverride= m_ownerApp->getCommandLineStringArg("automationPort");
+		if (!portOverride.empty())
+			automationPort= atoi(portOverride.c_str());
+
+		m_automationServer->startup(this, (uint16_t)automationPort);
+	}
+
 #undef MIKAN_TIMED_STARTUP
 
 	if (success)
@@ -273,6 +290,9 @@ void MainWindow::update(float deltaSeconds)
 
 	// Service Lua debugger socket I/O (between Lua script updates)
 	LuaDebugServer::getInstance()->poll();
+
+	// Service automation command socket I/O (dispatches commands inline)
+	m_automationServer->poll();
 
 	// Garbage collect stale baked text
 	m_fontManager->garbageCollect();
@@ -328,6 +348,10 @@ void MainWindow::render()
 
 		// Finalize rendering
 		m_graphicsContext->renderEnd();
+
+		// Capture the finished frame for any pending automation screenshot
+		m_automationServer->servicePendingWindowCapture((int)m_mkWindowContext->getWidth(),
+														(int)m_mkWindowContext->getHeight());
 
 		// Present the rendered frame to the window (may block on vsync or SteamVR overlay DWM handshake)
 		m_mkWindowContext->present();
@@ -421,6 +445,9 @@ void MainWindow::shutdown()
 		popAppState();
 	}
 	processPendingAppStageOps();
+
+	assert(m_automationServer != nullptr);
+	m_automationServer->shutdown();
 
 	assert(m_mikanServer != nullptr);
 	m_mikanServer->shutdown();

@@ -79,6 +79,7 @@ public:
 	}
 
 	MikanObjectSystemPtr getSystemByName(const std::string name) const;
+	const std::vector<MikanObjectSystemPtr>& getSystems() const { return m_systems; }
 
 	bool startup(class MainWindow* mainWindow);
 	void shutdown();

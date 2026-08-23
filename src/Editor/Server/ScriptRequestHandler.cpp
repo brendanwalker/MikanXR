@@ -81,6 +81,18 @@ void ScriptRequestHandler::unbindScriptContect(CommonScriptContextPtr scriptCont
 	}
 }
 
+void ScriptRequestHandler::getBoundScriptContexts(std::vector<CommonScriptContextPtr>& outContexts) const
+{
+	for (const CommonScriptContextWeakPtr& weakContext : m_scriptContexts)
+	{
+		CommonScriptContextPtr context= weakContext.lock();
+		if (context)
+		{
+			outContexts.push_back(context);
+		}
+	}
+}
+
 bool ScriptRequestHandler::registerHttpTriggerRoute(const std::string& routeName, const std::string& ownerSystemName,
 													int componentId, const std::string& triggerName)
 {

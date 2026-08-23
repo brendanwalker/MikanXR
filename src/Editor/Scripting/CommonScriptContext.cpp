@@ -223,6 +223,42 @@ bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName)
 	return false;
 }
 
+bool CommonScriptContext::evalString(const std::string& code, std::string& outResult)
+{
+	outResult.clear();
+
+	if (m_luaState == nullptr)
+	{
+		outResult= "no script loaded";
+		return false;
+	}
+
+	LuaDebugContextGuard debugGuard(this);
+	const int stackTop= lua_gettop(m_luaState);
+
+	if (luaL_dostring(m_luaState, code.c_str()) != LUA_OK)
+	{
+		const char* errorMessage= lua_tostring(m_luaState, -1);
+		outResult= errorMessage != nullptr ? errorMessage : "unknown lua error";
+		lua_settop(m_luaState, stackTop);
+		return false;
+	}
+
+	// Stringify any values the statement returned
+	const int resultCount= lua_gettop(m_luaState) - stackTop;
+	for (int i= 0; i < resultCount; ++i)
+	{
+		const char* valueString= luaL_tolstring(m_luaState, stackTop + 1 + i, nullptr);
+		if (!outResult.empty())
+			outResult+= " ";
+		outResult+= valueString != nullptr ? valueString : "nil";
+		lua_pop(m_luaState, 1); // pop luaL_tolstring's string copy
+	}
+
+	lua_settop(m_luaState, stackTop);
+	return true;
+}
+
 bool CommonScriptContext::invokeScriptMessageHandler(const std::string& message)
 {
 	if (m_luaState != nullptr)

@@ -31,9 +31,14 @@ public:
 	inline int getHttpServerPort() const { return m_httpServerPort; }
 	void setHttpServerPort(int port);
 
+	static const std::string k_automationServerPortPropertyId;
+	inline int getAutomationServerPort() const { return m_automationServerPort; }
+	void setAutomationServerPort(int port);
+
 protected:
 	std::filesystem::path m_lastProjectPath;
 	std::string m_appLanguage;
 	std::string m_scriptEditorCommand= "code --reuse-window";
-	int m_httpServerPort= 8090; // mirrors HTTP_SERVER_PORT in HttpInterprocessMessageServer.h
+	int m_httpServerPort= 8090;        // mirrors HTTP_SERVER_PORT in HttpInterprocessMessageServer.h
+	int m_automationServerPort= 21120; // loopback automation command channel
 };

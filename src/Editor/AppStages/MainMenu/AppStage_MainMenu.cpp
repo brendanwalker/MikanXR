@@ -203,6 +203,7 @@ bool AppStage_MainMenu::handleResumeProjectCommand(std::vector<std::string>& out
 	{
 		m_ownerWindow->pushAppStageOfType<AppStage_Project>();
 		outResults.push_back(IRemoteControllable::k_success);
+		return true;
 	}
 	else if (m_appSettingsConfig->hasLastProjectPath())
 	{
@@ -212,6 +213,7 @@ bool AppStage_MainMenu::handleResumeProjectCommand(std::vector<std::string>& out
 		{
 			m_ownerWindow->pushAppStageOfType<AppStage_Project>();
 			outResults.push_back(IRemoteControllable::k_success);
+			return true;
 		}
 	}
 
@@ -243,8 +245,10 @@ bool AppStage_MainMenu::handleOpenProjectCommand(const std::vector<std::string>&
 		}
 	}
 
+	// Missing path parameter: the command is recognized, so report the failure
+	// through the results rather than an unrecognized-command error
 	outResults.push_back(IRemoteControllable::k_failure);
-	return false;
+	return true;
 }
 
 bool AppStage_MainMenu::handleNewProjectCommand(const std::vector<std::string>& parameters,
@@ -271,7 +275,7 @@ bool AppStage_MainMenu::handleNewProjectCommand(const std::vector<std::string>& 
 	}
 
 	outResults.push_back(IRemoteControllable::k_failure);
-	return false;
+	return true;
 }
 
 bool AppStage_MainMenu::handleExitCommand(std::vector<std::string>& outResults)

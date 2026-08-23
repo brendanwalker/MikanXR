@@ -1,6 +1,7 @@
 //-- includes -----
 #include "App.h"
 #include "AppSettingsConfig.h"
+#include "AutomationLogBuffer.h"
 #include "CommonConfig.h"
 #include "EventBus.h"
 #include "FrameTimer.h"
@@ -125,6 +126,8 @@ bool App::startup(int argc, char** argv)
 	settings.min_log_level= LogSeverityLevel::debug;
 	settings.enable_console= true;
 	settings.log_filename= "MikanXR.log";
+	// Keep recent log lines readable through the automation server
+	settings.log_callback= AutomationLogBuffer::logCallback;
 
 	log_init(settings);
 
