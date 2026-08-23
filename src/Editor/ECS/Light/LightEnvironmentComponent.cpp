@@ -6,8 +6,6 @@
 #include "IMkState.h"
 #include "IMkTriangulatedMesh.h"
 #include "MathTypeConversion.h"
-// Complete type needed: drawTransformedTriangulatedMesh takes IMkCameraConstPtr,
-// and the MikanCameraPtr -> base conversion needs the derivation to be visible.
 #include "MikanCamera.h"
 #include "MikanObject.h"
 #include "MkMaterial.h"
@@ -176,10 +174,7 @@ bool LightEnvironmentDefinition::readFromInitParams(MikanObjectSystem* ownerObje
 
 // -- LightEnvironmentComponent -----
 // Radius of the environment sphere drawn in the editor viewport, in meters.
-// Deliberately probe sized rather than scene enclosing: this is drawn as an
-// ordinary opaque mesh in the scene, so a sky-sized sphere would swallow the
-// viewport. Raise it here if a true enclosing skybox is wanted.
-static constexpr float k_environmentSphereRadius= 0.5f;
+static constexpr float k_environmentSphereRadius= 10.0f;
 
 LightEnvironmentComponent::LightEnvironmentComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
@@ -331,6 +326,21 @@ SHLightingEnvironment LightEnvironmentComponent::getScaledLightingEnvironment() 
 	return environment;
 }
 
+/// Get the camera component that owns this light environment
+CameraComponentConstPtr LightEnvironmentComponent::getOwnerCameraComponent() const
+{
+	MikanTransformID transformId= getLightEnvironmentDefinition()->getParentTransformId();
+
+	return getObjectSystemOfType<CameraObjectSystem>()->getCameraById(transformId);
+}
+
+StageComponentConstPtr LightEnvironmentComponent::getOwnerStageComponent() const
+{
+	CameraComponentConstPtr ownerCamera= getOwnerCameraComponent();
+
+	return (ownerCamera) ? ownerCamera->getOwnerStageComponent() : nullptr;
+}
+
 rfk::Struct const* LightEnvironmentComponent::getClientAPIValuesStructType() const
 {
 	return &MikanLightEnvironmentComponentValues::staticGetArchetype();
@@ -340,14 +350,24 @@ void LightEnvironmentComponent::getPropertyDescriptors(std::vector<PropertyDescr
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
+	// Everything the capture tool recovers is read only: these are solved
+	// outputs, and hand-editing them would silently desync the coefficients
+	// from the directionality and key direction derived off them.
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		LightEnvironmentDefinition::k_shCoefficientsPropertyId, MikanVariantType::FLOAT_ARRAY));
+								 LightEnvironmentDefinition::k_shCoefficientsPropertyId, MikanVariantType::FLOAT_ARRAY)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 LightEnvironmentDefinition::k_directionalityPropertyId, MikanVariantType::FLOAT)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 LightEnvironmentDefinition::k_keyLightDirectionPropertyId, MikanVariantType::VECTOR3F)
+								 ->setReadOnly());
+
+	// The exposure scale is the exception: it is a manual calibration input,
+	// not a solved output - the decomposition recovers shading only up to a
+	// global scale - so it stays writable. See docs/reference/scene-lighting.md.
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(LightEnvironmentDefinition::k_exposureScalePropertyId,
 																  MikanVariantType::FLOAT));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		LightEnvironmentDefinition::k_directionalityPropertyId, MikanVariantType::FLOAT));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		LightEnvironmentDefinition::k_keyLightDirectionPropertyId, MikanVariantType::VECTOR3F));
 }
 
 bool LightEnvironmentComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const

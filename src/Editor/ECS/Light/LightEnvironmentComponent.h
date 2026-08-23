@@ -91,6 +91,12 @@ public:
 	/// what a renderer should consume.
 	SHLightingEnvironment getScaledLightingEnvironment() const;
 
+	/// Get the camera component that owns this light environment
+	CameraComponentConstPtr getOwnerCameraComponent() const;
+
+	// Get the stage component that owns this light environment
+	StageComponentConstPtr getOwnerStageComponent() const;
+
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
