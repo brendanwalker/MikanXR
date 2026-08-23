@@ -24,6 +24,22 @@ enum class eDepthMeshCaptureMenuState : int
 };
 extern const std::string* k_DepthMeshCaptureMenuStateStrings;
 
+/// Stage of an in-flight capture, reported by the capture worker so the panel
+/// can show which step is running. Ordered by execution order; the values feed
+/// a progress fraction, so keep them in that order.
+enum class eDepthMeshCapturePhase : int
+{
+	idle,
+	loadingModel,     ///< first capture only - over a gigabyte of ONNX model
+	runningInference, ///< the single forward pass, and usually the longest step
+	calibratingScale, ///< marker ratio + applying the correction
+	generatingMesh,   ///< grid walk and discontinuity culling
+	complete,
+};
+
+/// Number of steps shown in the capture progress readout.
+static constexpr int k_depthMeshCaptureStepCount= 4;
+
 /// Where the metric scale correction applied to a capture came from.
 /// MoGe-2's scale head guesses scale from image appearance, so an unusual lens
 /// can be off by an integer factor; an ArUco marker of known size in the

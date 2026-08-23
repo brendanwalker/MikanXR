@@ -107,12 +107,15 @@ void AppStage_DepthMeshCapture::enter()
 
 	m_capturePanel= addGuiPanel<GuiPanel_DepthMeshCapture>();
 	m_capturePanel->OnCaptureEvent= [this]() { onCaptureEvent(); };
+	m_capturePanel->OnCancelCaptureEvent= [this]() { onCancelCaptureEvent(); };
 	m_capturePanel->OnApplyEvent= [this]() { onApplyEvent(); };
 	m_capturePanel->OnRedoEvent= [this]() { onRedoEvent(); };
 	m_capturePanel->OnCancelEvent= [this]() { onCancelEvent(); };
 	m_capturePanel->OnOkEvent= [this]() { onCancelEvent(); };
 
 	m_bHasResult= false;
+
+	startCaptureWorker();
 
 	setMenuState(eDepthMeshCaptureMenuState::pendingVideoStartStreamRequest);
 }
@@ -121,8 +124,10 @@ void AppStage_DepthMeshCapture::exit()
 {
 	setMenuState(eDepthMeshCaptureMenuState::inactive);
 
-	// Free the ONNX session before anything else; it holds over a gigabyte.
-	m_inference= nullptr;
+	// Stop the worker before anything else: it cancels any capture in flight,
+	// joins, and frees the ONNX session (over a gigabyte) on the thread that
+	// created it.
+	stopCaptureWorker();
 
 	m_currentSceneCameraComponent= nullptr;
 	m_mkCamera= nullptr;
@@ -166,10 +171,30 @@ void AppStage_DepthMeshCapture::update(float deltaSeconds)
 	}
 
 	// Keep the undistorted color buffer current while the operator is framing
-	// the shot; runCapture() reads whatever the last processed frame produced.
+	// the shot; the capture reads whatever the last processed frame produced.
 	if (menuState == eDepthMeshCaptureMenuState::verifyCameraSetup)
 	{
 		m_monoDistortionView->readAndProcessVideoFrame();
+		return;
+	}
+
+	if (menuState == eDepthMeshCaptureMenuState::runningInference)
+	{
+		// Push the worker's progress every frame, then pick the result up once
+		// it lands. The elapsed clock is what makes the readout visibly live
+		// during the two long, opaque steps.
+		m_captureElapsedSeconds+= deltaSeconds;
+		m_capturePanel->setCaptureProgress((eDepthMeshCapturePhase)m_capturePhase.load(), m_captureElapsedSeconds,
+										   m_bCancelRequested.load());
+
+		bool bCaptureFinished= false;
+		{
+			std::lock_guard<std::mutex> lock(m_workerMutex);
+			bCaptureFinished= m_bCaptureFinished;
+		}
+
+		if (bCaptureFinished)
+			consumeCaptureOutput();
 	}
 }
 
@@ -195,38 +220,8 @@ void AppStage_DepthMeshCapture::onGui()
 
 void AppStage_DepthMeshCapture::onCaptureEvent()
 {
-	// Show the "running" state before the blocking inference call so the panel
-	// does not sit on "Capture" while the model runs.
-	setMenuState(eDepthMeshCaptureMenuState::runningInference);
-
-	runCapture();
-}
-
-void AppStage_DepthMeshCapture::runCapture()
-{
-	if (m_inference == nullptr)
-	{
-		const std::filesystem::path modelDirectory= std::filesystem::current_path() / k_depthMeshMoGeModelSubdirectory;
-
-		MoGeInference::Config config;
-		config.modelDirectory= modelDirectory.string();
-
-		auto inference= std::make_unique<MoGeInference>();
-		if (!inference->startup(config))
-		{
-			m_capturePanel->setFailureReason(StringUtils::stringify(
-				"Could not load the MoGe-2 model from '", modelDirectory.string(),
-				"'. Run tools/fetch_moge2_onnx.py to download it. See MikanCmd.log for details."));
-			setMenuState(eDepthMeshCaptureMenuState::failedInference);
-			return;
-		}
-
-		m_inference= std::move(inference);
-		m_capturePanel->setExecutionProvider(m_inference->getActiveExecutionProvider());
-	}
-
-	// Make sure the buffer reflects the newest frame rather than whatever was
-	// last processed.
+	// Gather everything the worker needs here: the video buffers and the
+	// distortion view the marker detector reads belong to the UI thread.
 	m_monoDistortionView->readAndProcessVideoFrame();
 
 	cv::Mat* bgrBuffer= m_monoDistortionView->getBGRUndistortBuffer();
@@ -247,66 +242,278 @@ void AppStage_DepthMeshCapture::runCapture()
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);
 		return;
 	}
-	const float fovXDegrees= (float)cameraIntrinsics.getMonoIntrinsics().hfov;
 
-	if (!m_inference->run(*bgrBuffer, fovXDegrees, m_geometry))
+	CaptureRequest request;
+	// Cloned because the video pipeline reuses the buffer as soon as the next
+	// frame arrives, and the worker reads it for seconds afterwards.
+	request.bgrFrame= bgrBuffer->clone();
+	request.fovXDegrees= (float)cameraIntrinsics.getMonoIntrinsics().hfov;
+	request.bHasMarker= tryDetectMarkerCorners(request.markerCornerPixels, request.markerCornerDepths);
+	request.storedScaleCorrection= m_currentSceneCameraComponent->getCameraDefinition()->getDepthMeshScaleCorrection();
+
+	// Keep the frame the geometry came from; Create Stencil saves it as the
+	// proxy's projected texture. Shares the clone's buffer - both are read-only
+	// from here on.
+	m_capturedFrame= request.bgrFrame;
+
+	m_bCancelRequested= false;
+	m_capturePhase= (int)eDepthMeshCapturePhase::loadingModel;
+	m_captureElapsedSeconds= 0.f;
+
 	{
-		m_capturePanel->setFailureReason("Depth inference failed. See MikanCmd.log for details.");
-		setMenuState(eDepthMeshCaptureMenuState::failedInference);
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		m_pendingRequest= std::move(request);
+		m_bCaptureRequested= true;
+		m_bCaptureFinished= false;
+	}
+	m_workerSignal.notify_one();
+
+	setMenuState(eDepthMeshCaptureMenuState::runningInference);
+}
+
+void AppStage_DepthMeshCapture::onCancelCaptureEvent()
+{
+	m_bCancelRequested= true;
+
+	// Also tell ONNX Runtime to abandon the run in flight. Without this the
+	// cancel would not take effect until the inference finished on its own,
+	// which is the step the operator is most likely waiting out.
+	std::lock_guard<std::mutex> lock(m_workerMutex);
+	if (m_inference)
+		m_inference->requestCancel();
+}
+
+void AppStage_DepthMeshCapture::startCaptureWorker()
+{
+	if (m_workerThread.joinable())
+		return;
+
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		m_bWorkerShutdownRequested= false;
+		m_bCaptureRequested= false;
+		m_bCaptureFinished= false;
+	}
+
+	m_workerThread= std::thread([this]() { captureWorkerMain(); });
+}
+
+void AppStage_DepthMeshCapture::stopCaptureWorker()
+{
+	if (!m_workerThread.joinable())
+		return;
+
+	// Cancel anything in flight first, otherwise the join waits out a full
+	// inference (up to ~10s on the CPU fallback) while the window is closing.
+	m_bCancelRequested= true;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		if (m_inference)
+			m_inference->requestCancel();
+		m_bWorkerShutdownRequested= true;
+	}
+	m_workerSignal.notify_one();
+
+	m_workerThread.join();
+}
+
+void AppStage_DepthMeshCapture::captureWorkerMain()
+{
+	for (;;)
+	{
+		CaptureRequest request;
+		{
+			std::unique_lock<std::mutex> lock(m_workerMutex);
+			m_workerSignal.wait(lock, [this]() { return m_bWorkerShutdownRequested || m_bCaptureRequested; });
+
+			if (m_bWorkerShutdownRequested)
+			{
+				// The ONNX session has to be destroyed on the thread that
+				// created and ran it.
+				m_inference= nullptr;
+				return;
+			}
+
+			request= std::move(m_pendingRequest);
+			m_bCaptureRequested= false;
+		}
+
+		CaptureOutput output;
+		runCaptureRequest(request, output);
+
+		{
+			std::lock_guard<std::mutex> lock(m_workerMutex);
+			m_captureOutput= std::move(output);
+			m_bCaptureFinished= true;
+		}
+
+		m_capturePhase= (int)eDepthMeshCapturePhase::complete;
+	}
+}
+
+void AppStage_DepthMeshCapture::runCaptureRequest(const CaptureRequest& request, CaptureOutput& outOutput)
+{
+	const auto bIsCancelled= [this]() { return m_bCancelRequested.load(); };
+
+	// -- step 1: model load (first capture only) --
+	m_capturePhase= (int)eDepthMeshCapturePhase::loadingModel;
+
+	MoGeInference* inference= nullptr;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		inference= m_inference.get();
+	}
+
+	if (inference == nullptr)
+	{
+		const std::filesystem::path modelDirectory= std::filesystem::current_path() / k_depthMeshMoGeModelSubdirectory;
+
+		MoGeInference::Config config;
+		config.modelDirectory= modelDirectory.string();
+
+		// startup() pulls in over a gigabyte, so it runs outside the lock.
+		auto newInference= std::make_unique<MoGeInference>();
+		if (!newInference->startup(config))
+		{
+			outOutput.failureReason= StringUtils::stringify(
+				"Could not load the MoGe-2 model from '", modelDirectory.string(),
+				"'. Run tools/fetch_moge2_onnx.py to download it. See MikanCmd.log for details.");
+			return;
+		}
+
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		inference= newInference.get();
+		m_inference= std::move(newInference);
+	}
+	outOutput.executionProvider= inference->getActiveExecutionProvider();
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
 		return;
 	}
 
-	// Keep the frame the geometry came from; Create Stencil saves it as the
-	// proxy's projected texture. Cloned because the buffer is reused by the
-	// video pipeline.
-	m_capturedFrame= bgrBuffer->clone();
-
-	// -- metric scale correction. A marker visible in this capture gives ground
-	// truth and wins; otherwise fall back to the factor persisted from a
-	// previous marker calibration on this camera.
-	float markerFactor= 1.f, cornerSpread= 0.f;
-	if (tryComputeMarkerScaleCorrection(markerFactor, cornerSpread))
+	// -- step 2: inference --
+	m_capturePhase= (int)eDepthMeshCapturePhase::runningInference;
+	if (!inference->run(request.bgrFrame, request.fovXDegrees, outOutput.geometry))
 	{
-		m_scaleCorrectionSource= eDepthScaleCorrectionSource::arucoMarker;
-		m_appliedScaleCorrection= markerFactor;
-		m_markerCornerSpread= cornerSpread;
+		// A cancelled run fails the same way a broken one does, so the cancel
+		// flag is what tells the two apart.
+		if (bIsCancelled())
+			outOutput.bCancelled= true;
+		else
+			outOutput.failureReason= "Depth inference failed. See MikanCmd.log for details.";
+		return;
+	}
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
+		return;
+	}
+
+	// -- step 3: metric scale correction. A marker detected in this capture
+	// gives ground truth and wins; otherwise fall back to the factor persisted
+	// from a previous marker calibration on this camera.
+	m_capturePhase= (int)eDepthMeshCapturePhase::calibratingScale;
+
+	float markerFactor= 1.f, cornerSpread= 0.f;
+	if (request.bHasMarker
+		&& computeScaleFromMarkerCorners(outOutput.geometry, request.markerCornerPixels, request.markerCornerDepths,
+										 markerFactor, cornerSpread))
+	{
+		outOutput.scaleSource= eDepthScaleCorrectionSource::arucoMarker;
+		outOutput.appliedScaleCorrection= markerFactor;
+		outOutput.markerCornerSpread= cornerSpread;
 	}
 	else
 	{
-		const float storedCorrection=
-			m_currentSceneCameraComponent->getCameraDefinition()->getDepthMeshScaleCorrection();
-		m_scaleCorrectionSource=
-			(storedCorrection != 1.f) ? eDepthScaleCorrectionSource::storedOnCamera : eDepthScaleCorrectionSource::none;
-		m_appliedScaleCorrection= storedCorrection;
-		m_markerCornerSpread= 0.f;
+		outOutput.scaleSource= (request.storedScaleCorrection != 1.f) ? eDepthScaleCorrectionSource::storedOnCamera
+																	  : eDepthScaleCorrectionSource::none;
+		outOutput.appliedScaleCorrection= request.storedScaleCorrection;
+		outOutput.markerCornerSpread= 0.f;
 	}
 
-	if (m_appliedScaleCorrection != 1.f)
+	if (outOutput.appliedScaleCorrection != 1.f)
 	{
 		// A uniform scale on camera-space geometry: depth and all three point
 		// components. Infinities (invalid pixels) stay infinite; normals are
 		// scale-free and untouched.
-		m_geometry.depth*= m_appliedScaleCorrection;
-		m_geometry.points*= m_appliedScaleCorrection;
+		outOutput.geometry.depth*= outOutput.appliedScaleCorrection;
+		outOutput.geometry.points*= outOutput.appliedScaleCorrection;
 	}
 
 	MIKAN_LOG_INFO("AppStage_DepthMeshCapture")
-		<< "Scale correction " << m_appliedScaleCorrection << " ("
-		<< (m_scaleCorrectionSource == eDepthScaleCorrectionSource::arucoMarker
+		<< "Scale correction " << outOutput.appliedScaleCorrection << " ("
+		<< (outOutput.scaleSource == eDepthScaleCorrectionSource::arucoMarker
 				? "aruco marker"
-				: (m_scaleCorrectionSource == eDepthScaleCorrectionSource::storedOnCamera ? "stored on camera"
-																						  : "none"))
-		<< ", corner spread " << m_markerCornerSpread * 100.f << "%)";
+				: (outOutput.scaleSource == eDepthScaleCorrectionSource::storedOnCamera ? "stored on camera" : "none"))
+		<< ", corner spread " << outOutput.markerCornerSpread * 100.f << "%)";
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
+		return;
+	}
+
+	// -- step 4: mesh generation --
+	m_capturePhase= (int)eDepthMeshCapturePhase::generatingMesh;
 
 	DepthMeshGenerator::Config meshConfig;
-	if (!DepthMeshGenerator::generateMesh(m_geometry, meshConfig, m_mesh, m_meshStats))
+	if (!DepthMeshGenerator::generateMesh(outOutput.geometry, meshConfig, outOutput.mesh, outOutput.meshStats))
 	{
-		m_capturePanel->setFailureReason("Mesh generation produced no usable geometry.");
+		outOutput.failureReason= "Mesh generation produced no usable geometry.";
+		return;
+	}
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
+		return;
+	}
+
+	outOutput.bSucceeded= true;
+}
+
+void AppStage_DepthMeshCapture::consumeCaptureOutput()
+{
+	CaptureOutput output;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		output= std::move(m_captureOutput);
+		m_captureOutput= CaptureOutput();
+		m_bCaptureFinished= false;
+	}
+
+	if (!output.executionProvider.empty())
+		m_capturePanel->setExecutionProvider(output.executionProvider);
+
+	m_capturePhase= (int)eDepthMeshCapturePhase::idle;
+
+	if (output.bCancelled)
+	{
+		// Back to framing rather than out of the tool: cancelling a capture
+		// should not throw away the framing or the loaded model.
+		MIKAN_LOG_INFO("AppStage_DepthMeshCapture") << "Capture cancelled";
+		setMenuState(eDepthMeshCaptureMenuState::verifyCameraSetup);
+		return;
+	}
+
+	if (!output.bSucceeded)
+	{
+		m_capturePanel->setFailureReason(output.failureReason);
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);
 		return;
 	}
 
+	m_geometry= std::move(output.geometry);
+	m_mesh= std::move(output.mesh);
+	m_meshStats= output.meshStats;
+	m_scaleCorrectionSource= output.scaleSource;
+	m_appliedScaleCorrection= output.appliedScaleCorrection;
+	m_markerCornerSpread= output.markerCornerSpread;
 	m_bHasResult= true;
+
 	m_capturePanel->setMeshSummary((int)m_mesh.vertices.size(), (int)m_mesh.getTriangleCount(),
 								   m_meshStats.culledDiscontinuityEdges, m_meshStats.nearDepth, m_meshStats.farDepth);
 	m_capturePanel->setScaleCorrection(m_scaleCorrectionSource, m_appliedScaleCorrection, m_markerCornerSpread);
@@ -314,7 +521,8 @@ void AppStage_DepthMeshCapture::runCapture()
 	setMenuState(eDepthMeshCaptureMenuState::verifyMesh);
 }
 
-bool AppStage_DepthMeshCapture::tryComputeMarkerScaleCorrection(float& outFactor, float& outCornerSpread)
+bool AppStage_DepthMeshCapture::tryDetectMarkerCorners(std::vector<cv::Point2f>& outCornerPixels,
+													   std::vector<float>& outCornerDepths)
 {
 	auto markerSystem= getSystemOfType<MarkerObjectSystem>();
 	if (!markerSystem)
@@ -354,7 +562,8 @@ bool AppStage_DepthMeshCapture::tryComputeMarkerScaleCorrection(float& outFactor
 		if (imagePoints.size() != markerLocalGeometry.points.size())
 			continue;
 
-		std::vector<float> ratios;
+		outCornerPixels.clear();
+		outCornerDepths.clear();
 		for (size_t cornerIndex= 0; cornerIndex < imagePoints.size(); ++cornerIndex)
 		{
 			const glm::vec3& localPoint= markerLocalGeometry.points[cornerIndex];
@@ -364,36 +573,58 @@ bool AppStage_DepthMeshCapture::tryComputeMarkerScaleCorrection(float& outFactor
 			if (trueDepth <= 0.f)
 				continue;
 
-			const float sampledDepth=
-				sampleMedianDepth(m_geometry, imagePoints[cornerIndex].x, imagePoints[cornerIndex].y);
-			if (sampledDepth <= 0.f)
-				continue;
-
-			ratios.push_back(trueDepth / sampledDepth);
+			outCornerPixels.push_back(imagePoints[cornerIndex]);
+			outCornerDepths.push_back(trueDepth);
 		}
 
-		// Require at least 3 of the 4 corners: one bad corner (grazing angle,
-		// depth-edge contamination) should not silently define the factor.
-		if (ratios.size() < 3)
+		if (outCornerPixels.empty())
 			continue;
 
-		std::sort(ratios.begin(), ratios.end());
-		const float factor= ratios[ratios.size() / 2];
+		MIKAN_LOG_INFO("AppStage_DepthMeshCapture") << "Detected marker " << markerId << " for scale calibration ("
+													<< outCornerPixels.size() << " usable corners)";
 
-		float spread= 0.f;
-		for (float ratio : ratios)
-			spread= std::max(spread, std::fabs(ratio / factor - 1.f));
-
-		MIKAN_LOG_INFO("AppStage_DepthMeshCapture")
-			<< "Marker " << markerId << " scale calibration: factor " << factor << " from " << ratios.size()
-			<< " corners, spread " << spread * 100.f << "%";
-
-		outFactor= factor;
-		outCornerSpread= spread;
 		return true;
 	}
 
 	return false;
+}
+
+bool AppStage_DepthMeshCapture::computeScaleFromMarkerCorners(const MoGeInference::Result& geometry,
+															  const std::vector<cv::Point2f>& cornerPixels,
+															  const std::vector<float>& cornerDepths, float& outFactor,
+															  float& outCornerSpread)
+{
+	if (cornerPixels.size() != cornerDepths.size())
+		return false;
+
+	std::vector<float> ratios;
+	for (size_t cornerIndex= 0; cornerIndex < cornerPixels.size(); ++cornerIndex)
+	{
+		const float sampledDepth= sampleMedianDepth(geometry, cornerPixels[cornerIndex].x, cornerPixels[cornerIndex].y);
+		if (sampledDepth <= 0.f)
+			continue;
+
+		ratios.push_back(cornerDepths[cornerIndex] / sampledDepth);
+	}
+
+	// Require at least 3 of the 4 corners: one bad corner (grazing angle,
+	// depth-edge contamination) should not silently define the factor.
+	if (ratios.size() < 3)
+		return false;
+
+	std::sort(ratios.begin(), ratios.end());
+	const float factor= ratios[ratios.size() / 2];
+
+	float spread= 0.f;
+	for (float ratio : ratios)
+		spread= std::max(spread, std::fabs(ratio / factor - 1.f));
+
+	MIKAN_LOG_INFO("AppStage_DepthMeshCapture") << "Marker scale calibration: factor " << factor << " from "
+												<< ratios.size() << " corners, spread " << spread * 100.f << "%";
+
+	outFactor= factor;
+	outCornerSpread= spread;
+	return true;
 }
 
 bool AppStage_DepthMeshCapture::createStencilFromMesh()

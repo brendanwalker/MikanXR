@@ -102,6 +102,34 @@ pick camera -> live video while framing -> **Capture** runs the model -> the pan
 statistics and a depth overlay (red = near, blue = far) drawn over the frame so silhouette
 alignment can be judged -> **Create Stencil** writes the mesh and registers it.
 
+### Capture runs on a worker thread
+
+The capture is not run on the UI thread, because a progress readout and a cancel button both
+require the window to keep painting while the model works. The stage owns one worker thread for its
+whole lifetime, and that thread owns the `MoGeInference`: `OnnxSession` requires a session to be
+created, run, and destroyed on a single thread, so a thread-per-capture would mean reloading 1.3GB
+every time.
+
+Everything the worker needs is gathered on the UI thread before dispatch - the frame (cloned, since
+the video pipeline reuses its buffer), the calibrated FOV, and the ArUco corner detection, which
+reads the distortion view and so cannot move off the UI thread. The worker then does model load,
+inference, scale correction, and meshing over plain data, and `update()` polls for the result.
+
+**Progress is per-step, not smooth, and deliberately so.** ONNX Runtime reports nothing from inside
+a `Run`, and the two long steps - model load and inference - are exactly the opaque ones. Faking a
+sliding bar would be inventing information, so the bar advances at step boundaries (weighted toward
+those two steps) and an elapsed-seconds readout ticks every frame to show the work is alive. The
+vendored ImGui clamps negative fractions, so its indeterminate-bar trick is not available either.
+
+**Cancel is immediate rather than between steps.** `OnnxSession::requestTerminate()` sets ONNX
+Runtime's terminate flag, which aborts a `Run` already in flight; that is the one method on
+`OnnxSession` safe to call from another thread, and it is why cancel works during the step the
+operator is most likely waiting out (~10s on the CPU fallback). A terminated run throws, so
+`run()`/`runOutputs()` catch and return empty - callers already treat empty as failure - and the
+cancel flag is what distinguishes a cancelled run from a broken one. The flag is sticky, so `run()`
+clears it on entry. Cancelling returns to framing rather than closing the tool, keeping the loaded
+model and the framing.
+
 Failure modes are loud and specific, in the order they are checked: model missing from
 `models/moge2` (fetch tool named in the message), no video frame, no calibrated intrinsics, and -
 only at Create Stencil time - no tracked camera pose and no loaded project.

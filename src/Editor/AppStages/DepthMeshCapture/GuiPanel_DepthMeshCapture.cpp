@@ -2,6 +2,14 @@
 
 #include "imgui.h"
 
+#include <cfloat>
+#include <cstdio>
+
+// Fraction shown at the start of each capture step. Weighted toward the model
+// load and inference steps because they dominate the wall clock; the last two
+// are near-instant.
+static const float k_stepStartFraction[k_depthMeshCaptureStepCount]= {0.05f, 0.25f, 0.85f, 0.92f};
+
 void GuiPanel_DepthMeshCapture::onGui()
 {
 	switch (m_menuState)
@@ -58,10 +66,52 @@ void GuiPanel_DepthMeshCapture::onGui()
 
 	case eDepthMeshCaptureMenuState::runningInference:
 	{
-		ImGui::TextWrapped("Estimating scene depth...");
+		const char* phaseLabel= "Working...";
+		int stepIndex= 1;
+		switch (m_capturePhase)
+		{
+		case eDepthMeshCapturePhase::loadingModel:
+			phaseLabel= "Loading the depth model...";
+			stepIndex= 1;
+			break;
+		case eDepthMeshCapturePhase::runningInference:
+			phaseLabel= "Estimating scene depth...";
+			stepIndex= 2;
+			break;
+		case eDepthMeshCapturePhase::calibratingScale:
+			phaseLabel= "Calibrating metric scale...";
+			stepIndex= 3;
+			break;
+		case eDepthMeshCapturePhase::generatingMesh:
+			phaseLabel= "Generating the proxy mesh...";
+			stepIndex= 4;
+			break;
+		default:
+			break;
+		}
+
+		if (m_bCancellingCapture)
+			ImGui::TextWrapped("Cancelling...");
+		else
+			ImGui::TextWrapped("%s", phaseLabel);
+
+		// The bar advances per step rather than smoothly: ONNX Runtime reports
+		// nothing from inside a Run, and the two long steps (model load and
+		// inference) are exactly the opaque ones. The elapsed time ticks every
+		// frame, which is what actually shows the work is still alive.
+		char overlay[32];
+		snprintf(overlay, sizeof(overlay), "Step %d of %d", stepIndex, k_depthMeshCaptureStepCount);
+		ImGui::ProgressBar(k_stepStartFraction[stepIndex - 1], ImVec2(-FLT_MIN, 0.f), overlay);
+		ImGui::TextWrapped("%.1f s elapsed", m_captureElapsedSeconds);
+
 		ImGui::Spacing();
-		ImGui::TextWrapped("Running the geometry model over the captured frame. The window will not "
-						   "update until it finishes.");
+		ImGui::BeginDisabled(m_bCancellingCapture);
+		if (ImGui::Button("Cancel Capture"))
+		{
+			if (OnCancelCaptureEvent)
+				OnCancelCaptureEvent();
+		}
+		ImGui::EndDisabled();
 	}
 	break;
 

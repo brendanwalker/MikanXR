@@ -177,10 +177,29 @@ int OnnxSession::findOutputByLastDim(int64_t lastDim) const
 	return -1;
 }
 
+void OnnxSession::requestTerminate() { m_runOptions.SetTerminate(); }
+
+void OnnxSession::clearTerminate() { m_runOptions.UnsetTerminate(); }
+
 std::vector<Ort::Value> OnnxSession::run(const Ort::Value* inputs, size_t inputCount)
 {
-	return m_session->Run(Ort::RunOptions{nullptr}, m_inputNamePtrs.data(), inputs, inputCount, m_outputNamePtrs.data(),
-						  m_outputNamePtrs.size());
+	// Clear any terminate left over from a cancelled run; the flag is sticky and
+	// would otherwise abort this run before it starts.
+	clearTerminate();
+
+	try
+	{
+		return m_session->Run(m_runOptions, m_inputNamePtrs.data(), inputs, inputCount, m_outputNamePtrs.data(),
+							  m_outputNamePtrs.size());
+	}
+	catch (const Ort::Exception& e)
+	{
+		// A terminated run throws rather than returning, and so does a genuine
+		// failure. Callers already treat an empty result as failure, so this
+		// keeps the exception from crossing a thread boundary.
+		MIKAN_LOG_WARNING("OnnxSession::run") << "Run did not complete: " << e.what();
+		return {};
+	}
 }
 
 std::vector<Ort::Value> OnnxSession::runOutputs(const Ort::Value* inputs, size_t inputCount, const int* outputIndices,
@@ -196,6 +215,16 @@ std::vector<Ort::Value> OnnxSession::runOutputs(const Ort::Value* inputs, size_t
 		requestedNames.push_back(m_outputNamePtrs[outputIndex]);
 	}
 
-	return m_session->Run(Ort::RunOptions{nullptr}, m_inputNamePtrs.data(), inputs, inputCount, requestedNames.data(),
-						  requestedNames.size());
+	clearTerminate();
+
+	try
+	{
+		return m_session->Run(m_runOptions, m_inputNamePtrs.data(), inputs, inputCount, requestedNames.data(),
+							  requestedNames.size());
+	}
+	catch (const Ort::Exception& e)
+	{
+		MIKAN_LOG_WARNING("OnnxSession::runOutputs") << "Run did not complete: " << e.what();
+		return {};
+	}
 }

@@ -230,6 +230,12 @@ bool MoGeInference::startup(const Config& config)
 
 void MoGeInference::shutdown() { m_bIsInitialized= false; }
 
+void MoGeInference::requestCancel()
+{
+	if (m_impl)
+		m_impl->session.requestTerminate();
+}
+
 bool MoGeInference::run(const cv::Mat& bgrImage, float fovXDegrees, Result& outResult)
 {
 	if (!m_bIsInitialized)

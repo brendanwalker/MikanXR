@@ -51,7 +51,19 @@ public:
 	int findOutputByLastDim(int64_t lastDim) const;
 
 	// Runs the session over all outputs. Inputs are in model input order.
+	// Returns an empty vector if the run fails or was terminated.
 	std::vector<Ort::Value> run(const Ort::Value* inputs, size_t inputCount);
+
+	// Asks ONNX Runtime to abandon an in-flight run()/runOutputs() as soon as it
+	// notices. The aborted call returns empty rather than throwing.
+	//
+	// THREAD SAFETY: this is the ONE method on this class that is safe to call
+	// from a thread other than the session's owning thread - cancelling a
+	// blocking Run from another thread is exactly what ORT's terminate flag is
+	// for. The flag is sticky, so clearTerminate() must be called before the
+	// session is usable again; run() does that itself at entry.
+	void requestTerminate();
+	void clearTerminate();
 
 	// Runs the session over a SUBSET of outputs, returned in the order the
 	// indices were given. ONNX Runtime prunes the graph to what was asked for,
@@ -77,6 +89,9 @@ private:
 	void logModelInfo(const std::string& modelPath) const;
 
 	std::unique_ptr<Ort::Session> m_session;
+	// Held rather than constructed per call so requestTerminate() has something
+	// durable to set while a run is in flight.
+	Ort::RunOptions m_runOptions;
 	std::string m_activeEp= "none";
 
 	std::vector<std::string> m_inputNames;

@@ -73,6 +73,12 @@ public:
 	/// FOV of that (undistorted) frame - metric scale rides directly on it.
 	bool run(const cv::Mat& bgrImage, float fovXDegrees, Result& outResult);
 
+	/// Asks an in-flight run() to give up; it then returns false. Safe to call
+	/// from another thread - unlike everything else here - because it only sets
+	/// ONNX Runtime's terminate flag. The next run() clears the flag, so a
+	/// cancelled session stays usable.
+	void requestCancel();
+
 	/// The 1-D least squares that recovers the Z shift making the affine point
 	/// map reproject through a known focal:  min |focal * xy/(z+shift) - uv|.
 	/// pointsCam is CV_32FC3 in the RAW OpenCV model convention, validMask is

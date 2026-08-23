@@ -40,7 +40,17 @@ public:
 		m_scaleCornerSpread= cornerSpread;
 	}
 
+	/// Pushed every frame while a capture runs so the progress readout tracks
+	/// the worker.
+	void setCaptureProgress(eDepthMeshCapturePhase phase, float elapsedSeconds, bool bCancelling)
+	{
+		m_capturePhase= phase;
+		m_captureElapsedSeconds= elapsedSeconds;
+		m_bCancellingCapture= bCancelling;
+	}
+
 	std::function<void()> OnCaptureEvent;
+	std::function<void()> OnCancelCaptureEvent;
 	std::function<void()> OnApplyEvent;
 	std::function<void()> OnRedoEvent;
 	std::function<void()> OnCancelEvent;
@@ -61,4 +71,8 @@ private:
 	eDepthScaleCorrectionSource m_scaleCorrectionSource= eDepthScaleCorrectionSource::none;
 	float m_scaleCorrectionFactor= 1.f;
 	float m_scaleCornerSpread= 0.f;
+
+	eDepthMeshCapturePhase m_capturePhase= eDepthMeshCapturePhase::idle;
+	float m_captureElapsedSeconds= 0.f;
+	bool m_bCancellingCapture= false;
 };
