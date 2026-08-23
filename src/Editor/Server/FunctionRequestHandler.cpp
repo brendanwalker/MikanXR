@@ -39,7 +39,7 @@ bool FunctionRequestHandler::startup(MainWindow* mainWindow)
 // Function Request Handlers
 void FunctionRequestHandler::invokeSystemFunctionRequestHandler(const ClientRequest& request, ClientResponse& response)
 {
-	InvokeComponentFunctionRequest invokeFunctionRequest;
+	InvokeSystemFunctionRequest invokeFunctionRequest;
 	if (!readTypedRequest(request.utf8RequestString, invokeFunctionRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
