@@ -15,7 +15,7 @@
 /// latent grid must be divisible by 8 and therefore the padded image must be
 /// divisible by 64. Marigold's own preprocessing only aligns to 8, which is a
 /// live trap: a latent of 60 fails inside the graph at up_blocks.1/Concat with
-/// "mismatched dimensions of 15 and 16". See docs/reference/scene-lighting.md.
+/// "mismatched dimensions of 15 and 16".
 static constexpr int k_marigoldImageAlignment= 64;
 
 /// SD2 latent scaling factor.
@@ -52,9 +52,9 @@ public:
 		/// When false, unet_normals.onnx is neither loaded (3.4GB) nor run and
 		/// Result::normals is left empty. The lighting estimator disables it:
 		/// normals now come from MoGe-2, whose directly-predicted normal head
-		/// matched Marigold's within the seed spread on the reference plates
-		/// (see docs/reference/scene-lighting.md). Marigold remains the source
-		/// of the IID decomposition, which has no feed-forward replacement.
+		/// matched Marigold's within the seed spread on the reference plates.
+		/// Marigold remains the source of the IID decomposition, which has no
+		/// feed-forward replacement.
 		bool bEnableNormals= true;
 	};
 

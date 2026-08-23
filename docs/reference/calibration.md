@@ -2,13 +2,18 @@
 
 The calibration subsystem in `src/Editor/Calibration`, built on OpenCV, plus the `src/Editor/AppStages` UI flows that drive it. Covers lens intrinsics, camera-to-tracker alignment, marker-based camera and stage alignment, and the triangulation/alignment tools for anchors, stencils, and light fixtures. See [videosources.md](./videosources.md) for the video frame pipeline these flows consume, [conventions.md](./conventions.md) for coordinate conventions, and [objects.md](./objects.md) for the components that store the results.
 
+Two further consumers of a calibrated frame share this directory but not this doc, because their math is inference rather than geometry: `SceneLightingEstimator` with `MarigoldInference` ([scene-lighting.md](./scene-lighting.md)) and `DepthMeshGenerator` with `MoGeInference` ([depth-proxy-mesh.md](./depth-proxy-mesh.md)). They live here because both start from an undistorted frame plus its calibrated intrinsics, and one of them reuses the ArUco detection below.
+
 ---
 
 ## Shared infrastructure
 
 - `VideoFrameDistortionView` (`src/Editor/Calibration/VideoFrameDistortionView.h`) supplies frames. Calibration flows create it in `eVideoFrameProcessorMode::CALIBRATION`, which runs `CVVideoFrameProcessor` (CPU `cv::remap` undistortion plus grayscale buffers for pattern detection); the compositor uses `COMPOSITOR` mode with `GLVideoFrameProcessor` (GPU shader undistortion). `applyMonoCameraIntrinsics()` rebuilds the distortion maps via `cv::initUndistortRectifyMap`.
+
 - `CalibrationPatternFinder` is the pattern-detection base class with three subclasses: `CalibrationPatternFinder_Chessboard` (`cv::findChessboardCorners` + `cv::cornerSubPix`), `CalibrationPatternFinder_Charuco` (`cv::aruco::CharucoDetector` with `CORNER_REFINE_SUBPIX`), and `CalibrationPatternFinder_Aruco` (`cv::aruco::ArucoDetector` against a predefined dictionary). Pattern parameters (charuco rows/cols, square and marker lengths in mm, dictionary) come from `MarkerObjectSystemDefinition` (`src/Editor/ECS/Marker/MarkerObjectSystem.cpp`) and persist in the project file. The chessboard finder exists but no current flow instantiates it; the intrinsics and alignment calibrators hardcode the ChArUco finder (unverified whether chessboard mode is reachable from the UI).
+
 - `estimateNewCalibrationPatternPose()` on the base finder resolves a camera-to-pattern transform through the shared math in `src/Editor/Math/CameraMath.cpp`: `computeOpenCVCameraRelativePatternTransform()` wraps `cv::solvePnP` on undistorted image points; `computeMonoLensCameraCalibration()` wraps `cv::initCameraMatrix2D` + `cv::calibrateCamera`; `computeOpenGLProjMatFromCameraIntrinsics()` turns intrinsics into a GL projection matrix.
+
 - 2D/3D overlay drawing helpers live in `CalibrationRenderHelpers.cpp`.
 
 ---
@@ -29,18 +34,25 @@ The calibration subsystem in `src/Editor/Calibration`, built on OpenCV, plus the
 
 Three flows share `ArucoMarkerPoseSampler`, which detects a single ArUco marker (`CalibrationPatternFinder_Aruco`), computes the aperture-relative marker transform each frame via `cv::solvePnP`, and averages a desired sample count:
 
-- `AppStage_AlignCameraByOriginMarker` — for a camera viewing the stage's designated origin marker (`VRTrackingVolumeDefinition::getOriginMarkerId()`). The averaged marker pose is inverted into a stage-space aperture pose and applied with `CameraComponent::setRelativeTransform()`. This localizes a camera without a VR tracker.
-- `AppStage_AlignCameraByUtilityMarker` — same mechanic against an explicit utility `MarkerDefinition`, additionally using a second, already-aligned source camera; the target camera's stage-space aperture transform is set from the shared marker observation.
-- `AppStage_VRTrackingRecenter` — pairs `ArucoMarkerPoseSampler` with `VRDevicePoseSampler` (which averages a VR puck pose over the same frames). Given the averaged marker pose in aperture space, the puck pose in VR space, and the calibrated aperture offset, it computes the VR-tracking-space to stage-space transform and stores it with `VRTrackingVolumeComponent::setVRSpaceToStageSpace()`, recentering all VR devices onto the stage origin marker.
+- `AppStage_AlignCameraByOriginMarker`: for a camera viewing the stage's designated origin marker (`VRTrackingVolumeDefinition::getOriginMarkerId()`). The averaged marker pose is inverted into a stage-space aperture pose and applied with `CameraComponent::setRelativeTransform()`. This localizes a camera without a VR tracker.
+
+- `AppStage_AlignCameraByUtilityMarker`: same mechanic against an explicit utility `MarkerDefinition`, additionally using a second, already-aligned source camera; the target camera's stage-space aperture transform is set from the shared marker observation.
+
+- `AppStage_VRTrackingRecenter`: pairs `ArucoMarkerPoseSampler` with `VRDevicePoseSampler` (which averages a VR puck pose over the same frames). Given the averaged marker pose in aperture space, the puck pose in VR space, and the calibrated aperture offset, it computes the VR-tracking-space to stage-space transform and stores it with `VRTrackingVolumeComponent::setVRSpaceToStageSpace()`, recentering all VR devices onto the stage origin marker.
+
+A fourth flow uses `CalibrationPatternFinder_Aruco` directly rather than through the sampler. `AppStage_DepthMeshCapture` searches its captured frame for every marker in the project, and a found marker's four solvePnP corner depths are the ground truth that corrects the depth model's metric scale. The correction persists on the camera, because the error is a property of the lens rather than of the frame. See [depth-proxy-mesh.md](./depth-proxy-mesh.md).
 
 ---
 
 ## Point tools: anchors, light fixtures, stencils
 
-- `AppStage_AnchorTriangulation` / `AnchorTriangulator` — the user clicks the same physical point from two tracked camera poses; `computeCameraRayAtPixel()` builds a stage-space ray per click and the triangulated point is the ray intersection. Three triangulated points (origin, +X, +Y by convention) define the anchor transform, applied via the anchor component/definition `setWorldTransform`/`setRelativeTransform`.
-- `AppStage_LightFixtureCalibration` / `LightFixtureTriangulator` — the same two-ray triangulation for a single point, positioning a `DMXFixtureComponent` in the stage.
-- `AppStage_StencilAlignment` / `StencilAligner` — the user pairs clicked video pixels with clicked model vertices on a `ModelStencilComponent`; `computeStencilTransform()` solves the model pose with `computeOpenCVCameraRelativePatternTransform()` (`cv::solvePnP` over the pixel/vertex correspondences).
-- `AppStage_PointCloudAlignment` — model-to-video alignment without manual correspondences. `NaturalFeatureCloudBuilder` tracks natural features across frames from a tracked camera (`cv::goodFeaturesToTrack` + `cv::calcOpticalFlowPyrLK`), triangulating a stage-space feature cloud with reprojection-error and parallax stats. `ModelPointCloudAligner` then runs trimmed-correspondence ICP (SVD-based rigid fit via `cv::SVD::compute`, optional uniform scale, voxel downsampling, optional dominant-plane removal) to produce an `IcpResult` whose `modelWorldTransform` is applied to the `ModelStencilComponent`.
+- `AppStage_AnchorTriangulation` / `AnchorTriangulator`: the user clicks the same physical point from two tracked camera poses; `computeCameraRayAtPixel()` builds a stage-space ray per click and the triangulated point is the ray intersection. Three triangulated points (origin, +X, +Y by convention) define the anchor transform, applied via the anchor component/definition `setWorldTransform`/`setRelativeTransform`.
+
+- `AppStage_LightFixtureCalibration` / `LightFixtureTriangulator`: the same two-ray triangulation for a single point, positioning a `DMXFixtureComponent` in the stage.
+
+- `AppStage_StencilAlignment` / `StencilAligner`: the user pairs clicked video pixels with clicked model vertices on a `ModelStencilComponent`; `computeStencilTransform()` solves the model pose with `computeOpenCVCameraRelativePatternTransform()` (`cv::solvePnP` over the pixel/vertex correspondences).
+
+- `AppStage_PointCloudAlignment`: model-to-video alignment without manual correspondences. `NaturalFeatureCloudBuilder` tracks natural features across frames from a tracked camera (`cv::goodFeaturesToTrack` + `cv::calcOpticalFlowPyrLK`), triangulating a stage-space feature cloud with reprojection-error and parallax stats. `ModelPointCloudAligner` then runs trimmed-correspondence ICP (SVD-based rigid fit via `cv::SVD::compute`, optional uniform scale, voxel downsampling, optional dominant-plane removal) to produce an `IcpResult` whose `modelWorldTransform` is applied to the `ModelStencilComponent`.
 
 All of these persist through the component definitions into the project `*.mikanproj` file; none write separate calibration files.
 

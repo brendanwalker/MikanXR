@@ -188,7 +188,7 @@ bool sh_lighting_test_round_trip_hemisphere()
 	UNIT_TEST_COMPLETE()
 }
 
-// Guards the band ridge described in docs/reference/scene-lighting.md.
+// Guards the band ridge behavior of SHLightingSolver::solve.
 //
 // What the ridge actually guarantees is that it SHRINKS THE l=2 BAND. That is
 // the property asserted here, because it is the only one that holds

@@ -94,7 +94,7 @@ public:
 	/// What this does NOT do is remove ringing in general. Order-2 SH cannot
 	/// represent a sharp light at all, so a genuinely directional scene stays
 	/// negative over a large solid angle whatever the ridge is set to. Clamp at
-	/// evaluation. See docs/reference/scene-lighting.md.
+	/// evaluation.
 	bool solve(SHLightingEnvironment& outEnvironment, float bandRidge= 0.1f) const;
 
 private:

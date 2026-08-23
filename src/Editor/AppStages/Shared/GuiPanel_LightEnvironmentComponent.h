@@ -9,8 +9,6 @@
 /// rather than authored, so the descriptors are read only and this panel
 /// exists mainly to present them usefully: the 27 spherical harmonic floats
 /// are drawn as color swatches instead of a wall of numbers.
-///
-/// See docs/reference/scene-lighting.md for what the coefficients mean.
 class GuiPanel_LightEnvironmentComponent : public GuiPanel_MikanComponent
 {
 public:

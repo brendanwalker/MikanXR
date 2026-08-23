@@ -65,7 +65,6 @@ public:
 	/// an unusual lens can be off by an integer factor while the geometry
 	/// stays excellent; the factor is a stable property of the camera/lens, so
 	/// it is calibrated once against an ArUco marker of known size and reused.
-	/// See docs/reference/depth-proxy-mesh.md.
 	static const std::string k_depthMeshScaleCorrectionPropertyId;
 	inline float getDepthMeshScaleCorrection() const { return m_depthMeshScaleCorrection; }
 	void setDepthMeshScaleCorrection(float scaleCorrection);

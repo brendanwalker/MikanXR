@@ -67,8 +67,8 @@ static float sampleMedianDepth(const MoGeInference::Result& geometry, float pixe
 }
 
 // Model directory relative to the working directory, same convention as the
-// Marigold models (see docs/reference/scene-lighting.md). Uniquely named
-// because the unity build merges this file with the other stages' .cpps.
+// Marigold models. Uniquely named because the unity build merges this file
+// with the other stages' .cpps.
 static const char* k_depthMeshMoGeModelSubdirectory= "models/moge2";
 
 AppStage_DepthMeshCapture::AppStage_DepthMeshCapture(IEditorWindow* ownerWindow)
@@ -234,7 +234,7 @@ void AppStage_DepthMeshCapture::onCaptureEvent()
 
 	// Metric scale rides directly on the assumed FOV (a wrong guess shifts
 	// depth by tens of percent), so the calibrated value is required, not a
-	// nicety. See docs/reference/scene-lighting.md.
+	// nicety.
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	if (!m_currentSceneCameraComponent->getApertureIntrinsics(cameraIntrinsics))
 	{

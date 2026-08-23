@@ -32,7 +32,7 @@
 const char* AppStage_SceneLightingCapture::APP_STAGE_NAME= "SceneLightingCapture";
 
 // Model directories relative to the working directory, matching the convention
-// used elsewhere in the Mikan family (see docs/reference/scene-lighting.md).
+// used elsewhere in the Mikan family.
 static const char* k_defaultModelSubdirectory= "models/marigold";
 static const char* k_defaultMoGeModelSubdirectory= "models/moge2";
 

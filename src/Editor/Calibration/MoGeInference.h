@@ -23,8 +23,6 @@
 /// focal-estimation path is deliberately not ported. The normals need no
 /// recovery at all: they are independent of the shift/scale ambiguity
 /// (measured 0.0 degrees of movement across a 45-70 degree FOV sweep).
-///
-/// See docs/reference/scene-lighting.md for the measurements behind this.
 class MoGeInference
 {
 public:

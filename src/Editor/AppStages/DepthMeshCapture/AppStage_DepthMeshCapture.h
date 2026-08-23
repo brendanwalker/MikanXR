@@ -25,8 +25,7 @@ class GuiPanel_DepthMeshCapture;
 /// The mesh is judged before it is committed: the panel shows the mesh
 /// statistics and a depth overlay drawn over the live frame, so an operator
 /// can check the recovered silhouettes against the image before a stencil is
-/// created. See docs/reference/scene-lighting.md for the measurements behind
-/// the approach.
+/// created.
 class AppStage_DepthMeshCapture : public AppStage
 {
 public:

@@ -17,9 +17,6 @@
 
 /// Persisted state of a scene lighting probe: the recovered spherical harmonic
 /// environment plus the manual exposure calibration.
-///
-/// See docs/reference/scene-lighting.md for how the environment is recovered
-/// and what it can and cannot represent.
 class LightEnvironmentDefinition : public TransformComponentDefinition
 {
 public:
@@ -79,7 +76,7 @@ public:
 	/// Draws a sphere shaded with the recovered environment, so the probe can
 	/// be seen in the scene rather than only in the capture tool. Visualization
 	/// only: it has no collider and lights nothing, the editor twin of the
-	/// Unreal skydome. See docs/reference/scene-lighting.md.
+	/// Unreal skydome.
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 
 	inline LightEnvironmentDefinitionPtr getLightEnvironmentDefinition() const

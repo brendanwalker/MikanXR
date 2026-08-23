@@ -1002,11 +1002,10 @@ IMkShaderCodeConstPtr getPSHEnvironmentShaderCode()
 		// direction - so the mesh must be drawn with an unrotated transform for
 		// the environment (which is world space) to line up.
 		//
-		// This is the editor twin of the Unreal skydome material documented in
-		// docs/reference/scene-lighting.md, and uses the same basis constants
-		// as sh_eval_basis in SphericalHarmonics.cpp. Unreal needs a Y/Z swap
-		// because its space is a handedness flip away; here the direction is
-		// already Mikan space, so there is no swap.
+		// This is the editor twin of the Unreal skydome material, and uses the
+		// same basis constants as sh_eval_basis in SphericalHarmonics.cpp.
+		// Unreal needs a Y/Z swap because its space is a handedness flip away;
+		// here the direction is already Mikan space, so there is no swap.
 		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_P_SH_ENVIRONMENT,
 										  // vertex shader
 										  R""""(

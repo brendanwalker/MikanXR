@@ -114,7 +114,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 };
 
 /// A probe holding the scene's estimated low-frequency lighting, recovered from
-/// a captured video frame (see docs/reference/scene-lighting.md).
+/// a captured video frame.
 ///
 /// The environment is order-2 spherical harmonics, which is enough to carry the
 /// diffuse lighting of a Lambertian surface but cannot represent a sharp light

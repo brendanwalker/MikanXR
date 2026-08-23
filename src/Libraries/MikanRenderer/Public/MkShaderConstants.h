@@ -65,7 +65,7 @@ enum class eUniformSemantic : int
 	// Nine separate uniforms rather than an array because the uniform binding
 	// layer is one semantic per uniform. Deliberately mirrors the SH0..SH8
 	// parameters on the Unreal skydome material so the two evaluations can be
-	// compared directly - see docs/reference/scene-lighting.md.
+	// compared directly.
 	shCoefficient0,
 	shCoefficient1,
 	shCoefficient2,

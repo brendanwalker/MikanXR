@@ -11,12 +11,19 @@ The coding conventions observed in `src/` of this repo. There is no written styl
 Key settings (from `.clang-format`, `BasedOnStyle: Microsoft`):
 
 - `ColumnLimit: 120`.
+
 - Tabs for indentation (`UseTab: ForContinuationAndIndentation`, `TabWidth: 4`, `IndentWidth: 4`).
+
 - Allman braces (`BreakBeforeBraces: Allman`); short functions may stay on one line.
-- `SpaceBeforeAssignmentOperators: false` — assignments are written `value= expr;` and initializers `int x= 0;`. This is the codebase's most distinctive tic.
+
+- `SpaceBeforeAssignmentOperators: false`: assignments are written `value= expr;` and initializers `int x= 0;`. This is the codebase's most distinctive tic.
+
 - `PointerAlignment: Left` / `ReferenceAlignment: Left` (`Type* ptr`, `const Foo& ref`).
+
 - Constructor initializers break before the comma (`BreakConstructorInitializers: BeforeComma`).
-- `SortIncludes: false` — include order is authored by hand and preserved.
+
+- `SortIncludes: false`: include order is authored by hand and preserved.
+
 - Refureku macros (`STRUCT()`, `ENUM()`, `FIELD()`, ...) are declared as `AttributeMacros`, and the `MIKAN_*_FUNC(T)` export macros as `TypenameMacros`, so clang-format parses them correctly.
 
 ---
@@ -24,23 +31,35 @@ Key settings (from `.clang-format`, `BasedOnStyle: Microsoft`):
 ## Files and headers
 
 - Header/source pairing: `Foo.h` + `Foo.cpp`, one primary class per pair. Libraries and plugins split `Public/` (installed, exported API) from `Private/` (implementation); the Editor uses flat per-domain folders instead.
+
 - `#pragma once` in headers (609 of 612 headers in `src/`; no `#ifndef` guards except generated/vendored files such as `AppCore/Version.h`).
+
 - Observed include order in a `.cpp`: the file's own header first, then project headers, then third-party headers, then standard library. Not machine-enforced (`SortIncludes: false`) and not perfectly consistent; glm sometimes appears after `<memory>`/`<string>`.
+
 - Forward-declaration headers named `*Fwd.h` (`ObjectSystemFwd.h`, `ComponentFwd.h`, `MkWindowFwd.h`, `ScriptingFwd.h`, `OpenCVFwd.h`) hold class forward declarations plus their smart-pointer aliases; headers prefer including a `Fwd` header or an inline `class Foo` forward over the full header. Inline `class Foo*` member/return declarations are also common (see `MikanServer.h`).
+
 - Older files carry section banner comments like `//-- includes -----` and `//-- definitions -----` (e.g. `MikanServer.h`); newer files often omit them.
+
 - Each DLL has an export header (`MikanAPIExport.h`, `MkRendererExport.h`, ...) defining `MIKAN_<NAME>_EXPORTS`-gated macros; exported free functions are declared with `MIKAN_<NAME>_FUNC(ReturnType)`.
 
 ---
 
 ## Naming
 
-- Types: `PascalCase` (`MikanServer`, `AnchorComponent`, `CalibrationPatternFinder_Aruco` — an underscore suffix marks a variant of a base class).
+- Types: `PascalCase` (`MikanServer`, `AnchorComponent`, `CalibrationPatternFinder_Aruco`, where an underscore suffix marks a variant of a base class).
+
 - Interfaces: `I` prefix (`IMikanModule`, `IServerRequestHandler`, `IVideoDevice`). The renderer/window libraries additionally use an `Mk` brand prefix (`IMkTexture`, `MkMaterial`, `IMkWindowContext`); client-facing API types use a `Mikan` prefix (`MikanAnchorComponentValues`).
+
 - Methods and free functions: `camelCase` (`getInstance`, `publishMikanJsonEvent`, `createUsbVideoDeviceManager`). Lifecycle verbs `startup`/`shutdown`/`init`/`dispose`/`update` recur across classes.
+
 - Member variables: `m_` prefix (`m_ownerWindow`, `m_clientConnections`). Boolean members commonly add a `b`: `m_bIsInitialized`.
+
 - Locals and parameters: `camelCase`; boolean locals often `b`-prefixed (`bSuccess`, `bFoundChessboard`); output parameters prefixed `out` (`outDescriptors`, `outClientList`).
+
 - Constants and static class data: `k_` prefix (`k_componentClassName`, `k_VertexSemanticNames`), typically `inline static const` or `static const char*`.
+
 - Enums: `enum class`, frequently with a lowercase `e` prefix on the type name (`eVertexSemantic`, `eWindowAPI`, `eMkBlendEquation`); unprefixed names also occur (`SharedTextureType`). Sentinels `INVALID= -1` and `COUNT` are common; enumerator casing is otherwise mixed (lowercase in renderer enums, PascalCase elsewhere). Wire-protocol enums in `MikanClientAPI` are declared through the Refureku `ENUM()` macro.
+
 - Template parameters: lowercase `t_` snake case (`t_value_type`, `t_module_type`, `t_derived_class`). A few type aliases use the same style (`t_opengl_point3d_list` in `Editor/Math/CameraMath.h`).
 
 ---
@@ -48,8 +67,11 @@ Key settings (from `.clang-format`, `BasedOnStyle: Microsoft`):
 ## Pointer idioms
 
 - Ownership is `std::shared_ptr` almost everywhere, spelled through `using` aliases: `using FooPtr= std::shared_ptr<Foo>;` with companions `FooConstPtr` (`shared_ptr<const Foo>`) and `FooWeakPtr` (`weak_ptr<Foo>`). Aliases live next to the class or in the module's `*Fwd.h`, often with an inline forward declaration: `using IMikanAPIPtr= std::shared_ptr<class IMikanAPI>;`.
+
 - Back-references and non-owning captures use the `WeakPtr` alias (`MikanObjectWeakPtr owner`, `SelectionComponentWeakPtr m_selectionComponent`).
+
 - Downcasts use `std::static_pointer_cast` on shared pointers.
+
 - Raw pointers appear for non-owning wiring inside a single process (e.g. `MikanServer`'s handler members) and at C boundaries: the plugin ABI is raw `new`/`delete` behind the exported `AllocatePluginModule`/`FreePluginModule` functions, and singletons expose `static Foo* getInstance()`.
 
 ---
@@ -57,7 +79,11 @@ Key settings (from `.clang-format`, `BasedOnStyle: Microsoft`):
 ## Codebase-specific rules
 
 - Avoid method names that collide with Win32 macros (`GetObject`, `SendMessage`, `CreateWindow`, ...). The default build is a unity build (`CMAKE_UNITY_BUILD=ON`), so a transitively included `windows.h` in an unrelated concatenated TU rewrites the name (`GetObject` becomes `GetObjectA`) and produces an `LNK2019` far from the real conflict. See [build.md](./build.md). Files with genuine include-order problems are opted out per-file via `SKIP_UNITY_BUILD_INCLUSION`.
+
 - `Serialization::String` stays `const char*`-only at the `MikanSerialization` interface (cross-CRT safety across the DLL/EXE boundary); do not widen it to `std::string` there, and watch the `const char*` to `bool` implicit-conversion trap when adding `to_binary` overloads. See [wire-protocol.md](./wire-protocol.md).
+
 - Do not hand-edit generated code: `bindings/*/Generated`, `bindings/typescript/types`, and the `*.rfkh.h`/`*.rfks.h` Refureku output are regenerated by the build and by `MikanClientCodeGen`.
-- Never compile a GObject/GstMeta-registering `.cpp` into both a plugin DLL and an executable that loads it; GLib's type registry is process-global and the duplicate registration fails at runtime (documented in `src/Programs/Tests/UnitTests/CMakeLists.txt`).
-- Client-facing properties must stay consistent across the values struct, descriptor, and `getPropertyValue` implementation; a schema-guard integration test in `MikanCmd -runTests` enforces this (see [wire-protocol.md](./wire-protocol.md)).
+
+- Never compile a GObject/GstMeta-registering `.cpp` into both a plugin DLL and an executable that loads it; GLib's type registry is process-global and the duplicate registration fails at runtime (documented in the `iphone` branch's `src/Programs/Tests/UnitTests/CMakeLists.txt`, which is where the case arises).
+
+- Client-facing properties must stay consistent across the values struct, descriptor, and `getPropertyValue` implementation; the schema-guard test in `MikanCmd -runTests` enforces this (see [wire-protocol.md](./wire-protocol.md)).

@@ -7,8 +7,11 @@ The editor's scene object system: everything under `src/Editor/ECS`. Objects are
 ## Core types
 
 - `MikanObject` (`src/Editor/ECS/MikanObject.h`) is a named component container. It holds a `std::vector<MikanComponentPtr>`, a weak pointer to its owning `MikanObjectSystem`, and a root `TransformComponent`. Components are added with `addComponent<T>()` and found with `getComponentOfType<T>()` / `getComponentOfTypeAndName<T>()` (dynamic-cast based, no type registry). Lifecycle is `init()`, `postInit()`, `dispose()`, called by the owning system.
+
 - `MikanComponent` (`src/Editor/ECS/MikanComponent.h`) is the component base. It implements `IEntityAccessor` (see below), owns a `MikanComponentDefinitionPtr`, exposes `getComponentClassName()` via a per-class `k_componentClassName` string constant, and can opt into per-frame `update(float deltaSeconds)` by setting `m_bWantsUpdate` in its constructor. `customRender(...)` is invoked by the owning system for debug drawing. Each component can also carry a Lua `ComponentScriptContext`.
+
 - `MikanComponentDefinition` is a `CommonConfig` subclass (`src/Editor/Config/CommonConfig.h`) holding the persisted state for a component: `m_componentId`, `m_componentName`, and an optional script asset reference. It implements `writeToJSON()` / `readFromJSON()` (Configuru) and `readFromInitParams()` (initialization from a client-supplied `Serialization::PolymorphicObjectPtr`, the wire-protocol creation path).
+
 - `MikanObjectSystem` (`src/Editor/ECS/MikanObjectSystem.h`) owns a `MikanObjectList` and a `MikanObjectSystemDefinition` (also a `CommonConfig`). Systems are created and ticked by `ProjectManager` (`src/Editor/Project/ProjectManager.h`), which also owns the `MikanPropertyDatabase` and `MikanFunctionDatabase`. Systems find each other with `getObjectSystemOfType<T>()`.
 
 The design rule throughout: the definition (config) is the persistent, change-notified source of truth; the component is the runtime view of it. `CommonConfig` provides `OnPropertyChanged` with a `ConfigPropertyChangeSet`, child-config nesting via `addChildConfig()`, autosave (`updateAutoSave`), and a `wantsSaveForPropertyChange()` veto (used by `CameraDefinition` to avoid saving every frame while a tracking mount drives the camera transform).
@@ -34,17 +37,19 @@ Creation entry points: `addNewObjectByTypedDefinition(initFunc)` in C++, and `ad
 
 ## The object systems that exist
 
-`ProjectManager::startup` (`src/Editor/Project/ProjectManager.cpp`) registers, in order: `EditorObjectSystem`, `ClientTextureSourceSystem`, `SpoutTextureSourceSystem`, `CEFTextureSourceSystem`, `NetworkVideoSourceSystem`, `USBVideoSourceSystem`, `ARKitVideoSourceSystem`, `MarkerObjectSystem`, `StageObjectSystem`, `SceneObjectSystem`, `CompositorObjectSystem`, `CameraObjectSystem`, `AnchorObjectSystem`, `QuadShapeSystem`, `BoxShapeSystem`, `ModelShapeSystem`, `QuadStencilSystem`, `BoxStencilSystem`, `ModelStencilSystem`, `VRObjectSystem`, `TrackingMountObjectSystem`, `MarkerTrackingVolumeSystem`, `VRTrackingVolumeSystem`, `DMXObjectSystem`, `RGBSpotLightSystem`, `RGBPixelGridSystem`.
+`ProjectManager::startup` (`src/Editor/Project/ProjectManager.cpp`) registers, in order: `EditorObjectSystem`, `ClientTextureSourceSystem`, `SpoutTextureSourceSystem`, `CEFTextureSourceSystem`, `NetworkVideoSourceSystem`, `USBVideoSourceSystem`, `MarkerObjectSystem`, `StageObjectSystem`, `SceneObjectSystem`, `CompositorObjectSystem`, `CameraObjectSystem`, `AnchorObjectSystem`, `QuadShapeSystem`, `BoxShapeSystem`, `ModelShapeSystem`, `QuadStencilSystem`, `BoxStencilSystem`, `ModelStencilSystem`, `VRObjectSystem`, `TrackingMountObjectSystem`, `MarkerTrackingVolumeSystem`, `VRTrackingVolumeSystem`, `DMXObjectSystem`, `RGBSpotLightSystem`, `RGBPixelGridSystem`, `LightEnvironmentSystem`. The order matters: `EditorObjectSystem` is first so it receives the component-creation events the later systems fire during init. The `iphone` branch inserts an `ARKitVideoSourceSystem` after `USBVideoSourceSystem`.
 
 Primary component families (each with a matching `*Definition` config class):
 
 - Scene structure: `SceneComponent` and `StageComponent` (both extend `TransformComponent`; a scene attaches to a stage via `attachToStage`, a stage references a tracking volume and stores stage bounds).
 - Spatial: `AnchorComponent`, `MarkerComponent` (ArUco id + physical length in mm), `TrackingMountComponent` (binds a VR device by path/socket), `TrackingVolumeComponent` with `VRTrackingVolumeComponent` / `MarkerTrackingVolumeComponent` subclasses, `VRDeviceComponent` (runtime-only, under `VRObjectSystem`).
-- Camera/video: `CameraComponent` (stage id, tracking mount id, video source id, aperture offset), `VideoSourceComponent` with `USBVideoSourceComponent` / `NetworkVideoSourceComponent` / `ARKitVideoSourceComponent` subclasses (see [videosources.md](./videosources.md)).
+- Camera/video: `CameraComponent` (stage id, tracking mount id, video source id, aperture offset), `VideoSourceComponent` with `USBVideoSourceComponent` / `NetworkVideoSourceComponent` subclasses, plus `ARKitVideoSourceComponent` on the `iphone` branch (see [videosources.md](./videosources.md)).
 - Compositing inputs: `CompositorComponent`, `TextureSourceComponent` with `ClientTextureSourceComponent` / `SpoutTextureSourceComponent` / `CEFTextureSourceComponent` (see [compositor.md](./compositor.md)).
 - Stencils and shapes: `StencilComponent` base with `QuadStencilComponent` / `BoxStencilComponent` / `ModelStencilComponent`; parallel `ShapeComponent` family `QuadShapeComponent` / `BoxShapeComponent` / `ModelShapeComponent`.
-- Lighting: `DMXFixtureComponent`, `RGBSpotLightComponent`, `RGBPixelGridComponent`.
+- Lighting: `DMXFixtureComponent`, `RGBSpotLightComponent`, `RGBPixelGridComponent` (physical fixtures driven over DMX), plus `LightEnvironmentComponent`, a captured lighting probe rather than a fixture (see [scene-lighting.md](./scene-lighting.md)).
 - Editor-only (secondary components, not system primaries): `SelectionComponent`, the gizmo components, `ColliderComponent` variants (`BoxColliderComponent`, `DiskColliderComponent`, `MeshColliderComponent` backed by `StaticMeshKdTree`), `StaticMeshComponent`.
+
+`LightEnvironmentComponent` is worth calling out because it breaks the fixture pattern of its neighbors. It extends `TransformComponent` so a probe has a world position, which is what leaves room for multiple probes later without a wire-format change. Its definition persists 27 spherical harmonic floats plus an exposure scalar and the estimate's confidence numbers, and `customRender` draws a sphere shaded with the recovered environment so a committed probe is visible in the viewport.
 
 Cross-system queries live in free-function headers: `ObjectSystemColliderQueries.h`, `ObjectSystemRenderQueries.h`, `TextureSourceQueries.h`, `TrackingVolumeQueries.h`, `VideoSourceQueries.h`.
 

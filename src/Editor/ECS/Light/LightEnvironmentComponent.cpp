@@ -365,7 +365,7 @@ void LightEnvironmentComponent::getPropertyDescriptors(std::vector<PropertyDescr
 
 	// The exposure scale is the exception: it is a manual calibration input,
 	// not a solved output - the decomposition recovers shading only up to a
-	// global scale - so it stays writable. See docs/reference/scene-lighting.md.
+	// global scale - so it stays writable.
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(LightEnvironmentDefinition::k_exposureScalePropertyId,
 																  MikanVariantType::FLOAT));
 }

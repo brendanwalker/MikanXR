@@ -18,7 +18,7 @@
 /// create stretched "skirt" triangles that catch shadows in mid-air. Measured
 /// on the reference plates, the model's depth edges land within ~1px of the
 /// image silhouettes and commit to near-or-far rather than averaging, so
-/// ratio-based culling is enough. See docs/reference/scene-lighting.md.
+/// ratio-based culling is enough.
 class DepthMeshGenerator
 {
 public:

@@ -22,8 +22,7 @@ public:
 
 // -- LightEnvironmentSystem -----
 /// Owns the scene lighting probes. Each probe carries an order-2 spherical
-/// harmonic environment recovered from a captured frame; see
-/// docs/reference/scene-lighting.md.
+/// harmonic environment recovered from a captured frame.
 class LightEnvironmentSystem
 	: public MikanTypedObjectSystem<LightEnvironmentComponent, LightEnvironmentDefinition, MikanLightID,
 									LightEnvironmentSystem, LightEnvironmentSystemDefinition>

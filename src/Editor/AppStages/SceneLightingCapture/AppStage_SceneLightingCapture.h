@@ -24,7 +24,7 @@ class GuiPanel_SceneLightingCapture;
 /// The estimate is judged before it is committed: the panel shows the
 /// directionality confidence signal and a lit sphere rendered from the
 /// recovered environment, so an operator can compare it against the plate
-/// rather than trusting a number. See docs/reference/scene-lighting.md.
+/// rather than trusting a number.
 class AppStage_SceneLightingCapture : public AppStage
 {
 public:

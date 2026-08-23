@@ -36,7 +36,7 @@ static constexpr int k_sceneLightingEstimateStepCount= 4;
 /// directly-predicted normal head after the swap was measured to preserve the
 /// recovered lighting within Marigold's own seed-to-seed spread; Marigold
 /// remains the source of the diffuse shading, which has no feed-forward
-/// replacement. See docs/reference/scene-lighting.md.
+/// replacement.
 ///
 /// The rotation step is the reason this lives inside Mikan: the models return
 /// camera-space normals, so without the tracked pose the recovered environment
@@ -153,7 +153,7 @@ public:
 	/// Note what this cannot show: an environment probe has no visibility term,
 	/// so cast shadows are absent from the reconstruction by construction. The
 	/// difference against modelShading is dominated by exactly those regions -
-	/// that is expected, not a bad estimate. See docs/reference/scene-lighting.md.
+	/// that is expected, not a bad estimate.
 	static cv::Mat renderReconstructionImage(const Result& result, eReconstructionView view);
 
 	/// Fit only, for tests and for re-fitting cached model output without
