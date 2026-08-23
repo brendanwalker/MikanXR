@@ -45,6 +45,9 @@ public:
 		m_bCancellingEstimate= bCancelling;
 	}
 
+	/// Which verification overlay the stage should draw over the plate.
+	eLightingPreviewMode getPreviewMode() const { return m_previewMode; }
+
 	std::function<void()> OnCaptureEvent;
 	std::function<void()> OnCancelCaptureEvent;
 	std::function<void()> OnApplyEvent;
@@ -63,6 +66,8 @@ private:
 	std::string m_ambient;
 	int m_sampleCount= 0;
 	float m_negativeSolidAngleFraction= 0.f;
+
+	eLightingPreviewMode m_previewMode= eLightingPreviewMode::recoveredLighting;
 
 	eSceneLightingEstimatePhase m_estimatePhase= eSceneLightingEstimatePhase::idle;
 	float m_estimateFraction= 0.f;

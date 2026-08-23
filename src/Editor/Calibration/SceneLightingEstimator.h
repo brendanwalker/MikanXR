@@ -138,6 +138,24 @@ public:
 	bool estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation, float fovXDegrees, Result& outResult,
 				  const Progress& progress= {});
 
+	/// What renderReconstructionImage should draw.
+	enum class eReconstructionView : int
+	{
+		lighting,     ///< the recovered environment at the model's own normals
+		relit,        ///< the same, modulated by the recovered albedo
+		modelShading, ///< the shading the fit solved against, for an A/B
+	};
+
+	/// Builds a display-encoded BGR image (CV_8UC3) from a completed estimate,
+	/// so what the recovered environment does and does not explain can be seen
+	/// against the plate. Returns empty if the result carries no model outputs.
+	///
+	/// Note what this cannot show: an environment probe has no visibility term,
+	/// so cast shadows are absent from the reconstruction by construction. The
+	/// difference against modelShading is dominated by exactly those regions -
+	/// that is expected, not a bad estimate. See docs/reference/scene-lighting.md.
+	static cv::Mat renderReconstructionImage(const Result& result, eReconstructionView view);
+
 	/// Fit only, for tests and for re-fitting cached model output without
 	/// paying for inference again.
 	bool fitFromModelOutputs(const MarigoldInference::Result& modelOutputs, const glm::mat3& cameraToWorldRotation,

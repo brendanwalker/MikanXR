@@ -86,6 +86,14 @@ protected:
 	/// judged visually.
 	void renderLitSpherePreview();
 
+	/// Builds the full-frame verification image for the given mode from the
+	/// retained model outputs and uploads it, reusing the last one when the
+	/// mode has not changed. Cheap enough to be lazy: it only runs when the
+	/// operator switches modes or a new estimate lands.
+	void buildLightingPreviewImage(eLightingPreviewMode mode);
+	/// Draws the built image over the plate as a fullscreen quad.
+	void renderLightingPreviewImage();
+
 	// GUI button events
 	void onCaptureEvent();
 	void onCancelCaptureEvent();
@@ -125,6 +133,15 @@ private:
 
 	SceneLightingEstimator::Result m_result;
 	bool m_bHasResult= false;
+
+	// Full-frame verification preview. Rendering the reconstruction as a
+	// texture rather than splatting points keeps it at frame resolution and
+	// costs one quad per frame instead of tens of thousands of points.
+	IMkTriangulatedMeshPtr m_previewQuad;
+	IMkTexturePtr m_previewTexture;
+	cv::Mat m_previewImage;
+	/// Mode the built image corresponds to; COUNT means nothing is built yet.
+	eLightingPreviewMode m_builtPreviewMode= eLightingPreviewMode::COUNT;
 
 	MikanCameraPtr m_mkCamera;
 };

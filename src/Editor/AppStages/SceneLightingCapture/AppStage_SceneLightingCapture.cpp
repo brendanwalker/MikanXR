@@ -10,7 +10,11 @@
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
+#include "IMkTexture.h"
+#include "IMkTriangulatedMesh.h"
 #include "IMkViewport.h"
+#include "MkMaterial.h"
+#include "MkMaterialInstance.h"
 #include "LightEnvironmentComponent.h"
 #include "Logger.h"
 #include "MikanCamera.h"
@@ -111,6 +115,11 @@ void AppStage_SceneLightingCapture::enter()
 
 	m_bHasResult= false;
 
+	// Fullscreen quad the verification preview is drawn with. vFlipped matches
+	// the video quad so the preview lines up with the plate underneath it.
+	m_previewQuad= createFullscreenQuadMesh(getGraphicsContext(), true);
+	m_builtPreviewMode= eLightingPreviewMode::COUNT;
+
 	startEstimateWorker();
 
 	setMenuState(eSceneLightingCaptureMenuState::pendingVideoStartStreamRequest);
@@ -124,6 +133,11 @@ void AppStage_SceneLightingCapture::exit()
 	// joins, and frees the ONNX sessions (gigabytes) on the thread that created
 	// them.
 	stopEstimateWorker();
+
+	m_previewQuad= nullptr;
+	m_previewTexture= nullptr;
+	m_previewImage.release();
+	m_builtPreviewMode= eLightingPreviewMode::COUNT;
 
 	m_currentSceneCameraComponent= nullptr;
 	m_mkCamera= nullptr;
@@ -454,6 +468,8 @@ void AppStage_SceneLightingCapture::consumeEstimateOutput()
 
 	m_result= std::move(output.result);
 	m_bHasResult= true;
+	// New model outputs, so whatever preview was built is stale.
+	m_builtPreviewMode= eLightingPreviewMode::COUNT;
 
 	const glm::vec3 ambient= m_result.environment.coefficients[0] * 0.282095f * 3.14159265f;
 	m_capturePanel->setEstimateSummary(m_result.directionality,
@@ -495,6 +511,76 @@ void AppStage_SceneLightingCapture::onRedoEvent()
 }
 
 void AppStage_SceneLightingCapture::onCancelEvent() { getOwnerWindow()->popAppState(); }
+
+void AppStage_SceneLightingCapture::buildLightingPreviewImage(eLightingPreviewMode mode)
+{
+	if (mode == m_builtPreviewMode || mode == eLightingPreviewMode::litSphere)
+		return;
+
+	SceneLightingEstimator::eReconstructionView view= SceneLightingEstimator::eReconstructionView::lighting;
+	switch (mode)
+	{
+	case eLightingPreviewMode::relitScene:
+		view= SceneLightingEstimator::eReconstructionView::relit;
+		break;
+	case eLightingPreviewMode::modelShading:
+		view= SceneLightingEstimator::eReconstructionView::modelShading;
+		break;
+	default:
+		break;
+	}
+
+	// The reconstruction lives with the fit rather than here, so the headless
+	// -estimateLighting -dump path renders exactly what this panel shows.
+	m_previewImage= SceneLightingEstimator::renderReconstructionImage(m_result, view);
+	if (m_previewImage.empty())
+		return;
+
+	const int width= m_previewImage.cols;
+	const int height= m_previewImage.rows;
+
+	if (m_previewTexture == nullptr)
+	{
+		m_previewTexture= CreateMkTexture((uint16_t)width, (uint16_t)height, nullptr,
+										  MK_RGB,  // texture format
+										  MK_BGR); // buffer format
+		m_previewTexture->setGenerateMipMap(false);
+		if (!m_previewTexture->createTexture())
+		{
+			MIKAN_LOG_ERROR("AppStage_SceneLightingCapture") << "Failed to create the lighting preview texture";
+			m_previewTexture= nullptr;
+			return;
+		}
+	}
+
+	m_previewTexture->copyBufferIntoTexture(m_previewImage.data, m_previewImage.step[0] * m_previewImage.rows);
+	m_builtPreviewMode= mode;
+}
+
+void AppStage_SceneLightingCapture::renderLightingPreviewImage()
+{
+	if (!m_bHasResult)
+		return;
+
+	const eLightingPreviewMode mode= m_capturePanel->getPreviewMode();
+	buildLightingPreviewImage(mode);
+
+	if (m_previewQuad == nullptr || m_previewTexture == nullptr || m_builtPreviewMode != mode)
+		return;
+
+	MkMaterialInstancePtr materialInstance= m_previewQuad->getMaterialInstance();
+	MkMaterialConstPtr material= materialInstance->getMaterial();
+
+	if (auto materialBinding= material->bindMaterial())
+	{
+		materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_previewTexture);
+
+		if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
+		{
+			m_previewQuad->drawElements();
+		}
+	}
+}
 
 void AppStage_SceneLightingCapture::renderLitSpherePreview()
 {
@@ -589,8 +675,13 @@ void AppStage_SceneLightingCapture::render(IMkViewportPtr targetViewport)
 
 	case eSceneLightingCaptureMenuState::verifyEstimate:
 	case eSceneLightingCaptureMenuState::captureComplete:
+		// The plate is drawn first either way, so a preview that has not been
+		// built yet leaves the frame visible rather than a black screen.
 		m_monoDistortionView->renderSelectedVideoBuffers();
-		renderLitSpherePreview();
+		if (m_capturePanel->getPreviewMode() == eLightingPreviewMode::litSphere)
+			renderLitSpherePreview();
+		else
+			renderLightingPreviewImage();
 		break;
 
 	default:

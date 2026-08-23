@@ -465,18 +465,49 @@ via the **Capture Scene Lighting** component function, which is registered throu
 `IFunctionInterface` and is therefore also reachable from Lua and remotely over the client API.
 
 Flow: pick a camera → live video while framing the shot → **Capture** runs both models → the panel
-shows the estimate's confidence numbers alongside a lit sphere rendered from the recovered
+shows the estimate's confidence numbers alongside a verification render of the recovered
 environment → **Apply** writes it into the probe.
 
 Two deliberate choices:
 
 - **The estimate is judged before it is committed.** The panel shows `l1/l0` prominently (in amber
-  below 0.25) and renders the lit sphere in *camera* space so it can be compared directly against
-  the video frame behind it. The failure mode this guards against is a confident-looking
-  near-ambient estimate.
+  below 0.25) and renders the estimate over the plate. The failure mode this guards against is a
+  confident-looking near-ambient estimate.
 - **The camera is chosen explicitly** rather than inferred. The recovered environment is only
   meaningful in world space if the frame's camera pose is known, so an untracked camera should fail
   loudly rather than silently produce a mis-oriented environment.
+
+### Judging the estimate: reconstruct the scene, not a sphere
+
+A lit sphere shows the environment in the abstract; it does not answer "does this explain the
+shot in front of me". `SceneLightingEstimator::renderReconstructionImage` answers that directly by
+evaluating the recovered environment at the **scene's own normals**, which is the same quantity
+`E(n)` the fit solved against `shading`. The panel offers four views over the plate:
+
+| View | What it draws | Reads as |
+|---|---|---|
+| **Recovered lighting** | `E(n)` at the model's normals | the incident lighting the estimate claims |
+| **Relit scene** | `albedo · E(n)` | the plate re-rendered under only the recovered light |
+| **Model shading** | Marigold's `shading` | the target the fit solved against - the A/B partner |
+| **Lit sphere** | the old camera-space sphere | the environment itself, at a glance |
+
+Flipping between *Recovered lighting* and *Model shading* is the useful comparison: where they
+agree, the estimate explains the scene.
+
+**Cast shadows will be missing, and that is structural.** An environment probe has no visibility
+term, so the reconstruction cannot reproduce a shadow — confirmed on the still-life plate, where
+the object shading and its left-hand key direction come back cleanly while the hard window shadow
+and the plant shadows are entirely absent. That is the same fact the low R² measures (see "R² is
+low, and is the wrong success metric"); in the real pipeline those shadows are Unreal's job via the
+shadow-catcher passes. The panel says so on screen, because reading missing shadows as a bad
+estimate is the obvious trap here. Judge the direction and color of the shading instead.
+
+All four views apply the same display transform (a 1/2.2 encode) so they stay comparable to each
+other and to the video frame; the model outputs and the solve are linear and are not affected. The
+reconstruction lives on the estimator rather than in the AppStage so that
+`MikanCmd -estimateLighting -dump=<dir>` writes exactly what the panel shows
+(`reconstruction_lighting.png`, `reconstruction_relit.png`, `reconstruction_target_shading.png`),
+which is also how the views were verified.
 
 ### The estimate runs on a worker thread
 

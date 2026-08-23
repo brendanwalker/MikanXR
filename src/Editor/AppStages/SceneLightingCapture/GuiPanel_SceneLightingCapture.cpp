@@ -172,7 +172,47 @@ void GuiPanel_SceneLightingCapture::onGui()
 		}
 
 		ImGui::Spacing();
-		ImGui::TextWrapped("Compare the lit sphere against the video frame before applying.");
+
+		int previewIndex= (int)m_previewMode;
+		const char* k_previewLabels[]= {"Recovered lighting", "Relit scene", "Model shading (fit target)",
+										"Lit sphere"};
+		if (ImGui::Combo("Preview", &previewIndex, k_previewLabels, IM_ARRAYSIZE(k_previewLabels)))
+		{
+			m_previewMode= (eLightingPreviewMode)previewIndex;
+		}
+
+		switch (m_previewMode)
+		{
+		case eLightingPreviewMode::recoveredLighting:
+			ImGui::TextWrapped("The recovered environment evaluated at the scene's own normals. Compare "
+							   "against 'Model shading' - where they agree, the estimate explains the "
+							   "lighting.");
+			break;
+		case eLightingPreviewMode::relitScene:
+			ImGui::TextWrapped("The plate re-rendered with only the recovered lighting. It should read "
+							   "like the real frame, minus cast shadows.");
+			break;
+		case eLightingPreviewMode::modelShading:
+			ImGui::TextWrapped("The diffuse shading the fit solved against. Its cast shadows are the part "
+							   "an environment probe cannot reproduce.");
+			break;
+		case eLightingPreviewMode::litSphere:
+			ImGui::TextWrapped("A sphere lit by the recovered environment, in camera space.");
+			break;
+		default:
+			break;
+		}
+
+		// The one reading that is easy to get wrong, so it is stated rather
+		// than left to be discovered: a probe carries no visibility term, so
+		// missing cast shadows are structural and not a bad estimate.
+		if (m_previewMode != eLightingPreviewMode::litSphere)
+		{
+			ImGui::TextWrapped("Cast shadows are absent by construction - an environment probe has no "
+							   "visibility term. Judge the direction and color of the shading, not the "
+							   "shadows.");
+		}
+
 		ImGui::Spacing();
 
 		if (ImGui::Button("Apply"))

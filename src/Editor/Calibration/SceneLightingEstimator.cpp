@@ -106,6 +106,79 @@ bool SceneLightingEstimator::estimate(const cv::Mat& bgrImage, const glm::mat3& 
 	return fitFromModelOutputs(modelOutputs, cameraToWorldRotation, outResult);
 }
 
+cv::Mat SceneLightingEstimator::renderReconstructionImage(const Result& result, eReconstructionView view)
+{
+	const cv::Mat& normals= result.modelOutputs.normals;
+	const cv::Mat& albedo= result.modelOutputs.albedo;
+	const cv::Mat& shading= result.modelOutputs.shading;
+
+	if (shading.empty() || shading.type() != CV_32FC3)
+		return cv::Mat();
+	if (view != eReconstructionView::modelShading && (normals.empty() || normals.size() != shading.size()))
+		return cv::Mat();
+
+	const int height= shading.rows;
+	const int width= shading.cols;
+
+	cv::Mat image(height, width, CV_8UC3);
+
+	// Everything the models emit is linear - Marigold's prediction_space is
+	// linear and the SH solve is radiometric - while a plate on screen is
+	// display encoded. The same display transform is applied to every view so
+	// they stay comparable to each other and to the video frame. This is a
+	// display step only; it changes nothing about the fit.
+	const auto encodeForDisplay= [](float linearValue) -> uint8_t
+	{
+		const float clamped= std::fmin(std::fmax(linearValue, 0.f), 1.f);
+		return (uint8_t)(std::pow(clamped, 1.f / 2.2f) * 255.f + 0.5f);
+	};
+
+	for (int y= 0; y < height; ++y)
+	{
+		const cv::Vec3f* shadingRow= shading.ptr<cv::Vec3f>(y);
+		const cv::Vec3f* normalRow= normals.empty() ? nullptr : normals.ptr<cv::Vec3f>(y);
+		const cv::Vec3f* albedoRow= albedo.empty() ? nullptr : albedo.ptr<cv::Vec3f>(y);
+		cv::Vec3b* outputRow= image.ptr<cv::Vec3b>(y);
+
+		for (int x= 0; x < width; ++x)
+		{
+			// The model outputs are RGB - preprocess converts BGR to RGB before
+			// inference - so index 0 is red here.
+			glm::vec3 linearColor(0.f);
+
+			if (view == eReconstructionView::modelShading)
+			{
+				linearColor= glm::vec3(shadingRow[x][0], shadingRow[x][1], shadingRow[x][2]);
+			}
+			else if (normalRow != nullptr)
+			{
+				const cv::Vec3f& n= normalRow[x];
+
+				// The same rejection the fit uses: a normal that is not unit
+				// length means the model had no confident surface there, so
+				// there is nothing to light.
+				const float lengthSquared= n[0] * n[0] + n[1] * n[1] + n[2] * n[2];
+				if (std::fabs(lengthSquared - 1.f) <= 0.2f)
+				{
+					linearColor= result.cameraSpaceEnvironment.evalIrradiance(glm::vec3(n[0], n[1], n[2]));
+					// Order-2 SH rings negative around sharp lights; clamp it
+					// exactly as the renderer and the Unreal skydome do.
+					linearColor= glm::max(linearColor, glm::vec3(0.f));
+
+					if (view == eReconstructionView::relit && albedoRow != nullptr)
+						linearColor*= glm::vec3(albedoRow[x][0], albedoRow[x][1], albedoRow[x][2]);
+				}
+			}
+
+			// OpenCV images are BGR.
+			outputRow[x]= cv::Vec3b(encodeForDisplay(linearColor.b), encodeForDisplay(linearColor.g),
+									encodeForDisplay(linearColor.r));
+		}
+	}
+
+	return image;
+}
+
 bool SceneLightingEstimator::fitFromModelOutputs(const MarigoldInference::Result& modelOutputs,
 												 const glm::mat3& cameraToWorldRotation, Result& outResult) const
 {

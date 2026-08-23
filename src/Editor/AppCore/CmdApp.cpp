@@ -212,6 +212,27 @@ int CmdApp::estimateLighting() const
 			if (!cv::imwrite(path, *target.image))
 				fprintf(stdout, "warning: failed to write %s\n", path.c_str());
 		}
+
+		// Display-encoded reconstructions: what the recovered environment says
+		// the scene's lighting is, next to the shading it was fit against. The
+		// difference is dominated by cast shadows, which a probe cannot carry.
+		struct ReconstructionTarget
+		{
+			SceneLightingEstimator::eReconstructionView view;
+			const char* name;
+		};
+		const ReconstructionTarget reconstructions[]= {
+			{SceneLightingEstimator::eReconstructionView::lighting, "reconstruction_lighting.png"},
+			{SceneLightingEstimator::eReconstructionView::relit, "reconstruction_relit.png"},
+			{SceneLightingEstimator::eReconstructionView::modelShading, "reconstruction_target_shading.png"}};
+		for (const ReconstructionTarget& target : reconstructions)
+		{
+			const cv::Mat image= SceneLightingEstimator::renderReconstructionImage(result, target.view);
+			const std::string path= (root / target.name).string();
+			if (image.empty() || !cv::imwrite(path, image))
+				fprintf(stdout, "warning: failed to write %s\n", path.c_str());
+		}
+
 		fprintf(stdout, "dumped model outputs to %s\n", dumpDirectory.c_str());
 	}
 
