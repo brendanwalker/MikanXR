@@ -354,7 +354,14 @@ void EditorObjectSystem::disposeSceneTransformGizmo()
 	MikanObjectPtr gizmoObjectPtr= m_gizmoObjectWeakPtr.lock();
 	if (gizmoObjectPtr)
 	{
-		gizmoObjectPtr->dispose();
+		// deleteObject, NOT gizmoObjectPtr->dispose(): the gizmo comes from
+		// newEmptyObject(), so the system's object list holds the only strong
+		// reference to it. Disposing it without also removing it from that list
+		// leaves a disposed object behind, which deleteAllObjects() then
+		// disposes a second time - tripping MikanObject::dispose's
+		// assert(!m_bIsDisposed) on shutdown - and leaks one object per scene
+		// switch, since a fresh gizmo is created on every scene activation.
+		deleteObject(gizmoObjectPtr);
 	}
 
 	m_gizmoObjectWeakPtr.reset();
