@@ -344,27 +344,35 @@ void CompositorOutputEditorWindow::render()
 
 				if (currentScene)
 				{
-					// Clear the scene of any previously rendered instances
+					// Clear the scene of any previously rendered instances. Done even while the
+					// overlay is disabled, so toggling it off does not leave the scene holding
+					// renderables belonging to since-deleted actors.
 					m_mkScene->removeAllInstances();
 
-					// Add scene actors to the MkScene for rendering
-					if (editorConfig.bDebugRenderBoxStencils)
+					// This window shows what the shot looks like, so the editor's authoring
+					// overlay stays out of it unless "Debug Render in Compositor" is explicitly
+					// enabled. The per-object "Render <X>" flags still apply on top of it.
+					if (editorConfig.bDebugRenderInCompositor)
 					{
-						addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene);
-					}
+						// Add scene actors to the MkScene for rendering
+						if (editorConfig.bDebugRenderBoxStencils)
+						{
+							addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene);
+						}
 
-					if (editorConfig.bDebugRenderModelStencils)
-					{
-						addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene);
-					}
+						if (editorConfig.bDebugRenderModelStencils)
+						{
+							addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene);
+						}
 
-					if (editorConfig.bDebugRenderQuadStencils)
-					{
-						addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
-					}
+						if (editorConfig.bDebugRenderQuadStencils)
+						{
+							addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
+						}
 
-					// Render the 3d scene
-					m_mkScene->render(m_viewCamera, stateStack);
+						// Render the 3d scene
+						m_mkScene->render(m_viewCamera, stateStack);
+					}
 				}
 			}
 		}

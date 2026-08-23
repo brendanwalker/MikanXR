@@ -53,6 +53,7 @@ const std::string EditorObjectSystemDefinition::k_snapEnabledPropertyId= "snap_e
 const std::string EditorObjectSystemDefinition::k_rulerDisplayUnitsPropertyId= "ruler_display_units";
 const std::string EditorObjectSystemDefinition::k_debugCameraAlignmentPropertyId= "debug_camera_alignment";
 const std::string EditorObjectSystemDefinition::k_modelStencilDisplayModePropertyId= "model_stencil_display_mode";
+const std::string EditorObjectSystemDefinition::k_debugRenderInCompositorPropertyId= "debug_render_in_compositor";
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
@@ -74,6 +75,7 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_rulerDisplayUnitsPropertyId]= (int)m_editorSettings.rulerDisplayUnits;
 	pt[k_debugCameraAlignmentPropertyId]= m_editorSettings.bDebugCameraAlignment;
 	pt[k_modelStencilDisplayModePropertyId]= (int)m_editorSettings.modelStencilDisplayMode;
+	pt[k_debugRenderInCompositorPropertyId]= m_editorSettings.bDebugRenderInCompositor;
 
 	return pt;
 }
@@ -108,6 +110,8 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 		pt.get_or<bool>(k_debugCameraAlignmentPropertyId, m_editorSettings.bDebugCameraAlignment);
 	m_editorSettings.modelStencilDisplayMode= (eStencilDisplayMode)pt.get_or<int>(
 		k_modelStencilDisplayModePropertyId, (int)m_editorSettings.modelStencilDisplayMode);
+	m_editorSettings.bDebugRenderInCompositor=
+		pt.get_or<bool>(k_debugRenderInCompositorPropertyId, m_editorSettings.bDebugRenderInCompositor);
 }
 
 void EditorObjectSystemDefinition::setRenderOriginFlag(bool flag)
@@ -251,6 +255,15 @@ void EditorObjectSystemDefinition::setModelStencilDisplayMode(eStencilDisplayMod
 	{
 		m_editorSettings.modelStencilDisplayMode= mode;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelStencilDisplayModePropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setDebugRenderInCompositor(bool enabled)
+{
+	if (m_editorSettings.bDebugRenderInCompositor != enabled)
+	{
+		m_editorSettings.bDebugRenderInCompositor= enabled;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_debugRenderInCompositorPropertyId));
 	}
 }
 
