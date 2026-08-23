@@ -190,7 +190,7 @@ struct MarigoldInference::Impl
 	}
 
 	bool denoise(OnnxSession& unet, const std::vector<float>& imageLatent, int latentH, int latentW, int targetCount,
-				 unsigned int seed, std::vector<float>& outPredLatent)
+				 unsigned int seed, std::vector<float>& outPredLatent, const std::function<bool()>& onStepComplete= {})
 	{
 		const size_t planeSize= (size_t)latentH * latentW;
 		const size_t predSize= planeSize * 4 * targetCount;
@@ -226,6 +226,11 @@ struct MarigoldInference::Impl
 				return false;
 
 			ddimStep(outputs[0].GetTensorData<float>(), timestep, outPredLatent);
+
+			// The natural cancellation point: between steps the latent is
+			// consistent, and there are only a handful of them.
+			if (onStepComplete && !onStepComplete())
+				return false;
 		}
 
 		return true;
@@ -258,10 +263,11 @@ bool MarigoldInference::startup(const Config& config)
 		OnnxSession* session;
 		const char* fileName;
 	};
-	const ModelToLoad models[]= {{&m_impl->vaeEncoder, "vae_encoder.onnx"},
-								 {&m_impl->vaeDecoder, "vae_decoder.onnx"},
-								 {&m_impl->unetIid, "unet_iid_lighting.onnx"},
-								 {&m_impl->unetNormals, "unet_normals.onnx"}};
+	std::vector<ModelToLoad> models= {{&m_impl->vaeEncoder, "vae_encoder.onnx"},
+									  {&m_impl->vaeDecoder, "vae_decoder.onnx"},
+									  {&m_impl->unetIid, "unet_iid_lighting.onnx"}};
+	if (config.bEnableNormals)
+		models.push_back({&m_impl->unetNormals, "unet_normals.onnx"});
 
 	for (const ModelToLoad& model : models)
 	{
@@ -353,7 +359,21 @@ void MarigoldInference::shutdown()
 	}
 }
 
-bool MarigoldInference::run(const cv::Mat& bgrImage, Result& outResult)
+void MarigoldInference::requestCancel()
+{
+	if (!m_impl)
+		return;
+
+	// Whichever session is mid-Run is the one that matters, and the caller does
+	// not know which that is, so flag them all. The flag is cleared at the top
+	// of each run(), so the sessions stay usable afterwards.
+	m_impl->vaeEncoder.requestTerminate();
+	m_impl->vaeDecoder.requestTerminate();
+	m_impl->unetIid.requestTerminate();
+	m_impl->unetNormals.requestTerminate();
+}
+
+bool MarigoldInference::run(const cv::Mat& bgrImage, Result& outResult, const StepCallback& stepCallback)
 {
 	if (!m_bIsInitialized)
 		return false;
@@ -363,6 +383,18 @@ bool MarigoldInference::run(const cv::Mat& bgrImage, Result& outResult)
 		MIKAN_LOG_ERROR("MarigoldInference::run") << "Expected a non-empty CV_8UC3 image";
 		return false;
 	}
+
+	// One VAE encode, one denoise step per timestep, and one decode per target
+	// (three IID targets, plus normals when that path is enabled).
+	const int denoiseStepCount= (int)m_impl->timesteps.size();
+	const int decodeCount= m_impl->config.bEnableNormals ? 4 : 3;
+	const int totalUnits= 1 + denoiseStepCount + decodeCount + (m_impl->config.bEnableNormals ? denoiseStepCount : 0);
+	int completedUnits= 0;
+	const auto reportUnitComplete= [&completedUnits, totalUnits, &stepCallback]() -> bool
+	{
+		completedUnits++;
+		return stepCallback ? stepCallback(completedUnits, totalUnits) : true;
+	};
 
 	const cv::Size originalSize= bgrImage.size();
 	cv::Size paddedSize, resizedSize;
@@ -375,12 +407,15 @@ bool MarigoldInference::run(const cv::Mat& bgrImage, Result& outResult)
 		MIKAN_LOG_ERROR("MarigoldInference::run") << "VAE encode failed";
 		return false;
 	}
+	if (!reportUnitComplete())
+		return false;
 
 	const size_t planeSize= (size_t)latentH * latentW;
 
 	// -- intrinsics: albedo, shading, residual --
 	std::vector<float> iidLatent;
-	if (!m_impl->denoise(m_impl->unetIid, imageLatent, latentH, latentW, 3, m_impl->config.seed, iidLatent))
+	if (!m_impl->denoise(m_impl->unetIid, imageLatent, latentH, latentW, 3, m_impl->config.seed, iidLatent,
+						 reportUnitComplete))
 	{
 		MIKAN_LOG_ERROR("MarigoldInference::run") << "Intrinsics denoise failed";
 		return false;
@@ -402,11 +437,21 @@ bool MarigoldInference::run(const cv::Mat& bgrImage, Result& outResult)
 		clipped= (clipped + 1.0) * 0.5;
 
 		*targets[targetIndex]= m_impl->postprocess(clipped, resizedSize, originalSize);
+
+		if (!reportUnitComplete())
+			return false;
 	}
 
 	// -- normals --
+	if (!m_impl->config.bEnableNormals)
+	{
+		outResult.normals= cv::Mat();
+		return true;
+	}
+
 	std::vector<float> normalsLatent;
-	if (!m_impl->denoise(m_impl->unetNormals, imageLatent, latentH, latentW, 1, m_impl->config.seed + 1, normalsLatent))
+	if (!m_impl->denoise(m_impl->unetNormals, imageLatent, latentH, latentW, 1, m_impl->config.seed + 1, normalsLatent,
+						 reportUnitComplete))
 	{
 		MIKAN_LOG_ERROR("MarigoldInference::run") << "Normals denoise failed";
 		return false;
@@ -435,6 +480,9 @@ bool MarigoldInference::run(const cv::Mat& bgrImage, Result& outResult)
 				row[x]/= length;
 		}
 	}
+
+	if (!reportUnitComplete())
+		return false;
 
 	return true;
 }

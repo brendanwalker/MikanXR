@@ -61,6 +61,21 @@ enum class eUniformSemantic : int
 	distortionTexture, // vec2f texture applying lens undistortion
 	depthTexture,      // float texture with depth values
 
+	// Order-2 spherical harmonic environment, one RGB coefficient per slot.
+	// Nine separate uniforms rather than an array because the uniform binding
+	// layer is one semantic per uniform. Deliberately mirrors the SH0..SH8
+	// parameters on the Unreal skydome material so the two evaluations can be
+	// compared directly - see docs/reference/scene-lighting.md.
+	shCoefficient0,
+	shCoefficient1,
+	shCoefficient2,
+	shCoefficient3,
+	shCoefficient4,
+	shCoefficient5,
+	shCoefficient6,
+	shCoefficient7,
+	shCoefficient8,
+
 	COUNT
 };
 

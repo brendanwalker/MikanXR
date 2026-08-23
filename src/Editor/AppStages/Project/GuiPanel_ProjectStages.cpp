@@ -5,6 +5,8 @@
 #include "Transform.h"
 #include "MikanCoreTypes.h"
 #include "IconsForkAwesome.h"
+#include "LightEnvironmentComponent.h"
+#include "LightEnvironmentSystem.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -16,6 +18,7 @@
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
 #include "Shared/GuiPanel_CameraComponent.h"
+#include "Shared/GuiPanel_LightEnvironmentComponent.h"
 #include "Shared/GuiPanel_RGBPixelGridComponent.h"
 #include "Shared/GuiPanel_RGBSpotLightComponent.h"
 #include "Shared/GuiPanel_StageComponent.h"
@@ -30,6 +33,7 @@ bool GuiPanel_ProjectStages::init(ProjectGuiPanelContext* context)
 	AppStage_Project* ownerAppStage= context->getOwnerAppStage();
 	m_stageSystem= ownerAppStage->getObjectSystemOfType<StageObjectSystem>();
 	m_cameraSystem= ownerAppStage->getObjectSystemOfType<CameraObjectSystem>();
+	m_lightEnvironmentSystem= ownerAppStage->getObjectSystemOfType<LightEnvironmentSystem>();
 	m_spotLightSystem= ownerAppStage->getObjectSystemOfType<RGBSpotLightSystem>();
 	m_pixelGridLightSystem= ownerAppStage->getObjectSystemOfType<RGBPixelGridSystem>();
 
@@ -74,6 +78,11 @@ void GuiPanel_ProjectStages::dispose() { GuiPanel::dispose(); }
 
 StageObjectSystemPtr GuiPanel_ProjectStages::getStageSystem() const { return m_stageSystem.lock(); }
 
+LightEnvironmentSystemPtr GuiPanel_ProjectStages::getLightEnvironmentSystem() const
+{
+	return m_lightEnvironmentSystem.lock();
+}
+
 CameraObjectSystemPtr GuiPanel_ProjectStages::getCameraSystem() const { return m_cameraSystem.lock(); }
 
 RGBSpotLightSystemPtr GuiPanel_ProjectStages::getSpotLightSystem() const { return m_spotLightSystem.lock(); }
@@ -109,10 +118,9 @@ void GuiPanel_ProjectStages::setSelectedStageId(MikanStageID stageId)
 	m_selectedCameraId= INVALID_MIKAN_ID;
 	m_context->getCameraPanel()->setComponent(nullptr);
 
-	// Reset light selection when stage changes
-	m_selectedLightId= INVALID_MIKAN_ID;
-	m_context->getSpotLightPanel()->setComponent(nullptr);
-	m_context->getPixelGridPanel()->setComponent(nullptr);
+	// Reset light selection when stage changes. Routed through the setter so
+	// every light panel is cleared, including ones added later.
+	setSelectedLightId(INVALID_MIKAN_ID, eSelectedLightKind::none);
 }
 
 void GuiPanel_ProjectStages::setSelectedCameraId(MikanCameraID cameraId)
@@ -125,25 +133,44 @@ void GuiPanel_ProjectStages::setSelectedCameraId(MikanCameraID cameraId)
 		m_context->getCameraPanel()->setComponent(nullptr);
 }
 
-void GuiPanel_ProjectStages::setSelectedLightId(MikanLightID lightId, bool isGrid)
+void GuiPanel_ProjectStages::setSelectedLightId(MikanLightID lightId, eSelectedLightKind lightKind)
 {
 	m_selectedLightId= (int)lightId;
-	m_selectedLightIsGrid= isGrid;
+	m_selectedLightKind= (lightId != INVALID_MIKAN_ID) ? lightKind : eSelectedLightKind::none;
 
-	if (isGrid)
+	// Bind the panel for the selected kind and clear the others, so a stale
+	// component never keeps a panel alive behind the current selection.
+	RGBSpotLightComponentPtr spotComponent;
+	RGBPixelGridComponentPtr gridComponent;
+	LightEnvironmentComponentPtr environmentComponent;
+
+	switch (m_selectedLightKind)
 	{
-		RGBPixelGridSystemPtr gridSystem= getPixelGridSystem();
-		RGBPixelGridComponentPtr gridComp= gridSystem ? gridSystem->getGridById(lightId) : nullptr;
-		m_context->getPixelGridPanel()->setComponent(gridComp);
-		m_context->getSpotLightPanel()->setComponent(nullptr);
-	}
-	else
+	case eSelectedLightKind::spot:
 	{
 		RGBSpotLightSystemPtr spotSystem= getSpotLightSystem();
-		RGBSpotLightComponentPtr spotComp= spotSystem ? spotSystem->getLightById(lightId) : nullptr;
-		m_context->getSpotLightPanel()->setComponent(spotComp);
-		m_context->getPixelGridPanel()->setComponent(nullptr);
+		spotComponent= spotSystem ? spotSystem->getLightById(lightId) : nullptr;
 	}
+	break;
+	case eSelectedLightKind::pixelGrid:
+	{
+		RGBPixelGridSystemPtr gridSystem= getPixelGridSystem();
+		gridComponent= gridSystem ? gridSystem->getGridById(lightId) : nullptr;
+	}
+	break;
+	case eSelectedLightKind::environment:
+	{
+		LightEnvironmentSystemPtr environmentSystem= getLightEnvironmentSystem();
+		environmentComponent= environmentSystem ? environmentSystem->getLightEnvironmentById(lightId) : nullptr;
+	}
+	break;
+	default:
+		break;
+	}
+
+	m_context->getSpotLightPanel()->setComponent(spotComponent);
+	m_context->getPixelGridPanel()->setComponent(gridComponent);
+	m_context->getLightEnvironmentPanel()->setComponent(environmentComponent);
 }
 
 void GuiPanel_ProjectStages::onGui()
@@ -269,7 +296,7 @@ void GuiPanel_ProjectStages::onGui()
 							return true;
 						});
 					if (light)
-						setSelectedLightId((MikanLightID)light->getComponentId(), false);
+						setSelectedLightId((MikanLightID)light->getComponentId(), eSelectedLightKind::spot);
 				}
 			});
 	}
@@ -293,7 +320,7 @@ void GuiPanel_ProjectStages::onGui()
 							return true;
 						});
 					if (grid)
-						setSelectedLightId((MikanLightID)grid->getComponentId(), true);
+						setSelectedLightId((MikanLightID)grid->getComponentId(), eSelectedLightKind::pixelGrid);
 				}
 			});
 	}
@@ -301,6 +328,37 @@ void GuiPanel_ProjectStages::onGui()
 	// Light outliner — flat list of all lights in the selected stage
 	if (ImGui::BeginListBox("##LightOutliner", ImVec2(-1, 120)))
 	{
+		// Environment lights
+		LightEnvironmentSystemPtr lightSystem= getLightEnvironmentSystem();
+		if (lightSystem)
+		{
+			for (const auto& [id, weakPtr] : lightSystem->getComponentMap())
+			{
+				LightEnvironmentComponentPtr comp= weakPtr.lock();
+				if (!comp)
+					continue;
+
+				// Filter to selected stage. A probe reaches its stage through
+				// its parent camera, so an unparented one has no stage and is
+				// simply not listed - dereferencing here would crash.
+				StageComponentConstPtr ownerStage= comp->getOwnerStageComponent();
+				if (!ownerStage || ownerStage->getComponentId() != m_selectedStageId)
+					continue;
+
+				const std::string name= comp->getName().empty() ? ("Env " + std::to_string(id)) : comp->getName();
+				const std::string label= "[Env] " + name + "##env" + std::to_string(id);
+
+				bool selected= (m_selectedLightKind == eSelectedLightKind::environment && m_selectedLightId == (int)id);
+				if (ImGui::Selectable(label.c_str(), selected))
+				{
+					int lightEnvId= (int)id;
+					addDeferredGuiEvent(
+						[this, lightEnvId]()
+						{ setSelectedLightId((MikanLightID)lightEnvId, eSelectedLightKind::environment); });
+				}
+			}
+		}
+
 		// Spot lights
 		RGBSpotLightSystemPtr spotSystem= getSpotLightSystem();
 		if (spotSystem)
@@ -318,11 +376,12 @@ void GuiPanel_ProjectStages::onGui()
 				const std::string name= comp->getName().empty() ? ("Light " + std::to_string(id)) : comp->getName();
 				const std::string label= "[Spot] " + name + "##spot" + std::to_string(id);
 
-				bool selected= (!m_selectedLightIsGrid && m_selectedLightId == (int)id);
+				bool selected= (m_selectedLightKind == eSelectedLightKind::spot && m_selectedLightId == (int)id);
 				if (ImGui::Selectable(label.c_str(), selected))
 				{
 					int lightId= (int)id;
-					addDeferredGuiEvent([this, lightId]() { setSelectedLightId((MikanLightID)lightId, false); });
+					addDeferredGuiEvent([this, lightId]()
+										{ setSelectedLightId((MikanLightID)lightId, eSelectedLightKind::spot); });
 				}
 			}
 		}
@@ -344,11 +403,12 @@ void GuiPanel_ProjectStages::onGui()
 				const std::string name= comp->getName().empty() ? ("Grid " + std::to_string(id)) : comp->getName();
 				const std::string label= "[Grid] " + name + "##grid" + std::to_string(id);
 
-				bool selected= (m_selectedLightIsGrid && m_selectedLightId == (int)id);
+				bool selected= (m_selectedLightKind == eSelectedLightKind::pixelGrid && m_selectedLightId == (int)id);
 				if (ImGui::Selectable(label.c_str(), selected))
 				{
 					int gridId= (int)id;
-					addDeferredGuiEvent([this, gridId]() { setSelectedLightId((MikanLightID)gridId, true); });
+					addDeferredGuiEvent([this, gridId]()
+										{ setSelectedLightId((MikanLightID)gridId, eSelectedLightKind::pixelGrid); });
 				}
 			}
 		}
@@ -359,12 +419,19 @@ void GuiPanel_ProjectStages::onGui()
 	// Remove and component panel for the selected light
 	if (m_selectedLightId != INVALID_MIKAN_ID)
 	{
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeLight", "delete_component"))
+		// An environment probe is owned by its camera - the capture tool creates
+		// it and the camera definition references it by id - so deleting one
+		// from here would leave that reference dangling. Only the authored
+		// light kinds get a delete button.
+		const bool bCanRemoveSelectedLight=
+			(m_selectedLightKind == eSelectedLightKind::spot || m_selectedLightKind == eSelectedLightKind::pixelGrid);
+
+		if (bCanRemoveSelectedLight && MkGui::drawImageButton(m_defaultGuiStyle, "removeLight", "delete_component"))
 		{
 			addDeferredGuiEvent(
 				[this]()
 				{
-					if (m_selectedLightIsGrid)
+					if (m_selectedLightKind == eSelectedLightKind::pixelGrid)
 					{
 						RGBPixelGridSystemPtr sys= getPixelGridSystem();
 						if (sys)
@@ -376,13 +443,23 @@ void GuiPanel_ProjectStages::onGui()
 						if (sys)
 							sys->removeObjectByPrimaryComponentId(m_selectedLightId);
 					}
-					setSelectedLightId(INVALID_MIKAN_ID, false);
+					setSelectedLightId(INVALID_MIKAN_ID, eSelectedLightKind::none);
 				});
 		}
 
-		if (m_selectedLightIsGrid)
+		switch (m_selectedLightKind)
+		{
+		case eSelectedLightKind::pixelGrid:
 			m_context->getPixelGridPanel()->onGui();
-		else
+			break;
+		case eSelectedLightKind::environment:
+			m_context->getLightEnvironmentPanel()->onGui();
+			break;
+		case eSelectedLightKind::spot:
 			m_context->getSpotLightPanel()->onGui();
+			break;
+		default:
+			break;
+		}
 	}
 }

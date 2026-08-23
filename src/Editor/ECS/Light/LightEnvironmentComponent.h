@@ -4,6 +4,7 @@
 #include "ComponentFwd.h"
 #include "LightSystemFwd.h"
 #include "MikanLightTypes.h"
+#include "MikanRendererFwd.h"
 #include "SphericalHarmonics.h"
 #include "TransformComponent.h"
 
@@ -72,6 +73,15 @@ public:
 	inline static const std::string k_componentClassName= "LightEnvironmentComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	virtual void init() override;
+	virtual void dispose() override;
+
+	/// Draws a sphere shaded with the recovered environment, so the probe can
+	/// be seen in the scene rather than only in the capture tool. Visualization
+	/// only: it has no collider and lights nothing, the editor twin of the
+	/// Unreal skydome. See docs/reference/scene-lighting.md.
+	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
+
 	inline LightEnvironmentDefinitionPtr getLightEnvironmentDefinition() const
 	{
 		return std::static_pointer_cast<LightEnvironmentDefinition>(m_definition);
@@ -80,6 +90,12 @@ public:
 	/// The recovered environment scaled by the exposure calibration. This is
 	/// what a renderer should consume.
 	SHLightingEnvironment getScaledLightingEnvironment() const;
+
+	/// Get the camera component that owns this light environment
+	CameraComponentConstPtr getOwnerCameraComponent() const;
+
+	// Get the stage component that owns this light environment
+	StageComponentConstPtr getOwnerStageComponent() const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -98,4 +114,11 @@ public:
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void captureSceneLighting();
+
+protected:
+	void rebuildEnvironmentSphereMesh();
+
+	/// Position-only unit sphere; the object-space position doubles as the
+	/// direction the SH is evaluated along, so it must be drawn unrotated.
+	IMkTriangulatedMeshPtr m_environmentSphereMesh;
 };

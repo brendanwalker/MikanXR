@@ -54,6 +54,8 @@ protected:
 	void renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+	void renderEnvironmentLightComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+										  StageComponentConstPtr stageComponent) const;
 	void renderCameraComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
 								StageComponentConstPtr stageComponent) const;
 	void renderVRTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
@@ -97,6 +99,7 @@ protected:
 	ModelStencilSystemWeakPtr m_modelStencilSystem;
 	QuadShapeSystemWeakPtr m_quadShapeSystem;
 	BoxShapeSystemWeakPtr m_boxShapeSystem;
+	LightEnvironmentSystemWeakPtr m_lightEnvironmentSystem;
 	ModelShapeSystemWeakPtr m_modelShapeSystem;
 	RGBPixelGridSystemWeakPtr m_pixelGridLightSystem;
 	RGBSpotLightSystemWeakPtr m_spotLightSystem;

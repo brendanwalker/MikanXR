@@ -2,30 +2,56 @@
 
 //-- includes -----
 #include "MarigoldInference.h"
+#include "MoGeInference.h"
 #include "SphericalHarmonics.h"
 
 #include <glm/glm.hpp>
 
+#include <functional>
 #include <string>
+
+/// Stage of an in-flight estimate, in execution order. Only the diffusion
+/// decomposition reports sub-steps; the rest are single opaque calls.
+enum class eSceneLightingEstimatePhase : int
+{
+	idle,
+	loadingModels,      ///< several GB of ONNX across the two models
+	decomposingShading, ///< Marigold IID: VAE encode, the DDIM loop, the decodes
+	estimatingGeometry, ///< MoGe-2 forward pass for the surface normals
+	fittingLighting,    ///< the order-2 SH least squares
+	complete,
+};
+
+/// Number of steps shown in the estimate progress readout.
+static constexpr int k_sceneLightingEstimateStepCount= 4;
 
 //-- types -----
 /// Recovers the scene's low-frequency lighting from one captured frame.
 ///
-/// Pipeline: undistorted frame -> Marigold (normals + diffuse shading) ->
-/// per-pixel masking -> order-2 SH least squares -> rotate camera space into
-/// Mikan world space using the tracked camera pose.
+/// Pipeline: undistorted frame -> Marigold IID (diffuse shading) + MoGe-2
+/// (surface normals) -> per-pixel masking -> order-2 SH least squares ->
+/// rotate camera space into Mikan world space using the tracked camera pose.
 ///
-/// The rotation step is the reason this lives inside Mikan: the model returns
+/// The normals moved from Marigold's 3.4GB normals UNet to MoGe-2's
+/// directly-predicted normal head after the swap was measured to preserve the
+/// recovered lighting within Marigold's own seed-to-seed spread; Marigold
+/// remains the source of the diffuse shading, which has no feed-forward
+/// replacement. See docs/reference/scene-lighting.md.
+///
+/// The rotation step is the reason this lives inside Mikan: the models return
 /// camera-space normals, so without the tracked pose the recovered environment
 /// has no defined orientation relative to the Unreal scene.
-///
-/// See docs/reference/scene-lighting.md for what this can and cannot recover.
 class SceneLightingEstimator
 {
 public:
 	struct Config
 	{
+		/// Marigold model directory (vae/unet_iid/scheduler artifacts).
 		std::string modelDirectory;
+
+		/// MoGe-2 model directory (model.onnx from tools/fetch_moge2_onnx.py).
+		std::string mogeModelDirectory;
+
 		int processingResolution= 768;
 		bool preferGpu= true;
 
@@ -77,15 +103,58 @@ public:
 		MarigoldInference::Result modelOutputs;
 	};
 
+	/// Optional hooks so a UI can follow a long estimate and abandon it.
+	struct Progress
+	{
+		/// Called on the estimating thread as work completes. completedUnits /
+		/// totalUnits are only meaningful within the reported phase, and only
+		/// the diffusion phase reports more than one unit.
+		std::function<void(eSceneLightingEstimatePhase phase, int completedUnits, int totalUnits)> onProgress;
+
+		/// Polled at each checkpoint; returning true abandons the estimate,
+		/// which then fails like any other error. Cancelling is the caller's
+		/// own flag to distinguish - see AppStage_SceneLightingCapture.
+		std::function<bool()> isCancelled;
+	};
+
 	bool startup(const Config& config);
 	void shutdown();
 
-	bool getIsInitialized() const { return m_inference.getIsInitialized(); }
+	/// Asks an in-flight estimate() to give up as soon as ONNX Runtime notices.
+	/// Safe to call from another thread.
+	void requestCancel();
+
+	bool getIsInitialized() const { return m_inference.getIsInitialized() && m_geometryInference.getIsInitialized(); }
+	/// The IID diffusion pipeline dominates the cost, so its execution provider
+	/// is the one worth warning about.
 	const char* getActiveExecutionProvider() const { return m_inference.getActiveExecutionProvider(); }
 
 	/// bgrImage should already be undistorted (see VideoFrameDistortionView).
 	/// cameraToWorldRotation is the tracked camera's orientation at capture.
-	bool estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation, Result& outResult);
+	/// fovXDegrees is the calibrated horizontal FOV of the undistorted frame;
+	/// the normals the fit consumes are FOV-independent (measured 0.0 degrees
+	/// across a 45-70 sweep), but MoGe-2's metric depth recovery needs it, so
+	/// pass the real value where one exists.
+	bool estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation, float fovXDegrees, Result& outResult,
+				  const Progress& progress= {});
+
+	/// What renderReconstructionImage should draw.
+	enum class eReconstructionView : int
+	{
+		lighting,     ///< the recovered environment at the model's own normals
+		relit,        ///< the same, modulated by the recovered albedo
+		modelShading, ///< the shading the fit solved against, for an A/B
+	};
+
+	/// Builds a display-encoded BGR image (CV_8UC3) from a completed estimate,
+	/// so what the recovered environment does and does not explain can be seen
+	/// against the plate. Returns empty if the result carries no model outputs.
+	///
+	/// Note what this cannot show: an environment probe has no visibility term,
+	/// so cast shadows are absent from the reconstruction by construction. The
+	/// difference against modelShading is dominated by exactly those regions -
+	/// that is expected, not a bad estimate. See docs/reference/scene-lighting.md.
+	static cv::Mat renderReconstructionImage(const Result& result, eReconstructionView view);
 
 	/// Fit only, for tests and for re-fitting cached model output without
 	/// paying for inference again.
@@ -95,4 +164,5 @@ public:
 private:
 	Config m_config;
 	MarigoldInference m_inference;
+	MoGeInference m_geometryInference;
 };

@@ -1,9 +1,11 @@
 #include "CmdApp.h"
+#include "DepthMeshGenerator.h"
 #include "Logger.h"
 #include "SceneLightingEstimator.h"
 #include "TypeRegistry.h"
 #include "TrackerPoseCalibratorTests.h"
 #include "ClientApiPropertySchemaTests.h"
+#include "DepthMeshGeneratorTests.h"
 #include "DMXUniverseRLETests.h"
 #include "LightEnvironmentPersistenceTests.h"
 
@@ -20,6 +22,7 @@ bool run_all_editor_unit_tests()
 	bool success= true;
 	success&= run_tracker_pose_calibrator_unit_tests();
 	success&= run_client_api_property_schema_tests();
+	success&= run_depth_mesh_generator_unit_tests();
 	success&= run_dmx_universe_rle_tests();
 	success&= run_light_environment_persistence_tests();
 	// Future: add more test modules here
@@ -54,6 +57,10 @@ int CmdApp::exec(int argc, char** argv)
 	if (hasCommandLineFlag("runTests"))
 	{
 		result= runTests();
+	}
+	else if (hasCommandLineFlag("depthMesh"))
+	{
+		result= generateDepthMesh();
 	}
 	else if (hasCommandLineFlag("estimateLighting") || !getCommandLineStringArg("image").empty())
 	{
@@ -103,9 +110,14 @@ void CmdApp::printUsage() const
 					"\n"
 					"Commands:\n"
 					"  -runTests    Run the editor unit test suites\n"
-					"  -estimateLighting -image=<path> [-models=<dir>] [-cpu] [-dump=<dir>]\n"
+					"  -estimateLighting -image=<path> [-fov=<degrees>] [-models=<dir>]\n"
+					"               [-mogeModels=<dir>] [-cpu] [-dump=<dir>]\n"
 					"               Estimate scene lighting from a single frame and print the\n"
-					"               recovered spherical harmonic environment.\n");
+					"               recovered spherical harmonic environment.\n"
+					"  -depthMesh -image=<path> -fov=<degrees> [-obj=<path>] [-mogeModels=<dir>]\n"
+					"               [-stride=<n>] [-maxDepth=<metres>] [-cpu]\n"
+					"               Generate a camera-space depth proxy mesh from a single frame\n"
+					"               and write it as an OBJ.\n");
 }
 
 int CmdApp::estimateLighting() const
@@ -130,6 +142,7 @@ int CmdApp::estimateLighting() const
 
 	SceneLightingEstimator::Config config;
 	config.modelDirectory= modelDirectory;
+	config.mogeModelDirectory= getCommandLineStringArg("mogeModels", "models/moge2");
 	config.preferGpu= !hasCommandLineFlag("cpu");
 
 	// The denoise loop starts from random latents, so the seed changes the
@@ -148,8 +161,12 @@ int CmdApp::estimateLighting() const
 	fprintf(stdout, "backend: %s\n", estimator.getActiveExecutionProvider());
 
 	// No tracked camera here, so the camera-space result is reported as-is.
+	// The FOV only affects MoGe-2's metric depth recovery, not the normals the
+	// fit consumes, so a nominal default is fine for standalone images.
+	const float fovXDegrees= (float)atof(getCommandLineStringArg("fov", "60").c_str());
+
 	SceneLightingEstimator::Result result;
-	if (!estimator.estimate(bgrImage, glm::mat3(1.f), result))
+	if (!estimator.estimate(bgrImage, glm::mat3(1.f), fovXDegrees, result))
 	{
 		fprintf(stdout, "error: estimation failed (see MikanCmd.log)\n");
 		return EXIT_FAILURE;
@@ -195,8 +212,106 @@ int CmdApp::estimateLighting() const
 			if (!cv::imwrite(path, *target.image))
 				fprintf(stdout, "warning: failed to write %s\n", path.c_str());
 		}
+
+		// Display-encoded reconstructions: what the recovered environment says
+		// the scene's lighting is, next to the shading it was fit against. The
+		// difference is dominated by cast shadows, which a probe cannot carry.
+		struct ReconstructionTarget
+		{
+			SceneLightingEstimator::eReconstructionView view;
+			const char* name;
+		};
+		const ReconstructionTarget reconstructions[]= {
+			{SceneLightingEstimator::eReconstructionView::lighting, "reconstruction_lighting.png"},
+			{SceneLightingEstimator::eReconstructionView::relit, "reconstruction_relit.png"},
+			{SceneLightingEstimator::eReconstructionView::modelShading, "reconstruction_target_shading.png"}};
+		for (const ReconstructionTarget& target : reconstructions)
+		{
+			const cv::Mat image= SceneLightingEstimator::renderReconstructionImage(result, target.view);
+			const std::string path= (root / target.name).string();
+			if (image.empty() || !cv::imwrite(path, image))
+				fprintf(stdout, "warning: failed to write %s\n", path.c_str());
+		}
+
 		fprintf(stdout, "dumped model outputs to %s\n", dumpDirectory.c_str());
 	}
+
+	return EXIT_SUCCESS;
+}
+
+int CmdApp::generateDepthMesh() const
+{
+	const std::string imagePath= getCommandLineStringArg("image");
+	const std::string fovArg= getCommandLineStringArg("fov");
+
+	if (imagePath.empty() || fovArg.empty())
+	{
+		fprintf(stdout, "error: -image=<path> and -fov=<degrees> are required\n");
+		return EXIT_FAILURE;
+	}
+
+	cv::Mat bgrImage= cv::imread(imagePath, cv::IMREAD_COLOR);
+	if (bgrImage.empty())
+	{
+		fprintf(stdout, "error: could not read image '%s'\n", imagePath.c_str());
+		return EXIT_FAILURE;
+	}
+	fprintf(stdout, "image  : %s (%dx%d)\n", imagePath.c_str(), bgrImage.cols, bgrImage.rows);
+
+	MoGeInference::Config config;
+	config.modelDirectory= getCommandLineStringArg("mogeModels", "models/moge2");
+	config.preferGpu= !hasCommandLineFlag("cpu");
+
+	MoGeInference inference;
+	if (!inference.startup(config))
+	{
+		fprintf(stdout, "error: failed to load the MoGe-2 model (see MikanCmd.log)\n");
+		return EXIT_FAILURE;
+	}
+	fprintf(stdout, "backend: %s\n", inference.getActiveExecutionProvider());
+
+	const float fovXDegrees= (float)atof(fovArg.c_str());
+	MoGeInference::Result geometry;
+	if (!inference.run(bgrImage, fovXDegrees, geometry))
+	{
+		fprintf(stdout, "error: inference failed (see MikanCmd.log)\n");
+		return EXIT_FAILURE;
+	}
+
+	DepthMeshGenerator::Config meshConfig;
+	meshConfig.vertexStride= atoi(getCommandLineStringArg("stride", "4").c_str());
+	const std::string maxDepthArg= getCommandLineStringArg("maxDepth");
+	if (!maxDepthArg.empty())
+		meshConfig.maxDepth= (float)atof(maxDepthArg.c_str());
+
+	DepthMeshGenerator::Mesh mesh;
+	DepthMeshGenerator::Stats stats;
+	if (!DepthMeshGenerator::generateMesh(geometry, meshConfig, mesh, stats))
+	{
+		fprintf(stdout, "error: mesh generation produced no triangles (see MikanCmd.log)\n");
+		return EXIT_FAILURE;
+	}
+
+	fprintf(stdout, "mesh   : %zu vertices, %zu triangles (%d cells cut at depth discontinuities)\n",
+			mesh.vertices.size(), mesh.getTriangleCount(), stats.culledDiscontinuityEdges);
+	fprintf(stdout, "depth  : %.2f - %.2f m\n", stats.nearDepth, stats.farDepth);
+
+	const std::string objPath= getCommandLineStringArg("obj", "depth_mesh.obj");
+
+	// The source frame doubles as the proxy's projected texture.
+	const std::filesystem::path texturePath= std::filesystem::path(objPath).replace_extension(".png");
+	std::string textureFileName;
+	if (cv::imwrite(texturePath.string(), bgrImage))
+		textureFileName= texturePath.filename().string();
+	else
+		fprintf(stdout, "warning: failed to write '%s'; mesh will be untextured\n", texturePath.string().c_str());
+
+	if (!DepthMeshGenerator::saveObj(mesh, objPath, "DepthProxyMesh", textureFileName))
+	{
+		fprintf(stdout, "error: failed to write '%s'\n", objPath.c_str());
+		return EXIT_FAILURE;
+	}
+	fprintf(stdout, "wrote  : %s\n", objPath.c_str());
 
 	return EXIT_SUCCESS;
 }

@@ -49,12 +49,22 @@ a standalone tool.
 
 ## Models
 
-Two Marigold checkpoints, run in-process through ONNX Runtime with the DirectML execution provider.
+Two checkpoints, run in-process through ONNX Runtime with the DirectML execution provider.
 
 | Checkpoint | Role |
 |---|---|
 | `prs-eth/marigold-iid-lighting-v1-1` | albedo, **diffuse shading**, non-diffuse residual |
-| `prs-eth/marigold-normals-v1-1` | camera-space surface normals |
+| `Ruicheng/moge-2-vitl-normal` (ONNX export) | camera-space surface normals + metric depth/points |
+
+Normals originally came from `prs-eth/marigold-normals-v1-1` (a second 3.4GB diffusion UNet and
+denoise loop). After the swap was measured to preserve the recovered lighting within Marigold's own
+seed-to-seed spread (see "The directly-predicted-normals experiment" below), MoGe-2's
+directly-predicted normal head replaced it: one 331M-parameter feed-forward pass that also supplies
+the metric geometry for the depth proxy mesh (see [depth-proxy-mesh.md](./depth-proxy-mesh.md)).
+`MarigoldInference` retains the normals path behind `Config::bEnableNormals` but the estimator
+disables it; `unet_normals.onnx` is neither loaded nor required on disk.
+
+Facts about the Marigold checkpoints, all of which shape the export:
 
 Facts verified by inspecting the downloaded checkpoints, all of which shape the export:
 
@@ -247,6 +257,35 @@ Omnidata) would sidestep the affine ambiguity entirely and is the experiment act
 Alternatively the deferred multi-frame proxy-geometry work would resolve scale and shift against the
 tracked camera, which would fix the normals as a side effect.
 
+### The directly-predicted-normals experiment was run, and it holds up
+
+`tools/moge2_proxy_eval.py` re-ran the swap above with MoGe-2 ViT-L (`Ruicheng/moge-2-vitl-normal`,
+331M parameters, single forward pass, MIT code and weights) whose normal head predicts normals
+directly rather than deriving them from depth. Same shading in every row, only the normals differ:
+
+| Plate | vs Marigold normals | `l1/l0` (Marigold → MoGe-2) | SH direction apart |
+|---|---|---|---|
+| Still life (directional) | median **2.5°**, p90 7.8° | 1.127 → **1.061** | **5.8°** |
+| Office (near-ambient) | median 10.4° | 0.226 → 0.245 | 31.3° |
+
+Contrast with the depth-derived attempt: 41° median normal error, directionality crushed 40–50%,
+direction swinging 4.4°–40° with parameters untunable from one image. The direct head preserves
+directionality within 6% on the plate where it matters, lands the key direction inside Marigold's
+own seed-to-seed spread (8–17°), and matches ambient within 7%. The office's 31° direction gap is
+in the regime already established as meaningless — both fits sit at the `l1/l0 ≈ 0.25` warning
+threshold on a plate whose split-half disagreement is 21–44°, and both correctly classify it as
+near-ambient. Confidence classification agrees on both plates.
+
+Two further measurements from the same run:
+
+- **The normal head is decoupled from the scale ambiguity.** Sweeping the FOV conditioning moved
+  metric depth by up to 36% and the predicted normals by exactly 0.0° — the property depth-derived
+  normals structurally lack.
+- MoGe-2 also delivers the geometry needed by the deferred depth-proxy work (see open questions),
+  so one model plausibly replaces the 3.4GB normals UNet *and* provides the proxy mesh. The IID
+  lighting decomposition keeps Marigold — diffuse shading has no comparable feed-forward
+  replacement.
+
 ### The single-environment assumption is the real limit
 
 A single probe assumes spatially-invariant lighting. Measured disagreement in recovered direction
@@ -274,7 +313,9 @@ so multiple probes remain possible without a wire-format change.
 | `empty_text_embedding.bin` | float32 `[1,2,1024]` |
 | `scheduler.json` | `alphas_cumprod` plus the DDIM config the C++ step needs |
 
-Total ~6.8GB. `models/` and `*.onnx.data` are gitignored.
+Total ~6.8GB. `models/` and `*.onnx.data` are gitignored. Since the MoGe-2 swap the estimator no
+longer loads `unet_normals.onnx` (3.4GB), but the export script still produces it so the Marigold
+normals path remains reproducible for comparisons.
 
 Three things that are easy to get wrong:
 
@@ -424,22 +465,97 @@ via the **Capture Scene Lighting** component function, which is registered throu
 `IFunctionInterface` and is therefore also reachable from Lua and remotely over the client API.
 
 Flow: pick a camera → live video while framing the shot → **Capture** runs both models → the panel
-shows the estimate's confidence numbers alongside a lit sphere rendered from the recovered
+shows the estimate's confidence numbers alongside a verification render of the recovered
 environment → **Apply** writes it into the probe.
 
 Two deliberate choices:
 
 - **The estimate is judged before it is committed.** The panel shows `l1/l0` prominently (in amber
-  below 0.25) and renders the lit sphere in *camera* space so it can be compared directly against
-  the video frame behind it. The failure mode this guards against is a confident-looking
-  near-ambient estimate.
+  below 0.25) and renders the estimate over the plate. The failure mode this guards against is a
+  confident-looking near-ambient estimate.
 - **The camera is chosen explicitly** rather than inferred. The recovered environment is only
   meaningful in world space if the frame's camera pose is known, so an untracked camera should fail
   loudly rather than silently produce a mis-oriented environment.
 
-The ONNX sessions are held by the AppStage, not the object system: the models are several gigabytes,
-so they load when the tool opens and are freed when it closes. Inference blocks the UI for several
-seconds, which is why `runningInference` is its own menu state.
+### Judging the estimate: reconstruct the scene, not a sphere
+
+A lit sphere shows the environment in the abstract; it does not answer "does this explain the
+shot in front of me". `SceneLightingEstimator::renderReconstructionImage` answers that directly by
+evaluating the recovered environment at the **scene's own normals**, which is the same quantity
+`E(n)` the fit solved against `shading`. The panel offers four views over the plate:
+
+| View | What it draws | Reads as |
+|---|---|---|
+| **Recovered lighting** | `E(n)` at the model's normals | the incident lighting the estimate claims |
+| **Relit scene** | `albedo · E(n)` | the plate re-rendered under only the recovered light |
+| **Model shading** | Marigold's `shading` | the target the fit solved against - the A/B partner |
+| **Lit sphere** | the old camera-space sphere | the environment itself, at a glance |
+
+Flipping between *Recovered lighting* and *Model shading* is the useful comparison: where they
+agree, the estimate explains the scene.
+
+**Cast shadows will be missing, and that is structural.** An environment probe has no visibility
+term, so the reconstruction cannot reproduce a shadow — confirmed on the still-life plate, where
+the object shading and its left-hand key direction come back cleanly while the hard window shadow
+and the plant shadows are entirely absent. That is the same fact the low R² measures (see "R² is
+low, and is the wrong success metric"); in the real pipeline those shadows are Unreal's job via the
+shadow-catcher passes. The panel says so on screen, because reading missing shadows as a bad
+estimate is the obvious trap here. Judge the direction and color of the shading instead.
+
+All four views apply the same display transform (a 1/2.2 encode) so they stay comparable to each
+other and to the video frame; the model outputs and the solve are linear and are not affected. The
+reconstruction lives on the estimator rather than in the AppStage so that
+`MikanCmd -estimateLighting -dump=<dir>` writes exactly what the panel shows
+(`reconstruction_lighting.png`, `reconstruction_relit.png`, `reconstruction_target_shading.png`),
+which is also how the views were verified.
+
+### Seeing a probe in the editor scene
+
+`LightEnvironmentComponent::customRender` draws a sphere shaded with the probe's own environment, so
+a committed probe is visible in the viewport rather than only inside the capture tool. It is the
+editor twin of the Unreal skydome: **visualization only** — no collider, and it lights nothing.
+
+The material is a new internal shader, `INTERNAL_MATERIAL_P_SH_ENVIRONMENT`, which evaluates
+order-2 SH radiance in the fragment shader from nine `vec3` uniforms (`shCoefficient0..8`, new
+`eUniformSemantic` entries deliberately mirroring the Unreal material's `SH0..SH8`). It uses the
+same basis constants as `sh_eval_basis`, and clamps at zero for the same reason every other
+consumer does — order-2 SH rings negative around sharp lights.
+
+Two constraints worth knowing before changing it:
+
+- **The mesh is position-only and must be drawn unrotated.** The shader treats the object-space
+  position as the direction to evaluate along, which is what lets a bare unit sphere carry the
+  environment with no normals or UVs. The environment is world space, so `customRender` composes
+  translation and uniform scale only — a rotation on the component would silently rotate the
+  recovered environment with it. Unlike Unreal there is no Y/Z swap, because the direction is
+  already in Mikan space.
+- **The sphere is probe sized (0.5m), not scene enclosing.** It is drawn as an ordinary opaque mesh
+  in the scene, so a sky-sized sphere would swallow the viewport. `k_environmentSphereRadius` is a
+  one-line change if a true enclosing skybox is wanted; back-face culling is already disabled so it
+  reads correctly from inside as well as outside.
+
+### The estimate runs on a worker thread
+
+The ONNX sessions are held by the AppStage rather than the object system, because the models are
+several gigabytes and should not outlive the tool. They are owned specifically by a **worker
+thread** the stage starts on entry: `OnnxSession` requires a session to be created, run, and
+destroyed on one thread, and the estimate has to be off the UI thread for the progress readout and
+the Cancel button to work at all. The frame and the tracked camera pose are gathered on the UI
+thread and handed over as plain data; `update()` polls for the result.
+
+**The progress bar is genuinely sub-step accurate for the part that matters.** Unlike a single
+opaque ONNX `Run`, the Marigold pipeline is a sequence of discrete pieces — one VAE encode, one
+denoise step per scheduler timestep, one decode per target — so `MarigoldInference::run` reports a
+unit as each lands (8 units with the normals UNet disabled). That step is also the one that
+dominates the wall clock, so it gets the widest band in the bar and moves smoothly through it. The
+model load, the MoGe-2 forward pass, and the SH fit can only jump, and an elapsed-seconds readout
+covers them.
+
+**Cancel abandons an in-flight run**, not just the gaps between steps: `requestCancel` sets ONNX
+Runtime's terminate flag on every session (see `OnnxSession::requestTerminate`, the one method
+there that is safe to call cross-thread), and the denoise loop also checks the cancel flag between
+steps. A cancelled estimate fails like any other error, so the stage's own cancel flag is what
+distinguishes the two. Cancelling returns to framing with the models still loaded.
 
 ---
 
@@ -458,6 +574,18 @@ Developer-only. Neither ships with Mikan nor is invoked at runtime.
   DDIM `v_prediction` loop, per-target decode, and postprocessing all map 1:1.
 - `tools/validate_onnx_pipeline.py` — feeds both implementations the same fixed initial latents so
   the comparison is exact rather than statistical.
+- `tools/fetch_moge2_onnx.py` — downloads the official MoGe-2 ONNX export into `models/moge2`.
+  There is no local export step for this model.
+- `tools/moge2_onnx_pipeline.py` — MoGe-2 inference in ONNX Runtime + numpy only, no torch.
+  **This is the executable specification for the C++ `MoGeInference`**: preprocessing, the forward
+  pass, and the shift/scale recovery map 1:1. Validated against the PyTorch reference (depth within
+  0.04%, normals within 0.03°); the C++ port matches it per-vertex to 0.001% at p99.
+- `tools/moge2_proxy_eval.py` — evaluates MoGe-2 as the geometry source for the depth-proxy work:
+  silhouette alignment of depth edges, metric-depth sensitivity to FOV conditioning, and the SH fit
+  re-run with MoGe-2's directly-predicted normals. Needs `moge` + `utils3d`, installed with
+  `pip install --user --no-deps` from the microsoft/MoGe and EasternJournalist/utils3d repos so the
+  pinned diffusers/torch environment is untouched. Writes to `build/moge2_eval/`, including oblique
+  point-splat renders for eyeballing silhouette skirts.
 
 These need `diffusers` pinned to **0.34.0**. Newer versions (0.39) fail to import under torch 2.4.1:
 they register a flash-attention custom op whose PEP 604 annotations torch 2.4's schema inference
@@ -470,5 +598,12 @@ rejects.
 - Whether a single global probe is good enough in practice, or whether region-of-interest probes
   near the character's position are needed. Answerable only by the end-to-end look in Unreal.
 - Whether the exposure scalar can be calibrated automatically rather than by hand per shoot.
-- Depth-derived proxy geometry for the shadow catcher, replacing hand-placed model stencils.
-  Marigold depth is affine-invariant so it needs a scale/shift solve against the tracked camera.
+- ~~Depth-derived proxy geometry for the shadow catcher~~ — **implemented**; see
+  [depth-proxy-mesh.md](./depth-proxy-mesh.md). The measurements that de-risked it
+  (`tools/moge2_proxy_eval.py`): depth discontinuities land at median 1.0px / p95 ~2px from the
+  nearest image edge, cast shadows produce no spurious depth edges, boundaries commit to
+  near-or-far rather than averaging, and metric scale rides on the assumed FOV (a 45° guess
+  against a ~56° estimate shifts depth 22–36%), which is why the capture stage feeds the
+  calibrated FOV in. DirectML compatibility of the official ONNX export was verified (identical
+  output to CPU, ~7× faster). Still open there: residual metric scale refinement against tracked
+  anchors / the floor plane, and occlusion-grade silhouette edges.

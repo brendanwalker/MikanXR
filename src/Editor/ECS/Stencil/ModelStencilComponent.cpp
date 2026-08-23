@@ -181,7 +181,7 @@ void ModelStencilComponent::customRender(IMkGraphicsContext* graphicsContext, Mi
 	{
 		const eStencilDisplayMode displayMode= editorObjectSystem->getEditorSettings().modelStencilDisplayMode;
 		const bool showSolid= (displayMode != eStencilDisplayMode::wireframe);
-		const bool showWireframe= (displayMode != eStencilDisplayMode::solid);
+		const bool showWireframe= (displayMode != eStencilDisplayMode::solid || m_bIsSelected || m_bIsHovered);
 
 		for (const StaticMeshComponentPtr& triMeshComponent : m_triMeshComponents)
 		{

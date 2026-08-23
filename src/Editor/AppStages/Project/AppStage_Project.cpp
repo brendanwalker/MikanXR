@@ -13,6 +13,8 @@
 #include "IMkTextRenderer.h"
 #include "IMkTexture.h"
 #include "IMkWireframeMesh.h"
+#include "LightEnvironmentComponent.h"
+#include "LightEnvironmentSystem.h"
 #include "MathGLM.h"
 #include "MathMikan.h"
 #include "MainWindow.h"
@@ -581,6 +583,9 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 		if (auto spotLightSystem= m_spotLightSystem.lock())
 			spotLightSystem->customRender(graphicsContext, viewportCamera);
 
+		// Draw all the environment lights in the stage
+		renderEnvironmentLightComponents(graphicsContext, viewportCamera, stageComponent);
+
 		// Draw the cameras on the stage
 		renderCameraComponents(graphicsContext, viewportCamera, stageComponent);
 
@@ -693,6 +698,15 @@ void AppStage_Project::renderMarkerTrackingVolume(IMkGraphicsContext* graphicsCo
 			markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
 		}
 	}
+}
+
+void AppStage_Project::renderEnvironmentLightComponents(IMkGraphicsContext* graphicsContext,
+														MikanCameraPtr viewportCamera,
+														StageComponentConstPtr stageComponent) const
+{
+	getObjectSystemOfType<LightEnvironmentSystem>()->customRender(
+		graphicsContext, viewportCamera, [stageComponent](LightEnvironmentComponentPtr lightEnv)
+		{ return lightEnv->getOwnerStageComponent() == stageComponent; });
 }
 
 void AppStage_Project::renderCameraComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,

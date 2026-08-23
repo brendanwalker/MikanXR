@@ -2,6 +2,9 @@
 
 #include "imgui.h"
 
+#include <cfloat>
+#include <cstdio>
+
 // Below this the recovered environment is effectively uniform ambient and the
 // key light direction carries no information. Matches
 // SceneLightingEstimator's warning threshold.
@@ -62,10 +65,53 @@ void GuiPanel_SceneLightingCapture::onGui()
 
 	case eSceneLightingCaptureMenuState::runningInference:
 	{
-		ImGui::TextWrapped("Estimating scene lighting...");
+		const char* phaseLabel= "Working...";
+		int stepIndex= 1;
+		switch (m_estimatePhase)
+		{
+		case eSceneLightingEstimatePhase::loadingModels:
+			phaseLabel= "Loading the lighting and geometry models...";
+			stepIndex= 1;
+			break;
+		case eSceneLightingEstimatePhase::decomposingShading:
+			phaseLabel= "Decomposing the frame into diffuse shading...";
+			stepIndex= 2;
+			break;
+		case eSceneLightingEstimatePhase::estimatingGeometry:
+			phaseLabel= "Estimating surface normals...";
+			stepIndex= 3;
+			break;
+		case eSceneLightingEstimatePhase::fittingLighting:
+			phaseLabel= "Fitting the lighting environment...";
+			stepIndex= 4;
+			break;
+		default:
+			break;
+		}
+
+		if (m_bCancellingEstimate)
+			ImGui::TextWrapped("Cancelling...");
+		else
+			ImGui::TextWrapped("%s", phaseLabel);
+
+		// The diffusion decomposition is a sequence of discrete pieces - a VAE
+		// encode, one denoise step per scheduler timestep, then the decodes - so
+		// unlike a single opaque ONNX Run it reports real sub-progress, and the
+		// bar moves through the step that dominates the wall clock. The elapsed
+		// clock covers the steps that cannot report anything.
+		char overlay[32];
+		snprintf(overlay, sizeof(overlay), "Step %d of %d", stepIndex, k_sceneLightingEstimateStepCount);
+		ImGui::ProgressBar(m_estimateFraction, ImVec2(-FLT_MIN, 0.f), overlay);
+		ImGui::TextWrapped("%.1f s elapsed", m_estimateElapsedSeconds);
+
 		ImGui::Spacing();
-		ImGui::TextWrapped("Running two diffusion models over the captured frame. This takes several "
-						   "seconds on the GPU and the window will not update until it finishes.");
+		ImGui::BeginDisabled(m_bCancellingEstimate);
+		if (ImGui::Button("Cancel Capture"))
+		{
+			if (OnCancelCaptureEvent)
+				OnCancelCaptureEvent();
+		}
+		ImGui::EndDisabled();
 	}
 	break;
 
@@ -126,7 +172,47 @@ void GuiPanel_SceneLightingCapture::onGui()
 		}
 
 		ImGui::Spacing();
-		ImGui::TextWrapped("Compare the lit sphere against the video frame before applying.");
+
+		int previewIndex= (int)m_previewMode;
+		const char* k_previewLabels[]= {"Recovered lighting", "Relit scene", "Model shading (fit target)",
+										"Lit sphere"};
+		if (ImGui::Combo("Preview", &previewIndex, k_previewLabels, IM_ARRAYSIZE(k_previewLabels)))
+		{
+			m_previewMode= (eLightingPreviewMode)previewIndex;
+		}
+
+		switch (m_previewMode)
+		{
+		case eLightingPreviewMode::recoveredLighting:
+			ImGui::TextWrapped("The recovered environment evaluated at the scene's own normals. Compare "
+							   "against 'Model shading' - where they agree, the estimate explains the "
+							   "lighting.");
+			break;
+		case eLightingPreviewMode::relitScene:
+			ImGui::TextWrapped("The plate re-rendered with only the recovered lighting. It should read "
+							   "like the real frame, minus cast shadows.");
+			break;
+		case eLightingPreviewMode::modelShading:
+			ImGui::TextWrapped("The diffuse shading the fit solved against. Its cast shadows are the part "
+							   "an environment probe cannot reproduce.");
+			break;
+		case eLightingPreviewMode::litSphere:
+			ImGui::TextWrapped("A sphere lit by the recovered environment, in camera space.");
+			break;
+		default:
+			break;
+		}
+
+		// The one reading that is easy to get wrong, so it is stated rather
+		// than left to be discovered: a probe carries no visibility term, so
+		// missing cast shadows are structural and not a bad estimate.
+		if (m_previewMode != eLightingPreviewMode::litSphere)
+		{
+			ImGui::TextWrapped("Cast shadows are absent by construction - an environment probe has no "
+							   "visibility term. Judge the direction and color of the shading, not the "
+							   "shadows.");
+		}
+
 		ImGui::Spacing();
 
 		if (ImGui::Button("Apply"))

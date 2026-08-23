@@ -53,6 +53,7 @@ const std::string EditorObjectSystemDefinition::k_snapEnabledPropertyId= "snap_e
 const std::string EditorObjectSystemDefinition::k_rulerDisplayUnitsPropertyId= "ruler_display_units";
 const std::string EditorObjectSystemDefinition::k_debugCameraAlignmentPropertyId= "debug_camera_alignment";
 const std::string EditorObjectSystemDefinition::k_modelStencilDisplayModePropertyId= "model_stencil_display_mode";
+const std::string EditorObjectSystemDefinition::k_debugRenderInCompositorPropertyId= "debug_render_in_compositor";
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
@@ -74,6 +75,7 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_rulerDisplayUnitsPropertyId]= (int)m_editorSettings.rulerDisplayUnits;
 	pt[k_debugCameraAlignmentPropertyId]= m_editorSettings.bDebugCameraAlignment;
 	pt[k_modelStencilDisplayModePropertyId]= (int)m_editorSettings.modelStencilDisplayMode;
+	pt[k_debugRenderInCompositorPropertyId]= m_editorSettings.bDebugRenderInCompositor;
 
 	return pt;
 }
@@ -108,6 +110,8 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 		pt.get_or<bool>(k_debugCameraAlignmentPropertyId, m_editorSettings.bDebugCameraAlignment);
 	m_editorSettings.modelStencilDisplayMode= (eStencilDisplayMode)pt.get_or<int>(
 		k_modelStencilDisplayModePropertyId, (int)m_editorSettings.modelStencilDisplayMode);
+	m_editorSettings.bDebugRenderInCompositor=
+		pt.get_or<bool>(k_debugRenderInCompositorPropertyId, m_editorSettings.bDebugRenderInCompositor);
 }
 
 void EditorObjectSystemDefinition::setRenderOriginFlag(bool flag)
@@ -254,6 +258,15 @@ void EditorObjectSystemDefinition::setModelStencilDisplayMode(eStencilDisplayMod
 	}
 }
 
+void EditorObjectSystemDefinition::setDebugRenderInCompositor(bool enabled)
+{
+	if (m_editorSettings.bDebugRenderInCompositor != enabled)
+	{
+		m_editorSettings.bDebugRenderInCompositor= enabled;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_debugRenderInCompositorPropertyId));
+	}
+}
+
 // -- EditorObjectSystem -----
 bool EditorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
@@ -341,7 +354,14 @@ void EditorObjectSystem::disposeSceneTransformGizmo()
 	MikanObjectPtr gizmoObjectPtr= m_gizmoObjectWeakPtr.lock();
 	if (gizmoObjectPtr)
 	{
-		gizmoObjectPtr->dispose();
+		// deleteObject, NOT gizmoObjectPtr->dispose(): the gizmo comes from
+		// newEmptyObject(), so the system's object list holds the only strong
+		// reference to it. Disposing it without also removing it from that list
+		// leaves a disposed object behind, which deleteAllObjects() then
+		// disposes a second time - tripping MikanObject::dispose's
+		// assert(!m_bIsDisposed) on shutdown - and leaks one object per scene
+		// switch, since a fresh gizmo is created on every scene activation.
+		deleteObject(gizmoObjectPtr);
 	}
 
 	m_gizmoObjectWeakPtr.reset();

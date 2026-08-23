@@ -5,6 +5,7 @@
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "AlignCameraByUtilityMarker/AppStage_AlignCameraByUtilityMarker.h"
 #include "AlignCameraByOriginMarker/AppStage_AlignCameraByOriginMarker.h"
+#include "DepthMeshCapture/AppStage_DepthMeshCapture.h"
 #include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "Colors.h"
 #include "IEditorWindow.h"
@@ -42,6 +43,7 @@ const std::string CameraDefinition::k_trackingMountIdPropertyId= "tracking_mount
 const std::string CameraDefinition::k_videoSourceIdPropertyId= "video_source_id";
 const std::string CameraDefinition::k_lightEnvironmentIdPropertyId= "light_environment_id";
 const std::string CameraDefinition::k_trackingFrameDelayPropertyId= "tracking_frame_delay";
+const std::string CameraDefinition::k_depthMeshScaleCorrectionPropertyId= "depth_mesh_scale_correction";
 const std::string CameraDefinition::k_apertureOrientationOffsetPropertyId= "aperture_orientation_offset";
 const std::string CameraDefinition::k_aperturePositionOffsetPropertyId= "aperture_position_offset";
 const std::string CameraDefinition::k_hasValidApertureOffsetPropertyId= "has_valid_aperture_offset";
@@ -75,6 +77,7 @@ configuru::Config CameraDefinition::writeToJSON()
 	pt["video_source_id"]= m_videoSourceId;
 	pt["light_environment_id"]= m_lightEnvionmentId;
 	pt["tracking_frame_delay"]= m_trackingFrameDelay;
+	pt["depth_mesh_scale_correction"]= m_depthMeshScaleCorrection;
 
 	writeQuaderntiond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
 	writeVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
@@ -92,6 +95,7 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 	m_videoSourceId= pt.get_or<int>("video_source_id", m_videoSourceId);
 	m_lightEnvionmentId= pt.get_or<int>("light_environment_id", m_lightEnvionmentId);
 	m_trackingFrameDelay= pt.get_or<int>("tracking_frame_delay", m_trackingFrameDelay);
+	m_depthMeshScaleCorrection= pt.get_or<float>("depth_mesh_scale_correction", m_depthMeshScaleCorrection);
 
 	readQuaterniond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
 	readVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
@@ -169,6 +173,15 @@ void CameraDefinition::setLightEnvironmentId(MikanLightID lightEnvironmentId)
 	}
 }
 
+void CameraDefinition::setDepthMeshScaleCorrection(float scaleCorrection)
+{
+	if (scaleCorrection != m_depthMeshScaleCorrection)
+	{
+		m_depthMeshScaleCorrection= scaleCorrection;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_depthMeshScaleCorrectionPropertyId));
+	}
+}
+
 void CameraDefinition::setTrackingFrameDelay(int trackingFrameDelay)
 {
 	if (trackingFrameDelay != m_trackingFrameDelay)
@@ -206,6 +219,7 @@ void CameraDefinition::clearAperturePoseOffset()
 // -- CameraComponent -----
 const std::string CameraComponent::k_alignCameraFunctionId= "align_camera";
 const std::string CameraComponent::k_captureSceneLightingFunctionId= "capture_scene_lighting";
+const std::string CameraComponent::k_captureDepthMeshFunctionId= "capture_depth_mesh";
 
 CameraComponent::CameraComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
@@ -784,6 +798,7 @@ void CameraComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_alignCameraFunctionId, "Align Camera"));
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_captureSceneLightingFunctionId, "Capture Scene Lighting"));
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_captureDepthMeshFunctionId, "Capture Depth Mesh"));
 }
 
 bool CameraComponent::invokeFunction(const std::string& functionName)
@@ -795,6 +810,10 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 	else if (functionName == CameraComponent::k_captureSceneLightingFunctionId)
 	{
 		captureSceneLighting();
+	}
+	else if (functionName == CameraComponent::k_captureDepthMeshFunctionId)
+	{
+		captureDepthMesh();
 	}
 
 	return TransformComponent::invokeFunction(functionName);
@@ -854,6 +873,12 @@ void CameraComponent::captureSceneLighting()
 	lightEnvironmentComponent->captureSceneLighting();
 }
 
+void CameraComponent::captureDepthMesh()
+{
+	auto* captureStage= getOwnerEditorWindow()->pushAppStageOfType<AppStage_DepthMeshCapture>();
+	captureStage->setSourceCamera(getSelfPtr<CameraComponent>());
+}
+
 // -- Lua Binding ----
 void CameraComponent::bindLuaFunctions(struct lua_State* L)
 {
@@ -865,6 +890,7 @@ void CameraComponent::bindLuaFunctions(struct lua_State* L)
 			[](CameraComponent* c, int v) { c->getCameraDefinition()->setTrackingFrameDelay(v); })
 		.addFunction("alignCamera", [](CameraComponent* c) { c->alignCamera(); })
 		.addFunction("captureSceneLighting", [](CameraComponent* c) { c->captureSceneLighting(); })
+		.addFunction("captureDepthMesh", [](CameraComponent* c) { c->captureDepthMesh(); })
 		.addProperty("ownerStageId",
 					 [](CameraComponent* c) -> int { return c->getCameraDefinition()->getOwnerStageId(); })
 		.addProperty("trackingMountId",

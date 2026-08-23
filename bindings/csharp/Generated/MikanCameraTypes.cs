@@ -9,6 +9,7 @@ namespace MikanXR
 		public int stage_id;
 		public int tracking_mount_id;
 		public int video_source_id;
+		public int light_environment_id;
 		public int tracking_frame_delay;
 		public MikanQuatd aperture_orientation_offset;
 		public MikanVector3d aperture_position_offset;

@@ -1,12 +1,23 @@
 #include "LightEnvironmentComponent.h"
 #include "CameraObjectSystem.h"
 #include "IEditorWindow.h"
+#include "IMkGraphicsContext.h"
+#include "IMkShaderCache.h"
+#include "IMkState.h"
+#include "IMkTriangulatedMesh.h"
 #include "MathTypeConversion.h"
+#include "MikanCamera.h"
 #include "MikanObject.h"
+#include "MkMaterial.h"
+#include "MkMaterialInstance.h"
+#include "MkStateStack.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "PropertyInterface.h"
 #include "SceneLightingCapture/AppStage_SceneLightingCapture.h"
 #include "SerializableList.h"
+
+#include <cmath>
+#include <vector>
 
 // The flat coefficient list is always exactly this long: 9 SH coefficients
 // times 3 color channels.
@@ -162,9 +173,143 @@ bool LightEnvironmentDefinition::readFromInitParams(MikanObjectSystem* ownerObje
 }
 
 // -- LightEnvironmentComponent -----
+// Radius of the environment sphere drawn in the editor viewport, in meters.
+static constexpr float k_environmentSphereRadius= 10.0f;
+
 LightEnvironmentComponent::LightEnvironmentComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
+}
+
+void LightEnvironmentComponent::init()
+{
+	TransformComponent::init();
+
+	rebuildEnvironmentSphereMesh();
+}
+
+void LightEnvironmentComponent::dispose()
+{
+	m_environmentSphereMesh= nullptr;
+
+	TransformComponent::dispose();
+}
+
+void LightEnvironmentComponent::rebuildEnvironmentSphereMesh()
+{
+	m_environmentSphereMesh= nullptr;
+
+	IEditorWindow* ownerWindow= getOwnerEditorWindow();
+	if (!ownerWindow)
+		return;
+
+	IMkGraphicsContextPtr graphicsContext= ownerWindow->getGraphicsContext();
+	if (!graphicsContext)
+		return;
+
+	// Position-only unit sphere. The shader treats the object-space position as
+	// the direction to evaluate the environment along, so no normals or UVs are
+	// needed - the position carries both roles.
+	constexpr int k_stackCount= 24;
+	constexpr int k_sectorCount= 48;
+	constexpr float k_pi= 3.14159265f;
+
+	struct PosVert
+	{
+		float x, y, z;
+	};
+
+	std::vector<PosVert> vertices;
+	vertices.reserve((k_stackCount + 1) * (k_sectorCount + 1));
+	for (int stack= 0; stack <= k_stackCount; ++stack)
+	{
+		const float polar= k_pi * (float)stack / (float)k_stackCount; // 0 at +Y pole
+		const float y= cosf(polar);
+		const float ringRadius= sinf(polar);
+
+		for (int sector= 0; sector <= k_sectorCount; ++sector)
+		{
+			const float azimuth= 2.f * k_pi * (float)sector / (float)k_sectorCount;
+			vertices.push_back({ringRadius * cosf(azimuth), y, ringRadius * sinf(azimuth)});
+		}
+	}
+
+	std::vector<uint32_t> indices;
+	indices.reserve(k_stackCount * k_sectorCount * 6);
+	for (int stack= 0; stack < k_stackCount; ++stack)
+	{
+		for (int sector= 0; sector < k_sectorCount; ++sector)
+		{
+			const uint32_t topLeft= (uint32_t)(stack * (k_sectorCount + 1) + sector);
+			const uint32_t bottomLeft= topLeft + (uint32_t)(k_sectorCount + 1);
+
+			// The quads touching a pole collapse to a single triangle, so skip
+			// the degenerate half rather than emitting zero-area triangles.
+			if (stack != 0)
+			{
+				indices.push_back(topLeft);
+				indices.push_back(bottomLeft);
+				indices.push_back(topLeft + 1);
+			}
+			if (stack != k_stackCount - 1)
+			{
+				indices.push_back(topLeft + 1);
+				indices.push_back(bottomLeft);
+				indices.push_back(bottomLeft + 1);
+			}
+		}
+	}
+
+	m_environmentSphereMesh= createMkTriangulatedMesh(
+		graphicsContext.get(), "lightEnvironmentSphere", reinterpret_cast<const uint8_t*>(vertices.data()),
+		sizeof(PosVert), (uint32_t)vertices.size(), reinterpret_cast<const uint8_t*>(indices.data()), sizeof(uint32_t),
+		(uint32_t)(indices.size() / 3),
+		false); // data is uploaded to the GPU by createResources(), so no CPU copy is kept
+
+	if (m_environmentSphereMesh)
+	{
+		MkMaterialConstPtr material=
+			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SH_ENVIRONMENT);
+		m_environmentSphereMesh->setMaterial(material);
+		m_environmentSphereMesh->createResources();
+	}
+}
+
+void LightEnvironmentComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+{
+	if (!m_environmentSphereMesh)
+		return;
+
+	// Pushed every frame rather than tracked against property changes: nine
+	// uniform writes are cheaper than the bookkeeping, and it cannot go stale.
+	const SHLightingEnvironment environment= getScaledLightingEnvironment();
+	MkMaterialInstancePtr materialInstance= m_environmentSphereMesh->getMaterialInstance();
+	for (int coefficientIndex= 0; coefficientIndex < k_shCoefficientCount; ++coefficientIndex)
+	{
+		const eUniformSemantic semantic= (eUniformSemantic)((int)eUniformSemantic::shCoefficient0 + coefficientIndex);
+		materialInstance->setVec3BySemantic(semantic, environment.coefficients[coefficientIndex]);
+	}
+
+	// Translation and uniform scale only. The shader evaluates a world-space
+	// environment along the object-space position, so any rotation on this
+	// component would silently rotate the environment with it - and a probe's
+	// orientation means nothing here anyway.
+	const glm::vec3 position= glm::vec3(getWorldTransform()[3]);
+	glm::mat4 sphereXform(1.f);
+	sphereXform[0][0]= k_environmentSphereRadius;
+	sphereXform[1][1]= k_environmentSphereRadius;
+	sphereXform[2][2]= k_environmentSphereRadius;
+	sphereXform[3]= glm::vec4(position, 1.f);
+
+	MkStateStack& stateStack= graphicsContext->getMkStateStack();
+	IMkState* sphereState= stateStack.pushState("lightEnvironmentSphere");
+	// Visible from outside as a probe ball, and from inside if the radius is
+	// raised to enclose the scene.
+	sphereState->disableFlag(eMkStateFlagType::cullFace);
+
+	drawTransformedTriangulatedMesh(viewportCamera, sphereXform, m_environmentSphereMesh);
+
+	stateStack.popState();
 }
 
 SHLightingEnvironment LightEnvironmentComponent::getScaledLightingEnvironment() const
@@ -181,6 +326,21 @@ SHLightingEnvironment LightEnvironmentComponent::getScaledLightingEnvironment() 
 	return environment;
 }
 
+/// Get the camera component that owns this light environment
+CameraComponentConstPtr LightEnvironmentComponent::getOwnerCameraComponent() const
+{
+	MikanTransformID transformId= getLightEnvironmentDefinition()->getParentTransformId();
+
+	return getObjectSystemOfType<CameraObjectSystem>()->getCameraById(transformId);
+}
+
+StageComponentConstPtr LightEnvironmentComponent::getOwnerStageComponent() const
+{
+	CameraComponentConstPtr ownerCamera= getOwnerCameraComponent();
+
+	return (ownerCamera) ? ownerCamera->getOwnerStageComponent() : nullptr;
+}
+
 rfk::Struct const* LightEnvironmentComponent::getClientAPIValuesStructType() const
 {
 	return &MikanLightEnvironmentComponentValues::staticGetArchetype();
@@ -190,14 +350,24 @@ void LightEnvironmentComponent::getPropertyDescriptors(std::vector<PropertyDescr
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
+	// Everything the capture tool recovers is read only: these are solved
+	// outputs, and hand-editing them would silently desync the coefficients
+	// from the directionality and key direction derived off them.
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		LightEnvironmentDefinition::k_shCoefficientsPropertyId, MikanVariantType::FLOAT_ARRAY));
+								 LightEnvironmentDefinition::k_shCoefficientsPropertyId, MikanVariantType::FLOAT_ARRAY)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 LightEnvironmentDefinition::k_directionalityPropertyId, MikanVariantType::FLOAT)
+								 ->setReadOnly());
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 LightEnvironmentDefinition::k_keyLightDirectionPropertyId, MikanVariantType::VECTOR3F)
+								 ->setReadOnly());
+
+	// The exposure scale is the exception: it is a manual calibration input,
+	// not a solved output - the decomposition recovers shading only up to a
+	// global scale - so it stays writable. See docs/reference/scene-lighting.md.
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(LightEnvironmentDefinition::k_exposureScalePropertyId,
 																  MikanVariantType::FLOAT));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		LightEnvironmentDefinition::k_directionalityPropertyId, MikanVariantType::FLOAT));
-	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		LightEnvironmentDefinition::k_keyLightDirectionPropertyId, MikanVariantType::VECTOR3F));
 }
 
 bool LightEnvironmentComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const

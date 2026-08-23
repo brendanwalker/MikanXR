@@ -60,6 +60,16 @@ public:
 	static const std::string k_hasValidApertureOffsetPropertyId;
 	bool hasValidApertureOffset() const { return m_bHasValidApertureOffset; }
 
+	/// Multiplier applied to MoGe-2's metric depth for captures from this
+	/// camera. The model's scale head guesses scale from image appearance, so
+	/// an unusual lens can be off by an integer factor while the geometry
+	/// stays excellent; the factor is a stable property of the camera/lens, so
+	/// it is calibrated once against an ArUco marker of known size and reused.
+	/// See docs/reference/depth-proxy-mesh.md.
+	static const std::string k_depthMeshScaleCorrectionPropertyId;
+	inline float getDepthMeshScaleCorrection() const { return m_depthMeshScaleCorrection; }
+	void setDepthMeshScaleCorrection(float scaleCorrection);
+
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const override
 	{
 		// Don't trigger save when a transform value changed and attached to a tracking mount
@@ -81,6 +91,7 @@ private:
 	MikanTrackingMountID m_trackingMountId= INVALID_MIKAN_ID;
 	MikanVideoSourceID m_videoSourceId= INVALID_MIKAN_ID;
 	int m_trackingFrameDelay= 0;
+	float m_depthMeshScaleCorrection= 1.f;
 	MikanQuatd m_apertureOrientationOffset;
 	MikanVector3d m_aperturePositionOffset;
 	bool m_bHasValidApertureOffset= false;
@@ -144,11 +155,13 @@ public:
 	// -- IFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;
 	static const std::string k_captureSceneLightingFunctionId;
+	static const std::string k_captureDepthMeshFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void alignCamera();
 	void captureSceneLighting();
+	void captureDepthMesh();
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

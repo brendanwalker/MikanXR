@@ -96,6 +96,19 @@ void GuiPanel_ProjectSettings::onGui()
 		ImGui::SetTooltip("Wireframe hides the opaque mesh so the real model in the video shows through.");
 	}
 
+	bool debugRenderInCompositor= editorConfig->getDebugRenderInCompositor();
+	if (ImGui::Checkbox("Debug Render in Compositor", &debugRenderInCompositor))
+	{
+		addDeferredGuiEvent(
+			[this, debugRenderInCompositor]()
+			{ m_editorSystem.lock()->getEditorSystemConfig()->setDebugRenderInCompositor(debugRenderInCompositor); });
+	}
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("Draws the debug overlay above in the compositor output window too.\n"
+						  "Off (default): the compositor window shows only the composited shot.");
+	}
+
 	ImGui::Separator();
 
 	// Floor grid + ruler snapping
