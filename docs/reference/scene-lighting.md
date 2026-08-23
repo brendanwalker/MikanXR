@@ -509,6 +509,31 @@ reconstruction lives on the estimator rather than in the AppStage so that
 (`reconstruction_lighting.png`, `reconstruction_relit.png`, `reconstruction_target_shading.png`),
 which is also how the views were verified.
 
+### Seeing a probe in the editor scene
+
+`LightEnvironmentComponent::customRender` draws a sphere shaded with the probe's own environment, so
+a committed probe is visible in the viewport rather than only inside the capture tool. It is the
+editor twin of the Unreal skydome: **visualization only** — no collider, and it lights nothing.
+
+The material is a new internal shader, `INTERNAL_MATERIAL_P_SH_ENVIRONMENT`, which evaluates
+order-2 SH radiance in the fragment shader from nine `vec3` uniforms (`shCoefficient0..8`, new
+`eUniformSemantic` entries deliberately mirroring the Unreal material's `SH0..SH8`). It uses the
+same basis constants as `sh_eval_basis`, and clamps at zero for the same reason every other
+consumer does — order-2 SH rings negative around sharp lights.
+
+Two constraints worth knowing before changing it:
+
+- **The mesh is position-only and must be drawn unrotated.** The shader treats the object-space
+  position as the direction to evaluate along, which is what lets a bare unit sphere carry the
+  environment with no normals or UVs. The environment is world space, so `customRender` composes
+  translation and uniform scale only — a rotation on the component would silently rotate the
+  recovered environment with it. Unlike Unreal there is no Y/Z swap, because the direction is
+  already in Mikan space.
+- **The sphere is probe sized (0.5m), not scene enclosing.** It is drawn as an ordinary opaque mesh
+  in the scene, so a sky-sized sphere would swallow the viewport. `k_environmentSphereRadius` is a
+  one-line change if a true enclosing skybox is wanted; back-face culling is already disabled so it
+  reads correctly from inside as well as outside.
+
 ### The estimate runs on a worker thread
 
 The ONNX sessions are held by the AppStage rather than the object system, because the models are
