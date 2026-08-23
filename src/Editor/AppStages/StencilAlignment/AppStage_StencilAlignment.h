@@ -10,11 +10,7 @@
 #include "VideoDisplayConstants.h"
 #include <memory>
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
-class VRDeviceView;
-typedef std::shared_ptr<VRDeviceView> VRDeviceViewPtr;
+class GuiPanel_StencilAlignment;
 
 //-- definitions -----
 class AppStage_StencilAlignment : public AppStage
@@ -22,17 +18,20 @@ class AppStage_StencilAlignment : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_StencilAlignment(class MainWindow* ownerWindow);
+	AppStage_StencilAlignment(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_StencilAlignment();
 
+	inline void setSourceCamera(CameraComponentPtr camera) { m_cameraComponent= camera; }
 	inline void setTargetStencil(ModelStencilComponentPtr stencil) { m_targetStencilComponent= stencil; }
 
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void render() override;
+	virtual void onGui() override;
+	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
+	void setupStencilAligner();
 	void updateXRCamera();
 	void updateVRCamera();
 	void renderStencilScene();
@@ -48,25 +47,22 @@ protected:
 	void onCancelEvent();
 
 private:
-	class RmlModel_StencilAlignment* m_calibrationModel = nullptr;
-	Rml::ElementDocument* m_calibrationView = nullptr;
+	class GuiPanel_StencilAlignment* m_calibrationPanel= nullptr;
 
-	VideoSourceViewPtr m_videoSourceView;
-
-	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	CameraComponentPtr m_cameraComponent;
+	VideoSourceComponentPtr m_videoSourceComponent;
 
 	StencilAligner* m_stencilAligner;
 	class VideoFrameDistortionView* m_monoDistortionView;
-	
+
 	ModelStencilComponentPtr m_targetStencilComponent;
 	glm::vec3 m_boundingSphereCenter;
 	float m_boundingSphereRadius;
 
 	ColliderRaycastHitResult m_hoverResult;
 
-	GlScenePtr m_scene;
-	MikanCameraPtr m_camera;
+	MkScenePtr m_scene;
+	MikanCameraPtr m_mkCamera;
 	IMkFrameBufferPtr m_frameBuffer;
-	IMkTriangulatedMeshPtr m_fullscreenQuad;
+	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
 };

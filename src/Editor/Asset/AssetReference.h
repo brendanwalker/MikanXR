@@ -10,11 +10,18 @@
 class AssetReferenceConfig : public CommonConfig
 {
 public:
-	AssetReferenceConfig() : CommonConfig() {}
-	AssetReferenceConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+	AssetReferenceConfig()
+		: CommonConfig()
+	{
+	}
+	AssetReferenceConfig(const std::string& nodeName)
+		: CommonConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	bool isValid() const;
 
 	std::string className;
 	std::string assetPath;
@@ -26,7 +33,7 @@ public:
 	AssetReference()= default;
 	virtual ~AssetReference();
 
-	inline static const std::string k_assetClassName = "AssetReference";
+	inline static const std::string k_assetClassName= "AssetReference";
 	virtual std::string getClassName() const { return k_assetClassName; }
 
 	virtual bool loadFromConfig(AssetReferenceConfigConstPtr config);
@@ -35,12 +42,13 @@ public:
 	virtual std::string getAssetTypeName() const { return "Asset"; }
 	inline IMkTexturePtr getPreviewTexture() const { return m_previewTexture; }
 
-	inline const std::filesystem::path& getAssetPath() const { return m_assetPath; }
+	const std::filesystem::path& getInternalAssetPath() const;
+	const std::filesystem::path getResolvedAssetPath() const;
 	virtual void setAssetPath(const std::filesystem::path& inPath);
 
 	std::string getShortName() const;
 
-	bool isValid() const;
+	bool isEmpty() const;
 
 	virtual void editorHandleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) {}
@@ -57,7 +65,7 @@ protected:
 class AssetReferenceFactory
 {
 public:
-	AssetReferenceFactory() = default;
+	AssetReferenceFactory()= default;
 
 	inline std::string getAssetRefClassName() const { return m_defaultAssetRefObject->getClassName(); }
 
@@ -92,15 +100,16 @@ template <class t_assetref_class, class t_assetref_config_class>
 class TypedAssetReferenceFactory : public AssetReferenceFactory
 {
 public:
-	TypedAssetReferenceFactory() = default;
+	TypedAssetReferenceFactory()= default;
 
 	virtual AssetReferenceConfigPtr allocateAssetReferenceConfig() const override
 	{
-		return std::make_shared<t_assetref_config_class>();
+		AssetReferenceConfigPtr configPtr= std::make_shared<t_assetref_config_class>();
+
+		configPtr->className= t_assetref_class::k_assetClassName;
+
+		return configPtr;
 	}
 
-	virtual AssetReferencePtr allocateAssetReference() const override
-	{
-		return std::make_shared<t_assetref_class>();
-	}
+	virtual AssetReferencePtr allocateAssetReference() const override { return std::make_shared<t_assetref_class>(); }
 };

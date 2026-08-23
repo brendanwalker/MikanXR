@@ -6,18 +6,19 @@
 class TexturePin : public NodePin
 {
 public:
-	TexturePin() = default;
+	TexturePin()= default;
 
 	IMkTexturePtr getValue() const { return m_value; }
-	void setValue(IMkTexturePtr inValue) { m_value = inValue; }
+	void setValue(IMkTexturePtr inValue) { m_value= inValue; }
 
-	inline static const std::string k_pinClassName = "TexturePin";
+	inline static const std::string k_pinClassName= "TexturePin";
 	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return sizeof(IMkTexturePtr); }
 	virtual void copyValueFromSourcePin() override;
 
-	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
-	virtual void editorRenderBeginLink(float alpha) override;
+	virtual ImNodesPinShape editorComputePinShape() const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha) override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeLinkStyle(float alpha) override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
 	virtual ImU32 editorGetLinkStyleColor() const override;
 

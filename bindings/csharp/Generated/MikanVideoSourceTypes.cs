@@ -11,11 +11,28 @@ namespace MikanXR
 		STEREO_CAMERA_INTRINSICS= 2,
 	};
 
-	public enum MikanVideoSourceApi
+	public enum MikanVideoSettingType
 	{
-		INVALID= 0,
-		OPEN_CV= 1,
-		WINDOWS_MEDIA_FOUNDATION= 2,
+		INVALID= -1,
+		Brightness= 0,
+		Contrast= 1,
+		Hue= 2,
+		Saturation= 3,
+		Sharpness= 4,
+		Gamma= 5,
+		WhiteBalance= 6,
+		RedBalance= 7,
+		GreenBalance= 8,
+		BlueBalance= 9,
+		Gain= 10,
+		Pan= 11,
+		Tilt= 12,
+		Roll= 13,
+		Zoom= 14,
+		Exposure= 15,
+		Iris= 16,
+		Focus= 17,
+		Count= 18,
 	};
 
 	public enum MikanVideoSourceType
@@ -24,10 +41,8 @@ namespace MikanXR
 		STEREO= 1,
 	};
 
-	public class MikanCameraIntrinsics : PolymorphicStruct
+	public class MikanBaseIntrinsics : PolymorphicStruct
 	{
-		public static new readonly long classId= -1980224418616951122;
-
 		public double pixel_width;
 		public double pixel_height;
 		public double aspect_ratio;
@@ -39,8 +54,6 @@ namespace MikanXR
 
 	public class MikanDistortionCoefficients
 	{
-		public static readonly long classId= -2596555002374434624;
-
 		public double k1;
 		public double k2;
 		public double k3;
@@ -51,19 +64,23 @@ namespace MikanXR
 		public double p2;
 	};
 
-	public class MikanMonoIntrinsics : MikanCameraIntrinsics
+	public class MikanMonoIntrinsics : MikanBaseIntrinsics
 	{
-		public static new readonly long classId= 4896055255137140914;
-
 		public MikanDistortionCoefficients distortion_coefficients;
 		public MikanMatrix3d distorted_camera_matrix;
 		public MikanMatrix3d undistorted_camera_matrix;
 	};
 
-	public class MikanStereoIntrinsics : MikanCameraIntrinsics
+	public class MikanNetworkVideoSourceValues : MikanVideoSourceValues
 	{
-		public static new readonly long classId= -261934067861644075;
+		public string protocol;
+		public string ip_address;
+		public int port;
+		public string path;
+	};
 
+	public class MikanStereoIntrinsics : MikanBaseIntrinsics
+	{
 		public MikanDistortionCoefficients left_distortion_coefficients;
 		public MikanMatrix3d left_camera_matrix;
 		public MikanDistortionCoefficients right_distortion_coefficients;
@@ -79,12 +96,74 @@ namespace MikanXR
 		public MikanMatrix4d reprojection_matrix;
 	};
 
+	public class MikanUSBVideoSourceSystemValues : MikanSystemValues
+	{
+		public Dictionary<string, string> usb_device_map;
+	};
+
+	public class MikanUSBVideoSourceValues : MikanVideoSourceValues
+	{
+		public string current_friendly_name;
+		public string current_device_path;
+		public string video_mode;
+		public string video_resolution;
+		public string video_fps;
+		public string video_format;
+		public List<float> video_settings;
+		public List<string> video_resolutions;
+		public List<string> video_frame_rates;
+		public List<string> video_formats;
+		public bool brightness_valid;
+		public float brightness_fraction;
+		public bool contrast_valid;
+		public float contrast_fraction;
+		public bool hue_valid;
+		public float hue_fraction;
+		public bool saturation_valid;
+		public float saturation_fraction;
+		public bool sharpness_valid;
+		public float sharpness_fraction;
+		public bool gamma_valid;
+		public float gamma_fraction;
+		public bool white_balance_valid;
+		public float white_balance_fraction;
+		public bool red_balance_valid;
+		public float red_balance_fraction;
+		public bool green_balance_valid;
+		public float green_balance_fraction;
+		public bool blue_balance_valid;
+		public float blue_balance_fraction;
+		public bool gain_valid;
+		public float gain_fraction;
+		public bool pan_valid;
+		public float pan_fraction;
+		public bool tilt_valid;
+		public float tilt_fraction;
+		public bool roll_valid;
+		public float roll_fraction;
+		public bool zoom_valid;
+		public float zoom_fraction;
+		public bool exposure_valid;
+		public float exposure_fraction;
+		public bool iris_valid;
+		public float iris_fraction;
+		public bool focus_valid;
+		public float focus_fraction;
+	};
+
 	public class MikanVideoSourceIntrinsics
 	{
-		public static readonly long classId= -5073913459979558727;
-
 		public PolymorphicObject intrinsics_ptr;
 		public MikanIntrinsicsType intrinsics_type;
+	};
+
+	public class MikanVideoSourceValues : MikanComponentValues
+	{
+		public PolymorphicObject intrinsics_ptr;
+		public MikanIntrinsicsType intrinsics_type;
+		public bool is_frame_mirrored;
+		public bool is_buffer_mirrored;
+		public int video_frame_queue_size;
 	};
 
 }

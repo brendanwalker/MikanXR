@@ -9,31 +9,32 @@ typedef unsigned int ImU32;
 class ValuePin : public NodePin
 {
 public:
-	ValuePin() = default;
+	ValuePin()= default;
 
 	// Shared value pin functions
 	virtual float editorComputeInputWidth() const;
-	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
+	virtual ImNodesPinShape editorComputePinShape() const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha) override;
 
 	// Override these in derived pin types
-	inline static const std::string k_pinClassName = "ValuePin";
+	inline static const std::string k_pinClassName= "ValuePin";
 	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual const ImU32 editorValuePinColor(float alpha) const;
 };
 
-template<typename t_data_type>
+template <typename t_data_type>
 class TypedValuePin : public ValuePin
 {
 public:
-	TypedValuePin() = default;
+	TypedValuePin()= default;
 
 	t_data_type getValue() const { return m_value; }
-	void setValue(t_data_type inValue) { m_value = inValue; }
+	void setValue(t_data_type inValue) { m_value= inValue; }
 
 	virtual size_t getDataSize() const { return sizeof(t_data_type); }
 	virtual void copyValueFromSourcePin() override
 	{
-		auto sourcePin = std::dynamic_pointer_cast< TypedValuePin<t_data_type> >(getConnectedSourcePin());
+		auto sourcePin= std::dynamic_pointer_cast<TypedValuePin<t_data_type>>(getConnectedSourcePin());
 
 		if (sourcePin)
 		{

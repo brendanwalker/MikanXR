@@ -1,5 +1,5 @@
+#include "CameraComponent.h"
 #include "DepthMaskNode.h"
-#include "GlFrameCompositor.h"
 #include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
 #include "MikanRenderModelResource.h"
@@ -11,17 +11,19 @@
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
 #include "MkMaterialInstance.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
-#include "VideoSourceView.h"
+#include "VideoSourceComponent.h"
 
 #include "QuadStencilComponent.h"
 #include "BoxStencilComponent.h"
 #include "ModelStencilComponent.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"
 
 #include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -35,6 +37,7 @@
 
 #include "imgui.h"
 #include "imnodes.h"
+#include "MkNodesScopedNode.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -46,11 +49,11 @@
 // -- DepthMaskNodeConfig -----
 configuru::Config DepthMaskNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["disable_quad_stencils"] = bDisableQuadStencils;
-	pt["disable_box_stencils"] = bDisableBoxStencils;
-	pt["disable_model_stencils"] = bDisableModelStencils;
+	pt["disable_quad_stencils"]= bDisableQuadStencils;
+	pt["disable_box_stencils"]= bDisableBoxStencils;
+	pt["disable_model_stencils"]= bDisableModelStencils;
 
 	return pt;
 }
@@ -59,17 +62,18 @@ void DepthMaskNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	bDisableQuadStencils = pt.get_or<bool>("disable_quad_stencils", false);
-	bDisableBoxStencils = pt.get_or<bool>("disable_box_stencils", false);
-	bDisableModelStencils = pt.get_or<bool>("disable_model_stencils", false);
+	bDisableQuadStencils= pt.get_or<bool>("disable_quad_stencils", false);
+	bDisableBoxStencils= pt.get_or<bool>("disable_box_stencils", false);
+	bDisableModelStencils= pt.get_or<bool>("disable_model_stencils", false);
 }
 
 // -- DepthMaskNode -----
-DepthMaskNode::DepthMaskNode() : Node()
+DepthMaskNode::DepthMaskNode()
+	: Node()
 {
 	// Create the frame buffer, but don't init its internals yet.
 	// Wait until evaluation to get the right output texture size.
-	m_linearDepthFrameBuffer = createMkFrameBuffer("DepthMask Frame Buffer");
+	m_linearDepthFrameBuffer= createMkFrameBuffer("DepthMask Frame Buffer");
 	m_linearDepthFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH);
 	m_linearDepthFrameBuffer->setClearColor(glm::vec4(1.f, 1.f, 1.f, 1.f));
 }
@@ -77,10 +81,10 @@ DepthMaskNode::DepthMaskNode() : Node()
 DepthMaskNode::~DepthMaskNode()
 {
 	// Clean up the frame buffer
-	m_linearDepthFrameBuffer = nullptr;
+	m_linearDepthFrameBuffer= nullptr;
 
 	// Free pin references
-	m_stencilsPin = nullptr;
+	m_stencilsPin= nullptr;
 
 	// Stop listening to events from owner graph
 	setOwnerGraph(NodeGraphPtr());
@@ -90,11 +94,11 @@ bool DepthMaskNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto depthMaskNodeConfig  = std::static_pointer_cast<const DepthMaskNodeConfig>(nodeConfig);
+		auto depthMaskNodeConfig= std::static_pointer_cast<const DepthMaskNodeConfig>(nodeConfig);
 
-		m_bDisableQuadStencil = depthMaskNodeConfig->bDisableQuadStencils;
-		m_bDisableBoxStencil = depthMaskNodeConfig->bDisableBoxStencils;
-		m_bDisableModelStencil = depthMaskNodeConfig->bDisableModelStencils;
+		m_bDisableQuadStencil= depthMaskNodeConfig->bDisableQuadStencils;
+		m_bDisableBoxStencil= depthMaskNodeConfig->bDisableBoxStencils;
+		m_bDisableModelStencil= depthMaskNodeConfig->bDisableModelStencils;
 
 		return true;
 	}
@@ -109,7 +113,7 @@ void DepthMaskNode::onGraphLoaded(bool success)
 		return;
 
 	// Optionally bind a stencil input pin
-	ArrayPinPtr stencilInPin = getFirstPinOfType<ArrayPin>(eNodePinDirection::INPUT);
+	ArrayPinPtr stencilInPin= getFirstPinOfType<ArrayPin>(eNodePinDirection::INPUT);
 	if (stencilInPin && stencilInPin->getElementClassName() == GraphStencilProperty::k_propertyClassName)
 	{
 		setStencilsPin(stencilInPin);
@@ -121,11 +125,11 @@ void DepthMaskNode::onGraphLoaded(bool success)
 
 void DepthMaskNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto depthMaskNodeConfig = std::static_pointer_cast<DepthMaskNodeConfig>(nodeConfig);
+	auto depthMaskNodeConfig= std::static_pointer_cast<DepthMaskNodeConfig>(nodeConfig);
 
-	depthMaskNodeConfig->bDisableQuadStencils = m_bDisableQuadStencil;
-	depthMaskNodeConfig->bDisableBoxStencils = m_bDisableBoxStencil;
-	depthMaskNodeConfig->bDisableModelStencils = m_bDisableModelStencil;
+	depthMaskNodeConfig->bDisableQuadStencils= m_bDisableQuadStencil;
+	depthMaskNodeConfig->bDisableBoxStencils= m_bDisableBoxStencil;
+	depthMaskNodeConfig->bDisableModelStencils= m_bDisableModelStencil;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -136,64 +140,59 @@ void DepthMaskNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_ownerGraph->OnGraphLoaded -= MakeDelegate(this, &DepthMaskNode::onGraphLoaded);
-			m_ownerGraph = nullptr;
+			m_ownerGraph->OnGraphLoaded-= MakeDelegate(this, &DepthMaskNode::onGraphLoaded);
+			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			newOwnerGraph->OnGraphLoaded += MakeDelegate(this, &DepthMaskNode::onGraphLoaded);
-			m_ownerGraph = newOwnerGraph;
+			newOwnerGraph->OnGraphLoaded+= MakeDelegate(this, &DepthMaskNode::onGraphLoaded);
+			m_ownerGraph= newOwnerGraph;
 		}
 	}
 }
 
-void DepthMaskNode::setStencilsPin(ArrayPinPtr inPin)
-{
-	m_stencilsPin = inPin;
-}
+void DepthMaskNode::setStencilsPin(ArrayPinPtr inPin) { m_stencilsPin= inPin; }
 
-void DepthMaskNode::setDepthTextureOutPin(TexturePinPtr outPin)
-{
-	m_outDepthTexturePin = outPin;
-}
+void DepthMaskNode::setDepthTextureOutPin(TexturePinPtr outPin) { m_outDepthTexturePin= outPin; }
 
 bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 {
-	bool bSuccess = true;
+	bool bSuccess= true;
 
 	if (bSuccess && !evaluateInputs(evaluator))
 	{
-		bSuccess = false;
+		bSuccess= false;
 	}
 
-	rebuildDepthMaskLists();
-	bool bAnyQuadStencils = !m_quadStencilIds.empty();
-	bool bAnyBoxStencils = !m_boxStencilIds.empty();
-	bool bAnyModelStencils = !m_modelStencilIds.empty();
-	if (!bAnyQuadStencils && !bAnyBoxStencils && !bAnyModelStencils)
+	int frameWidth= 0;
+	int frameHeight= 0;
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CameraComponentPtr cameraComponent= compositorGraph->getBoundCameraComponent();
+	if (bSuccess)
 	{
-		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::missingInput,
-				"No stencils",
-				this));
-		bSuccess = false;
+		bSuccess= cameraComponent && cameraComponent->getAperturePixelDimensions(frameWidth, frameHeight);
+	}
+
+	bool bAnyQuadStencils= !m_quadStencilIds.empty();
+	bool bAnyBoxStencils= !m_boxStencilIds.empty();
+	bool bAnyModelStencils= !m_modelStencilIds.empty();
+	if (bSuccess)
+	{
+		rebuildDepthMaskLists();
+		if (!bAnyQuadStencils && !bAnyBoxStencils && !bAnyModelStencils)
+		{
+			evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::missingInput, "No stencils", this));
+			bSuccess= false;
+		}
 	}
 
 	if (bSuccess)
 	{
 		// Use the current video source's frame size as the depth texture size
-		VideoSourceViewPtr videoSource = evaluator.getCurrentVideoSourceView();
-		if (videoSource)
-		{
-			int frameWidth = (int)videoSource->getFrameWidth();
-			int frameHeight = (int)videoSource->getFrameHeight();
-
-			// Does nothing if the frame buffer is already the correct size
-			// Invalidates the frame buffer if it's not the correct size
-			m_linearDepthFrameBuffer->setSize(frameWidth, frameHeight);
-		}
+		// Does nothing if the frame buffer is already the correct size
+		// Invalidates the frame buffer if it's not the correct size
+		m_linearDepthFrameBuffer->setSize(frameWidth, frameHeight);
 
 		// (Re)Initialize the frame buffer if it's in an invalid state
 		if (!m_linearDepthFrameBuffer->isValid())
@@ -206,12 +205,9 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 			else
 			{
 				m_outDepthTexturePin->setValue(IMkTexturePtr());
-				evaluator.addError(
-					NodeEvaluationError(
-						eNodeEvaluationErrorCode::evaluationError,
-						"Unable to create depth frame buffer",
-						this));
-				bSuccess = false;
+				evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::evaluationError,
+													   "Unable to create depth frame buffer", this));
+				bSuccess= false;
 			}
 		}
 	}
@@ -220,31 +216,27 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 	if (bSuccess && (bAnyQuadStencils || bAnyBoxStencils || bAnyModelStencils))
 	{
 		// Bind the depth frame buffer
-		MkScopedObjectBinding depthFramebufferBinding(
-			evaluator.getCurrentWindow()->getMkStateStack().getCurrentState(),
-			"Depth Mask Framebuffer Scope",
-			m_linearDepthFrameBuffer);
+		IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
+		MkScopedObjectBinding depthFramebufferBinding(graphicsContext->getMkStateStack().getCurrentState(),
+													  "Depth Mask Framebuffer Scope", m_linearDepthFrameBuffer);
 		if (depthFramebufferBinding)
 		{
 			IMkState* glState= depthFramebufferBinding.getMkState();
 
 			// Apply any Stencils assigned to the node
 			if (bAnyQuadStencils)
-				evaluateQuadDepthMasks(glState);
+				evaluateQuadDepthMasks(cameraComponent, glState);
 
 			if (bAnyBoxStencils)
-				evaluateBoxDepthMasks(glState);
+				evaluateBoxDepthMasks(cameraComponent, glState);
 
 			if (bAnyModelStencils)
-				evaluateModelDepthMasks(glState);
+				evaluateModelDepthMasks(cameraComponent, glState);
 		}
 		else
 		{
 			evaluator.addError(
-				NodeEvaluationError(
-					eNodeEvaluationErrorCode::evaluationError,
-					"Broken frame buffer",
-					this));
+				NodeEvaluationError(eNodeEvaluationErrorCode::evaluationError, "Broken frame buffer", this));
 		}
 	}
 
@@ -253,24 +245,22 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 
 void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	editorRenderPushNodeStyle(editorState);
-
-	ImNodes::BeginNode(m_id);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
+	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
 	editorRenderTitle(editorState);
 
-	ImGui::Dummy(ImVec2(1.0f, 0.5f));	
+	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 
 	// Inputs
 	editorRenderInputPins(editorState);
 
 	// Texture Preview
-	ImGui::Dummy(ImVec2(1.0f, 0.5f));	
-	IMkTexturePtr colorTexture =
+	ImGui::Dummy(ImVec2(1.0f, 0.5f));
+	IMkTexturePtr colorTexture=
 		m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getColorTexture() : IMkTexturePtr();
-	uint32_t glTextureId =
-		colorTexture ? colorTexture->getGlTextureId() : 0;
+	uint32_t glTextureId= colorTexture ? colorTexture->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
 
@@ -278,30 +268,17 @@ void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderOutputPins(editorState);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-
-	ImNodes::EndNode();
-
-	editorRenderPopNodeStyle(editorState);
 }
 
 void DepthMaskNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	if (NodeEditorUI::DrawPropertySheetHeader("Depth Mask Node"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Depth Mask Node", editorState.styleManager))
 	{
-		NodeEditorUI::DrawCheckBoxProperty(
-			"DepthMaskNodeDisableQuadStencil",
-			"Disable Quads",
-			m_bDisableQuadStencil);
-		NodeEditorUI::DrawCheckBoxProperty(
-			"DepthMaskNodeDisableBoxStencil",
-			"Disable Boxes",
-			m_bDisableBoxStencil);
-		NodeEditorUI::DrawCheckBoxProperty(
-			"DepthMaskNodeDisableModelStencil",
-			"Disable Models",
-			m_bDisableModelStencil);
-
+		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableQuadStencil", "Disable Quads", m_bDisableQuadStencil);
+		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableBoxStencil", "Disable Boxes", m_bDisableBoxStencil);
+		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableModelStencil", "Disable Models",
+										   m_bDisableModelStencil);
 	}
 }
 
@@ -341,44 +318,40 @@ void DepthMaskNode::rebuildDepthMaskLists()
 			if (property->getClassName() != GraphStencilProperty::k_propertyClassName)
 				continue;
 
-			auto stencilProperty = std::static_pointer_cast<GraphStencilProperty>(property);
-			StencilComponentPtr stencilComponent = stencilProperty->getStencilComponent();
+			auto stencilProperty= std::static_pointer_cast<GraphStencilProperty>(property);
+			StencilComponentPtr stencilComponent= stencilProperty->getStencilComponent();
 			if (!stencilComponent)
 				continue;
 
-			if (auto quadStencil = std::dynamic_pointer_cast<QuadStencilComponent>(stencilComponent))
+			if (auto quadStencil= std::dynamic_pointer_cast<QuadStencilComponent>(stencilComponent))
 			{
-				m_quadStencilIds.push_back(quadStencil->getStencilComponentDefinition()->getStencilId());
+				m_quadStencilIds.push_back(quadStencil->getStencilComponentDefinition()->getComponentId());
 			}
-			else if (auto boxStencil = std::dynamic_pointer_cast<BoxStencilComponent>(stencilComponent))
+			else if (auto boxStencil= std::dynamic_pointer_cast<BoxStencilComponent>(stencilComponent))
 			{
-				m_boxStencilIds.push_back(boxStencil->getStencilComponentDefinition()->getStencilId());
+				m_boxStencilIds.push_back(boxStencil->getStencilComponentDefinition()->getComponentId());
 			}
-			else if (auto modelStencil = std::dynamic_pointer_cast<ModelStencilComponent>(stencilComponent))
+			else if (auto modelStencil= std::dynamic_pointer_cast<ModelStencilComponent>(stencilComponent))
 			{
-				m_modelStencilIds.push_back(modelStencil->getStencilComponentDefinition()->getStencilId());
+				m_modelStencilIds.push_back(modelStencil->getStencilComponentDefinition()->getComponentId());
 			}
 		}
 	}
 }
 
-void DepthMaskNode::evaluateQuadDepthMasks(IMkState* glState)
+void DepthMaskNode::evaluateQuadDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState)
 {
 	EASY_FUNCTION();
 
 	if (m_bDisableQuadStencil)
 		return;
 
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	IMkTriangulatedMeshPtr depthQuadMesh = compositorGraph->getDepthQuadMesh();
-
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	if (!frameCompositor)
-		return;
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	IMkTriangulatedMeshPtr depthQuadMesh= compositorGraph->getDepthQuadMesh();
 
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))
+	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -386,59 +359,46 @@ void DepthMaskNode::evaluateQuadDepthMasks(IMkState* glState)
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<QuadStencilComponentPtr> quadStencilList;
-	StencilObjectSystem::getSystem()->getRelevantQuadStencilList(
-		&m_quadStencilIds,
-		cameraPosition,
-		cameraForward,
-		quadStencilList);
+	getObjectSystemOfType<QuadStencilSystem>()->getRelevantQuadStencilList(&m_quadStencilIds, cameraPosition,
+																		   cameraForward, quadStencilList);
 
 	if (quadStencilList.size() == 0)
 		return;
-	
+
 	MkMaterialInstancePtr materialInstance= depthQuadMesh->getMaterialInstance();
 	MkMaterialConstPtr material= materialInstance->getMaterial();
 
-	if (auto materialBinding = material->bindMaterial())
+	if (auto materialBinding= material->bindMaterial())
 	{
 		// Also get the the view matrix for the tracked video source
 		glm::mat4 viewMatrix;
-		if (!frameCompositor->getVideoSourceView(viewMatrix))
+		if (!cameraComponent->getApertureViewMatrix(viewMatrix))
 			return;
 
 		// Also get the the projection matrix for the tracked video source
 		glm::mat4 projectionMatrix;
-		if (!frameCompositor->getVideoSourceProjection(projectionMatrix, true))
+		if (!cameraComponent->getApertureProjectionMatrix(projectionMatrix, true))
 			return;
 
 		// Draw stencil quads first
 		for (QuadStencilComponentPtr stencil : quadStencilList)
 		{
 			// Set the model matrix of stencil quad
-			auto stencilConfig = stencil->getQuadStencilDefinition();
-			const glm::mat4 xform = stencil->getWorldTransform();
-			const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
-			const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
-			const glm::vec3 z_axis = glm::vec3(xform[2]);
-			const glm::vec3 position = glm::vec3(xform[3]);
-			const glm::mat4 modelMatrix =
-				glm::mat4(
-					glm::vec4(x_axis, 0.f),
-					glm::vec4(y_axis, 0.f),
-					glm::vec4(z_axis, 0.f),
-					glm::vec4(position, 1.f));
+			auto stencilConfig= stencil->getQuadStencilDefinition();
+			const glm::mat4 xform= stencil->getWorldTransform();
+			const glm::vec3 x_axis= glm::vec3(xform[0]) * stencilConfig->getQuadWidth();
+			const glm::vec3 y_axis= glm::vec3(xform[1]) * stencilConfig->getQuadHeight();
+			const glm::vec3 z_axis= glm::vec3(xform[2]);
+			const glm::vec3 position= glm::vec3(xform[3]);
+			const glm::mat4 modelMatrix= glm::mat4(glm::vec4(x_axis, 0.f), glm::vec4(y_axis, 0.f),
+												   glm::vec4(z_axis, 0.f), glm::vec4(position, 1.f));
 
 			// Set the model-view-projection matrix on the stencil shader
-			materialInstance->setMat4BySemantic(
-				eUniformSemantic::modelMatrix,
-				modelMatrix);
-			materialInstance->setMat4BySemantic(
-				eUniformSemantic::viewMatrix,
-				viewMatrix);
-			materialInstance->setMat4BySemantic(
-				eUniformSemantic::projectionMatrix,
-				projectionMatrix);
+			materialInstance->setMat4BySemantic(eUniformSemantic::modelMatrix, modelMatrix);
+			materialInstance->setMat4BySemantic(eUniformSemantic::viewMatrix, viewMatrix);
+			materialInstance->setMat4BySemantic(eUniformSemantic::projectionMatrix, projectionMatrix);
 
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				// Draw the quad
 				depthQuadMesh->drawElements();
@@ -447,23 +407,19 @@ void DepthMaskNode::evaluateQuadDepthMasks(IMkState* glState)
 	}
 }
 
-void DepthMaskNode::evaluateBoxDepthMasks(IMkState* glState)
+void DepthMaskNode::evaluateBoxDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState)
 {
 	EASY_FUNCTION();
 
 	if (m_bDisableBoxStencil)
 		return;
 
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	IMkTriangulatedMeshPtr stencilBoxMesh = compositorGraph->getDepthBoxMesh();
-
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	if (!frameCompositor)
-		return;
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	IMkTriangulatedMeshPtr stencilBoxMesh= compositorGraph->getDepthBoxMesh();
 
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))
+	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -471,59 +427,46 @@ void DepthMaskNode::evaluateBoxDepthMasks(IMkState* glState)
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<BoxStencilComponentPtr> boxStencilList;
-	StencilObjectSystem::getSystem()->getRelevantBoxStencilList(
-		&m_boxStencilIds,
-		cameraPosition,
-		cameraForward,
-		boxStencilList);
+	getObjectSystemOfType<BoxStencilSystem>()->getRelevantBoxStencilList(&m_boxStencilIds, cameraPosition,
+																		 cameraForward, boxStencilList);
 
 	if (boxStencilList.size() == 0)
 		return;
 
-	MkMaterialInstancePtr materialInstance = stencilBoxMesh->getMaterialInstance();
-	MkMaterialConstPtr material = materialInstance->getMaterial();
+	MkMaterialInstancePtr materialInstance= stencilBoxMesh->getMaterialInstance();
+	MkMaterialConstPtr material= materialInstance->getMaterial();
 
 	// Then draw stencil boxes ...
-	if (auto materialBinding = material->bindMaterial())
+	if (auto materialBinding= material->bindMaterial())
 	{
 		// Also get the the view matrix for the tracked video source
 		glm::mat4 viewMatrix;
-		if (!frameCompositor->getVideoSourceView(viewMatrix))
+		if (!cameraComponent->getApertureViewMatrix(viewMatrix))
 			return;
 
 		// Also get the the projection matrix for the tracked video source
 		glm::mat4 projectionMatrix;
-		if (!frameCompositor->getVideoSourceProjection(projectionMatrix, true))
+		if (!cameraComponent->getApertureProjectionMatrix(projectionMatrix, true))
 			return;
 
 		for (BoxStencilComponentPtr stencil : boxStencilList)
 		{
 			// Set the model matrix of stencil quad
-			auto stencilConfig = stencil->getBoxStencilDefinition();
-			const glm::mat4 xform = stencil->getWorldTransform();
-			const glm::vec3 x_axis = glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
-			const glm::vec3 y_axis = glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
-			const glm::vec3 z_axis = glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
-			const glm::vec3 position = glm::vec3(xform[3]);
-			const glm::mat4 modelMatrix =
-				glm::mat4(
-					glm::vec4(x_axis, 0.f),
-					glm::vec4(y_axis, 0.f),
-					glm::vec4(z_axis, 0.f),
-					glm::vec4(position, 1.f));
+			auto stencilConfig= stencil->getBoxStencilDefinition();
+			const glm::mat4 xform= stencil->getWorldTransform();
+			const glm::vec3 x_axis= glm::vec3(xform[0]) * stencilConfig->getBoxXSize();
+			const glm::vec3 y_axis= glm::vec3(xform[1]) * stencilConfig->getBoxYSize();
+			const glm::vec3 z_axis= glm::vec3(xform[2]) * stencilConfig->getBoxZSize();
+			const glm::vec3 position= glm::vec3(xform[3]);
+			const glm::mat4 modelMatrix= glm::mat4(glm::vec4(x_axis, 0.f), glm::vec4(y_axis, 0.f),
+												   glm::vec4(z_axis, 0.f), glm::vec4(position, 1.f));
 
 			// Set the model, view, and projection matrices on the depth mask shader
-			materialInstance->setMat4BySemantic(
-				eUniformSemantic::modelMatrix,
-				modelMatrix);
-			materialInstance->setMat4BySemantic(
-				eUniformSemantic::viewMatrix,
-				viewMatrix);
-			materialInstance->setMat4BySemantic(
-				eUniformSemantic::projectionMatrix,
-				projectionMatrix);
+			materialInstance->setMat4BySemantic(eUniformSemantic::modelMatrix, modelMatrix);
+			materialInstance->setMat4BySemantic(eUniformSemantic::viewMatrix, viewMatrix);
+			materialInstance->setMat4BySemantic(eUniformSemantic::projectionMatrix, projectionMatrix);
 
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				// Draw the box
 				stencilBoxMesh->drawElements();
@@ -532,22 +475,18 @@ void DepthMaskNode::evaluateBoxDepthMasks(IMkState* glState)
 	}
 }
 
-void DepthMaskNode::evaluateModelDepthMasks(IMkState* glState)
+void DepthMaskNode::evaluateModelDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState)
 {
 	EASY_FUNCTION();
 
 	if (m_bDisableModelStencil)
 		return;
 
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	if (!frameCompositor)
-		return;
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))
+	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -555,64 +494,54 @@ void DepthMaskNode::evaluateModelDepthMasks(IMkState* glState)
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<ModelStencilComponentPtr> modelStencilList;
-	StencilObjectSystem::getSystem()->getRelevantModelStencilList(
-		&m_modelStencilIds,
-		cameraPosition,
-		cameraForward,
-		modelStencilList);
+	getObjectSystemOfType<ModelStencilSystem>()->getRelevantModelStencilList(&m_modelStencilIds, cameraPosition,
+																			 cameraForward, modelStencilList);
 
 	if (modelStencilList.size() == 0)
 		return;
 
 	// Also get the the view matrix for the tracked video source
 	glm::mat4 viewMatrix;
-	if (!frameCompositor->getVideoSourceView(viewMatrix))
+	if (!cameraComponent->getApertureViewMatrix(viewMatrix))
 		return;
 
 	// Also get the the projection matrix for the tracked video source
 	glm::mat4 projectionMatrix;
-	if (!frameCompositor->getVideoSourceProjection(projectionMatrix, true))
+	if (!cameraComponent->getApertureProjectionMatrix(projectionMatrix, true))
 		return;
 
 	// Then draw stencil models
 	for (ModelStencilComponentPtr stencil : modelStencilList)
 	{
-		auto stencilConfig = stencil->getModelStencilDefinition();
-		const MikanStencilID stencilId = stencilConfig->getStencilId();
-		MikanRenderModelResourcePtr renderModelResource =
-			compositorGraph->getOrLoadDepthRenderModel(stencilConfig);
+		auto stencilConfig= stencil->getModelStencilDefinition();
+		const MikanStencilID stencilId= stencilConfig->getComponentId();
+		MikanRenderModelResourcePtr renderModelResource= compositorGraph->getOrLoadDepthRenderModel(stencilConfig);
 
 		if (renderModelResource)
 		{
 			// Set the model matrix of stencil model
-			const glm::mat4 modelMatrix = stencil->getWorldTransform();
+			const glm::mat4 modelMatrix= stencil->getWorldTransform();
 
-			for (int meshIndex = 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
+			for (int meshIndex= 0; meshIndex < renderModelResource->getTriangulatedMeshCount(); ++meshIndex)
 			{
-				IMkTriangulatedMeshPtr mesh = renderModelResource->getTriangulatedMesh(meshIndex);
-				MkMaterialInstancePtr materialInst = mesh->getMaterialInstance();
-				MkMaterialConstPtr material = materialInst->getMaterial();
+				IMkTriangulatedMeshPtr mesh= renderModelResource->getTriangulatedMesh(meshIndex);
+				MkMaterialInstancePtr materialInst= mesh->getMaterialInstance();
+				MkMaterialConstPtr material= materialInst->getMaterial();
 
 				// Set the model-view-projection matrix on the stencil material instance
-				materialInst->setMat4BySemantic(
-					eUniformSemantic::modelMatrix,
-					modelMatrix);
-				materialInst->setMat4BySemantic(
-					eUniformSemantic::viewMatrix,
-					viewMatrix);
-				materialInst->setMat4BySemantic(
-					eUniformSemantic::projectionMatrix,
-					projectionMatrix);
+				materialInst->setMat4BySemantic(eUniformSemantic::modelMatrix, modelMatrix);
+				materialInst->setMat4BySemantic(eUniformSemantic::viewMatrix, viewMatrix);
+				materialInst->setMat4BySemantic(eUniformSemantic::projectionMatrix, projectionMatrix);
 
 				// Bind the material and draw the mesh
 				// TODO: We could optimize this by sorting on the shader program
 				// to minimize the number of shader program switches
 				// Or switch to using a GlScene for rendering stencils,
 				// which handles the shader program sorting for us.
-				auto materialBinding = material->bindMaterial();
+				auto materialBinding= material->bindMaterial();
 				if (materialBinding)
 				{
-					auto materialInstanceBinding = materialInst->bindMaterialInstance(materialBinding);
+					auto materialInstanceBinding= materialInst->bindMaterialInstance(materialBinding);
 					if (materialInstanceBinding)
 					{
 						mesh->drawElements();
@@ -628,16 +557,16 @@ NodePtr DepthMaskNodeFactory::createNode(const NodeEditorState& editorState) con
 {
 	// Create the node and default pins
 	// The rest of the input pins can't be connected until we have a material assigned
-	auto node = std::static_pointer_cast<DepthMaskNode>(NodeFactory::createNode(editorState));
+	auto node= std::static_pointer_cast<DepthMaskNode>(NodeFactory::createNode(editorState));
 
 	// Create stencil input pins
-	ArrayPinPtr stencilListInPin = node->addPin<ArrayPin>("stencils", eNodePinDirection::INPUT);
+	ArrayPinPtr stencilListInPin= node->addPin<ArrayPin>("stencils", eNodePinDirection::INPUT);
 	stencilListInPin->setElementClassName(GraphStencilProperty::k_propertyClassName);
 	stencilListInPin->setHasDefaultValue(true); // Unconnected array pin == no stencils
 	node->setStencilsPin(stencilListInPin);
 
 	// Create texture output pin
-	auto outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
+	auto outputPin= node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
 	outputPin->editorSetShowPinName(false);
 	node->setDepthTextureOutPin(outputPin);
 

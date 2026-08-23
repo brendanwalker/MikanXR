@@ -5,26 +5,20 @@
 class GlTextureCache : public IMkTextureCache
 {
 public:
-	GlTextureCache() = delete;
-	GlTextureCache(IMkWindow* ownerWindow) : m_ownerWindow(ownerWindow) {}
-	virtual ~GlTextureCache() 
+	GlTextureCache()= delete;
+	GlTextureCache(IMkGraphicsContext* ownerContext)
+		: m_ownerContext(ownerContext)
 	{
-		shutdown();	
 	}
+	virtual ~GlTextureCache() { shutdown(); }
 
-	virtual bool startup() override
-	{
-		return true;
-	}
+	virtual bool startup() override { return true; }
 
-	virtual void shutdown() override
-	{
-		m_textureCache.clear();
-	}
+	virtual void shutdown() override { m_textureCache.clear(); }
 
 	virtual IMkTexturePtr tryGetTextureByName(const std::string& textureName) override
 	{
-		auto it = m_textureCache.find(textureName);
+		auto it= m_textureCache.find(textureName);
 		if (it != m_textureCache.end())
 		{
 			return it->second;
@@ -33,23 +27,22 @@ public:
 		return IMkTexturePtr();
 	}
 
-	virtual IMkTexturePtr loadTexturePath(
-		const std::filesystem::path& texturePath,
-		const std::string& overrideName) override
+	virtual IMkTexturePtr loadTexturePath(const std::filesystem::path& texturePath,
+										  const std::string& overrideName) override
 	{
 		IMkTexturePtr texture;
 
 		if (!texturePath.empty() && std::filesystem::exists(texturePath))
 		{
-			texture = tryGetTextureByName(texturePath.string());
+			texture= tryGetTextureByName(texturePath.string());
 
 			if (texture == nullptr)
 			{
-				texture = CreateMkTexture();
+				texture= CreateMkTexture();
 				texture->setImagePath(texturePath);
 				if (texture->reloadTextureFromImagePath())
 				{
-					std::string textureName = !overrideName.empty() ? overrideName : texturePath.string();
+					std::string textureName= !overrideName.empty() ? overrideName : texturePath.string();
 
 					m_textureCache.insert({textureName, texture});
 				}
@@ -68,8 +61,8 @@ public:
 	{
 		if (texture)
 		{
-			std::string texturePath = texture->getImagePath().string();
-			auto it = m_textureCache.find(texturePath);
+			std::string texturePath= texture->getImagePath().string();
+			auto it= m_textureCache.find(texturePath);
 			if (it != m_textureCache.end())
 			{
 				m_textureCache.erase(it);
@@ -80,11 +73,11 @@ public:
 	}
 
 private:
-	IMkWindow* m_ownerWindow;
+	IMkGraphicsContext* m_ownerContext;
 	std::map<std::string, IMkTexturePtr> m_textureCache;
 };
 
-IMkTextureCachePtr createMkTextureCache(class IMkWindow* ownerWindow)
+IMkTextureCachePtr createMkTextureCache(class IMkGraphicsContext* ownerContext)
 {
-	return std::make_shared<GlTextureCache>(ownerWindow);
+	return std::make_shared<GlTextureCache>(ownerContext);
 }

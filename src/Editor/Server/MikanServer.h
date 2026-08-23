@@ -1,5 +1,4 @@
-#ifndef MIKAN_SERVER_H
-#define MIKAN_SERVER_H
+#pragma once
 
 //-- includes -----
 #include "CommonConfigFwd.h"
@@ -8,12 +7,13 @@
 #include "MikanAPITypes.h"
 #include "MikanClientTypes.h"
 #include "MikanClientEvents.h"
+#include "MikanCameraEvents.h"
 #include "MikanScriptEvents.h"
-#include "MikanStencilEvents.h"
-#include "MikanSpatialAnchorEvents.h"
 #include "MikanVideoSourceEvents.h"
-#include "MikanVRDeviceEvents.h"
 #include "MulticastDelegate.h"
+#include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemFwd.h"
+
 #include "glm/ext/matrix_float4x4.hpp"
 #include "stdint.h"
 
@@ -22,36 +22,10 @@
 
 class MikanClientConnectionState;
 using MikanClientConnectionStatePtr= std::shared_ptr<MikanClientConnectionState>;
+using MikanClientConnectionStateConstPtr= std::shared_ptr<const MikanClientConnectionState>;
+using MikanClientConnectionStateMap= std::map<std::string, MikanClientConnectionStatePtr>;
 
 //-- definitions -----
-class MikanClientConnectionInfo
-{
-public:
-	MikanClientConnectionInfo();
-	virtual ~MikanClientConnectionInfo();
-
-	void clearMikanClientInfo();
-	void setClientInfo(const MikanClientInfo& clientInfo);
-	const MikanClientInfo& getClientInfo() const;
-
-	const std::string& getClientId() const;
-	bool isClientInfoValid() const;
-
-	bool hasAllocatedRenderTarget() const;
-	inline class SharedTextureReadAccessor* getRenderTargetReadAccessor() const 
-	{ return m_renderTargetReadAccessor; }
-	bool allocateRenderTargetTextures(const MikanRenderTargetDescriptor& desc);
-	void freeRenderTargetTexturesHandler();
-
-protected:
-	void allocateRenderTargetAccessor();
-	void disposeRenderTargetAccessor();
-
-private:
-	MikanClientInfo m_clientInfo;
-	class SharedTextureReadAccessor* m_renderTargetReadAccessor= nullptr;
-};
-
 class MikanServer
 {
 public:
@@ -59,8 +33,29 @@ public:
 	virtual ~MikanServer();
 
 	static MikanServer* getInstance() { return m_instance; }
+	class MainWindow* getOwnerWindow() const { return m_ownerWindow; }
+	ProjectManagerPtr getProjectManager() const;
+	ProjectConfigPtr getProjectConfig() const;
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
+	inline class HttpInterprocessMessageServer* getHttpMessageServer() { return m_httpMessageServer; }
+
+	// Stops and restarts the HTTP trigger server on a new port. Previously registered routes
+	// are preserved (dispose() only stops the listener, it doesn't clear the route table).
+	void restartHttpMessageServer(int port);
+	inline class CameraRequestHandler* getCameraRequestHandler() const { return m_cameraRequestHandler; }
+	inline class FunctionRequestHandler* getFunctionRequestHandler() const { return m_functionRequestHandler; }
+	inline class LightRequestHandler* getLightRequestHandler() const { return m_lightRequestHandler; }
+	inline class PropertyRequestHandler* getPropertyRequestHandler() const { return m_propertyRequestHandler; }
+	inline class ScriptRequestHandler* getScriptRequestHandler() const { return m_scriptRequestHandler; }
 	inline class RemoteControlManager* getRemoteControlManager() const { return m_remoteControlManager; }
+	inline class ShapeRequestHandler* getShapeRequestHandler() const { return m_shapeRequestHandler; }
+	inline class StencilRequestHandler* getStencilRequestHandler() const { return m_stencilRequestHandler; }
+	inline class TextureSourceRequestHandler* getTextureSourceRequestHandler() const
+	{
+		return m_textureSourceRequestHandler;
+	}
+	inline class MarkerRequestHandler* getMarkerRequestHandler() const { return m_markerRequestHandler; }
+	inline class VideoSourceRequestHandler* getVideoSourceRequestHandler() const { return m_videoSourceRequestHandler; }
 
 	bool startup(class MainWindow* mainWindow);
 	void update();
@@ -68,37 +63,12 @@ public:
 
 	void publishMikanJsonEvent(const std::string& mikanJsonEvent);
 
-	// Scripting
-	void bindScriptContect(CommonScriptContextPtr scriptContext);
-	void unbindScriptContect(CommonScriptContextPtr scriptContext);
-	void publishScriptMessageEvent(const std::string& message);
+	MikanClientConnectionStatePtr getConnectedClientState(const std::string& connectionId) const;
+	void getConnectedClientStateList(std::vector<MikanClientConnectionStateConstPtr>& outClientList) const;
+	const MikanClientConnectionStateMap& getConnectedClientStateMap() { return m_clientConnections; }
 
-	// Video Source Events
-	void publishVideoSourceOpenedEvent();
-	void publishVideoSourceClosedEvent();
-	void publishVideoSourceNewFrameEvent(const MikanVideoSourceNewFrameEvent& newFrameEvent);
-	void publishVideoSourceAttachmentChangedEvent();
-	void publishVideoSourceIntrinsicsChangedEvent();
-	void publishVideoSourceModeChangedEvent();
-
-	// Spatial Anchor Events
-	void publishAnchorNameUpdatedEvent(const MikanAnchorNameUpdateEvent& newPoseEvent);
-	void publishAnchorPoseUpdatedEvent(const MikanAnchorPoseUpdateEvent& newPoseEvent);
-	void handleAnchorSystemConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
-
-	// Stencil Events
-	void publishStencilNameUpdatedEvent(const MikanStencilNameUpdateEvent& newPoseEvent);
-	void publishStencilPoseUpdatedEvent(const MikanStencilPoseUpdateEvent& newPoseEvent);
-	void handleStencilSystemConfigChange(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
-
-	void getConnectedClientInfoList(std::vector<const MikanClientConnectionInfo*>& outClientList) const;
-
-	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientInitialized;
+	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo)> OnClientInitialized;
 	MulticastDelegate<void(const std::string& clientId)> OnClientDisposed;
-
-	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor) > OnClientRenderTargetAllocated;
-	MulticastDelegate<void(const std::string& clientId, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetReleased;
-	MulticastDelegate<void(const std::string& clientId, int64_t frameIndex)> OnClientRenderTargetUpdated;
 
 protected:
 	// Connection State Management
@@ -116,44 +86,26 @@ protected:
 	void initClientHandler(const ClientRequest& request, ClientResponse& response);
 	void disposeClientHandler(const ClientRequest& request, ClientResponse& response);
 
-	void invokeScriptMessageHandler(const ClientRequest& request, ClientResponse& response);
-	
-	void getVideoSourceIntrinsicsHandler(const ClientRequest& request, ClientResponse& response);
-	void getVideoSourceModeHandler(const ClientRequest& request, ClientResponse& response);
-	void getVideoSourceAttachmentHandler(const ClientRequest& request, ClientResponse& response);
-
-	void getVRDeviceListHandler(const ClientRequest& request, ClientResponse& response);
-	void getVRDeviceInfoHandler(const ClientRequest& request, ClientResponse& response);
-	void subscribeToVRDevicePoseUpdatesHandler(const ClientRequest& request, ClientResponse& response);
-	void unsubscribeFromVRDevicePoseUpdatesHandler(const ClientRequest& request, ClientResponse& response);
-
-	void allocateRenderTargetTexturesHandler(const ClientRequest& request, ClientResponse& response);
-	void freeRenderTargetTexturesHandler(const ClientRequest& request, ClientResponse& response);
-	void frameRenderedHandler(const ClientRequest& request, ClientResponse& response);
-
-	void getQuadStencilListHandler(const ClientRequest& request, ClientResponse& response);
-	void getQuadStencilHandler(const ClientRequest& request, ClientResponse& response);
-	void getBoxStencilListHandler(const ClientRequest& request, ClientResponse& response);
-	void getBoxStencilHandler(const ClientRequest& request, ClientResponse& response);
-	void getModelStencilListHandler(const ClientRequest& request, ClientResponse& response);
-	void getModelStencilHandler(const ClientRequest& request, ClientResponse& response);
-	void getModelStencilRenderGeometryHandler(const ClientRequest& request, ClientResponse& response);
-
-	void getSpatialAnchorListHandler(const ClientRequest& request, ClientResponse& response);
-	void getSpatialAnchorInfoHandler(const ClientRequest& request, ClientResponse& response);
-	void findSpatialAnchorInfoByNameHandler(const ClientRequest& request, ClientResponse& response);
-
-	// VRManager Callbacks
-	void publishVRDeviceListChanged();
-	void publishVRDevicePoses(int64_t newFrameIndex);
-
 private:
 	static MikanServer* m_instance;
-	class RemoteControlManager* m_remoteControlManager;
+	class MainWindow* m_ownerWindow= nullptr;
 
-	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
-	std::map<std::string, MikanClientConnectionStatePtr> m_clientConnections;
 	class IInterprocessMessageServer* m_messageServer;
-};
+	class HttpInterprocessMessageServer* m_httpMessageServer;
 
-#endif // MIKAN_SERVER_H
+	class CameraRequestHandler* m_cameraRequestHandler;
+	class FunctionRequestHandler* m_functionRequestHandler;
+	class LightRequestHandler* m_lightRequestHandler;
+	class PropertyRequestHandler* m_propertyRequestHandler;
+	class RemoteControlManager* m_remoteControlManager;
+	class ScriptRequestHandler* m_scriptRequestHandler;
+	class MarkerRequestHandler* m_markerRequestHandler;
+	class ShapeRequestHandler* m_shapeRequestHandler;
+	class StencilRequestHandler* m_stencilRequestHandler;
+	class TextureSourceRequestHandler* m_textureSourceRequestHandler;
+	class VideoSourceRequestHandler* m_videoSourceRequestHandler;
+
+	ProjectConfigWeakPtr m_projectConfig;
+
+	MikanClientConnectionStateMap m_clientConnections;
+};

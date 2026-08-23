@@ -11,28 +11,22 @@
 #include <filesystem>
 #include <string>
 
-MikanShaderCache::MikanShaderCache(IMkWindow* ownerWindow)
-	: m_shaderCache(CreateMkShaderCache(ownerWindow))
+MikanShaderCache::MikanShaderCache(IMkGraphicsContext* graphicsContext)
+	: m_shaderCache(createMkShaderCache(graphicsContext))
 {
 }
 
-bool MikanShaderCache::startup()
-{
-	return m_shaderCache->startup();
-}
+bool MikanShaderCache::startup() { return m_shaderCache->startup(); }
 
-void MikanShaderCache::shutdown()
-{
-	m_shaderCache->shutdown();
-}
+void MikanShaderCache::shutdown() { m_shaderCache->shutdown(); }
 
 MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef)
 {
 	MkMaterialPtr material;
 
-	if (materialAssetRef && materialAssetRef->isValid())
+	if (materialAssetRef && !materialAssetRef->isEmpty())
 	{
-		auto shaderFilePath = materialAssetRef->getAssetPath();
+		auto shaderFilePath= materialAssetRef->getInternalAssetPath();
 
 		MikanShaderConfig programConfig;
 		if (programConfig.load(shaderFilePath))
@@ -41,7 +35,7 @@ MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferenc
 
 			if (programCode)
 			{
-				material = m_shaderCache->registerMaterial(programCode);
+				material= m_shaderCache->registerMaterial(programCode);
 			}
 			else
 			{
@@ -65,32 +59,31 @@ MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferenc
 
 IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const MikanShaderConfig& config)
 {
-	bool bSuccess = true;
+	bool bSuccess= true;
 
-	const std::filesystem::path& shaderConfigPath = config.getLoadedConfigPath();
+	const std::filesystem::path& shaderConfigPath= config.getLoadedConfigPath();
 
-	std::filesystem::path shaderFolderPath = shaderConfigPath;
+	std::filesystem::path shaderFolderPath= shaderConfigPath;
 	shaderFolderPath.remove_filename();
 
-	std::string programName = shaderConfigPath.stem().string();
+	std::string programName= shaderConfigPath.stem().string();
 
 	std::filesystem::path vertexShaderFilePath;
 	std::string vertexShaderCode;
 	try
 	{
-		vertexShaderFilePath = shaderFolderPath;
-		vertexShaderFilePath /= config.vertexShaderPath;
+		vertexShaderFilePath= shaderFolderPath;
+		vertexShaderFilePath/= config.vertexShaderPath;
 
 		std::ifstream t(vertexShaderFilePath.string());
 		std::stringstream buffer;
 		buffer << t.rdbuf();
-		vertexShaderCode = buffer.str();
+		vertexShaderCode= buffer.str();
 	}
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("MikanShaderCache::loadFromConfigData")
-			<< vertexShaderFilePath.string()
-			<< " - unable to load vertex shader file!";
+			<< vertexShaderFilePath.string() << " - unable to load vertex shader file!";
 		return IMkShaderCodeConstPtr();
 	}
 
@@ -98,38 +91,33 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 	std::string fragmentShaderCode;
 	try
 	{
-		fragmentShaderFilePath = shaderFolderPath;
-		fragmentShaderFilePath /= config.fragmentShaderPath;
+		fragmentShaderFilePath= shaderFolderPath;
+		fragmentShaderFilePath/= config.fragmentShaderPath;
 
 		std::ifstream t(fragmentShaderFilePath.string());
 		std::stringstream buffer;
 		buffer << t.rdbuf();
-		fragmentShaderCode = buffer.str();
+		fragmentShaderCode= buffer.str();
 	}
 	catch (const std::ifstream::failure& e)
 	{
 		MIKAN_LOG_ERROR("MikanShaderCache::loadFromConfigData")
-			<< fragmentShaderFilePath.string()
-			<< " - unable to load fragment shader file!";
+			<< fragmentShaderFilePath.string() << " - unable to load fragment shader file!";
 		return IMkShaderCodeConstPtr();
 	}
 
-	IMkShaderCodePtr programCode = createIMkShaderCode(programName, vertexShaderCode, fragmentShaderCode);
+	IMkShaderCodePtr programCode= createIMkShaderCode(programName, vertexShaderCode, fragmentShaderCode);
 	programCode->setVertexShaderFilePath(shaderConfigPath);
 	programCode->setFragmentShaderFilePath(fragmentShaderFilePath);
 
 	for (const GlVertexAttributeConfigPtr attribConfig : config.vertexAttributes)
 	{
-		if (attribConfig->dataType == eVertexDataType::INVALID ||
-			attribConfig->semantic == eVertexSemantic::INVALID)
+		if (attribConfig->dataType == eVertexDataType::INVALID || attribConfig->semantic == eVertexSemantic::INVALID)
 		{
 			MIKAN_LOG_ERROR("IMkShaderCode::loadFromConfigData")
-				<< "Invalid vertex attribute("
-				<< attribConfig->name
-				<< ") dataType="
-				<< VertexConstantUtils::vertexDataTypeToString(attribConfig->dataType)
-				<< ", semantic="
-				<< VertexConstantUtils::vertexSemanticToString(attribConfig->semantic);
+				<< "Invalid vertex attribute(" << attribConfig->name
+				<< ") dataType=" << VertexConstantUtils::vertexDataTypeToString(attribConfig->dataType)
+				<< ", semantic=" << VertexConstantUtils::vertexSemanticToString(attribConfig->semantic);
 			return IMkShaderCodeConstPtr();
 		}
 		else
@@ -140,14 +128,14 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 
 	for (const auto& [uniformName, semanticName] : config.uniformSemanticMap)
 	{
-		eUniformSemantic semantic = eUniformSemantic::INVALID;
-		for (int enumIntValue = 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
+		eUniformSemantic semantic= eUniformSemantic::INVALID;
+		for (int enumIntValue= 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
 		{
 			const std::string enumSemanticName= getUniformSemanticName((eUniformSemantic)enumIntValue);
 
 			if (enumSemanticName == semanticName)
 			{
-				semantic = (eUniformSemantic)enumIntValue;
+				semantic= (eUniformSemantic)enumIntValue;
 				break;
 			}
 		}
@@ -159,10 +147,7 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 		else
 		{
 			MIKAN_LOG_ERROR("IMkShaderCode::loadFromConfigData")
-				<< "Invalid semantic: "
-				<< uniformName
-				<< " -> "
-				<< semanticName;
+				<< "Invalid semantic: " << uniformName << " -> " << semanticName;
 			return IMkShaderCodeConstPtr();
 		}
 	}
@@ -180,8 +165,7 @@ MkMaterialConstPtr MikanShaderCache::getMaterialByName(const std::string& name)
 	return m_shaderCache->getMaterialByName(name);
 }
 
-IMkShaderPtr MikanShaderCache::fetchCompiledIMkShader(
-	IMkShaderCodeConstPtr code)
+IMkShaderPtr MikanShaderCache::fetchCompiledIMkShader(IMkShaderCodeConstPtr code)
 {
 	return m_shaderCache->fetchCompiledIMkShader(code);
 }

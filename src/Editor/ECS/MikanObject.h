@@ -1,0 +1,139 @@
+#pragma once
+
+#include "ComponentFwd.h"
+#include "MulticastDelegate.h"
+#include "MikanComponent.h"
+#include "ObjectFwd.h"
+#include "ObjectSystemFwd.h"
+#include "SceneFwd.h"
+
+#include <string>
+#include <vector>
+
+class MikanObject final : public std::enable_shared_from_this<MikanObject>
+{
+public:
+	MikanObject(MikanObjectSystemWeakPtr ownerSystemPtr);
+	~MikanObject();
+
+	void setName(const std::string& name) { m_name= name; }
+	const std::string& getName() const { return m_name; }
+
+	template <class t_component_type>
+	std::shared_ptr<t_component_type> addComponent()
+	{
+
+		std::shared_ptr<t_component_type> component= std::make_shared<t_component_type>(shared_from_this());
+		m_components.push_back(component);
+		return component;
+	}
+
+	template <class t_component_type>
+	std::shared_ptr<t_component_type> addComponent(const std::string& name)
+	{
+
+		std::shared_ptr<t_component_type> component= std::make_shared<t_component_type>(shared_from_this());
+		component->setName(name);
+		m_components.push_back(component);
+		return component;
+	}
+
+	inline std::vector<MikanComponentPtr>& getComponentsConst() { return m_components; }
+	inline const std::vector<MikanComponentPtr>& getComponentsConst() const { return m_components; }
+
+	template <class t_component_type>
+	std::shared_ptr<t_component_type> getComponentOfType()
+	{
+		for (MikanComponentPtr component : m_components)
+		{
+			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
+
+			if (derivedComponent != nullptr)
+			{
+				return derivedComponent;
+			}
+		}
+
+		return nullptr;
+	}
+
+	template <class t_component_type>
+	std::shared_ptr<t_component_type> getComponentOfTypeAndName(const std::string& name)
+	{
+		for (MikanComponentPtr component : m_components)
+		{
+			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
+
+			if (derivedComponent != nullptr && component->getName() == name)
+			{
+				return derivedComponent;
+			}
+		}
+
+		return nullptr;
+	}
+
+	template <class t_component_type>
+	void getComponentsOfType(std::vector<std::shared_ptr<t_component_type>>& outComponents)
+	{
+		for (MikanComponentPtr component : m_components)
+		{
+			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
+
+			if (derivedComponent != nullptr)
+			{
+				outComponents.push_back(derivedComponent);
+			}
+		}
+	}
+
+	template <class t_component_type>
+	void getComponentsOfWeakType(std::vector<std::weak_ptr<t_component_type>>& outComponents)
+	{
+		for (MikanComponentPtr component : m_components)
+		{
+			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
+
+			if (derivedComponent != nullptr)
+			{
+				outComponents.push_back(derivedComponent);
+			}
+		}
+	}
+
+	using VisitFunction= std::function<void(MikanComponentPtr)>;
+	using FilterFunction= std::function<bool(MikanComponentPtr)>;
+	void visitAllComponents(VisitFunction visitFunc, FilterFunction filterFunc= {}) const
+	{
+		for (MikanComponentPtr component : m_components)
+		{
+			if (component && (!filterFunc || filterFunc(component)))
+			{
+				visitFunc(component);
+			}
+		}
+	}
+
+	inline MikanObjectSystemPtr getOwnerSystem() const { return m_ownerObjectSystemManager.lock(); }
+	inline TransformComponentPtr getRootComponent() const { return m_rootTransformComponent.lock(); }
+	inline void setRootComponent(TransformComponentPtr transformComponent)
+	{
+		m_rootTransformComponent= transformComponent;
+	}
+
+	// Called from owning object system
+	void init();
+	void postInit();
+	void dispose();
+
+protected:
+	std::string m_name;
+	MikanObjectSystemWeakPtr m_ownerObjectSystemManager;
+	TransformComponentWeakPtr m_rootTransformComponent;
+	std::vector<MikanComponentPtr> m_components;
+
+	// Object Flags
+	bool m_bIsInitialized= false;
+	bool m_bIsPostInitialized= false;
+	bool m_bIsDisposed= false;
+};

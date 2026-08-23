@@ -9,11 +9,11 @@
 // -- NodeConfig -----
 configuru::Config NodeLinkConfig::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt= CommonConfig::writeToJSON();
 
-	pt["id"] = id;
-	pt["start_pin_id"] = start_pin_id;
-	pt["end_pin_id"] = end_pin_id;
+	pt["id"]= id;
+	pt["start_pin_id"]= start_pin_id;
+	pt["end_pin_id"]= end_pin_id;
 
 	return pt;
 }
@@ -22,17 +22,17 @@ void NodeLinkConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	id = pt.get_or<t_node_id>("id", -1);
-	start_pin_id = pt.get_or<t_node_id>("start_pin_id", -1);
-	end_pin_id = pt.get_or<t_node_id>("end_pin_id", -1);
+	id= pt.get_or<t_node_id>("id", -1);
+	start_pin_id= pt.get_or<t_node_id>("start_pin_id", -1);
+	end_pin_id= pt.get_or<t_node_id>("end_pin_id", -1);
 }
 
 //-- NodeLink -----
 bool NodeLink::loadFromConfig(NodeLinkConfigConstPtr config)
 {
 	bool success= true;
-	m_id = config->id;
-	
+	m_id= config->id;
+
 	m_startPin= getOwnerGraph()->getPinById(config->start_pin_id);
 	if (!m_startPin)
 	{
@@ -52,7 +52,7 @@ bool NodeLink::loadFromConfig(NodeLinkConfigConstPtr config)
 
 void NodeLink::saveToConfig(NodeLinkConfigPtr config) const
 {
-	config->id = m_id;
+	config->id= m_id;
 	config->start_pin_id= m_startPin ? m_startPin->getId() : -1;
 	config->end_pin_id= m_endPin ? m_endPin->getId() : -1;
 }
@@ -69,9 +69,8 @@ NodePinPtr NodeLink::getConnectedPin(NodePinPtr pin) const
 
 void NodeLink::editorRender(const NodeEditorState& editorState)
 {
-	const int alpha = editorState.startedLinkPinId == -1 ? 255 : 50;
+	const int alpha= editorState.startedLinkPinId == -1 ? 255 : 50;
 
-	m_startPin->editorRenderBeginLink(alpha);
+	auto linkStyle= m_startPin->editorRenderMakeLinkStyle(alpha);
 	ImNodes::Link(m_id, m_startPin->getId(), m_endPin->getId());
-	m_startPin->editorRenderEndLink();
 }

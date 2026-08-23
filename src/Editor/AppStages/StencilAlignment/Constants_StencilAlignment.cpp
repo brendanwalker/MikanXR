@@ -1,8 +1,6 @@
 #include "Constants_StencilAlignment.h"
 
-
-
-const std::string g_StencilAlignmentMenuStateStrings[(int)eStencilAlignmentMenuState::COUNT] = {
+const std::string g_StencilAlignmentMenuStateStrings[(int)eStencilAlignmentMenuState::COUNT]= {
 	"inactive",
 	"verifyInitialCameraSetup",
 	"captureOriginPixel",
@@ -16,5 +14,5 @@ const std::string g_StencilAlignmentMenuStateStrings[(int)eStencilAlignmentMenuS
 	"verifyPointsCapture",
 	"testCalibration",
 	"failedVideoStartStreamRequest",
-};
-const std::string* k_StencilAlignmentMenuStateStrings = g_StencilAlignmentMenuStateStrings;
+	"pendingVideoStart"};
+const std::string* k_StencilAlignmentMenuStateStrings= g_StencilAlignmentMenuStateStrings;

@@ -5,7 +5,7 @@
 class ArrayNodeConfig : public NodeConfig
 {
 public:
-	ArrayNodeConfig() = default;
+	ArrayNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -16,9 +16,9 @@ public:
 class ArrayNode : public Node
 {
 public:
-	ArrayNode() = default;
+	ArrayNode()= default;
 
-	inline static const std::string k_nodeClassName = "ArrayNode";
+	inline static const std::string k_nodeClassName= "ArrayNode";
 	virtual std::string getClassName() const { return k_nodeClassName; }
 
 	inline const std::string& getElementClassName() const { return m_elementClassName; }
@@ -44,7 +44,7 @@ protected:
 class ArrayNodeFactory : public TypedNodeFactory<ArrayNode, ArrayNodeConfig>
 {
 public:
-	ArrayNodeFactory() = default;
+	ArrayNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

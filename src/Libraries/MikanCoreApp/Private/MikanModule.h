@@ -8,17 +8,14 @@
 class MikanModule
 {
 public:
-	using AllocModuleFunctionPtr = std::add_pointer<IMikanModule* ()>::type;
-	using FreeModuleFunctionPtr = std::add_pointer<void(IMikanModule*)>::type;
+	using AllocModuleFunctionPtr= std::add_pointer<IMikanModule*()>::type;
+	using FreeModuleFunctionPtr= std::add_pointer<void(IMikanModule*)>::type;
 
-	MikanModule() = delete;
+	MikanModule()= delete;
 	MikanModule(const std::string& moduleName);
 	~MikanModule();
 
-	inline IMikanModule* getModuleInterface() const
-	{
-		return m_moduleInterface;
-	}
+	inline IMikanModule* getModuleInterface() const { return m_moduleInterface; }
 
 	bool load();
 	void unload();

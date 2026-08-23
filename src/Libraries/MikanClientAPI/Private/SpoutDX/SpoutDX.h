@@ -6,53 +6,53 @@
 
 	Copyright (c) 2014-2022, Lynn Jarvis. All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without modification, 
+	Redistribution and use in source and binary forms, with or without modification,
 	are permitted provided that the following conditions are met:
 
-		1. Redistributions of source code must retain the above copyright notice, 
+		1. Redistributions of source code must retain the above copyright notice,
 		   this list of conditions and the following disclaimer.
 
-		2. Redistributions in binary form must reproduce the above copyright notice, 
-		   this list of conditions and the following disclaimer in the documentation 
+		2. Redistributions in binary form must reproduce the above copyright notice,
+		   this list of conditions and the following disclaimer in the documentation
 		   and/or other materials provided with the distribution.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY 
-	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES 
-	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED. 
-	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
-	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"	AND ANY
+	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE	ARE DISCLAIMED.
+	IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
 	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 	LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
+
 */
 #pragma once
 
 // Change the path as required
-#include "SpoutGL\SpoutCommon.h" // for dll build
+#include "SpoutGL\SpoutCommon.h"      // for dll build
 #include "SpoutGL\SpoutSenderNames.h" // for sender creation and update
-#include "SpoutGL\SpoutDirectX.h" // for creating DX11 textures
-#include "SpoutGL\SpoutFrameCount.h" // for mutex lock and new frame signal
-#include "SpoutGL\SpoutCopy.h" // for pixel copy
-#include "SpoutUtils.h" // Registry utiities
+#include "SpoutGL\SpoutDirectX.h"     // for creating DX11 textures
+#include "SpoutGL\SpoutFrameCount.h"  // for mutex lock and new frame signal
+#include "SpoutGL\SpoutCopy.h"        // for pixel copy
+#include "SpoutUtils.h"               // Registry utiities
 
-#include <direct.h> // for _getcwd
+#include <direct.h>   // for _getcwd
 #include <TlHelp32.h> // for PROCESSENTRY32
-#include <tchar.h> // for _tcsicmp
+#include <tchar.h>    // for _tcsicmp
 
-class spoutDX {
+class spoutDX
+{
 
-	public:
-
+public:
 	spoutDX();
-    ~spoutDX();
+	~spoutDX();
 
 	//
 	// DIRECTX
 	//
 
-	bool OpenDirectX11(ID3D11Device* pDevice = nullptr);
+	bool OpenDirectX11(ID3D11Device* pDevice= nullptr);
 	ID3D11Device* GetDX11Device();
 	ID3D11DeviceContext* GetDX11Context();
 	void CloseDirectX11();
@@ -63,7 +63,7 @@ class spoutDX {
 	//
 
 	// Set the sender name
-	bool SetSenderName(const char* sendername = nullptr);
+	bool SetSenderName(const char* sendername= nullptr);
 	// Set the sender texture format
 	void SetSenderFormat(DXGI_FORMAT format);
 	// Close sender and free resources
@@ -73,15 +73,14 @@ class spoutDX {
 	// Send a texture
 	bool SendTexture(ID3D11Texture2D* pTexture);
 	// Send part of a texture
-	bool SendTexture(ID3D11Texture2D* pTexture,
-		unsigned int xoffset, unsigned int yoffset,
-		unsigned int width, unsigned int height); 
+	bool SendTexture(ID3D11Texture2D* pTexture, unsigned int xoffset, unsigned int yoffset, unsigned int width,
+					 unsigned int height);
 	// Send an image
-	bool SendImage(unsigned char * pData, unsigned int width, unsigned int height);
+	bool SendImage(unsigned char* pData, unsigned int width, unsigned int height);
 	// Sender status
 	bool IsInitialized();
 	// Sender name
-	const char * GetName();
+	const char* GetName();
 	// Get width
 	unsigned int GetWidth();
 	// Get height
@@ -96,7 +95,7 @@ class spoutDX {
 	//
 
 	// Set the sender to connect to
-	void SetReceiverName(const char * sendername = nullptr);
+	void SetReceiverName(const char* sendername= nullptr);
 	// Close receiver and free resources
 	void ReleaseReceiver();
 	// Receive from a sender
@@ -104,7 +103,8 @@ class spoutDX {
 	// Receive a texture from a sender
 	bool ReceiveTexture(ID3D11Texture2D** ppTexture);
 	// Receive an image
-	bool ReceiveImage(unsigned char * pixels, unsigned int width, unsigned int height, bool bRGB = false, bool bInvert = false);
+	bool ReceiveImage(unsigned char* pixels, unsigned int width, unsigned int height, bool bRGB= false,
+					  bool bInvert= false);
 	// Open sender selection dialog
 	void SelectSender();
 	// Sender has changed
@@ -120,7 +120,7 @@ class spoutDX {
 	// Received sender texture format
 	DXGI_FORMAT GetSenderFormat();
 	// Received sender name
-	const char * GetSenderName();
+	const char* GetSenderName();
 	// Received sender width
 	unsigned int GetSenderWidth();
 	// Received sender height
@@ -129,7 +129,7 @@ class spoutDX {
 	double GetSenderFps();
 	// Received sender frame number
 	long GetSenderFrame();
-	
+
 	//
 	// COMMON
 	//
@@ -140,28 +140,28 @@ class spoutDX {
 	void DisableFrameCount();
 	// Return frame count status
 	bool IsFrameCountEnabled();
-	// Signal sync event 
+	// Signal sync event
 	void SetFrameSync(const char* SenderName);
 	// Wait or test for a sync event
-	bool WaitFrameSync(const char *SenderName, DWORD dwTimeout = 0);
+	bool WaitFrameSync(const char* SenderName, DWORD dwTimeout= 0);
 
-								
 	//
 	// Sender names
 	//
 
 	// Get number of senders
-	int  GetSenderCount();
+	int GetSenderCount();
 	// Get sender name for a given index
-	bool GetSender(int index, char* sendername, int MaxSize = 256);
+	bool GetSender(int index, char* sendername, int MaxSize= 256);
 	// Get sender details
-	bool GetSenderInfo(const char* sendername, unsigned int &width, unsigned int &height, HANDLE &dxShareHandle, DWORD &dwFormat);
+	bool GetSenderInfo(const char* sendername, unsigned int& width, unsigned int& height, HANDLE& dxShareHandle,
+					   DWORD& dwFormat);
 	// Get active sender name
 	bool GetActiveSender(char* sendername);
 	// set active sender name
 	bool SetActiveSender(const char* sendername);
 	// Get maximum senders allowed
-	int  GetMaxSenders();
+	int GetMaxSenders();
 	// Set maximum senders allowed
 	void SetMaxSenders(int maxSenders);
 
@@ -172,23 +172,23 @@ class spoutDX {
 	// Get the number of graphics adapters in the system
 	int GetNumAdapters();
 	// Get the adapter name for a given index
-	bool GetAdapterName(int index, char *adaptername, int maxchars);
+	bool GetAdapterName(int index, char* adaptername, int maxchars);
 	// Get the current adapter description
-	bool GetAdapterInfo(char *renderdescription, char *displaydescription, int maxchars);
+	bool GetAdapterInfo(char* renderdescription, char* displaydescription, int maxchars);
 	// Get the current adapter index
-	int  GetAdapter();
+	int GetAdapter();
 	// Set required graphics adapter for output (no args or -1 to reset)
-	bool SetAdapter(int index = -1);
+	bool SetAdapter(int index= -1);
 	// Get adapter pointer for a given adapter (-1 means current)
-	IDXGIAdapter* GetAdapterPointer(int index = -1);
+	IDXGIAdapter* GetAdapterPointer(int index= -1);
 	// Set required graphics adapter for creating a device
 	void SetAdapterPointer(IDXGIAdapter* pAdapter);
 	// Get auto device switching status
 	bool GetAdapterAuto();
 	// Auto switch receiving device to use the same graphics adapter as the sender
-	void SetAdapterAuto(bool bAuto = true);
+	void SetAdapterAuto(bool bAuto= true);
 	// Get sender adapter index and name for a given sender
-	int GetSenderAdapter(const char* sendername, char* adaptername = nullptr, int maxchars = 256);
+	int GetSenderAdapter(const char* sendername, char* adaptername= nullptr, int maxchars= 256);
 
 	//
 	// Sharing modes (2.006 compatibility)
@@ -202,25 +202,24 @@ class spoutDX {
 	// Utility
 	//
 
-	void CheckSenderFormat(const char * sendername);
-	bool CreateDX11texture(ID3D11Device* pd3dDevice,
-		unsigned int width, unsigned int height,
-		DXGI_FORMAT format, ID3D11Texture2D** ppTexture);
-	
+	void CheckSenderFormat(const char* sendername);
+	bool CreateDX11texture(ID3D11Device* pd3dDevice, unsigned int width, unsigned int height, DXGI_FORMAT format,
+						   ID3D11Texture2D** ppTexture);
+
 	//
 	// Data sharing
 	//
 
 	// Write data to shared memory
-	bool WriteMemoryBuffer(const char *name, const char* data, int length);
+	bool WriteMemoryBuffer(const char* name, const char* data, int length);
 	// Read data from shared memory
-	int  ReadMemoryBuffer(const char* name, char* data, int maxlength);
+	int ReadMemoryBuffer(const char* name, char* data, int maxlength);
 	// Create a shared memory buffer
-	bool CreateMemoryBuffer(const char *name, int length);
+	bool CreateMemoryBuffer(const char* name, int length);
 	// Delete a shared memory buffer
 	bool DeleteMemoryBuffer();
 	// Get the number of bytes available for data transfer
-	int  GetMemoryBufferSize(const char *name);
+	int GetMemoryBufferSize(const char* name);
 
 	//
 	// Public for external access
@@ -240,8 +239,7 @@ class spoutDX {
 	// RGB <> BGR
 	bool m_bSwapRB;
 
-protected :
-
+protected:
 	ID3D11Device* m_pd3dDevice;
 	ID3D11DeviceContext* m_pImmediateContext;
 	ID3D11Texture2D* m_pSharedTexture;
@@ -271,23 +269,23 @@ protected :
 	SpoutSharedMemory memorybuffer;
 
 	bool CheckSender(unsigned int width, unsigned int height, DWORD dwFormat);
-	ID3D11Texture2D* CheckSenderTexture(char *sendername, HANDLE dxShareHandle);
+	ID3D11Texture2D* CheckSenderTexture(char* sendername, HANDLE dxShareHandle);
 
 	bool ReceiveSenderData();
-	void CreateReceiver(const char * sendername, unsigned int width, unsigned int height, DWORD dwFormat);
-	
+	void CreateReceiver(const char* sendername, unsigned int width, unsigned int height, DWORD dwFormat);
+
 	// Read pixels from a staging texture
-	bool ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* destpixels,
-		unsigned int width, unsigned int height, bool bRGB, bool bInvert, bool bSwap);
-	
+	bool ReadPixelData(ID3D11Texture2D* pStagingSource, unsigned char* destpixels, unsigned int width,
+					   unsigned int height, bool bRGB, bool bInvert, bool bSwap);
+
 	// Create staging textures
-	bool CheckStagingTextures(unsigned int width, unsigned int height, DWORD dwFormat = DXGI_FORMAT_B8G8R8A8_UNORM);
-	bool CreateDX11StagingTexture(unsigned int width, unsigned int height, DXGI_FORMAT format, ID3D11Texture2D** pStagingTexture);
+	bool CheckStagingTextures(unsigned int width, unsigned int height, DWORD dwFormat= DXGI_FORMAT_B8G8R8A8_UNORM);
+	bool CreateDX11StagingTexture(unsigned int width, unsigned int height, DXGI_FORMAT format,
+								  ID3D11Texture2D** pStagingTexture);
 
 	// Create or update class texture
 	bool CheckTexture(unsigned int width, unsigned int height, DWORD dwFormat);
 
 	void SelectSenderPanel();
-	bool CheckSpoutPanel(char *sendername, int maxchars = 256);
-
+	bool CheckSpoutPanel(char* sendername, int maxchars= 256);
 };

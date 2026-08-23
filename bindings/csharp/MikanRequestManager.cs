@@ -16,7 +16,7 @@ namespace MikanXR
 
 		private IntPtr _mikanContext= IntPtr.Zero;
 		private int m_nextRequestID= 0;
-		private Dictionary<long, Type> _responseTypeCache = null;
+		private Dictionary<string, Type> _responseTypeCache = null;
 
 		private class PendingRequest
 		{
@@ -31,7 +31,7 @@ namespace MikanXR
 			_nativeTextResponseCallback = new MikanCoreNative.NativeTextResponseCallback(InternalTextResponseCallback);
 			_nativeBinaryResponseCallback = new MikanCoreNative.NativeBinaryResponseCallback(InternalBinaryResponseCallback);
 			_pendingRequests = new Dictionary<int, PendingRequest>();
-			_responseTypeCache = new Dictionary<long, Type>();
+			_responseTypeCache = new Dictionary<string, Type>();
 		}
 
 		public MikanAPIResult Initialize(IntPtr mikanContext)
@@ -46,15 +46,15 @@ namespace MikanXR
 
 			_mikanContext = mikanContext;
 
-			// Build a map from ClassId to MikanResponse Type
+			// Build a map from TypeName to MikanResponse Type
 			var eventTypes = from t in Assembly.GetExecutingAssembly().GetTypes()
 							 where t.IsClass && t.Namespace == "MikanXR" && typeof(MikanResponse).IsAssignableFrom(t)
 							 select t;
 			eventTypes.ToList().ForEach(t =>
 			{
-				long classId = Utils.getMikanClassId(t);
+				string responseTypeName = t.Name;
 
-				_responseTypeCache[classId] = t;
+				_responseTypeCache[responseTypeName] = t;
 			});
 
 			return MikanAPIResult.Success;
@@ -103,7 +103,6 @@ namespace MikanXR
 				MikanResponse response = new MikanResponse()
 				{
 					responseTypeName = typeof(MikanResponse).Name,
-					responseTypeId = MikanResponse.classId,
 					requestId = requestId,
 					resultCode = result
 				};
@@ -123,11 +122,6 @@ namespace MikanXR
 
 		public MikanResponseFuture SendRequest(MikanRequest request)
 		{
-			// Stamp the request with the request type name and id
-			Type requestType = request.GetType();
-			request.requestTypeName = requestType.Name;
-			request.requestTypeId = Utils.getMikanClassId(requestType);
-
 			// Stamp the request with the next request id
 			request.requestId= m_nextRequestID;
 			m_nextRequestID++;
@@ -174,19 +168,16 @@ namespace MikanXR
 			var root = JObject.Parse(utf8ResponseString);
 
 			// Check if the key "responseType" exists
-			if (root.TryGetValue("responseTypeName", out JToken responseTypeNameElement) &&
-				root.TryGetValue("responseTypeId", out JToken responseTypeIdElement))
+			if (root.TryGetValue("responseTypeName", out JToken responseTypeNameElement))
 			{
 				// Check if the value of "responseType" is a string
-				if (responseTypeNameElement.Type == JTokenType.String && 
-					responseTypeIdElement.Type == JTokenType.Integer)
+				if (responseTypeNameElement.Type == JTokenType.String)
 				{
 					// Get the string value of "responseType"
 					string responseTypeName = (string)responseTypeNameElement;
-					long responseTypeId = (long)responseTypeIdElement;
 
 					// Attempt to create the response object by class name
-					if (_responseTypeCache.TryGetValue(responseTypeId, out Type responseType))
+					if (_responseTypeCache.TryGetValue(responseTypeName, out Type responseType))
 					{
 						object responseObject = Activator.CreateInstance(responseType);
 
@@ -206,7 +197,7 @@ namespace MikanXR
 					{
 						_nativeLogCallback((int)MikanLogLevel.Error,
 							"Unknown response type: " + responseTypeName +
-							" (classId: " + responseTypeId + ")");
+							" (className: " + responseTypeName + ")");
 					}
 				}
 				else
@@ -232,9 +223,6 @@ namespace MikanXR
 
 			try
 			{
-				// Read the respose type id
-				long responseTypeId = binaryReader.ReadInt64();
-
 				// Read the response type name
 				string responseTypeName = binaryReader.ReadUTF8String();
 
@@ -252,7 +240,7 @@ namespace MikanXR
 				{
 					// Attempt to create the response object by class name
 					MikanResponse response = null;
-					if (_responseTypeCache.TryGetValue(responseTypeId, out Type responseType))
+					if (_responseTypeCache.TryGetValue(responseTypeName, out Type responseType))
 					{
 						object responseObject = Activator.CreateInstance(responseType);
 
@@ -275,7 +263,6 @@ namespace MikanXR
 					{
 						response = new MikanResponse()
 						{
-							responseTypeId = MikanResponse.classId,
 							responseTypeName = typeof(MikanResponse).Name,
 							requestId = requestId,
 							resultCode = MikanAPIResult.MalformedResponse

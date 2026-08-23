@@ -1,8 +1,8 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "VRDeviceView.h"
 #include <memory>
 
 #include "glm/ext/quaternion_double.hpp"
@@ -12,11 +12,13 @@
 class ArucoMarkerPoseSampler
 {
 public:
-	ArucoMarkerPoseSampler(
-		ProfileConfigConstPtr profileConfig,
-		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
-		class VideoFrameDistortionView* distortionView,
-		int desiredSampleCount);
+	// Samples poses of the stage's origin marker
+	ArucoMarkerPoseSampler(CameraComponentPtr cameraComponent, class VideoFrameDistortionView* distortionView,
+						   int desiredSampleCount);
+
+	// Samples poses of an explicit marker definition (e.g., a utility marker)
+	ArucoMarkerPoseSampler(CameraComponentPtr cameraComponent, class VideoFrameDistortionView* distortionView,
+						   int desiredSampleCount, MarkerDefinitionConstPtr markerDefinition);
 	virtual ~ArucoMarkerPoseSampler();
 
 	inline class CalibrationPatternFinder_Aruco* getPatternFinder() const { return m_markerFinder; }
@@ -25,27 +27,22 @@ public:
 	float getCalibrationProgress() const;
 	void resetCalibrationState();
 
-	bool computeVRSpaceMarkerXform();
-	bool hasValidVRSpaceMarkerXform() const;
-	void sampleLastVRSpaceMarkerXform();
+	bool computeApertureRelativeMarkerXform();
+	bool hasValidApertureRelativeMarkerXform() const;
+	void sampleLastApertureRelativeMarkerXform();
 	bool computeCalibratedMarkerPose(MikanQuatd& outRotation, MikanVector3d& outTranslation);
 
-	void renderCameraSpaceCalibrationState();
-	void renderVRSpaceCalibrationState();
+	void renderApertureSpaceCalibrationState();
 
 protected:
-
 	float frameWidth;
 	float frameHeight;
 
 	// Internal Calibration State
 	struct ArucoMarkerPoseSamplerState* m_calibrationState;
 
-	// Tracking pucks used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
-
-	// Video buffer state
-	class VideoFrameDistortionView* m_distortionView;
+	// Tracked camera used for calibration
+	CameraComponentPtr m_calibrationCamera;
 
 	// Calibration pattern being used
 	class CalibrationPatternFinder_Aruco* m_markerFinder;

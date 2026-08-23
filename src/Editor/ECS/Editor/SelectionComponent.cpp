@@ -1,0 +1,91 @@
+#include "App.h"
+#include "ColliderComponent.h"
+#include "MikanObject.h"
+#include "SelectionComponent.h"
+#include "ProjectManager.h"
+
+SelectionComponent::SelectionComponent(MikanObjectWeakPtr owner)
+	: MikanComponent(owner)
+{
+}
+
+void SelectionComponent::init()
+{
+	MikanComponent::init();
+
+	rebindColliders();
+}
+
+void SelectionComponent::dispose()
+{
+	m_colliders.clear();
+
+	MikanComponent::dispose();
+}
+
+void SelectionComponent::rebindColliders()
+{
+	getOwnerObject()->getComponentsOfWeakType<ColliderComponent>(m_colliders);
+}
+
+void SelectionComponent::notifyHoverEnter(const ColliderRaycastHitResult& hitResult)
+{
+	m_bIsHovered= true;
+	if (OnInteractionRayOverlapEnter)
+		OnInteractionRayOverlapEnter(hitResult);
+}
+
+void SelectionComponent::notifyHoverExit(const ColliderRaycastHitResult& hitResult)
+{
+	m_bIsHovered= false;
+	if (OnInteractionRayOverlapExit)
+		OnInteractionRayOverlapExit(hitResult);
+}
+
+void SelectionComponent::notifyGrab(const ColliderRaycastHitResult& hitResult)
+{
+	m_bIsGrabbed= true;
+	if (OnInteractionGrab)
+		OnInteractionGrab(hitResult);
+}
+
+void SelectionComponent::notifyMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
+{
+	if (OnInteractionMove)
+		OnInteractionMove(rayOrigin, rayDir);
+}
+
+void SelectionComponent::notifyRelease()
+{
+	m_bIsGrabbed= false;
+	if (OnInteractionRelease)
+		OnInteractionRelease();
+}
+
+void SelectionComponent::notifySelected()
+{
+	m_bIsSelected= true;
+	if (OnInteractionSelected)
+		OnInteractionSelected();
+}
+
+void SelectionComponent::notifyUnselected()
+{
+	m_bIsSelected= false;
+	if (OnInteractionUnselected)
+		OnInteractionUnselected();
+}
+
+void SelectionComponent::notifyTransformGizmoBound()
+{
+	m_bIsTransformGizmoBound= true;
+	if (OnTransformGizmoBound)
+		OnTransformGizmoBound();
+}
+
+void SelectionComponent::notifyTransformGizmoUnbound()
+{
+	m_bIsTransformGizmoBound= true;
+	if (OnTransformGizmoUnbound)
+		OnTransformGizmoUnbound();
+}

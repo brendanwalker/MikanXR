@@ -7,7 +7,7 @@
 
 enum eNodeEvaluationErrorCode
 {
-	NONE = -1,
+	NONE= -1,
 
 	invalidNode,
 	missingInput,
@@ -19,15 +19,12 @@ enum eNodeEvaluationErrorCode
 
 struct NodeEvaluationError
 {
-	NodeEvaluationError() = default;
-	NodeEvaluationError(
-		eNodeEvaluationErrorCode inErrorCode,
-		const std::string& inErrorMessage,
-		class Node* inErrorNode= nullptr,
-		class NodePin* inErrorPin= nullptr);
+	NodeEvaluationError()= default;
+	NodeEvaluationError(eNodeEvaluationErrorCode inErrorCode, const std::string& inErrorMessage,
+						class Node* inErrorNode= nullptr, class NodePin* inErrorPin= nullptr);
 
-	eNodeEvaluationErrorCode errorCode = NONE;
+	eNodeEvaluationErrorCode errorCode= NONE;
 	std::string errorMessage;
-	t_node_id errorNodeId = -1;
-	t_node_pin_id errorPinId = -1;
+	t_node_id errorNodeId= -1;
+	t_node_pin_id errorPinId= -1;
 };

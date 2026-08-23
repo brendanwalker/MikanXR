@@ -1,6 +1,7 @@
 #pragma once
 
-#include "DeviceViewFwd.h"
+#include "ComponentFwd.h"
+#include "MikanTypeFwd.h"
 #include "Transform.h"
 
 #include <memory>
@@ -22,9 +23,7 @@ struct AnchorTriangulatorInfo
 class AnchorTriangulator
 {
 public:
-	AnchorTriangulator(
-		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
-		class VideoFrameDistortionView* distortionView);
+	AnchorTriangulator(CameraComponentPtr cameraComponent, class VideoFrameDistortionView* distortionView);
 	virtual ~AnchorTriangulator();
 
 	bool hasFinishedInitialPointSampling() const;
@@ -44,20 +43,12 @@ public:
 
 protected:
 	glm::vec2 computeMouseScreenPosition() const;
-	void computeCameraRayAtPixel(
-		const glm::mat4 cameraXform,
-		const glm::vec2& imagePoint,
-		glm::vec3& outRayStart,
-		glm::vec3& outRayDirection) const;
-
-	float m_frameWidth;
-	float m_frameHeight;
 
 	// Internal Calibration State
 	struct AnchorTriangulationState* m_calibrationState;
 
-	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	// Camera used for calibration
+	CameraComponentPtr m_cameraComponent;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

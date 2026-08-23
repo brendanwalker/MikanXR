@@ -2,9 +2,13 @@
 
 #include "NodeFwd.h"
 #include "CommonConfig.h"
+#include "ProjectManager.h"
+#include "ObjectSystemFwd.h"
 #include "Pins/NodePinConstants.h"
+#include "MkNodesScopedColorStyle.h"
 #include "glm/ext/vector_float2.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -20,8 +24,14 @@ struct NodeDimensions
 class NodeConfig : public CommonConfig
 {
 public:
-	NodeConfig() : CommonConfig() {}
-	NodeConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+	NodeConfig()
+		: CommonConfig()
+	{
+	}
+	NodeConfig(const std::string& nodeName)
+		: CommonConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -37,36 +47,42 @@ class Node : public std::enable_shared_from_this<Node>
 {
 public:
 	Node();
-	virtual ~Node() {}
+	virtual ~Node();
 
 	inline void markPendingDeletion() { m_bIsPendingDeletion= true; }
 	inline bool isPendingDeletion() const { return m_bIsPendingDeletion; }
 
 	inline bool isDefaultNode() const { return m_id == -1; }
 
-	inline static const std::string k_nodeClassName = "Node";
+	inline static const std::string k_nodeClassName= "Node";
 	virtual std::string getClassName() const { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
 
-	inline void setId(t_node_id id) { m_id = id; }
+	inline void setId(t_node_id id) { m_id= id; }
 	inline int getId() const { return m_id; }
 
-	virtual void setOwnerGraph(NodeGraphPtr ownerGraph);
-	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }	
+	ProjectManagerPtr getOwnerProject() const;
+	template <class t_object_system_type>
+	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
+	{
+		return getOwnerProject()->getSystemOfType<t_object_system_type>();
+	}
 
-	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos = nodePos; }
+	virtual void setOwnerGraph(NodeGraphPtr ownerGraph);
+	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
+
+	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }
 
 	inline const std::vector<NodePinPtr>& getInputPins() const { return m_pinsIn; }
-	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }	
+	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }
 
 	template <class t_pin_type>
 	std::shared_ptr<t_pin_type> getFirstPinOfType(eNodePinDirection direction) const
 	{
-		const std::vector<NodePinPtr>& pinArray= 
-			(direction == eNodePinDirection::INPUT) ? m_pinsIn : m_pinsOut;
+		const std::vector<NodePinPtr>& pinArray= (direction == eNodePinDirection::INPUT) ? m_pinsIn : m_pinsOut;
 		for (NodePinPtr pin : pinArray)
 		{
 			std::shared_ptr<t_pin_type> derivedPin= std::dynamic_pointer_cast<t_pin_type>(pin);
@@ -106,8 +122,8 @@ protected:
 
 	virtual void editorRenderTitle(const NodeEditorState& editorState) const;
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
-	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const;
-	virtual void editorRenderPopNodeStyle(const NodeEditorState& editorState) const;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
+		const NodeEditorState& editorState) const;
 	virtual void editorRenderInputPins(const NodeEditorState& editorState);
 	virtual void editorRenderOutputPins(const NodeEditorState& editorState) const;
 
@@ -164,15 +180,9 @@ template <class t_node_class, class t_node_config_class>
 class TypedNodeFactory : public NodeFactory
 {
 public:
-	TypedNodeFactory() = default;
+	TypedNodeFactory()= default;
 
-	virtual NodeConfigPtr allocateNodeConfig() const override
-	{
-		return std::make_shared<t_node_config_class>();
-	}
+	virtual NodeConfigPtr allocateNodeConfig() const override { return std::make_shared<t_node_config_class>(); }
 
-	virtual NodePtr allocateNode() const override
-	{
-		return std::make_shared<t_node_class>();
-	}
+	virtual NodePtr allocateNode() const override { return std::make_shared<t_node_class>(); }
 };

@@ -6,7 +6,7 @@
 class ModelNodeConfig : public NodeConfig
 {
 public:
-	ModelNodeConfig() = default;
+	ModelNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -17,10 +17,10 @@ public:
 class ModelNode : public Node
 {
 public:
-	ModelNode() = default;
+	ModelNode()= default;
 	virtual ~ModelNode();
 
-	inline static const std::string k_nodeClassName = "ModelNode";
+	inline static const std::string k_nodeClassName= "ModelNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -37,7 +37,8 @@ public:
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 
 protected:
-	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
+		const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 	void onGraphPropertyDeleted(t_graph_property_id id);
@@ -49,7 +50,7 @@ protected:
 class ModelNodeFactory : public TypedNodeFactory<ModelNode, ModelNodeConfig>
 {
 public:
-	ModelNodeFactory() = default;
+	ModelNodeFactory()= default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 	virtual bool editorCanCreate() const override { return false; }

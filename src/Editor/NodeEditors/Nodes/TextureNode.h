@@ -6,7 +6,7 @@
 class TextureNodeConfig : public NodeConfig
 {
 public:
-	TextureNodeConfig() = default;
+	TextureNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -17,10 +17,10 @@ public:
 class TextureNode : public Node
 {
 public:
-	TextureNode() = default;
+	TextureNode()= default;
 	virtual ~TextureNode();
 
-	inline static const std::string k_nodeClassName = "TextureNode";
+	inline static const std::string k_nodeClassName= "TextureNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -38,7 +38,8 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
+		const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 	void onGraphPropertyDeleted(t_graph_property_id id);
@@ -50,7 +51,7 @@ protected:
 class TextureNodeFactory : public TypedNodeFactory<TextureNode, TextureNodeConfig>
 {
 public:
-	TextureNodeFactory() = default;
+	TextureNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 	virtual bool editorCanCreate() const override { return false; }

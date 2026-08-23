@@ -35,20 +35,18 @@ namespace MikanXR
 			UIntPtr buffer_size,
 			IntPtr userdata);
 
-		[DllImport("MikanClientCore.dll")]
+		[DllImport("MikanClientCore.dll", CharSet = CharSet.Ansi)]
 		public static extern int Mikan_Initialize(
-			MikanLogLevel min_log_level, 
-			NativeLogCallback log_callback, 
+			string client_name,
+			MikanLogLevel min_log_level,
+			NativeLogCallback log_callback,
 			out IntPtr out_context);
 
 		[DllImport("MikanClientCore.dll")]
-		public static extern int Mikan_GetClientAPIVersion();
-
-		[DllImport("MikanClientCore.dll")]
-		public static extern IntPtr Mikan_GetClientUniqueID(IntPtr context);
-		public static string GetClientUniqueID(IntPtr context)
+		public static extern IntPtr Mikan_GetClientName(IntPtr context);
+		public static string GetClientName(IntPtr context)
 		{
-			return Marshal.PtrToStringAnsi(Mikan_GetClientUniqueID(context));
+			return Marshal.PtrToStringAnsi(Mikan_GetClientName(context));
 		}
 
 		[DllImport("MikanClientCore.dll")]
@@ -63,36 +61,56 @@ namespace MikanXR
 		[DllImport("MikanClientCore.dll")]
 		public static extern int Mikan_GetGraphicsDeviceInterface(
 			IntPtr context,
-			MikanClientGraphicsApi api, 
+			MikanClientGraphicsApi api,
 			out IntPtr outGraphicsDeviceInterface);
 
 		[DllImport("MikanClientCore.dll")]
-		public static extern int Mikan_GetRenderTargetDescriptor(
+		public static extern int Mikan_SetGraphicsCommandQueueInterface(
 			IntPtr context,
+			MikanClientGraphicsApi api,
+			IntPtr graphicsCommandQueueInterface);
+
+		[DllImport("MikanClientCore.dll")]
+		public static extern int Mikan_GetGraphicsCommandQueueInterface(
+			IntPtr context,
+			MikanClientGraphicsApi api,
+			out IntPtr outGraphicsCommandQueueInterface);
+
+		[DllImport("MikanClientCore.dll")]
+		public static extern int Mikan_GetCameraRenderTargetDescriptor(
+			IntPtr context,
+			int camera_id,
 			out MikanRenderTargetDescriptor_Native out_descriptor);
 
 		[DllImport("MikanClientCore.dll")]
-		public static extern int Mikan_AllocateRenderTargetTextures(
+		public static extern int Mikan_AllocateCameraRenderTargetTextures(
 			IntPtr context,
+			int camera_id,
 			ref MikanRenderTargetDescriptor_Native descriptor);
 
 		[DllImport("MikanClientCore.dll")]
-		public static extern int Mikan_FreeRenderTargetTextures(IntPtr context);
-
-		[DllImport("MikanClientCore.dll")]
-		public static extern int Mikan_WriteColorRenderTargetTexture(
+		public static extern int Mikan_FreeCameraRenderTargetTextures(
 			IntPtr context,
-			IntPtr api_color_texture_ptr);
+			int camera_id);
 
 		[DllImport("MikanClientCore.dll")]
-		public static extern int Mikan_WriteDepthRenderTargetTexture(
+		public static extern int Mikan_WriteCameraColorRenderTargetTexture(
 			IntPtr context,
-			IntPtr api_depth_texture_ptr, 
-			float zNear, 
-			float zFar);
+			int camera_id,
+			IntPtr color_texture);
 
 		[DllImport("MikanClientCore.dll")]
-		public static extern IntPtr Mikan_GetPackDepthTextureResourcePtr(IntPtr context);
+		public static extern int Mikan_WriteCameraDepthRenderTargetTexture(
+			IntPtr context,
+			int camera_id,
+			IntPtr depth_texture,
+			float z_near,
+			float z_far);
+
+		[DllImport("MikanClientCore.dll")]
+		public static extern IntPtr Mikan_GetCameraPackDepthTextureResourcePtr(
+			IntPtr context,
+			int camera_id);
 
 		[DllImport("MikanClientCore.dll", CharSet = CharSet.Ansi)]
 		public static extern int Mikan_Connect(

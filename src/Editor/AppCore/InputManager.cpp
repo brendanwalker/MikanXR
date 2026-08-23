@@ -1,19 +1,11 @@
+#include "IEditorWindow.h"
 #include "InputManager.h"
-
-#if defined(_WIN32)
-#include <SDL_events.h>
-#include <SDL_keycode.h>
-#else
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_keycode.h>
-#endif
+#include "MkWindowEvent.h"
 
 // -- InputManager ------
-InputManager* InputManager::m_inputManager= nullptr;
-
-InputManager::InputManager()
+InputManager::InputManager(class IEditorWindow* ownerWindow)
+	: m_ownerWindow(ownerWindow)
 {
-	m_inputManager= this;
 }
 
 InputManager::~InputManager()
@@ -22,84 +14,91 @@ InputManager::~InputManager()
 	{
 		popEventBindingSet();
 	}
-
-	m_inputManager= nullptr;
 }
 
-bool InputManager::onSDLEvent(const SDL_Event* event)
-{	
+bool InputManager::onWindowEvent(const MkWindowEvent& event)
+{
 	bool bHandled= false;
 
-	switch (event->type)
+	switch (event.getEventType())
 	{
-	case SDL_KEYDOWN:
+	case eMkWindowEventType::KeyDown:
+	{
+		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
+		if (keybinds != nullptr)
 		{
-			KeyEventBindings* keybinds= getKeyBindings(event->key.keysym.sym);
-			if (keybinds != nullptr && keybinds->OnKeyPressed)
+			// A held key generates repeated KeyDown events (key.repeat != 0). Only the
+			// initial press fires OnKeyPressed; repeats fire OnKeyRepeated. This keeps
+			// press/release balanced for state tracking and one-shot actions.
+			if (event.getKeyRepeat())
 			{
-				keybinds->OnKeyPressed();
-				bHandled = true;
-			}
-		} break;
-	case SDL_KEYUP:
-		{
-			KeyEventBindings* keybinds = getKeyBindings(event->key.keysym.sym);
-			if (keybinds != nullptr)
-			{
-				if (event->key.repeat > 0)
+				if (keybinds->OnKeyRepeated)
 				{
-					if (keybinds->OnKeyRepeated)
-					{
-						keybinds->OnKeyRepeated();
-						bHandled= true;
-					}
-				}
-				else
-				{
-					if (keybinds->OnKeyReleased)
-					{
-						keybinds->OnKeyReleased();
-						bHandled = true;
-					}
+					keybinds->OnKeyRepeated();
+					bHandled= true;
 				}
 			}
-		} break;
-	case SDL_MOUSEWHEEL:
-		{
-			EventBindingSet* bindingSet = getCurrentEventBindingSet();
-			if (bindingSet != nullptr && bindingSet->OnMouseWheelScrolledEvent)
+			else
 			{
-				bindingSet->OnMouseWheelScrolledEvent(event->wheel.y);
-				bHandled = true;
+				if (keybinds->OnKeyPressed)
+				{
+					keybinds->OnKeyPressed();
+					bHandled= true;
+				}
 			}
-		} break;
-	case SDL_MOUSEBUTTONDOWN:
+		}
+	}
+	break;
+	case eMkWindowEventType::KeyUp:
+	{
+		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
+		if (keybinds != nullptr && keybinds->OnKeyReleased)
 		{
-			EventBindingSet* bindingSet = getCurrentEventBindingSet();
-			if (bindingSet != nullptr && bindingSet->OnMouseButtonPressedEvent)
-			{
-				bindingSet->OnMouseButtonPressedEvent(event->button.button);
-				bHandled = true;
-			}
-		} break;
-	case SDL_MOUSEBUTTONUP:
+			keybinds->OnKeyReleased();
+			bHandled= true;
+		}
+	}
+	break;
+	case eMkWindowEventType::MouseWheel:
+	{
+		EventBindingSet* bindingSet= getCurrentEventBindingSet();
+		if (bindingSet != nullptr && bindingSet->OnMouseWheelScrolledEvent)
 		{
-			EventBindingSet* bindingSet = getCurrentEventBindingSet();
-			if (bindingSet != nullptr && bindingSet->OnMouseButtonReleasedEvent)
-			{
-				bindingSet->OnMouseButtonReleasedEvent(event->button.button);
-				bHandled = true;
-			}
-		} break;
-	case SDL_MOUSEMOTION:
+			bindingSet->OnMouseWheelScrolledEvent(event.getMouseWheelScrollAmount());
+			bHandled= true;
+		}
+	}
+	break;
+	case eMkWindowEventType::MouseButtonDown:
+	{
+		EventBindingSet* bindingSet= getCurrentEventBindingSet();
+		if (bindingSet != nullptr && bindingSet->OnMouseButtonPressedEvent)
 		{
-			EventBindingSet* bindingSet = getCurrentEventBindingSet();
-			if (bindingSet != nullptr && bindingSet->OnMouseMotionEvent)
-			{
-				bindingSet->OnMouseMotionEvent(event->motion.xrel, event->motion.yrel);
-				bHandled = true;
-			}
-		} break;
+			bindingSet->OnMouseButtonPressedEvent(event.getMouseButton());
+			bHandled= true;
+		}
+	}
+	break;
+	case eMkWindowEventType::MouseButtonUp:
+	{
+		EventBindingSet* bindingSet= getCurrentEventBindingSet();
+		if (bindingSet != nullptr && bindingSet->OnMouseButtonReleasedEvent)
+		{
+			bindingSet->OnMouseButtonReleasedEvent(event.getMouseButton());
+			bHandled= true;
+		}
+	}
+	break;
+	case eMkWindowEventType::MouseMotion:
+	{
+		EventBindingSet* bindingSet= getCurrentEventBindingSet();
+		if (bindingSet != nullptr && bindingSet->OnMouseMotionEvent)
+		{
+			bindingSet->OnMouseMotionEvent(event.getMouseMotionXRel(), event.getMouseMotionYRel());
+			bHandled= true;
+		}
+	}
+	break;
 	default:
 		break;
 	}
@@ -109,10 +108,18 @@ bool InputManager::onSDLEvent(const SDL_Event* event)
 
 void InputManager::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
 {
-	SDL_GetMouseState(&outScreenX, &outScreenY);
+	if (m_ownerWindow)
+	{
+		m_ownerWindow->getMouseScreenPosition(outScreenX, outScreenY);
+	}
+	else
+	{
+		outScreenX= 0;
+		outScreenY= 0;
+	}
 }
 
-KeyEventBindings* InputManager::getKeyBindings(SDL_Keycode key)
+KeyEventBindings* InputManager::getKeyBindings(MkKeySym key)
 {
 	EventBindingSet* bindingSet= getCurrentEventBindingSet();
 	if (bindingSet == nullptr)
@@ -127,24 +134,24 @@ KeyEventBindings* InputManager::getKeyBindings(SDL_Keycode key)
 	return nullptr;
 }
 
-KeyEventBindings* InputManager::fetchOrAddKeyBindings(SDL_Keycode key)
+KeyEventBindings* InputManager::fetchOrAddKeyBindings(MkKeySym key)
 {
-	EventBindingSet* bindingSet = getCurrentEventBindingSet();
+	EventBindingSet* bindingSet= getCurrentEventBindingSet();
 	if (bindingSet == nullptr)
 	{
-		bindingSet = pushEventBindingSet();
+		bindingSet= pushEventBindingSet();
 	}
 
-	auto it = bindingSet->keybindings.find(key);
+	auto it= bindingSet->keybindings.find(key);
 	if (it != bindingSet->keybindings.end())
 	{
 		return it->second;
 	}
 	else
 	{
-		KeyEventBindings* emptyBindings = new KeyEventBindings();
+		KeyEventBindings* emptyBindings= new KeyEventBindings();
 
-		bindingSet->keybindings.insert({ key, emptyBindings });
+		bindingSet->keybindings.insert({key, emptyBindings});
 
 		return emptyBindings;
 	}
@@ -152,7 +159,7 @@ KeyEventBindings* InputManager::fetchOrAddKeyBindings(SDL_Keycode key)
 
 EventBindingSet* InputManager::pushEventBindingSet()
 {
-	EventBindingSet* newEventBindingSet = new EventBindingSet();
+	EventBindingSet* newEventBindingSet= new EventBindingSet();
 
 	m_eventBindings.push_back(newEventBindingSet);
 
@@ -181,10 +188,7 @@ EventBindingSet* InputManager::getCurrentEventBindingSet()
 }
 
 // -- KeyEventBindings -----
-KeyEventBindings::~KeyEventBindings()
-{
-	clear();
-}
+KeyEventBindings::~KeyEventBindings() { clear(); }
 
 void KeyEventBindings::clear()
 {
@@ -194,14 +198,11 @@ void KeyEventBindings::clear()
 }
 
 // -- EventBindingSet -----
-EventBindingSet::~EventBindingSet()
-{
-	clear();
-}
+EventBindingSet::~EventBindingSet() { clear(); }
 
 void EventBindingSet::clear()
 {
-	for (auto it = keybindings.begin(); it != keybindings.end(); ++it)
+	for (auto it= keybindings.begin(); it != keybindings.end(); ++it)
 	{
 		delete it->second;
 	}

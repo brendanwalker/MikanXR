@@ -8,7 +8,7 @@ typedef void* MikanContext;
 class MikanEventManager
 {
 public:
-	MikanEventManager() = default;
+	MikanEventManager()= default;
 
 	MikanAPIResult init(MikanContext context);
 	MikanAPIResult fetchNextEvent(MikanEventPtr& out_event);
@@ -17,5 +17,5 @@ protected:
 	MikanEventPtr parseEventString(const char* utf8EventString);
 
 private:
-	MikanContext m_context = nullptr;
+	MikanContext m_context= nullptr;
 };

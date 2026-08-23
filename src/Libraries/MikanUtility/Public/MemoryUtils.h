@@ -10,29 +10,29 @@
 //-- utility methods -----
 namespace MemoryUtils
 {
-	template <typename T> 
-	void safeRelease(T **ppT)
+template <typename T>
+void safeRelease(T** ppT)
+{
+	if (*ppT)
 	{
-		if (*ppT)
-		{
-			(*ppT)->Release();
-			*ppT = nullptr;
-		}
+		(*ppT)->Release();
+		*ppT= nullptr;
 	}
+}
 
-	template <typename T>
-	void safeReleaseAllCount(T **ppT)
+template <typename T>
+void safeReleaseAllCount(T** ppT)
+{
+	if (*ppT)
 	{
-		if (*ppT)
+		unsigned long e= (*ppT)->Release();
+
+		while (e)
 		{
-			unsigned long e = (*ppT)->Release();
-
-			while (e)
-			{
-				e = (*ppT)->Release();
-			}
-
-			*ppT = nullptr;
+			e= (*ppT)->Release();
 		}
+
+		*ppT= nullptr;
 	}
-};
+}
+}; // namespace MemoryUtils

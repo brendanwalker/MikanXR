@@ -1,467 +1,822 @@
-//-- includes -----
-#include "CameraSettings/AppStage_CameraSettings.h"
 #include "DepthMeshCapture/AppStage_DepthMeshCapture.h"
-#include "DepthMeshCapture/RmlModel_DepthMeshCapture.h"
-#include "DepthMeshCapture/RmlModel_DepthMeshCameraSettings.h"
-#include "App.h"
-#include "Colors.h"
-#include "DepthMeshGenerator.h"
-#include "EditorObjectSystem.h"
-#include "MikanCamera.h"
-#include "GlFrameCompositor.h"
-#include "MkScene.h"
+#include "DepthMeshCapture/GuiPanel_DepthMeshCapture.h"
+
+#include "imgui.h"
+#include "MkGuiScopedWindow.h"
+
+#include "CalibrationPatternFinder_Aruco.h"
+#include "CalibrationRenderHelpers.h"
+#include "CameraComponent.h"
+#include "IEditorWindow.h"
+#include "MarkerComponent.h"
+#include "MarkerObjectSystem.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
-#include "IMkStaticMeshInstance.h"
-#include "IMkTextRenderer.h"
-#include "IMkTriangulatedMesh.h"
-#include "MikanLineRenderer.h"
-#include "MikanTextRenderer.h"
-#include "MikanRenderModelResource.h"
-#include "MikanViewport.h"
+#include "IMkViewport.h"
 #include "Logger.h"
-#include "MainWindow.h"
-#include "MathTypeConversion.h"
-#include "MathUtility.h"
-#include "MikanScene.h"
+#include "MikanCamera.h"
+#include "MikanViewport.h"
 #include "ModelStencilComponent.h"
-#include "ObjectSystemManager.h"
-#include "ProfileConfig.h"
-#include "SyntheticDepthEstimator.h"
-#include "TextStyle.h"
-#include "VideoSourceView.h"
-#include "VideoSourceManager.h"
+#include "ModelStencilSystem.h"
+#include "PathUtils.h"
+#include "StageComponent.h"
+#include "StringUtils.h"
+#include "Transform.h"
+#include "TransformComponent.h"
 #include "VideoFrameDistortionView.h"
-#include "VRDeviceManager.h"
-#include "VRDeviceView.h"
+#include "VideoSourceComponent.h"
 
-#include "SDL_keycode.h"
+#include <opencv2/opencv.hpp>
 
-#include "glm/gtc/quaternion.hpp"
+#include <algorithm>
+#include <cmath>
+#include <ctime>
+#include <filesystem>
 
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
+const char* AppStage_DepthMeshCapture::APP_STAGE_NAME= "DepthMeshCapture";
 
-//-- statics ----
-const char* AppStage_DepthMeshCapture::APP_STAGE_NAME = "DepthMeshCapture";
+/// Median model depth in a small window around a (subpixel) frame position.
+/// A single-pixel read at a marker corner would be at the mercy of local depth
+/// noise and of landing on the marker's own silhouette.
+static float sampleMedianDepth(const MoGeInference::Result& geometry, float pixelX, float pixelY)
+{
+	constexpr int k_windowRadius= 2;
+	const int centerX= (int)std::lround(pixelX);
+	const int centerY= (int)std::lround(pixelY);
 
-//-- public methods -----
-AppStage_DepthMeshCapture::AppStage_DepthMeshCapture(MainWindow* ownerWindow)
-	: AppStage(ownerWindow, AppStage_DepthMeshCapture::APP_STAGE_NAME)
-	, m_calibrationModel(new RmlModel_DepthMeshCapture)
-	, m_cameraSettingsModel(new RmlModel_DepthMeshCameraSettings)
-	, m_videoSourceView()
-	, m_depthMeshCapture(nullptr)
-	, m_monoDistortionView(nullptr)
-	, m_scene(std::make_shared<MikanScene>())
-	, m_viewport(nullptr)
+	std::vector<float> samples;
+	for (int y= centerY - k_windowRadius; y <= centerY + k_windowRadius; ++y)
+	{
+		if (y < 0 || y >= geometry.depth.rows)
+			continue;
+		const float* depthRow= geometry.depth.ptr<float>(y);
+		const uint8_t* maskRow= geometry.mask.ptr<uint8_t>(y);
+		for (int x= centerX - k_windowRadius; x <= centerX + k_windowRadius; ++x)
+		{
+			if (x < 0 || x >= geometry.depth.cols)
+				continue;
+			if (maskRow[x] != 0 && std::isfinite(depthRow[x]))
+				samples.push_back(depthRow[x]);
+		}
+	}
+	if (samples.empty())
+		return 0.f;
+
+	std::nth_element(samples.begin(), samples.begin() + samples.size() / 2, samples.end());
+	return samples[samples.size() / 2];
+}
+
+// Model directory relative to the working directory, same convention as the
+// Marigold models (see docs/reference/scene-lighting.md). Uniquely named
+// because the unity build merges this file with the other stages' .cpps.
+static const char* k_depthMeshMoGeModelSubdirectory= "models/moge2";
+
+AppStage_DepthMeshCapture::AppStage_DepthMeshCapture(IEditorWindow* ownerWindow)
+	: AppStage(ownerWindow, APP_STAGE_NAME)
 {
 }
 
-AppStage_DepthMeshCapture::~AppStage_DepthMeshCapture()
-{
-	delete m_calibrationModel;
-	delete m_cameraSettingsModel;
-}
+AppStage_DepthMeshCapture::~AppStage_DepthMeshCapture() {}
 
-void AppStage_DepthMeshCapture::setTargetModelStencil(ModelStencilDefinitionPtr definition)
+void AppStage_DepthMeshCapture::setSourceCamera(CameraComponentPtr cameraComponent)
 {
-	m_targetModelStencilDefinition= definition;
+	m_currentSceneCameraComponent= cameraComponent;
+	m_videoSourceComponent= cameraComponent ? cameraComponent->getVideoSourceComponent() : nullptr;
 }
 
 void AppStage_DepthMeshCapture::enter()
 {
 	AppStage::enter();
 
-	// Cache object systems we'll be accessing
-	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
-	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
+	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
+	m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
-	// Get the current video source based on the config
-	m_profile = App::getInstance()->getProfileConfig();
-	m_videoSourceView = 
-		VideoSourceListIterator(m_profile->videoSourcePath).getCurrent();
+	MikanVideoSourceIntrinsics cameraIntrinsics;
+	m_currentSceneCameraComponent->getApertureIntrinsics(cameraIntrinsics);
+	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
-	auto* vrDeviceManager = VRDeviceManager::getInstance();
-	auto cameraTrackingPuckView= vrDeviceManager->getVRDeviceViewByPath(m_profile->cameraVRDevicePath);
-	m_cameraTrackingPuckPoseView= cameraTrackingPuckView->makePoseView(eVRDevicePoseSpace::MikanScene);
+	// The distortion view is the stream ownership token, same as the other
+	// calibration stages.
+	m_monoDistortionView= new VideoFrameDistortionView(m_videoSourceComponent, eVideoFrameProcessorMode::CALIBRATION);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+	// The model consumes the undistorted color buffer - the calibrated FOV it
+	// is given describes the undistorted image, not the raw one.
+	m_monoDistortionView->setColorUndistortDisabled(false);
 
-	// Add all VR devices to the 3d scene
-	VRDeviceList vrDeviceList= VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
-	{
-		it->getVRDeviceInterface()->bindToScene(m_scene->getMkScene());
-	}
+	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
 
-	// Setup viewport
-	m_viewport = getFirstViewport();
+	m_capturePanel= addGuiPanel<GuiPanel_DepthMeshCapture>();
+	m_capturePanel->OnCaptureEvent= [this]() { onCaptureEvent(); };
+	m_capturePanel->OnCancelCaptureEvent= [this]() { onCancelCaptureEvent(); };
+	m_capturePanel->OnApplyEvent= [this]() { onApplyEvent(); };
+	m_capturePanel->OnRedoEvent= [this]() { onRedoEvent(); };
+	m_capturePanel->OnCancelEvent= [this]() { onCancelEvent(); };
+	m_capturePanel->OnOkEvent= [this]() { onCancelEvent(); };
 
-	// Create and bind cameras
-	setupCameras();
+	m_bHasResult= false;
 
-	// Register the scene with the primary viewport
-	m_editorSystem->bindViewport(getFirstViewport());
+	startCaptureWorker();
 
-	// Fire up the video scene in the background + depth estimator + mesh capture
-	bool depthCaptureReady= false;
-	//TODO: Handle pendingStart
-	if ((int)m_videoSourceView->startVideoStream() > 0)
-	{
-		auto glFrameCompositor = m_ownerWindow->getFrameCompositor();
-
-		// Allocate all distortion and video buffers
-		m_monoDistortionView = 
-			std::make_shared<VideoFrameDistortionView>(
-				m_ownerWindow,
-				m_videoSourceView, 
-				VIDEO_FRAME_HAS_ALL);
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-
-#if REALTIME_DEPTH_ESTIMATION_ENABLED
-		// Get the depth estimator from the frame compositor
-		// (might have made one for depth visualization)
-		m_syntheticDepthEstimator = glFrameCompositor->getSyntheticDepthEstimator();
-#endif
-
-		// If we don't have one, then make a new depth estimator ourselves
-		if (!m_syntheticDepthEstimator)
-		{
-			m_syntheticDepthEstimator =
-				std::make_shared<SyntheticDepthEstimator>(
-					m_ownerWindow->getOpenCVManager(), 
-					DEPTH_OPTION_HAS_GL_TEXTURE_FLAG);
-
-			if (m_syntheticDepthEstimator->initialize())
-			{
-				MIKAN_LOG_ERROR("GlFrameCompositor::openVideoSource") << "Failed to create depth estimator";
-				m_syntheticDepthEstimator = nullptr;
-			}
-		}
-
-		if (m_syntheticDepthEstimator)
-		{
-			// Create a depth mesh generator
-			m_depthMeshCapture =
-				std::make_shared<DepthMeshGenerator>(
-					m_ownerWindow,
-					m_profile,
-					m_monoDistortionView,
-					m_syntheticDepthEstimator);
-
-			depthCaptureReady= true;
-		}
-	}
-
-	eDepthMeshCaptureMenuState newState;
-	if (depthCaptureReady)
-	{
-		// If bypassing the capture, then jump straight to the test capture state
-		if (m_depthMeshCapture->loadMeshFromStencilDefinition(m_targetModelStencilDefinition))
-		{
-			newState = eDepthMeshCaptureMenuState::testCapture;
-		}
-		else
-		{
-			newState = eDepthMeshCaptureMenuState::verifySetup;
-		}
-	}
-	else
-	{
-		newState = eDepthMeshCaptureMenuState::failedToStart;
-	}
-
-	// Create app stage UI models and views
-	// (Auto cleaned up on app state exit)
-	{
-		Rml::Context* context = getRmlContext();
-
-		// Init calibration model
-		m_calibrationModel->init(context);
-		m_calibrationModel->OnContinueEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onContinueEvent);
-		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onRestartEvent);
-		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_DepthMeshCapture::onCancelEvent);
-
-		// Init camera settings model
-		m_cameraSettingsModel->init(context, m_videoSourceView, m_profile);
-		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_DepthMeshCapture::onViewportModeChanged);
-
-		// Init calibration view now that the dependent model has been created
-		m_calibrationView = addRmlDocument("depth_capture.rml");
-
-		// Init camera settings view now that the dependent model has been created
-		m_cameraSettingsView = addRmlDocument("depth_capture_camera_settings.rml");
-	}
-
-	setMenuState(newState);
+	setMenuState(eDepthMeshCaptureMenuState::pendingVideoStartStreamRequest);
 }
 
 void AppStage_DepthMeshCapture::exit()
 {
 	setMenuState(eDepthMeshCaptureMenuState::inactive);
 
-	// Unregister all viewports from the editor
-	m_editorSystem->clearViewports();
-	m_editorSystem= nullptr;
+	// Stop the worker before anything else: it cancels any capture in flight,
+	// joins, and frees the ONNX session (over a gigabyte) on the thread that
+	// created it.
+	stopCaptureWorker();
 
-	VRDeviceList vrDeviceList = VRDeviceManager::getInstance()->getVRDeviceList();
-	for (auto it : vrDeviceList)
+	m_currentSceneCameraComponent= nullptr;
+	m_mkCamera= nullptr;
+
+	if (m_monoDistortionView != nullptr)
 	{
-		it->getVRDeviceInterface()->removeFromBoundScene();
+		if (m_videoSourceComponent)
+			m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
+		delete m_monoDistortionView;
+		m_monoDistortionView= nullptr;
 	}
 
-	if (m_videoSourceView)
-	{
-		// Turn back off the video feed
-		m_videoSourceView->stopVideoStream();
-		m_videoSourceView = nullptr;
-	}
-
-	// Free the calibrator
-	m_depthMeshCapture = nullptr;
-
-	// Free the depth estimator
-	m_syntheticDepthEstimator = nullptr;
-
-	// Free the distortion view buffers
-	m_monoDistortionView = nullptr;
-
-	// Clean up the data model
-	getRmlContext()->RemoveDataModel("depth_mesh_capture");
-	getRmlContext()->RemoveDataModel("depth_mesh_camera_settings");
+	m_videoSourceComponent= nullptr;
 
 	AppStage::exit();
 }
 
-// Camera
-void AppStage_DepthMeshCapture::setupCameras()
+void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState)
 {
-	MikanVideoSourceIntrinsics cameraIntrinsics;
-	m_videoSourceView->getCameraIntrinsics(cameraIntrinsics);
-
-	for (int cameraIndex = 0; cameraIndex < (int)eDepthMeshCaptureViewpointMode::COUNT; ++cameraIndex)
-	{
-		// Create a camera for the corresponding display mode if it doesn't exist
-		if (cameraIndex == m_viewport->getCameraCount())
-		{
-			m_viewport->addCamera();
-		}
-
-		// Use fly-cam input control for every camera except for the first one
-		MikanCameraPtr camera = m_viewport->getMikanCameraByIndex(cameraIndex);
-		if (cameraIndex == 0)
-			camera->setCameraMovementMode(eCameraMovementMode::stationary);
-		else
-			camera->setCameraMovementMode(eCameraMovementMode::fly);
-
-		// Make sure all the cameras intrinsics are using the same fov as the video source
-		camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
-	}
-
-	// Default to the XR Camera view
-	onViewportModeChanged(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
-}
-
-MikanCameraPtr AppStage_DepthMeshCapture::getViewpointCamera(eDepthMeshCaptureViewpointMode viewportMode) const
-{
-	return m_viewport->getMikanCameraByIndex((int)viewportMode);
+	if (m_capturePanel != nullptr)
+		m_capturePanel->setMenuState(newState);
 }
 
 void AppStage_DepthMeshCapture::update(float deltaSeconds)
 {
 	AppStage::update(deltaSeconds);
 
-	if (m_calibrationModel->getMenuState() != eDepthMeshCaptureMenuState::failedToStart)
-	{
-		// Get the transform of the video source
-		if (!m_cameraTrackingPuckPoseView ||
-			!m_cameraTrackingPuckPoseView->getPose(m_videoSourceXform))
-		{
-			m_videoSourceXform= glm::mat4(1.f);
-		}
+	const eDepthMeshCaptureMenuState menuState= m_capturePanel->getMenuState();
 
-		// Read the next video frame
+	if (menuState == eDepthMeshCaptureMenuState::pendingVideoStartStreamRequest)
+	{
+		if (m_monoDistortionView->isReceivingFrames())
+		{
+			setMenuState(eDepthMeshCaptureMenuState::verifyCameraSetup);
+		}
+		else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
+		{
+			setMenuState(eDepthMeshCaptureMenuState::failedVideoStartStreamRequest);
+		}
+		return;
+	}
+
+	// Keep the undistorted color buffer current while the operator is framing
+	// the shot; the capture reads whatever the last processed frame produced.
+	if (menuState == eDepthMeshCaptureMenuState::verifyCameraSetup)
+	{
 		m_monoDistortionView->readAndProcessVideoFrame();
-	}
-}
-
-void AppStage_DepthMeshCapture::render()
-{
-	AppStage::render();
-
-	switch (m_cameraSettingsModel->getViewpointMode())
-	{
-		case eDepthMeshCaptureViewpointMode::videoSourceViewpoint:
-			m_monoDistortionView->renderSelectedVideoBuffers();
-			m_depthMeshCapture->renderCameraSpaceCalibrationState();
-			break;
-		case eDepthMeshCaptureViewpointMode::vrViewpoint:
-			renderVRScene();
-			break;
-	}
-}
-
-void AppStage_DepthMeshCapture::renderVRScene()
-{
-	// Render the editor scene
-	MikanCameraPtr vrCamera = getViewpointCamera(eDepthMeshCaptureViewpointMode::vrViewpoint);
-
-	// Draw where the tracked camera is
-	MikanCameraPtr videoSourceCamera = getViewpointCamera(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
-	if (videoSourceCamera)
-	{
-		// Draw the frustum for the initial camera pose
-		const float hfov_radians = degrees_to_radians(videoSourceCamera->getHorizontalFOVDegrees());
-		const float vfov_radians = degrees_to_radians(videoSourceCamera->getVerticalFOVDegrees());
-		const float zNear = fmaxf(videoSourceCamera->getZNear(), 0.1f);
-		const float zFar = fminf(videoSourceCamera->getZFar(), 2.0f);
-
-		drawTransformedFrustum(
-			m_videoSourceXform,
-			hfov_radians, vfov_radians,
-			zNear, zFar,
-			Colors::Yellow);
-		drawTransformedAxes(m_videoSourceXform, 0.1f);
+		return;
 	}
 
-	// Draw tracking space
-	drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
-	if (m_profile->getRenderOriginFlag())
+	if (menuState == eDepthMeshCaptureMenuState::runningInference)
 	{
-		TextStyle style = getDefaultTextStyle();
+		// Push the worker's progress every frame, then pick the result up once
+		// it lands. The elapsed clock is what makes the readout visibly live
+		// during the two long, opaque steps.
+		m_captureElapsedSeconds+= deltaSeconds;
+		m_capturePanel->setCaptureProgress((eDepthMeshCapturePhase)m_capturePhase.load(), m_captureElapsedSeconds,
+										   m_bCancelRequested.load());
 
-		drawTransformedAxes(glm::mat4(1.f), 1.f, 1.f, 1.f);
-		drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
-	}
-
-	// Draw any meshes added to the scene (inlcuding the depth capture mesh)
-	m_scene->render(vrCamera, m_ownerWindow->getMkStateStack());
-}
-
-void AppStage_DepthMeshCapture::setMenuState(eDepthMeshCaptureMenuState newState)
-{
-	if (m_calibrationModel->getMenuState() != newState)
-	{
-		// Update menu state on the data models
-		m_calibrationModel->setMenuState(newState);
-		m_cameraSettingsModel->setMenuState(newState);
-
-		// Show or hide the camera controls based on menu state
-		const bool bIsCameraSettingsVisible = m_cameraSettingsView->IsVisible();
-		const bool bWantCameraSettingsVisibility =
-			(newState == eDepthMeshCaptureMenuState::capture) ||
-			(newState == eDepthMeshCaptureMenuState::testCapture);
-		if (bWantCameraSettingsVisibility != bIsCameraSettingsVisible)
+		bool bCaptureFinished= false;
 		{
-			if (bWantCameraSettingsVisibility)
-			{
-				m_cameraSettingsView->Show(Rml::ModalFlag::None, Rml::FocusFlag::Document);
-			}
-			else
-			{
-				m_cameraSettingsView->Hide();
-			}
+			std::lock_guard<std::mutex> lock(m_workerMutex);
+			bCaptureFinished= m_bCaptureFinished;
 		}
 
-		// Remove any previously captured meshes from the scene
-		removeDepthMeshResourceFromScene();
+		if (bCaptureFinished)
+			consumeCaptureOutput();
+	}
+}
 
-		if (newState == eDepthMeshCaptureMenuState::testCapture)
+void AppStage_DepthMeshCapture::onGui()
+{
+	AppStage::onGui();
+
+	constexpr float k_panelWidth= 415.f;
+	const float displayWidth= m_ownerWindow->getWidth();
+	const float displayHeight= m_ownerWindow->getHeight();
+
+	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+	constexpr ImGuiWindowFlags k_flags=
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+	MkGuiScopedWindow panel("##DepthMeshCapture", nullptr, k_flags);
+	if (!panel)
+		return;
+
+	for (IGuiPanel* guiPanel : m_guiPanels)
+		guiPanel->onGui();
+}
+
+void AppStage_DepthMeshCapture::onCaptureEvent()
+{
+	// Gather everything the worker needs here: the video buffers and the
+	// distortion view the marker detector reads belong to the UI thread.
+	m_monoDistortionView->readAndProcessVideoFrame();
+
+	cv::Mat* bgrBuffer= m_monoDistortionView->getBGRUndistortBuffer();
+	if (bgrBuffer == nullptr || bgrBuffer->empty())
+	{
+		m_capturePanel->setFailureReason("No undistorted color frame was available from the video source.");
+		setMenuState(eDepthMeshCaptureMenuState::failedInference);
+		return;
+	}
+
+	// Metric scale rides directly on the assumed FOV (a wrong guess shifts
+	// depth by tens of percent), so the calibrated value is required, not a
+	// nicety. See docs/reference/scene-lighting.md.
+	MikanVideoSourceIntrinsics cameraIntrinsics;
+	if (!m_currentSceneCameraComponent->getApertureIntrinsics(cameraIntrinsics))
+	{
+		m_capturePanel->setFailureReason("Could not resolve the camera intrinsics. Is the camera calibrated?");
+		setMenuState(eDepthMeshCaptureMenuState::failedInference);
+		return;
+	}
+
+	CaptureRequest request;
+	// Cloned because the video pipeline reuses the buffer as soon as the next
+	// frame arrives, and the worker reads it for seconds afterwards.
+	request.bgrFrame= bgrBuffer->clone();
+	request.fovXDegrees= (float)cameraIntrinsics.getMonoIntrinsics().hfov;
+	request.bHasMarker= tryDetectMarkerCorners(request.markerCornerPixels, request.markerCornerDepths);
+	request.storedScaleCorrection= m_currentSceneCameraComponent->getCameraDefinition()->getDepthMeshScaleCorrection();
+
+	// Keep the frame the geometry came from; Create Stencil saves it as the
+	// proxy's projected texture. Shares the clone's buffer - both are read-only
+	// from here on.
+	m_capturedFrame= request.bgrFrame;
+
+	m_bCancelRequested= false;
+	m_capturePhase= (int)eDepthMeshCapturePhase::loadingModel;
+	m_captureElapsedSeconds= 0.f;
+
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		m_pendingRequest= std::move(request);
+		m_bCaptureRequested= true;
+		m_bCaptureFinished= false;
+	}
+	m_workerSignal.notify_one();
+
+	setMenuState(eDepthMeshCaptureMenuState::runningInference);
+}
+
+void AppStage_DepthMeshCapture::onCancelCaptureEvent()
+{
+	m_bCancelRequested= true;
+
+	// Also tell ONNX Runtime to abandon the run in flight. Without this the
+	// cancel would not take effect until the inference finished on its own,
+	// which is the step the operator is most likely waiting out.
+	std::lock_guard<std::mutex> lock(m_workerMutex);
+	if (m_inference)
+		m_inference->requestCancel();
+}
+
+void AppStage_DepthMeshCapture::startCaptureWorker()
+{
+	if (m_workerThread.joinable())
+		return;
+
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		m_bWorkerShutdownRequested= false;
+		m_bCaptureRequested= false;
+		m_bCaptureFinished= false;
+	}
+
+	m_workerThread= std::thread([this]() { captureWorkerMain(); });
+}
+
+void AppStage_DepthMeshCapture::stopCaptureWorker()
+{
+	if (!m_workerThread.joinable())
+		return;
+
+	// Cancel anything in flight first, otherwise the join waits out a full
+	// inference (up to ~10s on the CPU fallback) while the window is closing.
+	m_bCancelRequested= true;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		if (m_inference)
+			m_inference->requestCancel();
+		m_bWorkerShutdownRequested= true;
+	}
+	m_workerSignal.notify_one();
+
+	m_workerThread.join();
+}
+
+void AppStage_DepthMeshCapture::captureWorkerMain()
+{
+	for (;;)
+	{
+		CaptureRequest request;
 		{
-			// Go to the VR viewpoint by default when we are in the test capture state
-			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::vrViewpoint);
+			std::unique_lock<std::mutex> lock(m_workerMutex);
+			m_workerSignal.wait(lock, [this]() { return m_bWorkerShutdownRequested || m_bCaptureRequested; });
 
-			// If entering the test capture state, then add the captured mesh to the scene
-			addDepthMeshResourcesToScene();
+			if (m_bWorkerShutdownRequested)
+			{
+				// The ONNX session has to be destroyed on the thread that
+				// created and ran it.
+				m_inference= nullptr;
+				return;
+			}
+
+			request= std::move(m_pendingRequest);
+			m_bCaptureRequested= false;
 		}
+
+		CaptureOutput output;
+		runCaptureRequest(request, output);
+
+		{
+			std::lock_guard<std::mutex> lock(m_workerMutex);
+			m_captureOutput= std::move(output);
+			m_bCaptureFinished= true;
+		}
+
+		m_capturePhase= (int)eDepthMeshCapturePhase::complete;
+	}
+}
+
+void AppStage_DepthMeshCapture::runCaptureRequest(const CaptureRequest& request, CaptureOutput& outOutput)
+{
+	const auto bIsCancelled= [this]() { return m_bCancelRequested.load(); };
+
+	// -- step 1: model load (first capture only) --
+	m_capturePhase= (int)eDepthMeshCapturePhase::loadingModel;
+
+	MoGeInference* inference= nullptr;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		inference= m_inference.get();
+	}
+
+	if (inference == nullptr)
+	{
+		const std::filesystem::path modelDirectory= std::filesystem::current_path() / k_depthMeshMoGeModelSubdirectory;
+
+		MoGeInference::Config config;
+		config.modelDirectory= modelDirectory.string();
+
+		// startup() pulls in over a gigabyte, so it runs outside the lock.
+		auto newInference= std::make_unique<MoGeInference>();
+		if (!newInference->startup(config))
+		{
+			outOutput.failureReason= StringUtils::stringify(
+				"Could not load the MoGe-2 model from '", modelDirectory.string(),
+				"'. Run tools/fetch_moge2_onnx.py to download it. See MikanCmd.log for details.");
+			return;
+		}
+
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		inference= newInference.get();
+		m_inference= std::move(newInference);
+	}
+	outOutput.executionProvider= inference->getActiveExecutionProvider();
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
+		return;
+	}
+
+	// -- step 2: inference --
+	m_capturePhase= (int)eDepthMeshCapturePhase::runningInference;
+	if (!inference->run(request.bgrFrame, request.fovXDegrees, outOutput.geometry))
+	{
+		// A cancelled run fails the same way a broken one does, so the cancel
+		// flag is what tells the two apart.
+		if (bIsCancelled())
+			outOutput.bCancelled= true;
 		else
+			outOutput.failureReason= "Depth inference failed. See MikanCmd.log for details.";
+		return;
+	}
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
+		return;
+	}
+
+	// -- step 3: metric scale correction. A marker detected in this capture
+	// gives ground truth and wins; otherwise fall back to the factor persisted
+	// from a previous marker calibration on this camera.
+	m_capturePhase= (int)eDepthMeshCapturePhase::calibratingScale;
+
+	float markerFactor= 1.f, cornerSpread= 0.f;
+	if (request.bHasMarker
+		&& computeScaleFromMarkerCorners(outOutput.geometry, request.markerCornerPixels, request.markerCornerDepths,
+										 markerFactor, cornerSpread))
+	{
+		outOutput.scaleSource= eDepthScaleCorrectionSource::arucoMarker;
+		outOutput.appliedScaleCorrection= markerFactor;
+		outOutput.markerCornerSpread= cornerSpread;
+	}
+	else
+	{
+		outOutput.scaleSource= (request.storedScaleCorrection != 1.f) ? eDepthScaleCorrectionSource::storedOnCamera
+																	  : eDepthScaleCorrectionSource::none;
+		outOutput.appliedScaleCorrection= request.storedScaleCorrection;
+		outOutput.markerCornerSpread= 0.f;
+	}
+
+	if (outOutput.appliedScaleCorrection != 1.f)
+	{
+		// A uniform scale on camera-space geometry: depth and all three point
+		// components. Infinities (invalid pixels) stay infinite; normals are
+		// scale-free and untouched.
+		outOutput.geometry.depth*= outOutput.appliedScaleCorrection;
+		outOutput.geometry.points*= outOutput.appliedScaleCorrection;
+	}
+
+	MIKAN_LOG_INFO("AppStage_DepthMeshCapture")
+		<< "Scale correction " << outOutput.appliedScaleCorrection << " ("
+		<< (outOutput.scaleSource == eDepthScaleCorrectionSource::arucoMarker
+				? "aruco marker"
+				: (outOutput.scaleSource == eDepthScaleCorrectionSource::storedOnCamera ? "stored on camera" : "none"))
+		<< ", corner spread " << outOutput.markerCornerSpread * 100.f << "%)";
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
+		return;
+	}
+
+	// -- step 4: mesh generation --
+	m_capturePhase= (int)eDepthMeshCapturePhase::generatingMesh;
+
+	DepthMeshGenerator::Config meshConfig;
+	if (!DepthMeshGenerator::generateMesh(outOutput.geometry, meshConfig, outOutput.mesh, outOutput.meshStats))
+	{
+		outOutput.failureReason= "Mesh generation produced no usable geometry.";
+		return;
+	}
+
+	if (bIsCancelled())
+	{
+		outOutput.bCancelled= true;
+		return;
+	}
+
+	outOutput.bSucceeded= true;
+}
+
+void AppStage_DepthMeshCapture::consumeCaptureOutput()
+{
+	CaptureOutput output;
+	{
+		std::lock_guard<std::mutex> lock(m_workerMutex);
+		output= std::move(m_captureOutput);
+		m_captureOutput= CaptureOutput();
+		m_bCaptureFinished= false;
+	}
+
+	if (!output.executionProvider.empty())
+		m_capturePanel->setExecutionProvider(output.executionProvider);
+
+	m_capturePhase= (int)eDepthMeshCapturePhase::idle;
+
+	if (output.bCancelled)
+	{
+		// Back to framing rather than out of the tool: cancelling a capture
+		// should not throw away the framing or the loaded model.
+		MIKAN_LOG_INFO("AppStage_DepthMeshCapture") << "Capture cancelled";
+		setMenuState(eDepthMeshCaptureMenuState::verifyCameraSetup);
+		return;
+	}
+
+	if (!output.bSucceeded)
+	{
+		m_capturePanel->setFailureReason(output.failureReason);
+		setMenuState(eDepthMeshCaptureMenuState::failedInference);
+		return;
+	}
+
+	m_geometry= std::move(output.geometry);
+	m_mesh= std::move(output.mesh);
+	m_meshStats= output.meshStats;
+	m_scaleCorrectionSource= output.scaleSource;
+	m_appliedScaleCorrection= output.appliedScaleCorrection;
+	m_markerCornerSpread= output.markerCornerSpread;
+	m_bHasResult= true;
+
+	m_capturePanel->setMeshSummary((int)m_mesh.vertices.size(), (int)m_mesh.getTriangleCount(),
+								   m_meshStats.culledDiscontinuityEdges, m_meshStats.nearDepth, m_meshStats.farDepth);
+	m_capturePanel->setScaleCorrection(m_scaleCorrectionSource, m_appliedScaleCorrection, m_markerCornerSpread);
+
+	setMenuState(eDepthMeshCaptureMenuState::verifyMesh);
+}
+
+bool AppStage_DepthMeshCapture::tryDetectMarkerCorners(std::vector<cv::Point2f>& outCornerPixels,
+													   std::vector<float>& outCornerDepths)
+{
+	auto markerSystem= getSystemOfType<MarkerObjectSystem>();
+	if (!markerSystem)
+		return false;
+
+	std::vector<int> markerIds;
+	markerSystem->getTypedComponentIdList(markerIds);
+
+	for (int markerId : markerIds)
+	{
+		MarkerComponentPtr markerComponent= markerSystem->getMarkerById(markerId);
+		if (!markerComponent)
+			continue;
+		MarkerDefinitionConstPtr markerDefinition= markerComponent->getMarkerDefinition();
+		if (!markerDefinition)
+			continue;
+
+		// Detection + solvePnP against the calibrated intrinsics, exactly as
+		// the camera-alignment tools do. The transform comes back in Mikan
+		// camera space (metres), matching the geometry result's convention.
+		CalibrationPatternFinder_Aruco finder(m_currentSceneCameraComponent, m_monoDistortionView, markerDefinition);
+
+		glm::dmat4 apertureToMarkerXform;
+		if (!finder.estimateNewCalibrationPatternPose(apertureToMarkerXform))
+			continue;
+
+		// The subpixel corner pixels, paired with the marker-local corner
+		// geometry the PnP solve used.
+		t_opencv_point2d_list imagePoints;
+		t_opencv_pointID_list imagePointIds;
+		cv::Point2f boundingQuad[4];
+		if (!finder.fetchLastFoundCalibrationPattern(imagePoints, imagePointIds, boundingQuad))
+			continue;
+
+		OpenGLCalibrationGeometry markerLocalGeometry;
+		finder.getOpenGLSolvePnPGeometry(&markerLocalGeometry);
+		if (imagePoints.size() != markerLocalGeometry.points.size())
+			continue;
+
+		outCornerPixels.clear();
+		outCornerDepths.clear();
+		for (size_t cornerIndex= 0; cornerIndex < imagePoints.size(); ++cornerIndex)
 		{
-			m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
+			const glm::vec3& localPoint= markerLocalGeometry.points[cornerIndex];
+			const glm::dvec4 cornerCameraSpace=
+				apertureToMarkerXform * glm::dvec4(localPoint.x, localPoint.y, localPoint.z, 1.0);
+			const float trueDepth= (float)-cornerCameraSpace.z;
+			if (trueDepth <= 0.f)
+				continue;
+
+			outCornerPixels.push_back(imagePoints[cornerIndex]);
+			outCornerDepths.push_back(trueDepth);
+		}
+
+		if (outCornerPixels.empty())
+			continue;
+
+		MIKAN_LOG_INFO("AppStage_DepthMeshCapture") << "Detected marker " << markerId << " for scale calibration ("
+													<< outCornerPixels.size() << " usable corners)";
+
+		return true;
+	}
+
+	return false;
+}
+
+bool AppStage_DepthMeshCapture::computeScaleFromMarkerCorners(const MoGeInference::Result& geometry,
+															  const std::vector<cv::Point2f>& cornerPixels,
+															  const std::vector<float>& cornerDepths, float& outFactor,
+															  float& outCornerSpread)
+{
+	if (cornerPixels.size() != cornerDepths.size())
+		return false;
+
+	std::vector<float> ratios;
+	for (size_t cornerIndex= 0; cornerIndex < cornerPixels.size(); ++cornerIndex)
+	{
+		const float sampledDepth= sampleMedianDepth(geometry, cornerPixels[cornerIndex].x, cornerPixels[cornerIndex].y);
+		if (sampledDepth <= 0.f)
+			continue;
+
+		ratios.push_back(cornerDepths[cornerIndex] / sampledDepth);
+	}
+
+	// Require at least 3 of the 4 corners: one bad corner (grazing angle,
+	// depth-edge contamination) should not silently define the factor.
+	if (ratios.size() < 3)
+		return false;
+
+	std::sort(ratios.begin(), ratios.end());
+	const float factor= ratios[ratios.size() / 2];
+
+	float spread= 0.f;
+	for (float ratio : ratios)
+		spread= std::max(spread, std::fabs(ratio / factor - 1.f));
+
+	MIKAN_LOG_INFO("AppStage_DepthMeshCapture") << "Marker scale calibration: factor " << factor << " from "
+												<< ratios.size() << " corners, spread " << spread * 100.f << "%";
+
+	outFactor= factor;
+	outCornerSpread= spread;
+	return true;
+}
+
+bool AppStage_DepthMeshCapture::createStencilFromMesh()
+{
+	if (!m_bHasResult)
+		return false;
+
+	// The mesh vertices are camera-local, so the stencil's world transform is
+	// simply the capturing camera's pose. An untracked camera would place the
+	// proxy at a stale or default pose, so fail loudly instead.
+	glm::mat4 cameraPose(1.f);
+	if (!m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
+	{
+		m_capturePanel->setFailureReason("Could not resolve the camera pose. Is the camera tracked?");
+		setMenuState(eDepthMeshCaptureMenuState::failedInference);
+		return false;
+	}
+
+	const std::filesystem::path projectDirectory= PathUtils::getProjectDirectory();
+	if (projectDirectory.empty())
+	{
+		m_capturePanel->setFailureReason("No project is loaded, so there is nowhere to save the mesh.");
+		setMenuState(eDepthMeshCaptureMenuState::failedInference);
+		return false;
+	}
+
+	// Unique per capture: regenerating under a reused path would collide with
+	// the model resource cache, which keys on the file path.
+	std::time_t now= std::time(nullptr);
+	std::tm timeInfo;
+	localtime_s(&timeInfo, &now);
+	char stencilName[64];
+	std::strftime(stencilName, sizeof(stencilName), "DepthProxy_%Y%m%d_%H%M%S", &timeInfo);
+
+	const std::filesystem::path modelsDirectory= projectDirectory / "models";
+	std::filesystem::create_directories(modelsDirectory);
+	const std::filesystem::path objPath= modelsDirectory / (std::string(stencilName) + ".obj");
+
+	// The captured frame becomes the proxy's projected texture: the mesh's UVs
+	// are the frame's pixel coordinates, so the plate maps back onto the
+	// geometry exactly. Written before the obj so the mtl never dangles.
+	std::string textureFileName;
+	if (!m_capturedFrame.empty())
+	{
+		textureFileName= std::string(stencilName) + ".png";
+		const std::filesystem::path texturePath= modelsDirectory / textureFileName;
+		if (!cv::imwrite(texturePath.string(), m_capturedFrame))
+		{
+			MIKAN_LOG_WARNING("AppStage_DepthMeshCapture")
+				<< "Failed to write capture texture " << texturePath.string() << "; stencil will be untextured";
+			textureFileName.clear();
+		}
+	}
+
+	if (!DepthMeshGenerator::saveObj(m_mesh, objPath.string(), stencilName, textureFileName))
+	{
+		m_capturePanel->setFailureReason(
+			StringUtils::stringify("Failed to write the mesh to '", objPath.string(), "'."));
+		setMenuState(eDepthMeshCaptureMenuState::failedInference);
+		return false;
+	}
+
+	// Parent the stencil under the camera's stage so it shows up in the scene
+	// outliner hierarchy; an unparented component is invisible there.
+	StageComponentConstPtr stageComponent= m_currentSceneCameraComponent->getOwnerStageComponent();
+	const MikanTransformID parentTransformId= stageComponent ? stageComponent->getComponentId() : INVALID_MIKAN_ID;
+
+	// The stencil stores an absolute model path - the importer loads the path
+	// verbatim, so a relative one would silently fail to resolve.
+	auto modelStencilSystem= getSystemOfType<ModelStencilSystem>();
+	ModelStencilComponentPtr stencilComponent= modelStencilSystem->addNewObjectByTypedDefinition(
+		[&](ModelStencilDefinitionPtr definition)
+		{
+			definition->setComponentName(stencilName);
+			definition->setParentTransformId(parentTransformId);
+			definition->setRelativeTransform(GlmTransform());
+			definition->setIsDisabled(false);
+			definition->setModelPath(objPath);
+			return true;
+		});
+	if (!stencilComponent)
+	{
+		m_capturePanel->setFailureReason("Failed to create the model stencil.");
+		setMenuState(eDepthMeshCaptureMenuState::failedInference);
+		return false;
+	}
+
+	stencilComponent->setWorldTransform(cameraPose);
+
+	// Committing a marker-calibrated capture persists the factor on the
+	// camera, so marker-less captures from this camera reuse it.
+	if (m_scaleCorrectionSource == eDepthScaleCorrectionSource::arucoMarker)
+	{
+		m_currentSceneCameraComponent->getCameraDefinition()->setDepthMeshScaleCorrection(m_appliedScaleCorrection);
+		MIKAN_LOG_INFO("AppStage_DepthMeshCapture")
+			<< "Persisted depth scale correction " << m_appliedScaleCorrection << " on camera '"
+			<< m_currentSceneCameraComponent->getName() << "'";
+	}
+
+	m_capturePanel->setCreatedStencilName(stencilName);
+
+	MIKAN_LOG_INFO("AppStage_DepthMeshCapture")
+		<< "Created depth proxy stencil '" << stencilName << "' (" << m_mesh.getTriangleCount() << " triangles, "
+		<< objPath.string() << ")";
+
+	return true;
+}
+
+void AppStage_DepthMeshCapture::onApplyEvent()
+{
+	if (createStencilFromMesh())
+		setMenuState(eDepthMeshCaptureMenuState::captureComplete);
+}
+
+void AppStage_DepthMeshCapture::onRedoEvent()
+{
+	m_bHasResult= false;
+	setMenuState(eDepthMeshCaptureMenuState::verifyCameraSetup);
+}
+
+void AppStage_DepthMeshCapture::onCancelEvent() { getOwnerWindow()->popAppState(); }
+
+void AppStage_DepthMeshCapture::renderDepthPreview()
+{
+	if (!m_bHasResult)
+		return;
+
+	IMkGraphicsContext* graphicsContext= getGraphicsContext();
+	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
+	IMkViewportPtr renderingViewport= graphicsContext->getRenderingViewport();
+	glm::i32vec2 viewportOrigin, viewportSize;
+	if (lineRenderer == nullptr || renderingViewport == nullptr
+		|| !renderingViewport->getRenderingViewport(viewportOrigin, viewportSize))
+	{
+		return;
+	}
+
+	const float frameWidth= (float)m_monoDistortionView->getFrameWidth();
+	const float frameHeight= (float)m_monoDistortionView->getFrameHeight();
+	const float viewportX0= (float)viewportOrigin.x;
+	const float viewportY0= (float)viewportOrigin.y;
+	const float viewportX1= (float)viewportOrigin.x + (float)viewportSize.x - 1.f;
+	const float viewportY1= (float)viewportOrigin.y + (float)viewportSize.y - 1.f;
+
+	// Colored by normalized inverse depth (red = near, blue = far), matching
+	// the panel text. Inverse depth spreads the resolution toward the near
+	// field, which is where the proxy has to be right.
+	const float nearInverse= 1.f / std::max(m_meshStats.nearDepth, 1e-3f);
+	const float farInverse= 1.f / std::max(m_meshStats.farDepth, 1e-3f);
+	const float inverseRange= std::max(nearInverse - farInverse, 1e-6f);
+
+	// A stride independent of the mesh stride: the preview needs readability,
+	// not density.
+	constexpr int k_previewStride= 6;
+	for (int y= 0; y < m_geometry.depth.rows; y+= k_previewStride)
+	{
+		const float* depthRow= m_geometry.depth.ptr<float>(y);
+		const uint8_t* maskRow= m_geometry.mask.ptr<uint8_t>(y);
+		for (int x= 0; x < m_geometry.depth.cols; x+= k_previewStride)
+		{
+			if (maskRow[x] == 0 || !std::isfinite(depthRow[x]))
+				continue;
+
+			const float normalized= (1.f / depthRow[x] - farInverse) / inverseRange;
+			const glm::vec3 color(normalized, 0.25f, 1.f - normalized);
+
+			const glm::vec2 framePoint((float)x + 0.5f, (float)y + 0.5f);
+			const glm::vec2 windowPoint= remapPointIntoTarget(frameWidth, frameHeight, viewportX0, viewportY0,
+															  viewportX1, viewportY1, framePoint);
+			lineRenderer->addPoint2d(windowPoint, color, 2.f);
 		}
 	}
 }
 
-// Calibration Model UI Events
-void AppStage_DepthMeshCapture::onContinueEvent()
+void AppStage_DepthMeshCapture::render(IMkViewportPtr targetViewport)
 {
-	switch (m_calibrationModel->getMenuState())
+	switch (m_capturePanel->getMenuState())
 	{
-	case eDepthMeshCaptureMenuState::verifySetup:
-	case eDepthMeshCaptureMenuState::captureFailed:
-		{
-			if (m_depthMeshCapture->captureMesh())
-			{
-				setMenuState(eDepthMeshCaptureMenuState::testCapture);
-			}
-			else
-			{
-				setMenuState(eDepthMeshCaptureMenuState::captureFailed);
-			}
-		}
+	case eDepthMeshCaptureMenuState::verifyCameraSetup:
+	case eDepthMeshCaptureMenuState::runningInference:
+		m_monoDistortionView->renderSelectedVideoBuffers();
 		break;
-	case eDepthMeshCaptureMenuState::testCapture:
-		{
-			// Write out the mesh to a file
-			m_depthMeshCapture->saveMeshToStencilDefinition(
-				m_targetModelStencilDefinition,
-				m_videoSourceXform);
 
-			m_ownerWindow->popAppState();
-		}
+	case eDepthMeshCaptureMenuState::verifyMesh:
+	case eDepthMeshCaptureMenuState::captureComplete:
+		m_monoDistortionView->renderSelectedVideoBuffers();
+		renderDepthPreview();
+		break;
+
+	default:
 		break;
 	}
-}
 
-void AppStage_DepthMeshCapture::onRestartEvent()
-{
-	// Go back to the camera viewpoint (in case we are in VR view)
-	m_cameraSettingsModel->setViewpointMode(eDepthMeshCaptureViewpointMode::videoSourceViewpoint);
-
-	// Return to the capture state
-	setMenuState(eDepthMeshCaptureMenuState::verifySetup);
-}
-
-void AppStage_DepthMeshCapture::onCancelEvent()
-{
-	m_ownerWindow->popAppState();
-}
-
-// Camera Settings Model UI Events
-void AppStage_DepthMeshCapture::onViewportModeChanged(eDepthMeshCaptureViewpointMode newViewMode)
-{
-	m_viewport->setCurrentCamera((int)m_cameraSettingsModel->getViewpointMode());
-}
-
-// GlScene Helpers
-void AppStage_DepthMeshCapture::addDepthMeshResourcesToScene()
-{
-	auto depthMeshResource= m_depthMeshCapture->getCapturedDepthMeshResource();
-	if (depthMeshResource != nullptr)
-	{
-		for (int meshIndex = 0; meshIndex < depthMeshResource->getTriangulatedMeshCount(); meshIndex++)
-		{
-			auto mesh= depthMeshResource->getTriangulatedMesh(meshIndex);
-			IMkStaticMeshInstancePtr meshInstance= createMkStaticMeshInstance(mesh->getName(), mesh);
-
-			// Set the model matrix to the video source transform 
-			// since that is what the depth data is relative to
-			meshInstance->setModelMatrix(m_videoSourceXform);
-			meshInstance->setVisible(true);
-
-			// Register the mesh instance with the scene
-			m_scene->getMkScene()->addInstance(meshInstance);
-
-			// Need to keep track of mesh instances locally
-			// since the scene uses weak pointers
-			m_depthMeshInstances.push_back(meshInstance);
-		}
-	}
-}
-
-void AppStage_DepthMeshCapture::removeDepthMeshResourceFromScene()
-{
-	for (IMkStaticMeshInstancePtr depthMeshInstance : m_depthMeshInstances)
-	{
-		m_scene->getMkScene()->removeInstance(depthMeshInstance);
-	}
-	m_depthMeshInstances.clear();
+	getGraphicsContext()->getLineRenderer()->render(true);
 }

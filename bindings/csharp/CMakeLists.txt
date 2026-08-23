@@ -52,12 +52,20 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 # Put in an "ClientAPI" folder in the project viewer
 set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER ClientAPI)
 
-# Create the command to run RefurekuGenerator
+# Create a batch file wrapper to set PATH and run the code generator
+set (CODEGEN_EXE_DIR $<TARGET_FILE_DIR:MikanClientCodeGen>)
 set (CODEGEN_EXE $<TARGET_FILE_DIR:MikanClientCodeGen>/$<TARGET_NAME:MikanClientCodeGen>)
+set (CODEGEN_WRAPPER ${CMAKE_CURRENT_BINARY_DIR}/run_csharp_codegen_$<CONFIG>.bat)
+file(GENERATE OUTPUT ${CODEGEN_WRAPPER} CONTENT "@echo off
+set PATH=${CODEGEN_EXE_DIR};%PATH%
+\"${CODEGEN_EXE}\" %*
+")
+
 add_custom_target(MikanCSharpCodeGen
 					WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
-					COMMAND "${CODEGEN_EXE}" "${CMAKE_CURRENT_LIST_DIR}/CSharpCodeGenConfig.json") 
+					COMMAND "${CODEGEN_WRAPPER}" "${CMAKE_CURRENT_LIST_DIR}/CSharpCodeGenConfig.json") 
 set_target_properties(MikanCSharpCodeGen PROPERTIES FOLDER Programs)
+add_dependencies(MikanCSharpCodeGen MikanClientCodeGen)
 
 # Run the RefurekuGenerator BEFORE building the project to refresh generated files
 add_dependencies(${PROJECT_NAME} MikanCSharpCodeGen)

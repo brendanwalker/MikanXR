@@ -1,9 +1,14 @@
 #pragma once
 
 #include "AssetFwd.h"
+#include "AssetReference.h"
 #include "CommonConfig.h"
 #include "NodeFwd.h"
+#include "Nodes/Node.h"
+#include "ObjectSystemFwd.h"
+#include "Pins/NodePin.h"
 #include "Pins/NodePinConstants.h"
+#include "Properties/GraphProperty.h"
 #include "MulticastDelegate.h"
 #include "StringUtils.h"
 
@@ -45,8 +50,15 @@ public:
 
 	virtual std::string getClassName() const { return "NodeGraph"; }
 
-	inline void setOwnerWindow(class IMkWindow* window) { m_ownerWindow= window; }
-	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
+	inline void setOwnerWindow(class IEditorWindow* window) { m_ownerWindow= window; }
+	inline class IEditorWindow* getOwnerWindow() const { return m_ownerWindow; }
+
+	ProjectManagerPtr getOwnerProject() const;
+	template <class t_object_system_type>
+	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
+	{
+		return getOwnerProject()->getSystemOfType<t_object_system_type>();
+	}
 
 	virtual bool createResources() { return true; }
 	virtual void disposeResources() {}
@@ -59,7 +71,8 @@ public:
 	// -- Loading -----
 
 	virtual bool loadFromConfig(const NodeGraphConfig& config);
-	virtual GraphPropertyPtr loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig, const NodeGraphConfig& graphConfig);
+	virtual GraphPropertyPtr loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig,
+														 const NodeGraphConfig& graphConfig);
 	virtual bool loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
 	virtual bool allocateNodeFromConfig(NodeConfigPtr nodeConfig);
 	virtual bool loadNodeFromConfig(NodeConfigPtr nodeConfig);
@@ -69,7 +82,6 @@ public:
 	virtual bool loadLinkFromConfig(NodeLinkConfigPtr linkConfig);
 
 	MulticastDelegate<void(bool success)> OnGraphLoaded;
-
 
 	// -- Saving -----
 
@@ -82,13 +94,14 @@ public:
 
 	// -- Assets References -----
 
-	virtual std::vector<AssetReferenceFactoryPtr> editorGetValidAssetRefFactories(const class NodeEditorState& editorState) const;
+	virtual std::vector<AssetReferenceFactoryPtr> editorGetValidAssetRefFactories(
+		const class NodeEditorState& editorState) const;
 
 	template <class t_asset_factory>
 	void addAssetReferenceFactory()
 	{
-		auto factory = AssetReferenceFactory::createFactory<t_asset_factory>();
-		std::string className = factory->getAssetRefClassName();
+		auto factory= AssetReferenceFactory::createFactory<t_asset_factory>();
+		std::string className= factory->getAssetRefClassName();
 
 		m_assetRefFactories.insert({className, factory});
 	}
@@ -100,7 +113,7 @@ public:
 
 	AssetReferenceFactoryPtr getAssetReferenceFactory(const std::string assetRefClassName) const
 	{
-		auto it = m_assetRefFactories.find(assetRefClassName);
+		auto it= m_assetRefFactories.find(assetRefClassName);
 
 		return (it != m_assetRefFactories.end()) ? it->second : AssetReferenceFactoryPtr();
 	}
@@ -112,44 +125,38 @@ public:
 		return (index >= 0 && index < (int)m_assetReferences.size()) ? m_assetReferences[index] : AssetReferencePtr();
 	}
 
-	inline const std::vector<AssetReferencePtr>& getAssetReferences() const
-	{
-		return m_assetReferences;
-	}
+	inline const std::vector<AssetReferencePtr>& getAssetReferences() const { return m_assetReferences; }
 
-	inline std::vector<AssetReferencePtr>& getAssetReferencesMutable()
-	{
-		return m_assetReferences;
-	}
+	inline std::vector<AssetReferencePtr>& getAssetReferencesMutable() { return m_assetReferences; }
 
-	template <class t_asset_ref_type>
-	std::shared_ptr<t_asset_ref_type> addTypedAssetReference()
-	{
-		auto assetRef = std::make_shared<t_asset_ref_type>(shared_from_this());
+	// template <class t_asset_ref_type>
+	// std::shared_ptr<t_asset_ref_type> addTypedAssetReference()
+	//{
+	//	auto assetRef = std::make_shared<t_asset_ref_type>(shared_from_this());
 
-		m_assetReferences.push_back(assetRef);
+	//	m_assetReferences.push_back(assetRef);
 
-		if (OnAssetReferenceCreated)
-			OnAssetReferenceCreated(property->getId());
+	//	if (OnAssetReferenceCreated)
+	//		OnAssetReferenceCreated(assetRef->getId());
 
-		return property;
-	}
+	//	return assetRef;
+	//}
 
 	bool deleteAssetReference(AssetReferencePtr assetRef);
 
 	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceCreated;
 	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceDeleted;
 
-
 	// -- Properties -----
 
-	virtual std::vector<GraphPropertyFactoryPtr> editorGetValidPropertyFactories(const class NodeEditorState& editorState) const;
+	virtual std::vector<GraphPropertyFactoryPtr> editorGetValidPropertyFactories(
+		const class NodeEditorState& editorState) const;
 
 	template <class t_property_factory>
 	void addPropertyFactory()
 	{
-		auto factory = GraphPropertyFactory::createFactory<t_property_factory>();
-		std::string className = factory->getGraphPropertyClassName();
+		auto factory= GraphPropertyFactory::createFactory<t_property_factory>();
+		std::string className= factory->getGraphPropertyClassName();
 
 		m_propertyFactories.insert({className, factory});
 	}
@@ -164,10 +171,7 @@ public:
 	GraphPropertyPtr getPropertyById(t_graph_property_id id) const;
 	GraphPropertyPtr getPropertyByName(const std::string& name) const;
 
-	inline const std::map<t_graph_property_id, GraphPropertyPtr>& getPropertyMap() const
-	{
-		return m_properties;
-	}
+	inline const std::map<t_graph_property_id, GraphPropertyPtr>& getPropertyMap() const { return m_properties; }
 
 	template <class t_property_type>
 	std::shared_ptr<t_property_type> getTypedPropertyById(t_graph_property_id id) const
@@ -187,7 +191,7 @@ public:
 		t_graph_property_id newPropertyId= allocateId();
 		std::string newPropertyName= StringUtils::stringify(t_property_type::k_propertyClassName, newPropertyId);
 
-		auto property = std::make_shared<t_property_type>();
+		auto property= std::make_shared<t_property_type>();
 		property->setOwnerGraph(shared_from_this());
 		property->setId(newPropertyId);
 		property->setName(newPropertyName);
@@ -205,7 +209,6 @@ public:
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyModifed;
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyDeleted;
 
-
 	// -- Nodes -----
 
 	virtual std::vector<NodeFactoryPtr> editorGetValidNodeFactories(const class NodeEditorState& editorState) const;
@@ -213,15 +216,15 @@ public:
 	template <class t_node_factory>
 	void addNodeFactory()
 	{
-		auto factory = NodeFactory::createFactory<t_node_factory>();
-		std::string className = factory->getNodeClassName();
+		auto factory= NodeFactory::createFactory<t_node_factory>();
+		std::string className= factory->getNodeClassName();
 
 		m_nodeFactories.insert({className, factory});
 	}
 
 	NodeFactoryPtr getNodeFactory(const std::string nodeClassName) const
 	{
-		auto it = m_nodeFactories.find(nodeClassName);
+		auto it= m_nodeFactories.find(nodeClassName);
 
 		return (it != m_nodeFactories.end()) ? it->second : NodeFactoryPtr();
 	}
@@ -229,7 +232,7 @@ public:
 	template <class _Pr>
 	NodePtr getNodeByPredicate(_Pr predicate) const
 	{
-		auto it = std::find_if(m_Nodes.begin(), m_Nodes.end(), predicate);
+		auto it= std::find_if(m_Nodes.begin(), m_Nodes.end(), predicate);
 		if (it != m_Nodes.end())
 		{
 			return it->second;
@@ -241,10 +244,13 @@ public:
 	NodePtr getEventNodeByName(const std::string& eventName) const;
 	const std::map<t_node_id, NodePtr>& getNodesMap() const { return m_Nodes; }
 
+	using NodeConstVisitor= std::function<void(NodeConstPtr nodePtr)>;
+	void visitAllNodes(const NodeConstVisitor& visitor) const;
+
 	template <class t_node_class>
 	std::shared_ptr<t_node_class> createTypedNode(const NodeEditorState& nodeEditorState)
 	{
-		auto nodeFactory = getNodeFactory(t_node_class::k_nodeClassName);
+		auto nodeFactory= getNodeFactory(t_node_class::k_nodeClassName);
 		if (nodeFactory)
 		{
 			return std::static_pointer_cast<t_node_class>(createNode(nodeFactory, nodeEditorState));
@@ -260,21 +266,20 @@ public:
 	bool deleteNodeById(t_node_id id);
 	MulticastDelegate<void(t_node_id id)> OnNodeDeleted;
 
-
 	// -- Pins -----
 
 	template <class t_pin_class, class t_pin_config_class>
 	void addPinFactory()
 	{
-		auto factory = NodePinFactory::createFactory< TypedNodePinFactory<t_pin_class, t_pin_config_class> >();
-		std::string pinClassName = factory->getPinClassName();
+		auto factory= NodePinFactory::createFactory<TypedNodePinFactory<t_pin_class, t_pin_config_class>>();
+		std::string pinClassName= factory->getPinClassName();
 
 		m_pinFactories.insert({pinClassName, factory});
 	}
 
 	NodePinFactoryPtr getPinFactory(const std::string pinClassName) const
 	{
-		auto it = m_pinFactories.find(pinClassName);
+		auto it= m_pinFactories.find(pinClassName);
 
 		return (it != m_pinFactories.end()) ? it->second : NodePinFactoryPtr();
 	}
@@ -286,7 +291,6 @@ public:
 
 	bool deletePinById(t_node_pin_id id);
 	MulticastDelegate<void(t_node_pin_id id)> OnPinDeleted;
-
 
 	// -- Links -----
 
@@ -300,7 +304,7 @@ public:
 
 protected:
 	// The window that created this node graph
-	class IMkWindow* m_ownerWindow= nullptr;
+	class IEditorWindow* m_ownerWindow= nullptr;
 
 	// Defines all of the asset references that nodes in this graph can use
 	std::map<std::string, AssetReferenceFactoryPtr> m_assetRefFactories;
@@ -325,33 +329,33 @@ protected:
 	std::map<t_node_pin_id, NodePinPtr> m_Pins;
 	std::map<t_node_link_id, NodeLinkPtr> m_Links;
 
-	int	m_nextId= 0;
+	int m_nextId= 0;
 };
 
 class NodeGraphFactory
 {
 public:
-	NodeGraphFactory() = default;
+	NodeGraphFactory()= default;
 
 	inline NodeGraphConstPtr getNodeDefaultObject() const { return m_nodeGraphDefaultObject; }
 	inline std::string getNodeClassName() const { return m_nodeGraphDefaultObject->getClassName(); }
 
 	virtual NodeGraphPtr allocateNodeGraph() const;
-	virtual NodeGraphPtr initialCreateNodeGraph(class IMkWindow* ownerWindow) const;
+	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const;
 
-	static NodeGraphPtr loadNodeGraph(class IMkWindow* ownerWindow, const std::filesystem::path& path);
+	static NodeGraphPtr loadNodeGraph(class IEditorWindow* ownerWindow, const std::filesystem::path& path);
 	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);
 
 	template <class t_node_factory_class>
 	static void registerFactory()
 	{
-		auto factory = std::make_shared<t_node_factory_class>();
+		auto factory= std::make_shared<t_node_factory_class>();
 
 		// Create a single "NodeGraph default object" for the factory.
 		// This is used to ask questions about NodeGraph without having to create one first.
 		// We have to do this work outside of the NodeGraphFactory constructor,
 		// because virtual functions aren't safe to call in constructor.
-		factory->m_nodeGraphDefaultObject = factory->allocateNodeGraph();
+		factory->m_nodeGraphDefaultObject= factory->allocateNodeGraph();
 
 		s_factoryMap.insert({factory->m_nodeGraphDefaultObject->getClassName(), factory});
 	}
@@ -362,15 +366,11 @@ private:
 	static std::map<std::string, NodeGraphFactoryPtr> s_factoryMap;
 };
 
-
 template <class t_node_graph_class>
 class TypedNodeGraphFactory : public NodeGraphFactory
 {
 public:
-	TypedNodeGraphFactory() = default;
+	TypedNodeGraphFactory()= default;
 
-	virtual NodeGraphPtr allocateNodeGraph() const override
-	{
-		return std::make_shared<t_node_graph_class>();
-	}
+	virtual NodeGraphPtr allocateNodeGraph() const override { return std::make_shared<t_node_graph_class>(); }
 };

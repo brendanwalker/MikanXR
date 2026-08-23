@@ -1,7 +1,8 @@
 #include "FloatPin.h"
 
 // -- FloatPinBase -----
-FloatPinBase::FloatPinBase() : NodePin()
+FloatPinBase::FloatPinBase()
+	: NodePin()
 {
 	setHasDefaultValue(true);
 }
@@ -16,24 +17,23 @@ float FloatPinBase::editorComputeInputWidth() const
 	return NodePin::editorComputeInputWidth();
 }
 
-ImNodesPinShape FloatPinBase::editorRenderBeginPin(float alpha)
+ImNodesPinShape FloatPinBase::editorComputePinShape() const
 {
-	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;
-
 	if (m_connectedLinks.size() > 0)
-		pinShape = ImNodesPinShape_CircleFilled;
+		return ImNodesPinShape_CircleFilled;
 	else
-		pinShape = ImNodesPinShape_Circle;
-
-	ImNodes::PushColorStyle(ImNodesCol_Pin, IM_COL32(156, 253, 65, alpha * 255));
-	ImNodes::PushColorStyle(ImNodesCol_PinHovered, IM_COL32(144, 225, 137, alpha * 255));
-
-	return pinShape;	
+		return ImNodesPinShape_Circle;
 }
 
-void FloatPinBase::editorRenderContextMenu(const NodeEditorState& editorState)
+std::shared_ptr<MkNodesScopedColorStyle> FloatPinBase::editorRenderMakePinStyle(float alpha)
 {
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Pin, IM_COL32(156, 253, 65, (unsigned char)(alpha * 255)))
+		.push(ImNodesCol_PinHovered, IM_COL32(144, 225, 137, (unsigned char)(alpha * 255)));
+	return style;
 }
+
+void FloatPinBase::editorRenderContextMenu(const NodeEditorState& editorState) {}
 
 // -- FloatPin -----
 void FloatPin::editorRenderInputTextEntry(const NodeEditorState& editorState)
@@ -56,22 +56,21 @@ void FloatPin::copyValueFromSourcePin()
 	}
 }
 
-void FloatPin::editorRenderBeginLink(float alpha)
+std::shared_ptr<MkNodesScopedColorStyle> FloatPin::editorRenderMakeLinkStyle(float alpha)
 {
-	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(156, 253, 65, alpha));
-	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(144, 225, 137, alpha));
-	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(144, 225, 137, 255));
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Link, IM_COL32(156, 253, 65, (unsigned char)alpha))
+		.push(ImNodesCol_LinkHovered, IM_COL32(144, 225, 137, (unsigned char)alpha))
+		.push(ImNodesCol_LinkSelected, IM_COL32(144, 225, 137, 255));
+	return style;
 }
 
-ImU32 FloatPin::editorGetLinkStyleColor() const
-{
-	return IM_COL32(156, 253, 65, 255);
-}
+ImU32 FloatPin::editorGetLinkStyleColor() const { return IM_COL32(156, 253, 65, 255); }
 
 // -- Float2Pin -----
 void Float2Pin::copyValueFromSourcePin()
 {
-	Float2PinPtr sourcePin = std::dynamic_pointer_cast<Float2Pin>(getConnectedSourcePin());
+	Float2PinPtr sourcePin= std::dynamic_pointer_cast<Float2Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -93,7 +92,7 @@ void Float2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Float3Pin -----
 void Float3Pin::copyValueFromSourcePin()
 {
-	Float3PinPtr sourcePin = std::dynamic_pointer_cast<Float3Pin>(getConnectedSourcePin());
+	Float3PinPtr sourcePin= std::dynamic_pointer_cast<Float3Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -115,7 +114,7 @@ void Float3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Float4Pin -----
 void Float4Pin::copyValueFromSourcePin()
 {
-	Float4PinPtr sourcePin = std::dynamic_pointer_cast<Float4Pin>(getConnectedSourcePin());
+	Float4PinPtr sourcePin= std::dynamic_pointer_cast<Float4Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{

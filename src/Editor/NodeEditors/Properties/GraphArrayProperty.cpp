@@ -6,7 +6,7 @@
 // -- GraphArrayPropertyConfig -----
 configuru::Config GraphArrayPropertyConfig::writeToJSON()
 {
-	configuru::Config pt = GraphPropertyConfig::writeToJSON();
+	configuru::Config pt= GraphPropertyConfig::writeToJSON();
 
 	writeStdValueVector(pt, "child_property_ids", childPropertyIds);
 
@@ -21,26 +21,21 @@ void GraphArrayPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphArrayProperty -----
-std::string GraphArrayProperty::editorGetIcon() const
-{
-	return NodeEditorUI::getArrayIcon();
-}
+std::string GraphArrayProperty::editorGetIcon() const { return NodeEditorUI::getArrayIcon(); }
 
-bool GraphArrayProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphArrayProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	NodeGraphPtr graph= getOwnerGraph();
 
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		bool loadedAllProps = true;
+		bool loadedAllProps= true;
 
 		auto arrayPropConfig= std::static_pointer_cast<const GraphArrayPropertyConfig>(propConfig);
 		for (t_graph_property_id childPropId : arrayPropConfig->childPropertyIds)
 		{
 			// Fetch the child property if it was already created
-			auto childProperty = getOwnerGraph()->getPropertyById(childPropId);
+			auto childProperty= getOwnerGraph()->getPropertyById(childPropId);
 
 			// If it's not created yet, tell the graph to create it now
 			if (!childProperty)
@@ -61,9 +56,8 @@ bool GraphArrayProperty::loadFromConfig(
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GraphArrayProperty::loadFromConfig") 
-								<< "Invalid property id: " << childPropId 
-								<< ", on array: " << getName();
+				MIKAN_LOG_ERROR("GraphArrayProperty::loadFromConfig")
+					<< "Invalid property id: " << childPropId << ", on array: " << getName();
 				loadedAllProps= false;
 			}
 		}
@@ -76,7 +70,7 @@ bool GraphArrayProperty::loadFromConfig(
 
 void GraphArrayProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto propConfig = std::static_pointer_cast<GraphArrayPropertyConfig>(config);
+	auto propConfig= std::static_pointer_cast<GraphArrayPropertyConfig>(config);
 
 	for (auto property : m_array)
 	{

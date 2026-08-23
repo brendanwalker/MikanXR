@@ -40,10 +40,8 @@ set_target_properties(MikanMath PROPERTIES FOLDER MikanLibraries)
 set_target_properties(MikanMath PROPERTIES PUBLIC_HEADER "${MIKAN_MATH_HEADER}")
 
 # Install - copy runtime dependencies to dist folder (for release)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(TARGETS MikanMath
-      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
-      LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
+      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 ELSE() #Linux/Darwin
 ENDIF()

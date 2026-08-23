@@ -9,13 +9,13 @@
 
 namespace ix
 {
-	class WebSocketServer;
-	class ConnectionState;
-}
-using WebSocketServerPtr = std::shared_ptr<ix::WebSocketServer>;
-using ConnectionStatePtr = std::shared_ptr<ix::ConnectionState>;
-using WebSocketClientConnectionPtr = std::shared_ptr<class WebSocketClientConnection>;
-using WebsocketClientEventQueuePtr = std::shared_ptr<class WebsocketClientEventQueue>;
+class WebSocketServer;
+class ConnectionState;
+} // namespace ix
+using WebSocketServerPtr= std::shared_ptr<ix::WebSocketServer>;
+using ConnectionStatePtr= std::shared_ptr<ix::ConnectionState>;
+using WebSocketClientConnectionPtr= std::shared_ptr<class WebSocketClientConnection>;
+using WebsocketClientEventQueuePtr= std::shared_ptr<class WebsocketClientEventQueue>;
 
 class WebsocketInterprocessMessageServer : public IInterprocessMessageServer
 {
@@ -26,7 +26,7 @@ public:
 	bool initialize() override;
 	void dispose() override;
 	void setSocketEventHandler(const std::string& eventType, SocketEventHandler handler) override;
-	void setRequestHandler(std::size_t requestTypeId, RequestHandler handler) override;
+	void setRequestHandler(const std::string& requestTypeName, RequestHandler handler) override;
 
 	void sendMessageToClient(const std::string& connectionId, const std::string& message) override;
 	void sendMessageToAllClients(const std::string& message) override;
@@ -42,8 +42,7 @@ private:
 	std::vector<WebSocketClientConnectionPtr> m_connections;
 	std::mutex m_connectionsMutex;
 	std::map<std::string, SocketEventHandler> m_socketEventHandlers;
-	std::map<std::size_t, RequestHandler> m_requestHandlers;
+	std::map<std::string, RequestHandler> m_requestHandlers;
 };
-
 
 #pragma once

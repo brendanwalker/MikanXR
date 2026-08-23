@@ -1,8 +1,6 @@
 #include "Constants_AnchorTriangulation.h"
 
-
-
-const std::string g_AnchorTriangulationMenuStateStrings[(int)eAnchorTriangulationMenuState::COUNT] = {
+const std::string g_AnchorTriangulationMenuStateStrings[(int)eAnchorTriangulationMenuState::COUNT]= {
 	"inactive",
 	"verifyInitialCameraSetup",
 	"captureOrigin1",
@@ -15,6 +13,7 @@ const std::string g_AnchorTriangulationMenuStateStrings[(int)eAnchorTriangulatio
 	"captureYAxis2",
 	"verifyTriangulatedPoints",
 	"testCalibration",
+	"pendingVideoStartStreamRequest",
 	"failedVideoStartStreamRequest",
 };
-const std::string* k_AnchorTriangulationMenuStateStrings = g_AnchorTriangulationMenuStateStrings;
+const std::string* k_AnchorTriangulationMenuStateStrings= g_AnchorTriangulationMenuStateStrings;

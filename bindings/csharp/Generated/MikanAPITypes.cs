@@ -28,33 +28,43 @@ namespace MikanXR
 		InvalidDeviceId= 102,
 		InvalidStencilID= 103,
 		InvalidAnchorID= 104,
+		InvalidCameraID= 105,
+		InvalidSceneID= 106,
+		InvalidStageID= 106,
+		InvalidShapeID= 107,
 	};
 
 	public class MikanEvent
 	{
-		public static readonly long classId= 8521159033538382795;
-
-		public long eventTypeId;
 		public string eventTypeName;
+
+		public MikanEvent()
+		{
+			eventTypeName = "MikanEvent";
+		}
 	};
 
 	public class MikanRequest
 	{
-		public static readonly long classId= 1095719431187359814;
-
-		public long requestTypeId;
 		public string requestTypeName;
 		public int requestId;
+
+		public MikanRequest()
+		{
+			requestTypeName = "MikanRequest";
+		}
 	};
 
 	public class MikanResponse
 	{
-		public static readonly long classId= 7094118849615581562;
-
-		public long responseTypeId;
 		public string responseTypeName;
 		public int requestId;
 		public MikanAPIResult resultCode;
+
+		public MikanResponse()
+		{
+			responseTypeName = "MikanResponse";
+		}
 	};
 
 }

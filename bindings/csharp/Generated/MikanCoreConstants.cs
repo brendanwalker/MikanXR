@@ -21,6 +21,7 @@ namespace MikanXR
 		RGB24= 1,
 		RGBA32= 2,
 		BGRA32= 3,
+		RGBA16F= 4,
 	};
 
 	public enum MikanConstants
@@ -77,6 +78,15 @@ namespace MikanXR
 		Warning= 3,
 		Error= 4,
 		Fatal= 5,
+	};
+
+	public enum MikanShadowBufferType
+	{
+		NOSHADOW= 0,
+		RGB24= 1,
+		RGBA32= 2,
+		BGRA32= 3,
+		RGBA16F= 4,
 	};
 
 }

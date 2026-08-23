@@ -4,7 +4,7 @@
 
 enum class eStencilAlignmentMenuState : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	inactive,
 	verifyInitialCameraSetup,
@@ -19,6 +19,7 @@ enum class eStencilAlignmentMenuState : int
 	verifyPointsCapture,
 	testCalibration,
 	failedVideoStartStreamRequest,
+	pendingVideoStart,
 
 	COUNT
 };

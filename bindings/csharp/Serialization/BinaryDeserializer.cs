@@ -93,7 +93,6 @@ namespace MikanXR
 
 				// Read the runtime class info
 				string elementRuntimeTypeName = _reader.ReadUTF8String();
-				_ = _reader.ReadUInt64();
 
 				bool isValidObject = _reader.ReadBoolean();
 				if (isValidObject)

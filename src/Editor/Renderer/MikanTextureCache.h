@@ -9,27 +9,28 @@
 #include <string>
 #include <map>
 
-#define INTERNAL_TEXTURE_WHITE_RGB		"Internal_White_RGB"
-#define INTERNAL_TEXTURE_BLACK_RGB		"Internal_Black_RGB"
-#define INTERNAL_TEXTURE_WHITE_RGBA		"Internal_White_RGBA"
-#define INTERNAL_TEXTURE_BLACK_RGBA		"Internal_Black_RGBA"
+#define INTERNAL_TEXTURE_WHITE_RGB "Internal_White_RGB"
+#define INTERNAL_TEXTURE_BLACK_RGB "Internal_Black_RGB"
+#define INTERNAL_TEXTURE_WHITE_RGBA "Internal_White_RGBA"
+#define INTERNAL_TEXTURE_BLACK_RGBA "Internal_Black_RGBA"
+#define INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT "Internal_Black_RGBA_Transparent"
+#define INTERNAL_MISSING_TEXTURE_RGBA "Internal_Missing_Texture_RGBA"
 
-class MikanTextureCache : public IMkTextureCache
+class MikanTextureCache
 {
 public:
 	MikanTextureCache()= delete;
-	MikanTextureCache(IMkWindow* ownerWindow);
+	MikanTextureCache(IMkGraphicsContext* graphicsContext);
 
 	IMkTexturePtr loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef);
 
-	virtual bool startup() override;
-	virtual void shutdown() override;
-	virtual IMkTexturePtr tryGetTextureByName(const std::string& textureName) override;
-	virtual IMkTexturePtr loadTexturePath(
-		const std::filesystem::path& texturePath, 
-		const std::string& overrideName= "") override;
-	virtual bool removeTexureFromCache(IMkTexturePtr texture) override;
+	virtual bool startup();
+	virtual void shutdown();
+	virtual IMkTexturePtr tryGetTextureByName(const std::string& textureName);
+	virtual IMkTexturePtr loadTexturePath(const std::filesystem::path& texturePath,
+										  const std::string& overrideName= "");
+	virtual bool removeTexureFromCache(IMkTexturePtr texture);
 
 private:
-	IMkTextureCachePtr m_textureCache;
+	IMkTextureCache* m_textureCache;
 };

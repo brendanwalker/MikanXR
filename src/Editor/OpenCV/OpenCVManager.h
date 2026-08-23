@@ -22,6 +22,6 @@ private:
 	void parseOpenCVBuildInfo();
 
 private:
-	bool m_bHasCudaDNN = false;
+	bool m_bHasCudaDNN= false;
 	std::map<std::string, DeepNeuralNetworkPtr> m_dnnMap;
 };

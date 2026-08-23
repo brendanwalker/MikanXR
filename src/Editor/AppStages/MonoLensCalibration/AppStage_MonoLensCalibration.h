@@ -2,35 +2,35 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "ComponentFwd.h"
 #include "Constants_MonoLensCalibration.h"
-#include "IRemoteControllableAppStage.h"
-#include "RmlFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
+class GuiPanel_MonoLensCalibration;
+class GuiPanel_MonoCameraSettings;
 
 //-- definitions -----
-class AppStage_MonoLensCalibration : 
-	public AppStage,
-	public IRemoteControllableAppStage
+class AppStage_MonoLensCalibration : public AppStage
 {
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_MonoLensCalibration(class MainWindow* ownerWindow);
+	AppStage_MonoLensCalibration(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_MonoLensCalibration();
 
 	void setBypassCalibrationFlag(bool flag);
+	void setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent);
 
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void render() override;
+	virtual void onGui() override;
+	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
 	void setMenuState(eMonoLensCalibrationMenuState newState);
+	void setupMonoLensCalibrator();
 	void onCaptureKeyPressed();
 	bool tryCapture();
 
@@ -44,23 +44,19 @@ protected:
 	void onVideoDisplayModeChanged(eVideoDisplayMode newDisplayMode);
 
 	// Remote Control
-	virtual bool handleRemoteControlCommand(
-		const std::string& command,
-		const std::vector<std::string>& parameters,
-		std::vector<std::string>& outResults) override;
+	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
+											std::vector<std::string>& outResults) override;
 	bool handleGetStateCommand(std::vector<std::string>& outResults);
 	bool handleGetImagePointStabilityCommand(std::vector<std::string>& outResults);
 	bool handleGetSamplesNeededCommand(std::vector<std::string>& outResults);
 	bool handleCaptureCommand(std::vector<std::string>& outResults);
 
 private:
-	class RmlModel_MonoLensCalibration* m_calibrationModel = nullptr;
-	Rml::ElementDocument* m_calibrationView= nullptr;
+	class GuiPanel_MonoLensCalibration* m_calibrationPanel= nullptr;
+	class GuiPanel_MonoCameraSettings* m_cameraSettingsPanel= nullptr;
 
-	class RmlModel_MonoCameraSettings* m_cameraSettingsModel = nullptr;
-	Rml::ElementDocument* m_cameraSettingsView= nullptr;
-
-	VideoSourceViewPtr m_videoSourceView;
+	bool m_bypassCalibrationFlag= false;
+	VideoSourceComponentPtr m_videoSourceComponent;
 	class MonoLensDistortionCalibrator* m_monoLensCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 };

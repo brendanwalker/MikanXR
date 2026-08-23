@@ -1,5 +1,5 @@
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -45,6 +45,9 @@ if (MSVC)
   # Disable annoying MSVC warnings (all targets)
   add_definitions(/D "_CRT_SECURE_NO_WARNINGS")
   add_definitions(/D "_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING")
+
+  # Prevent Windows.h from defining min/max macros that conflict with std::min/std::max
+  add_definitions(/D "NOMINMAX")
 
   # Parallel build on MSVC (all targets)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")

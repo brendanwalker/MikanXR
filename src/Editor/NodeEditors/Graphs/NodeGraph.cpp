@@ -1,4 +1,5 @@
 #include "AssetReference.h"
+#include "IEditorWindow.h"
 #include "NodeGraph.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
@@ -22,35 +23,39 @@
 
 #include "Properties/GraphArrayProperty.h"
 
+#include "MkNodesScopedColorStyle.h"
+
 #include "imnodes.h"
 
 #include <filesystem>
 #include <functional>
 
 // -- NodeGraphConfig -----
-NodeGraphConfig::NodeGraphConfig() : CommonConfig() 
+NodeGraphConfig::NodeGraphConfig()
+	: CommonConfig()
 {
 }
 
-NodeGraphConfig::NodeGraphConfig(const std::string& graphName) : CommonConfig(graphName) 
+NodeGraphConfig::NodeGraphConfig(const std::string& graphName)
+	: CommonConfig(graphName)
 {
 }
 
 configuru::Config NodeGraphConfig::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt= CommonConfig::writeToJSON();
 
-	pt["class_name"] = className;
-	pt["next_id"] = nextId;
+	pt["class_name"]= className;
+	pt["next_id"]= nextId;
 
 	// Write out propertyConfigMap as an array
 	{
-		auto configArray = configuru::Config::array();
-		for (auto it = propertyConfigMap.begin(); it != propertyConfigMap.end(); it++)
+		auto configArray= configuru::Config::array();
+		for (auto it= propertyConfigMap.begin(); it != propertyConfigMap.end(); it++)
 		{
 			configArray.push_back(it->second->writeToJSON());
 		}
-		pt["properties"] = configArray;
+		pt["properties"]= configArray;
 	}
 
 	writeStdConfigVector(pt, "assetReferences", assetRefConfigs);
@@ -65,8 +70,8 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	className = pt.get_or<std::string>("class_name", "NodeGraph");
-	nextId = pt.get_or<int>("next_id", -1);
+	className= pt.get_or<std::string>("class_name", "NodeGraph");
+	nextId= pt.get_or<int>("next_id", -1);
 
 	// These get evaluated in postReadFromJSON after we use className above
 	// to allocate a node graph that has the factories to process these config objects
@@ -80,22 +85,20 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 	readStdConfigVector(pt, "links", linkConfigs);
 }
 
-template<class t_object_type>
-static bool readNodeGraphConfigArray(
-	const configuru::Config& arrayConfigObject,
-	const std::string& arrayName,
-	std::vector< std::shared_ptr<t_object_type> >& vector,
-	std::function<CommonConfigPtr(const std::string& className)> allocateConfig)
+template <class t_object_type>
+static bool readNodeGraphConfigArray(const configuru::Config& arrayConfigObject, const std::string& arrayName,
+									 std::vector<std::shared_ptr<t_object_type>>& vector,
+									 std::function<CommonConfigPtr(const std::string& className)> allocateConfig)
 {
-	const auto& configArray = arrayConfigObject.as_array();
+	const auto& configArray= arrayConfigObject.as_array();
 	bool success= true;
 
 	vector.clear();
-	for (auto it = configArray.begin(); it != configArray.end(); it++)
+	for (auto it= configArray.begin(); it != configArray.end(); it++)
 	{
 		// Each config block should have a class name we can use to look up the factory
 		// that we can use to allocate the correct config object
-		const std::string className = it->get_or<std::string>("class_name", "");
+		const std::string className= it->get_or<std::string>("class_name", "");
 		if (className.empty())
 		{
 			MIKAN_LOG_ERROR("readNodeGraphConfigVector") << "Config entry missing class name in array: " << arrayName;
@@ -103,15 +106,16 @@ static bool readNodeGraphConfigArray(
 			continue;
 		}
 
-		CommonConfigPtr config = allocateConfig(className);
+		CommonConfigPtr config= allocateConfig(className);
 		if (!config)
 		{
-			MIKAN_LOG_ERROR("readNodeGraphConfigVector") << "Failed to allocate config for class name: " << className << ", in array: " << arrayName;
+			MIKAN_LOG_ERROR("readNodeGraphConfigVector")
+				<< "Failed to allocate config for class name: " << className << ", in array: " << arrayName;
 			success= false;
 			continue;
 		}
 
-		auto typedConfig = std::static_pointer_cast<t_object_type>(config);
+		auto typedConfig= std::static_pointer_cast<t_object_type>(config);
 		typedConfig->readFromJSON(*it);
 
 		vector.push_back(typedConfig);
@@ -127,25 +131,15 @@ bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 
 	// Use factories to create the config of the appropriate type
 	success&= readNodeGraphConfigArray(
-		_assetRefsConfigObject, "assetReferences", assetRefConfigs,
-		[graph](const std::string& className) {
-			return graph->getAssetReferenceFactory(className)->allocateAssetReferenceConfig();
-		});
-	success&= readNodeGraphConfigArray(
-		_propertiesConfigObject, "properties", propertyConfigs,
-		[graph](const std::string& className) {
-			return graph->getPropertyFactory(className)->allocatePropertyConfig();
-		});
-	success&= readNodeGraphConfigArray(
-		_nodesConfigObject, "nodes", nodeConfigs,
-		[graph](const std::string& className) {
-			return graph->getNodeFactory(className)->allocateNodeConfig();
-		});
-	success&= readNodeGraphConfigArray(
-		_pinsConfigObject, "pins", pinConfigs,
-		[graph](const std::string& className) {
-			return graph->getPinFactory(className)->allocatePinConfig();
-		});
+		_assetRefsConfigObject, "assetReferences", assetRefConfigs, [graph](const std::string& className)
+		{ return graph->getAssetReferenceFactory(className)->allocateAssetReferenceConfig(); });
+	success&= readNodeGraphConfigArray(_propertiesConfigObject, "properties", propertyConfigs,
+									   [graph](const std::string& className)
+									   { return graph->getPropertyFactory(className)->allocatePropertyConfig(); });
+	success&= readNodeGraphConfigArray(_nodesConfigObject, "nodes", nodeConfigs, [graph](const std::string& className)
+									   { return graph->getNodeFactory(className)->allocateNodeConfig(); });
+	success&= readNodeGraphConfigArray(_pinsConfigObject, "pins", pinConfigs, [graph](const std::string& className)
+									   { return graph->getPinFactory(className)->allocatePinConfig(); });
 
 	// For graph properties, we actually need to use a map
 	// so that we can look up property config by id
@@ -183,10 +177,7 @@ NodeGraph::NodeGraph()
 	addNodeFactory<VariableNodeFactory>();
 }
 
-NodeGraph::~NodeGraph()
-{
-	disposeResources();
-}
+NodeGraph::~NodeGraph() { disposeResources(); }
 
 bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 {
@@ -201,7 +192,7 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 	}
 
 	// Load all properties (depends on asset references)
-	for (auto it = config.propertyConfigMap.begin(); it != config.propertyConfigMap.end(); it++)
+	for (auto it= config.propertyConfigMap.begin(); it != config.propertyConfigMap.end(); it++)
 	{
 		bSuccess&= (loadGraphPropertyFromConfig(it->second, config) != nullptr);
 	}
@@ -249,11 +240,11 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 
 bool NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig)
 {
-	AssetReferenceFactoryPtr factory = getAssetReferenceFactory(assetRefConfig->className);
+	AssetReferenceFactoryPtr factory= getAssetReferenceFactory(assetRefConfig->className);
 
 	if (factory)
 	{
-		AssetReferencePtr assetRef = factory->allocateAssetReference();
+		AssetReferencePtr assetRef= factory->allocateAssetReference();
 		if (assetRef)
 		{
 			if (assetRef->loadFromConfig(assetRefConfig))
@@ -278,15 +269,13 @@ bool NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig)
 
 	MIKAN_LOG_INFO("NodeGraph::loadAssetRefFromConfig")
 		<< "Failed to load AssetReference from config"
-		<< ", class: " << assetRefConfig->className
-		<< ", path: " << assetRefConfig->assetPath;
+		<< ", class: " << assetRefConfig->className << ", path: " << assetRefConfig->assetPath;
 
 	return false;
 }
 
-GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(
-	GraphPropertyConfigPtr propConfig, 
-	const NodeGraphConfig& graphConfig)
+GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig,
+														const NodeGraphConfig& graphConfig)
 {
 	GraphPropertyPtr property= getPropertyById(propConfig->id);
 
@@ -298,10 +287,10 @@ GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(
 		return property;
 	}
 
-	GraphPropertyFactoryPtr factory = getPropertyFactory(propConfig->className);
+	GraphPropertyFactoryPtr factory= getPropertyFactory(propConfig->className);
 	if (factory)
 	{
-		property = factory->allocateProperty();
+		property= factory->allocateProperty();
 		if (property)
 		{
 			property->setOwnerGraph(shared_from_this());
@@ -328,8 +317,7 @@ GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(
 
 	MIKAN_LOG_INFO("NodeGraph::loadGraphPropertyFromConfig")
 		<< "Failed to load GraphProperty from config"
-		<< ", property id: " << propConfig->id
-		<< ", parent property id: " << propConfig->parentId
+		<< ", property id: " << propConfig->id << ", parent property id: " << propConfig->parentId
 		<< ", property class: " << propConfig->className;
 
 	return GraphPropertyPtr();
@@ -337,11 +325,11 @@ GraphPropertyPtr NodeGraph::loadGraphPropertyFromConfig(
 
 bool NodeGraph::allocateNodeFromConfig(NodeConfigPtr nodeConfig)
 {
-	NodeFactoryPtr factory = getNodeFactory(nodeConfig->className);
+	NodeFactoryPtr factory= getNodeFactory(nodeConfig->className);
 
 	if (factory)
 	{
-		NodePtr node = factory->allocateNode();
+		NodePtr node= factory->allocateNode();
 		if (node)
 		{
 			node->setOwnerGraph(shared_from_this());
@@ -361,23 +349,21 @@ bool NodeGraph::allocateNodeFromConfig(NodeConfigPtr nodeConfig)
 
 	MIKAN_LOG_INFO("NodeGraph::allocateNodeFromConfig")
 		<< "Failed to load node from config"
-		<< ", node id: " << nodeConfig->id
-		<< ", node class: " << nodeConfig->className;
+		<< ", node id: " << nodeConfig->id << ", node class: " << nodeConfig->className;
 
 	return false;
 }
 
 bool NodeGraph::loadNodeFromConfig(NodeConfigPtr nodeConfig)
 {
-	NodePtr node = getNodeById(nodeConfig->id);
-	assert (node);
+	NodePtr node= getNodeById(nodeConfig->id);
+	assert(node);
 
 	if (!node->loadFromConfig(nodeConfig))
 	{
 		MIKAN_LOG_INFO("NodeGraph::loadNodeFromConfig")
 			<< "Failed to load node from config"
-			<< ", node id: " << nodeConfig->id
-			<< ", node class: " << nodeConfig->className;
+			<< ", node id: " << nodeConfig->id << ", node class: " << nodeConfig->className;
 		return false;
 	}
 
@@ -386,11 +372,11 @@ bool NodeGraph::loadNodeFromConfig(NodeConfigPtr nodeConfig)
 
 bool NodeGraph::allocatePinFromConfig(NodePinConfigPtr pinConfig)
 {
-	NodePinFactoryPtr factory = getPinFactory(pinConfig->className);
+	NodePinFactoryPtr factory= getPinFactory(pinConfig->className);
 
 	if (factory)
 	{
-		NodePinPtr pin = factory->allocatePin();
+		NodePinPtr pin= factory->allocatePin();
 		if (pin)
 		{
 			m_Pins.insert({pinConfig->id, pin});
@@ -409,8 +395,7 @@ bool NodeGraph::allocatePinFromConfig(NodePinConfigPtr pinConfig)
 
 	MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig")
 		<< "Failed to load pin from config"
-		<< ", parent node id: " << pinConfig->ownerNodeId
-		<< ", pin id: " << pinConfig->id
+		<< ", parent node id: " << pinConfig->ownerNodeId << ", pin id: " << pinConfig->id
 		<< ", pin class: " << pinConfig->className;
 
 	return false;
@@ -418,15 +403,14 @@ bool NodeGraph::allocatePinFromConfig(NodePinConfigPtr pinConfig)
 
 bool NodeGraph::loadPinFromConfig(NodePinConfigPtr pinConfig)
 {
-	NodePinPtr pin = getPinById(pinConfig->id);
+	NodePinPtr pin= getPinById(pinConfig->id);
 	assert(pin);
 
 	if (!pin->loadFromConfig(shared_from_this(), pinConfig))
 	{
 		MIKAN_LOG_INFO("NodeGraph::loadPinFromConfig")
 			<< "Failed to load pin from config"
-			<< ", parent node id: " << pinConfig->ownerNodeId
-			<< ", pin id: " << pinConfig->id
+			<< ", parent node id: " << pinConfig->ownerNodeId << ", pin id: " << pinConfig->id
 			<< ", pin class: " << pinConfig->className;
 		return false;
 	}
@@ -436,9 +420,9 @@ bool NodeGraph::loadPinFromConfig(NodePinConfigPtr pinConfig)
 
 bool NodeGraph::allocateLinkFromConfig(NodeLinkConfigPtr linkConfig)
 {
-	NodeLinkPtr link = std::make_shared<NodeLink>();
+	NodeLinkPtr link= std::make_shared<NodeLink>();
 	link->setOwnerGraph(shared_from_this());
-	
+
 	if (linkConfig->id >= 0)
 	{
 		m_Links.insert({linkConfig->id, link});
@@ -452,8 +436,7 @@ bool NodeGraph::allocateLinkFromConfig(NodeLinkConfigPtr linkConfig)
 
 	MIKAN_LOG_INFO("NodeGraph::allocateLinkFromConfig")
 		<< "Failed to load link from config"
-		<< ", start pin id: " << linkConfig->start_pin_id
-		<< ", end pin id: " << linkConfig->end_pin_id
+		<< ", start pin id: " << linkConfig->start_pin_id << ", end pin id: " << linkConfig->end_pin_id
 		<< ", link id: " << linkConfig->id;
 
 	return false;
@@ -461,15 +444,14 @@ bool NodeGraph::allocateLinkFromConfig(NodeLinkConfigPtr linkConfig)
 
 bool NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
 {
-	NodeLinkPtr link = getLinkById(linkConfig->id);
+	NodeLinkPtr link= getLinkById(linkConfig->id);
 	assert(link);
 
 	if (!link->loadFromConfig(linkConfig))
 	{
 		MIKAN_LOG_INFO("NodeGraph::loadLinkFromConfig")
 			<< "Failed to load link from config"
-			<< ", start pin id: " << linkConfig->start_pin_id
-			<< ", end pin id: " << linkConfig->end_pin_id
+			<< ", start pin id: " << linkConfig->start_pin_id << ", end pin id: " << linkConfig->end_pin_id
 			<< ", link id: " << linkConfig->id;
 		return false;
 	}
@@ -482,32 +464,32 @@ void NodeGraph::saveToConfig(NodeGraphConfig& config) const
 	config.className= getClassName();
 	config.nextId= m_nextId;
 
-	// Save all asset references 
+	// Save all asset references
 	for (auto assetRef : m_assetReferences)
 	{
 		saveAssetRefToConfig(assetRef, config);
 	}
 
 	// Load all properties (depends on asset references)
-	for (auto it = m_properties.begin(); it != m_properties.end(); it++)
+	for (auto it= m_properties.begin(); it != m_properties.end(); it++)
 	{
 		saveGraphPropertyToConfig(it->second, config);
 	}
 
 	// Load all nodes (depends on properties)
-	for (auto it = m_Nodes.begin(); it != m_Nodes.end(); it++)
+	for (auto it= m_Nodes.begin(); it != m_Nodes.end(); it++)
 	{
 		saveNodeToConfig(it->second, config);
 	}
 
 	// Load all pins (depends on nodes)
-	for (auto it = m_Pins.begin(); it != m_Pins.end(); it++)
+	for (auto it= m_Pins.begin(); it != m_Pins.end(); it++)
 	{
 		savePinToConfig(it->second, config);
 	}
 
 	// Load all links (depends on pins)
-	for (auto it = m_Links.begin(); it != m_Links.end(); it++)
+	for (auto it= m_Links.begin(); it != m_Links.end(); it++)
 	{
 		saveLinkToConfig(it->second, config);
 	}
@@ -529,10 +511,10 @@ void NodeGraph::saveGraphPropertyToConfig(GraphPropertyConstPtr prop, NodeGraphC
 
 void NodeGraph::saveAssetRefToConfig(AssetReferenceConstPtr assetRef, NodeGraphConfig& graphConfig) const
 {
-	auto factory = getAssetReferenceFactory(assetRef->getClassName());
+	auto factory= getAssetReferenceFactory(assetRef->getClassName());
 	if (factory)
 	{
-		auto config = factory->allocateAssetReferenceConfig();
+		auto config= factory->allocateAssetReferenceConfig();
 		if (config)
 		{
 			assetRef->saveToConfig(config);
@@ -543,10 +525,10 @@ void NodeGraph::saveAssetRefToConfig(AssetReferenceConstPtr assetRef, NodeGraphC
 
 void NodeGraph::saveNodeToConfig(NodeConstPtr node, NodeGraphConfig& graphConfig) const
 {
-	auto factory = getNodeFactory(node->getClassName());
+	auto factory= getNodeFactory(node->getClassName());
 	if (factory)
 	{
-		auto config = factory->allocateNodeConfig();
+		auto config= factory->allocateNodeConfig();
 		if (config)
 		{
 			node->saveToConfig(config);
@@ -557,10 +539,10 @@ void NodeGraph::saveNodeToConfig(NodeConstPtr node, NodeGraphConfig& graphConfig
 
 void NodeGraph::savePinToConfig(NodePinConstPtr pin, NodeGraphConfig& graphConfig) const
 {
-	auto factory = getPinFactory(pin->getClassName());
+	auto factory= getPinFactory(pin->getClassName());
 	if (factory)
 	{
-		auto config = factory->allocatePinConfig();
+		auto config= factory->allocatePinConfig();
 		if (config)
 		{
 			pin->saveToConfig(config);
@@ -571,8 +553,8 @@ void NodeGraph::savePinToConfig(NodePinConstPtr pin, NodeGraphConfig& graphConfi
 
 void NodeGraph::saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphConfig) const
 {
-	auto config = std::make_shared<NodeLinkConfig>();
-	
+	auto config= std::make_shared<NodeLinkConfig>();
+
 	link->saveToConfig(config);
 	graphConfig.linkConfigs.push_back(config);
 }
@@ -582,9 +564,9 @@ std::vector<AssetReferenceFactoryPtr> NodeGraph::editorGetValidAssetRefFactories
 {
 	std::vector<AssetReferenceFactoryPtr> validFactories;
 
-	for (auto it = m_assetRefFactories.begin(); it != m_assetRefFactories.end(); ++it)
+	for (auto it= m_assetRefFactories.begin(); it != m_assetRefFactories.end(); ++it)
 	{
-		AssetReferenceFactoryPtr factory = it->second;
+		AssetReferenceFactoryPtr factory= it->second;
 		if (factory->editorCanCreate())
 		{
 			validFactories.push_back(factory);
@@ -596,7 +578,7 @@ std::vector<AssetReferenceFactoryPtr> NodeGraph::editorGetValidAssetRefFactories
 
 int NodeGraph::getAssetReferenceIndex(AssetReferencePtr assetRef) const
 {
-	auto it = std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);
+	auto it= std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);
 	if (it != m_assetReferences.end())
 	{
 		return it - m_assetReferences.begin();
@@ -607,7 +589,7 @@ int NodeGraph::getAssetReferenceIndex(AssetReferencePtr assetRef) const
 
 bool NodeGraph::deleteAssetReference(AssetReferencePtr assetRef)
 {
-	auto it = std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);
+	auto it= std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);
 	if (it != m_assetReferences.end())
 	{
 		if (OnAssetReferenceDeleted)
@@ -622,7 +604,7 @@ bool NodeGraph::deleteAssetReference(AssetReferencePtr assetRef)
 
 GraphPropertyPtr NodeGraph::createProperty(GraphPropertyFactoryPtr propertyFactory)
 {
-	GraphPropertyPtr property = propertyFactory->allocateProperty();
+	GraphPropertyPtr property= propertyFactory->allocateProperty();
 	property->setOwnerGraph(shared_from_this());
 	property->setId(allocateId());
 	property->setName(StringUtils::stringify(property->editorGetTitle(), property->getId()));
@@ -642,11 +624,11 @@ void NodeGraph::addProperty(GraphPropertyPtr property)
 
 bool NodeGraph::deletePropertyById(t_graph_property_id id)
 {
-	auto it = m_properties.find(id);
+	auto it= m_properties.find(id);
 	if (it != m_properties.end())
 	{
-		t_graph_property_id id = it->first;
-		GraphPropertyPtr property = it->second;
+		t_graph_property_id id= it->first;
+		GraphPropertyPtr property= it->second;
 
 		// Signal any listeners that this property is getting deleted first
 		if (OnPropertyDeleted)
@@ -657,7 +639,7 @@ bool NodeGraph::deletePropertyById(t_graph_property_id id)
 		t_graph_property_id parentId= property->getParentId();
 		if (parentId != -1)
 		{
-			auto parentArrayProperty = getTypedPropertyById<GraphArrayProperty>(parentId);
+			auto parentArrayProperty= getTypedPropertyById<GraphArrayProperty>(parentId);
 			if (parentArrayProperty)
 			{
 				parentArrayProperty->removeProperty(property);
@@ -676,7 +658,7 @@ bool NodeGraph::deletePropertyById(t_graph_property_id id)
 
 GraphPropertyPtr NodeGraph::getPropertyById(t_graph_property_id id) const
 {
-	auto it = m_properties.find(id);
+	auto it= m_properties.find(id);
 	if (it != m_properties.end())
 	{
 		return it->second;
@@ -687,10 +669,8 @@ GraphPropertyPtr NodeGraph::getPropertyById(t_graph_property_id id) const
 
 GraphPropertyPtr NodeGraph::getPropertyByName(const std::string& name) const
 {
-	auto it= std::find_if(
-		m_properties.begin(), 
-		m_properties.end(), 
-		[name](const auto& elem){ return elem.second->getName() == name; });
+	auto it= std::find_if(m_properties.begin(), m_properties.end(),
+						  [name](const auto& elem) { return elem.second->getName() == name; });
 	if (it != m_properties.end())
 	{
 		return it->second;
@@ -701,7 +681,7 @@ GraphPropertyPtr NodeGraph::getPropertyByName(const std::string& name) const
 
 NodePtr NodeGraph::getNodeById(t_node_id id) const
 {
-	auto it = m_Nodes.find(id);
+	auto it= m_Nodes.find(id);
 	if (it != m_Nodes.end())
 	{
 		return it->second;
@@ -714,16 +694,24 @@ NodePtr NodeGraph::getEventNodeByName(const std::string& eventName) const
 {
 	return getNodeByPredicate(
 		[eventName](const auto& elem)
-		{ 
+		{
 			EventNodePtr eventNode= std::dynamic_pointer_cast<EventNode>(elem.second);
 
-			return eventNode && eventNode->getName() == eventName; 
+			return eventNode && eventNode->getName() == eventName;
 		});
+}
+
+void NodeGraph::visitAllNodes(const NodeConstVisitor& visitor) const
+{
+	for (const auto& nodePair : m_Nodes)
+	{
+		visitor(nodePair.second);
+	}
 }
 
 NodePinPtr NodeGraph::getPinById(t_node_pin_id id) const
 {
-	auto it = m_Pins.find(id);
+	auto it= m_Pins.find(id);
 	if (it != m_Pins.end())
 	{
 		return it->second;
@@ -734,7 +722,7 @@ NodePinPtr NodeGraph::getPinById(t_node_pin_id id) const
 
 NodeLinkPtr NodeGraph::getLinkById(t_node_link_id id) const
 {
-	auto it = m_Links.find(id);
+	auto it= m_Links.find(id);
 	if (it != m_Links.end())
 	{
 		return it->second;
@@ -745,7 +733,7 @@ NodeLinkPtr NodeGraph::getLinkById(t_node_link_id id) const
 
 NodePtr NodeGraph::createNode(NodeFactoryPtr nodeFactory, const NodeEditorState& nodeEditorState)
 {
-	NodePtr newNode = nodeFactory->createNode(nodeEditorState);
+	NodePtr newNode= nodeFactory->createNode(nodeEditorState);
 	if (newNode)
 	{
 		addNode(newNode);
@@ -767,7 +755,7 @@ void NodeGraph::addNode(NodePtr node)
 
 bool NodeGraph::deleteNodeById(t_node_id id)
 {
-	auto it = m_Nodes.find(id);
+	auto it= m_Nodes.find(id);
 	if (it != m_Nodes.end())
 	{
 		NodePtr node= it->second;
@@ -778,7 +766,7 @@ bool NodeGraph::deleteNodeById(t_node_id id)
 
 		// Delete all pins and associated links from this node
 		node->disconnectAllPins();
-		
+
 		if (OnNodeDeleted)
 			OnNodeDeleted(id);
 
@@ -806,10 +794,10 @@ void NodeGraph::addPin(NodePinPtr newPin)
 
 bool NodeGraph::deletePinById(t_node_pin_id id)
 {
-	auto it = m_Pins.find(id);
+	auto it= m_Pins.find(id);
 	if (it != m_Pins.end())
 	{
-		NodePinPtr pin = it->second;
+		NodePinPtr pin= it->second;
 
 		// Delete all link associated with this pin
 		// (notify editor dependent links are going away first)
@@ -843,14 +831,14 @@ bool NodeGraph::deletePinById(t_node_pin_id id)
 
 NodeLinkPtr NodeGraph::createLink(t_node_pin_id startPinId, t_node_pin_id endPinId)
 {
-	NodePinPtr startPin = getPinById(startPinId);
+	NodePinPtr startPin= getPinById(startPinId);
 	assert(startPin);
-	NodePinPtr endPin = getPinById(endPinId);
+	NodePinPtr endPin= getPinById(endPinId);
 	assert(endPin);
 
 	// Create a new link and assign the pins to each end
-	NodeGraphPtr ownerGraph = shared_from_this();
-	NodeLinkPtr link = std::make_shared<NodeLink>();
+	NodeGraphPtr ownerGraph= shared_from_this();
+	NodeLinkPtr link= std::make_shared<NodeLink>();
 	link->setOwnerGraph(ownerGraph);
 	link->setId(allocateId());
 	link->setStartPin(startPin);
@@ -874,7 +862,7 @@ NodeLinkPtr NodeGraph::createLink(t_node_pin_id startPinId, t_node_pin_id endPin
 
 bool NodeGraph::deleteLinkById(t_node_link_id id)
 {
-	auto it = m_Links.find(id);
+	auto it= m_Links.find(id);
 	if (it != m_Links.end())
 	{
 		NodeLinkPtr link= it->second;
@@ -906,9 +894,9 @@ std::vector<GraphPropertyFactoryPtr> NodeGraph::editorGetValidPropertyFactories(
 {
 	std::vector<GraphPropertyFactoryPtr> validFactories;
 
-	for (auto it = m_propertyFactories.begin(); it != m_propertyFactories.end(); ++it)
+	for (auto it= m_propertyFactories.begin(); it != m_propertyFactories.end(); ++it)
 	{
-		GraphPropertyFactoryPtr factory = it->second;
+		GraphPropertyFactoryPtr factory= it->second;
 		if (factory->editorCanCreate())
 		{
 			validFactories.push_back(factory);
@@ -916,7 +904,6 @@ std::vector<GraphPropertyFactoryPtr> NodeGraph::editorGetValidPropertyFactories(
 	}
 
 	return validFactories;
-
 }
 
 std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEditorState& editorState) const
@@ -929,14 +916,14 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 		sourcePin= getPinById(editorState.startedLinkPinId);
 	}
 
-	for (auto it = m_nodeFactories.begin(); it != m_nodeFactories.end(); ++it)
+	for (auto it= m_nodeFactories.begin(); it != m_nodeFactories.end(); ++it)
 	{
-		NodeFactoryPtr factory = it->second;
+		NodeFactoryPtr factory= it->second;
 		bool bIsValidFactory= factory->editorCanCreate();
 
 		if (bIsValidFactory && sourcePin)
 		{
-			NodeConstPtr nodeDefaultObject = factory->getNodeDefaultObject();
+			NodeConstPtr nodeDefaultObject= factory->getNodeDefaultObject();
 
 			if (sourcePin->getDirection() == eNodePinDirection::INPUT)
 			{
@@ -944,7 +931,7 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 				{
 					if (targetPin->canPinsBeConnected(sourcePin))
 					{
-						bIsValidFactory = true;
+						bIsValidFactory= true;
 						break;
 					}
 				}
@@ -955,7 +942,7 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 				{
 					if (targetPin->canPinsBeConnected(sourcePin))
 					{
-						bIsValidFactory = true;
+						bIsValidFactory= true;
 						break;
 					}
 				}
@@ -978,38 +965,43 @@ void NodeGraph::editorRender(const NodeEditorState& editorState)
 	{
 		NodePtr node= it->second;
 
-		if (ImNodes::IsNodeSelected(node->getId()))
-		{
-			ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.6f);
-			ImNodes::PushColorStyle(ImNodesCol_NodeOutline, IM_COL32(220, 140, 0, 255));
-		}
-		else
-		{
-			ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
-			ImNodes::PushColorStyle(ImNodesCol_NodeOutline, IM_COL32(24, 24, 24, 255));
-		}
+		const bool bNodeSelected= ImNodes::IsNodeSelected(node->getId());
+		MkNodesScopedColorStyle nodeOutlineStyle;
+		nodeOutlineStyle.push(ImNodesCol_NodeOutline,
+							  bNodeSelected ? IM_COL32(220, 140, 0, 255) : IM_COL32(24, 24, 24, 255));
+		ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, bNodeSelected ? 2.6f : 2.0f);
 
 		node->editorRenderNode(editorState);
 
-		const ImVec2 nodePos = ImNodes::GetNodeGridSpacePos(node->getId());
+		const ImVec2 nodePos= ImNodes::GetNodeGridSpacePos(node->getId());
 		node->setNodePos({nodePos.x, nodePos.y});
 
-		ImNodes::PopColorStyle();
 		ImNodes::PopStyleVar();
 	}
 
 	// Links Rendering
 	for (auto it= m_Links.begin(); it != m_Links.end(); ++it)
 	{
-		NodeLinkPtr link = it->second;
+		NodeLinkPtr link= it->second;
 
 		link->editorRender(editorState);
 	}
 }
 
+ProjectManagerPtr NodeGraph::getOwnerProject() const
+{
+	IEditorWindow* editorWindow= getOwnerWindow();
+	if (editorWindow)
+	{
+		return editorWindow->getProjectManager();
+	}
+
+	return ProjectManagerPtr();
+}
+
 int NodeGraph::allocateId()
 {
-	int newId = m_nextId;
+	int newId= m_nextId;
 	m_nextId++;
 	return newId;
 }
@@ -1017,9 +1009,7 @@ int NodeGraph::allocateId()
 // -- NodeGraphFactory -----
 std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
 
-NodeGraphPtr NodeGraphFactory::loadNodeGraph(
-	IMkWindow* ownerWindow,
-	const std::filesystem::path& path)
+NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const std::filesystem::path& path)
 {
 	// Load the node graph config from the file path
 	NodeGraphConfig config;
@@ -1030,8 +1020,8 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(
 	}
 
 	// Find the appropriate factory based on the node class name
-	const std::string& nodeGraphClassName = config.className;
-	auto it = s_factoryMap.find(nodeGraphClassName);
+	const std::string& nodeGraphClassName= config.className;
+	auto it= s_factoryMap.find(nodeGraphClassName);
 	if (it == s_factoryMap.end())
 	{
 		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Unknown node graph class name: " << nodeGraphClassName;
@@ -1039,10 +1029,11 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(
 	}
 
 	// Allocate the node graph using the factory and config
-	NodeGraphPtr nodeGraph = it->second->allocateNodeGraph();
+	NodeGraphPtr nodeGraph= it->second->allocateNodeGraph();
 	if (!nodeGraph)
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to allocate node graph class: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+			<< "Failed to allocate node graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
@@ -1054,14 +1045,16 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(
 	// we can actually create the graph object configs using the factories from the graph
 	if (!config.postReadFromJSON(nodeGraph))
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+			<< "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
 	// Init node graph from the parsed config
 	if (!nodeGraph->loadFromConfig(config))
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to init all graph objects in graph class: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+			<< "Failed to init all graph objects in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
@@ -1076,16 +1069,13 @@ void NodeGraphFactory::saveNodeGraph(const std::filesystem::path& path, NodeGrap
 	config.save(path);
 }
 
-NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
-{
-	return std::make_shared<NodeGraph>();
-}
+NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const { return std::make_shared<NodeGraph>(); }
 
-NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IMkWindow* ownerWindow) const
+NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IEditorWindow* ownerWindow) const
 {
 	// Derived node graph types override this method to create properties and nodes
 	// on initial creation of the graph.
-	NodeGraphPtr nodeGraph= allocateNodeGraph();	
+	NodeGraphPtr nodeGraph= allocateNodeGraph();
 
 	// Assign owner window before any graph loading operations allocate GL resources (shaders, textures, etc)
 	// which are dependent on the owning window being assigned
@@ -1094,7 +1084,7 @@ NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IMkWindow* ownerWindow) co
 	// Create any graph dependent resources (shaders, meshes, etc)
 	if (!nodeGraph->createResources())
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::initialCreateNodeGraph") 
+		MIKAN_LOG_ERROR("NodeGraphFactory::initialCreateNodeGraph")
 			<< "Failed to create graph resources objects in graph class: " << nodeGraph->getClassName();
 		return NodeGraphPtr();
 	}

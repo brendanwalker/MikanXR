@@ -16,10 +16,8 @@ MkScopedMaterialBinding::MkScopedMaterialBinding()
 	m_impl->bMaterialFailure= true;
 }
 
-MkScopedMaterialBinding::MkScopedMaterialBinding(
-	const MkMaterial* material,
-	UniformNameSet unboundUniformNames,
-	bool bMaterialFailure)
+MkScopedMaterialBinding::MkScopedMaterialBinding(const MkMaterial* material, UniformNameSet unboundUniformNames,
+												 bool bMaterialFailure)
 	: m_impl(new MkScopedMaterialBindingImpl())
 {
 	m_impl->boundMaterial= material;
@@ -37,17 +35,8 @@ MkScopedMaterialBinding::~MkScopedMaterialBinding()
 	delete m_impl;
 }
 
-const MkMaterial* MkScopedMaterialBinding::getBoundMaterial() const
-{ 
-	return m_impl->boundMaterial; 
-}
+const MkMaterial* MkScopedMaterialBinding::getBoundMaterial() const { return m_impl->boundMaterial; }
 
-const UniformNameSet& MkScopedMaterialBinding::getUnboundUniforms() const 
-{ 
-	return m_impl->unboundUniformNames; 
-}
+const UniformNameSet& MkScopedMaterialBinding::getUnboundUniforms() const { return m_impl->unboundUniformNames; }
 
-MkScopedMaterialBinding::operator bool() const 
-{ 
-	return !m_impl->bMaterialFailure; 
-}
+MkScopedMaterialBinding::operator bool() const { return !m_impl->bMaterialFailure; }

@@ -2,20 +2,15 @@
 
 //-- includes -----
 #include "AssetFwd.h"
-#include "SdlFwd.h"
-#include "ISdlMkWindow.h"
+#include "EditorWindow.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
-#include "MikanRendererFwd.h"
 
 #include "Graphs/GraphObjectSelection.h"
 #include "Graphs/NodeError.h"
 
 #include "Properties/GraphArrayProperty.h"
-
-#include "imgui.h"
-#include "imnodes.h"
 
 #include <chrono>
 #include <filesystem>
@@ -23,10 +18,10 @@
 #include <vector>
 
 //-- definitions -----
-class NodeEditorWindow : public ISdlMkWindow
+class NodeEditorWindow : public EditorWindow
 {
 public:
-	NodeEditorWindow();
+	NodeEditorWindow(App* ownerApp);
 	~NodeEditorWindow();
 
 	inline NodeGraphPtr getNodeGraph() const { return m_editorState.nodeGraph; }
@@ -38,35 +33,20 @@ public:
 	virtual bool saveGraph(bool bShowFileDialog);
 	virtual void undo();
 
-	// -- IMkWindow ----
+	// -- IEditorWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
 	virtual void shutdown() override;
 
-	virtual float getWidth() const override;
-	virtual float getHeight() const override;
-	virtual float getAspectRatio() const override;
 	virtual bool getIsRenderingStage() const override { return false; }
-	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
-
 	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
-	virtual MkStateStack& getMkStateStack() override;
-	virtual IMkLineRenderer* getLineRenderer() override;
-	virtual IMkTextRenderer* getTextRenderer() override;
-	virtual MikanModelResourceManager* getModelResourceManager() override;
-	virtual IMkShaderCache* getShaderCache() override;
-	virtual IMkTextureCache* getTextureCache() override;
-	virtual SdlWindow& getSdlWindow() override;
 
-	virtual bool onSDLEvent(const SDL_Event* event) override;
+	// -- IMkWindowEventListener
+	virtual bool onWindowEvent(const MkWindowEvent& event) override;
 
 protected:
-	virtual void configImGui();
-	virtual void configImNodes();
-	virtual void renderUI();
-	virtual void pushImGuiStyles();
-	virtual void popImGuiStyles();
+	virtual void updateUI();
 
 	virtual void renderMainFrame();
 	virtual void renderNodeEvalErrors();
@@ -94,30 +74,10 @@ protected:
 	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef) {}
 
 protected:
-	SdlWindowUniquePtr m_sdlWindow;
-	MkStateStackUniquePtr m_MkStateStack;
-	struct ImGuiContext* m_imguiContext= nullptr;
-	struct ImNodesContext* m_imnodesContext= nullptr;
-	struct ImFont* m_NormalIconFont= nullptr;
-	struct ImFont* m_BigIconFont= nullptr;
-
 	NodeEditorState m_editorState;
 
 	GraphObjectSelection m_objectSelection;
 
-	// Models loaded by the shader graph
-	MikanModelResourceManagerUniquePtr m_modelResourceManager;
-
-	// OpenGL shader program cache
-	MikanShaderCacheUniquePtr m_shaderCache;
-
-	// OpenGL texture cache
-	MikanTextureCacheUniquePtr m_textureCache;
-
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
-
-	bool m_imguiSDLBackendInitialised = false;
-	bool m_imguiOpenGLBackendInitialised= false;
-	bool m_isRenderingUI= false;
 };

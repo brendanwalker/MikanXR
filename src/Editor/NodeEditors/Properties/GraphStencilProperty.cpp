@@ -2,8 +2,9 @@
 #include "MkMaterial.h"
 #include "IMkVertexDefinition.h"
 #include "Logger.h"
+#include "NodeEditorState.h"
 #include "NodeEditorUI.h"
-#include "ProfileConfigConstants.h"
+#include "ProjectConfigConstants.h"
 #include "StringUtils.h"
 
 #include "Graphs/NodeGraph.h"
@@ -13,7 +14,10 @@
 #include "BoxStencilComponent.h"
 #include "ModelStencilComponent.h"
 #include "QuadStencilComponent.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"
+#include "StencilUtils.h"
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
@@ -22,82 +26,84 @@
 class StencilComboDataSource : public NodeEditorUI::ComboBoxDataSource
 {
 public:
-	StencilComboDataSource(
-		StencilComponentPtr stencilComponent,
-		eStencilType stencilType)
+	StencilComboDataSource(NodeGraphPtr ownerGraph, StencilComponentPtr stencilComponent, eStencilType stencilType)
 	{
-		auto stencilSystem = StencilObjectSystem::getSystem();
-		int listIndex = 0;
+		if (!ownerGraph)
+		{
+			return;
+		}
 
-		// TODO: Need this overly complicated wrapper so that we can iterate over available
-		// stencil names based on currently selected stencil type.
-		// This should probably be a helper on the stencil object system instead.
+		int listIndex= 0;
+
 		switch (stencilType)
 		{
-			case eStencilType::box:
-				for (auto it = stencilSystem->getBoxStencilMap().begin();
-					 it != stencilSystem->getBoxStencilMap().end();
-					 it++)
+		case eStencilType::box:
+		{
+			auto boxStencilSystem= ownerGraph->getObjectSystemOfType<BoxStencilSystem>();
+			for (auto it= boxStencilSystem->getComponentMap().begin(); it != boxStencilSystem->getComponentMap().end();
+				 it++)
+			{
+				auto stencilPtr= it->second.lock();
+				if (stencilPtr == stencilComponent)
 				{
-					auto stencilPtr = it->second.lock();
-					if (stencilPtr == stencilComponent)
-					{
-						stencilSourceIndex = listIndex;
-					}
-					comboEntries.push_back({stencilPtr, stencilPtr->getName()});
-					listIndex++;
+					stencilSourceIndex= listIndex;
 				}
-				break;
-			case eStencilType::quad:
-				for (auto it = stencilSystem->getQuadStencilMap().begin();
-					 it != stencilSystem->getQuadStencilMap().end();
-					 it++)
+				comboEntries.push_back({stencilPtr, stencilPtr->getName()});
+				listIndex++;
+			}
+		}
+		break;
+		case eStencilType::quad:
+		{
+			auto quadStencilSystem= ownerGraph->getObjectSystemOfType<QuadStencilSystem>();
+			for (auto it= quadStencilSystem->getComponentMap().begin();
+				 it != quadStencilSystem->getComponentMap().end(); it++)
+			{
+				auto stencilPtr= it->second.lock();
+				if (stencilPtr == stencilComponent)
 				{
-					auto stencilPtr = it->second.lock();
-					if (stencilPtr == stencilComponent)
-					{
-						stencilSourceIndex = listIndex;
-					}
-					comboEntries.push_back({stencilPtr, stencilPtr->getName()});
-					listIndex++;
+					stencilSourceIndex= listIndex;
 				}
-				break;
-			case eStencilType::model:
-				for (auto it = stencilSystem->getModelStencilMap().begin();
-					 it != stencilSystem->getModelStencilMap().end();
-					 it++)
+				comboEntries.push_back({stencilPtr, stencilPtr->getName()});
+				listIndex++;
+			}
+		}
+		break;
+		case eStencilType::model:
+		{
+			auto modelStencilSystem= ownerGraph->getObjectSystemOfType<ModelStencilSystem>();
+			for (auto it= modelStencilSystem->getComponentMap().begin();
+				 it != modelStencilSystem->getComponentMap().end(); it++)
+			{
+				auto stencilPtr= it->second.lock();
+				if (stencilPtr == stencilComponent)
 				{
-					auto stencilPtr = it->second.lock();
-					if (stencilPtr == stencilComponent)
-					{
-						stencilSourceIndex = listIndex;
-					}
-					comboEntries.push_back({stencilPtr, stencilPtr->getName()});
-					listIndex++;
+					stencilSourceIndex= listIndex;
 				}
-				break;
-			default:
-				break;
+				comboEntries.push_back({stencilPtr, stencilPtr->getName()});
+				listIndex++;
+			}
+		}
+		break;
+		default:
+			break;
 		}
 	}
 
-	inline int getCurrentStencilIndex() const
-	{
-		return stencilSourceIndex;
-	}
+	inline int getCurrentStencilIndex() const { return stencilSourceIndex; }
 
 	inline StencilComponentPtr getEntryStencil(int index)
 	{
+		assert(index >= 0 && index < (int)comboEntries.size());
+
 		return comboEntries[index].stencil;
 	}
 
-	virtual int getEntryCount() override
-	{
-		return (int)comboEntries.size();
-	}
+	virtual int getEntryCount() override { return (int)comboEntries.size(); }
 
 	virtual const std::string& getEntryDisplayString(int index) override
 	{
+		assert(index >= 0 && index < (int)comboEntries.size());
 		return comboEntries[index].entryString;
 	}
 
@@ -109,18 +115,16 @@ private:
 	};
 
 	std::vector<ComboEntry> comboEntries;
-	int stencilSourceIndex = -1;
+	int stencilSourceIndex= -1;
 };
 
 // -- GraphStencilPropertyConfig -----
 configuru::Config GraphStencilPropertyConfig::writeToJSON()
 {
-	configuru::Config pt = GraphPropertyConfig::writeToJSON();
+	configuru::Config pt= GraphPropertyConfig::writeToJSON();
 
-	pt["stencil_type"]= 
-		(stencilType != eStencilType::INVALID) 
-		? k_stencilTypeStrings[(int)stencilType]
-		: k_stencilTypeStrings[(int)eStencilType::quad];
+	pt["stencil_type"]= (stencilType != eStencilType::INVALID) ? k_stencilTypeStrings[(int)stencilType]
+															   : k_stencilTypeStrings[(int)eStencilType::quad];
 	pt["stencil_name"]= stencilName;
 
 	return pt;
@@ -128,47 +132,47 @@ configuru::Config GraphStencilPropertyConfig::writeToJSON()
 
 void GraphStencilPropertyConfig::readFromJSON(const configuru::Config& pt)
 {
-	const std::string stencilTypeString =
-		pt.get_or<std::string>(
-			"stencil_type",
-			k_stencilTypeStrings[(int)eStencilType::quad]);
-	stencilType =
-		StringUtils::FindEnumValue<eStencilType>(
-			stencilTypeString,
-			k_stencilTypeStrings);
-	stencilName = pt.get_or<std::string>("stencil_name", "");
+	const std::string stencilTypeString=
+		pt.get_or<std::string>("stencil_type", k_stencilTypeStrings[(int)eStencilType::quad]);
+	stencilType= StringUtils::FindEnumValue<eStencilType>(stencilTypeString, k_stencilTypeStrings);
+	stencilName= pt.get_or<std::string>("stencil_name", "");
 
 	GraphPropertyConfig::readFromJSON(pt);
 }
 
 // -- GraphStencilProperty -----
-bool GraphStencilProperty::loadFromConfig(
-	GraphPropertyConfigConstPtr propConfig,
-	const NodeGraphConfig& graphConfig)
+bool GraphStencilProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto& stencilPropConfig = std::static_pointer_cast<const GraphStencilPropertyConfig>(propConfig);
+		const auto& stencilPropConfig= std::static_pointer_cast<const GraphStencilPropertyConfig>(propConfig);
 		if (!stencilPropConfig->stencilName.empty() && stencilPropConfig->stencilType != eStencilType::INVALID)
 		{
-			auto stencilSystem= StencilObjectSystem::getSystem();
-
 			switch (stencilPropConfig->stencilType)
 			{
 			case eStencilType::box:
-				setStencilComponent(stencilSystem->getBoxStencilByName(stencilPropConfig->stencilName));
+			{
+				auto boxStencilSystem= getOwnerGraph()->getObjectSystemOfType<BoxStencilSystem>();
+				setStencilComponent(boxStencilSystem->getBoxStencilByName(stencilPropConfig->stencilName));
 				m_stencilType= eStencilType::box;
-				break;
+			}
+			break;
 			case eStencilType::model:
-				setStencilComponent(stencilSystem->getModelStencilByName(stencilPropConfig->stencilName));
+			{
+				auto modelStencilSystem= getOwnerGraph()->getObjectSystemOfType<ModelStencilSystem>();
+				setStencilComponent(modelStencilSystem->getModelStencilByName(stencilPropConfig->stencilName));
 				m_stencilType= eStencilType::model;
-				break;
+			}
+			break;
 			case eStencilType::quad:
-				setStencilComponent(stencilSystem->getQuadStencilByName(stencilPropConfig->stencilName));
+			{
+				auto quadStencilSystem= getOwnerGraph()->getObjectSystemOfType<QuadStencilSystem>();
+				setStencilComponent(quadStencilSystem->getQuadStencilByName(stencilPropConfig->stencilName));
 				m_stencilType= eStencilType::quad;
-				break;
+			}
+			break;
 			default:
-				MIKAN_LOG_ERROR("GraphStencilProperty::loadFromConfig") 
+				MIKAN_LOG_ERROR("GraphStencilProperty::loadFromConfig")
 					<< "Invalid stencil name: " << stencilPropConfig->stencilName;
 				setStencilComponent(StencilComponentPtr());
 				m_stencilType= eStencilType::INVALID;
@@ -189,22 +193,22 @@ bool GraphStencilProperty::loadFromConfig(
 
 void GraphStencilProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto stencilPropConfig = std::static_pointer_cast<GraphStencilPropertyConfig>(config);
-	auto stencilSystem= StencilObjectSystem::getSystem();
+	auto stencilPropConfig= std::static_pointer_cast<GraphStencilPropertyConfig>(config);
 
 	if (m_stencilComponent != nullptr)
 	{
 		StencilComponentConfigPtr definition= m_stencilComponent->getStencilComponentDefinition();
 
-		stencilPropConfig->stencilName = definition->getComponentName();
-		stencilPropConfig->id = definition->getStencilId();
-		stencilPropConfig->stencilType = stencilSystem->getStencilType(stencilPropConfig->id);
+		stencilPropConfig->stencilName= definition->getComponentName();
+		stencilPropConfig->id= definition->getComponentId();
+		stencilPropConfig->stencilType=
+			StencilUtils::getStencilType(getOwnerGraph()->getOwnerProject(), definition->getComponentId());
 	}
 	else
 	{
-		stencilPropConfig->stencilName = "";
-		stencilPropConfig->id = -1;
-		stencilPropConfig->stencilType = eStencilType::INVALID;
+		stencilPropConfig->stencilName= "";
+		stencilPropConfig->id= -1;
+		stencilPropConfig->stencilType= eStencilType::INVALID;
 	}
 
 	GraphProperty::saveToConfig(config);
@@ -212,23 +216,23 @@ void GraphStencilProperty::saveToConfig(GraphPropertyConfigPtr config) const
 
 void GraphStencilProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
 {
-	auto stencilNode = m_ownerGraph->createTypedNode<StencilNode>(editorState);
+	auto stencilNode= m_ownerGraph->createTypedNode<StencilNode>(editorState);
 
 	// Set this as the source model property for the new node
-	auto self = std::static_pointer_cast<GraphStencilProperty>(shared_from_this());
+	auto self= std::static_pointer_cast<GraphStencilProperty>(shared_from_this());
 	stencilNode->setStencilSource(self);
 }
 
 void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Stencil"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Stencil", editorState.styleManager))
 	{
 		// Name
-		std::string name = m_stencilComponent ? m_stencilComponent->getName() : "<No Stencil>";
-		NodeEditorUI::DrawStaticTextProperty("Name", name);
+		std::string name= m_stencilComponent ? m_stencilComponent->getName() : "<No Stencil>";
+		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
 
 		// Stencil Type
-		int stencilTypeIdex = (int)m_stencilType; 
+		int stencilTypeIdex= (int)m_stencilType;
 		if (ImGui::Combo("Type", &stencilTypeIdex, k_szStencilTypeStrings, (int)eStencilType::COUNT))
 		{
 			setStencilComponent(StencilComponentPtr());
@@ -236,16 +240,14 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 		}
 
 		// Stencil
-		StencilComboDataSource dataSource(m_stencilComponent, m_stencilType);
+		StencilComboDataSource dataSource(m_ownerGraph, m_stencilComponent, m_stencilType);
 		int selectedIndex= dataSource.getCurrentStencilIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("stencilSelection", "Source", &dataSource, selectedIndex))
+		if (NodeEditorUI::DrawComboBoxProperty("stencilSelection", "Source", &dataSource, selectedIndex,
+											   editorState.styleManager))
 		{
 			setStencilComponent(dataSource.getEntryStencil(selectedIndex));
 		}
 	}
 }
 
-const ImVec4 GraphStencilProperty::editorGetIconColor() const
-{
-	return NodeEditorUI::getComponentColor();
-}
+const ImVec4 GraphStencilProperty::editorGetIconColor() const { return NodeEditorUI::getComponentColor(); }

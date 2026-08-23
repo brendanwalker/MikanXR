@@ -12,19 +12,20 @@ float ValuePin::editorComputeInputWidth() const
 	return NodePin::editorComputeInputWidth();
 }
 
-ImNodesPinShape ValuePin::editorRenderBeginPin(float alpha)
+ImNodesPinShape ValuePin::editorComputePinShape() const
 {
-	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;
-
 	if (m_connectedLinks.size() > 0)
-		pinShape = ImNodesPinShape_CircleFilled;
+		return ImNodesPinShape_CircleFilled;
 	else
-		pinShape = ImNodesPinShape_Circle;
+		return ImNodesPinShape_Circle;
+}
 
-	ImNodes::PushColorStyle(ImNodesCol_Pin, editorValuePinColor(alpha));
-	ImNodes::PushColorStyle(ImNodesCol_PinHovered, ImGui::GetColorU32(NodeEditorUI::getPinHoveredColor(alpha)));
-
-	return pinShape;
+std::shared_ptr<MkNodesScopedColorStyle> ValuePin::editorRenderMakePinStyle(float alpha)
+{
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Pin, editorValuePinColor(alpha))
+		.push(ImNodesCol_PinHovered, ImGui::GetColorU32(NodeEditorUI::getPinHoveredColor(alpha)));
+	return style;
 }
 
 const ImU32 ValuePin::editorValuePinColor(float alpha) const

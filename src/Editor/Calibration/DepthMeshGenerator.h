@@ -1,60 +1,75 @@
 #pragma once
 
-#include "MikanMathTypes.h"
-#include "ObjectSystemConfigFwd.h"
-#include "MikanRendererFwd.h"
+//-- includes -----
+#include "MoGeInference.h"
 
-#include "glm/ext/matrix_float4x4.hpp"
+#include <glm/glm.hpp>
 
-#include <filesystem>
-#include <memory>
+#include <cstdint>
+#include <string>
+#include <vector>
 
-class VideoFrameDistortionView;
-typedef std::shared_ptr<VideoFrameDistortionView> VideoFrameDistortionViewPtr;
-
-class CalibrationPatternFinder;
-typedef std::shared_ptr<CalibrationPatternFinder> CalibrationPatternFinderPtr;
-
-class SyntheticDepthEstimator;
-typedef std::shared_ptr<SyntheticDepthEstimator> SyntheticDepthEstimatorPtr;
-
+//-- types -----
+/// Turns a MoGe-2 geometry result into a camera-space proxy mesh suitable for
+/// a model stencil (shadow catcher).
+///
+/// The mesh is a regular grid over the depth map with triangles CUT at depth
+/// discontinuities: connecting a silhouette edge to the background would
+/// create stretched "skirt" triangles that catch shadows in mid-air. Measured
+/// on the reference plates, the model's depth edges land within ~1px of the
+/// image silhouettes and commit to near-or-far rather than averaging, so
+/// ratio-based culling is enough. See docs/reference/scene-lighting.md.
 class DepthMeshGenerator
 {
 public:
-	DepthMeshGenerator(
-		ISdlMkWindow* ownerWindow,
-		ProfileConfigConstPtr profileConfig,
-		VideoFrameDistortionViewPtr distortionView,
-		SyntheticDepthEstimatorPtr depthEstimator);
-	virtual ~DepthMeshGenerator();
+	struct Config
+	{
+		/// Adjacent-vertex depth ratio above which the surface is treated as
+		/// discontinuous and no triangle is emitted across it.
+		float discontinuityRatio= 1.15f;
 
-	inline CalibrationPatternFinderPtr getPatternFinder() const { return m_patternFinder; }
+		/// Sample every Nth pixel. At stride 4 a 1080p frame still produces
+		/// ~250k triangles, which is plenty for a shadow catcher.
+		int vertexStride= 4;
 
-	bool loadMeshFromStencilDefinition(ModelStencilDefinitionPtr stencilDefinition);
-	bool saveMeshToStencilDefinition(ModelStencilDefinitionPtr stencilDefinition, const glm::mat4& cameraXform);
+		/// Geometry beyond this many metres is dropped entirely. Distant
+		/// background adds triangles but cannot receive a meaningful contact
+		/// shadow. 0 disables the cut.
+		float maxDepth= 20.f;
+	};
 
-	bool hasFinishedSampling() const;
-	void resetCalibrationState();
+	struct Mesh
+	{
+		/// Mikan camera space (+X right, +Y up, -Z forward), metres. Meant to
+		/// be parented under the capturing camera's pose.
+		std::vector<glm::vec3> vertices;
+		std::vector<glm::vec3> normals;
+		/// Video-frame UVs (v up, OBJ convention), so the plate or a live feed
+		/// can be projected back onto the proxy.
+		std::vector<glm::vec2> texCoords;
+		/// Triangle list, counter-clockwise as seen from the camera.
+		std::vector<uint32_t> indices;
 
-	bool captureMesh();
-	MikanRenderModelResourcePtr getCapturedDepthMeshResource() const;
+		size_t getTriangleCount() const { return indices.size() / 3; }
+	};
 
-	void renderCameraSpaceCalibrationState();
+	struct Stats
+	{
+		int validPixelCount= 0;
+		int culledDiscontinuityEdges= 0;
+		float nearDepth= 0.f;
+		float farDepth= 0.f;
+	};
 
-protected:
+	static bool generateMesh(const MoGeInference::Result& geometry, const Config& config, Mesh& outMesh,
+							 Stats& outStats);
 
-	float frameWidth;
-	float frameHeight;
-
-	// Internal Capture State
-	struct DepthMeshCaptureState* m_calibrationState;
-
-	// Undistorted Video Frame
-	VideoFrameDistortionViewPtr m_distortionView;
-
-	// Finds the calibration pattern in the video frame
-	CalibrationPatternFinderPtr m_patternFinder;
-
-	// Used to generate a depth buffer from the video frame and calibration pattern
-	SyntheticDepthEstimatorPtr m_depthEstimator;
+	/// Writes an .obj (positions, normals, UVs, triangles). When
+	/// textureFileName is non-empty it also writes a sibling .mtl whose
+	/// diffuse map references that file (expected to sit next to the .obj), so
+	/// the captured frame can be projected back onto the proxy. With no
+	/// texture, no .mtl is written and the importer supplies a default
+	/// material.
+	static bool saveObj(const Mesh& mesh, const std::string& path, const std::string& objectName,
+						const std::string& textureFileName= std::string());
 };

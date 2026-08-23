@@ -14,14 +14,14 @@ public:
 
 	bool hasThreadStarted() const;
 	bool hasThreadEnded() const;
-    void startThread();
-    void stopThread();
+	void startThread();
+	void stopThread();
 
 protected:
-	virtual void onThreadStarted() { }
-	virtual void onThreadHaltBegin() { }
-	virtual void onThreadHaltComplete() { }
-	virtual bool doWork() = 0;
+	virtual void onThreadStarted() {}
+	virtual void onThreadHaltBegin() {}
+	virtual void onThreadHaltComplete() {}
+	virtual bool doWork()= 0;
 
 private:
 	void threadFunc();

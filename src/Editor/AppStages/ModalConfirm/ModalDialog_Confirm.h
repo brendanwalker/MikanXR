@@ -1,12 +1,9 @@
 #pragma once
 
 //-- includes -----
-#include "RmlFwd.h"
 #include "Shared/ModalDialog.h"
-#include "SinglecastDelegate.h"
 
 #include <string>
-#include <vector>
 #include <functional>
 
 class AppStage;
@@ -17,27 +14,23 @@ class ModalDialog_Confirm : public ModalDialog
 {
 public:
 	ModalDialog_Confirm(AppStage* ownerAppStage);
-	virtual ~ModalDialog_Confirm();
+	virtual ~ModalDialog_Confirm()= default;
 
-	using ConfirmCallback = std::function<void()>;
-	static bool confirmQuestion(
-		const std::string& title,
-		const std::string& question,
-		ConfirmCallback acceptCallback={},
-		ConfirmCallback rejectCallback={});
+	using ConfirmCallback= std::function<void()>;
+	static bool confirmQuestion(AppStage* appStage, const std::string& title, const std::string& question,
+								ConfirmCallback acceptCallback= {}, ConfirmCallback rejectCallback= {});
+
+	virtual void onGui() override;
 
 protected:
-	class RmlModel_Confirm* m_confirmModel = nullptr;
-	Rml::ElementDocument* m_confirmView = nullptr;
-
 	ConfirmCallback m_acceptCallback;
 	ConfirmCallback m_rejectCallback;
 
-	bool init(
-		const std::string& title,
-		const std::string& question,
-		ConfirmCallback acceptCallback,
-		ConfirmCallback rejectCallback);
+	std::string m_title;
+	std::string m_question;
+
+	bool init(const std::string& title, const std::string& question, ConfirmCallback acceptCallback,
+			  ConfirmCallback rejectCallback);
 	void onAcceptQuestion();
 	void onRejectQuestion();
 };

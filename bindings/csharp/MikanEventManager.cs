@@ -13,27 +13,27 @@ namespace MikanXR
 
 		private MikanCoreNative.NativeLogCallback _nativeLogCallback;
 		private IntPtr _mikanContext = IntPtr.Zero;
-		private Dictionary<long, Type> _eventTypeCache = null;
+		private Dictionary<string, Type> _eventTypeCache = null;
 
 		public MikanEventManager(MikanCoreNative.NativeLogCallback logCallback)
 		{
 			_nativeLogCallback= logCallback;
-			_eventTypeCache = new Dictionary<long, Type>();
+			_eventTypeCache = new Dictionary<string, Type>();
 		}
 
 		public void Initialize(IntPtr mikanContext)
 		{
 			_mikanContext = mikanContext;
 
-			// Build a map from ClassId to MikanEvent Type
+			// Build a map from TypeName to MikanEvent Type
 			var eventTypes = from t in Assembly.GetExecutingAssembly().GetTypes()
 					where t.IsClass && t.Namespace == "MikanXR" && typeof(MikanEvent).IsAssignableFrom(t)
 					select t;
 			eventTypes.ToList().ForEach(t =>
 			{
-				long classId = Utils.getMikanClassId(t);
+				string eventTypeName = t.Name;
 
-				_eventTypeCache[classId] = t;
+				_eventTypeCache[eventTypeName] = t;
 			});
 		}
 
@@ -79,7 +79,6 @@ namespace MikanXR
 				}
 
 				var disconnectEvent = new MikanDisconnectedEvent();
-				disconnectEvent.eventTypeId = MikanDisconnectedEvent.classId;
 				disconnectEvent.eventTypeName = typeof(MikanDisconnectedEvent).Name;
 				disconnectEvent.code = (MikanDisconnectCode)disconnectCode;
 				disconnectEvent.reason= disconnectReason;
@@ -90,21 +89,17 @@ namespace MikanXR
 			{
 				var root = JObject.Parse(utf8ResponseString);
 
-				// Check if the "eventTypeName" and "eventTypeId" keys exist
-				if (root.TryGetValue("eventTypeName", out JToken eventTypeNameElement) &&
-					root.TryGetValue("eventTypeId", out JToken eventTypeIdElement))
+				// Check if the "eventTypeName" key exists
+				if (root.TryGetValue("eventTypeName", out JToken eventTypeNameElement))
 				{
 					// Check if the value of eventType keys
-					if (eventTypeNameElement.Type == JTokenType.String &&
-						eventTypeIdElement.Type == JTokenType.Integer)
+					if (eventTypeNameElement.Type == JTokenType.String)
 					{
 						// Get the string value of "eventTypeName"
 						string eventTypeName = (string)eventTypeNameElement;
-						// Get the integer value of "eventTypeId"
-						long eventTypeId = (long)eventTypeIdElement;
 
 						// Attempt to create the event object by class name
-						if (_eventTypeCache.TryGetValue(eventTypeId, out Type eventType))
+						if (_eventTypeCache.TryGetValue(eventTypeName, out Type eventType))
 						{
 							object eventObject = Activator.CreateInstance(eventType);
 
@@ -124,7 +119,7 @@ namespace MikanXR
 						{
 							_nativeLogCallback((int)MikanLogLevel.Error,
 								"Unknown event type: " + eventTypeName +
-								" (classId: " + eventTypeId + ")");
+								" (className: " + eventTypeNameElement + ")");
 						}
 					}
 					else

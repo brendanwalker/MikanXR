@@ -37,11 +37,11 @@ namespace MikanXR
 			_renderTargetAPI= null;
 		}
 
-		public MikanAPIResult Initialize(MikanLogLevel minLogLevel)
+		public MikanAPIResult Initialize(string clientName, MikanLogLevel minLogLevel)
 		{
 			MikanAPIResult result = 
 				(MikanAPIResult)MikanCoreNative.Mikan_Initialize(
-					minLogLevel, _nativeLogCallback, out _mikanContext);
+					clientName, minLogLevel, _nativeLogCallback, out _mikanContext);
 			if (result != MikanAPIResult.Success)
 			{
 				return result;
@@ -80,14 +80,9 @@ namespace MikanXR
 
 		// -- Client Info ----
 
-		public int GetClientAPIVersion()
-		{
-			return MikanCoreNative.Mikan_GetClientAPIVersion();
-		}
-
 		public string GetClientUniqueID()
 		{
-			return MikanCoreNative.GetClientUniqueID(_mikanContext);
+			return MikanCoreNative.GetClientName(_mikanContext);
 		}
 
 		public MikanClientInfo AllocateClientInfo()
@@ -114,9 +109,23 @@ namespace MikanXR
 			return _renderTargetAPI.GetGraphicsDeviceInterface(api, out outGraphicsDeviceInterface);
 		}
 
-		public IntPtr GetPackDepthTextureResourcePtr()
+		public MikanAPIResult SetGraphicsCommandQueueInterface(
+			MikanClientGraphicsApi api,
+			IntPtr graphicsCommandQueueInterface)
 		{
-			return _renderTargetAPI.GetPackDepthTextureResourcePtr();
+			return _renderTargetAPI.SetGraphicsCommandQueueInterface(api, graphicsCommandQueueInterface);
+		}
+
+		public MikanAPIResult GetGraphicsCommandQueueInterface(
+			MikanClientGraphicsApi api,
+			out IntPtr outGraphicsCommandQueueInterface)
+		{
+			return _renderTargetAPI.GetGraphicsCommandQueueInterface(api, out outGraphicsCommandQueueInterface);
+		}
+
+		public IntPtr GetCameraPackDepthTextureResourcePtr(int cameraId)
+		{
+			return _renderTargetAPI.GetCameraPackDepthTextureResourcePtr(cameraId);
 		}
 
 		// -- Client Info ----

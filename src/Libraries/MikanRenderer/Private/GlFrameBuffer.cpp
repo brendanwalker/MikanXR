@@ -10,21 +10,42 @@
 
 namespace GlFrameBufferUtils
 {
-	GLenum getGlColorFormat(IMkFrameBuffer::eColorFormat colorFormat)
+// The sized internal format used to allocate the texture storage
+GLenum getGlColorTextureFormat(IMkFrameBuffer::eColorFormat colorFormat)
+{
+	switch (colorFormat)
 	{
-		switch (colorFormat)
-		{
-			case IMkFrameBuffer::eColorFormat::RGB:
-				return GL_RGB;
-			case IMkFrameBuffer::eColorFormat::RGBA:
-				return GL_RGBA;
-			default:
-				return GL_RGB;
-		}
+	case IMkFrameBuffer::eColorFormat::RGB:
+		return GL_RGB;
+	case IMkFrameBuffer::eColorFormat::RGBA:
+		return GL_RGBA;
+	case IMkFrameBuffer::eColorFormat::RGB16:
+		return GL_RGB16;
+	case IMkFrameBuffer::eColorFormat::RGBA16:
+		return GL_RGBA16;
+	default:
+		return GL_RGB;
 	}
 }
 
-class GlFrameBuffer: public IMkFrameBuffer
+// The base (unsized) format used when transferring pixel data to/from the texture
+GLenum getGlColorBufferFormat(IMkFrameBuffer::eColorFormat colorFormat)
+{
+	switch (colorFormat)
+	{
+	case IMkFrameBuffer::eColorFormat::RGB:
+	case IMkFrameBuffer::eColorFormat::RGB16:
+		return GL_RGB;
+	case IMkFrameBuffer::eColorFormat::RGBA:
+	case IMkFrameBuffer::eColorFormat::RGBA16:
+		return GL_RGBA;
+	default:
+		return GL_RGB;
+	}
+}
+} // namespace GlFrameBufferUtils
+
+class GlFrameBuffer : public IMkFrameBuffer
 {
 public:
 	enum class eFrameBufferType
@@ -38,23 +59,20 @@ public:
 	{
 		RGB,
 		RGBA,
+		RGB16,
+		RGBA16,
 	};
 
-	GlFrameBuffer() = default;
-	GlFrameBuffer(const std::string& name) : m_name(name)
+	GlFrameBuffer()= default;
+	GlFrameBuffer(const std::string& name)
+		: m_name(name)
 	{
-		m_clearColor = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		m_clearColor= glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 
-	virtual ~GlFrameBuffer()
-	{
-		disposeResources();
-	}
+	virtual ~GlFrameBuffer() { disposeResources(); }
 
-	virtual bool isValid() const override 
-	{ 
-		return m_bIsValid; 
-	}
+	virtual bool isValid() const override { return m_bIsValid; }
 
 	virtual bool createResources() override
 	{
@@ -62,15 +80,15 @@ public:
 
 		switch (m_frameBufferType)
 		{
-			case IMkFrameBuffer::eFrameBufferType::COLOR:
-				m_bIsValid = createColorFrameBuffer();
-				break;
-			case IMkFrameBuffer::eFrameBufferType::DEPTH:
-				m_bIsValid = createDepthFrameBuffer();
-				break;
-			case IMkFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH:
-				m_bIsValid = createColorAndDepthFrameBuffer();
-				break;
+		case IMkFrameBuffer::eFrameBufferType::COLOR:
+			m_bIsValid= createColorFrameBuffer();
+			break;
+		case IMkFrameBuffer::eFrameBufferType::DEPTH:
+			m_bIsValid= createDepthFrameBuffer();
+			break;
+		case IMkFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH:
+			m_bIsValid= createColorAndDepthFrameBuffer();
+			break;
 		}
 
 		return m_bIsValid;
@@ -79,7 +97,7 @@ public:
 	bool createColorFrameBuffer()
 	{
 		// Cache the current frame buffer id
-		GLint prevFrameBufferID = 0;
+		GLint prevFrameBufferID= 0;
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
 
 		// Create new frame buffer
@@ -93,18 +111,22 @@ public:
 		// Create a color attachment texture with a double buffered pixel-buffer-object for reading
 		if (!m_colorTexture)
 		{
-			const GLenum glColorFormat = GlFrameBufferUtils::getGlColorFormat(m_colorFormat);
+			const GLenum glTextureFormat= GlFrameBufferUtils::getGlColorTextureFormat(m_colorFormat);
+			const GLenum glBufferFormat= GlFrameBufferUtils::getGlColorBufferFormat(m_colorFormat);
 
 			assert(!m_bIsExternalTexture);
-			m_colorTexture = CreateMkTexture();
+			m_colorTexture= CreateMkTexture();
 			m_colorTexture->setSize(m_width, m_height);
-			m_colorTexture->setTextureFormat(glColorFormat);
-			m_colorTexture->setBufferFormat(glColorFormat);
+			// setTextureFormat() also derives the buffer format & pixel type, so set it first
+			// and then override the buffer format for sized internal formats (e.g. GL_RGB16).
+			m_colorTexture->setTextureFormat(glTextureFormat);
+			m_colorTexture->setBufferFormat(glBufferFormat);
 			m_colorTexture->setGenerateMipMap(false);
 			m_colorTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBORead);
 			m_colorTexture->createTexture();
 		}
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(),
+							   0);
 
 		// Create depth render buffer attachment for the depth (don't need to read back the depth buffer)
 		glGenRenderbuffers(1, &m_glRenderBufferID);
@@ -117,7 +139,7 @@ public:
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_glRenderBufferID);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-		bool bSuccess = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+		bool bSuccess= glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 		if (!bSuccess)
 		{
 			MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
@@ -131,7 +153,7 @@ public:
 	bool createDepthFrameBuffer()
 	{
 		// Cache the current frame buffer id
-		GLint prevFrameBufferID = 0;
+		GLint prevFrameBufferID= 0;
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
 
 		// Create new frame buffer
@@ -157,7 +179,7 @@ public:
 		if (!m_depthTexture)
 		{
 			assert(!m_bIsExternalTexture);
-			m_depthTexture = CreateMkTexture();
+			m_depthTexture= CreateMkTexture();
 			m_depthTexture->setSize(m_width, m_height);
 			m_depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
 			m_depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
@@ -168,7 +190,7 @@ public:
 		}
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->getGlTextureId(), 0);
 
-		m_bIsValid = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+		m_bIsValid= glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 		if (!m_bIsValid)
 		{
 			MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
@@ -182,7 +204,7 @@ public:
 	bool createColorAndDepthFrameBuffer()
 	{
 		// Cache the current frame buffer id
-		GLint prevFrameBufferID = 0;
+		GLint prevFrameBufferID= 0;
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
 
 		// Create new frame buffer
@@ -196,23 +218,27 @@ public:
 		// Create a color attachment texture with a double buffered pixel-buffer-object for reading
 		if (!m_colorTexture)
 		{
-			const GLenum glColorFormat = GlFrameBufferUtils::getGlColorFormat(m_colorFormat);
+			const GLenum glTextureFormat= GlFrameBufferUtils::getGlColorTextureFormat(m_colorFormat);
+			const GLenum glBufferFormat= GlFrameBufferUtils::getGlColorBufferFormat(m_colorFormat);
 
 			assert(!m_bIsExternalTexture);
-			m_colorTexture = CreateMkTexture();
+			m_colorTexture= CreateMkTexture();
 			m_colorTexture->setSize(m_width, m_height);
-			m_colorTexture->setTextureFormat(glColorFormat);
-			m_colorTexture->setBufferFormat(glColorFormat);
+			// setTextureFormat() also derives the buffer format & pixel type, so set it first
+			// and then override the buffer format for sized internal formats (e.g. GL_RGB16).
+			m_colorTexture->setTextureFormat(glTextureFormat);
+			m_colorTexture->setBufferFormat(glBufferFormat);
 			m_colorTexture->setGenerateMipMap(false);
 			m_colorTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBORead);
 			m_colorTexture->createTexture();
 		}
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTexture->getGlTextureId(),
+							   0);
 
 		// Create a depth attachment texture with a double buffered pixel-buffer-object for reading
 		if (!m_depthTexture)
 		{
-			m_depthTexture = CreateMkTexture();
+			m_depthTexture= CreateMkTexture();
 			m_depthTexture->setSize(m_width, m_height);
 			m_depthTexture->setTextureFormat(GL_DEPTH_COMPONENT32F);
 			m_depthTexture->setBufferFormat(GL_DEPTH_COMPONENT);
@@ -223,7 +249,7 @@ public:
 		}
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->getGlTextureId(), 0);
 
-		bool bSuccess = glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+		bool bSuccess= glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 		if (!bSuccess)
 		{
 			MIKAN_LOG_ERROR("createFrameBuffer") << "Framebuffer is not complete!";
@@ -239,115 +265,86 @@ public:
 		if (m_glRenderBufferID != -1)
 		{
 			glDeleteRenderbuffers(1, &m_glRenderBufferID);
-			m_glRenderBufferID = -1;
+			m_glRenderBufferID= -1;
 		}
 
 		if (!m_bIsExternalTexture)
 		{
-			m_colorTexture = nullptr;
+			m_colorTexture= nullptr;
 		}
 
-		m_depthTexture = nullptr;
+		m_depthTexture= nullptr;
 
 		if (m_glFrameBufferId != -1)
 		{
 			glDeleteFramebuffers(1, &m_glFrameBufferId);
-			m_glFrameBufferId = -1;
+			m_glFrameBufferId= -1;
 		}
 
-		m_bIsValid = false;
+		m_bIsValid= false;
 	}
 
-	virtual void setName(const std::string& name) override
-	{ 
-		m_name = name; 
-	}
+	virtual void setName(const std::string& name) override { m_name= name; }
 
 	virtual void setFrameBufferType(IMkFrameBuffer::eFrameBufferType frameBufferType) override
 	{
 		if (m_frameBufferType != frameBufferType)
 		{
-			m_frameBufferType = frameBufferType;
-			m_bIsValid = false;
+			m_frameBufferType= frameBufferType;
+			m_bIsValid= false;
 		}
 	}
-	
+
 	virtual void setSize(int width, int height) override
 	{
 		if (m_width != width || m_height != height)
 		{
-			m_width = width;
-			m_height = height;
-			m_bIsValid = false;
+			m_width= width;
+			m_height= height;
+			m_bIsValid= false;
 		}
 	}
-	
+
 	virtual void setColorFormat(IMkFrameBuffer::eColorFormat colorFormat) override
 	{
 		if (m_colorFormat != colorFormat)
 		{
-			m_colorFormat = colorFormat;
-			m_bIsValid = false;
+			m_colorFormat= colorFormat;
+			m_bIsValid= false;
 		}
 	}
-	
-	void setClearColor(const glm::vec4& clearColor) 
-	{ 
-		m_clearColor = clearColor; 
-	}
 
-	void IMkFrameBuffer::setExternalColorTexture(IMkTexturePtr texture)
+	virtual void setClearColor(const glm::vec4& clearColor) override { m_clearColor= clearColor; }
+
+	virtual void attachColorTexture(IMkTexturePtr texture) override
 	{
-		if (m_colorTexture != texture)
+		m_colorTexture= texture;
+		m_bIsExternalTexture= true;
+
+		// If the FBO already exists, do a cheap re-attach rather than a full re-create
+		if (m_glFrameBufferId != -1 && texture)
 		{
-			if (texture)
-			{
-				m_colorTexture = texture;
-				m_bIsExternalTexture = true;
-			}
-			else
-			{
-				m_colorTexture = nullptr;
-				m_bIsExternalTexture = false;
-			}
-			m_bIsValid = false;
+			GLint prevFrameBufferID= 0;
+			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+			glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture->getGlTextureId(), 0);
+			glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
 		}
 	}
 
-	virtual std::string getName() const override 
-	{
-		return m_name;
-	}
+	virtual std::string getName() const override { return m_name; }
 
-	virtual uint32_t getMkFrameBufferId() const override
-	{ 
-		return m_glFrameBufferId;
-	}
+	virtual uint32_t getMkFrameBufferId() const override { return m_glFrameBufferId; }
 
-	virtual int getWidth() const override
-	{ 
-		return m_width;
-	}
+	virtual int getWidth() const override { return m_width; }
 
-	virtual int getHeight() const override
-	{
-		return m_height;
-	}
+	virtual int getHeight() const override { return m_height; }
 
-	virtual IMkFrameBuffer::eColorFormat getColorFormat() const override 
-	{ 
-		return m_colorFormat; 
-	}
+	virtual IMkFrameBuffer::eColorFormat getColorFormat() const override { return m_colorFormat; }
 
-	virtual IMkTexturePtr getColorTexture() const override
-	{
-		return m_colorTexture;
-	}
+	virtual IMkTexturePtr getColorTexture() const override { return m_colorTexture; }
 
-	virtual IMkTexturePtr getDepthTexture() const override
-	{
-		return m_depthTexture;
-	}
+	virtual IMkTexturePtr getDepthTexture() const override { return m_depthTexture; }
 
 	virtual void bindObject(IMkState* mkState) override
 	{
@@ -359,42 +356,42 @@ public:
 			// Cache the last frame buffer binding
 			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_lastGlFrameBufferId);
 
-			// Bind to framebuffer and draw scene as we normally would to color texture 
+			// Bind to framebuffer and draw scene as we normally would to color texture
 			glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
 
 			switch (m_frameBufferType)
 			{
-				case IMkFrameBuffer::eFrameBufferType::COLOR:
-					{
-						mkStateSetDrawBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
-						mkStateSetReadBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
-						mkStateSetClearColor(mkState, m_clearColor);
-						glClear(GL_COLOR_BUFFER_BIT);
-					}
-					break;
-				case IMkFrameBuffer::eFrameBufferType::DEPTH:
-					{
-						// Since we only care about depth, tell OpenGL we're not going to render any color data
-						mkStateSetDrawBuffer(mkState, eMkFrameBuffer::NONE);
-						mkStateSetReadBuffer(mkState, eMkFrameBuffer::NONE);
-						glClear(GL_DEPTH_BUFFER_BIT);
-						mkState->enableFlag(eMkStateFlagType::depthTest);
-					}
-					break;
-				case IMkFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH:
-					{
-						mkStateSetDrawBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
-						mkStateSetReadBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
-						mkStateSetClearColor(mkState, m_clearColor);
-						glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-						mkState->enableFlag(eMkStateFlagType::depthTest);
-					}
-					break;
-				default:
-					break;
+			case IMkFrameBuffer::eFrameBufferType::COLOR:
+			{
+				mkStateSetDrawBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
+				mkStateSetReadBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
+				mkStateSetClearColor(mkState, m_clearColor);
+				glClear(GL_COLOR_BUFFER_BIT);
+			}
+			break;
+			case IMkFrameBuffer::eFrameBufferType::DEPTH:
+			{
+				// Since we only care about depth, tell OpenGL we're not going to render any color data
+				mkStateSetDrawBuffer(mkState, eMkFrameBuffer::NONE);
+				mkStateSetReadBuffer(mkState, eMkFrameBuffer::NONE);
+				glClear(GL_DEPTH_BUFFER_BIT);
+				mkState->enableFlag(eMkStateFlagType::depthTest);
+			}
+			break;
+			case IMkFrameBuffer::eFrameBufferType::COLOR_AND_DEPTH:
+			{
+				mkStateSetDrawBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
+				mkStateSetReadBuffer(mkState, eMkFrameBuffer::COLOR_ATTACHMENT0);
+				mkStateSetClearColor(mkState, m_clearColor);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				mkState->enableFlag(eMkStateFlagType::depthTest);
+			}
+			break;
+			default:
+				break;
 			}
 
-			m_bIsBound = true;
+			m_bIsBound= true;
 		}
 	}
 
@@ -405,43 +402,34 @@ public:
 			// Unbind the layer frame buffer
 			glBindFramebuffer(GL_FRAMEBUFFER, m_lastGlFrameBufferId);
 
-			m_bIsBound = false;
+			m_bIsBound= false;
 		}
 	}
 
-	virtual bool getIsBound() const override 
-	{ 
-		return m_bIsBound; 
-	}
+	virtual bool getIsBound() const override { return m_bIsBound; }
 
 private:
 	std::string m_name;
-	IMkFrameBuffer::eFrameBufferType m_frameBufferType = IMkFrameBuffer::eFrameBufferType::COLOR;
-	IMkFrameBuffer::eColorFormat m_colorFormat = IMkFrameBuffer::eColorFormat::RGB;
+	IMkFrameBuffer::eFrameBufferType m_frameBufferType= IMkFrameBuffer::eFrameBufferType::COLOR;
+	IMkFrameBuffer::eColorFormat m_colorFormat= IMkFrameBuffer::eColorFormat::RGB;
 	glm::vec4 m_clearColor;
 
-	int m_width = 800;
-	int m_height = 600;
+	int m_width= 800;
+	int m_height= 600;
 
 	IMkTexturePtr m_colorTexture;
-	bool m_bIsExternalTexture = false;
+	bool m_bIsExternalTexture= false;
 	IMkTexturePtr m_depthTexture;
-	GLuint m_glRenderBufferID = -1;
+	GLuint m_glRenderBufferID= -1;
 
 	// Cached GLState
-	GLuint m_glFrameBufferId = -1;
-	GLint m_lastGlFrameBufferId = 0;
+	GLuint m_glFrameBufferId= -1;
+	GLint m_lastGlFrameBufferId= 0;
 
-	bool m_bIsBound = false;
-	bool m_bIsValid = false;
+	bool m_bIsBound= false;
+	bool m_bIsValid= false;
 };
 
-IMkFrameBufferPtr createMkFrameBuffer()
-{
-	return std::make_shared<GlFrameBuffer>();
-}
+IMkFrameBufferPtr createMkFrameBuffer() { return std::make_shared<GlFrameBuffer>(); }
 
-IMkFrameBufferPtr createMkFrameBuffer(const std::string& name)
-{
-	return std::make_shared<GlFrameBuffer>(name);
-}
+IMkFrameBufferPtr createMkFrameBuffer(const std::string& name) { return std::make_shared<GlFrameBuffer>(name); }

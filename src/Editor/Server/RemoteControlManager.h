@@ -9,13 +9,15 @@
 class RemoteControlManager : public IServerRequestHandler
 {
 public:
-	RemoteControlManager(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	RemoteControlManager(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
+	virtual void shutdown() override;
 
-	void sendRemoteControlEvent(
-		const std::string& event,
-		const std::vector<std::string>& parameters);
+	void sendRemoteControlEvent(const std::string& event, const std::vector<std::string>& parameters);
 
 protected:
 	void pushAppStageHandler(const ClientRequest& request, ClientResponse& response);
@@ -28,6 +30,7 @@ protected:
 	void onAppStageExited(class AppStage* oldAppStage, class AppStage* newAppStage);
 	void publishAppStageChangedEvent(const std::string& oldAppStageName, const std::string& newAppStageName);
 
-	using RemoteControllableAppStageFactoryPtr = std::shared_ptr<class RemoteControllableAppStageFactory>;
+	class MainWindow* m_mainWindow= nullptr;
+	using RemoteControllableAppStageFactoryPtr= std::shared_ptr<class RemoteControllableAppStageFactory>;
 	std::map<std::string, RemoteControllableAppStageFactoryPtr> m_remoteControllableAppStageFactories;
 };

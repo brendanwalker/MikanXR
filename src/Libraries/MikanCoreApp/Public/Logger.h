@@ -80,20 +80,31 @@ MIKAN_COREAPP_FUNC(std::string) log_get_timestamp_prefix();
 
 // Non Thread Safe Logger Macros
 // Almost everything is on the main thread, so you almost always want to use these
-#define MIKAN_LOG_TRACE(function_name) SELECT_LOG_STREAM(LogSeverityLevel::trace) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_LOG_DEBUG(function_name) SELECT_LOG_STREAM(LogSeverityLevel::debug) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_LOG_INFO(function_name) SELECT_LOG_STREAM(LogSeverityLevel::info) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_LOG_WARNING(function_name) SELECT_LOG_STREAM(LogSeverityLevel::warning) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_LOG_ERROR(function_name) SELECT_LOG_STREAM(LogSeverityLevel::error) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_LOG_FATAL(function_name) SELECT_LOG_STREAM(LogSeverityLevel::fatal) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_LOG_TRACE(function_name)                                                                                 \
+	SELECT_LOG_STREAM(LogSeverityLevel::trace) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_LOG_DEBUG(function_name)                                                                                 \
+	SELECT_LOG_STREAM(LogSeverityLevel::debug) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_LOG_INFO(function_name)                                                                                  \
+	SELECT_LOG_STREAM(LogSeverityLevel::info) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_LOG_WARNING(function_name)                                                                               \
+	SELECT_LOG_STREAM(LogSeverityLevel::warning) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_LOG_ERROR(function_name)                                                                                 \
+	SELECT_LOG_STREAM(LogSeverityLevel::error) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_LOG_FATAL(function_name)                                                                                 \
+	SELECT_LOG_STREAM(LogSeverityLevel::fatal) << log_get_timestamp_prefix() << function_name << " - "
 
 // Thread Safe Logger Macros
 // Uses thread safe locking before appending data to the logging stream
 // Only use this when logging from other threads
-#define MIKAN_MT_LOG_TRACE(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::trace) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_MT_LOG_DEBUG(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::debug) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_MT_LOG_INFO(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::info) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_MT_LOG_WARNING(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::warning) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_MT_LOG_ERROR(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::error) << log_get_timestamp_prefix() << function_name << " - "
-#define MIKAN_MT_LOG_FATAL(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::fatal) << log_get_timestamp_prefix() << function_name << " - "
-
+#define MIKAN_MT_LOG_TRACE(function_name)                                                                              \
+	SELECT_MT_LOG_STREAM(LogSeverityLevel::trace) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_MT_LOG_DEBUG(function_name)                                                                              \
+	SELECT_MT_LOG_STREAM(LogSeverityLevel::debug) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_MT_LOG_INFO(function_name)                                                                               \
+	SELECT_MT_LOG_STREAM(LogSeverityLevel::info) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_MT_LOG_WARNING(function_name)                                                                            \
+	SELECT_MT_LOG_STREAM(LogSeverityLevel::warning) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_MT_LOG_ERROR(function_name)                                                                              \
+	SELECT_MT_LOG_STREAM(LogSeverityLevel::error) << log_get_timestamp_prefix() << function_name << " - "
+#define MIKAN_MT_LOG_FATAL(function_name)                                                                              \
+	SELECT_MT_LOG_STREAM(LogSeverityLevel::fatal) << log_get_timestamp_prefix() << function_name << " - "

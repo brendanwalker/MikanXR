@@ -1,7 +1,8 @@
 #include "IntPin.h"
 
 // -- IntPin -----
-IntPinBase::IntPinBase() : NodePin()
+IntPinBase::IntPinBase()
+	: NodePin()
 {
 	setHasDefaultValue(true);
 }
@@ -16,29 +17,28 @@ float IntPinBase::editorComputeInputWidth() const
 	return NodePin::editorComputeInputWidth();
 }
 
-ImNodesPinShape IntPinBase::editorRenderBeginPin(float alpha)
+ImNodesPinShape IntPinBase::editorComputePinShape() const
 {
-	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;
-
 	if (m_connectedLinks.size() > 0)
-		pinShape = ImNodesPinShape_CircleFilled;
+		return ImNodesPinShape_CircleFilled;
 	else
-		pinShape = ImNodesPinShape_Circle;
-
-	ImNodes::PushColorStyle(ImNodesCol_Pin, IM_COL32(33, 227, 175, alpha * 255));
-	ImNodes::PushColorStyle(ImNodesCol_PinHovered, IM_COL32(135, 239, 195, alpha * 255));
-
-	return pinShape;	
+		return ImNodesPinShape_Circle;
 }
 
-void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState)
+std::shared_ptr<MkNodesScopedColorStyle> IntPinBase::editorRenderMakePinStyle(float alpha)
 {
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Pin, IM_COL32(33, 227, 175, (unsigned char)(alpha * 255)))
+		.push(ImNodesCol_PinHovered, IM_COL32(135, 239, 195, (unsigned char)(alpha * 255)));
+	return style;
 }
+
+void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState) {}
 
 // -- IntPin -----
 void IntPin::copyValueFromSourcePin()
 {
-	IntPinPtr sourcePin = std::dynamic_pointer_cast<IntPin>(getConnectedSourcePin());
+	IntPinPtr sourcePin= std::dynamic_pointer_cast<IntPin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -59,7 +59,7 @@ void IntPin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Int2Pin -----
 void Int2Pin::copyValueFromSourcePin()
 {
-	Int2PinPtr sourcePin = std::dynamic_pointer_cast<Int2Pin>(getConnectedSourcePin());
+	Int2PinPtr sourcePin= std::dynamic_pointer_cast<Int2Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -81,7 +81,7 @@ void Int2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Int3Pin -----
 void Int3Pin::copyValueFromSourcePin()
 {
-	Int3PinPtr sourcePin = std::dynamic_pointer_cast<Int3Pin>(getConnectedSourcePin());
+	Int3PinPtr sourcePin= std::dynamic_pointer_cast<Int3Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -103,7 +103,7 @@ void Int3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Int4Pin -----
 void Int4Pin::copyValueFromSourcePin()
 {
-	Int4PinPtr sourcePin = std::dynamic_pointer_cast<Int4Pin>(getConnectedSourcePin());
+	Int4PinPtr sourcePin= std::dynamic_pointer_cast<Int4Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{

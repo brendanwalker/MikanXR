@@ -10,8 +10,8 @@
 
 enum class eMkFrontFaceMode : int
 {
-	CW,		// Clockwise wound triangles are front facing.
-	CCW,	// Counter-clockwise wound triangles are front facing.
+	CW,  // Clockwise wound triangles are front facing.
+	CCW, // Counter-clockwise wound triangles are front facing.
 };
 
 enum class eMkStencilFunction : int
@@ -28,18 +28,18 @@ enum class eMkStencilFunction : int
 
 enum class eMkStencilOp : int
 {
-	KEEP,		// Keeps the current value.
-	ZERO,		// Sets the stencil buffer value to 0.
-	REPLACE,	// Sets the stencil buffer value to ref, as specified by glStencilFunc.
-	INCR,		// Increments the current stencil buffer value. 
-				//   Clamps to the maximum representable unsigned value.
-	INCR_WRAP,	// Increments the current stencil buffer value. 
-				//   Wraps stencil buffer value to zero when incrementing the maximum representable unsigned value.
-	DECR,		// Decrements the current stencil buffer value. Clamps to 0.
-	DECR_WRAP,	// Decrements the current stencil buffer value. 
-				//   Wraps stencil buffer value to the maximum representable unsigned value 
-				//   when decrementing a stencil buffer value of zero.
-	INVERT		// Bitwise inverts the current stencil buffer value.
+	KEEP,      // Keeps the current value.
+	ZERO,      // Sets the stencil buffer value to 0.
+	REPLACE,   // Sets the stencil buffer value to ref, as specified by glStencilFunc.
+	INCR,      // Increments the current stencil buffer value.
+			   //   Clamps to the maximum representable unsigned value.
+	INCR_WRAP, // Increments the current stencil buffer value.
+			   //   Wraps stencil buffer value to zero when incrementing the maximum representable unsigned value.
+	DECR,      // Decrements the current stencil buffer value. Clamps to 0.
+	DECR_WRAP, // Decrements the current stencil buffer value.
+			   //   Wraps stencil buffer value to the maximum representable unsigned value
+			   //   when decrementing a stencil buffer value of zero.
+	INVERT     // Bitwise inverts the current stencil buffer value.
 };
 
 enum class eMkBlendEquation : int
@@ -109,10 +109,10 @@ enum class eMkFrameBuffer : int
 
 enum class eMkClearFlags : uint32_t
 {
-	none = 0,
-	color = 1 << 0,
-	depth = 1 << 1,
-	stencil = 1 << 2,
+	none= 0,
+	color= 1 << 0,
+	depth= 1 << 1,
+	stencil= 1 << 2,
 };
 DEFINE_ENUM_BITMASK_OPERATORS(eMkClearFlags);
 
@@ -126,11 +126,12 @@ MIKAN_RENDERER_FUNC(void) mkStateSetDepthMask(IMkState* mkState, bool depth_mask
 MIKAN_RENDERER_FUNC(void) mkStateSetStencilBufferClearValue(IMkState* mkState, int value);
 MIKAN_RENDERER_FUNC(void) mkStateSetStencilMask(IMkState* mkState, uint32_t mask);
 MIKAN_RENDERER_FUNC(void) mkStateSetStencilFunc(IMkState* mkState, eMkStencilFunction func, int ref, uint32_t mask);
-MIKAN_RENDERER_FUNC(void) mkStateSetStencilOp(IMkState* mkState, 
-						 eMkStencilOp stencil_fail, eMkStencilOp depth_fail, eMkStencilOp depth_stencil_pass);
+MIKAN_RENDERER_FUNC(void) mkStateSetStencilOp(IMkState* mkState, eMkStencilOp stencil_fail, eMkStencilOp depth_fail,
+											  eMkStencilOp depth_stencil_pass);
 
 MIKAN_RENDERER_FUNC(void) mkStateSetBlendEquation(IMkState* mkState, eMkBlendEquation mode);
-MIKAN_RENDERER_FUNC(void) mkStateSetBlendFunc(IMkState* mkState, eMkBlendFunction source_factor, eMkBlendFunction dest_factor);
+MIKAN_RENDERER_FUNC(void) mkStateSetBlendFunc(IMkState* mkState, eMkBlendFunction source_factor,
+											  eMkBlendFunction dest_factor);
 
 MIKAN_RENDERER_FUNC(void) mkStateSetDrawBuffer(IMkState* mkState, eMkFrameBuffer mode);
 MIKAN_RENDERER_FUNC(void) mkStateSetReadBuffer(IMkState* mkState, eMkFrameBuffer mode);

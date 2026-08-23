@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ComponentFwd.h"
-#include "DeviceViewFwd.h"
 #include "MikanRendererFwd.h"
 #include "Transform.h"
 
@@ -17,10 +16,8 @@ typedef int32_t MikanStencilID;
 class StencilAligner
 {
 public:
-	StencilAligner(
-		VRDevicePoseViewPtr cameraTrackingPuckPoseView,
-		class VideoFrameDistortionView* distortionView,
-		ModelStencilComponentPtr modelStencil);
+	StencilAligner(CameraComponentPtr m_cameraComponent, class VideoFrameDistortionView* distortionView,
+				   ModelStencilComponentPtr modelStencil);
 	virtual ~StencilAligner();
 
 	bool hasFinishedPointSampling() const;
@@ -34,16 +31,13 @@ public:
 	void renderVertexSamples();
 
 protected:
-	static const int DESIRED_SAMPLE_COUNT = 4;
-
-	float m_frameWidth;
-	float m_frameHeight;
+	static const int DESIRED_SAMPLE_COUNT= 4;
 
 	// Internal Calibration State
 	struct StencilAlignmentState* m_calibrationState;
 
-	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	// Camera used for calibration
+	CameraComponentPtr m_cameraComponent;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

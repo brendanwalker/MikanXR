@@ -1,23 +1,21 @@
 #include "GraphObjectSelection.h"
 
-GraphObjectSelection::GraphObjectSelection(
-	t_graph_object_id_type itemType, 
-	int objectIdCount)
+GraphObjectSelection::GraphObjectSelection(t_graph_object_id_type itemType, int objectIdCount)
 	: m_objectIdType(itemType)
 {
-	for(int i= 0; i < objectIdCount; i++)
+	for (int i= 0; i < objectIdCount; i++)
 		m_objectIdList.push_back(-1);
 }
 
 void GraphObjectSelection::clear()
 {
-	m_objectIdType = GraphObjectIdType::NONE;
+	m_objectIdType= GraphObjectIdType::NONE;
 	m_objectIdList.clear();
 }
 
-int GraphObjectSelection::getObjectId(int index) const 
-{ 
-	return (index >= 0 && index < getObjectCount()) ? m_objectIdList[index] : -1; 
+int GraphObjectSelection::getObjectId(int index) const
+{
+	return (index >= 0 && index < getObjectCount()) ? m_objectIdList[index] : -1;
 }
 
 void GraphObjectSelection::setObjectId(int index, int objectId)

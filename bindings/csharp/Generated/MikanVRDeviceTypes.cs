@@ -18,13 +18,18 @@ namespace MikanXR
 		TRACKER= 3,
 	};
 
-	public class MikanVRDeviceInfo
+	public class MikanVRDeviceComponentValues : MikanTransformComponentValues
 	{
-		public static readonly long classId= 2293209149503382551;
-
 		public MikanVRDeviceApi vr_device_api;
 		public MikanVRDeviceType vr_device_type;
-		public string device_path;
+		public int vr_device_index;
+		public string vr_device_path;
+		public List<string> socket_names;
+	};
+
+	public class MikanVRObjectSystemValues : MikanSystemValues
+	{
+		public List<string> vr_device_path_list;
 	};
 
 }

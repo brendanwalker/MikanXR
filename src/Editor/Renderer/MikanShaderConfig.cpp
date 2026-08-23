@@ -16,10 +16,10 @@ void MikanVertexAttributeConfig::readFromJSON(const configuru::Config& pt)
 {
 	name= pt.get_or<std::string>("name", name);
 
-	std::string dataTypeString = pt.get_or<std::string>("dataType", "INVALID");
+	std::string dataTypeString= pt.get_or<std::string>("dataType", "INVALID");
 	dataType= VertexConstantUtils::vertexDataTypeFromString(dataTypeString);
-	
-	std::string semanticString = pt.get_or<std::string>("semantic", "INVALID");
+
+	std::string semanticString= pt.get_or<std::string>("semantic", "INVALID");
 	semantic= VertexConstantUtils::vertexSemanticFromString(semanticString);
 }
 
@@ -41,9 +41,9 @@ void MikanShaderConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	materialName = pt.get_or<std::string>("materialName", materialName);
-	vertexShaderPath = pt.get_or<std::string>("vertexShaderPath", vertexShaderPath.string());
-	fragmentShaderPath = pt.get_or<std::string>("fragmentShaderPath", fragmentShaderPath.string());
+	materialName= pt.get_or<std::string>("materialName", materialName);
+	vertexShaderPath= pt.get_or<std::string>("vertexShaderPath", vertexShaderPath.string());
+	fragmentShaderPath= pt.get_or<std::string>("fragmentShaderPath", fragmentShaderPath.string());
 	CommonConfig::readStdConfigVector(pt, "vertexAttributes", vertexAttributes);
 	CommonConfig::readStdMap(pt, "uniformSemanticMap", uniformSemanticMap);
 }

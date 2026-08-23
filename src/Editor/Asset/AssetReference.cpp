@@ -1,12 +1,13 @@
 #include "AssetReference.h"
+#include "PathUtils.h"
 
 // -- Asset Reference Config -----
 configuru::Config AssetReferenceConfig::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt= CommonConfig::writeToJSON();
 
-	pt["class_name"] = className;
-	pt["asset_path"] = assetPath;
+	pt["class_name"]= className;
+	pt["asset_path"]= assetPath;
 
 	return pt;
 }
@@ -15,15 +16,14 @@ void AssetReferenceConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	className = pt.get_or<std::string>("class_name", "AssetReference");
-	assetPath = pt.get_or<std::string>("asset_path", "");
+	className= pt.get_or<std::string>("class_name", "AssetReference");
+	assetPath= pt.get_or<std::string>("asset_path", "");
 }
 
+bool AssetReferenceConfig::isValid() const { return !className.empty() && !assetPath.empty(); }
+
 // -- Asset Reference -----
-AssetReference::~AssetReference()
-{
-	m_previewTexture= nullptr;
-}
+AssetReference::~AssetReference() { m_previewTexture= nullptr; }
 
 bool AssetReference::loadFromConfig(AssetReferenceConfigConstPtr config)
 {
@@ -34,8 +34,15 @@ bool AssetReference::loadFromConfig(AssetReferenceConfigConstPtr config)
 
 void AssetReference::saveToConfig(AssetReferenceConfigPtr config) const
 {
-	config->className = getClassName();
-	config->assetPath = m_assetPath.string();
+	config->className= getClassName();
+	config->assetPath= m_assetPath.string();
+}
+
+const std::filesystem::path& AssetReference::getInternalAssetPath() const { return m_assetPath; }
+
+const std::filesystem::path AssetReference::getResolvedAssetPath() const
+{
+	return PathUtils::resolveProjectResource(m_assetPath);
 }
 
 void AssetReference::setAssetPath(const std::filesystem::path& inPath)
@@ -47,10 +54,7 @@ void AssetReference::setAssetPath(const std::filesystem::path& inPath)
 	}
 }
 
-bool AssetReference::isValid() const
-{
-	return !m_assetPath.empty() && std::filesystem::exists(m_assetPath);
-}
+bool AssetReference::isEmpty() const { return m_assetPath.empty(); }
 
 std::string AssetReference::getShortName() const
 {
@@ -68,7 +72,4 @@ AssetReferenceConfigPtr AssetReferenceFactory::allocateAssetReferenceConfig() co
 	return std::make_shared<AssetReferenceConfig>();
 }
 
-AssetReferencePtr AssetReferenceFactory::allocateAssetReference() const
-{
-	return std::make_shared<AssetReference>();
-}
+AssetReferencePtr AssetReferenceFactory::allocateAssetReference() const { return std::make_shared<AssetReference>(); }

@@ -14,12 +14,11 @@
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlTypes")) MikanAppStageInfo
 {
 public:
-	FIELD()
-	Serialization::String app_state_name;
+	FIELD() Serialization::String app_state_name;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAppStageInfo_GENERATED
-	#endif
+#endif
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

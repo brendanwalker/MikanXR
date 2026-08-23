@@ -6,36 +6,61 @@ namespace MikanXR
 {
 	public class GetAppStageInfo : MikanRequest
 	{
-		public static new readonly long classId= -1337747226464149062;
 
+		public GetAppStageInfo()
+		{
+			requestTypeName = "GetAppStageInfo";
+		}
+	};
+
+	public class MikanAppStageInfoResponse : MikanResponse
+	{
+		public MikanAppStageInfo app_stage_info;
+
+		public MikanAppStageInfoResponse()
+		{
+			responseTypeName = "MikanAppStageInfoResponse";
+		}
 	};
 
 	public class MikanRemoteControlCommand : MikanRequest
 	{
-		public static new readonly long classId= 4595909365701644961;
-
 		public string command;
 		public List<string> parameters;
+
+		public MikanRemoteControlCommand()
+		{
+			requestTypeName = "MikanRemoteControlCommand";
+		}
 	};
 
 	public class MikanRemoteControlCommandResult : MikanResponse
 	{
-		public static new readonly long classId= -9034381214596710800;
-
 		public List<string> results;
+
+		public MikanRemoteControlCommandResult()
+		{
+			responseTypeName = "MikanRemoteControlCommandResult";
+		}
 	};
 
 	public class PopAppStage : MikanRequest
 	{
-		public static new readonly long classId= -589658948136412267;
 
+		public PopAppStage()
+		{
+			requestTypeName = "PopAppStage";
+		}
 	};
 
 	public class PushAppStage : MikanRequest
 	{
-		public static new readonly long classId= -7872424436528764660;
-
 		public string app_state_name;
+
+		public PushAppStage()
+		{
+			requestTypeName = "PushAppStage";
+		}
 	};
 
 }

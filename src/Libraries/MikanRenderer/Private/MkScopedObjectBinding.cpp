@@ -10,10 +10,8 @@ struct MkScopedObjectBindingData
 	IMkState* mkState;
 };
 
-MkScopedObjectBinding::MkScopedObjectBinding(
-	IMkState* parentMkState,
-	const std::string& scopeName,
-	IMkBindableObjectPtr bindableObject)
+MkScopedObjectBinding::MkScopedObjectBinding(IMkState* parentMkState, const std::string& scopeName,
+											 IMkBindableObjectPtr bindableObject)
 	: m_data(new MkScopedObjectBindingData())
 {
 	m_data->boundObject= bindableObject;
@@ -45,19 +43,13 @@ MkScopedObjectBinding::~MkScopedObjectBinding()
 	delete m_data;
 }
 
-IMkBindableObjectPtr MkScopedObjectBinding::getBoundObject() const 
-{ 
-	return m_data->boundObject.lock(); 
-}
+IMkBindableObjectPtr MkScopedObjectBinding::getBoundObject() const { return m_data->boundObject.lock(); }
 
-MkScopedObjectBinding::operator bool() const 
-{ 
+MkScopedObjectBinding::operator bool() const
+{
 	IMkBindableObjectPtr boundObject= getBoundObject();
 
-	return boundObject && boundObject->getIsBound(); 
+	return boundObject && boundObject->getIsBound();
 }
 
-IMkState* MkScopedObjectBinding::getMkState() 
-{ 
-	return m_data->mkState; 
-}
+IMkState* MkScopedObjectBinding::getMkState() { return m_data->mkState; }

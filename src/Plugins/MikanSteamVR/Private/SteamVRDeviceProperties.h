@@ -1,0 +1,63 @@
+#pragma once
+
+#include "IVRDevice.h"
+
+#include <filesystem>
+#include <string>
+#include <vector>
+
+#include <openvr.h>
+
+class SteamVRDeviceProperties
+{
+public:
+	struct RenderComponentDefinition
+	{
+		std::string componentName;
+		std::string renderModelName;
+		bool isRenderable;
+	};
+
+	SteamVRDeviceProperties(vr::TrackedDeviceIndex_t deviceIndex);
+
+	vr::TrackedDeviceIndex_t getSteamVRDeviceIndex() const { return m_deviceIndex; }
+	vr::ETrackedDeviceClass getSteamVRDeviceClass() const { return m_deviceClass; }
+	const std::string& getDevicePath() const { return m_devicePath; }
+	const std::string& getTrackingSystem() const { return m_trackingVolumeSystem; }
+	const std::string& getTrackingRole() const { return m_trackingRole; }
+	const std::string& getModelLabel() const { return m_modelLabel; }
+	const std::string& getModelNumber() const { return m_modelNumber; }
+	const std::string& getManufacturerName() const { return m_manufacturerName; }
+	const std::string& getSerialNumber() const { return m_serialNumber; }
+	const std::filesystem::path& getResourcesPath() const { return m_resourcesPath; }
+	const std::filesystem::path& getReadyIconPath() const { return m_readyIconPath; }
+	const std::string& getRenderModelName() const { return m_renderModelName; }
+	const std::vector<RenderComponentDefinition>& getRenderComponentDefinitions() const
+	{
+		return m_renderComponentDefinitions;
+	}
+
+	void updateProperties();
+	void updateResourcesPath();
+	bool updateReadyIconPath();
+	bool updateRenderModelComponents();
+
+	std::string fetchStringDeviceProperty(vr::ETrackedDeviceProperty property, const std::string& default_string);
+	std::string fetchStringSettingsProperty(const char* sectionName, const char* sectionKey,
+											const std::string& default_string);
+
+private:
+	vr::TrackedDeviceIndex_t m_deviceIndex= 0;
+	vr::ETrackedDeviceClass m_deviceClass= vr::TrackedDeviceClass_Invalid;
+	std::string m_devicePath;
+	std::string m_trackingVolumeSystem;
+	std::string m_trackingRole;
+	std::string m_modelLabel;
+	std::string m_modelNumber;
+	std::string m_manufacturerName;
+	std::string m_serialNumber;
+	std::filesystem::path m_resourcesPath;
+	std::filesystem::path m_readyIconPath;
+	std::string m_renderModelName;
+	std::vector<RenderComponentDefinition> m_renderComponentDefinitions;
+};

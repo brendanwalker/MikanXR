@@ -5,7 +5,7 @@
 
 enum class eVariableEvalMode
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	get,
 	set,
@@ -17,8 +17,14 @@ extern const std::string* k_variableEvalModeStrings;
 class VariableNodeConfig : public NodeConfig
 {
 public:
-	VariableNodeConfig() : NodeConfig() {}
-	VariableNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	VariableNodeConfig()
+		: NodeConfig()
+	{
+	}
+	VariableNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -30,10 +36,10 @@ public:
 class VariableNode : public Node
 {
 public:
-	VariableNode() = default;
+	VariableNode()= default;
 	virtual ~VariableNode();
 
-	inline static const std::string k_nodeClassName = "VariableNode";
+	inline static const std::string k_nodeClassName= "VariableNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -48,7 +54,8 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState);
 
 protected:
-	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
+		const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 	void onGraphPropertyDeleted(t_graph_property_id id);
@@ -65,7 +72,7 @@ protected:
 class VariableNodeFactory : public TypedNodeFactory<VariableNode, VariableNodeConfig>
 {
 public:
-	VariableNodeFactory() = default;
+	VariableNodeFactory()= default;
 
 	virtual bool editorCanCreate() const override { return false; }
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;

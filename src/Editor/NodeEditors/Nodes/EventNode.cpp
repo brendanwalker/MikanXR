@@ -13,9 +13,9 @@
 
 configuru::Config EventNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["event_name"] = eventName;
+	pt["event_name"]= eventName;
 
 	return pt;
 }
@@ -24,7 +24,7 @@ void EventNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	eventName = pt.get_or<std::string>("event_name", "");
+	eventName= pt.get_or<std::string>("event_name", "");
 }
 
 // -- EventNode -----
@@ -56,29 +56,25 @@ bool EventNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-FlowPinPtr EventNode::getOutputFlowPin() const
+FlowPinPtr EventNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
+
+std::shared_ptr<MkNodesScopedColorStyle> EventNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT);
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_TitleBar, IM_COL32(150, 30, 30, 225))
+		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 30, 30, 225))
+		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 30, 30, 225));
+	return style;
 }
 
-void EventNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
-{
-	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(150, 30, 30, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 30, 30, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 30, 30, 225));
-}
-
-std::string EventNode::editorGetTitle() const
-{
-	return !m_eventName.empty() ? m_eventName : k_nodeClassName;
-}
+std::string EventNode::editorGetTitle() const { return !m_eventName.empty() ? m_eventName : k_nodeClassName; }
 
 // -- EventNode Factory -----
 NodePtr EventNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	NodePtr node = NodeFactory::createNode(editorState);
-	FlowPinPtr outputPin = node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
+	NodePtr node= NodeFactory::createNode(editorState);
+	FlowPinPtr outputPin= node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

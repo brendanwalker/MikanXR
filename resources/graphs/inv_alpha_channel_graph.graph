@@ -27,15 +27,15 @@
 	"assetReferences": [
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat"
+			"asset_path": "shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat"
 		},
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbInvAlphaFrame/rgbInvAlphaFrame.mat"
+			"asset_path": "shaders/compositor/rgbInvAlphaFrame/rgbInvAlphaFrame.mat"
 		},
 		{
 			"class_name": "MaterialAssetReference",
-			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/compositor/rgbFrame/rgbFrame.mat"
+			"asset_path": "shaders/compositor/rgbFrame/rgbFrame.mat"
 		}
 	],
 	"nodes":           [

@@ -7,7 +7,7 @@
 class GraphMaterialPropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphMaterialPropertyConfig() = default;
+	GraphMaterialPropertyConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -20,11 +20,10 @@ class GraphMaterialProperty : public GraphProperty
 public:
 	GraphMaterialProperty()= default;
 
-	inline static const std::string k_propertyClassName = "GraphMaterialProperty";
+	inline static const std::string k_propertyClassName= "GraphMaterialProperty";
 	virtual std::string getClassName() const override { return k_propertyClassName; }
 
-	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
-								const NodeGraphConfig& graphConfig) override;
+	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig) override;
 	virtual void saveToConfig(GraphPropertyConfigPtr config) const override;
 
 	void setMaterialAssetReference(MaterialAssetReferencePtr inAssetRef);
@@ -41,4 +40,4 @@ protected:
 	MkMaterialConstPtr m_materialResource;
 };
 
-using GraphMaterialPropertyFactory = TypedGraphPropertyFactory<GraphMaterialProperty, GraphMaterialPropertyConfig>;
+using GraphMaterialPropertyFactory= TypedGraphPropertyFactory<GraphMaterialProperty, GraphMaterialPropertyConfig>;

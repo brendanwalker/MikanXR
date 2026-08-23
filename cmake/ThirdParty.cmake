@@ -64,18 +64,13 @@ else()
   find_package(GLEW REQUIRED)
 endif()
 
-# Freetype
-if (WIN32) 
-  set (FREETYPE_INCLUDE_DIRS ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/include)
-  set (FREETYPE_LIBRARIES ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/win64/freetype.lib)
-  set (FREETYPE_SHARED_LIBRARY ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/win64/freetype.dll)
-else()
-  #TODO
-endif()
-
-# RMLUI
-set (RMLUI_DIR ${ROOT_DIR}/thirdparty/RmlUI)
-set (RMLUI_INCLUDE_DIR ${RMLUI_DIR}/Include)
+# libharu (PDF writer)
+set (LIBHARU_INCLUDE_DIRS ${ROOT_DIR}/deps/libharu-2.4.5-static/include)
+set (LIBHARU_LIBRARIES
+  ${ROOT_DIR}/deps/libharu-2.4.5-static/lib/hpdf.lib
+  ${ROOT_DIR}/deps/libharu-2.4.5-static/lib/zlibstatic.lib
+  ${ROOT_DIR}/deps/libharu-2.4.5-static/lib/libpng16_static.lib
+)
 
 # Refureku
 set (RFK_DIR ${ROOT_DIR}/deps/rfk)
@@ -132,13 +127,16 @@ option(IXWEBSOCKET_INSTALL "Install IXWebSocket" FALSE)
 set (IXWEBSOCKET_DIR ${ROOT_DIR}/thirdparty/IXWebSocket/)
 set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
 
-# GStreamer
-find_package(GStreamer REQUIRED COMPONENTS base)
-find_package(GStreamerPluginsBase COMPONENTS app)
-find_package(GStreamerPluginsBase COMPONENTS video)
-find_package(GLIB2 REQUIRED)
-find_package(GObject REQUIRED)
-set (GSTREAMER_BIN_DIR ${GSTREAMER_ROOT}/bin)
+# GStreamer (optional — disable for test-only / CI builds with -DMIKAN_WITH_GSTREAMER=OFF)
+option(MIKAN_WITH_GSTREAMER "Build the GStreamer video plugin" ON)
+if(MIKAN_WITH_GSTREAMER)
+  find_package(GStreamer REQUIRED COMPONENTS base)
+  find_package(GStreamerPluginsBase COMPONENTS app)
+  find_package(GStreamerPluginsBase COMPONENTS video)
+  find_package(GLIB2 REQUIRED)
+  find_package(GObject REQUIRED)
+  set(GSTREAMER_BIN_DIR ${GSTREAMER_ROOT}/bin)
+endif()
 
 # Nlohmann JSON
 set (NLOHMANN_JSON_INCLUDE_DIR ${ROOT_DIR}/thirdparty/nlohmann_json/include)
@@ -162,9 +160,27 @@ find_package(easy_profiler REQUIRED)
 # Spout2
 if (WIN32)
   set (SPOUT2_SDK_DIR ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK/SpoutLibrary/Binaries/x64)
-  list (APPEND SPOUT2_INCLUDE_DIRS 
+  list (APPEND SPOUT2_INCLUDE_DIRS
     ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK
     ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK/SpoutLibrary/Binaries/x64)
   set (SPOUT2_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.lib)
   set (SPOUT2_SHARED_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.dll)
+endif()
+
+# ONNX Runtime w/ DirectML (from nuget packages, fetched by InitialSetup_x64.bat).
+# Used by the scene lighting estimator to run the Marigold models in-process.
+if (WIN32)
+  set (ONNXRUNTIME_DIR ${ROOT_DIR}/deps/onnxruntime)
+  set (ONNXRUNTIME_INCLUDE_DIRS ${ONNXRUNTIME_DIR}/build/native/include)
+  set (ONNXRUNTIME_LIBRARIES ${ONNXRUNTIME_DIR}/runtimes/win-x64/native/onnxruntime.lib)
+  list (APPEND ONNXRUNTIME_SHARED_LIBRARIES
+    ${ONNXRUNTIME_DIR}/runtimes/win-x64/native/onnxruntime.dll
+    ${ROOT_DIR}/deps/directml/bin/x64-win/DirectML.dll
+  )
+endif()
+
+# CEF (Chromium Embedded Framework)
+# Note: CEF_ROOT can be overridden via command line -DCEF_ROOT=...
+if (WIN32 AND NOT DEFINED CEF_ROOT)
+  set (CEF_ROOT ${ROOT_DIR}/deps/cef/cef_binary_145.0.27+g4ddda2e+chromium-145.0.7632.117_windows64)
 endif()

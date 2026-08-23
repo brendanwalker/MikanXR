@@ -15,13 +15,14 @@
 	url = https://github.com/ben-strasser/fast-cpp-csv-parser.git
 [submodule "thirdparty/LuaBridge3"]
 	path = thirdparty/LuaBridge3
-	url = https://github.com/kunitoki/LuaBridge3.git
+	url = https://github.com/MikanXR/LuaBridge3.git
 [submodule "thirdparty/imgui"]
 	path = thirdparty/imgui
 	url = https://github.com/ocornut/imgui.git
 [submodule "thirdparty/imnodes"]
 	path = thirdparty/imnodes
-	url = https://github.com/Nelarius/imnodes.git
+	url = https://github.com/MikanXR/imnodes.git
+	branch = mikanxr-patches
 [submodule "thirdparty/fast_obj"]
 	path = thirdparty/fast_obj
 	url = https://github.com/thisistherk/fast_obj.git

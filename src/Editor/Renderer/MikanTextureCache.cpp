@@ -1,31 +1,36 @@
 #include "MikanTextureCache.h"
+#include "IMkGraphicsContext.h"
 #include "IMkTexture.h"
 #include "IMkTextureCache.h"
 #include "TextureAssetReference.h"
 #include "Logger.h"
 #include "PathUtils.h"
 
-MikanTextureCache::MikanTextureCache(IMkWindow* ownerWindow)
-	: m_textureCache(createMkTextureCache(ownerWindow))
+MikanTextureCache::MikanTextureCache(IMkGraphicsContext* graphicsContext)
+	: m_textureCache(graphicsContext->getTextureCache())
 {
 }
 
 bool MikanTextureCache::startup()
 {
-	std::filesystem::path texturePath= PathUtils::getResourceDirectory() / "textures";
+	std::filesystem::path texturePath= "textures";
 
 	bool bSuccess= true;
 	bSuccess&= loadTexturePath(texturePath / "whiteRGB.png", INTERNAL_TEXTURE_WHITE_RGB) != nullptr;
 	bSuccess&= loadTexturePath(texturePath / "blackRGB.png", INTERNAL_TEXTURE_BLACK_RGB) != nullptr;
 	bSuccess&= loadTexturePath(texturePath / "whiteRGBA.png", INTERNAL_TEXTURE_WHITE_RGBA) != nullptr;
 	bSuccess&= loadTexturePath(texturePath / "blackRGBA.png", INTERNAL_TEXTURE_BLACK_RGBA) != nullptr;
+	bSuccess&=
+		loadTexturePath(texturePath / "blackRGBA_transparent.png", INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT) != nullptr;
+	bSuccess&= loadTexturePath(texturePath / "missing_texture.png", INTERNAL_MISSING_TEXTURE_RGBA) != nullptr;
 
 	return bSuccess;
 }
 
 void MikanTextureCache::shutdown()
 {
-	m_textureCache->shutdown();
+	m_textureCache= nullptr;
+	;
 }
 
 IMkTexturePtr MikanTextureCache::tryGetTextureByName(const std::string& textureName)
@@ -35,14 +40,15 @@ IMkTexturePtr MikanTextureCache::tryGetTextureByName(const std::string& textureN
 
 IMkTexturePtr MikanTextureCache::loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef)
 {
-	return loadTexturePath(textureAssetRef->getAssetPath());
+	return loadTexturePath(textureAssetRef->getResolvedAssetPath());
 }
 
-IMkTexturePtr MikanTextureCache::loadTexturePath(
-	const std::filesystem::path& texturePath,
-	const std::string& overrideName)
+IMkTexturePtr MikanTextureCache::loadTexturePath(const std::filesystem::path& texturePath,
+												 const std::string& overrideName)
 {
-	return m_textureCache->loadTexturePath(texturePath, overrideName);
+	std::filesystem::path absTexturePath= PathUtils::resolveProjectResource(texturePath);
+
+	return m_textureCache->loadTexturePath(absTexturePath, overrideName);
 }
 
 bool MikanTextureCache::removeTexureFromCache(IMkTexturePtr texture)

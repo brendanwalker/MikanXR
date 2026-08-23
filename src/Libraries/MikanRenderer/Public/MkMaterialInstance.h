@@ -16,15 +16,12 @@
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-
 class MIKAN_RENDERER_CLASS MkScopedMaterialInstanceBinding
 {
 public:
 	MkScopedMaterialInstanceBinding();
-	MkScopedMaterialInstanceBinding(
-		const MkMaterialInstance* materialInstance,
-		UniformNameSet unboundUniformNames,
-		bool bMaterialInstanceFailure);
+	MkScopedMaterialInstanceBinding(const MkMaterialInstance* materialInstance, UniformNameSet unboundUniformNames,
+									bool bMaterialInstanceFailure);
 	virtual ~MkScopedMaterialInstanceBinding();
 
 	const MkMaterialInstance* getBoundMaterialInstance() const;
@@ -35,7 +32,7 @@ private:
 	struct MkScopedMaterialInstanceBindingImpl* m_impl;
 };
 
-class MIKAN_RENDERER_CLASS MkMaterialInstance 
+class MIKAN_RENDERER_CLASS MkMaterialInstance
 {
 public:
 	MkMaterialInstance();
@@ -69,19 +66,24 @@ public:
 	bool setMat4ByUniformName(const std::string uniformName, const glm::mat4& value);
 	bool getMat4ByUniformName(const std::string uniformName, glm::mat4& outValue) const;
 
-	bool setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture);
-	bool getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const;
-	bool setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture);
-	bool getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const;
+	bool setTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr texture);
+	bool getTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr& outTexture) const;
+	bool getMutableTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const;
+	bool setTextureByUniformName(const std::string uniformName, IMkTextureConstPtr texture);
+	bool getTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const;
+	bool getMutableTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const;
 
-	MkScopedMaterialInstanceBinding bindMaterialInstance(
-		const MkScopedMaterialBinding& materialBinding,
-		BindUniformCallback callback= BindUniformCallback()) const;
+	MkScopedMaterialInstanceBinding bindMaterialInstance(const MkScopedMaterialBinding& materialBinding,
+														 BindUniformCallback callback= BindUniformCallback()) const;
 
-protected: 
+protected:
 	friend class MkScopedMaterialInstanceBinding;
 	void unbindMaterialInstance() const;
 
 private:
 	struct MkMaterialInstanceImpl* m_impl;
 };
+
+// Use these factory functions to create MkMaterialInstance objects on the same heap as the renderer module
+MIKAN_RENDERER_FUNC(MkMaterialInstancePtr) createMkMaterialInstance(MkMaterialConstPtr material);
+MIKAN_RENDERER_FUNC(MkMaterialInstancePtr) createMkMaterialInstance(MkMaterialInstanceConstPtr materialInstance);

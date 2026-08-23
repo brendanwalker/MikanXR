@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "NodeFwd.h"
 #include "NodeError.h"
 
@@ -7,23 +8,23 @@
 #include <string>
 #include <vector>
 
-class VideoSourceView;
-typedef std::shared_ptr<VideoSourceView> VideoSourceViewPtr;
-
 class NodeEvaluator
 {
 public:
 	NodeEvaluator()= default;
 
-	inline NodeEvaluator& setCurrentWindow(class IMkWindow* inWindow) { m_currentWindow= inWindow; return *this; }
-	inline class IMkWindow* getCurrentWindow() const { return m_currentWindow; }
+	inline NodeEvaluator& setCurrentGraphicsContext(class IMkGraphicsContext* inGraphicsContext)
+	{
+		m_currentGraphicsContext= inGraphicsContext;
+		return *this;
+	}
+	inline class IMkGraphicsContext* getCurrentGraphicsContext() const { return m_currentGraphicsContext; }
 
-	inline NodeEvaluator& setCurrentVideoSourceView(VideoSourceViewPtr inVideoSourceView) 
-	{ m_currentVideoSourceView= inVideoSourceView; return *this; }
-	inline VideoSourceViewPtr getCurrentVideoSourceView() const 
-	{ return m_currentVideoSourceView; }
-
-	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds) { m_deltaSeconds= inDeltaSeconds; return *this; }
+	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds)
+	{
+		m_deltaSeconds= inDeltaSeconds;
+		return *this;
+	}
 	inline float getDeltaSeconds() const { return m_deltaSeconds; }
 
 	inline void setDisableInputEvaluation(bool bDisable) { m_bDisableInputEvaluation= bDisable; }
@@ -36,9 +37,9 @@ public:
 	bool evaluateFlowPinChain(NodePtr startNode);
 
 protected:
-	class IMkWindow* m_currentWindow= nullptr;
+	class IMkGraphicsContext* m_currentGraphicsContext= nullptr;
 	float m_deltaSeconds= 0.f;
-	VideoSourceViewPtr m_currentVideoSourceView;
+	CompositorComponentPtr m_compositor;
 
 	NodePtr m_currentNode;
 	int m_evaluatedNodeCount= 0;

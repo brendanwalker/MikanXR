@@ -128,28 +128,31 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-echo "Downloading gstreamer-runtime installer"
-curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.24.11/mingw/gstreamer-1.0-mingw-x86_64-1.24.11.msi --output gstreamer-1.0-mingw-x86_64-1.24.11.msi
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading gstreamer-1.0-mingw-x86_64-1.24.11.msi"
-  goto failure
-)
-msiexec /i gstreamer-1.0-mingw-x86_64-1.24.11.msi /qb
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer-runtime installer"
-  goto failure
-)
+if not defined SKIP_GSTREAMER (
+  echo "Downloading gstreamer-runtime installer"
+  curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-mingw-x86_64-1.26.10.msi
+  IF %ERRORLEVEL% NEQ 0 (
+    echo "Error downloading gstreamer-1.0-mingw-x86_64-1.26.10.msi"
+    goto failure
+  )
+  msiexec /i gstreamer-1.0-mingw-x86_64-1.26.10.msi /qb
+  IF %ERRORLEVEL% NEQ 0 (
+    echo "Error installing gstreamer-runtime installer"
+    goto failure
+  )
 
-echo "Downloading gstreamer-devel installer"
-curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.24.11/mingw/gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi --output gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi"
-  goto failure
-)
-msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.24.11.msi /qb
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer-devel installer"
-  goto failure
+  echo "Downloading gstreamer-devel installer"
+
+  curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi
+  IF %ERRORLEVEL% NEQ 0 (
+    echo "Error downloading gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi"
+    goto failure
+  )
+  msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi /qb
+  IF %ERRORLEVEL% NEQ 0 (
+    echo "Error installing gstreamer-devel installer"
+    goto failure
+  )
 )
 
 echo "Downloading easy_profiler..."
@@ -164,30 +167,76 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-:: Download pre-compiled FreeType libraries
-echo "Downloading FreeType Binaries..."
-curl -L https://github.com/ubawurinna/freetype-windows-binaries/archive/refs/tags/v2.10.4.zip  --output freetype-windows-binaries-2.10.4.zip
+:: Download pre-compiled Refureku libraries
+echo "Downloading Refureku..."
+curl -L https://github.com/MikanXR/Refureku/releases/download/v2.2.2/rfk_v2.2.1_windows.7z --output rfk_v2.2.1_windows.7z
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error FreeType.zip"
+  echo "Error downloading rfk_v2.2.1_windows.7z"
   goto failure
 )
-%UNZIP_EXE% e freetype-windows-binaries-2.10.4.zip -y -r -spf
+%UNZIP_EXE% e rfk_v2.2.1_windows.7z -y -r -spf -orfk
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping FreeType.zip"
+  echo "Error unzipping rfk_v2.2.1_windows.7z"
   goto failure
 )
 
-:: Download pre-compiled Refureku libraries
-echo "Downloading Refureku..."
-curl -L https://github.com/MikanXR/Refureku/releases/download/v2.2.1/rfk_v2.2.1_windows.zip --output rfk_v2.2.1_windows.zip
+:: Download pre-compiled libharu library (PDF generator)
+echo "Downloading libharu..."
+curl -L https://github.com/MikanXR/libharu/releases/download/2.4.5/libharu-2.4.5-static.zip --output libharu-2.4.5-static.zip
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading rfk_v2.2.1_windows.zip"
+  echo "Error downloading libharu-2.4.5-static.zip"
   goto failure
 )
-%UNZIP_EXE% e rfk_v2.2.1_windows.zip -y -r -spf -orfk
+%UNZIP_EXE% e libharu-2.4.5-static.zip -y -r -spf -olibharu-2.4.5-static
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping rfk_v2.2.1_windows.zip"
+  echo "Error unzipping libharu-2.4.5-static.zip"
   goto failure
+)
+
+echo "Downloading CEF (Chromium Embedded Framework)..."
+curl -L https://cef-builds.spotifycdn.com/cef_binary_145.0.27+g4ddda2e+chromium-145.0.7632.117_windows64.tar.bz2 --output cef_binary_windows64.tar.bz2
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading cef_binary_windows64.tar.bz2"
+  goto failure
+)
+"%UNZIP_EXE%" x cef_binary_windows64.tar.bz2 -so | "%UNZIP_EXE%" x -aoa -si -ttar -ocef
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error extracting cef_binary_windows64.tar.bz2"
+  goto failure
+)
+
+:: ONNX Runtime (DirectML flavor) - used by the scene lighting estimator.
+:: A .nupkg is a zip. Contains headers + onnxruntime.dll built against DirectML.
+echo "Downloading ONNX Runtime DirectML 1.20.1..."
+curl -L https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime.directml/1.20.1/microsoft.ml.onnxruntime.directml.1.20.1.nupkg --output onnxruntime-directml.nupkg
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading Microsoft.ML.OnnxRuntime.DirectML 1.20.1"
+  goto failure
+)
+%UNZIP_EXE% x onnxruntime-directml.nupkg -oonnxruntime -y > nul
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping onnxruntime-directml.nupkg"
+  goto failure
+)
+del onnxruntime-directml.nupkg
+
+echo "Downloading DirectML 1.15.4..."
+curl -L https://api.nuget.org/v3-flatcontainer/microsoft.ai.directml/1.15.4/microsoft.ai.directml.1.15.4.nupkg --output directml.nupkg
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading Microsoft.AI.DirectML 1.15.4"
+  goto failure
+)
+%UNZIP_EXE% x directml.nupkg -odirectml -y > nul
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping directml.nupkg"
+  goto failure
+)
+del directml.nupkg
+
+:: The package ships every architecture (arm, x86, linux, xbox) at ~350MB total.
+:: Only x64-win is ever used, so drop the rest to keep deps/ (and the CI cache) small.
+for /d %%A in (directml\bin\*) do (
+  if /I NOT "%%~nxA"=="x64-win" rmdir /s /q "%%A"
 )
 
 :: NuGet tool used to fetch c# packages

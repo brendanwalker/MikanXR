@@ -4,10 +4,11 @@
 #include "AppStage.h"
 #include "AnchorTriangulator.h"
 #include "Constants_AnchorTriangulation.h"
-#include "DeviceViewFwd.h"
 #include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
+
+class GuiPanel_AnchorTriangulation;
 
 //-- definitions -----
 class AppStage_AnchorTriangulation : public AppStage
@@ -15,19 +16,22 @@ class AppStage_AnchorTriangulation : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_AnchorTriangulation(class MainWindow* ownerWindow);
+	AppStage_AnchorTriangulation(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_AnchorTriangulation();
 
 	void setBypassCalibrationFlag(bool flag);
+	void setSourceCamera(CameraComponentPtr cameraComponent);
 	void setTargetAnchor(const AnchorTriangulatorInfo& anchor) { m_targetAnchor= anchor; }
 
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void render() override;
+	virtual void onGui() override;
+	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
-	void updateCamera();
+	void setupDistortionView();
+	void updateCameraTransform();
 	void setMenuState(eAnchorTriangulationMenuState newState);
 
 	// Input Events
@@ -39,18 +43,16 @@ protected:
 	void onCancelEvent();
 
 private:
-	class RmlModel_AnchorTriangulation* m_calibrationModel = nullptr;
-	Rml::ElementDocument* m_calibrationView = nullptr;
+	class GuiPanel_AnchorTriangulation* m_calibrationPanel= nullptr;
 
-	VideoSourceViewPtr m_videoSourceView;
-
-	// Tracking puck used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
+	CameraComponentPtr m_currentSceneCameraComponent;
+	VideoSourceComponentPtr m_videoSourceComponent;
 
 	AnchorTriangulator* m_anchorTriangulator;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
 	AnchorTriangulatorInfo m_targetAnchor;
 
-	MikanCameraPtr m_camera;
+	bool m_bypassCalibrationFlag= false;
+	MikanCameraPtr m_mkCamera;
 };

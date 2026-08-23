@@ -1,0 +1,140 @@
+{
+    "node_editor_base": {
+        "font": "normal_icon",
+        "vars": [
+            { "name": "WindowPadding",  "value": [6, 4] },
+            { "name": "FramePadding",   "value": [8, 2] },
+            { "name": "ItemSpacing",    "value": [4, 6] },
+            { "name": "IndentSpacing",  "value": 12.0 },
+            { "name": "FrameBorderSize","value": 1.0 },
+            { "name": "FrameRounding",  "value": 3.0 },
+            { "name": "GrabRounding",   "value": 2.0 }
+        ],
+        "colors": [
+            { "name": "Text",              "value": [0.94, 0.94, 0.94, 1.0] },
+            { "name": "TextDisabled",      "value": [0.66, 0.66, 0.66, 1.0] },
+            { "name": "WindowBg",          "value": [0.13, 0.13, 0.13, 1.0] },
+            { "name": "PopupBg",           "value": [0.25, 0.25, 0.25, 1.0] },
+            { "name": "Border",            "value": [0.0,  0.0,  0.0,  1.0] },
+            { "name": "FrameBg",           "value": [0.0,  0.0,  0.0,  1.0] },
+            { "name": "FrameBgHovered",    "value": [0.25, 0.25, 0.25, 0.4] },
+            { "name": "FrameBgActive",     "value": [0.4,  0.4,  0.4,  0.4] },
+            { "name": "TitleBg",           "value": [0.18, 0.18, 0.18, 1.0] },
+            { "name": "TitleBgActive",     "value": [0.18, 0.18, 0.18, 1.0] },
+            { "name": "TitleBgCollapsed",  "value": [0.18, 0.18, 0.18, 1.0] },
+            { "name": "MenuBarBg",         "value": [0.06, 0.06, 0.06, 1.0] },
+            { "name": "ScrollbarBg",       "value": [0.1,  0.1,  0.1,  1.0] },
+            { "name": "SliderGrab",        "value": [0.25, 0.25, 0.25, 1.0] },
+            { "name": "Button",            "value": [0.25, 0.25, 0.25, 1.0] },
+            { "name": "ButtonHovered",     "value": [0.4,  0.4,  0.4,  1.0] },
+            { "name": "HeaderHovered",     "value": [0.1,  0.4,  0.9,  1.0] },
+            { "name": "Tab",               "value": [0.06, 0.06, 0.06, 1.0] },
+            { "name": "TabHovered",        "value": [0.4,  0.4,  0.4,  1.0] },
+            { "name": "TabActive",         "value": [0.25, 0.25, 0.25, 0.4] },
+            { "name": "ResizeGrip",        "value": [0.0,  0.0,  0.0,  0.0] },
+            { "name": "ResizeGripHovered", "value": [0.0,  0.0,  0.0,  0.0] },
+            { "name": "ResizeGripActive",  "value": [0.0,  0.0,  0.0,  0.0] },
+            { "name": "SeparatorActive",   "value": [0.0,  0.0,  0.0,  0.0] },
+            { "name": "PlotHistogram",     "value": [0.25, 0.25, 0.25, 1.0] },
+            { "name": "DragDropTarget",    "value": [0.0,  0.0,  0.0,  0.0] }
+        ]
+    },
+
+    "node_editor_toolbar": {
+        "font": "big_icon",
+        "vars": [
+            { "name": "WindowPadding",   "value": [8, 4] },
+            { "name": "FramePadding",    "value": [12, 4] },
+            { "name": "FrameBorderSize", "value": 0.0 }
+        ],
+        "colors": [
+            { "name": "Button",        "value": [0.13, 0.13, 0.13, 1.0] },
+            { "name": "ButtonHovered", "value": [0.25, 0.25, 0.25, 1.0] },
+            { "name": "ButtonActive",  "value": [0.4,  0.4,  0.4,  1.0] },
+            { "name": "Separator",     "value": [0.0,  0.0,  0.0,  0.5] }
+        ]
+    },
+
+    "node_editor_control_panel": {
+        "vars": [
+            { "name": "ChildRounding", "value": 4.0 },
+            { "name": "FramePadding",  "value": [4, 4] }
+        ],
+        "colors": [
+            { "name": "ChildBg", "value": [0.2, 0.2, 0.2, 1.0] },
+            { "name": "Border",  "value": [0.2, 0.2, 0.2, 1.0] },
+            { "name": "Button",  "value": [0.2, 0.2, 0.2, 1.0] }
+        ]
+    },
+
+    "node_editor_context_menu": {
+        "vars": [
+            { "name": "WindowPadding", "value": [4, 4] },
+            { "name": "FramePadding",  "value": [12, 6] },
+            { "name": "ItemSpacing",   "value": [14, 4] }
+        ],
+        "colors": [
+            { "name": "HeaderHovered", "value": [0.1,  0.4,  0.9,  1.0] },
+            { "name": "PopupBg",       "value": [0.25, 0.25, 0.25, 1.0] }
+        ]
+    },
+
+    "node_editor_panel_header": {
+        "vars": [
+            { "name": "FramePadding",   "value": [2, 4] },
+            { "name": "FrameRounding",  "value": 0.0 },
+            { "name": "FrameBorderSize","value": 0.0 }
+        ],
+        "colors": [
+            { "name": "Header",        "value": [0.25, 0.25, 0.25, 1.0] },
+            { "name": "HeaderHovered", "value": [0.4,  0.4,  0.4,  1.0] },
+            { "name": "HeaderActive",  "value": [0.4,  0.4,  0.4,  1.0] }
+        ]
+    },
+
+    "node_editor_variable_list": {
+        "colors": [
+            { "name": "HeaderHovered", "value": [0.25, 0.25, 0.25, 0.4] }
+        ]
+    },
+
+    "node_editor_asset_tab": {
+        "vars": [
+            { "name": "ItemSpacing", "value": [0, 0] }
+        ],
+        "colors": [
+            { "name": "ChildBg",    "value": [0.25, 0.25, 0.25, 0.4] },
+            { "name": "Separator",  "value": [0.13, 0.13, 0.13, 1.0] }
+        ]
+    },
+
+    "node_editor_error_text": {
+        "colors": [
+            { "name": "Text", "value": [0.75, 0.15, 0.01, 1.0] }
+        ]
+    },
+
+    "node_editor_undo_button": {
+        "colors": [
+            { "name": "Text", "value": [0.9, 0.9, 0.9, 1.0] }
+        ]
+    },
+
+    "node_editor_property_value": {
+        "colors": [
+            { "name": "PopupBg", "value": [0.13, 0.13, 0.13, 1.0] }
+        ]
+    },
+
+    "compositor_play_button": {
+        "colors": [
+            { "name": "Text", "value": [0.5, 0.8, 0.5, 1.0] }
+        ]
+    },
+
+    "compositor_stop_button": {
+        "colors": [
+            { "name": "Text", "value": [1.0, 0.3, 0.3, 1.0] }
+        ]
+    }
+}

@@ -8,31 +8,51 @@ toProcessDirectories = [
 
 # Files to parse which are not included in any directory of toParseDirectories
 toProcessFiles = [
+	'''./Public/MikanAnchorTypes.h''',
 	'''./Public/MikanAPI.h''',
 	'''./Public/MikanAPITypes.h''',
+	'''./Public/MikanCameraEvents.h''',
+	'''./Public/MikanCameraTypes.h''',
+	'''./Public/MikanCameraRequests.h''',
 	'''./Public/MikanClientEvents.h''',
 	'''./Public/MikanClientTypes.h''',
 	'''./Public/MikanClientRequests.h''',
+	'''./Public/MikanComponentTypes.h''',
+	'''./Public/MikanCompositorTypes.h''',
+	'''./Public/MikanEditorTypes.h''',
+	'''./Public/MikanFunctionTypes.h''',
+	'''./Public/MikanFunctionRequests.h''',
+	'''./Public/MikanLightEvents.h''',
+	'''./Public/MikanLightTypes.h''',
+	'''./Public/MikanLightRequests.h''',
+	'''./Public/MikanMarkerTypes.h''',
+	'''./Public/MikanMarkerRequests.h''',
 	'''./Public/MikanMathTypes.h''',
-	'''./Public/MikanRenderTargetRequests.h''',
+	'''./Public/MikanPropertyEvents.h''',
+	'''./Public/MikanPropertyTypes.h''',
+	'''./Public/MikanPropertyRequests.h''',
+	'''./Public/MikanSceneTypes.h''',
 	'''./Public/MikanScriptEvents.h''',
 	'''./Public/MikanScriptTypes.h''',
 	'''./Public/MikanScriptRequests.h''',
-	'''./Public/MikanStencilEvents.h''',
+	'''./Public/MikanStageTypes.h''',
+	'''./Public/MikanShapeRequests.h''',
+	'''./Public/MikanShapeTypes.h''',
 	'''./Public/MikanStencilRequests.h''',
-	'''./Public/MikanStencilTypes.h''',	
+	'''./Public/MikanStencilTypes.h''',
 	'''./Public/MikanRemoteControlEvents.h''',
 	'''./Public/MikanRemoteControlRequests.h''',
 	'''./Public/MikanRemoteControlTypes.h''',
-	'''./Public/MikanSpatialAnchorEvents.h''',
-	'''./Public/MikanSpatialAnchorRequests.h''',
-	'''./Public/MikanSpatialAnchorTypes.h''',
+	'''./Public/MikanTrackingMountTypes.h''',
+	'''./Public/MikanTrackingVolumeTypes.h''',
+	'''./Public/MikanTextureSourceEvents.h''',
+	'''./Public/MikanTextureSourceTypes.h''',
+	'''./Public/MikanTransformTypes.h''',
+	'''./Public/MikanVariantTypes.h''',
 	'''./Public/MikanVideoSourceEvents.h''',
-	'''./Public/MikanVideoSourceTypes.h''',
 	'''./Public/MikanVideoSourceRequests.h''',
-	'''./Public/MikanVRDeviceEvents.h''',
-	'''./Public/MikanVRDeviceTypes.h''',
-	'''./Public/MikanVRDeviceRequests.h'''
+	'''./Public/MikanVideoSourceTypes.h''',
+	'''./Public/MikanVRDeviceTypes.h'''
 ]
 
 # Files contained in the directories of this list will be ignored
@@ -57,7 +77,7 @@ exportSymbolMacroName = "MIKAN_API"
 
 [ParsingSettings]
 # Used c++ version (supported values are: 17, 20)
-cppVersion = 17
+cppVersion = 20
 
 # Include directories of the project
 projectIncludeDirectories = [

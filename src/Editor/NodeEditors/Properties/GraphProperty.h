@@ -10,8 +10,14 @@ struct ImVec4;
 class GraphPropertyConfig : public CommonConfig
 {
 public:
-	GraphPropertyConfig() : CommonConfig() {}
-	GraphPropertyConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+	GraphPropertyConfig()
+		: CommonConfig()
+	{
+	}
+	GraphPropertyConfig(const std::string& nodeName)
+		: CommonConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -28,21 +34,19 @@ public:
 	GraphProperty()= default;
 	virtual ~GraphProperty() {}
 
-	inline static const std::string k_propertyClassName = "GraphProperty";
+	inline static const std::string k_propertyClassName= "GraphProperty";
 	virtual std::string getClassName() const { return k_propertyClassName; }
 
-	virtual bool loadFromConfig(
-		GraphPropertyConfigConstPtr propConfig,
-		const NodeGraphConfig& graphConfig);
+	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig);
 	virtual void saveToConfig(GraphPropertyConfigPtr config) const;
 
 	inline void setOwnerGraph(NodeGraphPtr ownerGraph) { m_ownerGraph= ownerGraph; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
-	
+
 	inline void setId(t_graph_property_id id) { m_id= id; }
 	inline t_graph_property_id getId() const { return m_id; }
 
-	inline void setParentId(t_graph_property_id inParentId ) { m_parentId= inParentId; }
+	inline void setParentId(t_graph_property_id inParentId) { m_parentId= inParentId; }
 	inline t_graph_property_id getParentId() const { return m_parentId; }
 
 	inline void setName(const std::string& name) { m_name= name; }
@@ -65,14 +69,10 @@ protected:
 class GraphPropertyFactory
 {
 public:
-	GraphPropertyFactory() = default;
+	GraphPropertyFactory()= default;
 
-	inline GraphPropertyPtr getDefaultGraphPropertyObject() const { 
-		return m_defaultGraphPropertyObject; 
-	}
-	inline std::string getGraphPropertyClassName() const { 
-		return m_defaultGraphPropertyObject->getClassName(); 
-	}
+	inline GraphPropertyPtr getDefaultGraphPropertyObject() const { return m_defaultGraphPropertyObject; }
+	inline std::string getGraphPropertyClassName() const { return m_defaultGraphPropertyObject->getClassName(); }
 
 	virtual GraphPropertyConfigPtr allocatePropertyConfig() const;
 	virtual GraphPropertyPtr allocateProperty() const;
@@ -98,15 +98,12 @@ template <class t_property_class, class t_property_config_class>
 class TypedGraphPropertyFactory : public GraphPropertyFactory
 {
 public:
-	TypedGraphPropertyFactory() = default;
+	TypedGraphPropertyFactory()= default;
 
 	virtual GraphPropertyConfigPtr allocatePropertyConfig() const override
 	{
 		return std::make_shared<t_property_config_class>();
 	}
 
-	virtual GraphPropertyPtr allocateProperty() const override
-	{
-		return std::make_shared<t_property_class>();
-	}
+	virtual GraphPropertyPtr allocateProperty() const override { return std::make_shared<t_property_class>(); }
 };

@@ -6,24 +6,30 @@
 class StencilNodeConfig : public NodeConfig
 {
 public:
-	StencilNodeConfig() : NodeConfig() {}
-	StencilNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	StencilNodeConfig()
+		: NodeConfig()
+	{
+	}
+	StencilNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	t_graph_property_id stencilPropertyId;
 };
-using StencilNodeConfigPtr = std::shared_ptr<StencilNodeConfig>;
-using StencilNodeConfigConstPtr = std::shared_ptr<const StencilNodeConfig>;
+using StencilNodeConfigPtr= std::shared_ptr<StencilNodeConfig>;
+using StencilNodeConfigConstPtr= std::shared_ptr<const StencilNodeConfig>;
 
 class StencilNode : public Node
 {
 public:
-	StencilNode() = default;
+	StencilNode()= default;
 	virtual ~StencilNode();
 
-	inline static const std::string k_nodeClassName = "StencilNode";
+	inline static const std::string k_nodeClassName= "StencilNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -41,7 +47,8 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
+		const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 	void onGraphPropertyDeleted(t_graph_property_id id);
@@ -53,7 +60,7 @@ protected:
 class StencilNodeFactory : public TypedNodeFactory<StencilNode, StencilNodeConfig>
 {
 public:
-	StencilNodeFactory() = default;
+	StencilNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 	virtual bool editorCanCreate() const override { return false; }

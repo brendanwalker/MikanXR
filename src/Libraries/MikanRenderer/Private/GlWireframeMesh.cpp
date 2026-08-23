@@ -1,42 +1,36 @@
 #include "GlCommon.h"
 #include "IMkCamera.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "IMkShader.h"
 #include "IMkShaderCache.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMKWireframeMesh.h"
-//#include "GlViewport.h"
+// #include "GlViewport.h"
 #include "Logger.h"
 
 class GlWireframeMesh : public IMkWireframeMesh
 {
 public:
-	GlWireframeMesh() = default;
-	GlWireframeMesh(IMkWindow* ownerWindow)
-		: m_ownerWindow(ownerWindow)
-	{}
-
-	GlWireframeMesh(
-		IMkWindow* ownerWindow,
-		std::string name,
-		const uint8_t* vertexData,
-		const size_t vertexSize,
-		uint32_t vertexCount,
-		const uint8_t* indexData,
-		const size_t indexSize,
-		uint32_t lineCount,
-		bool bOwnsVertexData)
-		: m_ownerWindow(ownerWindow)
+	GlWireframeMesh()= default;
+	GlWireframeMesh(IMkGraphicsContext* ownerContext)
+		: m_ownerContext(ownerContext)
 	{
-		m_name = name;
-		m_vertexData = vertexData;
-		m_vertexSize = vertexSize;
-		m_vertexCount = vertexCount;
-		m_indexData = indexData;
-		m_indexSize = indexSize;
-		m_lineCount = lineCount;
-		m_bOwnsVertexData = bOwnsVertexData;
+	}
+
+	GlWireframeMesh(IMkGraphicsContext* ownerContext, std::string name, const uint8_t* vertexData,
+					const size_t vertexSize, uint32_t vertexCount, const uint8_t* indexData, const size_t indexSize,
+					uint32_t lineCount, bool bOwnsVertexData)
+		: m_ownerContext(ownerContext)
+	{
+		m_name= name;
+		m_vertexData= vertexData;
+		m_vertexSize= vertexSize;
+		m_vertexCount= vertexCount;
+		m_indexData= indexData;
+		m_indexSize= indexSize;
+		m_lineCount= lineCount;
+		m_bOwnsVertexData= bOwnsVertexData;
 	}
 
 	virtual ~GlWireframeMesh()
@@ -55,7 +49,7 @@ public:
 
 	virtual std::string getName() const override { return m_name; }
 	virtual MkMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; };
-	virtual class IMkWindow* getOwnerWindow() const override { return m_ownerWindow; }
+	virtual class IMkGraphicsContext* getOwnerContext() const override { return m_ownerContext; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
 
@@ -66,18 +60,18 @@ public:
 
 	void GlWireframeMesh::drawElements() const
 	{
-		GLenum indexType = GL_UNSIGNED_SHORT;
+		GLenum indexType= GL_UNSIGNED_SHORT;
 		switch (m_indexSize)
 		{
-			case 4:
-				indexType = GL_UNSIGNED_INT;
-				break;
-			case 2:
-				indexType = GL_UNSIGNED_SHORT;
-				break;
-			case 1:
-				indexType = GL_UNSIGNED_BYTE;
-				break;
+		case 4:
+			indexType= GL_UNSIGNED_INT;
+			break;
+		case 2:
+			indexType= GL_UNSIGNED_SHORT;
+			break;
+		case 1:
+			indexType= GL_UNSIGNED_BYTE;
+			break;
 		}
 
 		glBindVertexArray(m_glVertArray);
@@ -87,28 +81,27 @@ public:
 
 	bool GlWireframeMesh::createResources()
 	{
-		if (m_vertexData == nullptr || m_vertexCount == 0 ||
-			m_indexData == nullptr || m_lineCount == 0)
+		if (m_vertexData == nullptr || m_vertexCount == 0 || m_indexData == nullptr || m_lineCount == 0)
 		{
 			return false;
 		}
 
-		IMkShaderCache* shaderCache = getOwnerWindow()->getShaderCache();
-		MkMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
+		IMkShaderCache* shaderCache= getOwnerContext()->getShaderCache();
+		MkMaterialConstPtr material= shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
 		if (!material)
 		{
 			return false;
 		}
 
-		IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
-		const size_t vertexSize = vertexDefinition->getVertexSize();
+		IMkVertexDefinitionConstPtr vertexDefinition= material->getProgram()->getVertexDefinition();
+		const size_t vertexSize= vertexDefinition->getVertexSize();
 		if (vertexSize != m_vertexSize)
 		{
 			return false;
 		}
 
 		// create a material instance from the default wireframe material
-		m_materialInstance = std::make_shared<MkMaterialInstance>(material);
+		m_materialInstance= createMkMaterialInstance(material);
 		m_materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
 
 		// create and bind a Vertex Array Object(VAO) to hold state for this model
@@ -130,11 +123,9 @@ public:
 		// Create and populate the index buffer
 		glGenBuffers(1, &m_glIndexBuffer);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_glIndexBuffer);
-		glBufferData(
-			GL_ELEMENT_ARRAY_BUFFER,
-			getElementCount() * getIndexPerElementCount() * getIndexSize(), // index array size in bytes
-			m_indexData,
-			GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+					 getElementCount() * getIndexPerElementCount() * getIndexSize(), // index array size in bytes
+					 m_indexData, GL_STATIC_DRAW);
 
 		glBindVertexArray(0);
 
@@ -152,78 +143,61 @@ public:
 		if (m_glVertBuffer != 0)
 			glDeleteBuffers(1, &m_glVertBuffer);
 
-		m_glIndexBuffer = 0;
-		m_glVertArray = 0;
-		m_glVertBuffer = 0;
-		m_vertexCount = 0;
+		m_glIndexBuffer= 0;
+		m_glVertArray= 0;
+		m_glVertBuffer= 0;
+		m_vertexCount= 0;
 	}
 
 protected:
-	class IMkWindow* m_ownerWindow = nullptr;
+	class IMkGraphicsContext* m_ownerContext= nullptr;
 	MkMaterialInstancePtr m_materialInstance;
 
 	std::string m_name;
 
-	const uint8_t* m_vertexData = nullptr;
-	uint32_t m_vertexCount = 0;
-	size_t m_vertexSize = 0;
-	const uint8_t* m_indexData = nullptr;
-	size_t m_indexSize = 0;
-	uint32_t m_lineCount = 0;
-	bool m_bOwnsVertexData = false;
+	const uint8_t* m_vertexData= nullptr;
+	uint32_t m_vertexCount= 0;
+	size_t m_vertexSize= 0;
+	const uint8_t* m_indexData= nullptr;
+	size_t m_indexSize= 0;
+	uint32_t m_lineCount= 0;
+	bool m_bOwnsVertexData= false;
 
-	uint32_t m_glVertArray = 0;
-	uint32_t m_glVertBuffer = 0;
-	uint32_t m_glIndexBuffer = 0;
+	uint32_t m_glVertArray= 0;
+	uint32_t m_glVertBuffer= 0;
+	uint32_t m_glIndexBuffer= 0;
 };
 
-IMkWireframeMeshPtr CreateMkWireframeMesh(IMkWindow* ownerWindow)
+IMkWireframeMeshPtr CreateMkWireframeMesh(IMkGraphicsContext* ownerContext)
 {
-	return std::make_shared<GlWireframeMesh>(ownerWindow);
+	return std::make_shared<GlWireframeMesh>(ownerContext);
 }
 
-IMkWireframeMeshPtr CreateMkWireframeMesh(
-	class IMkWindow* ownerWindow,
-	std::string name,
-	const uint8_t* vertexData,
-	const size_t vertexSize,
-	uint32_t vertexCount,
-	const uint8_t* indexData,
-	const size_t indexSize,
-	uint32_t lineCount,
-	bool bOwnsVertexData)
+IMkWireframeMeshPtr CreateMkWireframeMesh(class IMkGraphicsContext* ownerContext, std::string name,
+										  const uint8_t* vertexData, const size_t vertexSize, uint32_t vertexCount,
+										  const uint8_t* indexData, const size_t indexSize, uint32_t lineCount,
+										  bool bOwnsVertexData)
 {
-	return std::make_shared<GlWireframeMesh>(
-		ownerWindow,
-		name,
-		vertexData,
-		vertexSize,
-		vertexCount,
-		indexData,
-		indexSize,
-		lineCount,
-		bOwnsVertexData);
+	return std::make_shared<GlWireframeMesh>(ownerContext, name, vertexData, vertexSize, vertexCount, indexData,
+											 indexSize, lineCount, bOwnsVertexData);
 }
 
-void drawTransformedWireframeMesh(
-	IMkCameraConstPtr camera,
-	const glm::mat4& transform,
-	const GlWireframeMesh* wireframeMesh,
-	const glm::vec3& color)
+void drawTransformedWireframeMesh(IMkCameraConstPtr camera, const glm::mat4& transform,
+								  const GlWireframeMesh* wireframeMesh, const glm::vec3& color)
 {
 	if (camera != nullptr && wireframeMesh != nullptr)
 	{
-		MkMaterialInstancePtr materialInstance = wireframeMesh->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance= wireframeMesh->getMaterialInstance();
+		MkMaterialConstPtr material= materialInstance->getMaterial();
 
-		if (auto materialBinding = material->bindMaterial())
+		if (auto materialBinding= material->bindMaterial())
 		{
-			const glm::mat4 vpMatrix = camera->getViewProjectionMatrix();
+			const glm::mat4 vpMatrix= camera->getViewProjectionMatrix();
 
 			materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(color, 1.f));
 			materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * transform);
-			
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				wireframeMesh->drawElements();
 			}

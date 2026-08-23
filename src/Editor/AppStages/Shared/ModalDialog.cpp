@@ -6,11 +6,4 @@ ModalDialog::ModalDialog(class AppStage* ownerAppStage)
 {
 }
 
-ModalDialog::~ModalDialog()
-{
-}
-
-Rml::Context* ModalDialog::getRmlContext() const
-{
-	return m_ownerAppStage->getRmlContext();
-}
+ModalDialog::~ModalDialog() {}

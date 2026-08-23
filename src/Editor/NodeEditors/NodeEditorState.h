@@ -8,11 +8,12 @@
 class NodeEditorState
 {
 public:
-	NodeEditorState() = default;
+	NodeEditorState()= default;
 
 	NodeGraphPtr nodeGraph;
 	std::filesystem::path nodeGraphPath;
 	int startedLinkPinId= -1;
 	bool bLinkHanged= false;
-	ImVec2 hangPosGridSpace= {}; 
+	ImVec2 hangPosGridSpace= {};
+	class MkGuiStyleManager* styleManager= nullptr;
 };

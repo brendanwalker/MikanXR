@@ -1,0 +1,77 @@
+#pragma once
+
+#include "ComponentFwd.h"
+#include "ColliderQuery.h"
+#include "ObjectFwd.h"
+#include "MikanSceneTypes.h"
+#include "MikanRendererFwd.h"
+#include "TransformComponent.h"
+
+#include <functional>
+
+class SceneComponentDefinition : public TransformComponentDefinition
+{
+public:
+	SceneComponentDefinition();
+	SceneComponentDefinition(MikanSceneID sceneId);
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+	virtual bool readFromInitParams(MikanObjectSystem* ownerObjectSystem,
+									const Serialization::PolymorphicObjectPtr& initParams) override;
+
+	MikanSceneID getSceneId() const { return getComponentId(); }
+
+	static const std::string k_displayCompositorIdPropertyId;
+	MikanCompositorID getDisplayCompositorId() const { return m_displayCompositorId; }
+	void setDisplayCompositorId(MikanCompositorID compositorId);
+
+protected:
+	MikanCompositorID m_displayCompositorId= INVALID_MIKAN_ID;
+};
+
+class SceneComponent final : public TransformComponent
+{
+public:
+	SceneComponent(MikanObjectWeakPtr owner);
+
+	inline SceneComponentDefinitionPtr getSceneComponentDefinition() const
+	{
+		return std::static_pointer_cast<SceneComponentDefinition>(m_definition);
+	}
+
+	inline static const std::string k_componentClassName= "SceneComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
+
+	// -- IFunctionInterface ----
+	static const std::string k_showCompositorOutputFunctionId;
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	virtual bool invokeFunction(const std::string& functionName) override;
+
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
+	// -- SceneComponent ----
+	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getComponentId(); }
+	MikanStageID getParentStageId() const;
+	StageComponentPtr getParentStage() const;
+	std::vector<MikanCompositorID> getOutputCompositorIDs() const;
+	std::vector<CompositorComponentPtr> getOutputCompositors() const;
+	void attachToStage(MikanStageID newParentId);
+	void showCompositorOutput();
+	void activateScene();
+	void deactivateScene();
+	void refreshActiveCompositors();
+
+protected:
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
+										 const ConfigPropertyChangeSet& changedPropertySet) override;
+};

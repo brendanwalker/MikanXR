@@ -26,6 +26,7 @@ file(GLOB MIKAN_CLIENT_CORE_LIBRARY_SRC
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${MIKAN_CLIENT_CORE_SPOUT2_DX_SRC} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Private/MikanClient.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Private/Interprocess/WebsocketInterprocessMessageClient.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 source_group("Public" FILES ${MIKAN_CLIENT_CORE_PUBLIC})
 source_group("Private" FILES ${MIKAN_CLIENT_CORE_PRIVATE_SRC})

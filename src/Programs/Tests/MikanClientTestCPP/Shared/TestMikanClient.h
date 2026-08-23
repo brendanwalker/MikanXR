@@ -1,0 +1,50 @@
+#pragma once
+
+#include "TestGraphicsContext.h"
+#include "MikanTypeFwd.h"
+
+#include <functional>
+#include <memory>
+#include <map>
+
+class TestMikanClient
+{
+public:
+	TestMikanClient(TestGraphicsContext* graphicsContext);
+	virtual ~TestMikanClient();
+
+	inline bool getIsShutdownRequested() const { return m_bShutdownRequested; }
+	inline IMikanAPIPtr getMikanAPI() const { return m_mikanApi; }
+
+	bool init(const char* szClientName);
+	void update(const float deltaSeconds);
+	void dispose();
+
+protected:
+	static void onMikanLog(int log_level, const char* log_message);
+
+	// App Connection Events
+	void handleMikanConnected();
+	void handleMikanDisconnected(const struct MikanDisconnectedEvent& disconnectEvent);
+	void handleCameraNewFrameEvent(const struct MikanCameraNewFrameEvent& newFrameEvent);
+
+	// Component Events
+	void handleMikanEvent(MikanEventPtr mikanEvent);
+
+	// Property Change Events
+	void handlePropertyUpdateEvent(const struct MikanPropertyUpdateEvent& propertyUpdateEvent);
+
+	// Utility
+	void makeFakeCameraNewFrameEvent(struct MikanCameraNewFrameEvent& fakeNewFrameEvent);
+
+protected:
+	TestGraphicsContext* m_graphicsContext= nullptr;
+	IMikanAPIPtr m_mikanApi;
+	std::shared_ptr<class TestObjectDataStore> m_dataStore;
+	bool m_mikanInitialized= false;
+	MikanCameraID m_lastProcessedCamera= INVALID_MIKAN_ID;
+	bool m_bShutdownRequested= false;
+	float m_mikanReconnectTimout= 0.0f;
+};
+
+using TestMikanClientPtr= std::shared_ptr<TestMikanClient>;

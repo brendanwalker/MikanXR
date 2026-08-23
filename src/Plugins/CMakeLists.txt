@@ -1,3 +1,9 @@
 # Step into the subdirectories
-MESSAGE(STATUS "Stepping into MikanGStreamer")
-add_subdirectory(MikanGStreamer)
+if(MIKAN_WITH_GSTREAMER)
+  MESSAGE(STATUS "Stepping into MikanGStreamerVideo")
+  add_subdirectory(MikanGStreamerVideo)
+endif()
+MESSAGE(STATUS "Stepping into MikanSteamVR")
+add_subdirectory(MikanSteamVR)
+MESSAGE(STATUS "Stepping into MikanWMFVideo")
+add_subdirectory(MikanWMFVideo)

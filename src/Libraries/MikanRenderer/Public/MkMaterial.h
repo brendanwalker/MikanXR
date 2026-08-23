@@ -23,14 +23,13 @@ enum class eUniformBindResult : int
 	unbound,
 	error
 };
-using BindUniformCallback =
-std::function<eUniformBindResult(
-	std::shared_ptr<class IMkShader>, // Source program to bind the uniform for
-	eUniformDataType, // Data type of the uniform
-	eUniformSemantic, // Semantic of the uniform
-	const std::string&)>; // Name of the uniform
+using BindUniformCallback=
+	std::function<eUniformBindResult(std::shared_ptr<class IMkShader>, // Source program to bind the uniform for
+									 eUniformDataType,                 // Data type of the uniform
+									 eUniformSemantic,                 // Semantic of the uniform
+									 const std::string&)>;             // Name of the uniform
 
-class MIKAN_RENDERER_CLASS MkMaterial 
+class MIKAN_RENDERER_CLASS MkMaterial
 {
 public:
 	MkMaterial();
@@ -47,12 +46,12 @@ public:
 	const NamedValueTable<glm::vec3>& getFloat3Sources() const;
 	const NamedValueTable<glm::vec4>& getFloat4Sources() const;
 	const NamedValueTable<glm::mat4>& getMat4Sources() const;
-	const NamedValueTable<IMkTexturePtr>& getTextureSources() const;
+	const NamedValueTable<IMkTextureConstPtr>& getTextureSources() const;
 
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
 	bool setFloatByUniformName(const std::string uniformName, float value);
-	bool getFloatByUniformName(const std::string uniformName, float &outValue) const;
+	bool getFloatByUniformName(const std::string uniformName, float& outValue) const;
 
 	bool setVec2BySemantic(eUniformSemantic semantic, const glm::vec2& value);
 	bool getVec2BySemantic(eUniformSemantic semantic, glm::vec2& outValue) const;
@@ -74,10 +73,10 @@ public:
 	bool setMat4ByUniformName(const std::string uniformName, const glm::mat4& value);
 	bool getMat4ByUniformName(const std::string uniformName, glm::mat4& outValue) const;
 
-	bool setTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr texture);
-	bool getTextureBySemantic(eUniformSemantic semantic, IMkTexturePtr& outTexture) const;
-	bool setTextureByUniformName(const std::string uniformName, IMkTexturePtr texture);
-	bool getTextureByUniformName(const std::string uniformName, IMkTexturePtr& outTexture) const;
+	bool setTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr texture);
+	bool getTextureBySemantic(eUniformSemantic semantic, IMkTextureConstPtr& outTexture) const;
+	bool setTextureByUniformName(const std::string uniformName, IMkTextureConstPtr texture);
+	bool getTextureByUniformName(const std::string uniformName, IMkTextureConstPtr& outTexture) const;
 
 	MkScopedMaterialBinding bindMaterial(BindUniformCallback callback= BindUniformCallback()) const;
 

@@ -5,6 +5,7 @@
 #include "MikanRendererFwd.h"
 
 #include <map>
+#include <set>
 #include <string>
 
 typedef int32_t MikanStencilID;
@@ -23,7 +24,17 @@ public:
 	virtual bool loadFromConfig(const NodeGraphConfig& config) override;
 	bool compositeFrame(NodeEvaluator& evaluator);
 	IMkTextureConstPtr getCompositedFrameTexture() const;
-	void setExternalCompositedFrameTexture(IMkTexturePtr externalTexture);
+
+	// Compositor Component
+	bool bindToCompositorComponent(CompositorComponentPtr compositorComponent);
+	void unbindFromCompositorComponent(CompositorComponentPtr compositorComponent);
+
+	CompositorComponentPtr getBoundCompositorComponent() const;
+	CameraComponentPtr getBoundCameraComponent() const;
+	VideoSourceComponentPtr getBoundVideoSourceComponent() const;
+
+	// Sources
+	void gatherAllReferencedClientSourceIDs(std::set<std::string>& outClientSourceIds) const;
 
 	// Stencil Models
 	MikanRenderModelResourcePtr getOrLoadStencilRenderModel(ModelStencilDefinitionPtr stencilDefinition);
@@ -37,19 +48,22 @@ public:
 	inline IMkTriangulatedMeshPtr getLayerMesh() const { return m_layerMesh; }
 
 protected:
-
 	bool bindEventNodes();
 
 	bool createLayerQuadMeshes();
 	bool createQuadMeshes();
 	bool createBoxMeshes();
 	void updateCompositingFrameBufferSize(NodeEvaluator& evaluator);
+	void encodeLinearFrameToSRGB(class NodeEvaluator& evaluator);
 
 	// Stencil System Events
 	void onStencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
-	IMkFrameBufferPtr m_compositingFrameBuffer;
+	CompositorComponentWeakPtr m_boundCompositorComponent;
+	IMkFrameBufferPtr m_compositingFrameBuffer; // 16-bit linear working buffer
+	IMkFrameBufferPtr m_outputFrameBuffer;      // 8-bit sRGB final output buffer
+	MkMaterialInstancePtr m_linearToSrgbMaterialInstance;
 	IMkShaderPtr m_vertexOnlyStencilShader;
 	IMkTriangulatedMeshPtr m_stencilQuadMesh;
 	IMkTriangulatedMeshPtr m_stencilBoxMesh;
@@ -67,7 +81,7 @@ protected:
 class CompositorNodeGraphFactory : public TypedNodeGraphFactory<CompositorNodeGraph>
 {
 public:
-	CompositorNodeGraphFactory() = default;
+	CompositorNodeGraphFactory()= default;
 
-	virtual NodeGraphPtr initialCreateNodeGraph(class IMkWindow* ownerWindow) const override;
+	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const override;
 };

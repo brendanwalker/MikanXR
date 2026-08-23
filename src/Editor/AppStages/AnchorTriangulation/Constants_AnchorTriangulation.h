@@ -4,7 +4,7 @@
 
 enum class eAnchorTriangulationMenuState : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	inactive,
 	verifyInitialCameraSetup,
@@ -18,6 +18,7 @@ enum class eAnchorTriangulationMenuState : int
 	captureYAxis2,
 	verifyTriangulatedPoints,
 	testCalibration,
+	pendingVideoStartStreamRequest,
 	failedVideoStartStreamRequest,
 
 	COUNT

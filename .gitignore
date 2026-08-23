@@ -26,9 +26,17 @@
 *.a
 *.lib
 
+# Python bytecode from the tools/ developer scripts
+__pycache__/
+*.pyc
+
 # Deep Neural Network Models
 *.pt
 *.onnx
+# Weights of models too large for the 2GB protobuf limit live in a sidecar
+# next to the .onnx graph (unet_*.onnx.data is ~3.4GB each).
+*.onnx.data
+models/
 
 # Executables
 *.exe
@@ -42,6 +50,8 @@
 build*
 dist*
 !OBJ-loader
+!.github/
+!.github/**
 !resources/models/*/*.obj
 
 # Third Party
@@ -53,11 +63,27 @@ deps
 
 #vscode
 .vs
+.vscode/*
+!.vscode/launch.json
+.claude
 
 #Mikan
 imgui.ini
 MikanXR.log
 !src/Object
 
+#MikanUI
+src/MikanUI/node_modules
+src/MikanUI/resources/js
+src/MikanUI/resources/images
+src/MikanUI/resources/index.html
+src/MikanUI/resources/css
+
 #Tools
 !tools/*/*.exe
+
+# Language Bindings temp files
+bindings/csharp/*.bat
+bindings/typescript/node_modules
+bindings/typescript/package-lock.json
+*.log

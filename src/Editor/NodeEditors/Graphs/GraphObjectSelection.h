@@ -6,16 +6,16 @@ typedef int t_graph_object_id_type;
 
 namespace GraphObjectIdType
 {
-	const t_graph_object_id_type NONE = -1;
+const t_graph_object_id_type NONE= -1;
 
-	// Graph Elements
-	const t_graph_object_id_type NODE = 0;
-	const t_graph_object_id_type LINK = 1;
+// Graph Elements
+const t_graph_object_id_type NODE= 0;
+const t_graph_object_id_type LINK= 1;
 
-	// Assets
-	const t_graph_object_id_type ASSET = 2;
-	const t_graph_object_id_type VARIABLE = 3;
-};
+// Assets
+const t_graph_object_id_type ASSET= 2;
+const t_graph_object_id_type VARIABLE= 3;
+}; // namespace GraphObjectIdType
 
 class GraphObjectSelection
 {
@@ -29,12 +29,12 @@ public:
 	inline t_graph_object_id_type getObjectIdType() const { return m_objectIdType; }
 	inline int getObjectCount() const { return (int)m_objectIdList.size(); }
 	inline int* getRawObjectArray() { return m_objectIdList.data(); }
-	
+
 	int getObjectId(int index) const;
 	void setObjectId(int index, int objectId);
 	bool removeObjectId(int objectId);
 
 private:
-	t_graph_object_id_type m_objectIdType = GraphObjectIdType::NONE;
+	t_graph_object_id_type m_objectIdType= GraphObjectIdType::NONE;
 	std::vector<int> m_objectIdList;
 };

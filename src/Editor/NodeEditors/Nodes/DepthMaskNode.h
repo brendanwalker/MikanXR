@@ -1,8 +1,9 @@
 #pragma once
 
+#include "ComponentFwd.h"
+#include "CompositorConstants.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
-#include "FrameCompositorConstants.h"
 
 /// The ID of a stencil
 typedef int32_t MikanStencilID;
@@ -10,15 +11,21 @@ typedef int32_t MikanStencilID;
 class DepthMaskNodeConfig : public NodeConfig
 {
 public:
-	DepthMaskNodeConfig() : NodeConfig() {}
-	DepthMaskNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	DepthMaskNodeConfig()
+		: NodeConfig()
+	{
+	}
+	DepthMaskNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	bool bDisableQuadStencils = false;
-	bool bDisableBoxStencils = false;
-	bool bDisableModelStencils = false;
+	bool bDisableQuadStencils= false;
+	bool bDisableBoxStencils= false;
+	bool bDisableModelStencils= false;
 };
 
 class DepthMaskNode : public Node
@@ -30,7 +37,7 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
 
-	inline static const std::string k_nodeClassName = "DepthMaskNode";
+	inline static const std::string k_nodeClassName= "DepthMaskNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
@@ -40,9 +47,9 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateQuadDepthMasks(IMkState* glState);
-	void evaluateBoxDepthMasks(IMkState* glState);
-	void evaluateModelDepthMasks(IMkState* glState);
+	void evaluateQuadDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
+	void evaluateBoxDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
+	void evaluateModelDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
 
 	virtual std::string editorGetTitle() const override { return "Depth Mask"; }
 
@@ -64,9 +71,9 @@ protected:
 	MkMaterialInstancePtr m_depthMaterialInstance;
 	IMkFrameBufferPtr m_linearDepthFrameBuffer;
 
-	bool m_bDisableQuadStencil = false;
-	bool m_bDisableBoxStencil = false;
-	bool m_bDisableModelStencil = false;
+	bool m_bDisableQuadStencil= false;
+	bool m_bDisableBoxStencil= false;
+	bool m_bDisableModelStencil= false;
 
 	friend class DepthMaskNodeFactory;
 };
@@ -74,7 +81,7 @@ protected:
 class DepthMaskNodeFactory : public TypedNodeFactory<DepthMaskNode, DepthMaskNodeConfig>
 {
 public:
-	DepthMaskNodeFactory() = default;
+	DepthMaskNodeFactory()= default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };

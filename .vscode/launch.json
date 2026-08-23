@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lrdb",
+            "request": "attach",
+            "name": "Attach to MikanXR Lua (port 21110)",
+            "host": "localhost",
+            "port": 21110,
+            "sourceRoot": "${workspaceFolder}"
+        }
+    ]
+}

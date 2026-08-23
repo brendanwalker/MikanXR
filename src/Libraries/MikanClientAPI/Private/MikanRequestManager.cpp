@@ -6,29 +6,25 @@
 #include "BinaryDeserializer.h"
 #include "JsonDeserializer.h"
 #include "SerializableObjectPtr.h"
+#include "TypeRegistry.h"
 
-#include <Refureku/Refureku.h>
 #include <nlohmann/json.hpp>
 
 #include "assert.h"
 
-using json = nlohmann::json;
+using json= nlohmann::json;
 
 MikanAPIResult MikanRequestManager::init(MikanContext context)
 {
 	m_context= context;
 
-	MikanAPIResult result = 
-		(MikanAPIResult)Mikan_SetTextResponseCallback(
-			context, textResponseHandlerStatic, this);
+	MikanAPIResult result= (MikanAPIResult)Mikan_SetTextResponseCallback(context, textResponseHandlerStatic, this);
 	if (result != MikanAPIResult::Success)
 	{
 		return result;
 	}
 
-	result = 
-		(MikanAPIResult)Mikan_SetBinaryResponseCallback(
-			context, binaryResponseHandlerStatic, this);
+	result= (MikanAPIResult)Mikan_SetBinaryResponseCallback(context, binaryResponseHandlerStatic, this);
 	if (result != MikanAPIResult::Success)
 	{
 		return result;
@@ -39,25 +35,28 @@ MikanAPIResult MikanRequestManager::init(MikanContext context)
 
 MikanResponseFuture MikanRequestManager::sendRequest(MikanRequest& inRequest)
 {
-	Serialization::MikanClassId mikanRequestTypeId = inRequest.requestTypeId;
-	Serialization::RfkClassId rfkRequestTypeId = Serialization::toRfkClassId(mikanRequestTypeId);
-
-	rfk::Struct const* requestStruct = rfk::getDatabase().getStructById(rfkRequestTypeId);
+	rfk::Struct const* requestStruct=
+		Serialization::TypeRegistry::getStructByName(inRequest.requestTypeName.getUtf8Value());
 	assert(requestStruct != nullptr);
 
 	// Stamp the request with the next available request ID
-	inRequest.requestId = m_nextRequestID;
+	inRequest.requestId= m_nextRequestID;
 	m_nextRequestID++;
 
-	std::string	jsonString;
-	Serialization::serializeToJsonString(&inRequest, *requestStruct, jsonString);
+	std::string jsonString;
+	std::string serializeError;
+	if (Serialization::serializeToJsonString(&inRequest, *requestStruct, jsonString, serializeError))
+	{
+		MikanAPIResult result= (MikanAPIResult)Mikan_SendRequestJSON(m_context, jsonString.c_str());
 
-	MikanAPIResult result =
-		(MikanAPIResult)Mikan_SendRequestJSON(
-			m_context,
-			jsonString.c_str());
-
-	return addResponseHandler(inRequest.requestId, result);
+		return addResponseHandler(inRequest.requestId, result);
+	}
+	else
+	{
+		MIKAN_MT_LOG_ERROR("MikanRequestManager::sendRequest()")
+			<< "Failed to serialize request to JSON string: " << serializeError;
+		return addResponseHandler(inRequest.requestId, MikanAPIResult::MalformedParameters);
+	}
 }
 
 MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID requestId, MikanAPIResult result)
@@ -67,21 +66,19 @@ MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID reque
 
 	if (result == MikanAPIResult::Success)
 	{
-		auto pendingRequest = std::make_shared<PendingRequest>();
-		pendingRequest->id = requestId;
-		pendingRequest->promise = std::move(promise);
+		auto pendingRequest= std::make_shared<PendingRequest>();
+		pendingRequest->id= requestId;
+		pendingRequest->promise= std::move(promise);
 
 		// Insert into the pending request map
 		insertPendingRequest(pendingRequest);
 	}
 	else
 	{
-		auto errorResponse = std::make_shared<MikanResponse>();
-		rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
-		errorResponse->responseTypeId = responseStruct.getId();
-		errorResponse->responseTypeName = responseStruct.getName();
-		errorResponse->requestId = requestId;
-		errorResponse->resultCode = result;
+		auto errorResponse= std::make_shared<MikanResponse>();
+		errorResponse->responseTypeName= MikanResponse::staticGetArchetype().getName();
+		errorResponse->requestId= requestId;
+		errorResponse->resultCode= result;
 
 		promise.set_value(errorResponse);
 	}
@@ -101,10 +98,10 @@ MikanRequestManager::PendingRequestPtr MikanRequestManager::removePendingRequest
 	std::lock_guard<std::mutex> lock(m_pending_request_map_mutex);
 
 	PendingRequestPtr pendingRequest;
-	auto it = m_pendingRequests.find(requestId);
+	auto it= m_pendingRequests.find(requestId);
 	if (it != m_pendingRequests.end())
 	{
-		pendingRequest = it->second;
+		pendingRequest= it->second;
 		m_pendingRequests.erase(it);
 	}
 
@@ -126,16 +123,14 @@ void MikanRequestManager::textResponseHander(MikanRequestID requestId, const cha
 	// Fulfill the promise with the response
 	if (pendingRequest)
 	{
-		MikanResponsePtr response = parseResponseString(utf8ResponseString);
+		MikanResponsePtr response= parseResponseString(utf8ResponseString);
 
 		if (!response)
 		{
-			response = std::make_shared<MikanResponse>();
-			rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
-			response->responseTypeId = responseStruct.getId();
-			response->responseTypeName = responseStruct.getName();
-			response->requestId = requestId;
-			response->resultCode = MikanAPIResult::MalformedResponse;
+			response= std::make_shared<MikanResponse>();
+			response->responseTypeName= MikanResponse::staticGetArchetype().getName();
+			response->requestId= requestId;
+			response->resultCode= MikanAPIResult::MalformedResponse;
 		}
 
 		pendingRequest->promise.set_value(response);
@@ -146,9 +141,10 @@ void MikanRequestManager::textResponseHander(MikanRequestID requestId, const cha
 	}
 }
 
-void MikanRequestManager::textResponseHandlerStatic(MikanRequestID requestId, const char* utf8ResponseString, void* userdata)
+void MikanRequestManager::textResponseHandlerStatic(MikanRequestID requestId, const char* utf8ResponseString,
+													void* userdata)
 {
-	MikanRequestManager* self = reinterpret_cast<MikanRequestManager*>(userdata);
+	MikanRequestManager* self= reinterpret_cast<MikanRequestManager*>(userdata);
 
 	self->textResponseHander(requestId, utf8ResponseString);
 }
@@ -159,135 +155,124 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 
 	try
 	{
-		json jsonResponse = json::parse(utf8ResponseString);
+		json jsonResponse= json::parse(utf8ResponseString);
 
 		MikanResponse responseHeader= {};
-		bool parseHeader = 
-			Serialization::deserializeFromJson(
-				jsonResponse, &responseHeader, MikanResponse::staticGetArchetype());
-		if (!parseHeader)
+		std::string parseHeaderError;
+		if (Serialization::deserializeFromJson(jsonResponse, &responseHeader, MikanResponse::staticGetArchetype(),
+											   parseHeaderError))
 		{
-			throw std::runtime_error("Failed to parse response header");
-		}
-
-		Serialization::MikanClassId mikanResponseTypeId = responseHeader.responseTypeId;
-		Serialization::RfkClassId rfkResponseTypeId = Serialization::toRfkClassId(mikanResponseTypeId);
-		rfk::Struct const* responseStruct = rfk::getDatabase().getStructById(rfkResponseTypeId);
-		if (responseStruct != nullptr)
-		{
-			responsePtr = responseStruct->makeSharedInstance<MikanResponse>();
-
-			if (!Serialization::deserializeFromJson(jsonResponse, responsePtr.get(), *responseStruct))
+			rfk::Struct const* responseStruct=
+				Serialization::TypeRegistry::getStructByName(responseHeader.responseTypeName.getUtf8Value());
+			if (responseStruct != nullptr)
 			{
-				std::stringstream ss;
-				ss << "Failed to parse struct of type " << responseHeader.responseTypeName.getValue();
+				responsePtr= responseStruct->makeSharedInstance<MikanResponse>();
 
-				throw std::runtime_error(ss.str());
+				std::string parseResponseError;
+				if (!Serialization::deserializeFromJson(jsonResponse, responsePtr.get(), *responseStruct,
+														parseResponseError))
+				{
+					MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()")
+						<< "Failed to parse struct of type " << responseHeader.responseTypeName.getUtf8Value() << ": "
+						<< parseResponseError;
+					responsePtr= nullptr;
+				}
+			}
+			else
+			{
+				MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()")
+					<< "Failed to find struct of type " << responseHeader.responseTypeName.getUtf8Value();
 			}
 		}
 		else
 		{
-			std::stringstream ss;
-			ss << "Failed to find struct of type " << responseHeader.responseTypeName.getValue();
-
-			throw std::runtime_error(ss.str());
+			MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()")
+				<< "Failed to parse response header: " << parseHeaderError;
 		}
 	}
 	catch (json::parse_error& e)
 	{
-		MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()")
-			<< "Failed to parse response: " << e.what();
+		MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()") << "Failed to parse response: " << e.what();
 	}
 	catch (json::exception& e)
 	{
-		MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()")
-			<< "Failed to parse response: " << e.what();
+		MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()") << "Failed to parse response: " << e.what();
 	}
 
 	return responsePtr;
 }
 
-void MikanRequestManager::binaryResponseHander(
-	const uint8_t* buffer, 
-	size_t bufferSize)
+void MikanRequestManager::binaryResponseHander(const uint8_t* buffer, size_t bufferSize)
 {
 	BinaryReader reader(buffer, bufferSize);
 	PendingRequestPtr pendingRequest;
 
-	try
+	std::string parseError;
+	MikanResponse responseHeader= {};
+	if (Serialization::deserializeFromBytes(buffer, bufferSize, &responseHeader, MikanResponse::staticGetArchetype(),
+											parseError))
 	{
-		MikanResponse responseHeader= {};
-		bool parseHeader = 
-			Serialization::deserializeFromBytes(
-				buffer, bufferSize, &responseHeader, MikanResponse::staticGetArchetype());
-		if (!parseHeader)
-		{
-			throw std::runtime_error("Failed to parse response header");
-		}
-
 		// Find the pending request and remove it from the pending request map
 		pendingRequest= removePendingRequest(responseHeader.requestId);
 
 		// Fulfill the promise with the response
 		if (pendingRequest)
 		{
-			MikanResponsePtr response = parseResponseBinaryReader(responseHeader, buffer, bufferSize);
+			MikanResponsePtr response= parseResponseBinaryReader(responseHeader, buffer, bufferSize);
 
 			if (!response)
 			{
-				rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
-				response = std::make_shared<MikanResponse>();
-				response->responseTypeId = responseStruct.getId();
-				response->responseTypeName = responseStruct.getName();
-				response->requestId = responseHeader.requestId;
-				response->resultCode = MikanAPIResult::MalformedResponse;
+				response= std::make_shared<MikanResponse>();
+				response->responseTypeName= MikanResponse::staticGetArchetype().getName();
+				response->requestId= responseHeader.requestId;
+				response->resultCode= MikanAPIResult::MalformedResponse;
 			}
 
 			pendingRequest->promise.set_value(response);
 		}
 		else
 		{
-			MIKAN_MT_LOG_ERROR("MikanInterface::responseHander") 
+			MIKAN_MT_LOG_ERROR("MikanInterface::responseHander")
 				<< "Request ID not found: " << responseHeader.requestId;
 		}
 	}
-	catch (std::exception& e)
+	else
 	{
-		MIKAN_MT_LOG_ERROR("MikanClient::binaryResponseHander()")
-			<< "Failed to parse response: " << e.what();
+		MIKAN_MT_LOG_ERROR("MikanInterface::responseHander") << "Failed to parse response: " << parseError;
+		return;
 	}
 }
 
-void MikanRequestManager::binaryResponseHandlerStatic(
-	const uint8_t* buffer,
-	size_t bufferSize,
-	void* userdata)
+void MikanRequestManager::binaryResponseHandlerStatic(const uint8_t* buffer, size_t bufferSize, void* userdata)
 {
-	MikanRequestManager* self = reinterpret_cast<MikanRequestManager*>(userdata);
+	MikanRequestManager* self= reinterpret_cast<MikanRequestManager*>(userdata);
 
 	self->binaryResponseHander(buffer, bufferSize);
 }
 
-MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(
-	const MikanResponse& responseHeader,
-	const uint8_t* buffer,
-	size_t bufferSize)
+MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(const MikanResponse& responseHeader,
+																const uint8_t* buffer, size_t bufferSize)
 {
 	MikanResponsePtr responsePtr;
 
-	Serialization::MikanClassId mikanResponseTypeId = responseHeader.responseTypeId;
-	Serialization::RfkClassId rfkResponseTypeId = Serialization::toRfkClassId(mikanResponseTypeId);
-	rfk::Struct const* responseStruct = rfk::getDatabase().getStructById(rfkResponseTypeId);
+	rfk::Struct const* responseStruct=
+		Serialization::TypeRegistry::getStructByName(responseHeader.responseTypeName.getUtf8Value());
 	if (responseStruct != nullptr)
 	{
-		responsePtr = responseStruct->makeSharedInstance<MikanResponse>();
+		std::string parseError;
+		responsePtr= responseStruct->makeSharedInstance<MikanResponse>();
 
-		Serialization::deserializeFromBytes(buffer, bufferSize, responsePtr.get(), *responseStruct);
+		if (!Serialization::deserializeFromBytes(buffer, bufferSize, responsePtr.get(), *responseStruct, parseError))
+		{
+			MIKAN_MT_LOG_WARNING("MikanClient::parseResponseBinaryReader()")
+				<< "Failed to parse response: " << parseError;
+			responsePtr= nullptr;
+		}
 	}
 	else
 	{
 		MIKAN_MT_LOG_WARNING("MikanClient::parseResponseBinaryReader()")
-			<< "Received response of unknown responseType: " << responseHeader.responseTypeId;
+			<< "Received response of unknown responseType: " << responseHeader.responseTypeName.getUtf8Value();
 	}
 
 	return responsePtr;
