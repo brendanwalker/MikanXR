@@ -486,6 +486,9 @@ void AppStage_AlignmentCalibration::renderVRDevices(IMkCameraConstPtr camera)
 	// Add all renderable VR objects
 	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_scene);
 
+	// Clear the depth buffer so the stageView draws over the video frame
+	mkStateClearBuffer(graphicsContext->getMkStateStack().getCurrentState(), eMkClearFlags::depth);
+
 	// Render the stageView
 	stageView->render(camera, graphicsContext->getMkStateStack());
 }

@@ -13,6 +13,14 @@ enum class eGizmoMode : int
 	scale
 };
 
+// How the gizmo draws its line geometry in one render pass
+struct GizmoDrawStyle
+{
+	float lineWidth= 1.f;
+	float colorScale= 1.f;
+	bool bDrawLabels= true;
+};
+
 class GizmoTransformComponent : public TransformComponent
 {
 public:
@@ -24,7 +32,12 @@ public:
 	static constexpr float k_gizmoBaseRadius= 0.5f;
 	static constexpr float k_gizmoBaseWidth= 0.05f;
 	static constexpr float k_gizmoScreenSizeFactor= 0.15f;
+	// Sized so the gizmo covers the same screen fraction the perspective factor
+	// yields at the default camera vfov
+	static constexpr float k_gizmoOrthoScreenSizeFactor= 0.5f;
 	static constexpr int k_gizmoCircleSegments= 64;
+	static constexpr float k_gizmoLineWidth= 3.f;
+	static constexpr float k_gizmoOccludedColorScale= 0.35f;
 
 	virtual void init() override;
 	virtual void update(float deltaSeconds) override;
@@ -53,6 +66,8 @@ protected:
 	glm::vec3 m_targetScale;
 	float m_displayScale= 1.0f;
 	bool m_bIsApplyingTransformToTarget= false;
+	void renderActiveGizmo(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+						   const GizmoDrawStyle& drawStyle) const;
 	float computeDisplayScale() const;
 	void updateGizmoColliderScales();
 	void applyTransformToTarget();

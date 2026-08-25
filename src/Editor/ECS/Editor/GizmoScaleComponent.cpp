@@ -55,18 +55,20 @@ glm::vec3 GizmoScaleComponent::getColliderColor(BoxColliderComponentWeakPtr coll
 		return defaultColor;
 }
 
-static void drawScaleBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
+static void drawScaleBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color,
+							   const GizmoDrawStyle& drawStyle)
 {
 	BoxColliderComponentPtr collidePtr= colliderWeakPtr.lock();
 	IMkGraphicsContext* graphicsContext= collidePtr->getGraphicsContext();
 
 	const glm::mat4 xform= collidePtr->getWorldTransform();
 	const glm::vec3 halfExtents= collidePtr->getHalfExtents();
-	drawTransformedBox(graphicsContext, xform, halfExtents, color);
+	drawTransformedBox(graphicsContext, xform, halfExtents, color * drawStyle.colorScale, drawStyle.lineWidth);
 }
 
 static void drawScaleArrowHandle(BoxColliderComponentWeakPtr centerColliderWeakPtr,
-								 BoxColliderComponentWeakPtr axisColliderWeakPtr, const glm::vec3 color)
+								 BoxColliderComponentWeakPtr axisColliderWeakPtr, const glm::vec3 color,
+								 const GizmoDrawStyle& drawStyle)
 {
 	BoxColliderComponentPtr centerColliderPtr= centerColliderWeakPtr.lock();
 	IMkGraphicsContext* graphicsContext= centerColliderPtr->getGraphicsContext();
@@ -74,26 +76,34 @@ static void drawScaleArrowHandle(BoxColliderComponentWeakPtr centerColliderWeakP
 	BoxColliderComponentPtr axisCollidePtr= axisColliderWeakPtr.lock();
 	const glm::mat4 axisBoxXform= axisCollidePtr->getWorldTransform();
 	const glm::vec3 axisBoxHalfExtents= axisCollidePtr->getHalfExtents();
-	drawTransformedBox(graphicsContext, axisBoxXform, axisBoxHalfExtents, color);
+	drawTransformedBox(graphicsContext, axisBoxXform, axisBoxHalfExtents, color * drawStyle.colorScale,
+					   drawStyle.lineWidth);
 
 	BoxColliderComponentPtr centerCollidePtr= centerColliderWeakPtr.lock();
 	const glm::vec3 origin= glm_mat4_get_position(centerCollidePtr->getWorldTransform());
 	const glm::vec3 axisBoxCenter= axisBoxXform * glm::vec4(glm::vec3(0.f), 1.f);
-	drawSegment(graphicsContext, glm::mat4(1.f), origin, axisBoxCenter, color);
+	drawSegment(graphicsContext, glm::mat4(1.f), origin, axisBoxCenter, color * drawStyle.colorScale,
+				drawStyle.lineWidth);
 }
 
 void GizmoScaleComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
+	customRender(graphicsContext, viewportCamera, GizmoDrawStyle());
+}
+
+void GizmoScaleComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+									   const GizmoDrawStyle& drawStyle) const
+{
 	if (m_bEnabled)
 	{
-		drawScaleBoxHandle(m_centerHandle, getColliderColor(m_centerHandle, Colors::DarkGray));
-		drawScaleArrowHandle(m_centerHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red));
-		drawScaleArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
-		drawScaleArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
+		drawScaleBoxHandle(m_centerHandle, getColliderColor(m_centerHandle, Colors::DarkGray), drawStyle);
+		drawScaleArrowHandle(m_centerHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red), drawStyle);
+		drawScaleArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green), drawStyle);
+		drawScaleArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue), drawStyle);
 
 		// Axis labels at handle positions
 		BoxColliderComponentPtr centerPtr= m_centerHandle.lock();
-		if (centerPtr)
+		if (centerPtr && drawStyle.bDrawLabels)
 		{
 			IMkGraphicsContext* graphicsContext= centerPtr->getGraphicsContext();
 			TextStyle style= getDefaultTextStyle();

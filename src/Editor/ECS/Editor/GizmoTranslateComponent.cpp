@@ -60,18 +60,20 @@ glm::vec3 GizmoTranslateComponent::getColliderColor(BoxColliderComponentWeakPtr 
 		return defaultColor;
 }
 
-static void drawTranslationBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
+static void drawTranslationBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color,
+									 const GizmoDrawStyle& drawStyle)
 {
 	BoxColliderComponentPtr collidePtr= colliderWeakPtr.lock();
 	IMkGraphicsContext* graphicsContext= collidePtr->getGraphicsContext();
 
 	const glm::mat4 xform= collidePtr->getWorldTransform();
 	const glm::vec3 halfExtents= collidePtr->getHalfExtents();
-	drawTransformedBox(graphicsContext, xform, halfExtents, color);
+	drawTransformedBox(graphicsContext, xform, halfExtents, color * drawStyle.colorScale, drawStyle.lineWidth);
 }
 
 static void drawTranslationArrowHandle(DiskColliderComponentWeakPtr centerColliderWeakPtr,
-									   BoxColliderComponentWeakPtr axisColliderWeakPtr, const glm::vec3 color)
+									   BoxColliderComponentWeakPtr axisColliderWeakPtr, const glm::vec3 color,
+									   const GizmoDrawStyle& drawStyle)
 {
 	DiskColliderComponentPtr centerCollidePtr= centerColliderWeakPtr.lock();
 	BoxColliderComponentPtr axisCollidePtr= axisColliderWeakPtr.lock();
@@ -81,23 +83,33 @@ static void drawTranslationArrowHandle(DiskColliderComponentWeakPtr centerCollid
 	const glm::vec3 axisCenter= glm_mat4_get_position(axisCollidePtr->getWorldTransform());
 	const glm::vec3 axisEnd= origin + (axisCenter - origin) * 2.f;
 
-	drawArrow(graphicsContext, glm::mat4(1.f), origin, axisEnd, 0.1f, color);
+	drawArrow(graphicsContext, glm::mat4(1.f), origin, axisEnd, 0.1f, color * drawStyle.colorScale,
+			  drawStyle.lineWidth);
 }
 
 void GizmoTranslateComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
+	customRender(graphicsContext, viewportCamera, GizmoDrawStyle());
+}
+
+void GizmoTranslateComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+										   const GizmoDrawStyle& drawStyle) const
+{
 	if (m_bEnabled)
 	{
-		drawTranslationBoxHandle(m_xyHandle, getColliderColor(m_xyHandle, Colors::DarkGray, Colors::LightGray));
-		drawTranslationBoxHandle(m_xzHandle, getColliderColor(m_xzHandle, Colors::DarkGray, Colors::LightGray));
-		drawTranslationBoxHandle(m_yzHandle, getColliderColor(m_yzHandle, Colors::DarkGray, Colors::LightGray));
+		drawTranslationBoxHandle(m_xyHandle, getColliderColor(m_xyHandle, Colors::DarkGray, Colors::LightGray),
+								 drawStyle);
+		drawTranslationBoxHandle(m_xzHandle, getColliderColor(m_xzHandle, Colors::DarkGray, Colors::LightGray),
+								 drawStyle);
+		drawTranslationBoxHandle(m_yzHandle, getColliderColor(m_yzHandle, Colors::DarkGray, Colors::LightGray),
+								 drawStyle);
 
 		drawTranslationArrowHandle(m_viewPlaneHandle, m_xAxisHandle,
-								   getColliderColor(m_xAxisHandle, Colors::Red, Colors::Pink));
+								   getColliderColor(m_xAxisHandle, Colors::Red, Colors::Pink), drawStyle);
 		drawTranslationArrowHandle(m_viewPlaneHandle, m_yAxisHandle,
-								   getColliderColor(m_yAxisHandle, Colors::Green, Colors::LightGreen));
+								   getColliderColor(m_yAxisHandle, Colors::Green, Colors::LightGreen), drawStyle);
 		drawTranslationArrowHandle(m_viewPlaneHandle, m_zAxisHandle,
-								   getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue));
+								   getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue), drawStyle);
 
 		// View-plane handle: camera-facing circle at center
 		if (auto vph= m_viewPlaneHandle.lock())
@@ -113,23 +125,27 @@ void GizmoTranslateComponent::customRender(IMkGraphicsContext* graphicsContext, 
 			else if (vphBase == m_hoverComponent.lock())
 				vphColor= Colors::LightGray;
 
-			// Axis labels at arrow tips
-			auto drawAxisLabel= [&](BoxColliderComponentWeakPtr axisHandle, const wchar_t* label)
+			if (drawStyle.bDrawLabels)
 			{
-				if (auto axisPtr= axisHandle.lock())
+				// Axis labels at arrow tips
+				auto drawAxisLabel= [&](BoxColliderComponentWeakPtr axisHandle, const wchar_t* label)
 				{
-					const glm::vec3 axisCenter= glm_mat4_get_position(axisPtr->getWorldTransform());
-					const glm::vec3 tip= origin + (axisCenter - origin) * 2.f;
-					drawTextAtWorldPosition(graphicsContext, style, tip, label);
-				}
-			};
+					if (auto axisPtr= axisHandle.lock())
+					{
+						const glm::vec3 axisCenter= glm_mat4_get_position(axisPtr->getWorldTransform());
+						const glm::vec3 tip= origin + (axisCenter - origin) * 2.f;
+						drawTextAtWorldPosition(graphicsContext, style, tip, label);
+					}
+				};
 
-			drawAxisLabel(m_xAxisHandle, L"X");
-			drawAxisLabel(m_yAxisHandle, L"Y");
-			drawAxisLabel(m_zAxisHandle, L"Z");
+				drawAxisLabel(m_xAxisHandle, L"X");
+				drawAxisLabel(m_yAxisHandle, L"Y");
+				drawAxisLabel(m_zAxisHandle, L"Z");
+			}
 
-			drawTransformedCircle(graphicsContext, vph->getWorldTransform(), vph->getRadius(), vphColor,
-								  GizmoTransformComponent::k_gizmoCircleSegments);
+			drawTransformedCircle(graphicsContext, vph->getWorldTransform(), vph->getRadius(),
+								  vphColor * drawStyle.colorScale, GizmoTransformComponent::k_gizmoCircleSegments,
+								  drawStyle.lineWidth);
 		}
 	}
 }

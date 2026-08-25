@@ -17,6 +17,8 @@ public:
 
 	virtual void init() override;
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
+	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+					  const struct GizmoDrawStyle& drawStyle) const;
 	virtual void dispose() override;
 
 	void setEnabled(bool bEnabled);

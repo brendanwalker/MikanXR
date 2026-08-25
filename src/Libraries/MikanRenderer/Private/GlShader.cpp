@@ -308,6 +308,42 @@ public:
 			glAttachShader(m_programID, nSceneVertexShader);
 			glDeleteShader(nSceneVertexShader); // the program hangs onto this once it's attached
 
+			if (m_code->hasGeometryShaderCode())
+			{
+				uint32_t nSceneGeometryShader= glCreateShader(GL_GEOMETRY_SHADER);
+				const GLchar* geometryShaderSource= (const GLchar*)m_code->getGeometryShaderCode();
+				glShaderSource(nSceneGeometryShader, 1, &geometryShaderSource, nullptr);
+				glCompileShader(nSceneGeometryShader);
+				checkHasAnyMkError("IMkShader::createProgram()", __FILE__, __LINE__);
+
+				if (!programName.empty())
+				{
+					glObjectLabel(GL_SHADER, nSceneGeometryShader, -1, programName.c_str());
+				}
+
+				int gShaderCompiled= 0;
+				glGetShaderiv(nSceneGeometryShader, GL_COMPILE_STATUS, &gShaderCompiled);
+				checkHasAnyMkError("IMkShader::createProgram()", __FILE__, __LINE__);
+
+				if (gShaderCompiled != 1)
+				{
+					MIKAN_LOG_ERROR("IMkShader::createProgram")
+						<< m_code->getProgramName() << " - Unable to compile geometry shader " << nSceneGeometryShader;
+
+					GLchar strInfoLog[1024]= {0};
+					glGetShaderInfoLog(nSceneGeometryShader, sizeof(strInfoLog) - 1, nullptr, strInfoLog);
+					MIKAN_LOG_ERROR("IMkShader::createProgram") << strInfoLog;
+
+					glDeleteProgram(m_programID);
+					glDeleteShader(nSceneGeometryShader);
+					m_programID= 0;
+
+					return false;
+				}
+				glAttachShader(m_programID, nSceneGeometryShader);
+				glDeleteShader(nSceneGeometryShader); // the program hangs onto this once it's attached
+			}
+
 			uint32_t nSceneFragmentShader= glCreateShader(GL_FRAGMENT_SHADER);
 			const GLchar* fragmentShaderSource= (const GLchar*)m_code->getFragmentShaderCode();
 			glShaderSource(nSceneFragmentShader, 1, &fragmentShaderSource, nullptr);

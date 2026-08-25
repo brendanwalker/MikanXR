@@ -73,7 +73,8 @@ bool GizmoRotateComponent::getColliderRotationAxis(ColliderComponentWeakPtr coll
 
 static constexpr float k_innerRingScale= 0.85f;
 
-static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
+static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color,
+								 const GizmoDrawStyle& drawStyle)
 {
 	DiskColliderComponentPtr collidePtr= colliderWeakPtr.lock();
 	IMkGraphicsContext* graphicsContext= collidePtr->getGraphicsContext();
@@ -81,12 +82,19 @@ static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, c
 	const glm::mat4 xform= collidePtr->getWorldTransform();
 	const float radius= collidePtr->getRadius();
 
-	drawTransformedCircle(graphicsContext, xform, radius, color, GizmoTransformComponent::k_gizmoCircleSegments);
-	drawTransformedCircle(graphicsContext, xform, radius * k_innerRingScale, color,
-						  GizmoTransformComponent::k_gizmoCircleSegments);
+	drawTransformedCircle(graphicsContext, xform, radius, color * drawStyle.colorScale,
+						  GizmoTransformComponent::k_gizmoCircleSegments, drawStyle.lineWidth);
+	drawTransformedCircle(graphicsContext, xform, radius * k_innerRingScale, color * drawStyle.colorScale,
+						  GizmoTransformComponent::k_gizmoCircleSegments, drawStyle.lineWidth);
 }
 
 void GizmoRotateComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+{
+	customRender(graphicsContext, viewportCamera, GizmoDrawStyle());
+}
+
+void GizmoRotateComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+										const GizmoDrawStyle& drawStyle) const
 {
 	if (m_bEnabled)
 	{
@@ -94,9 +102,9 @@ void GizmoRotateComponent::customRender(IMkGraphicsContext* graphicsContext, Mik
 
 		if (!dragComponentPtr)
 		{
-			drawRotateDiscHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red));
-			drawRotateDiscHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
-			drawRotateDiscHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
+			drawRotateDiscHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red), drawStyle);
+			drawRotateDiscHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green), drawStyle);
+			drawRotateDiscHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue), drawStyle);
 		}
 
 		if (dragComponentPtr)
@@ -104,15 +112,19 @@ void GizmoRotateComponent::customRender(IMkGraphicsContext* graphicsContext, Mik
 			auto diskComponentPtr= std::static_pointer_cast<DiskColliderComponent>(dragComponentPtr);
 			const float radius= diskComponentPtr->getRadius();
 
-			drawTransformedSpiralArc(graphicsContext, m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow,
-									 GizmoTransformComponent::k_gizmoCircleSegments);
+			drawTransformedSpiralArc(graphicsContext, m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle,
+									 Colors::Yellow * drawStyle.colorScale,
+									 GizmoTransformComponent::k_gizmoCircleSegments, drawStyle.lineWidth);
 
-			const glm::vec3 center= glm_mat4_get_position(diskComponentPtr->getWorldTransform());
-			const float angleDeg= glm::degrees(m_dragAngle);
-			TextStyle style= getDefaultTextStyle();
+			if (drawStyle.bDrawLabels)
+			{
+				const glm::vec3 center= glm_mat4_get_position(diskComponentPtr->getWorldTransform());
+				const float angleDeg= glm::degrees(m_dragAngle);
+				TextStyle style= getDefaultTextStyle();
 
-			const glm::vec3 labelPos= center + glm_mat4_get_x_axis(m_worldSpaceDragBasis) * radius * 1.5f;
-			drawTextAtWorldPosition(graphicsContext, style, labelPos, L"%.1f\u00b0", angleDeg);
+				const glm::vec3 labelPos= center + glm_mat4_get_x_axis(m_worldSpaceDragBasis) * radius * 1.5f;
+				drawTextAtWorldPosition(graphicsContext, style, labelPos, L"%.1f\u00b0", angleDeg);
+			}
 		}
 	}
 }

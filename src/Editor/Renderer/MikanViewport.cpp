@@ -376,7 +376,7 @@ void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 			// See if we just entered the viewport
 			if (!m_isMouseInViewport)
 			{
-				m_isMouseInViewport = true;
+				m_isMouseInViewport= true;
 				if (OnMouseEntered)
 					OnMouseEntered();
 			}

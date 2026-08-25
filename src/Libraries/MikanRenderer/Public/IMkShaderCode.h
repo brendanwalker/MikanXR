@@ -22,7 +22,10 @@ public:
 	virtual void setProgramName(const std::string& inName)= 0;
 
 	virtual const char* getVertexShaderCode() const= 0;
+	virtual const char* getGeometryShaderCode() const= 0;
 	virtual const char* getFragmentShaderCode() const= 0;
+
+	virtual bool hasGeometryShaderCode() const= 0;
 
 	virtual const std::filesystem::path& getVertexShaderFilePath() const= 0;
 	virtual void setVertexShaderFilePath(const std::filesystem::path& path)= 0;
@@ -47,4 +50,7 @@ public:
 MIKAN_RENDERER_FUNC(IMkShaderCodePtr) createIMkShaderCode();
 MIKAN_RENDERER_FUNC(IMkShaderCodePtr) createIMkShaderCode(const std::string& programName);
 MIKAN_RENDERER_FUNC(IMkShaderCodePtr) createIMkShaderCode(const std::string& programName, const std::string& vertexCode,
+														  const std::string& fragmentCode);
+MIKAN_RENDERER_FUNC(IMkShaderCodePtr) createIMkShaderCode(const std::string& programName, const std::string& vertexCode,
+														  const std::string& geometryCode,
 														  const std::string& fragmentCode);

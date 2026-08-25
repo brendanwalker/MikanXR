@@ -370,6 +370,9 @@ void CompositorOutputEditorWindow::render()
 							addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
 						}
 
+						// Clear the depth buffer so the overlay scene draws over the composited frame
+						mkStateClearBuffer(stateStack.getCurrentState(), eMkClearFlags::depth);
+
 						// Render the 3d scene
 						m_mkScene->render(m_viewCamera, stateStack);
 					}

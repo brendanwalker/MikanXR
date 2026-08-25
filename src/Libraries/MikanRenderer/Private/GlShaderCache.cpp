@@ -346,12 +346,15 @@ IMkShaderCodeConstPtr getPWireframeShaderCode()
 		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_P_WIREFRAME,
 										  // vertex shader
 										  R""""(
-				#version 410 
-				uniform mat4 mvpMatrix; 
-				layout(location = 0) in vec3 in_position; 
-				void main() 
-				{ 
-					gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
+				#version 410
+				uniform mat4 mvpMatrix;
+				layout(location = 0) in vec3 in_position;
+				void main()
+				{
+					gl_Position = mvpMatrix * vec4(in_position.xyz, 1);
+					// Bias toward the camera so wireframe overlays win the depth
+					// tie against the coincident solid mesh they are drawn over
+					gl_Position.z -= 0.001 * gl_Position.w;
 				}
 				)"""",
 										  // fragment shader
