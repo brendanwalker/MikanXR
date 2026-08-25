@@ -204,7 +204,9 @@ void AutomationServer::registerCoreNamespaces()
 	registerCommandNamespace("system", {"system list"},
 							 std::bind(&AutomationServer::handleSystemCommand, this, _1, _2, _3));
 
-	registerCommandNamespace("component", {"component list <system> [componentClass]"},
+	registerCommandNamespace("component",
+							 {"component list <system> [componentClass]", "component create <system> <componentClass>",
+							  "component destroy <system> <componentId>"},
 							 std::bind(&AutomationServer::handleComponentCommand, this, _1, _2, _3));
 
 	registerCommandNamespace("property",
@@ -227,14 +229,7 @@ void AutomationServer::registerCoreNamespaces()
 	registerCommandNamespace("log", {"log tail <lineCount> [trace|debug|info|warning|error|fatal]"},
 							 std::bind(&AutomationServer::handleLogCommand, this, _1, _2, _3));
 
-	// Reserved for editor transaction recording / undo redo
-	registerCommandNamespace(
-		"history", {"history (reserved)"},
-		[](const std::vector<std::string>& args, std::vector<std::string>& outLines, std::string& outError)
-		{
-			outError= "not implemented (reserved for transaction recording)";
-			return false;
-		});
+	// The history namespace is registered by TransactionHistory after startup
 }
 
 bool AutomationServer::handleHelpCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
@@ -383,18 +378,73 @@ bool AutomationServer::handleSystemCommand(const std::vector<std::string>& args,
 bool AutomationServer::handleComponentCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
 											  std::string& outError)
 {
-	if (args.size() < 2 || args[0] != "list")
+	if (args.size() < 2)
 	{
-		outError= "usage: component list <system> [componentClass]";
+		outError= "usage: component list|create|destroy <system> ...";
 		return false;
 	}
 
+	const std::string& verb= args[0];
 	const std::string& systemName= args[1];
 	ProjectManagerPtr projectManager= m_mainWindow->getProjectManager();
 	MikanObjectSystemPtr objectSystem= projectManager->getSystemByName(systemName);
 	if (!objectSystem)
 	{
 		outError= "unknown system '" + systemName + "'";
+		return false;
+	}
+
+	if (verb == "create")
+	{
+		if (args.size() < 3)
+		{
+			outError= "usage: component create <system> <componentClass>";
+			return false;
+		}
+
+		MikanComponentPtr component= objectSystem->addNewObjectWithDefaultDefinition(args[2]);
+		if (!component)
+		{
+			outError= "system '" + systemName + "' cannot create a '" + args[2] + "'";
+			return false;
+		}
+
+		outLines.push_back(std::to_string(component->getComponentId()));
+		return true;
+	}
+	else if (verb == "destroy")
+	{
+		if (args.size() < 3)
+		{
+			outError= "usage: component destroy <system> <componentId>";
+			return false;
+		}
+
+		int componentId= -1;
+		if (!parseComponentId(args[2], componentId) || componentId == -1)
+		{
+			outError= "invalid component id '" + args[2] + "'";
+			return false;
+		}
+
+		MikanComponentPtr component= objectSystem->getComponentById(componentId);
+		if (!component)
+		{
+			outError= "no component with id " + std::to_string(componentId) + " in system '" + systemName + "'";
+			return false;
+		}
+
+		if (!component->destroyOwnerObject())
+		{
+			outError= "failed to destroy component " + std::to_string(componentId);
+			return false;
+		}
+
+		return true;
+	}
+	else if (verb != "list")
+	{
+		outError= "unknown verb '" + verb + "'";
 		return false;
 	}
 

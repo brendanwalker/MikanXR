@@ -121,6 +121,18 @@ constexpr MkKeySym RIGHT_ALT= MK_SCANCODE_TO_KEYCODE(230); /**< alt gr, option *
 constexpr MkKeySym RIGHT_GUI= MK_SCANCODE_TO_KEYCODE(231); /**< windows, command (apple), meta */
 }; // namespace MkKey
 
+// Normalized modifier flags for key events: left/right variants fold
+// together and lock keys are stripped
+namespace MkKeyMod
+{
+constexpr uint16_t NONE= 0x0000;
+constexpr uint16_t SHIFT= 0x0001;
+constexpr uint16_t CTRL= 0x0002;
+constexpr uint16_t ALT= 0x0004;
+constexpr uint16_t GUI= 0x0008;
+constexpr uint16_t ANY= 0xFFFF;
+}; // namespace MkKeyMod
+
 namespace MkMouseButton
 {
 constexpr int UNKNOWN= 0;
@@ -167,6 +179,7 @@ public:
 	virtual eMkWindowEventType getEventType() const= 0;
 	virtual eMkWindowEventID getWindowEventID() const= 0;
 	virtual MkKeySym getKeySym() const= 0;
+	virtual uint16_t getKeyMod() const= 0; // MkKeyMod flags held during a key event
 	virtual int getKeyRepeat() const= 0;
 	virtual int getMouseWheelScrollAmount() const= 0;
 	virtual int getMouseButton() const= 0;

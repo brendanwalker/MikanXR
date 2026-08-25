@@ -24,9 +24,14 @@ bool InputManager::onWindowEvent(const MkWindowEvent& event)
 	{
 	case eMkWindowEventType::KeyDown:
 	{
-		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
-		if (keybinds != nullptr)
+		// Fire the exact modifier-mask binding plus the modifier-agnostic one
+		KeyEventBindings* keybindsList[2]= {getKeyBindings(event.getKeySym(), event.getKeyMod()),
+											getKeyBindings(event.getKeySym(), MkKeyMod::ANY)};
+		for (KeyEventBindings* keybinds : keybindsList)
 		{
+			if (keybinds == nullptr)
+				continue;
+
 			// A held key generates repeated KeyDown events (key.repeat != 0). Only the
 			// initial press fires OnKeyPressed; repeats fire OnKeyRepeated. This keeps
 			// press/release balanced for state tracking and one-shot actions.
@@ -51,11 +56,15 @@ bool InputManager::onWindowEvent(const MkWindowEvent& event)
 	break;
 	case eMkWindowEventType::KeyUp:
 	{
-		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
-		if (keybinds != nullptr && keybinds->OnKeyReleased)
+		KeyEventBindings* keybindsList[2]= {getKeyBindings(event.getKeySym(), event.getKeyMod()),
+											getKeyBindings(event.getKeySym(), MkKeyMod::ANY)};
+		for (KeyEventBindings* keybinds : keybindsList)
 		{
-			keybinds->OnKeyReleased();
-			bHandled= true;
+			if (keybinds != nullptr && keybinds->OnKeyReleased)
+			{
+				keybinds->OnKeyReleased();
+				bHandled= true;
+			}
 		}
 	}
 	break;
@@ -119,13 +128,13 @@ void InputManager::getMouseScreenPosition(int& outScreenX, int& outScreenY) cons
 	}
 }
 
-KeyEventBindings* InputManager::getKeyBindings(MkKeySym key)
+KeyEventBindings* InputManager::getKeyBindings(MkKeySym key, uint16_t modMask)
 {
 	EventBindingSet* bindingSet= getCurrentEventBindingSet();
 	if (bindingSet == nullptr)
 		return nullptr;
 
-	auto it= bindingSet->keybindings.find(key);
+	auto it= bindingSet->keybindings.find(EventBindingSet::makeKeyBindingKey(key, modMask));
 	if (it != bindingSet->keybindings.end())
 	{
 		return it->second;
@@ -134,7 +143,7 @@ KeyEventBindings* InputManager::getKeyBindings(MkKeySym key)
 	return nullptr;
 }
 
-KeyEventBindings* InputManager::fetchOrAddKeyBindings(MkKeySym key)
+KeyEventBindings* InputManager::fetchOrAddKeyBindings(MkKeySym key, uint16_t modMask)
 {
 	EventBindingSet* bindingSet= getCurrentEventBindingSet();
 	if (bindingSet == nullptr)
@@ -142,7 +151,8 @@ KeyEventBindings* InputManager::fetchOrAddKeyBindings(MkKeySym key)
 		bindingSet= pushEventBindingSet();
 	}
 
-	auto it= bindingSet->keybindings.find(key);
+	const uint64_t bindingKey= EventBindingSet::makeKeyBindingKey(key, modMask);
+	auto it= bindingSet->keybindings.find(bindingKey);
 	if (it != bindingSet->keybindings.end())
 	{
 		return it->second;
@@ -151,7 +161,7 @@ KeyEventBindings* InputManager::fetchOrAddKeyBindings(MkKeySym key)
 	{
 		KeyEventBindings* emptyBindings= new KeyEventBindings();
 
-		bindingSet->keybindings.insert({key, emptyBindings});
+		bindingSet->keybindings.insert({bindingKey, emptyBindings});
 
 		return emptyBindings;
 	}

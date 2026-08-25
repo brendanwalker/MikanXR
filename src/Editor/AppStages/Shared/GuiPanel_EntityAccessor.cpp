@@ -1,7 +1,10 @@
 #include "GuiPanel_EntityAccessor.h"
+#include "AppStage.h"
 #include "AssetReferencePropertyMetaData.h"
 #include "EnumPropertyMetaData.h"
 #include "CommonConfig.h"
+#include "IEditorWindow.h"
+#include "TransactionHistory.h"
 #include "MikanVariantTypes.h"
 #include "MkGuiStyleManager.h"
 #include "StringUtils.h"
@@ -298,6 +301,25 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		if (isReadOnly)
 		{
 			ImGui::EndDisabled();
+		}
+
+		// Bracket an in-progress widget edit (a slider drag, typing in an
+		// input field) as one transaction gesture, keeping the per-frame
+		// value writes flowing for live preview
+		if (!isReadOnly)
+		{
+			TransactionHistory* transactionHistory= m_ownerAppStage->getOwnerWindow()->getTransactionHistory();
+			if (transactionHistory != nullptr)
+			{
+				if (ImGui::IsItemActive())
+				{
+					transactionHistory->beginGesture("gui:" + propName);
+				}
+				else if (ImGui::IsItemDeactivated())
+				{
+					transactionHistory->endGesture();
+				}
+			}
 		}
 
 		if (bValueChanged && !isReadOnly && accessor)

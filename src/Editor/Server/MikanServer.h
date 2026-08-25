@@ -105,7 +105,5 @@ private:
 	class TextureSourceRequestHandler* m_textureSourceRequestHandler;
 	class VideoSourceRequestHandler* m_videoSourceRequestHandler;
 
-	ProjectConfigWeakPtr m_projectConfig;
-
 	MikanClientConnectionStateMap m_clientConnections;
 };

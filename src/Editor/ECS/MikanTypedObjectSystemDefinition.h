@@ -74,6 +74,10 @@ public:
 
 	// Pool mutations
 	inline ComponentDefinitionPtr allocateNewDefinition() { return m_poolDefinition->allocateDefinition(); }
+	inline ComponentDefinitionPtr allocateDefinitionFromJSON(const configuru::Config& pt)
+	{
+		return m_poolDefinition->allocateDefinitionFromJSON(pt);
+	}
 
 	bool addDefinition(ComponentDefinitionPtr definition)
 	{

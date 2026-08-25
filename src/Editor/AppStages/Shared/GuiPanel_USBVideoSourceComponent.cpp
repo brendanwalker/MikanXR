@@ -1,5 +1,7 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_USBVideoSourceComponent.h"
+#include "IEditorWindow.h"
+#include "TransactionHistory.h"
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
 
@@ -204,6 +206,21 @@ void GuiPanel_USBVideoSourceComponent::onGui()
 		{
 			addDeferredGuiEvent([usbComp, settingType, fraction]()
 								{ usbComp->setVideoSettingAsFloatFraction(settingType, fraction); });
+		}
+
+		// Bracket the slider drag as one transaction gesture while keeping
+		// the per-frame writes flowing for live camera preview
+		TransactionHistory* transactionHistory= getOwnerAppStage()->getOwnerWindow()->getTransactionHistory();
+		if (transactionHistory != nullptr)
+		{
+			if (ImGui::IsItemActive())
+			{
+				transactionHistory->beginGesture("gui:" + fieldName);
+			}
+			else if (ImGui::IsItemDeactivated())
+			{
+				transactionHistory->endGesture();
+			}
 		}
 	}
 }

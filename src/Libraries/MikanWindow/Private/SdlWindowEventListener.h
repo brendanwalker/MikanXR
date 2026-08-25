@@ -11,6 +11,7 @@ public:
 
 	virtual eMkWindowEventType getEventType() const override;
 	virtual MkKeySym getKeySym() const override;
+	virtual uint16_t getKeyMod() const override;
 	virtual int getKeyRepeat() const override;
 	virtual eMkWindowEventID getWindowEventID() const override;
 	virtual int getMouseWheelScrollAmount() const override;

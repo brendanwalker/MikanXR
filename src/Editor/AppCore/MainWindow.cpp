@@ -8,6 +8,7 @@
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
 #include "AutomationServer.h"
+#include "TransactionHistory.h"
 #include "ClientSourceManager.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
@@ -75,6 +76,7 @@ MainWindow::MainWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 	, m_mikanServer(new MikanServer())
 	, m_automationServer(new AutomationServer())
+	, m_transactionHistory(new TransactionHistory())
 	, m_clientSourceManager(new ClientSourceManager(DEFAULT_VIDEO_FRAME_QUEUE_SIZE))
 	, m_inputManager(new InputManager(this))
 	, m_projectManager(std::make_shared<ProjectManager>(this))
@@ -111,6 +113,7 @@ MainWindow::~MainWindow()
 	m_projectManager= nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
+	delete m_transactionHistory;
 	delete m_automationServer;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
@@ -252,6 +255,14 @@ bool MainWindow::startup()
 		m_automationServer->startup(this, (uint16_t)automationPort);
 	}
 
+	if (success)
+	{
+		// Start transaction recording (binds to the already-loaded initial
+		// project) and expose the history commands over the automation channel
+		m_transactionHistory->startup(this);
+		m_transactionHistory->registerAutomationCommands(m_automationServer);
+	}
+
 #undef MIKAN_TIMED_STARTUP
 
 	if (success)
@@ -293,6 +304,9 @@ void MainWindow::update(float deltaSeconds)
 
 	// Service automation command socket I/O (dispatches commands inline)
 	m_automationServer->poll();
+
+	// Seal any transaction whose coalescing window lapsed
+	m_transactionHistory->update(deltaSeconds);
 
 	// Garbage collect stale baked text
 	m_fontManager->garbageCollect();
@@ -445,6 +459,9 @@ void MainWindow::shutdown()
 		popAppState();
 	}
 	processPendingAppStageOps();
+
+	assert(m_transactionHistory != nullptr);
+	m_transactionHistory->shutdown();
 
 	assert(m_automationServer != nullptr);
 	m_automationServer->shutdown();

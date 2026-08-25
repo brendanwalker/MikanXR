@@ -46,7 +46,10 @@ class AutomationClient:
         while b"\n" not in self.buffer:
             if time.monotonic() >= deadline:
                 raise SystemExit("error: timed out waiting for a reply line")
-            chunk = self.sock.recv(4096)
+            try:
+                chunk = self.sock.recv(4096)
+            except ConnectionResetError:
+                raise SystemExit("error: server closed the connection")
             if not chunk:
                 raise SystemExit("error: server closed the connection")
             self.buffer += chunk

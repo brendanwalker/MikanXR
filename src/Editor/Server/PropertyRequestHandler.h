@@ -18,6 +18,13 @@ public:
 	virtual void shutdown() override;
 
 protected:
+	// Project lifecycle (the ProjectConfig instance is replaced on every
+	// project load, so the property-change subscription must follow it)
+	void onProjectLoaded(ProjectManagerPtr projectManager);
+	void onProjectPreUnload(ProjectManagerPtr projectManager);
+	void bindProjectConfig(ProjectConfigPtr projectConfig);
+	void unbindProjectConfig();
+
 	// Property Events
 	void onProjectConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void onObjectSystemDefinitionChanged(MikanObjectSystemDefinitionPtr systemDefinition,

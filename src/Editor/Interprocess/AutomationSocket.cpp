@@ -82,6 +82,14 @@ void AutomationSocket::close()
 {
 	if (m_clientSocket != k_invalidSocket)
 	{
+		// Half-close the send side first so a reply still in flight (the
+		// app quit acknowledgement) reaches the client instead of being
+		// discarded by a hard reset
+#if defined(_WIN32)
+		::shutdown(static_cast<SOCKET>(m_clientSocket), SD_SEND);
+#else
+		::shutdown(static_cast<SOCKET>(m_clientSocket), SHUT_WR);
+#endif
 		closesocket(static_cast<SOCKET>(m_clientSocket));
 		m_clientSocket= k_invalidSocket;
 	}

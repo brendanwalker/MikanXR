@@ -42,6 +42,8 @@ These reach every object system and component through the property and function 
 
 - `system list` replies one object system class name per line
 - `component list <system> [componentClass]` replies `<componentId> <componentClass>` per live component
+- `component create <system> <componentClass>` creates an object of the system's primary component type with a default definition, replying the new component id
+- `component destroy <system> <componentId>` destroys the object owning the component
 - `property list [system] [componentClass]` replies `<system> <componentClass> <name> <type> <ro|rw>` per property
 - `property get <system> <componentId> <name>` replies the value as text
 - `property set <system> <componentId> <name> <value...>` writes a property, coercing the value tokens to the descriptor's type
@@ -83,9 +85,16 @@ Value syntax for `property get`/`set`:
 - error
 - fatal
 
-### Reserved namespaces
+### Transaction history (history)
 
-`history` is reserved for editor transaction recording and undo/redo and answers not-implemented until that lands.
+The editor transaction system's automation face ([transactions.md](./transactions.md)). Every persistent edit records as an undoable transaction, and a JSONL session log persists beside the project for post-session diagnosis.
+
+- `history list [n]` replies the last n transactions as `<seq> <applied|undone> <description>`
+- `history info` replies depth, cursor, can_undo/can_redo, the open gesture, and the session log path
+- `history undo [n]` / `history redo [n]` step the stack, replying the resulting cursor
+- `history clear` drops the in-memory history (the log keeps its record)
+
+A drive that mutates state can restore it exactly with `history undo` instead of hand-reverting property values, and a session that went wrong reads back from the log file even after a crash.
 
 ## Client helper
 

@@ -123,7 +123,7 @@ void VRTrackingVolumeDefinition::setCharucoTrackingMountId(MikanTrackingMountID 
 void VRTrackingVolumeDefinition::setCharucoMountOffsetMM(const MikanVector3f& offset)
 {
 	m_charucoMountOffsetMM= offset;
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName("charucoMountOffsetMM"));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoMountOffsetPropertyId));
 }
 
 void VRTrackingVolumeDefinition::setUtilityMarkerId(MikanMarkerID markerId)
