@@ -20,7 +20,7 @@ The living plan: what is in flight now, what comes next, and the open questions.
 - [ ] Video recording: `eSupportedCodec` in `CompositorConstants.h` is defined but nothing records the composited output to a file.
 - [ ] Remove the empty `src/Libraries/ARKitReceiver` and `src/Libraries/MikanARKitReceiver` scaffolding directories.
 - [ ] Stop checking generated bindings into git (`bindings/csharp/CMakeLists.txt` carries the TODO).
-- [ ] Editor transaction recording with undo/redo, surfaced through the automation server's reserved `history` namespace so a driven session can inspect the transaction log, roll back state, and replay interactions (`docs/reference/automation.md`).
+- [ ] Wire the unrecordable property notifications into descriptors so they reach undo and client events: the `EditorObjectSystem` settings names and `depth_mesh_scale_correction` (the standing gaps listed in `docs/reference/transactions.md`).
 
 ## Open questions
 

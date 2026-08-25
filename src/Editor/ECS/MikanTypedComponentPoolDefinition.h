@@ -116,6 +116,18 @@ public:
 		return std::make_shared<t_component_definition>(nextId);
 	}
 
+	// Build a fresh definition from saved JSON, keeping its original
+	// component id (the recreate path for undoing a destroy). Bumping the
+	// allocator past the id is harmless since ids are strictly monotonic.
+	ComponentDefinitionPtr allocateDefinitionFromJSON(const configuru::Config& pt)
+	{
+		auto definitionPtr= std::make_shared<t_component_definition>();
+		definitionPtr->readFromJSON(pt);
+		m_idAllocator.lock()->ensureNextIdGreaterThan(definitionPtr->getComponentId());
+
+		return definitionPtr;
+	}
+
 	bool addDefinition(ComponentDefinitionPtr definition)
 	{
 		t_id_type id= definition->getComponentId();

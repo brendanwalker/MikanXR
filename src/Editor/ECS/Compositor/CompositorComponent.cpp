@@ -823,7 +823,9 @@ bool CompositorComponent::setPropertyValue(const std::string& propertyName, cons
 		const std::string fileString= inValue.getUtf8Value();
 		const std::filesystem::path filePath(fileString);
 
-		getCompositorDefinition()->setCompositorGraphPath(filePath);
+		// Route through the asset-path setter so the live node graph
+		// rebuilds along with the definition
+		setCompositorGraphAssetPath(filePath);
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_spoutEnableOutputNamePropertyId)

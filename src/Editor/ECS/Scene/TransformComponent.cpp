@@ -621,6 +621,24 @@ bool TransformComponent::setPropertyValue(const std::string& propertyName, const
 		setRelativePosition(glm::vec3(pos.x, pos.y, pos.z));
 		return true;
 	}
+	else if (propertyName == TransformComponentDefinition::k_parentTransformIdPropertyId)
+	{
+		// Reparenting routes through attach/detach so the runtime
+		// parent/child links stay in sync with the definition
+		const int newParentId= inValue.getIntValue();
+		if (newParentId == INVALID_MIKAN_ID)
+		{
+			detachFromParent(eDetachReason::detachFromParent);
+			return true;
+		}
+
+		TransformComponentPtr newParentComponent=
+			getOwnerProjectManager()->getTypedComponentById<TransformComponent>(newParentId);
+		if (!newParentComponent)
+			return false;
+
+		return attachToComponent(newParentComponent);
+	}
 
 	return MikanComponent::setPropertyValue(propertyName, inValue);
 }

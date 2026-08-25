@@ -37,6 +37,7 @@ public:
 	virtual class EventBus* getEventBus() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
 	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
+	virtual class TransactionHistory* getTransactionHistory() const override { return m_transactionHistory; }
 	virtual class ClientSourceManager* getClientSourceManager() const override { return m_clientSourceManager; }
 	virtual class InputManager* getInputManager() const override { return m_inputManager; }
 	virtual ProjectManagerPtr getProjectManager() const override { return m_projectManager; }
@@ -60,6 +61,9 @@ private:
 
 	// Automation text command server
 	class AutomationServer* m_automationServer= nullptr;
+
+	// Editor transaction recording and undo/redo
+	class TransactionHistory* m_transactionHistory= nullptr;
 
 	// Client Source Manager
 	class ClientSourceManager* m_clientSourceManager= nullptr;

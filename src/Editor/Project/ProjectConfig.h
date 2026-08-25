@@ -35,6 +35,13 @@ public:
 	// (e.g., components on runtime-only object systems like VRObjectSystem)
 	MonotonicIDAllocatorPtr transientIDAllocator;
 
+	// True for ids in the runtime-only range (never serialized, skipped by
+	// the transaction recorder)
+	static bool isTransientComponentId(int componentId)
+	{
+		return componentId >= k_transientIdStart && componentId < k_transientIdStart + k_transientIdMaxRange;
+	}
+
 	// Persistent Component ID allocator for all persistent components in the project
 	static const std::string k_componentIdAllocatorPropertyId;
 	PersistentIDAllocatorPtr persistentIDAllocator;

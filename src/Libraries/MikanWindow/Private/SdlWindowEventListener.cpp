@@ -48,6 +48,28 @@ MkKeySym SdlWindowEvent::getKeySym() const
 	return MkKey::UNKNOWN;
 }
 
+uint16_t SdlWindowEvent::getKeyMod() const
+{
+	if (m_event->type == SDL_KEYDOWN || m_event->type == SDL_KEYUP)
+	{
+		const uint16_t sdlMod= m_event->key.keysym.mod;
+
+		uint16_t keyMod= MkKeyMod::NONE;
+		if (sdlMod & KMOD_SHIFT)
+			keyMod|= MkKeyMod::SHIFT;
+		if (sdlMod & KMOD_CTRL)
+			keyMod|= MkKeyMod::CTRL;
+		if (sdlMod & KMOD_ALT)
+			keyMod|= MkKeyMod::ALT;
+		if (sdlMod & KMOD_GUI)
+			keyMod|= MkKeyMod::GUI;
+
+		return keyMod;
+	}
+
+	return MkKeyMod::NONE;
+}
+
 int SdlWindowEvent::getKeyRepeat() const
 {
 	if (m_event->type == SDL_KEYDOWN || m_event->type == SDL_KEYUP)

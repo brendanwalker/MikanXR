@@ -82,6 +82,9 @@ void CommonConfig::removeChildConfig(std::shared_ptr<CommonConfig> childConfig)
 	auto it= std::find(m_childConfigs.begin(), m_childConfigs.end(), childConfig);
 	if (it != m_childConfigs.end())
 	{
+		// Unsubscribe symmetrically with addChildConfig, so a removed child
+		// retained elsewhere cannot keep notifying a dead parent
+		childConfig->OnPropertyChanged-= MakeDelegate(this, &CommonConfig::onChildConfigPropertyChanged);
 		m_childConfigs.erase(it);
 	}
 }

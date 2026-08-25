@@ -27,6 +27,7 @@
 #include "StageComponent.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
+#include "TransactionHistory.h"
 #include "QuadStencilSystem.h"
 #include "BoxStencilSystem.h"
 #include "ModelStencilSystem.h"
@@ -706,6 +707,13 @@ void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const 
 		if (newSelectedComponentPtr)
 		{
 			newSelectedComponentPtr->notifyGrab(m_lastestRaycastResult);
+
+			// Group all transform edits of this drag into one transaction
+			TransactionHistory* transactionHistory= getOwnerWindow()->getTransactionHistory();
+			if (transactionHistory != nullptr)
+			{
+				transactionHistory->beginGesture("mouse_drag");
+			}
 		}
 	}
 	else if (button == MkMouseButton::MIDDLE)
@@ -778,6 +786,15 @@ void EditorObjectSystem::onMouseRayButtonUp(const glm::vec3& rayOrigin, const gl
 	if (currentSelectedPtr)
 	{
 		currentSelectedPtr->notifyRelease();
+	}
+
+	if (button == MkMouseButton::LEFT)
+	{
+		TransactionHistory* transactionHistory= getOwnerWindow()->getTransactionHistory();
+		if (transactionHistory != nullptr)
+		{
+			transactionHistory->endGesture();
+		}
 	}
 }
 
