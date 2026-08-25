@@ -704,9 +704,12 @@ void AppStage_Project::renderEnvironmentLightComponents(IMkGraphicsContext* grap
 														MikanCameraPtr viewportCamera,
 														StageComponentConstPtr stageComponent) const
 {
-	getObjectSystemOfType<LightEnvironmentSystem>()->customRender(
-		graphicsContext, viewportCamera, [stageComponent](LightEnvironmentComponentPtr lightEnv)
-		{ return lightEnv->getOwnerStageComponent() == stageComponent; });
+	if (viewportCamera->getProjectionMode() == eCameraProjectionMode::perspective)
+	{
+		getObjectSystemOfType<LightEnvironmentSystem>()->customRender(
+			graphicsContext, viewportCamera, [stageComponent](LightEnvironmentComponentPtr lightEnv)
+			{ return lightEnv->getOwnerStageComponent() == stageComponent; });
+	}
 }
 
 void AppStage_Project::renderCameraComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
