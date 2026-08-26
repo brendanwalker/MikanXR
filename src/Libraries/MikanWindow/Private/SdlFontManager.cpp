@@ -8,6 +8,7 @@
 #include "SDL_ttf.h"
 
 #include <cstring>
+#include <iterator>
 #include <unordered_map>
 #include <vector>
 
@@ -70,11 +71,14 @@ size_t computeTextHash(const TextStyle& style, const std::wstring& text)
 {
 	std::hash<std::wstring> hasher;
 
+	// The buffer size is a wide character count, not a byte count, and fontName
+	// is a narrow string so it needs %hs rather than %s
 	wchar_t szStyleString[256];
-	StringUtils::formatWString(
-		szStyleString, sizeof(szStyleString), L"%s_%d_%d_%d_%d_%d_%d_%d_%d_%d", style.fontName.c_str(), style.pointSize,
-		style.styleBitmask, (int)style.hasShadow, (int)(style.shadowColor.r * 255), (int)(style.shadowColor.g * 255),
-		(int)(style.shadowColor.b * 255), style.shadowOffset.x, style.shadowOffset.y, (int)(style.shadowOpacity * 255));
+	StringUtils::formatWString(szStyleString, std::size(szStyleString), L"%hs_%d_%u_%d_%d_%d_%d_%d_%d_%d",
+							   style.fontName.c_str(), style.pointSize, style.styleBitmask, (int)style.hasShadow,
+							   (int)(style.shadowColor.r * 255), (int)(style.shadowColor.g * 255),
+							   (int)(style.shadowColor.b * 255), style.shadowOffset.x, style.shadowOffset.y,
+							   (int)(style.shadowOpacity * 255));
 
 	return hasher(text + szStyleString);
 }
