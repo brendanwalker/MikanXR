@@ -43,9 +43,10 @@
 
 #include "imnodes.h"
 
-MkGuiContext::MkGuiContext(class IMkWindowContext* window, const std::string& iniFilePath)
+MkGuiContext::MkGuiContext(class IMkWindowContext* window, const std::string& iniFilePath, bool bEnableDocking)
 	: m_window(window)
 	, m_iniFilePath(iniFilePath)
+	, m_bEnableDocking(bEnableDocking)
 {
 }
 
@@ -292,6 +293,11 @@ void MkGuiContext::configImGui()
 	if (!m_iniFilePath.empty())
 	{
 		io.IniFilename= m_iniFilePath.c_str();
+	}
+
+	if (m_bEnableDocking)
+	{
+		io.ConfigFlags|= ImGuiConfigFlags_DockingEnable;
 	}
 
 	MkGuiTheme::applyStyle();

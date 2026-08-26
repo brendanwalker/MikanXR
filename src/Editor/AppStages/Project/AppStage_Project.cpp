@@ -18,7 +18,10 @@
 #include "LocText.h"
 #include "MathGLM.h"
 #include "MathMikan.h"
+#include "AppSettingsConfig.h"
 #include "MainWindow.h"
+#include "ProjectFileDialogs.h"
+#include "Shared/LogPanel.h"
 #include "MarkerObjectSystem.h"
 #include "MarkerTrackingVolumeComponent.h"
 #include "MikanCamera.h"
@@ -62,6 +65,7 @@
 
 #include "MkGuiScopedTabBar.h"
 #include "MkGuiScopedTabItem.h"
+#include "MkGuiDockspace.h"
 #include "MkGuiScopedWindow.h"
 #include "opencv2/opencv.hpp"
 
@@ -203,6 +207,8 @@ void AppStage_Project::update(float deltaSeconds)
 
 	// Update the timing dependent state for the project GuiPanels
 	m_projectGuiPanelContext->update(deltaSeconds);
+
+	applyPendingProjectActions();
 }
 
 void AppStage_Project::onGui()
@@ -297,45 +303,189 @@ void AppStage_Project::onGui()
 		renderCameraAlignmentGui();
 	}
 
-	constexpr float k_panelWidth= 415.f;
-	const float displayWidth= m_ownerWindow->getWidth();
-	const float displayHeight= m_ownerWindow->getHeight();
-
-	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
-	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
-
-	constexpr ImGuiWindowFlags k_panelFlags=
-		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
-
-	MkGuiScopedWindow panel("##ProjectPanel", nullptr, k_panelFlags);
-	if (!panel)
-		return;
-
-	const char* k_tabLabels[(int)eProjectAppStageActivePanel::COUNT]= {
-		locLabel("project.tabScenes"),   locLabel("project.tabStages"),  locLabel("project.tabSources"),
-		locLabel("project.tabTracking"), locLabel("project.tabMarkers"), locLabel("project.tabSettings")};
-	IGuiPanel* k_tabPanels[(int)eProjectAppStageActivePanel::COUNT]= {m_projectScenesPanel,  m_projectStagesPanel,
-																	  m_projectSourcesPanel, m_projectTrackingPanel,
-																	  m_projectMarkersPanel, m_projectSettingsPanel};
-	constexpr int k_tabCount= (int)(sizeof(k_tabLabels) / sizeof(k_tabLabels[0]));
-
-	MkGuiScopedTabBar tabBar("##ProjectTabs");
-	if (tabBar)
+	// Keep the 3d viewport on the dockspace's empty central node, so the scene
+	// fills whatever the docked panels leave behind
 	{
-		for (int i= 0; i < k_tabCount; i++)
+		ImVec2 centralPos, centralSize;
+		if (MkGui::getDockspaceCentralRect("MikanDockspace", centralPos, centralSize) && centralSize.x >= 1.f
+			&& centralSize.y >= 1.f)
 		{
-			MkGuiScopedTabItem tabItem(k_tabLabels[i]);
-
-			if (tabItem)
-			{
-				if (k_tabPanels[i] != nullptr)
-				{
-					setActivePanel((eProjectAppStageActivePanel)i);
-					k_tabPanels[i]->onGui();
-				}
-			}
+			m_viewport->setViewport({(int)centralPos.x, (int)centralPos.y}, {(int)centralSize.x, (int)centralSize.y});
 		}
 	}
+
+	// Each panel is its own dockable window. The focused one decides what the 3d
+	// viewport renders and which object types are selectable, which is the role
+	// the old tab bar's selected tab played.
+	IGuiPanel* panels[(int)eProjectAppStageActivePanel::COUNT]= {m_projectScenesPanel,  m_projectStagesPanel,
+																 m_projectSourcesPanel, m_projectTrackingPanel,
+																 m_projectMarkersPanel, m_projectSettingsPanel};
+
+	for (int i= 0; i < (int)eProjectAppStageActivePanel::COUNT; i++)
+	{
+		if (!m_panelVisible[i] || panels[i] == nullptr)
+			continue;
+
+		MkGuiScopedWindow panelWindow(getPanelWindowTitle((eProjectAppStageActivePanel)i), &m_panelVisible[i]);
+		if (!panelWindow)
+			continue;
+
+		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+		{
+			setActivePanel((eProjectAppStageActivePanel)i);
+		}
+
+		panels[i]->onGui();
+	}
+
+	if (m_bShowLogPanel)
+	{
+		LogPanel::getInstance().draw(&m_bShowLogPanel);
+	}
+}
+
+void AppStage_Project::onMenuBarGui()
+{
+	if (ImGui::BeginMenu(locLabel("mainWindow.fileMenu")))
+	{
+		if (ImGui::MenuItem(locLabel("mainWindow.newProject")))
+		{
+			m_pendingNewProjectPath= ProjectFileDialogs::pickNewProjectPath();
+		}
+		if (ImGui::MenuItem(locLabel("mainWindow.saveProject")))
+		{
+			// The app settings track the open project's path (set on open/new)
+			AppSettingsConfigPtr appSettings= App::getInstance()->getAppSettings();
+			if (appSettings && appSettings->hasLastProjectPath())
+			{
+				m_ownerWindow->getProjectManager()->saveProject(appSettings->getLastProjectPath().string());
+			}
+		}
+		if (ImGui::MenuItem(locLabel("mainWindow.loadProject")))
+		{
+			m_pendingLoadProjectPath= ProjectFileDialogs::pickProjectToOpen();
+		}
+		if (ImGui::MenuItem(locLabel("mainWindow.closeProject")))
+		{
+			m_bPendingCloseProject= true;
+		}
+		ImGui::Separator();
+		if (ImGui::MenuItem(locLabel("mainWindow.exit")))
+		{
+			m_bPendingExit= true;
+		}
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::BeginMenu(locLabel("mainWindow.viewMenu")))
+	{
+		for (int i= 0; i < (int)eProjectAppStageActivePanel::COUNT; i++)
+		{
+			ImGui::MenuItem(getPanelMenuLabel((eProjectAppStageActivePanel)i), nullptr, &m_panelVisible[i]);
+		}
+		ImGui::Separator();
+		ImGui::MenuItem(locLabel("mainWindow.logPanel"), nullptr, &m_bShowLogPanel);
+		ImGui::EndMenu();
+	}
+}
+
+void AppStage_Project::applyPendingProjectActions()
+{
+	// Applied outside the ImGui frame: swapping the project mid-frame would
+	// destroy the systems the panels are drawing from
+	if (m_bPendingExit)
+	{
+		m_bPendingExit= false;
+		App::getInstance()->requestShutdown();
+		return;
+	}
+
+	if (m_bPendingCloseProject)
+	{
+		m_bPendingCloseProject= false;
+		m_ownerWindow->popAppState();
+		return;
+	}
+
+	// New and load both pop back to the main menu stage, which owns the load and
+	// re-push of the project stage
+	if (!m_pendingNewProjectPath.empty())
+	{
+		const std::filesystem::path path= m_pendingNewProjectPath;
+		m_pendingNewProjectPath.clear();
+		App::getInstance()->getMainWindow()->requestNewProject(path);
+		m_ownerWindow->popAppState();
+		return;
+	}
+
+	if (!m_pendingLoadProjectPath.empty())
+	{
+		const std::filesystem::path path= m_pendingLoadProjectPath;
+		m_pendingLoadProjectPath.clear();
+		App::getInstance()->getMainWindow()->requestOpenProject(path);
+		m_ownerWindow->popAppState();
+	}
+}
+
+const char* AppStage_Project::getPanelMenuLabel(eProjectAppStageActivePanel panel)
+{
+	switch (panel)
+	{
+	case eProjectAppStageActivePanel::Scenes:
+		return locLabel("project.tabScenes");
+	case eProjectAppStageActivePanel::Stages:
+		return locLabel("project.tabStages");
+	case eProjectAppStageActivePanel::Sources:
+		return locLabel("project.tabSources");
+	case eProjectAppStageActivePanel::Tracking:
+		return locLabel("project.tabTracking");
+	case eProjectAppStageActivePanel::Markers:
+		return locLabel("project.tabMarkers");
+	case eProjectAppStageActivePanel::Settings:
+		return locLabel("project.tabSettings");
+	default:
+		return "";
+	}
+}
+
+const char* AppStage_Project::getPanelWindowTitle(eProjectAppStageActivePanel panel)
+{
+	switch (panel)
+	{
+	case eProjectAppStageActivePanel::Scenes:
+		return locWindowTitle("windows.scenes");
+	case eProjectAppStageActivePanel::Stages:
+		return locWindowTitle("windows.stages");
+	case eProjectAppStageActivePanel::Sources:
+		return locWindowTitle("windows.sources");
+	case eProjectAppStageActivePanel::Tracking:
+		return locWindowTitle("windows.tracking");
+	case eProjectAppStageActivePanel::Markers:
+		return locWindowTitle("windows.markers");
+	case eProjectAppStageActivePanel::Settings:
+		return locWindowTitle("windows.projectSettings");
+	default:
+		return "";
+	}
+}
+
+void AppStage_Project::onBuildDefaultDockLayout(unsigned int dockspaceId)
+{
+	// Panels right, log along the bottom, central node left empty for the scene.
+	// The right column is split in two so neither tab strip overflows into the
+	// scroll arrows that made the old single tab bar awkward to click through.
+	ImGuiID remaining= (ImGuiID)dockspaceId;
+	ImGuiID rightTopId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Right, 0.28f, remaining);
+	const ImGuiID bottomId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Down, 0.25f, remaining);
+	const ImGuiID rightBottomId= MkGui::dockBuilderSplit(rightTopId, ImGuiDir_Down, 0.5f, rightTopId);
+
+	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Scenes), rightTopId);
+	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Stages), rightTopId);
+	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Sources), rightTopId);
+	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Tracking), rightBottomId);
+	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Markers), rightBottomId);
+	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Settings), rightBottomId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.log"), bottomId);
 }
 
 // Panel Selection

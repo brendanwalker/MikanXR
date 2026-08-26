@@ -19,4 +19,15 @@ public:
 	/// Copy up to lineCount of the most recent lines at or above minLevel,
 	/// oldest first.
 	static void getTail(int lineCount, int minLevel, std::vector<std::string>& outLines);
+
+	struct LeveledLine
+	{
+		int level;
+		std::string text;
+	};
+	/// Every buffered line at or above minLevel, oldest first, with the severity
+	/// each was logged at so a viewer can color them.
+	static void getLines(int minLevel, std::vector<LeveledLine>& outLines);
+
+	static void clear();
 };

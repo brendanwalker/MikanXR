@@ -50,6 +50,15 @@ public:
 	virtual void onGui();
 	virtual void render(IMkViewportPtr targetViewport);
 
+	// A stage that lays its panels out in a dockspace: the window hosts the
+	// dockspace and menu bar around onGui, and leaves the central node empty so
+	// the 3d scene shows through it
+	virtual bool getUsesDockspace() const { return false; }
+	// Called inside the host window's menu bar when getUsesDockspace is true
+	virtual void onMenuBarGui() {}
+	// Called only when there is no saved layout, to place the stage's panels
+	virtual void onBuildDefaultDockLayout(unsigned int dockspaceId) {}
+
 	virtual void onWindowEvent(const class MkWindowEvent& event);
 
 	MikanViewportPtr getFirstViewport() const { return m_viewports[0]; }

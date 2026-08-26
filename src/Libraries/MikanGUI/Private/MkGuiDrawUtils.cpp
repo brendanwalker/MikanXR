@@ -86,7 +86,14 @@ bool drawFloat2Property(MkGuiStyleConstPtr style, const std::string fieldName, c
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
-	return ImGui::InputFloat2(imguiElementName.c_str(), inout_v);
+
+	// The value column is split 2 ways, so the theme's generous horizontal frame
+	// padding would leave no room for the text and push it off center
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, ImGui::GetStyle().FramePadding.y));
+	const bool bChanged= ImGui::InputFloat2(imguiElementName.c_str(), inout_v);
+	ImGui::PopStyleVar();
+
+	return bChanged;
 }
 
 bool drawFloat3Property(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, float* inout_v)
@@ -95,7 +102,14 @@ bool drawFloat3Property(MkGuiStyleConstPtr style, const std::string fieldName, c
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
-	return ImGui::InputFloat3(imguiElementName.c_str(), inout_v);
+
+	// The value column is split 3 ways, so the theme's generous horizontal frame
+	// padding would leave no room for the text and push it off center
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, ImGui::GetStyle().FramePadding.y));
+	const bool bChanged= ImGui::InputFloat3(imguiElementName.c_str(), inout_v);
+	ImGui::PopStyleVar();
+
+	return bChanged;
 }
 
 bool drawFloat4Property(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, float* inout_v)
@@ -104,7 +118,14 @@ bool drawFloat4Property(MkGuiStyleConstPtr style, const std::string fieldName, c
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
-	return ImGui::InputFloat4(imguiElementName.c_str(), inout_v);
+
+	// The value column is split 4 ways, so the theme's generous horizontal frame
+	// padding would leave no room for the text and push it off center
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.f, ImGui::GetStyle().FramePadding.y));
+	const bool bChanged= ImGui::InputFloat4(imguiElementName.c_str(), inout_v);
+	ImGui::PopStyleVar();
+
+	return bChanged;
 }
 
 bool drawStringProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, char* buf,

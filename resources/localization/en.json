@@ -242,6 +242,17 @@
 		"verifyInitialCameraSetupFmt": "Fixture '%s' has been set to white. Position the camera so the fixture is visible and verify the video stream is running.",
 		"verifyTriangulatedPosition": "Verify the triangulated fixture position looks correct in the viewport."
 	},
+	"logPanel": {
+		"autoScroll": "Auto Scroll",
+		"clear": "Clear",
+		"levelDebug": "Debug",
+		"levelError": "Error",
+		"levelFatal": "Fatal",
+		"levelInfo": "Info",
+		"levelTrace": "Trace",
+		"levelWarning": "Warning",
+		"minLevel": "Level"
+	},
 	"mainMenu": {
 		"exit": "Exit",
 		"newProject": "New Project",
@@ -251,6 +262,16 @@
 		"projectFilesFilter": "Project Files (*.mikanproj)",
 		"resumeProject": "Resume Project",
 		"title": "Main Menu"
+	},
+	"mainWindow": {
+		"closeProject": "Close Project",
+		"exit": "Exit",
+		"fileMenu": "File",
+		"loadProject": "Load Project",
+		"logPanel": "Log Panel",
+		"newProject": "New Project",
+		"saveProject": "Save Project",
+		"viewMenu": "View"
 	},
 	"modals": {
 		"no": "No",
@@ -658,7 +679,14 @@
 		"addCompositor": "Add Compositor",
 		"cameraAlignmentDebug": "Camera Alignment Debug",
 		"httpTriggers": "HTTP Triggers",
+		"log": "Log",
+		"markers": "Markers",
 		"nodeEditor": "Node Editor",
-		"selectCamera": "Select Camera"
+		"projectSettings": "Settings",
+		"scenes": "Scenes",
+		"selectCamera": "Select Camera",
+		"sources": "Sources",
+		"stages": "Stages",
+		"tracking": "Tracking"
 	}
 }

@@ -242,6 +242,17 @@
 		"verifyInitialCameraSetupFmt": "フィクスチャー「%s」を白色に設定しました。フィクスチャーが見える位置にカメラを配置し、映像ストリームが動作していることを確認してください。",
 		"verifyTriangulatedPosition": "三角測量されたフィクスチャーの位置がビューポート内で正しく見えるか確認してください。"
 	},
+	"logPanel": {
+		"autoScroll": "自動スクロール",
+		"clear": "消去",
+		"levelDebug": "デバッグ",
+		"levelError": "エラー",
+		"levelFatal": "致命的",
+		"levelInfo": "情報",
+		"levelTrace": "トレース",
+		"levelWarning": "警告",
+		"minLevel": "レベル"
+	},
 	"mainMenu": {
 		"exit": "終了",
 		"newProject": "新規プロジェクト",
@@ -251,6 +262,16 @@
 		"projectFilesFilter": "プロジェクトファイル (*.mikanproj)",
 		"resumeProject": "プロジェクトを再開",
 		"title": "メインメニュー"
+	},
+	"mainWindow": {
+		"closeProject": "プロジェクトを閉じる",
+		"exit": "終了",
+		"fileMenu": "ファイル",
+		"loadProject": "プロジェクトを開く",
+		"logPanel": "ログパネル",
+		"newProject": "新規プロジェクト",
+		"saveProject": "プロジェクトを保存",
+		"viewMenu": "表示"
 	},
 	"modals": {
 		"no": "いいえ",
@@ -658,7 +679,14 @@
 		"addCompositor": "コンポジターを追加",
 		"cameraAlignmentDebug": "カメラ位置合わせデバッグ",
 		"httpTriggers": "HTTPトリガー",
+		"log": "ログ",
+		"markers": "マーカー",
 		"nodeEditor": "ノードエディター",
-		"selectCamera": "カメラを選択"
+		"projectSettings": "設定",
+		"scenes": "シーン",
+		"selectCamera": "カメラを選択",
+		"sources": "ソース",
+		"stages": "ステージ",
+		"tracking": "トラッキング"
 	}
 }

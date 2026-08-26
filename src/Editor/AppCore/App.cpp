@@ -124,9 +124,11 @@ bool App::startup(int argc, char** argv)
 
 	LoggerSettings settings= {};
 	settings.min_log_level= LogSeverityLevel::debug;
-	settings.enable_console= true;
+	// No console window: the editor shows the log in its own panel, and the
+	// same lines still go to MikanXR.log
+	settings.enable_console= false;
 	settings.log_filename= "MikanXR.log";
-	// Keep recent log lines readable through the automation server
+	// Feeds both the automation server's log command and the editor's log panel
 	settings.log_callback= AutomationLogBuffer::logCallback;
 
 	log_init(settings);

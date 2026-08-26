@@ -26,6 +26,7 @@
 #include "MikanViewport.h"
 #include "MikanModelResourceManager.h"
 #include "MkGuiContext.h"
+#include "MkGuiDockspace.h"
 #include "MkGuiScopedUpdate.h"
 #include "MkGuiStyleManager.h"
 #include "MkStateStack.h"
@@ -152,7 +153,7 @@ bool MainWindow::startup()
 	if (success)
 	{
 		bool ok= false;
-		MIKAN_TIMED_STARTUP("startupGuiContext", ok= startupGuiContext("main"));
+		MIKAN_TIMED_STARTUP("startupGuiContext", ok= startupGuiContext("main", /*bEnableDocking=*/true));
 		if (!ok)
 			success= false;
 	}
@@ -314,6 +315,10 @@ void MainWindow::update(float deltaSeconds)
 	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
 	processPendingAppStageOps();
 
+	// Apply a project switch requested from a project stage's File menu, now
+	// that the requesting stage has popped
+	processPendingProjectRequest();
+
 	// Process most recent SDL events (keyboard, mouse, etc)
 	m_mkWindowContext->handleEvents(this);
 
@@ -328,7 +333,9 @@ void MainWindow::update(float deltaSeconds)
 		if (!m_bIsMainWindowGuiHidden && !m_projectManager->isAnySystemLoading())
 		{
 			EASY_BLOCK("appStage onGui");
+			beginDockspaceHost(appStage);
 			appStage->onGui();
+			endDockspaceHost();
 		}
 
 		// Update the simulation of the current app stage
@@ -336,6 +343,72 @@ void MainWindow::update(float deltaSeconds)
 			EASY_BLOCK("appStage Update");
 			appStage->update(deltaSeconds);
 		}
+	}
+}
+
+void MainWindow::requestOpenProject(const std::filesystem::path& projectFilePath)
+{
+	m_pendingProjectRequest= ePendingProjectRequest::open;
+	m_pendingProjectRequestPath= projectFilePath;
+}
+
+void MainWindow::requestNewProject(const std::filesystem::path& projectFilePath)
+{
+	m_pendingProjectRequest= ePendingProjectRequest::create;
+	m_pendingProjectRequestPath= projectFilePath;
+}
+
+void MainWindow::processPendingProjectRequest()
+{
+	if (m_pendingProjectRequest == ePendingProjectRequest::none)
+		return;
+
+	// Wait for the requesting stage to finish popping: the main menu stage is
+	// the one that knows how to load a project and push the project stage
+	AppStage* appStage= getCurrentAppStage();
+	if (appStage == nullptr || appStage->getUsesDockspace())
+		return;
+
+	const char* command= m_pendingProjectRequest == ePendingProjectRequest::open ? "open_project" : "new_project";
+	const std::vector<std::string> parameters= {m_pendingProjectRequestPath.string()};
+	std::vector<std::string> results;
+
+	m_pendingProjectRequest= ePendingProjectRequest::none;
+	m_pendingProjectRequestPath.clear();
+
+	appStage->handleRemoteControlCommand(command, parameters, results);
+}
+
+void MainWindow::beginDockspaceHost(AppStage* appStage)
+{
+	m_bDockspaceHostOpen= false;
+
+	if (appStage == nullptr || !appStage->getUsesDockspace())
+		return;
+
+	bool bNeedsDefaultLayout= false;
+	const ImGuiID dockspaceId= MkGui::beginDockspaceHost("##MikanDockHost", "MikanDockspace", bNeedsDefaultLayout);
+	m_bDockspaceHostOpen= true;
+
+	if (bNeedsDefaultLayout)
+	{
+		appStage->onBuildDefaultDockLayout((unsigned int)dockspaceId);
+		MkGui::dockBuilderFinish(dockspaceId);
+	}
+
+	if (ImGui::BeginMenuBar())
+	{
+		appStage->onMenuBarGui();
+		ImGui::EndMenuBar();
+	}
+}
+
+void MainWindow::endDockspaceHost()
+{
+	if (m_bDockspaceHostOpen)
+	{
+		MkGui::endDockspaceHost();
+		m_bDockspaceHostOpen= false;
 	}
 }
 

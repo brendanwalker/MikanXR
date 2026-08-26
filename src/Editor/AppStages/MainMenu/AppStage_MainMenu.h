@@ -4,6 +4,7 @@
 #include "AppStage.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
+#include "Shared/GuiDataSource_StringList.h"
 
 //-- definitions -----
 class AppStage_MainMenu : public AppStage
@@ -37,4 +38,11 @@ private:
 	AppSettingsConfigPtr m_appSettingsConfig;
 	ProjectManagerPtr m_projectManager;
 	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
+
+	std::string m_selectedLanguageId;
+	// Parallel lists: the combo displays native names, the selection maps back
+	// through the matching code
+	std::vector<std::string> m_languageIdList;
+	std::vector<std::string> m_languageNameList;
+	GuiDataSource_StringList m_languageDataSource;
 };

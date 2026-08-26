@@ -129,7 +129,7 @@ bool EditorWindow::startupWindow(const std::string& title, int width, int height
 	return true;
 }
 
-bool EditorWindow::startupGuiContext(const std::string& iniName)
+bool EditorWindow::startupGuiContext(const std::string& iniName, bool bEnableDocking)
 {
 	EASY_FUNCTION();
 
@@ -140,7 +140,7 @@ bool EditorWindow::startupGuiContext(const std::string& iniName)
 	std::filesystem::create_directories(iniDir);
 	const std::filesystem::path iniPath= iniDir / ("imgui_" + iniName + ".ini");
 
-	m_guiContext= std::make_shared<MkGuiContext>(getMkWindowContext().get(), iniPath.string());
+	m_guiContext= std::make_shared<MkGuiContext>(getMkWindowContext().get(), iniPath.string(), bEnableDocking);
 	if (!m_guiContext->startup())
 	{
 		MIKAN_LOG_ERROR("EditorWindow::startupGuiContext") << "Unable to create GUI context";

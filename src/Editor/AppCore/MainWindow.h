@@ -54,6 +54,23 @@ public:
 protected:
 	void renderStageViewport(AppStage* appStage, IMkViewportPtr targetViewport);
 	void renderStageUI(AppStage* appStage);
+	// Full-viewport host window carrying the menu bar and the dockspace the
+	// stage's panels dock into. Returns the central node's screen rect, which is
+	// the area left for the 3d scene.
+	void beginDockspaceHost(AppStage* appStage);
+	void endDockspaceHost();
+
+public:
+	// Project switches requested from inside a project stage (the File menu).
+	// The stage pops itself, and the request is applied once the main menu stage
+	// is current again, through the same commands the automation server uses.
+	// Swapping the project under a live stage would pull its systems out from
+	// under the panels drawing this frame.
+	void requestOpenProject(const std::filesystem::path& projectFilePath);
+	void requestNewProject(const std::filesystem::path& projectFilePath);
+
+private:
+	void processPendingProjectRequest();
 
 private:
 	// Mikan API Server
@@ -105,4 +122,14 @@ private:
 	bool m_isRenderingStage;
 	bool m_isRenderingUI;
 	bool m_bIsMainWindowGuiHidden= false;
+	bool m_bDockspaceHostOpen= false;
+
+	enum class ePendingProjectRequest
+	{
+		none,
+		open,
+		create
+	};
+	ePendingProjectRequest m_pendingProjectRequest= ePendingProjectRequest::none;
+	std::filesystem::path m_pendingProjectRequestPath;
 };

@@ -76,7 +76,7 @@ protected:
 	void shareGraphicsContextWithMainWindow();
 
 	bool startupWindow(const std::string& title, int width, int height);
-	bool startupGuiContext(const std::string& iniName);
+	bool startupGuiContext(const std::string& iniName, bool bEnableDocking= false);
 	bool startupStyleManager();
 	bool startupTextureCache();
 	bool startupModelResourceManager();
