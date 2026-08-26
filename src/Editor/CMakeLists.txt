@@ -856,7 +856,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   install(DIRECTORY ${ROOT_DIR}/resources
     DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.onnx")
+    # *.txt carries the font license files, which must ship alongside the fonts
+    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.txt" PATTERN "*.lua" PATTERN "*.onnx")
 
   # Install CEF binary and resource files
   if(DEFINED CEF_ROOT)

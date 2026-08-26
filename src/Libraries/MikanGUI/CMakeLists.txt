@@ -75,6 +75,10 @@ add_library(MikanGUI SHARED ${MIKAN_GUI_SRC})
 target_include_directories(MikanGUI PRIVATE ${MIKAN_GUI_INCL_DIRS})
 target_link_libraries(MikanGUI ${MIKAN_GUI_REQ_LIBS})
 target_compile_definitions(MikanGUI PRIVATE MIKAN_GUI_EXPORTS)
+# imgui_internal.h (pulled in via imnodes_internal.h) requires the math
+# operators to be defined before imgui.h in every TU, so define them
+# target-wide rather than per-file (fragile under unity builds)
+target_compile_definitions(MikanGUI PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
 IF(WIN32)
   target_compile_definitions(MikanGUI
     PRIVATE   "IMGUI_API=__declspec(dllexport)" "IMNODES_API=__declspec(dllexport)"

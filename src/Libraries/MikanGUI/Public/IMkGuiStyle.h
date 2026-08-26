@@ -18,6 +18,8 @@ public:
 	virtual int getLabelWidth() const= 0;
 	virtual int getValueWidth() const= 0;
 	virtual struct ImFont* getFont() const= 0;
+	// A size <= 0 means the font's load size
+	virtual float getFontSize() const= 0;
 
 	virtual int getFloatVarCount() const= 0;
 	virtual const MkGuiStyleFloatEntry& getFloatVar(int index) const= 0;

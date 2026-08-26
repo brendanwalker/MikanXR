@@ -23,17 +23,17 @@ bool drawPropertySheetHeader(MkGuiStyleConstPtr style, const std::string headerT
 
 void drawStaticTextProperty(MkGuiStyleConstPtr style, const std::string label, const std::string text)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	MkGuiScopedStyle textStyle(style);
-	ImGui::Text(text.c_str());
+	ImGui::TextUnformatted(text.c_str());
 }
 
 bool drawCheckBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label,
 						  bool& inout_value)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
@@ -42,7 +42,7 @@ bool drawCheckBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 
 bool drawIntProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, int& inout_value)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
@@ -52,7 +52,7 @@ bool drawIntProperty(MkGuiStyleConstPtr style, const std::string fieldName, cons
 bool drawFloatProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label,
 					   float& inout_value)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
@@ -66,7 +66,7 @@ bool drawFloatSliderProperty(MkGuiStyleConstPtr style, const std::string fieldNa
 	float displayValue=
 		(srcRange != 0.0f) ? displayMin + (inout_value - srcMin) / srcRange * (displayMax - displayMin) : displayMin;
 
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
@@ -82,7 +82,7 @@ bool drawFloatSliderProperty(MkGuiStyleConstPtr style, const std::string fieldNa
 
 bool drawFloat2Property(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, float* inout_v)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
@@ -91,7 +91,7 @@ bool drawFloat2Property(MkGuiStyleConstPtr style, const std::string fieldName, c
 
 bool drawFloat3Property(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, float* inout_v)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
@@ -100,7 +100,7 @@ bool drawFloat3Property(MkGuiStyleConstPtr style, const std::string fieldName, c
 
 bool drawFloat4Property(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, float* inout_v)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
@@ -110,7 +110,7 @@ bool drawFloat4Property(MkGuiStyleConstPtr style, const std::string fieldName, c
 bool drawStringProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, char* buf,
 						size_t bufSize)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
@@ -120,7 +120,7 @@ bool drawStringProperty(MkGuiStyleConstPtr style, const std::string fieldName, c
 bool drawFilePathProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label,
 						  const std::string& path)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 
 	const float browseButtonWidth= 30.f;
@@ -139,7 +139,7 @@ bool drawFilePathProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 bool drawSimpleComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label,
 								const char* items, int& inout_selectedIdex)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	MkGuiScopedStyle comboStyle(style);
@@ -149,18 +149,18 @@ bool drawSimpleComboBoxProperty(MkGuiStyleConstPtr style, const std::string fiel
 
 void drawImageProperty(MkGuiStyleConstPtr style, const std::string label, IMkTextureConstPtr image)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 	uint32_t glTextureId= image ? image->getGlTextureId() : 0;
-	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
+	ImGui::Image((ImTextureID)(intptr_t)glTextureId, ImVec2(100, 100));
 }
 
 void drawImage(IMkTextureConstPtr image, float width, float height)
 {
 	uint32_t glTextureId= image ? image->getGlTextureId() : 0;
-	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(width, height));
+	ImGui::Image((ImTextureID)(intptr_t)glTextureId, ImVec2(width, height));
 }
 
 bool drawImageButton(MkGuiStyleConstPtr style, const std::string& fieldName, const std::string& imageName)
@@ -173,23 +173,22 @@ bool drawImageButton(MkGuiStyleConstPtr style, const std::string& fieldName, con
 	return ImGui::ImageButton(imguiElementName.c_str(), (ImTextureID)(intptr_t)glTextureId, ImVec2(entry->x, entry->y));
 }
 
-bool ComboBoxDataSource::itemGetter(void* data, int idx, const char** out_str)
+const char* ComboBoxDataSource::itemGetter(void* data, int idx)
 {
 	auto* dataSource= (ComboBoxDataSource*)data;
 
 	if (idx >= 0 && idx < dataSource->getEntryCount())
 	{
-		*out_str= dataSource->getEntryDisplayString(idx).c_str();
-		return true;
+		return dataSource->getEntryDisplayString(idx).c_str();
 	}
 
-	return false;
+	return nullptr;
 }
 
 bool drawComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label,
 						  ComboBoxDataSource* dataSource, int& inout_selectedIdex)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	MkGuiScopedStyle comboStyle(style);
@@ -201,22 +200,21 @@ bool drawComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 bool drawEnumComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label,
 							  const std::vector<std::string>& entries, int& inout_selectedIndex)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	ImGui::SameLine(style->getLabelWidth());
 	ImGui::SetNextItemWidth(style->getValueWidth());
 	MkGuiScopedStyle comboStyle(style);
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::Combo(
 		imguiElementName.c_str(), &inout_selectedIndex,
-		[](void* data, int n, const char** out) -> bool
+		[](void* data, int n) -> const char*
 		{
 			auto* v= static_cast<const std::vector<std::string>*>(data);
 			if (n >= 0 && n < (int)v->size())
 			{
-				*out= (*v)[n].c_str();
-				return true;
+				return (*v)[n].c_str();
 			}
-			return false;
+			return nullptr;
 		},
 		(void*)&entries, (int)entries.size());
 }
@@ -224,7 +222,7 @@ bool drawEnumComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldN
 bool drawRadioButtonsProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label,
 							  const std::vector<std::string>& entries, int& inout_selectedIndex)
 {
-	ImGui::Text(label.c_str());
+	ImGui::TextUnformatted(label.c_str());
 	const int prevIndex= inout_selectedIndex;
 	for (int i= 0; i < (int)entries.size(); i++)
 	{
@@ -233,6 +231,49 @@ bool drawRadioButtonsProperty(MkGuiStyleConstPtr style, const std::string fieldN
 	}
 	return inout_selectedIndex != prevIndex;
 }
+
+ImVec2 mousePosToGridSpace()
+{
+	ImVec2 canvasOrigin= ImNodes::GetCurrentContext()->CanvasOriginScreenSpace;
+	ImVec2 canvasPan= ImNodes::EditorContextGetPanning();
+	ImVec2 mousePos= ImGui::GetMousePos();
+
+	return mousePos - canvasOrigin - canvasPan;
+}
+
+const std::string& getVariableIcon()
+{
+	static std::string icon= ICON_FK_SQUARE;
+	return icon;
+}
+
+const std::string& getArrayIcon()
+{
+	static std::string icon= ICON_FK_TH;
+	return icon;
+}
+
+ImVec4 getPinHoveredColor(float alpha) { return ImVec4(0.53f, 0.937f, 0.765f, alpha); }
+
+ImVec4 getBooleanColor(float alpha) { return ImVec4(0.5f, 0.0f, 0.0f, alpha); }
+
+ImVec4 getEnumColor(float alpha) { return ImVec4(0.f, 0.278f, 0.302f, alpha); }
+
+ImVec4 getIntColor(float alpha) { return ImVec4(0.176f, 0.529f, 0.329f, alpha); }
+
+ImVec4 getIntVectorColor(float alpha) { return ImVec4(0.557f, 0.886f, 0.722f, alpha); }
+
+ImVec4 getFloatColor(float alpha) { return ImVec4(0.624f, 0.973f, 0.267f, alpha); }
+
+ImVec4 getFloatVectorColor(float alpha) { return ImVec4(1.f, 0.78f, 0.173f, alpha); }
+
+ImVec4 getMatrixColor(float alpha) { return ImVec4(0.965f, 0.396f, 0.024f, alpha); }
+
+ImVec4 getPropertyColor(float alpha) { return ImVec4(0.f, 0.631f, 0.929f, alpha); }
+
+ImVec4 getTextureColor(float alpha) { return ImVec4(0.6f, 0.263f, 0.969f, alpha); }
+
+ImVec4 getComponentColor(float alpha) { return ImVec4(0.008f, 0.643f, 0.949f, alpha); }
 
 void* receiveDragDropPayload(const std::string& PayloadType)
 {

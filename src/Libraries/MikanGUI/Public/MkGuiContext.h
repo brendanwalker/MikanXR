@@ -6,11 +6,14 @@
 #include "IMkWindowEventListener.h"
 #include "IMkGraphicsContext.h"
 
+#include <string>
+
 class MIKAN_GUI_CLASS MkGuiContext : public IMkWindowEventListener
 {
 public:
 	MkGuiContext()= delete;
-	MkGuiContext(class IMkWindowContext* window);
+	// An empty iniFilePath keeps ImGui's default (imgui.ini in the working directory)
+	MkGuiContext(class IMkWindowContext* window, const std::string& iniFilePath= std::string());
 	virtual ~MkGuiContext();
 
 	bool startup();
@@ -34,6 +37,8 @@ protected:
 
 private:
 	class IMkWindowContext* m_window= nullptr;
+	// Owns the string io.IniFilename points at, so it must outlive the ImGui context
+	std::string m_iniFilePath;
 	struct ImGuiContext* m_imguiContext= nullptr;
 	struct ImNodesContext* m_imnodesContext= nullptr;
 	struct ImFont* m_NormalIconFont= nullptr;

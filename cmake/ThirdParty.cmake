@@ -105,13 +105,12 @@ set (FastCSV_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/fast-cpp-csv-parser)
 set(IMGUI_DIR ${ROOT_DIR}/thirdparty/imgui)
 set(IMGUI_SOURCE "")
 list(APPEND IMGUI_SOURCE
-     ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp
+     ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
      ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
      ${IMGUI_DIR}/imgui.cpp
      ${IMGUI_DIR}/imgui_draw.cpp
      ${IMGUI_DIR}/imgui_tables.cpp
      ${IMGUI_DIR}/imgui_widgets.cpp
-     ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
 )
 
 # ImNodes
