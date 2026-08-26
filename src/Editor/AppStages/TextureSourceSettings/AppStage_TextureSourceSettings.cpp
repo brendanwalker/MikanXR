@@ -11,6 +11,7 @@
 #include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
+#include "LocText.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "MikanTextRenderer.h"
 #include "MikanServer.h"
@@ -120,7 +121,7 @@ void AppStage_TextureSourceSettings::onGui()
 	if (!panel)
 		return;
 
-	if (ImGui::Button("Return"))
+	if (ImGui::Button(locLabel("textureSourceSettings.return")))
 		onReturnEvent();
 	ImGui::Separator();
 

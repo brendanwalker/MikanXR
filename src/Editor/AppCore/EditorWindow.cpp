@@ -129,11 +129,18 @@ bool EditorWindow::startupWindow(const std::string& title, int width, int height
 	return true;
 }
 
-bool EditorWindow::startupGuiContext()
+bool EditorWindow::startupGuiContext(const std::string& iniName)
 {
 	EASY_FUNCTION();
 
-	m_guiContext= std::make_shared<MkGuiContext>(getMkWindowContext().get());
+	// Each window persists its ImGui layout to its own ini beside the app
+	// config, rather than every context fighting over one imgui.ini in the
+	// working directory
+	const std::filesystem::path iniDir= PathUtils::getHomeDirectory() / "Mikan";
+	std::filesystem::create_directories(iniDir);
+	const std::filesystem::path iniPath= iniDir / ("imgui_" + iniName + ".ini");
+
+	m_guiContext= std::make_shared<MkGuiContext>(getMkWindowContext().get(), iniPath.string());
 	if (!m_guiContext->startup())
 	{
 		MIKAN_LOG_ERROR("EditorWindow::startupGuiContext") << "Unable to create GUI context";

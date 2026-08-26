@@ -1,5 +1,6 @@
 //-- includes -----
 #include "AppStage.h"
+#include "LocText.h"
 #include "ModalDialog_Confirm.h"
 
 #include "imgui.h"
@@ -54,13 +55,13 @@ void ModalDialog_Confirm::onGui()
 		ImGui::Spacing();
 
 		bool accepted= false, rejected= false;
-		if (ImGui::Button("Yes"))
+		if (ImGui::Button(locLabel("modals.yes")))
 		{
 			ImGui::CloseCurrentPopup();
 			accepted= true;
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("No"))
+		if (ImGui::Button(locLabel("modals.no")))
 		{
 			ImGui::CloseCurrentPopup();
 			rejected= true;

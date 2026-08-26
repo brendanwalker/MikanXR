@@ -2,8 +2,10 @@
 #include "IMkTexture.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
 #include "Nodes/TextureNode.h"
 #include "TextureAssetReference.h"
 
@@ -11,7 +13,7 @@
 #include "IconsForkAwesome.h"
 
 // -- TextureAssetComboDataSource ---
-class TextureAssetComboDataSource : public NodeEditorUI::ComboBoxDataSource
+class TextureAssetComboDataSource : public MkGui::ComboBoxDataSource
 {
 public:
 	TextureAssetComboDataSource(GraphTexturePropertyPtr ownerProperty)
@@ -32,7 +34,9 @@ public:
 					selectedAssetRefIndex= listIndex;
 				}
 
-				ComboEntry entry= {textureAssetRef, textureAssetRef ? assetRef->getShortName() : "<No Asset Ref>"};
+				const std::string entryString=
+					textureAssetRef ? assetRef->getShortName() : locText("graphProperties.noAssetRef");
+				ComboEntry entry= {textureAssetRef, entryString};
 
 				comboEntries.push_back(entry);
 				listIndex++;
@@ -44,9 +48,12 @@ public:
 
 	inline TextureAssetReferencePtr getEntryAssetRef(int index) { return comboEntries[index].assetReference; }
 
-	virtual int getEntryCount() override { return (int)comboEntries.size(); }
+	virtual int getEntryCount() const override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override { return comboEntries[index].entryString; }
+	virtual const std::string& getEntryDisplayString(int index) const override
+	{
+		return comboEntries[index].entryString;
+	}
 
 private:
 	struct ComboEntry
@@ -165,24 +172,27 @@ void GraphTextureProperty::editorHandleMainFrameDragDrop(const NodeEditorState& 
 
 void GraphTextureProperty::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Texture", editorState.styleManager))
+	MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("graphProperties.textureHeader")))
 	{
 		// Name
-		std::string name= m_textureAssetRef ? m_textureAssetRef->getShortName() : "<No Texture>";
-		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
+		std::string name= m_textureAssetRef ? m_textureAssetRef->getShortName() : locText("graphProperties.noTexture");
+		MkGui::drawStaticTextProperty(propertyStyle, locText("graphProperties.name"), name);
 
 		// Texture Asset
 		TextureAssetComboDataSource dataSource(std::static_pointer_cast<GraphTextureProperty>(shared_from_this()));
 		int selectedIndex= dataSource.getCurrentAssetIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("textureSelection", "Texture", &dataSource, selectedIndex,
-											   editorState.styleManager))
+		if (MkGui::drawComboBoxProperty(propertyStyle, "textureSelection", locText("graphProperties.texture"),
+										&dataSource, selectedIndex))
 		{
 			setTextureAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}
 
 		// Drag-Drop Handling
 		auto textureAssetRef=
-			NodeEditorUI::receiveTypedDragDropPayload<TextureAssetReference>(TextureAssetReference::k_assetClassName);
+			MkGui::receiveTypedDragDropPayload<TextureAssetReference>(TextureAssetReference::k_assetClassName);
 		if (textureAssetRef)
 		{
 			setTextureAssetReference(textureAssetRef);
@@ -190,8 +200,8 @@ void GraphTextureProperty::editorRenderPropertySheet(const NodeEditorState& edit
 
 		// Texture
 		IMkTexturePtr texture= getTextureResource();
-		NodeEditorUI::DrawImageProperty("Preview", texture);
+		MkGui::drawImageProperty(propertyStyle, locText("graphProperties.preview"), texture);
 	}
 }
 
-const ImVec4 GraphTextureProperty::editorGetIconColor() const { return NodeEditorUI::getTextureColor(); }
+const ImVec4 GraphTextureProperty::editorGetIconColor() const { return MkGui::getTextureColor(); }

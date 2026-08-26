@@ -1,4 +1,5 @@
 #include "LightFixtureCalibration/GuiPanel_LightFixtureCalibration.h"
+#include "LocText.h"
 
 #include "imgui.h"
 
@@ -8,17 +9,15 @@ void GuiPanel_LightFixtureCalibration::onGui()
 	{
 	case eLightFixtureCalibrationMenuState::verifyInitialCameraSetup:
 	{
-		ImGui::TextWrapped("Fixture '%s' has been set to white. "
-						   "Position the camera so the fixture is visible and verify the video stream is running.",
-						   m_fixtureName.c_str());
+		ImGui::TextWrapped(locText("lightFixtureCalibration.verifyInitialCameraSetupFmt"), m_fixtureName.c_str());
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -28,15 +27,15 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::capturePosition1:
 	{
-		ImGui::TextWrapped("Camera position 1: Click on the '%s' fixture in the image.", m_fixtureName.c_str());
+		ImGui::TextWrapped(locText("lightFixtureCalibration.capturePosition1Fmt"), m_fixtureName.c_str());
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("lightFixtureCalibration.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -46,21 +45,21 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::moveCamera:
 	{
-		ImGui::TextWrapped("Move the camera to a second position with a different angle to the fixture.");
+		ImGui::TextWrapped("%s", locText("lightFixtureCalibration.moveCamera"));
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("lightFixtureCalibration.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -70,15 +69,15 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::capturePosition2:
 	{
-		ImGui::TextWrapped("Camera position 2: Click on the '%s' fixture in the image.", m_fixtureName.c_str());
+		ImGui::TextWrapped(locText("lightFixtureCalibration.capturePosition2Fmt"), m_fixtureName.c_str());
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("lightFixtureCalibration.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -88,21 +87,21 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::verifyTriangulatedPosition:
 	{
-		ImGui::TextWrapped("Verify the triangulated fixture position looks correct in the viewport.");
+		ImGui::TextWrapped("%s", locText("lightFixtureCalibration.verifyTriangulatedPosition"));
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("lightFixtureCalibration.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -112,9 +111,9 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::calibrationComplete:
 	{
-		ImGui::TextWrapped("Fixture '%s' position calibrated successfully.", m_fixtureName.c_str());
+		ImGui::TextWrapped(locText("lightFixtureCalibration.calibrationCompleteFmt"), m_fixtureName.c_str());
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
@@ -124,9 +123,9 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::pendingVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Waiting for video stream to start...");
+		ImGui::TextWrapped("%s", locText("lightFixtureCalibration.pendingVideoStart"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -136,9 +135,9 @@ void GuiPanel_LightFixtureCalibration::onGui()
 
 	case eLightFixtureCalibrationMenuState::failedVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Error: Failed to start video stream.");
+		ImGui::TextWrapped("%s", locText("lightFixtureCalibration.failedVideoStart"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();

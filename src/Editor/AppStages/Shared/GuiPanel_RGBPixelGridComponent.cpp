@@ -1,4 +1,5 @@
 #include "AppStage.h"
+#include "LocText.h"
 #include "RGBPixelGridComponent.h"
 #include "Shared/GuiPanel_RGBPixelGridComponent.h"
 
@@ -18,7 +19,7 @@ void GuiPanel_RGBPixelGridComponent::onConstruct()
 												  return false;
 
 											  int columns= comp->getRGBPixelGridDefinition()->getColumns();
-											  if (ImGui::InputInt("Columns", &columns))
+											  if (ImGui::InputInt(locLabel("componentPanel.columns"), &columns))
 											  {
 												  if (columns < 1)
 													  columns= 1;
@@ -40,7 +41,7 @@ void GuiPanel_RGBPixelGridComponent::onConstruct()
 												  return false;
 
 											  int rows= comp->getRGBPixelGridDefinition()->getRows();
-											  if (ImGui::InputInt("Rows", &rows))
+											  if (ImGui::InputInt(locLabel("componentPanel.rows"), &rows))
 											  {
 												  if (rows < 1)
 													  rows= 1;

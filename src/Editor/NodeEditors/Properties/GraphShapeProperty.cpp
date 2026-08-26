@@ -1,7 +1,9 @@
 #include "GraphShapeProperty.h"
 #include "Logger.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
 #include "ProjectConfigConstants.h"
 #include "StringUtils.h"
 
@@ -21,7 +23,7 @@
 #include "IconsForkAwesome.h"
 
 // -- ShapeComboDataSource ---
-class ShapeComboDataSource : public NodeEditorUI::ComboBoxDataSource
+class ShapeComboDataSource : public MkGui::ComboBoxDataSource
 {
 public:
 	ShapeComboDataSource(NodeGraphPtr ownerGraph, ShapeComponentPtr shapeComponent, eShapeType shapeType)
@@ -85,9 +87,9 @@ public:
 		return comboEntries[index].shape;
 	}
 
-	virtual int getEntryCount() override { return (int)comboEntries.size(); }
+	virtual int getEntryCount() const override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override
+	virtual const std::string& getEntryDisplayString(int index) const override
 	{
 		assert(index >= 0 && index < (int)comboEntries.size());
 		return comboEntries[index].entryString;
@@ -208,15 +210,19 @@ void GraphShapeProperty::editorHandleMainFrameDragDrop(const class NodeEditorSta
 
 void GraphShapeProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Shape", editorState.styleManager))
+	MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("graphProperties.shapeHeader")))
 	{
 		// Name
-		std::string name= m_shapeComponent ? m_shapeComponent->getName() : "<No Shape>";
-		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
+		std::string name= m_shapeComponent ? m_shapeComponent->getName() : locText("graphProperties.noShape");
+		MkGui::drawStaticTextProperty(propertyStyle, locText("graphProperties.name"), name);
 
 		// Shape Type
 		int shapeTypeIndex= (int)m_shapeType;
-		if (ImGui::Combo("Type", &shapeTypeIndex, k_szShapeTypeStrings, (int)eShapeType::COUNT))
+		if (ImGui::Combo(locLabel("graphProperties.type"), &shapeTypeIndex, k_szShapeTypeStrings,
+						 (int)eShapeType::COUNT))
 		{
 			setShapeComponent(ShapeComponentPtr());
 			m_shapeType= (eShapeType)shapeTypeIndex;
@@ -225,12 +231,12 @@ void GraphShapeProperty::editorRenderPropertySheet(const class NodeEditorState& 
 		// Shape selection
 		ShapeComboDataSource dataSource(m_ownerGraph, m_shapeComponent, m_shapeType);
 		int selectedIndex= dataSource.getCurrentShapeIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("shapeSelection", "Source", &dataSource, selectedIndex,
-											   editorState.styleManager))
+		if (MkGui::drawComboBoxProperty(propertyStyle, "shapeSelection", locText("graphProperties.source"), &dataSource,
+										selectedIndex))
 		{
 			setShapeComponent(dataSource.getEntryShape(selectedIndex));
 		}
 	}
 }
 
-const ImVec4 GraphShapeProperty::editorGetIconColor() const { return NodeEditorUI::getComponentColor(); }
+const ImVec4 GraphShapeProperty::editorGetIconColor() const { return MkGui::getComponentColor(); }

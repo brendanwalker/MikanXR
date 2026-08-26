@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AssetReference.h"
+#include "LocText.h"
 
 class MaterialAssetReference : public AssetReference
 {
@@ -25,14 +26,14 @@ public:
 	MaterialAssetReferenceFactory();
 
 	virtual std::string getAssetTypeName() const { return "Material"; }
-	virtual char const* getFileDialogTitle() const { return "Load Material"; }
+	virtual char const* getFileDialogTitle() const { return locText("assets.loadMaterialDialogTitle"); }
 	virtual char const* const* getFilterPatterns() const
 	{
 		static const char* filterItems[1]= {"*.mat"};
 		return filterItems;
 	}
 	virtual int getFilterPatternCount() const { return 1; }
-	virtual char const* getFilterDescription() const { return "Material Files (*.mat)"; }
+	virtual char const* getFilterDescription() const { return locText("assets.materialFilterDescription"); }
 
 	virtual bool editorCanCreate() const { return true; }
 

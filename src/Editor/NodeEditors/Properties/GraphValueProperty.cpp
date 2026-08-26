@@ -1,6 +1,8 @@
 #include "GraphValueProperty.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "Graphs/NodeGraph.h"
 #include "Nodes/VariableNode.h"
 
@@ -15,10 +17,12 @@ void GraphValueProperty::editorHandleMainFrameDragDrop(const class NodeEditorSta
 
 void GraphValueProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Variable", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("graphProperties.variableHeader")))
 	{
 		// Name
-		NodeEditorUI::DrawStaticTextProperty("Name", getName(), editorState.styleManager);
+		MkGui::drawStaticTextProperty(editorState.styleManager->getStyle("node_editor_property_value"),
+									  locText("graphProperties.name"), getName());
 
 		// Variable Default
 		editorRenderValue(editorState);

@@ -4,6 +4,7 @@
 #include "EnumPropertyMetaData.h"
 #include "CommonConfig.h"
 #include "IEditorWindow.h"
+#include "LocText.h"
 #include "TransactionHistory.h"
 #include "MikanVariantTypes.h"
 #include "MkGuiStyleManager.h"
@@ -291,7 +292,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		else if (variantType == MikanVariantType::INT_ARRAY)
 		{
 			const auto& intList= value.getIntArrayValue();
-			ImGui::LabelText(propName.c_str(), "[%d items]", (int)intList.size());
+			ImGui::LabelText(propName.c_str(), locText("entityAccessor.itemsCountFmt"), (int)intList.size());
 			for (int i= 0; i < (int)intList.size(); ++i)
 			{
 				ImGui::Text("  [%d] %d", i, intList[i]);

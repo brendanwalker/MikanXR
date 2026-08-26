@@ -15,6 +15,7 @@
 #include "IMkWireframeMesh.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
+#include "LocText.h"
 #include "MathGLM.h"
 #include "MathMikan.h"
 #include "MainWindow.h"
@@ -226,7 +227,10 @@ void AppStage_Project::onGui()
 			MkGuiScopedWindow overlay("##ViewModeOverlay", nullptr, k_overlayFlags);
 			if (overlay)
 			{
-				static const char* k_viewLabels[]= {"Perspective", "Top", "Bottom", "Front", "Back", "Left", "Right"};
+				const char* k_viewLabels[]= {locText("project.viewPerspective"), locText("project.viewTop"),
+											 locText("project.viewBottom"),      locText("project.viewFront"),
+											 locText("project.viewBack"),        locText("project.viewLeft"),
+											 locText("project.viewRight")};
 
 				int currentIndex= 0;
 				if (camera->getProjectionMode() == eCameraProjectionMode::orthographic)
@@ -307,8 +311,9 @@ void AppStage_Project::onGui()
 	if (!panel)
 		return;
 
-	static const char* k_tabLabels[(int)eProjectAppStageActivePanel::COUNT]= {"Scenes",   "Stages",  "Sources",
-																			  "Tracking", "Markers", "Settings"};
+	const char* k_tabLabels[(int)eProjectAppStageActivePanel::COUNT]= {
+		locLabel("project.tabScenes"),   locLabel("project.tabStages"),  locLabel("project.tabSources"),
+		locLabel("project.tabTracking"), locLabel("project.tabMarkers"), locLabel("project.tabSettings")};
 	IGuiPanel* k_tabPanels[(int)eProjectAppStageActivePanel::COUNT]= {m_projectScenesPanel,  m_projectStagesPanel,
 																	  m_projectSourcesPanel, m_projectTrackingPanel,
 																	  m_projectMarkersPanel, m_projectSettingsPanel};
@@ -783,7 +788,7 @@ void AppStage_Project::renderCameraAlignmentGui()
 	ImGui::SetNextWindowPos(ImVec2((float)vpOrigin.x + 8, (float)vpOrigin.y + 44), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(340.f, 0.f), ImGuiCond_FirstUseEver);
 
-	if (ImGui::Begin("Camera Alignment Debug"))
+	if (ImGui::Begin(locWindowTitle("windows.cameraAlignmentDebug")))
 	{
 		const ImVec4 k_warnColor(1.f, 0.3f, 0.3f, 1.f);
 		int compositorCount= 0;
@@ -819,43 +824,46 @@ void AppStage_Project::renderCameraAlignmentGui()
 				const int calibWidth= (int)mono.pixel_width;
 				const int calibHeight= (int)mono.pixel_height;
 
-				ImGui::Text("Live resolution:  %d x %d", liveWidth, liveHeight);
-				ImGui::Text("Calib resolution: %d x %d", calibWidth, calibHeight);
+				ImGui::Text(locText("project.liveResolutionFmt"), liveWidth, liveHeight);
+				ImGui::Text(locText("project.calibResolutionFmt"), calibWidth, calibHeight);
 				if (liveWidth != calibWidth || liveHeight != calibHeight)
-					ImGui::TextColored(k_warnColor, "RESOLUTION MISMATCH");
+					ImGui::TextColored(k_warnColor, "%s", locText("project.resolutionMismatch"));
 
 				float fx= 0.f, fy= 0.f, cx= 0.f, cy= 0.f, skew= 0.f;
 				extractCameraIntrinsicMatrixParameters(mono.undistorted_camera_matrix, fx, fy, cx, cy, skew);
-				ImGui::Text("fx=%.1f  fy=%.1f", fx, fy);
-				ImGui::Text("cx=%.1f  cy=%.1f", cx, cy);
-				ImGui::Text("hfov=%.2f  vfov=%.2f deg", (float)mono.hfov, (float)mono.vfov);
-				ImGui::Text("znear=%.3f  zfar=%.1f m", (float)mono.znear, (float)mono.zfar);
+				ImGui::Text(locText("project.fxFyFmt"), fx, fy);
+				ImGui::Text(locText("project.cxCyFmt"), cx, cy);
+				ImGui::Text(locText("project.hfovVfovFmt"), (float)mono.hfov, (float)mono.vfov);
+				ImGui::Text(locText("project.znearZfarFmt"), (float)mono.znear, (float)mono.zfar);
 			}
 			else
 			{
-				ImGui::TextColored(k_warnColor, "No mono intrinsics");
+				ImGui::TextColored(k_warnColor, "%s", locText("project.noMonoIntrinsics"));
 			}
 
 			// Tracking + calibrated offsets
 			CameraDefinitionPtr cameraDef= cameraComponent->getCameraDefinition();
-			ImGui::Text("Tracking frame delay: %d", cameraDef->getTrackingFrameDelay());
-			ImGui::Text("Puck pose valid: %s", cameraComponent->hasValidTrackingMountPoseView() ? "yes" : "no");
+			ImGui::Text(locText("project.trackingFrameDelayFmt"), cameraDef->getTrackingFrameDelay());
+			ImGui::Text(locText("project.puckPoseValidFmt"), cameraComponent->hasValidTrackingMountPoseView()
+																 ? locText("project.yes")
+																 : locText("project.no"));
 
 			const bool offsetValid= cameraDef->hasValidApertureOffset();
-			ImGui::Text("Aperture offset valid: %s", offsetValid ? "yes" : "no");
+			ImGui::Text(locText("project.apertureOffsetValidFmt"),
+						offsetValid ? locText("project.yes") : locText("project.no"));
 			if (offsetValid)
 			{
 				const MikanVector3d p= cameraDef->getApertureOffsetPosition();
 				const MikanQuatd q= cameraDef->getApertureOffsetOrientation();
-				ImGui::Text("  pos (mm): %.1f, %.1f, %.1f", p.x * 1000.0, p.y * 1000.0, p.z * 1000.0);
-				ImGui::Text("  quat: w%.4f x%.4f y%.4f z%.4f", q.w, q.x, q.y, q.z);
+				ImGui::Text(locText("project.aperturePosFmt"), p.x * 1000.0, p.y * 1000.0, p.z * 1000.0);
+				ImGui::Text(locText("project.apertureQuatFmt"), q.w, q.x, q.y, q.z);
 			}
 
 			ImGui::PopID();
 		}
 
 		if (compositorCount == 0)
-			ImGui::TextDisabled("No active compositor cameras");
+			ImGui::TextDisabled("%s", locText("project.noActiveCompositorCameras"));
 	}
 	ImGui::End();
 }

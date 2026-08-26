@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "LocText.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
 
@@ -53,7 +54,7 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	virtual std::string editorGetTitle() const override { return "Apply Material"; }
+	virtual std::string editorGetTitle() const override { return locText("nodes.applyMaterialTitle"); }
 
 	void onGraphLoaded(bool success);
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;

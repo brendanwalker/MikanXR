@@ -1,6 +1,7 @@
 #include "VRTrackingRecenter/GuiPanel_VRTrackingRecenter.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 void GuiPanel_VRTrackingRecenter::setCurrentMarkerValid(bool valid)
 {
@@ -42,9 +43,9 @@ void GuiPanel_VRTrackingRecenter::onGui()
 	{
 	case eVRTrackingRecenterMenuState::pendingVideoStart:
 	{
-		ImGui::TextWrapped("Starting video stream...");
+		ImGui::TextWrapped("%s", locText("vrTrackingRecenter.startingVideoStream"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -54,14 +55,16 @@ void GuiPanel_VRTrackingRecenter::onGui()
 
 	case eVRTrackingRecenterMenuState::verifySetup:
 	{
-		ImGui::TextWrapped("Place the Aruco marker on the floor at the desired tracking origin.");
+		ImGui::TextWrapped("%s", locText("vrTrackingRecenter.placeMarker"));
 		ImGui::Spacing();
-		ImGui::Text("Marker Detected: %s", m_isCurrentMarkerValid ? "Yes" : "No");
-		ImGui::Text("Marker Stable: %s", m_isCurrentMarkerStable ? "Yes" : "No");
+		ImGui::Text(locText("vrTrackingRecenter.markerDetectedFmt"),
+					m_isCurrentMarkerValid ? locText("vrTrackingRecenter.yes") : locText("vrTrackingRecenter.no"));
+		ImGui::Text(locText("vrTrackingRecenter.markerStableFmt"),
+					m_isCurrentMarkerStable ? locText("vrTrackingRecenter.yes") : locText("vrTrackingRecenter.no"));
 		ImGui::Spacing();
 		if (!m_isCurrentMarkerStable)
 			ImGui::BeginDisabled();
-		if (ImGui::Button("Begin"))
+		if (ImGui::Button(locLabel("vrTrackingRecenter.begin")))
 		{
 			if (OnBeginEvent)
 				OnBeginEvent();
@@ -69,7 +72,7 @@ void GuiPanel_VRTrackingRecenter::onGui()
 		if (!m_isCurrentMarkerStable)
 			ImGui::EndDisabled();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -79,11 +82,11 @@ void GuiPanel_VRTrackingRecenter::onGui()
 
 	case eVRTrackingRecenterMenuState::capture:
 	{
-		ImGui::Text("Capturing marker pose samples...");
+		ImGui::TextUnformatted(locText("vrTrackingRecenter.capturingSamples"));
 		ImGui::Spacing();
 		ImGui::ProgressBar(m_calibrationPercent / 100.f);
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -93,15 +96,15 @@ void GuiPanel_VRTrackingRecenter::onGui()
 
 	case eVRTrackingRecenterMenuState::testCalibration:
 	{
-		ImGui::Text("VR tracking recentered successfully!");
+		ImGui::TextUnformatted(locText("vrTrackingRecenter.recenteredSuccessfully"));
 		ImGui::Spacing();
-		if (ImGui::Button("Restart"))
+		if (ImGui::Button(locLabel("vrTrackingRecenter.restart")))
 		{
 			if (OnRestartEvent)
 				OnRestartEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnReturnEvent)
 				OnReturnEvent();
@@ -111,9 +114,9 @@ void GuiPanel_VRTrackingRecenter::onGui()
 
 	case eVRTrackingRecenterMenuState::failedVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Error: Failed to start video stream.");
+		ImGui::TextWrapped("%s", locText("vrTrackingRecenter.failedVideoStream"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();

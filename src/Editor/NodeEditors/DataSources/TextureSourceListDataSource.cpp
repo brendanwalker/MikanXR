@@ -26,7 +26,7 @@ int TextureSourceListDataSource::getEntryIndex(TextureSourceComponentPtr Texture
 	return -1;
 }
 
-int TextureSourceListDataSource::getEntryCount() { return (int)comboEntrieValues.size(); }
+int TextureSourceListDataSource::getEntryCount() const { return (int)comboEntrieValues.size(); }
 
 TextureSourceComponentPtr TextureSourceListDataSource::getEntryAtIndex(int index) const
 {
@@ -34,4 +34,7 @@ TextureSourceComponentPtr TextureSourceListDataSource::getEntryAtIndex(int index
 																: TextureSourceComponentPtr();
 }
 
-const std::string& TextureSourceListDataSource::getEntryDisplayString(int index) { return comboEntrieNames[index]; }
+const std::string& TextureSourceListDataSource::getEntryDisplayString(int index) const
+{
+	return comboEntrieNames[index];
+}

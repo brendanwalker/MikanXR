@@ -2,6 +2,7 @@
 #include "AppStage.h"
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
+#include "LocText.h"
 #include "ModalDialog_SelectCamera.h"
 
 #include "imgui.h"
@@ -50,7 +51,7 @@ bool ModalDialog_SelectCamera::init(SelectCallback selectCallback, CancelCallbac
 
 		m_cameraIds.push_back((MikanCameraID)id);
 		const std::string name= camera->getName();
-		m_cameraNames.push_back(name.empty() ? ("Camera " + std::to_string(id)) : name);
+		m_cameraNames.push_back(name.empty() ? locFormat("project.cameraFallbackNameFmt", id) : name);
 	}
 
 	return true;
@@ -58,27 +59,26 @@ bool ModalDialog_SelectCamera::init(SelectCallback selectCallback, CancelCallbac
 
 void ModalDialog_SelectCamera::onGui()
 {
-	static const char* k_popupId= "Select Camera##SelectCameraModal";
+	const std::string k_popupId= std::string(locText("windows.selectCamera")) + "##SelectCameraModal";
 	if (m_bNeedsOpen)
 	{
-		ImGui::OpenPopup(k_popupId);
+		ImGui::OpenPopup(k_popupId.c_str());
 		m_bNeedsOpen= false;
 	}
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal(k_popupId.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text("Select Calibration Camera");
+		ImGui::TextUnformatted(locText("project.selectCalibrationCamera"));
 		ImGui::Separator();
 
-		auto itemGetter= [](void* data, int idx, const char** out) -> bool
+		auto itemGetter= [](void* data, int idx) -> const char*
 		{
 			const auto* names= static_cast<std::vector<std::string>*>(data);
 			if (idx < 0 || idx >= (int)names->size())
-				return false;
-			*out= (*names)[idx].c_str();
-			return true;
+				return nullptr;
+			return (*names)[idx].c_str();
 		};
 		ImGui::ListBox("##cameras", &m_selectedIndex, itemGetter, &m_cameraNames, (int)m_cameraNames.size());
 
@@ -88,7 +88,7 @@ void ModalDialog_SelectCamera::onGui()
 		const bool hasSelection= !m_cameraIds.empty();
 		if (!hasSelection)
 			ImGui::BeginDisabled();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			ImGui::CloseCurrentPopup();
 			selected= true;
@@ -96,7 +96,7 @@ void ModalDialog_SelectCamera::onGui()
 		if (!hasSelection)
 			ImGui::EndDisabled();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			ImGui::CloseCurrentPopup();
 			cancelled= true;

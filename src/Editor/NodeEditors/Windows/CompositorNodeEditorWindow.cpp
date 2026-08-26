@@ -5,10 +5,11 @@
 #include "CompositorObjectSystem.h"
 #include "CompositorNodeEditorWindow.h"
 #include "Logger.h"
+#include "LocText.h"
 #include "MkGuiScopedChild.h"
 #include "MkGuiScopedStyle.h"
 #include "MkGuiStyleManager.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
 
 #include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -109,7 +110,7 @@ void CompositorNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorSt
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
+		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleGraphVariablesDragDrop(editorState);
 			return;
@@ -123,8 +124,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 		getNodeGraph()->editorGetValidPropertyFactories(editorState);
 	for (auto factory : validPropertyFactories)
 	{
-		if (auto property=
-				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
+		if (auto property= MkGui::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -135,7 +135,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
+		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -151,7 +151,8 @@ void CompositorNodeEditorWindow::renderToolbar()
 
 	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
 
-	if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
+	const std::string saveButtonLabel= std::string(ICON_FK_FLOPPY_O "   ") + locLabel("nodeEditor.save");
+	if (ImGui::Button(saveButtonLabel.c_str(), ImVec2(0, 30)))
 	{
 		saveGraph(false);
 	}

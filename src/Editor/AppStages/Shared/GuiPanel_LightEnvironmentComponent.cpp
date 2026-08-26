@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "LightEnvironmentComponent.h"
+#include "LocText.h"
 #include "Shared/GuiPanel_LightEnvironmentComponent.h"
 
 #include "imgui.h"
@@ -28,7 +29,7 @@ void GuiPanel_LightEnvironmentComponent::onConstruct()
 			const SHLightingEnvironment environment= component->getScaledLightingEnvironment();
 
 			ImGui::Separator();
-			ImGui::TextUnformatted("Spherical Harmonics");
+			ImGui::TextUnformatted(locText("componentPanel.sphericalHarmonics"));
 
 			// The one coefficient that is a color in its own right: the l=0
 			// term convolved for Lambertian response is the ambient the scene
@@ -41,7 +42,7 @@ void GuiPanel_LightEnvironmentComponent::onConstruct()
 				ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker | ImGuiColorEditFlags_NoTooltip,
 				ImVec2(24.f, 24.f));
 			ImGui::SameLine();
-			ImGui::Text("Sky irradiance  %.3f %.3f %.3f", ambient.r, ambient.g, ambient.b);
+			ImGui::Text(locText("componentPanel.skyIrradianceFmt"), ambient.r, ambient.g, ambient.b);
 
 			// The raw coefficients are signed radiance, not colors: the l=1 and
 			// l=2 bands are routinely negative, and a swatch cannot show a
@@ -71,10 +72,8 @@ void GuiPanel_LightEnvironmentComponent::onConstruct()
 								   ImVec2(18.f, 18.f));
 				if (ImGui::IsItemHovered())
 				{
-					ImGui::SetTooltip("%s\n%+.4f  %+.4f  %+.4f\n\nSwatch is |value| relative to the largest "
-									  "coefficient, so it shows magnitude and hue only - the sign is in the "
-									  "numbers. Negative coefficients are normal for the l=1 and l=2 bands.",
-									  k_shCoefficientLabels[i], coefficient.r, coefficient.g, coefficient.b);
+					ImGui::SetTooltip(locText("componentPanel.shCoefficientTooltipFmt"), k_shCoefficientLabels[i],
+									  coefficient.r, coefficient.g, coefficient.b);
 				}
 				ImGui::SameLine();
 				ImGui::Text("%-11s %+.4f %+.4f %+.4f", k_shCoefficientLabels[i], coefficient.r, coefficient.g,
@@ -82,7 +81,7 @@ void GuiPanel_LightEnvironmentComponent::onConstruct()
 				ImGui::PopID();
 			}
 
-			ImGui::TextDisabled("Values include the exposure scale.");
+			ImGui::TextDisabled("%s", locText("componentPanel.exposureScaleNote"));
 			ImGui::Separator();
 
 			return true;
@@ -104,17 +103,17 @@ void GuiPanel_LightEnvironmentComponent::onConstruct()
 
 			if (directionality < k_lowDirectionalityThreshold)
 			{
-				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "Directionality (l1/l0): %.3f - near ambient",
+				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), locText("componentPanel.directionalityNearAmbientFmt"),
 								   directionality);
 				if (ImGui::IsItemHovered())
 				{
-					ImGui::SetTooltip("This environment is close to uniformly lit. The ambient term is usable, "
-									  "but the key light direction is not meaningful.");
+					ImGui::SetTooltip("%s", locText("componentPanel.directionalityLowTooltip"));
 				}
 			}
 			else
 			{
-				ImGui::TextColored(ImVec4(0.4f, 1.f, 0.4f, 1.f), "Directionality (l1/l0): %.3f", directionality);
+				ImGui::TextColored(ImVec4(0.4f, 1.f, 0.4f, 1.f), locText("componentPanel.directionalityFmt"),
+								   directionality);
 			}
 
 			return true;

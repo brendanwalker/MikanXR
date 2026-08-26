@@ -2,6 +2,7 @@
 #include "CameraComponent.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 void GuiPanel_AlignmentCameraSettings::setCameraDefinition(CameraDefinitionConstPtr cameraDefinition)
 {
@@ -21,7 +22,7 @@ void GuiPanel_AlignmentCameraSettings::onGui()
 	}
 
 	ImGui::Separator();
-	ImGui::Text("Camera Settings");
+	ImGui::TextUnformatted(locText("alignmentCalibration.cameraSettings"));
 	ImGui::Spacing();
 
 	// Viewpoint mode radio buttons
@@ -30,16 +31,13 @@ void GuiPanel_AlignmentCameraSettings::onGui()
 	int modeInt= (int)m_viewpointMode;
 	if (m_menuState == eAlignmentCalibrationMenuState::verifySetup)
 	{
-		ImGui::RadioButton(
-			k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::calibration].c_str(),
-			&modeInt, (int)eAlignmentCalibrationViewpointMode::calibration);
+		ImGui::RadioButton(locLabel("alignmentCalibration.viewpointCalibration"), &modeInt,
+						   (int)eAlignmentCalibrationViewpointMode::calibration);
 	}
-	ImGui::RadioButton(
-		k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::stageView].c_str(),
-		&modeInt, (int)eAlignmentCalibrationViewpointMode::stageView);
-	ImGui::RadioButton(
-		k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::xrView].c_str(), &modeInt,
-		(int)eAlignmentCalibrationViewpointMode::xrView);
+	ImGui::RadioButton(locLabel("alignmentCalibration.viewpointStageView"), &modeInt,
+					   (int)eAlignmentCalibrationViewpointMode::stageView);
+	ImGui::RadioButton(locLabel("alignmentCalibration.viewpointXrView"), &modeInt,
+					   (int)eAlignmentCalibrationViewpointMode::xrView);
 
 	if ((eAlignmentCalibrationViewpointMode)modeInt != prevMode)
 	{
@@ -52,7 +50,7 @@ void GuiPanel_AlignmentCameraSettings::onGui()
 
 	// VR Frame Delay slider
 	const int prevDelay= m_vrFrameDelay;
-	ImGui::SliderInt("VR Frame Delay", &m_vrFrameDelay, 0, 100);
+	ImGui::SliderInt(locLabel("alignmentCalibration.vrFrameDelay"), &m_vrFrameDelay, 0, 100);
 	if (m_vrFrameDelay != prevDelay)
 	{
 		if (OnVRFrameDelayChanged)

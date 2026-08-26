@@ -14,6 +14,7 @@
 #include "ProjectManager.h"
 #include "App.h"
 #include "AppSettingsConfig.h"
+#include "LocText.h"
 #include "MainWindow.h"
 #include "PathUtils.h"
 #include "Logger.h"
@@ -61,8 +62,8 @@ void AppStage_MainMenu::onOpenProject()
 	std::string defaultPath= (PathUtils::getProjectsRootDirectory() / "").string();
 	static const char* filterItems[1]= {"*.mikanproj"};
 
-	const char* picked=
-		tinyfd_openFileDialog("Open Project", defaultPath.c_str(), 1, filterItems, "Project Files (*.mikanproj)", 1);
+	const char* picked= tinyfd_openFileDialog(locText("mainMenu.openProjectDialogTitle"), defaultPath.c_str(), 1,
+											  filterItems, locText("mainMenu.projectFilesFilter"), 1);
 
 	if (picked == nullptr || picked[0] == '\0')
 		return;
@@ -78,7 +79,7 @@ void AppStage_MainMenu::onNewProject()
 {
 	std::string defaultPath= (PathUtils::getProjectsRootDirectory() / "").string();
 
-	const char* picked= tinyfd_selectFolderDialog("New Project Folder", defaultPath.c_str());
+	const char* picked= tinyfd_selectFolderDialog(locText("mainMenu.newProjectFolderDialogTitle"), defaultPath.c_str());
 
 	if (picked == nullptr || picked[0] == '\0')
 		return;
@@ -117,24 +118,24 @@ void AppStage_MainMenu::onGui()
 
 	const float buttonWidth= k_panelWidth - 40.f;
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	ImGui::Text("Main Menu");
+	ImGui::TextUnformatted(locText("mainMenu.title"));
 	ImGui::Separator();
 	ImGui::Spacing();
 
 	if (m_appSettingsConfig->hasLastProjectPath())
 	{
 		ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-		if (ImGui::Button("Resume Project", ImVec2(buttonWidth, 0)))
+		if (ImGui::Button(locLabel("mainMenu.resumeProject"), ImVec2(buttonWidth, 0)))
 			onResumeProject();
 	}
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	if (ImGui::Button("Open Project", ImVec2(buttonWidth, 0)))
+	if (ImGui::Button(locLabel("mainMenu.openProject"), ImVec2(buttonWidth, 0)))
 		onOpenProject();
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	if (ImGui::Button("New Project", ImVec2(buttonWidth, 0)))
+	if (ImGui::Button(locLabel("mainMenu.newProject"), ImVec2(buttonWidth, 0)))
 		onNewProject();
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	if (ImGui::Button("Exit", ImVec2(buttonWidth, 0)))
+	if (ImGui::Button(locLabel("mainMenu.exit"), ImVec2(buttonWidth, 0)))
 		onExit();
 }
 

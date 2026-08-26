@@ -1,6 +1,7 @@
 //-- includes -----
 #include "AlignCameraByUtilityMarker/AppStage_AlignCameraByUtilityMarker.h"
 #include "AlignCameraByUtilityMarker/GuiPanel_AlignCameraByUtilityMarker.h"
+#include "LocText.h"
 #include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "ArucoMarkerPoseSampler.h"
@@ -61,25 +62,22 @@ bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(AppStage* fromAppS
 	VideoSourceComponentPtr videoSource= targetCameraComponent->getVideoSourceComponent();
 	if (!videoSource)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage, "Target camera has no video source. Please assign a video source before aligning.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignCameraByUtilityMarker.noVideoSourceError"));
 		return false;
 	}
 
 	if (!videoSource->areCameraIntrinsicsValid())
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Target camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics first.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage,
+											   locText("alignCameraByUtilityMarker.invalidIntrinsicsError"));
 		return false;
 	}
 
 	// 2. Target camera must NOT have a tracking mount (this method is for untracked cameras)
 	if (targetCameraComponent->hasValidTrackingMountComponent())
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Target camera already has a tracking mount. Use the standard alignment calibration instead.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage,
+											   locText("alignCameraByUtilityMarker.alreadyHasTrackingMountError"));
 		return false;
 	}
 
@@ -87,9 +85,8 @@ bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(AppStage* fromAppS
 	VRTrackingVolumeComponentConstPtr trackingVolume= targetCameraComponent->getVRTrackingVolumeComponent();
 	if (!trackingVolume)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Target camera's stage has no VR tracking volume. Please assign a VR tracking volume to the stage.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage,
+											   locText("alignCameraByUtilityMarker.noTrackingVolumeError"));
 		return false;
 	}
 
@@ -98,8 +95,7 @@ bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(AppStage* fromAppS
 	if (utilityMarkerId == INVALID_MIKAN_ID)
 	{
 		ModalDialog_MessageBox::showMessageBox(fromAppStage,
-											   "The stage's VR tracking volume has no Utility Marker assigned. Please "
-											   "assign a utility marker to the tracking volume.");
+											   locText("alignCameraByUtilityMarker.noUtilityMarkerError"));
 		return false;
 	}
 
@@ -381,7 +377,7 @@ void AppStage_AlignCameraByUtilityMarker::onSourceCameraSelected(MikanCameraID c
 	m_sourceCameraComponent= cameraSystem->getCameraById(cameraId);
 	if (!m_sourceCameraComponent)
 	{
-		ModalDialog_MessageBox::showMessageBox(this, "Failed to find selected source camera. Please try again.");
+		ModalDialog_MessageBox::showMessageBox(this, locText("alignCameraByUtilityMarker.sourceCameraNotFoundError"));
 		openSourceCameraDialog();
 		return;
 	}
@@ -389,7 +385,8 @@ void AppStage_AlignCameraByUtilityMarker::onSourceCameraSelected(MikanCameraID c
 	VideoSourceComponentPtr sourceVideoSource= m_sourceCameraComponent->getVideoSourceComponent();
 	if (!sourceVideoSource || !sourceVideoSource->areCameraIntrinsicsValid())
 	{
-		ModalDialog_MessageBox::showMessageBox(this, "Selected source camera has no valid video source or intrinsics.");
+		ModalDialog_MessageBox::showMessageBox(
+			this, locText("alignCameraByUtilityMarker.sourceCameraInvalidIntrinsicsError"));
 		m_sourceCameraComponent= nullptr;
 		openSourceCameraDialog();
 		return;

@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
+#include "LocText.h"
 #include "NetworkVideoSourceComponent.h"
 
 bool GuiPanel_NetworkVideoSourceComponent::init() { return initTypedPropertyInterface<NetworkVideoSourceComponent>(); }
@@ -30,7 +31,7 @@ void GuiPanel_NetworkVideoSourceComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					videoSourceComp->makePropertyUIIdentifier(NetworkVideoSourceDefinition::k_protocolPropertyId),
-					"Protocol", &m_protocolDataSource, selectedIndex))
+					locText("componentPanel.protocol"), &m_protocolDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{

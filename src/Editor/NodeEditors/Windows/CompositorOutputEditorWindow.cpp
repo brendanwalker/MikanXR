@@ -19,6 +19,7 @@
 #include "IMkTriangulatedMesh.h"
 #include "InputManager.h"
 #include "LocalizationManager.h"
+#include "LocText.h"
 #include "MainWindow.h"
 #include "MikanCamera.h"
 #include "MikanModelResourceManager.h"
@@ -66,12 +67,13 @@ bool CompositorOutputEditorWindow::startup()
 	bool success= true;
 
 	if (success
-		&& !startupWindow("Compositor Output", k_compositor_output_window_width, k_compositor_output_window_height))
+		&& !startupWindow(locText("nodeEditor.compositorOutputWindowTitle"), k_compositor_output_window_width,
+						  k_compositor_output_window_height))
 	{
 		success= false;
 	}
 
-	if (success && !startupGuiContext())
+	if (success && !startupGuiContext("compositor_output"))
 	{
 		success= false;
 	}
@@ -193,8 +195,8 @@ void CompositorOutputEditorWindow::rebindCompositorFromScene()
 	}
 
 	// Update window title
-	std::string compositorName= compositor ? compositor->getName() : "No Compositor";
-	setTitle(compositorName + " - Compositor Output");
+	std::string compositorName= compositor ? compositor->getName() : locText("nodeEditor.noCompositor");
+	setTitle(locFormat("nodeEditor.compositorOutputTitleFmt", compositorName.c_str()));
 }
 
 void CompositorOutputEditorWindow::onSceneActivated(SceneComponentPtr newScene) { bindSceneComponent(newScene); }
@@ -395,7 +397,7 @@ void CompositorOutputEditorWindow::render()
 			style.horizontalAlignment= eHorizontalTextAlignment::Left;
 			style.verticalAlignment= eVerticalTextAlignment::Top;
 
-			std::string compositorName= compositor ? compositor->getName() : "No Compositor";
+			std::string compositorName= compositor ? compositor->getName() : locText("nodeEditor.noCompositor");
 			std::string videoSourceName;
 			if (compositor)
 			{

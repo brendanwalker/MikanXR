@@ -2,6 +2,7 @@
 
 #include "ComponentFwd.h"
 #include "CompositorConstants.h"
+#include "LocText.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
 
@@ -61,7 +62,7 @@ protected:
 	void evaluateBoxStencils(CameraComponentPtr cameraComponent, IMkState* glParentState);
 	void evaluateModelStencils(CameraComponentPtr cameraComponent, IMkState* glParentState);
 
-	virtual std::string editorGetTitle() const override { return "Draw Layer"; }
+	virtual std::string editorGetTitle() const override { return locText("nodes.drawLayerTitle"); }
 
 	void onGraphLoaded(bool success);
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;

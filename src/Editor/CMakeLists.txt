@@ -371,7 +371,13 @@ file(GLOB MIKAN_LOCALIZATION_SRC
 )
 source_group("Localization" FILES ${MIKAN_LOCALIZATION_SRC})
 
-# Localization
+file(GLOB MIKAN_LOCALIZATION_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Localization/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Localization/Test/*.h"
+)
+source_group("Localization\\Test" FILES ${MIKAN_LOCALIZATION_TEST_SRC})
+
+# Math
 file(GLOB MIKAN_MATH_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Math/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Math/*.h"
@@ -499,6 +505,7 @@ set(MIKAN_SRC
     ${MIKAN_ECS_SRC}
     ${MIKAN_INTERPROCESS_SRC}
     ${MIKAN_LOCALIZATION_SRC}
+    ${MIKAN_LOCALIZATION_TEST_SRC}
     ${MIKAN_MATH_SRC}
     ${MIKAN_NODE_EDITORS_SRC}
     ${MIKAN_OBJECT_SRC}
@@ -546,6 +553,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanOnnx/Public
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
+  ${CMAKE_CURRENT_LIST_DIR}/Localization/Test
   ${CMAKE_CURRENT_LIST_DIR}/Math
   ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV

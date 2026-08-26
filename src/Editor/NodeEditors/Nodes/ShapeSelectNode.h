@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LocText.h"
 #include "Node.h"
 #include "ComponentFwd.h"
 
@@ -43,7 +44,7 @@ public:
 protected:
 	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
 		const NodeEditorState& editorState) const override;
-	virtual std::string editorGetTitle() const override { return "Shape Select"; }
+	virtual std::string editorGetTitle() const override { return locText("nodes.shapeSelectTitle"); }
 
 protected:
 	ArrayPinPtr m_shapesOutPin;

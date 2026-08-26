@@ -171,7 +171,8 @@ bool App::startup(int argc, char** argv)
 	// Enable auto-save on a cooldown when settings are changed
 	m_appSettings->setAutoSaveCooldownDuration(SETTINGS_SAVE_COOLDOWN);
 
-	if (success && !m_localizationManager->startup(m_appSettings))
+	const std::filesystem::path localizationDir= PathUtils::getResourceDirectory() / "localization";
+	if (success && !m_localizationManager->startup(localizationDir, m_appSettings))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
 		success= false;

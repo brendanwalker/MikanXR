@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
+#include "LocText.h"
 #include "SpoutTextureSourceComponent.h"
 #include "SpoutTextureSourceSystem.h"
 
@@ -29,7 +30,7 @@ void GuiPanel_SpoutTextureSourceComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					textureSourceComp->makePropertyUIIdentifier(SpoutTextureSourceDefinition::k_spoutSourcePropertyId),
-					"Spout Source", &m_spoutSenderDataSource, selectedIndex))
+					locText("componentPanel.spoutSource"), &m_spoutSenderDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{

@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "DMXObjectSystem.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Shared/GuiPanel_DMXObjectSystem.h"
@@ -13,68 +14,71 @@ void GuiPanel_DMXObjectSystem::onConstruct()
 	if (MkGuiStyleManager* mgr= getGuiStyleManager())
 		m_defaultGuiStyle= mgr->getStyle("default_component_panel");
 
-	m_entityAccessor->setPropertyRenderer(DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId,
-										  [this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
-										  {
-											  auto def= getDMXObjectSystemDefinition();
-											  if (!def)
-												  return false;
+	m_entityAccessor->setPropertyRenderer(
+		DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			auto def= getDMXObjectSystemDefinition();
+			if (!def)
+				return false;
 
-											  char ipBuf[64];
-											  const std::string& ip= def->getNetworkInterfaceIP();
-											  strncpy_s(ipBuf, ip.c_str(), sizeof(ipBuf) - 1);
-											  if (ImGui::InputText("Network Interface IP", ipBuf, sizeof(ipBuf)))
-											  {
-												  const std::string newIp(ipBuf);
-												  addDeferredGuiEvent(
-													  [this, newIp]()
-													  {
-														  if (auto d= getDMXObjectSystemDefinition())
-															  d->setNetworkInterfaceIP(newIp);
-													  });
-											  }
-											  return true;
-										  });
+			char ipBuf[64];
+			const std::string& ip= def->getNetworkInterfaceIP();
+			strncpy_s(ipBuf, ip.c_str(), sizeof(ipBuf) - 1);
+			if (ImGui::InputText(locLabel("objectSystemPanel.networkInterfaceIP"), ipBuf, sizeof(ipBuf)))
+			{
+				const std::string newIp(ipBuf);
+				addDeferredGuiEvent(
+					[this, newIp]()
+					{
+						if (auto d= getDMXObjectSystemDefinition())
+							d->setNetworkInterfaceIP(newIp);
+					});
+			}
+			return true;
+		});
 
-	m_entityAccessor->setPropertyRenderer(DMXObjectSystemDefinition::k_dmxPriorityPropertyId,
-										  [this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
-										  {
-											  auto def= getDMXObjectSystemDefinition();
-											  if (!def)
-												  return false;
+	m_entityAccessor->setPropertyRenderer(
+		DMXObjectSystemDefinition::k_dmxPriorityPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			auto def= getDMXObjectSystemDefinition();
+			if (!def)
+				return false;
 
-											  int priority= (int)def->getDMXPriority();
-											  if (ImGui::SliderInt("DMX Priority", &priority, 0, 200))
-											  {
-												  addDeferredGuiEvent(
-													  [this, priority]()
-													  {
-														  if (auto d= getDMXObjectSystemDefinition())
-															  d->setDMXPriority((uint8_t)priority);
-													  });
-											  }
-											  return true;
-										  });
+			int priority= (int)def->getDMXPriority();
+			if (ImGui::SliderInt(locLabel("objectSystemPanel.dmxPriority"), &priority, 0, 200))
+			{
+				addDeferredGuiEvent(
+					[this, priority]()
+					{
+						if (auto d= getDMXObjectSystemDefinition())
+							d->setDMXPriority((uint8_t)priority);
+					});
+			}
+			return true;
+		});
 
-	m_entityAccessor->setPropertyRenderer(DMXObjectSystemDefinition::k_transmitRateHzPropertyId,
-										  [this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
-										  {
-											  auto def= getDMXObjectSystemDefinition();
-											  if (!def)
-												  return false;
+	m_entityAccessor->setPropertyRenderer(
+		DMXObjectSystemDefinition::k_transmitRateHzPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			auto def= getDMXObjectSystemDefinition();
+			if (!def)
+				return false;
 
-											  float rate= def->getTransmitRateHz();
-											  if (ImGui::InputFloat("Transmit Rate (Hz)", &rate, 1.0f, 10.0f, "%.1f"))
-											  {
-												  addDeferredGuiEvent(
-													  [this, rate]()
-													  {
-														  if (auto d= getDMXObjectSystemDefinition())
-															  d->setTransmitRateHz(rate);
-													  });
-											  }
-											  return true;
-										  });
+			float rate= def->getTransmitRateHz();
+			if (ImGui::InputFloat(locLabel("objectSystemPanel.transmitRateHz"), &rate, 1.0f, 10.0f, "%.1f"))
+			{
+				addDeferredGuiEvent(
+					[this, rate]()
+					{
+						if (auto d= getDMXObjectSystemDefinition())
+							d->setTransmitRateHz(rate);
+					});
+			}
+			return true;
+		});
 }
 
 void GuiPanel_DMXObjectSystem::onGui() { GuiPanel_MikanObjectSystem::onGui(); }

@@ -1,7 +1,6 @@
 {
   "files": [
-    "default_en.csv",
-    "default_ja.csv",
-    "MainMenu_en.csv"
+    "en.json",
+    "ja.json"
   ]
 }

@@ -1,4 +1,5 @@
 #include "AppStage.h"
+#include "LocText.h"
 #include "MarkerComponent.h"
 #include "MarkerTrackingVolumeComponent.h"
 #include "MikanCoreTypes.h"
@@ -38,7 +39,7 @@ void GuiPanel_MarkerTrackingVolumeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					volumeComp->makePropertyUIIdentifier(TrackingVolumeDefinition::k_originMarkerIdPropertyId),
-					"Origin Marker", &m_originMarkerDataSource, selectedIndex))
+					locText("componentPanel.originMarker"), &m_originMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{

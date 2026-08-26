@@ -2,6 +2,7 @@
 #include "AssetReferencePropertyMetaData.h"
 #include "GuiPanel_MikanComponent.h"
 #include "ComponentScriptContext.h"
+#include "LocText.h"
 #include "MikanComponent.h"
 #include "MkGuiStyleManager.h"
 
@@ -66,8 +67,8 @@ void GuiPanel_MikanComponent::onConstruct()
 
 				if (MkGui::drawFilePathProperty(
 						m_defaultGuiStyle,
-						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId), "Script",
-						scriptPath))
+						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId),
+						locText("componentPanel.script"), scriptPath))
 				{
 					addDeferredGuiEvent([component]() { component->selectComponentScript(); });
 				}
@@ -99,7 +100,8 @@ void GuiPanel_MikanComponent::onConstruct()
 			}
 			else
 			{
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "Script", "<No Script>");
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.script"),
+											  locText("componentPanel.noScript"));
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
 						m_defaultGuiStyle,
@@ -137,7 +139,7 @@ void GuiPanel_MikanComponent::onGui()
 			if (!triggers.empty())
 			{
 				ImGui::Separator();
-				ImGui::Text("Script Triggers");
+				ImGui::TextUnformatted(locText("componentPanel.scriptTriggers"));
 				for (const std::string& triggerName : triggers)
 				{
 					if (ImGui::Button(triggerName.c_str()))

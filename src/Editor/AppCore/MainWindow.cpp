@@ -152,7 +152,7 @@ bool MainWindow::startup()
 	if (success)
 	{
 		bool ok= false;
-		MIKAN_TIMED_STARTUP("startupGuiContext", ok= startupGuiContext());
+		MIKAN_TIMED_STARTUP("startupGuiContext", ok= startupGuiContext("main"));
 		if (!ok)
 			success= false;
 	}

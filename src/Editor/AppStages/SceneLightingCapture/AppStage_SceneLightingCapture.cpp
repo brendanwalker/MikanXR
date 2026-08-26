@@ -16,6 +16,7 @@
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "LightEnvironmentComponent.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "MikanCamera.h"
 #include "MikanViewport.h"
@@ -105,7 +106,8 @@ void AppStage_SceneLightingCapture::enter()
 	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
 
 	m_capturePanel= addGuiPanel<GuiPanel_SceneLightingCapture>();
-	m_capturePanel->setProbeName(m_targetProbe ? m_targetProbe->getName() : std::string("<none>"));
+	m_capturePanel->setProbeName(m_targetProbe ? m_targetProbe->getName()
+											   : std::string(locText("sceneLightingCapture.noProbe")));
 	m_capturePanel->OnCaptureEvent= [this]() { onCaptureEvent(); };
 	m_capturePanel->OnCancelCaptureEvent= [this]() { onCancelCaptureEvent(); };
 	m_capturePanel->OnApplyEvent= [this]() { onApplyEvent(); };
@@ -240,7 +242,7 @@ void AppStage_SceneLightingCapture::onCaptureEvent()
 	cv::Mat* bgrBuffer= m_monoDistortionView->getBGRUndistortBuffer();
 	if (bgrBuffer == nullptr || bgrBuffer->empty())
 	{
-		m_capturePanel->setFailureReason("No undistorted color frame was available from the video source.");
+		m_capturePanel->setFailureReason(locText("sceneLightingCapture.noUndistortedFrame"));
 		setMenuState(eSceneLightingCaptureMenuState::failedInference);
 		return;
 	}
@@ -250,7 +252,7 @@ void AppStage_SceneLightingCapture::onCaptureEvent()
 	glm::mat4 cameraPose(1.f);
 	if (!m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
 	{
-		m_capturePanel->setFailureReason("Could not resolve the camera pose. Is the camera tracked?");
+		m_capturePanel->setFailureReason(locText("sceneLightingCapture.cameraPoseUnresolved"));
 		setMenuState(eSceneLightingCaptureMenuState::failedInference);
 		return;
 	}
@@ -391,10 +393,8 @@ void AppStage_SceneLightingCapture::runEstimateRequest(const EstimateRequest& re
 		auto newEstimator= std::make_unique<SceneLightingEstimator>();
 		if (!newEstimator->startup(config))
 		{
-			outOutput.failureReason= StringUtils::stringify(
-				"Could not load the models from '", modelDirectory.string(), "' and '", mogeModelDirectory.string(),
-				"'. Run tools/export_marigold_onnx.py and tools/fetch_moge2_onnx.py to produce them. See MikanCmd.log"
-				" for details.");
+			outOutput.failureReason= locFormat("sceneLightingCapture.modelLoadFailedFmt",
+											   modelDirectory.string().c_str(), mogeModelDirectory.string().c_str());
 			return;
 		}
 
@@ -428,7 +428,7 @@ void AppStage_SceneLightingCapture::runEstimateRequest(const EstimateRequest& re
 		if (bIsCancelled())
 			outOutput.bCancelled= true;
 		else
-			outOutput.failureReason= "Lighting estimation failed. See MikanCmd.log for details.";
+			outOutput.failureReason= locText("sceneLightingCapture.estimationFailedSeeLog");
 		return;
 	}
 

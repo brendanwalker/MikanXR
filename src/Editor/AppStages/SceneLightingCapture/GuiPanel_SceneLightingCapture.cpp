@@ -1,6 +1,7 @@
 #include "SceneLightingCapture/GuiPanel_SceneLightingCapture.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 #include <cfloat>
 #include <cstdio>
@@ -16,15 +17,15 @@ void GuiPanel_SceneLightingCapture::onGui()
 	{
 	case eSceneLightingCaptureMenuState::pendingVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Starting the video stream...");
+		ImGui::TextWrapped("%s", locText("sceneLightingCapture.startingVideoStream"));
 	}
 	break;
 
 	case eSceneLightingCaptureMenuState::failedVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Failed to start the video stream.");
+		ImGui::TextWrapped("%s", locText("sceneLightingCapture.videoStreamStartFailed"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -34,28 +35,26 @@ void GuiPanel_SceneLightingCapture::onGui()
 
 	case eSceneLightingCaptureMenuState::verifyCameraSetup:
 	{
-		ImGui::TextWrapped("Frame a view of the scene that shows a good spread of surface orientations - "
-						   "floor, walls and objects. Flat views of a single wall cannot constrain the "
-						   "lighting.");
+		ImGui::TextWrapped("%s", locText("sceneLightingCapture.frameSceneInstructions"));
 		ImGui::Spacing();
-		ImGui::TextWrapped("Probe: %s", m_probeName.c_str());
+		ImGui::TextWrapped("%s", locFormat("sceneLightingCapture.probeFmt", m_probeName.c_str()).c_str());
 		if (!m_executionProvider.empty())
 		{
-			ImGui::TextWrapped("Inference backend: %s", m_executionProvider.c_str());
+			ImGui::TextWrapped(
+				"%s", locFormat("sceneLightingCapture.inferenceBackendFmt", m_executionProvider.c_str()).c_str());
 			if (m_executionProvider == "CPU")
 			{
-				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f),
-								   "Running on CPU - this will take minutes rather than seconds.");
+				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "%s", locText("sceneLightingCapture.cpuWarning"));
 			}
 		}
 		ImGui::Spacing();
-		if (ImGui::Button("Capture"))
+		if (ImGui::Button(locLabel("sceneLightingCapture.capture")))
 		{
 			if (OnCaptureEvent)
 				OnCaptureEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -65,24 +64,24 @@ void GuiPanel_SceneLightingCapture::onGui()
 
 	case eSceneLightingCaptureMenuState::runningInference:
 	{
-		const char* phaseLabel= "Working...";
+		const char* phaseLabel= locText("sceneLightingCapture.working");
 		int stepIndex= 1;
 		switch (m_estimatePhase)
 		{
 		case eSceneLightingEstimatePhase::loadingModels:
-			phaseLabel= "Loading the lighting and geometry models...";
+			phaseLabel= locText("sceneLightingCapture.loadingModels");
 			stepIndex= 1;
 			break;
 		case eSceneLightingEstimatePhase::decomposingShading:
-			phaseLabel= "Decomposing the frame into diffuse shading...";
+			phaseLabel= locText("sceneLightingCapture.decomposingShading");
 			stepIndex= 2;
 			break;
 		case eSceneLightingEstimatePhase::estimatingGeometry:
-			phaseLabel= "Estimating surface normals...";
+			phaseLabel= locText("sceneLightingCapture.estimatingGeometry");
 			stepIndex= 3;
 			break;
 		case eSceneLightingEstimatePhase::fittingLighting:
-			phaseLabel= "Fitting the lighting environment...";
+			phaseLabel= locText("sceneLightingCapture.fittingLighting");
 			stepIndex= 4;
 			break;
 		default:
@@ -90,7 +89,7 @@ void GuiPanel_SceneLightingCapture::onGui()
 		}
 
 		if (m_bCancellingEstimate)
-			ImGui::TextWrapped("Cancelling...");
+			ImGui::TextWrapped("%s", locText("sceneLightingCapture.cancelling"));
 		else
 			ImGui::TextWrapped("%s", phaseLabel);
 
@@ -100,13 +99,14 @@ void GuiPanel_SceneLightingCapture::onGui()
 		// bar moves through the step that dominates the wall clock. The elapsed
 		// clock covers the steps that cannot report anything.
 		char overlay[32];
-		snprintf(overlay, sizeof(overlay), "Step %d of %d", stepIndex, k_sceneLightingEstimateStepCount);
+		snprintf(overlay, sizeof(overlay), locText("sceneLightingCapture.stepOfStepsFmt"), stepIndex,
+				 k_sceneLightingEstimateStepCount);
 		ImGui::ProgressBar(m_estimateFraction, ImVec2(-FLT_MIN, 0.f), overlay);
-		ImGui::TextWrapped("%.1f s elapsed", m_estimateElapsedSeconds);
+		ImGui::TextWrapped("%s", locFormat("sceneLightingCapture.elapsedSecondsFmt", m_estimateElapsedSeconds).c_str());
 
 		ImGui::Spacing();
 		ImGui::BeginDisabled(m_bCancellingEstimate);
-		if (ImGui::Button("Cancel Capture"))
+		if (ImGui::Button(locLabel("sceneLightingCapture.cancelCapture")))
 		{
 			if (OnCancelCaptureEvent)
 				OnCancelCaptureEvent();
@@ -117,18 +117,18 @@ void GuiPanel_SceneLightingCapture::onGui()
 
 	case eSceneLightingCaptureMenuState::failedInference:
 	{
-		ImGui::TextWrapped("Lighting estimation failed.");
+		ImGui::TextWrapped("%s", locText("sceneLightingCapture.estimationFailed"));
 		ImGui::Spacing();
 		if (!m_failureReason.empty())
 			ImGui::TextWrapped("%s", m_failureReason.c_str());
 		ImGui::Spacing();
-		if (ImGui::Button("Retry"))
+		if (ImGui::Button(locLabel("sceneLightingCapture.retry")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -138,7 +138,7 @@ void GuiPanel_SceneLightingCapture::onGui()
 
 	case eSceneLightingCaptureMenuState::verifyEstimate:
 	{
-		ImGui::TextWrapped("Estimate recovered from %d pixels.", m_sampleCount);
+		ImGui::TextWrapped("%s", locFormat("sceneLightingCapture.estimateRecoveredFmt", m_sampleCount).c_str());
 		ImGui::Spacing();
 
 		// Directionality is the confidence signal. Surfacing it prominently is
@@ -147,36 +147,37 @@ void GuiPanel_SceneLightingCapture::onGui()
 		// feature can mislead.
 		if (m_directionality < k_lowDirectionalityThreshold)
 		{
-			ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "Directionality (l1/l0): %.3f - near ambient",
-							   m_directionality);
-			ImGui::TextWrapped("This scene is close to uniformly lit. The ambient term is usable, but the "
-							   "key light direction is not meaningful and should not be used to place a "
-							   "directional light.");
+			ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f),
+							   locText("sceneLightingCapture.directionalityNearAmbientFmt"), m_directionality);
+			ImGui::TextWrapped("%s", locText("sceneLightingCapture.nearAmbientExplanation"));
 		}
 		else
 		{
-			ImGui::TextColored(ImVec4(0.4f, 1.f, 0.4f, 1.f), "Directionality (l1/l0): %.3f", m_directionality);
-			ImGui::TextWrapped("Key light direction: %s", m_keyDirection.c_str());
+			ImGui::TextColored(ImVec4(0.4f, 1.f, 0.4f, 1.f), locText("sceneLightingCapture.directionalityFmt"),
+							   m_directionality);
+			ImGui::TextWrapped("%s",
+							   locFormat("sceneLightingCapture.keyLightDirectionFmt", m_keyDirection.c_str()).c_str());
 		}
 
 		ImGui::Spacing();
-		ImGui::TextWrapped("Ambient: %s", m_ambient.c_str());
+		ImGui::TextWrapped("%s", locFormat("sceneLightingCapture.ambientFmt", m_ambient.c_str()).c_str());
 
 		if (m_negativeSolidAngleFraction > 0.01f)
 		{
 			ImGui::Spacing();
-			ImGui::TextWrapped("Negative radiance over %.0f%% of the sphere. This is expected for "
-							   "directional scenes - order-2 spherical harmonics cannot represent a sharp "
-							   "light - and is clamped when the environment is used.",
-							   m_negativeSolidAngleFraction * 100.f);
+			ImGui::TextWrapped(
+				"%s",
+				locFormat("sceneLightingCapture.negativeRadianceFmt", m_negativeSolidAngleFraction * 100.f).c_str());
 		}
 
 		ImGui::Spacing();
 
 		int previewIndex= (int)m_previewMode;
-		const char* k_previewLabels[]= {"Recovered lighting", "Relit scene", "Model shading (fit target)",
-										"Lit sphere"};
-		if (ImGui::Combo("Preview", &previewIndex, k_previewLabels, IM_ARRAYSIZE(k_previewLabels)))
+		const char* k_previewLabels[]= {
+			locText("sceneLightingCapture.previewRecoveredLighting"), locText("sceneLightingCapture.previewRelitScene"),
+			locText("sceneLightingCapture.previewModelShading"), locText("sceneLightingCapture.previewLitSphere")};
+		if (ImGui::Combo(locLabel("sceneLightingCapture.preview"), &previewIndex, k_previewLabels,
+						 IM_ARRAYSIZE(k_previewLabels)))
 		{
 			m_previewMode= (eLightingPreviewMode)previewIndex;
 		}
@@ -184,20 +185,16 @@ void GuiPanel_SceneLightingCapture::onGui()
 		switch (m_previewMode)
 		{
 		case eLightingPreviewMode::recoveredLighting:
-			ImGui::TextWrapped("The recovered environment evaluated at the scene's own normals. Compare "
-							   "against 'Model shading' - where they agree, the estimate explains the "
-							   "lighting.");
+			ImGui::TextWrapped("%s", locText("sceneLightingCapture.previewRecoveredLightingExplanation"));
 			break;
 		case eLightingPreviewMode::relitScene:
-			ImGui::TextWrapped("The plate re-rendered with only the recovered lighting. It should read "
-							   "like the real frame, minus cast shadows.");
+			ImGui::TextWrapped("%s", locText("sceneLightingCapture.previewRelitSceneExplanation"));
 			break;
 		case eLightingPreviewMode::modelShading:
-			ImGui::TextWrapped("The diffuse shading the fit solved against. Its cast shadows are the part "
-							   "an environment probe cannot reproduce.");
+			ImGui::TextWrapped("%s", locText("sceneLightingCapture.previewModelShadingExplanation"));
 			break;
 		case eLightingPreviewMode::litSphere:
-			ImGui::TextWrapped("A sphere lit by the recovered environment, in camera space.");
+			ImGui::TextWrapped("%s", locText("sceneLightingCapture.previewLitSphereExplanation"));
 			break;
 		default:
 			break;
@@ -208,26 +205,24 @@ void GuiPanel_SceneLightingCapture::onGui()
 		// missing cast shadows are structural and not a bad estimate.
 		if (m_previewMode != eLightingPreviewMode::litSphere)
 		{
-			ImGui::TextWrapped("Cast shadows are absent by construction - an environment probe has no "
-							   "visibility term. Judge the direction and color of the shading, not the "
-							   "shadows.");
+			ImGui::TextWrapped("%s", locText("sceneLightingCapture.noCastShadowsNote"));
 		}
 
 		ImGui::Spacing();
 
-		if (ImGui::Button("Apply"))
+		if (ImGui::Button(locLabel("sceneLightingCapture.apply")))
 		{
 			if (OnApplyEvent)
 				OnApplyEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("sceneLightingCapture.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -237,9 +232,9 @@ void GuiPanel_SceneLightingCapture::onGui()
 
 	case eSceneLightingCaptureMenuState::captureComplete:
 	{
-		ImGui::TextWrapped("Lighting applied to probe '%s'.", m_probeName.c_str());
+		ImGui::TextWrapped("%s", locFormat("sceneLightingCapture.lightingAppliedFmt", m_probeName.c_str()).c_str());
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();

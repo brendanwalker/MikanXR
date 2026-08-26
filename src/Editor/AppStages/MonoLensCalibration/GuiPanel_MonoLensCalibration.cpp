@@ -1,6 +1,7 @@
 #include "MonoLensCalibration/GuiPanel_MonoLensCalibration.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 void GuiPanel_MonoLensCalibration::setCurrentImagePointsValid(bool valid)
 {
@@ -49,14 +50,18 @@ void GuiPanel_MonoLensCalibration::onGui()
 	{
 	case eMonoLensCalibrationMenuState::capture:
 	{
-		ImGui::Text("Pattern Detected: %s", m_areCurrentImagePointsValid ? "Yes" : "No");
-		ImGui::Text("Pattern Stable: %s", m_areCurrentImagePointsStable ? "Yes" : "No");
+		ImGui::Text(locText("monoLensCalibration.patternDetectedFmt"), m_areCurrentImagePointsValid
+																		   ? locText("monoLensCalibration.yes")
+																		   : locText("monoLensCalibration.no"));
+		ImGui::Text(locText("monoLensCalibration.patternStableFmt"), m_areCurrentImagePointsStable
+																		 ? locText("monoLensCalibration.yes")
+																		 : locText("monoLensCalibration.no"));
 		ImGui::Spacing();
-		ImGui::Text("Hold the calibration board steady in different positions. Press SPACE to sample.");
+		ImGui::TextUnformatted(locText("monoLensCalibration.holdBoardSteady"));
 		ImGui::Spacing();
 		ImGui::ProgressBar(m_calibrationPercent / 100.f);
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -66,22 +71,22 @@ void GuiPanel_MonoLensCalibration::onGui()
 
 	case eMonoLensCalibrationMenuState::processingCalibration:
 	{
-		ImGui::Text("Processing calibration...");
+		ImGui::TextUnformatted(locText("monoLensCalibration.processingCalibration"));
 	}
 	break;
 
 	case eMonoLensCalibrationMenuState::testCalibration:
 	{
-		ImGui::Text("Calibration complete!");
-		ImGui::Text("Reprojection Error: %.4f", m_reprojectionError);
+		ImGui::TextUnformatted(locText("monoLensCalibration.calibrationComplete"));
+		ImGui::Text(locText("monoLensCalibration.reprojectionErrorFmt"), m_reprojectionError);
 		ImGui::Spacing();
-		if (ImGui::Button("Restart"))
+		if (ImGui::Button(locLabel("monoLensCalibration.restart")))
 		{
 			if (OnRestartEvent)
 				OnRestartEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnReturnEvent)
 				OnReturnEvent();
@@ -91,15 +96,15 @@ void GuiPanel_MonoLensCalibration::onGui()
 
 	case eMonoLensCalibrationMenuState::failedCalibration:
 	{
-		ImGui::TextWrapped("Calibration failed. Please try again with more samples.");
+		ImGui::TextWrapped("%s", locText("monoLensCalibration.calibrationFailed"));
 		ImGui::Spacing();
-		if (ImGui::Button("Restart"))
+		if (ImGui::Button(locLabel("monoLensCalibration.restart")))
 		{
 			if (OnRestartEvent)
 				OnRestartEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnReturnEvent)
 				OnReturnEvent();
@@ -109,9 +114,9 @@ void GuiPanel_MonoLensCalibration::onGui()
 
 	case eMonoLensCalibrationMenuState::failedVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Error: Failed to start video stream.");
+		ImGui::TextWrapped("%s", locText("monoLensCalibration.failedVideoStream"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();

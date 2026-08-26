@@ -10,6 +10,7 @@
 #include "DepthMeshGeneratorTests.h"
 #include "DMXUniverseRLETests.h"
 #include "LightEnvironmentPersistenceTests.h"
+#include "LocalizationTests.h"
 #include "PropertyNotificationGuardTests.h"
 
 #include <opencv2/opencv.hpp>
@@ -30,6 +31,7 @@ bool run_all_editor_unit_tests()
 	success&= run_depth_mesh_generator_unit_tests();
 	success&= run_dmx_universe_rle_tests();
 	success&= run_light_environment_persistence_tests();
+	success&= run_localization_unit_tests();
 	success&= run_property_notification_guard_tests();
 	// Future: add more test modules here
 	return success;

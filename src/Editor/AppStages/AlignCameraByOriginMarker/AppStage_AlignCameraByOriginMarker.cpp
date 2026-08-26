@@ -1,6 +1,7 @@
 //-- includes -----
 #include "AlignCameraByOriginMarker/AppStage_AlignCameraByOriginMarker.h"
 #include "AlignCameraByOriginMarker/GuiPanel_AlignCameraByOriginMarker.h"
+#include "LocText.h"
 #include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "ArucoMarkerPoseSampler.h"
 #include "CalibrationRenderHelpers.h"
@@ -57,25 +58,22 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(AppStage* fromAppSt
 	VideoSourceComponentPtr videoSource= targetCameraComponent->getVideoSourceComponent();
 	if (!videoSource)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage, "Target camera has no video source. Please assign a video source before aligning.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignCameraByOriginMarker.noVideoSourceError"));
 		return false;
 	}
 
 	if (!videoSource->areCameraIntrinsicsValid())
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Target camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics first.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage,
+											   locText("alignCameraByOriginMarker.invalidIntrinsicsError"));
 		return false;
 	}
 
 	// 2. Target camera must NOT have a tracking mount (this method is for static cameras)
 	if (targetCameraComponent->hasValidTrackingMountComponent())
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Target camera already has a tracking mount. Use the standard alignment calibration instead.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage,
+											   locText("alignCameraByOriginMarker.alreadyHasTrackingMountError"));
 		return false;
 	}
 
@@ -83,15 +81,15 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(AppStage* fromAppSt
 	StageComponentConstPtr ownerStage= targetCameraComponent->getOwnerStageComponent();
 	if (!ownerStage)
 	{
-		ModalDialog_MessageBox::showMessageBox(fromAppStage, "Target camera has no owner stage.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignCameraByOriginMarker.noOwnerStageError"));
 		return false;
 	}
 
 	TrackingVolumeComponentConstPtr trackingVolume= ownerStage->getTrackingVolumeConst();
 	if (!trackingVolume || trackingVolume->getTrackingVolumeType() != eTrackingVolumeType::marker)
 	{
-		ModalDialog_MessageBox::showMessageBox(fromAppStage, "Target camera's stage has no marker tracking volume. "
-															 "Please assign a marker tracking volume to the stage.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage,
+											   locText("alignCameraByOriginMarker.noMarkerTrackingVolumeError"));
 		return false;
 	}
 
@@ -99,9 +97,7 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(AppStage* fromAppSt
 	const MikanMarkerID originMarkerId= trackingVolume->getTrackingVolumeDefinition()->getOriginMarkerId();
 	if (originMarkerId == INVALID_MIKAN_ID)
 	{
-		ModalDialog_MessageBox::showMessageBox(fromAppStage,
-											   "The stage's marker tracking volume has no Origin Marker assigned. "
-											   "Please assign an origin marker to the tracking volume.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignCameraByOriginMarker.noOriginMarkerError"));
 		return false;
 	}
 

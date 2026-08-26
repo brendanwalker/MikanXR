@@ -29,7 +29,8 @@
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
-#include "NodeEditorUI.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
@@ -73,12 +74,12 @@ bool NodeEditorWindow::startup()
 	static const int k_node_window_pixel_width= 1080;
 	static const int k_node_window_pixel_height= 720;
 
-	if (success && !startupWindow("Node Editor", k_node_window_pixel_width, k_node_window_pixel_height))
+	if (success && !startupWindow(locText("windows.nodeEditor"), k_node_window_pixel_width, k_node_window_pixel_height))
 	{
 		success= false;
 	}
 
-	if (success && !startupGuiContext())
+	if (success && !startupGuiContext("node_editor"))
 	{
 		success= false;
 	}
@@ -152,7 +153,7 @@ void NodeEditorWindow::updateUI()
 	MkGuiScopedStyle baseStyle(m_styleManager->getStyle("node_editor_base"));
 
 	ImGui::SetNextWindowSize(ImVec2(getWidth(), getHeight()), ImGuiCond_Once);
-	MkGuiScopedWindow nodeEditorWindow("Node Editor", nullptr,
+	MkGuiScopedWindow nodeEditorWindow(locWindowTitle("windows.nodeEditor"), nullptr,
 									   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus
 										   | ImGuiWindowFlags_NoMove);
 
@@ -222,7 +223,7 @@ void NodeEditorWindow::renderMainFrame()
 	{
 		ImGui::OpenPopup("editor_context_menu_nodes");
 		m_editorState.bLinkHanged= true;
-		m_editorState.hangPosGridSpace= NodeEditorUI::MousePosToGridSpace();
+		m_editorState.hangPosGridSpace= MkGui::mousePosToGridSpace();
 	}
 
 	// Link creation
@@ -239,7 +240,7 @@ void NodeEditorWindow::renderMainFrame()
 	// Drag and drop creation
 	{
 		NodeEditorState editorStateCopy= m_editorState;
-		editorStateCopy.hangPosGridSpace= NodeEditorUI::MousePosToGridSpace();
+		editorStateCopy.hangPosGridSpace= MkGui::mousePosToGridSpace();
 
 		handleMainFrameDragDrop(editorStateCopy);
 	}
@@ -259,7 +260,8 @@ void NodeEditorWindow::renderNodeEvalErrors()
 		while (errorIter < m_lastNodeEvalErrors.size())
 		{
 			const NodeEvaluationError* currentError= &m_lastNodeEvalErrors[errorIter];
-			const std::string evalWindowId= StringUtils::stringify("Eval Error##Node", currentError->errorNodeId);
+			const std::string evalWindowId=
+				StringUtils::stringify(locText("nodeEditor.evalErrorWindowTitle"), "##Node", currentError->errorNodeId);
 
 			static const float k_errorWindowOffset= 50.f;
 			ImVec2 errorPos= currentError->errorNodeId != -1 ? ImNodes::GetNodeScreenSpacePos(currentError->errorNodeId)
@@ -276,7 +278,7 @@ void NodeEditorWindow::renderNodeEvalErrors()
 				while (errorIter < m_lastNodeEvalErrors.size())
 				{
 					// Add a bullet point for each error on the same node
-					ImGui::BulletText(currentError->errorMessage.c_str());
+					ImGui::BulletText("%s", currentError->errorMessage.c_str());
 
 					// Advance to the next error message on this node
 					errorIter++;
@@ -329,7 +331,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 		else
 		{
 			ImGui::OpenPopup("editor_context_menu_nodes");
-			m_editorState.hangPosGridSpace= NodeEditorUI::MousePosToGridSpace();
+			m_editorState.hangPosGridSpace= MkGui::mousePosToGridSpace();
 		}
 	}
 
@@ -346,7 +348,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 
 			if (node && node->editorCanDelete())
 			{
-				if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+				if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
 				{
 					getNodeGraph()->deleteNodeById(m_objectSelection.getObjectId(0));
 				}
@@ -362,7 +364,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 			if (linkPopup)
 			{
 				if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK
-					&& ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+					&& ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
 				{
 					getNodeGraph()->deleteLinkById(m_objectSelection.getObjectId(0));
 				}
@@ -407,7 +409,8 @@ void NodeEditorWindow::renderToolbar()
 
 	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
 
-	if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
+	const std::string saveButtonLabel= std::string(ICON_FK_FLOPPY_O "   ") + locLabel("nodeEditor.save");
+	if (ImGui::Button(saveButtonLabel.c_str(), ImVec2(0, 30)))
 	{
 		saveGraph(false);
 	}
@@ -440,7 +443,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	bool isNodeOpened;
 	{
 		MkGuiScopedStyle headerStyle(m_styleManager->getStyle("node_editor_panel_header"));
-		isNodeOpened= ImGui::CollapsingHeader("Variables", ImGuiTreeNodeFlags_SpanAvailWidth);
+		isNodeOpened= ImGui::CollapsingHeader(locLabel("nodeEditor.variables"), ImGuiTreeNodeFlags_SpanAvailWidth);
 	}
 
 	if (isNodeOpened)
@@ -456,7 +459,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 			// Variable
 			const std::string varIcon= variable->editorGetIcon();
 			const ImVec4& variconColor= variable->editorGetIconColor();
-			ImGui::TextColored(variconColor, varIcon.c_str());
+			ImGui::TextColored(variconColor, "%s", varIcon.c_str());
 			ImGui::SameLine();
 
 			const std::string varEntryName=
@@ -482,7 +485,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 				if (dds)
 				{
 					ImGui::SetDragDropPayload(variable->getClassName().c_str(), &variable, sizeof(GraphPropertyPtr));
-					ImGui::Text(variable->getName().c_str());
+					ImGui::TextUnformatted(variable->getName().c_str());
 				}
 			}
 
@@ -497,7 +500,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 					m_objectSelection= GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
 					m_objectSelection.setObjectId(0, variable->getId());
 
-					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+					if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
 					{
 						getNodeGraph()->deletePropertyById(propertyId);
 						m_objectSelection.clear();
@@ -510,7 +513,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	// Drag and drop creation
 	{
 		NodeEditorState editorStateCopy= m_editorState;
-		editorStateCopy.hangPosGridSpace= NodeEditorUI::MousePosToGridSpace();
+		editorStateCopy.hangPosGridSpace= MkGui::mousePosToGridSpace();
 
 		handleGraphVariablesDragDrop(editorStateCopy);
 	}
@@ -571,7 +574,7 @@ void NodeEditorWindow::renderAssetsPanel()
 		if (assetTabBar)
 		{
 			MkGuiScopedStyle assetTabStyle(m_styleManager->getStyle("node_editor_asset_tab"));
-			MkGuiScopedTabItem assetTabItem("Assets");
+			MkGuiScopedTabItem assetTabItem(locLabel("nodeEditor.assetsTab"));
 			if (assetTabItem)
 			{
 				MkGuiScopedChild assetSubFrame("AssetSubFrame");
@@ -585,8 +588,9 @@ void NodeEditorWindow::renderAssetsPanel()
 					{
 						auto& assetRefFactory= it->second;
 						const std::string& assetTypeName= assetRefFactory->getAssetTypeName();
+						const std::string addAssetLabel= locFormat("nodeEditor.addAssetFmt", assetTypeName.c_str());
 						const std::string buttonName=
-							StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  Add ", assetTypeName, "##", assetTypeName);
+							StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  ", addAssetLabel, "##", assetTypeName);
 
 						if (ImGui::SmallButton(buttonName.c_str()))
 						{
@@ -650,7 +654,7 @@ void NodeEditorWindow::renderAssetsPanel()
 								{
 									ImGui::SetDragDropPayload(assetRefPtr->getClassName().c_str(), &assetRefPtr,
 															  sizeof(AssetReferencePtr));
-									ImGui::Text(assetRefPtr->getShortName().c_str());
+									ImGui::TextUnformatted(assetRefPtr->getShortName().c_str());
 								}
 							}
 
@@ -668,7 +672,7 @@ void NodeEditorWindow::renderAssetsPanel()
 									m_objectSelection= GraphObjectSelection(GraphObjectIdType::ASSET, 1);
 									m_objectSelection.setObjectId(0, assetIndex);
 
-									if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+									if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
 									{
 										deleteSelectedItem();
 										itemDeleted= true;
@@ -690,7 +694,7 @@ void NodeEditorWindow::renderAssetsPanel()
 								ImGui::Dummy(ImVec2(2, 1));
 								ImGui::SameLine();
 								ImGui::SetNextItemWidth(108);
-								ImGui::Text(assetRefPtr->getShortName().c_str());
+								ImGui::TextUnformatted(assetRefPtr->getShortName().c_str());
 							}
 						}
 
@@ -848,10 +852,10 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 	{
 		std::string defautPath= (PathUtils::getProjectDirectory() / "graphs" / "new_graph.graph").string();
 		const char* filterItems[1]= {"*.graph"};
-		const char* filterDesc= "Graph Files (*.graph)";
+		const char* filterDesc= locText("nodeEditor.graphFilesFilterDescription");
 
-		const char* picked=
-			tinyfd_saveFileDialog("Save Compositor Graph", defautPath.c_str(), 1, filterItems, filterDesc);
+		const char* picked= tinyfd_saveFileDialog(locText("nodeEditor.saveCompositorGraphDialogTitle"),
+												  defautPath.c_str(), 1, filterItems, filterDesc);
 
 		if (picked != nullptr && picked[0] != '\0')
 		{

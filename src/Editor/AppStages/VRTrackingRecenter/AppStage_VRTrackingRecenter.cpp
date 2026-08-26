@@ -38,6 +38,7 @@
 #include "MkGuiScopedWindow.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 //-- statics ----
 const char* AppStage_VRTrackingRecenter::APP_STAGE_NAME= "VRTrackingRecenter";
@@ -67,33 +68,26 @@ bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(class AppStage* f
 	VideoSourceComponentPtr videoSourceComponent= withCameraComponent->getVideoSourceComponent();
 	if (!videoSourceComponent)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage, "Camera is not associated with a video source. Please set a video source for the camera.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("vrTrackingRecenter.noVideoSourceMsg"));
 		return false;
 	}
 
 	if (!withCameraComponent->areApertureIntrinsicsValid())
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Selected camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("vrTrackingRecenter.invalidIntrinsicsMsg"));
 
 		return false;
 	}
 
 	if (!withCameraComponent->hasValidTrackingMountPoseView())
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Selected camera does not have a valid tracking mount pose. Please assign a tracking mount to the camera.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("vrTrackingRecenter.invalidTrackingMountMsg"));
 		return false;
 	}
 
 	if (!withCameraComponent->hasValidApertureOffsetXform())
 	{
-		ModalDialog_MessageBox::showMessageBox(fromAppStage,
-											   "Selected camera does not have a valid aperture offset transform. "
-											   "Please calibrate the camera's tracking mount offset.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("vrTrackingRecenter.invalidApertureOffsetMsg"));
 		return false;
 	}
 

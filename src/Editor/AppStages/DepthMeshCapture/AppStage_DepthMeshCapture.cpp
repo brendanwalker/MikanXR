@@ -13,6 +13,7 @@
 #include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "IMkViewport.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "MikanCamera.h"
 #include "MikanViewport.h"
@@ -227,7 +228,7 @@ void AppStage_DepthMeshCapture::onCaptureEvent()
 	cv::Mat* bgrBuffer= m_monoDistortionView->getBGRUndistortBuffer();
 	if (bgrBuffer == nullptr || bgrBuffer->empty())
 	{
-		m_capturePanel->setFailureReason("No undistorted color frame was available from the video source.");
+		m_capturePanel->setFailureReason(locText("depthMeshCapture.noUndistortedFrame"));
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);
 		return;
 	}
@@ -238,7 +239,7 @@ void AppStage_DepthMeshCapture::onCaptureEvent()
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	if (!m_currentSceneCameraComponent->getApertureIntrinsics(cameraIntrinsics))
 	{
-		m_capturePanel->setFailureReason("Could not resolve the camera intrinsics. Is the camera calibrated?");
+		m_capturePanel->setFailureReason(locText("depthMeshCapture.cameraIntrinsicsUnresolved"));
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);
 		return;
 	}
@@ -375,9 +376,7 @@ void AppStage_DepthMeshCapture::runCaptureRequest(const CaptureRequest& request,
 		auto newInference= std::make_unique<MoGeInference>();
 		if (!newInference->startup(config))
 		{
-			outOutput.failureReason= StringUtils::stringify(
-				"Could not load the MoGe-2 model from '", modelDirectory.string(),
-				"'. Run tools/fetch_moge2_onnx.py to download it. See MikanCmd.log for details.");
+			outOutput.failureReason= locFormat("depthMeshCapture.modelLoadFailedFmt", modelDirectory.string().c_str());
 			return;
 		}
 
@@ -402,7 +401,7 @@ void AppStage_DepthMeshCapture::runCaptureRequest(const CaptureRequest& request,
 		if (bIsCancelled())
 			outOutput.bCancelled= true;
 		else
-			outOutput.failureReason= "Depth inference failed. See MikanCmd.log for details.";
+			outOutput.failureReason= locText("depthMeshCapture.inferenceFailed");
 		return;
 	}
 
@@ -462,7 +461,7 @@ void AppStage_DepthMeshCapture::runCaptureRequest(const CaptureRequest& request,
 	DepthMeshGenerator::Config meshConfig;
 	if (!DepthMeshGenerator::generateMesh(outOutput.geometry, meshConfig, outOutput.mesh, outOutput.meshStats))
 	{
-		outOutput.failureReason= "Mesh generation produced no usable geometry.";
+		outOutput.failureReason= locText("depthMeshCapture.meshGenerationFailed");
 		return;
 	}
 
@@ -638,7 +637,7 @@ bool AppStage_DepthMeshCapture::createStencilFromMesh()
 	glm::mat4 cameraPose(1.f);
 	if (!m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
 	{
-		m_capturePanel->setFailureReason("Could not resolve the camera pose. Is the camera tracked?");
+		m_capturePanel->setFailureReason(locText("depthMeshCapture.cameraPoseUnresolved"));
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);
 		return false;
 	}
@@ -646,7 +645,7 @@ bool AppStage_DepthMeshCapture::createStencilFromMesh()
 	const std::filesystem::path projectDirectory= PathUtils::getProjectDirectory();
 	if (projectDirectory.empty())
 	{
-		m_capturePanel->setFailureReason("No project is loaded, so there is nowhere to save the mesh.");
+		m_capturePanel->setFailureReason(locText("depthMeshCapture.noProjectLoaded"));
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);
 		return false;
 	}
@@ -681,8 +680,7 @@ bool AppStage_DepthMeshCapture::createStencilFromMesh()
 
 	if (!DepthMeshGenerator::saveObj(m_mesh, objPath.string(), stencilName, textureFileName))
 	{
-		m_capturePanel->setFailureReason(
-			StringUtils::stringify("Failed to write the mesh to '", objPath.string(), "'."));
+		m_capturePanel->setFailureReason(locFormat("depthMeshCapture.meshWriteFailedFmt", objPath.string().c_str()));
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);
 		return false;
 	}
@@ -707,7 +705,7 @@ bool AppStage_DepthMeshCapture::createStencilFromMesh()
 		});
 	if (!stencilComponent)
 	{
-		m_capturePanel->setFailureReason("Failed to create the model stencil.");
+		m_capturePanel->setFailureReason(locText("depthMeshCapture.stencilCreateFailed"));
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);
 		return false;
 	}
