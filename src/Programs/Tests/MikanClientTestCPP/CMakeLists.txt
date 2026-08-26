@@ -52,7 +52,7 @@ list(APPEND MIKAN_CLIENT_TEST_INCL_DIRS
   ${RFK_INCLUDE_DIR})
 
 # SDL2main is needed for Windows to provide the main() entry point
-set(SDL2MAIN_LIBRARY ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2main.lib)
+set(SDL2MAIN_LIBRARY ${ROOT_DIR}/deps/SDL2-2.30.10/lib/x64/SDL2main.lib)
 
 list(APPEND MIKAN_CLIENT_TEST_REQ_LIBS
   d3d11
@@ -76,7 +76,7 @@ target_link_libraries(MikanClientTestCPP ${MIKAN_CLIENT_TEST_REQ_LIBS})
 SET_TARGET_PROPERTIES(MikanClientTestCPP PROPERTIES FOLDER Test WIN32_EXECUTABLE FALSE)
 
 # Runtime dependencies
-set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
+set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.30.10/lib/x64/SDL2.dll)
 set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)

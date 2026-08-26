@@ -19,76 +19,42 @@ rmdir /s /q deps
 mkdir deps
 pushd deps
 
-:: Download and unzip the prebuilt libs
-echo "Downloading SDL2..."
-curl https://www.libsdl.org/release/SDL2-2.0.10-win32-x64.zip --output sdl2.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2-2.0.10-win32-x64.zip"
-  goto failure
-)
-%UNZIP_EXE% e sdl2.zip -obuild/debug -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2-2.0.10-win32-x64.zip"
-  goto failure
-)
-
+:: Download and unzip the prebuilt libs.
+:: The SDL devel zips carry the runtime DLLs in lib/x64, so no separate
+:: runtime zips are needed.
 echo "Downloading SDL2-devel..."
-curl https://www.libsdl.org/release/SDL2-devel-2.0.10-VC.zip --output sdl2-devel.zip
+curl https://www.libsdl.org/release/SDL2-devel-2.30.10-VC.zip --output sdl2-devel.zip
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2-devel-2.0.10-VC.zip"
+  echo "Error downloading SDL2-devel-2.30.10-VC.zip"
   goto failure
 )
 %UNZIP_EXE% e sdl2-devel.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2-devel-2.0.10-VC.zip"
+  echo "Error unzipping SDL2-devel-2.30.10-VC.zip"
   goto failure
 )
 
-echo "Downloading SDL2-image..."
-curl https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5-win32-x64.zip --output sdl2img.zip
+echo "Downloading SDL2-image-devel..."
+curl -L https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.8/SDL2_image-devel-2.8.8-VC.zip --output sdl2img-devel.zip
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2_image-2.0.5-win32-x64.zip"
-  goto failure
-)
-%UNZIP_EXE% e sdl2img.zip -obuild/debug -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2_image-2.0.5-win32-x64.zip"
-  goto failure
-)
-
-echo "Downloading SDL2-image..."
-curl https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-VC.zip --output sdl2img-devel.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2_image-devel-2.0.5-VC.zip"
+  echo "Error downloading SDL2_image-devel-2.8.8-VC.zip"
   goto failure
 )
 %UNZIP_EXE% e sdl2img-devel.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2_image-devel-2.0.5-VC.zip"
-  goto failure
-)
-
-echo "Downloading SDL2-ttf..."
-curl https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.15-win32-x64.zip --output sdl2ttf.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2_ttf-2.0.15-win32-x64.zip"
-  goto failure
-)
-%UNZIP_EXE% e sdl2ttf.zip -obuild/debug -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2_ttf-2.0.15-win32-x64.zip"
+  echo "Error unzipping SDL2_image-devel-2.8.8-VC.zip"
   goto failure
 )
 
 echo "Downloading SDL2-ttf-devel..."
-curl https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.15-VC.zip --output sdl2ttf-devel.zip
+curl -L https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.24.0/SDL2_ttf-devel-2.24.0-VC.zip --output sdl2ttf-devel.zip
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2_ttf-devel-2.0.15-VC.zip"
+  echo "Error downloading SDL2_ttf-devel-2.24.0-VC.zip"
   goto failure
 )
-%UNZIP_EXE% e sdl2ttf-devel.zip -y -r -spf        
+%UNZIP_EXE% e sdl2ttf-devel.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2_ttf-devel-2.0.15-VC.zip"
+  echo "Error unzipping SDL2_ttf-devel-2.24.0-VC.zip"
   goto failure
 )
 

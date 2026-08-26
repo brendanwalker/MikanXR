@@ -7,7 +7,9 @@
 
 #include "SDL_ttf.h"
 
+#include <cstring>
 #include <unordered_map>
+#include <vector>
 
 SdlFontManager::SdlFontManager() {}
 
@@ -149,9 +151,25 @@ IMkTexturePtr SdlFontManager::fetchBakedText(const TextStyle& style, const std::
 	if (finalSurface == nullptr)
 		finalSurface= textSurface;
 
+	// SDL_ttf can hand back surfaces with row padding (pitch > w*4), but the
+	// texture upload assumes tightly packed rows, so repack when they differ
+	const int packedRowSize= finalSurface->w * 4;
+	const uint8_t* pixelData= (const uint8_t*)finalSurface->pixels;
+	std::vector<uint8_t> packedPixels;
+	if (finalSurface->pitch != packedRowSize)
+	{
+		packedPixels.resize((size_t)packedRowSize * finalSurface->h);
+		for (int y= 0; y < finalSurface->h; ++y)
+		{
+			std::memcpy(&packedPixels[(size_t)y * packedRowSize],
+						(const uint8_t*)finalSurface->pixels + (size_t)y * finalSurface->pitch, packedRowSize);
+		}
+		pixelData= packedPixels.data();
+	}
+
 	IMkTexturePtr result;
-	IMkTexturePtr texture= CreateMkTexture((uint16_t)finalSurface->w, (uint16_t)finalSurface->h,
-										   (const uint8_t*)finalSurface->pixels, MK_RGBA, MK_BGRA);
+	IMkTexturePtr texture=
+		CreateMkTexture((uint16_t)finalSurface->w, (uint16_t)finalSurface->h, pixelData, MK_RGBA, MK_BGRA);
 
 	if (texture->createTexture())
 	{
