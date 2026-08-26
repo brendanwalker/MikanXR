@@ -4,6 +4,8 @@ The living plan: what is in flight now, what comes next, and the open questions.
 
 ## Now
 
+- [ ] UI modernization (`ui_update` branch): the MikanTrack UI treatment has landed (ImGui v1.92.9-docking, SDL2 2.30.10, the `MkGuiTheme` palette and Mochiy Pop One font, and 491 localized keys in en/ja). Two pieces of follow-up remain before the branch is done: the `thirdparty/imnodes` working-tree patches (`IM_OFFSETOF` and the 1.92 `ImDrawCmd::TexRef` rename) need a commit on the `mikanxr-patches` fork branch, and the `resources/localization` CDN manifest now lists the JSON tables, so old shipped builds fetching the deleted CSVs fall back to their bundled strings.
+- [ ] Localize the property and function descriptor display names. The string sweep covered UI literals, but labels rendered generically from the property/function databases (`component_name`, `Show Compositor Output`, the USB video setting names) still read English in every language. This needs loc keys on the descriptors themselves, not at the call sites.
 - [ ] ARKit video source (`iphone` branch): pose-in-RTP streaming and the hardware/software two-tier decode landed through Phase 7; verify a live iPhone session end to end and confirm an old saved project referencing removed texture-source enum names still loads (relies on `VideoTextureNode`'s `FindEnumValue` fallback).
 
 ## Next

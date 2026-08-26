@@ -28,8 +28,11 @@ Two suites, both required by CI (see [build.md](./build.md)):
 - `run_depth_mesh_generator_unit_tests`: `src/Editor/Calibration/Test/DepthMeshGeneratorTests.cpp` (the depth shift solver including its negative-z pole case, discontinuity culling, and OBJ winding; see [depth-proxy-mesh.md](./depth-proxy-mesh.md))
 - `run_dmx_universe_rle_tests`: `src/Editor/Server/Test/DMXUniverseRLETests.cpp`
 - `run_light_environment_persistence_tests`: `src/Editor/Server/Test/LightEnvironmentPersistenceTests.cpp`
+- `run_localization_unit_tests`: `src/Editor/Localization/Test/LocalizationTests.cpp` (key parity against English, printf specifier parity, window-title uniqueness, and glyph coverage against the baked font ranges; see [standards.md](./standards.md))
 
 Exit code is nonzero on any failure. Results also go to `MikanCmd.log` next to the working directory.
+
+The localization module reads `resources/localization` relative to the working directory, so run `MikanCmd.exe` from the repo root (as the commands in [commands.md](./commands.md) do) or the tables will not be found.
 
 **`build\bin\unit_test_suite_cpp.exe`** runs the C++ unit tests, entry point `src/Programs/Tests/UnitTests/unit_test_suite.cpp`. Modules: math utility, GLM math, serialization, mikan API, spherical harmonic lighting, and ONNX session. The `unit_test.h` macros print a `PASSED`/`FAILED` line per test and per module. The spherical harmonic module is the round-trip guard on the lighting solve described in [scene-lighting.md](./scene-lighting.md): it validates the fit against synthetic data with known ground truth and asserts the l=2 ridge actually shrinks that band. Neither ML module touches a checkpoint or requires a GPU, which is what lets both suites run unchanged on a CI runner: the ONNX module probes for DirectML and reports the result without failing when it is absent, and otherwise only checks that a missing model file fails cleanly instead of throwing. On the `iphone` branch this suite also carries the ARKit wire-protocol, CUDA-GL-interop, video-device, and video-source-system modules; the CUDA-GL interop module deliberately runs early there because it creates its own CUDA context.
 

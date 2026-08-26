@@ -87,3 +87,12 @@ Key settings (from `.clang-format`, `BasedOnStyle: Microsoft`):
 - Never compile a GObject/GstMeta-registering `.cpp` into both a plugin DLL and an executable that loads it; GLib's type registry is process-global and the duplicate registration fails at runtime (documented in the `iphone` branch's `src/Programs/Tests/UnitTests/CMakeLists.txt`, which is where the case arises).
 
 - Client-facing properties must stay consistent across the values struct, descriptor, and `getPropertyValue` implementation; the schema-guard test in `MikanCmd -runTests` enforces this (see [wire-protocol.md](./wire-protocol.md)).
+
+- User-facing UI text carries no string literals. Every displayed string goes through `LocText.h` against a key in `resources/localization/en.json`. Keys are flat `section.key`: the section names the UI unit that owns the string (`mainMenu`, `projectSettings`, `monoLensCalibration`, `nodeEditor`, `windows`), the key is lowerCamel, and a key whose text carries printf specifiers ends in `Fmt`. Pick the helper by what the string is used for.
+
+	- `locText` for display text, tooltips, and format strings
+	- `locLabel` for an interactive widget's label, so the ImGui ID is the key rather than the translation
+	- `locWindowTitle` for a window or popup title, so the ImGui ID is the English title and layouts survive a language switch
+	- `locFormat` to expand a `...Fmt` key into a `std::string`
+
+	Log output, config keys, automation command names, node and pin type names, and device names are not user-facing text and stay untranslated. The `localization` module in `MikanCmd -runTests` enforces key parity against English, printf specifier parity, window-title uniqueness, and that every codepoint is inside the baked font glyph ranges.
