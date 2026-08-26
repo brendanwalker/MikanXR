@@ -392,6 +392,10 @@ void App::destroyAppWindow(EditorWindow* appWindow)
 		m_windowManager->popCurrentWindowContext(appWindowContext);
 	}
 
+	// Teardown does GL work (ImGui backend, texture cache, model resources),
+	// and destroying an earlier window can leave no GL context current
+	appWindow->makeContextCurrent();
+
 	// Tear down the window and graphics context it owns
 	appWindow->shutdown();
 
