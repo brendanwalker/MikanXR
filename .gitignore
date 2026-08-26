@@ -49,6 +49,8 @@ models/
 # Build directories
 build*
 dist*
+# ...but the build-system reference doc is not a build directory
+!docs/reference/build.md
 !OBJ-loader
 !.github/
 !.github/**
