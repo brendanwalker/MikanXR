@@ -10,6 +10,7 @@
 #include "Graphs/GraphObjectSelection.h"
 #include "Graphs/NodeError.h"
 #include "Graphs/NodeGraphHistory.h"
+#include "Graphs/NodeGraphLogWriter.h"
 
 #include "Properties/GraphArrayProperty.h"
 
@@ -44,6 +45,7 @@ public:
 	bool canUndo() const { return m_history.canUndo(); }
 	bool canRedo() const { return m_history.canRedo(); }
 	const NodeGraphHistory& getHistory() const { return m_history; }
+	const std::filesystem::path& getGraphLogFilePath() const { return m_logWriter.getLogFilePath(); }
 
 	/// Apply undo (negative) or redo (positive) steps immediately.
 	/// Safe only outside the window's ImGui frame; UI paths schedule through
@@ -120,6 +122,9 @@ protected:
 	bool restoreGraphSnapshot(const std::string& snapshot);
 	void flushAutomationTasks();
 
+	// Open the session log (first graph only) and record the graph baseline
+	void logGraphBaseline();
+
 protected:
 	NodeEditorState m_editorState;
 
@@ -134,6 +139,10 @@ protected:
 	bool m_bAnyItemActiveLastFrame= false;
 	int m_pendingHistorySteps= 0;
 	bool m_bApplyingHistory= false;
+
+	// JSONL session log of the graph edits, for post-session diagnosis
+	NodeGraphLogWriter m_logWriter;
+	int64_t m_nextLogSequenceNumber= 1;
 
 	// Parked automation work (see enqueueAutomationTask)
 	std::vector<std::function<void()>> m_automationTasks;

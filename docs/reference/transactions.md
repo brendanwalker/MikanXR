@@ -56,6 +56,13 @@ A snapshot commits once per quiescent frame. The graph delegates (node, pin, lin
 
 Ctrl+Z / Ctrl+Shift+Z work while a node editor window has focus (the same chords as the main window), alongside the toolbar undo and redo buttons. The automation face is the `nodegraph` namespace ([automation.md](./automation.md)).
 
+Each window session also writes a JSONL log through `NodeGraphLogWriter`, sharing the `JsonlSessionLogWriter` machinery with the component log: `<projectFolder>/logs/nodegraph_<timestamp>.jsonl`, flushed per line, pruned to the newest 20 files, path reported by `nodegraph info`. The log carries the full graph snapshot per undo step, so an edit session reconstructs exactly from the file. Lines:
+
+- `{"event":"session","project":...,"window":...,"started":...}`
+- `{"event":"baseline","graph":...,"class":...,"snapshot":{...}}` per graph create or load
+- `{"event":"txn","seq":N,"t":...,"desc":...,"snapshot":{...}}` per committed undo step, `desc` holding the collection-count deltas
+- `{"event":"undo"|"redo","steps":N,"cursor":C,...}` and `{"event":"restore_failed",...}`
+
 ## Known unrecordable properties
 
 Properties whose change notifications carry names with no property descriptor are invisible to undo (and to websocket property events). The recorder warns once per name at runtime, and the guard test asserts the set does not grow silently. Standing entries include the `EditorObjectSystem` settings names and `depth_mesh_scale_correction`; `RGBSpotLightComponent` `red`/`green`/`blue` are runtime-only members with no definition backing at all.

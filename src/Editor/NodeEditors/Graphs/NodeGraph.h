@@ -85,7 +85,8 @@ public:
 
 	// -- Saving -----
 
-	// Serialize the whole graph to a JSON string (the undo snapshot format)
+	// Serialize the whole graph to JSON (the undo snapshot format)
+	configuru::Config saveToSnapshotConfig() const;
 	std::string saveToSnapshotString() const;
 
 	virtual void saveToConfig(NodeGraphConfig& config) const;

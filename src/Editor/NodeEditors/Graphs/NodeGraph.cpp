@@ -459,12 +459,17 @@ bool NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
 	return true;
 }
 
-std::string NodeGraph::saveToSnapshotString() const
+configuru::Config NodeGraph::saveToSnapshotConfig() const
 {
 	NodeGraphConfig config;
 	saveToConfig(config);
 
-	return configuru::dump_string(config.writeToJSON(), configuru::JSON);
+	return config.writeToJSON();
+}
+
+std::string NodeGraph::saveToSnapshotString() const
+{
+	return configuru::dump_string(saveToSnapshotConfig(), configuru::JSON);
 }
 
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const

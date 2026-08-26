@@ -102,7 +102,7 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 
 - `nodegraph open [compositorComponentId]` opens the compositor graph editor window (the id may be omitted when the project has exactly one compositor)
 - `nodegraph close` asks the app to tear the window down at the end of the frame
-- `nodegraph info` replies the graph class and path, node/pin/link/property counts, `can_undo`/`can_redo`, and the history depth and cursor
+- `nodegraph info` replies the graph class and path, node/pin/link/property counts, `can_undo`/`can_redo`, the history depth and cursor, and the session log path ([transactions.md](./transactions.md))
 - `nodegraph list nodes|pins|links|properties` replies one object per line: nodes as `<id> <class>`, pins adding owner node id, direction, and name, links as `<id> <startPinId> <endPinId>`
 - `nodegraph createnode <nodeClassName> [x y]` creates a node at the grid position, replying the new node id
 - `nodegraph deletenode <nodeId>` deletes a node with its pins and links

@@ -32,6 +32,8 @@
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "PathUtils.h"
+#include "ProjectConfig.h"
+#include "ProjectManager.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 
@@ -47,6 +49,8 @@
 #include "tinyfiledialogs.h" // Cross-platform file dialogs library
 
 #include <easy/profiler.h>
+
+#include <typeinfo>
 
 #include "glm/ext/vector_float4.hpp"
 
@@ -853,6 +857,7 @@ void NodeEditorWindow::newGraph()
 	if (m_editorState.nodeGraph)
 	{
 		m_history.reset(m_editorState.nodeGraph->saveToSnapshotString());
+		logGraphBaseline();
 	}
 }
 
@@ -873,6 +878,7 @@ bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 		m_editorState.nodeGraphPath= path;
 		onNodeGraphCreated();
 		m_history.reset(m_editorState.nodeGraph->saveToSnapshotString());
+		logGraphBaseline();
 		return true;
 	}
 	else
@@ -925,17 +931,20 @@ void NodeEditorWindow::redo() { m_pendingHistorySteps+= 1; }
 bool NodeEditorWindow::stepHistory(int steps)
 {
 	// Walk the cursor first so a multi-step request rebuilds the graph once
+	const bool bIsUndo= steps < 0;
+	int appliedSteps= 0;
 	const std::string* targetSnapshot= nullptr;
 	while (steps != 0)
 	{
-		const std::string* snapshot= (steps < 0) ? m_history.undo() : m_history.redo();
+		const std::string* snapshot= bIsUndo ? m_history.undo() : m_history.redo();
 		if (snapshot == nullptr)
 		{
 			break;
 		}
 
 		targetSnapshot= snapshot;
-		steps+= (steps < 0) ? 1 : -1;
+		appliedSteps++;
+		steps+= bIsUndo ? 1 : -1;
 	}
 
 	if (targetSnapshot == nullptr)
@@ -943,7 +952,16 @@ bool NodeEditorWindow::stepHistory(int steps)
 		return false;
 	}
 
-	return restoreGraphSnapshot(*targetSnapshot);
+	if (!restoreGraphSnapshot(*targetSnapshot))
+	{
+		m_logWriter.writeEvent("restore_failed");
+		return false;
+	}
+
+	m_logWriter.writeHistoryStep(bIsUndo ? "undo" : "redo", appliedSteps, m_history.getCursor(),
+								 m_editorState.nodeGraph->saveToSnapshotConfig());
+
+	return true;
 }
 
 bool NodeEditorWindow::restoreGraphSnapshot(const std::string& snapshot)
@@ -1014,10 +1032,49 @@ void NodeEditorWindow::updateHistoryCapture()
 		NodeGraphPtr nodeGraph= getNodeGraph();
 		if (nodeGraph)
 		{
-			m_history.commit(nodeGraph->saveToSnapshotString());
+			const configuru::Config snapshotConfig= nodeGraph->saveToSnapshotConfig();
+			if (m_history.commit(configuru::dump_string(snapshotConfig, configuru::JSON)))
+			{
+				m_logWriter.writeSnapshotCommit(m_nextLogSequenceNumber++, snapshotConfig);
+			}
 		}
 		m_bCheckpointPending= false;
 	}
+}
+
+void NodeEditorWindow::logGraphBaseline()
+{
+	NodeGraphPtr nodeGraph= m_editorState.nodeGraph;
+	if (!nodeGraph)
+	{
+		return;
+	}
+
+	// One log file per window session, opened when the first graph arrives.
+	// Skipped when no project is loaded (the log lives in the project folder).
+	if (!m_logWriter.isOpen())
+	{
+		ProjectManagerPtr projectManager= getProjectManager();
+		ProjectConfigPtr projectConfig= projectManager ? projectManager->getProjectConfig() : nullptr;
+		if (!projectConfig)
+		{
+			return;
+		}
+
+		std::string windowClassName= typeid(*this).name();
+		if (windowClassName.rfind("class ", 0) == 0)
+		{
+			windowClassName= windowClassName.substr(6);
+		}
+
+		if (!m_logWriter.open(projectConfig->getLoadedConfigPath(), windowClassName))
+		{
+			return;
+		}
+	}
+
+	m_logWriter.writeBaseline(m_editorState.nodeGraphPath, nodeGraph->getClassName(),
+							  nodeGraph->saveToSnapshotConfig());
 }
 
 void NodeEditorWindow::enqueueAutomationTask(std::function<void()>&& task)
@@ -1303,6 +1360,7 @@ void NodeEditorWindow::shutdown()
 	onNodeGraphDeleted();
 	m_editorState.nodeGraph= nullptr;
 	m_editorState.nodeGraphPath.clear();
+	m_logWriter.close();
 
 	shutdownTextureCache();
 	shutdownModelResourceManager();

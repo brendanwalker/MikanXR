@@ -780,6 +780,9 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 		outLines.push_back(std::string("can_redo ") + (window->canRedo() ? "true" : "false"));
 		outLines.push_back("history_depth " + std::to_string(window->getHistory().getDepth()));
 		outLines.push_back("history_cursor " + std::to_string(window->getHistory().getCursor()));
+
+		const std::string logPath= window->getGraphLogFilePath().string();
+		outLines.push_back("log " + (logPath.empty() ? std::string("none") : logPath));
 		return true;
 	}
 	else if (verb == "list")
