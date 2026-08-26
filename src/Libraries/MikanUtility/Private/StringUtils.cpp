@@ -119,6 +119,9 @@ std::string joinString(const std::vector<std::string>& elems, char delim)
 
 int formatWString(wchar_t* buffer, size_t buffer_size, const wchar_t* format, ...)
 {
+	if (buffer_size == 0)
+		return 0;
+
 	// Bake out the text string
 	va_list args;
 	va_start(args, format);
