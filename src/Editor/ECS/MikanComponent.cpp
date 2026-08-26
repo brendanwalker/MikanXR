@@ -520,13 +520,13 @@ void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_addNewScriptFunctionId, "Add New Script")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(k_editScriptFunctionId, "Add New Script")->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_editScriptFunctionId, "Edit Script")->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_reloadScriptFunctionId, "Reload Script")->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_removeScriptFunctionId, "Remove Script")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(k_removeScriptFunctionId, "Select Script")->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_selectScriptFunctionId, "Select Script")->setUIHidden());
 }
 
 bool MikanComponent::invokeFunction(const std::string& functionName)

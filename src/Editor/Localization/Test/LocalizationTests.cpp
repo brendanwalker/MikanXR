@@ -1,4 +1,7 @@
 #include "LocalizationTests.h"
+#include "EditorEntitySchemaTable.h"
+#include "EnumPropertyMetaData.h"
+#include "LocText.h"
 #include "LocalizationManager.h"
 #include "MkGuiTheme.h"
 #include "PathUtils.h"
@@ -7,6 +10,7 @@
 
 #include <cassert>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -234,6 +238,87 @@ bool localization_test_glyph_coverage()
 	UNIT_TEST_COMPLETE()
 }
 
+bool localization_test_descriptor_labels_have_keys()
+{
+	UNIT_TEST_BEGIN("every descriptor label resolves to a key")
+
+	LocalizationManager manager;
+	if (!startupTestManager(manager))
+	{
+		fprintf(stdout, "    FAILED: manager startup\n");
+		manager.shutdown();
+		success= false;
+		UNIT_TEST_COMPLETE()
+	}
+
+	// The entity panels build their widgets from the descriptor databases, so a
+	// descriptor without a label key would render its raw id (e.g.
+	// "tracking_mount_id") in every language
+	std::set<std::string> reported;
+	auto checkResolved=
+		[&](const std::string& resolvedKey, const std::string& descriptorId, const char* what, const char* owner)
+	{
+		// An empty resolution means neither the per-class override nor the
+		// shared key is defined, so the panel would fall back to the raw id
+		if (!resolvedKey.empty())
+			return;
+		if (reported.insert(std::string(owner) + "." + descriptorId).second)
+			fprintf(stdout, "    FAILED: no %s label for '%s' (%s)\n", what, descriptorId.c_str(), owner);
+		success= false;
+	};
+
+	for (const SchemaTestEntry& entry : k_schemaTestEntries)
+	{
+		std::vector<PropertyDescriptorConstPtr> propertyDescriptors;
+		entry.getDescriptors(propertyDescriptors);
+		for (const PropertyDescriptorConstPtr& descriptor : propertyDescriptors)
+		{
+			// A UI-hidden property only reaches a panel when that panel
+			// registers a custom renderer that draws its own label, so it needs
+			// no entry of its own
+			if (descriptor->isUIHidden())
+				continue;
+
+			const std::string& propertyName= descriptor->getName();
+			checkResolved(locResolveDescriptorKey(entry.label, "properties", propertyName), propertyName, "property",
+						  entry.label);
+
+			// Enum choices carry localization keys rather than display text
+			const auto* enumMeta= descriptor->getMetaDataOfType<EnumPropertyMetaData>();
+			if (enumMeta != nullptr)
+			{
+				for (const std::string& choiceKey : enumMeta->getStrings())
+				{
+					if (!manager.hasKey(choiceKey.c_str()))
+					{
+						if (reported.insert(choiceKey).second)
+							fprintf(stdout, "    FAILED: no enum choice text for key '%s' (%s)\n", choiceKey.c_str(),
+									entry.label);
+						success= false;
+					}
+				}
+			}
+		}
+
+		std::vector<FunctionDescriptorConstPtr> functionDescriptors;
+		entry.getFunctionDescriptors(functionDescriptors);
+		for (const FunctionDescriptorConstPtr& descriptor : functionDescriptors)
+		{
+			if (descriptor->isUIHidden())
+				continue;
+
+			const std::string& functionName= descriptor->getFunctionName();
+			checkResolved(locResolveDescriptorKey(entry.label, "functions", functionName), functionName, "function",
+						  entry.label);
+		}
+	}
+
+	manager.shutdown();
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
 bool run_localization_unit_tests()
 {
 	UNIT_TEST_MODULE_BEGIN("localization")
@@ -241,5 +326,6 @@ bool run_localization_unit_tests()
 	UNIT_TEST_MODULE_CALL_TEST(localization_test_window_titles_are_unique_ids);
 	UNIT_TEST_MODULE_CALL_TEST(localization_test_unknown_key_passes_through);
 	UNIT_TEST_MODULE_CALL_TEST(localization_test_glyph_coverage);
+	UNIT_TEST_MODULE_CALL_TEST(localization_test_descriptor_labels_have_keys);
 	UNIT_TEST_MODULE_END()
 }

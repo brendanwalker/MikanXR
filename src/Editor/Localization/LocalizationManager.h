@@ -62,6 +62,9 @@ public:
 	// refetches every frame, so the UI changes immediately.
 	bool setLanguage(const std::string& langCode);
 
+	// Is "section.key" defined? Unlike fetchText this is silent on a miss, so
+	// it can drive a fallback chain (see locResolveDescriptorKey).
+	bool hasKey(const char* key) const;
 	// "section.key" -> localized UTF-8. Unknown key returns the key pointer
 	// itself (a passthrough, never a sentinel).
 	const char* fetchText(const char* key) const;

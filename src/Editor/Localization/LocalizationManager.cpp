@@ -404,6 +404,12 @@ bool LocalizationManager::setLanguage(const std::string& langCode)
 	return true;
 }
 
+bool LocalizationManager::hasKey(const char* key) const
+{
+	return m_currentLanguage != nullptr
+		   && m_currentLanguage->entries.find(std::string_view(key)) != m_currentLanguage->entries.end();
+}
+
 const char* LocalizationManager::fetchText(const char* key) const
 {
 	if (m_currentLanguage != nullptr)
@@ -493,6 +499,24 @@ const char* locWindowTitle(const char* key)
 {
 	LocalizationManager* manager= LocalizationManager::getInstance();
 	return manager != nullptr ? manager->fetchWindowTitle(key) : key;
+}
+
+std::string locResolveDescriptorKey(const std::string& entityClassName, const std::string& sharedSection,
+									const std::string& descriptorId)
+{
+	LocalizationManager* manager= LocalizationManager::getInstance();
+	if (manager == nullptr)
+		return std::string();
+
+	if (!entityClassName.empty())
+	{
+		const std::string overrideKey= entityClassName + "." + descriptorId;
+		if (manager->hasKey(overrideKey.c_str()))
+			return overrideKey;
+	}
+
+	const std::string sharedKey= sharedSection + "." + descriptorId;
+	return manager->hasKey(sharedKey.c_str()) ? sharedKey : std::string();
 }
 
 std::string locFormat(const char* key, ...)
