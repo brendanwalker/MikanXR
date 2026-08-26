@@ -7,7 +7,10 @@
 
 #include "SDL_ttf.h"
 
+#include <cstring>
+#include <iterator>
 #include <unordered_map>
+#include <vector>
 
 SdlFontManager::SdlFontManager() {}
 
@@ -68,11 +71,14 @@ size_t computeTextHash(const TextStyle& style, const std::wstring& text)
 {
 	std::hash<std::wstring> hasher;
 
+	// The buffer size is a wide character count, not a byte count, and fontName
+	// is a narrow string so it needs %hs rather than %s
 	wchar_t szStyleString[256];
-	StringUtils::formatWString(
-		szStyleString, sizeof(szStyleString), L"%s_%d_%d_%d_%d_%d_%d_%d_%d_%d", style.fontName.c_str(), style.pointSize,
-		style.styleBitmask, (int)style.hasShadow, (int)(style.shadowColor.r * 255), (int)(style.shadowColor.g * 255),
-		(int)(style.shadowColor.b * 255), style.shadowOffset.x, style.shadowOffset.y, (int)(style.shadowOpacity * 255));
+	StringUtils::formatWString(szStyleString, std::size(szStyleString), L"%hs_%d_%u_%d_%d_%d_%d_%d_%d_%d",
+							   style.fontName.c_str(), style.pointSize, style.styleBitmask, (int)style.hasShadow,
+							   (int)(style.shadowColor.r * 255), (int)(style.shadowColor.g * 255),
+							   (int)(style.shadowColor.b * 255), style.shadowOffset.x, style.shadowOffset.y,
+							   (int)(style.shadowOpacity * 255));
 
 	return hasher(text + szStyleString);
 }
@@ -149,9 +155,25 @@ IMkTexturePtr SdlFontManager::fetchBakedText(const TextStyle& style, const std::
 	if (finalSurface == nullptr)
 		finalSurface= textSurface;
 
+	// SDL_ttf can hand back surfaces with row padding (pitch > w*4), but the
+	// texture upload assumes tightly packed rows, so repack when they differ
+	const int packedRowSize= finalSurface->w * 4;
+	const uint8_t* pixelData= (const uint8_t*)finalSurface->pixels;
+	std::vector<uint8_t> packedPixels;
+	if (finalSurface->pitch != packedRowSize)
+	{
+		packedPixels.resize((size_t)packedRowSize * finalSurface->h);
+		for (int y= 0; y < finalSurface->h; ++y)
+		{
+			std::memcpy(&packedPixels[(size_t)y * packedRowSize],
+						(const uint8_t*)finalSurface->pixels + (size_t)y * finalSurface->pitch, packedRowSize);
+		}
+		pixelData= packedPixels.data();
+	}
+
 	IMkTexturePtr result;
-	IMkTexturePtr texture= CreateMkTexture((uint16_t)finalSurface->w, (uint16_t)finalSurface->h,
-										   (const uint8_t*)finalSurface->pixels, MK_RGBA, MK_BGRA);
+	IMkTexturePtr texture=
+		CreateMkTexture((uint16_t)finalSurface->w, (uint16_t)finalSurface->h, pixelData, MK_RGBA, MK_BGRA);
 
 	if (texture->createTexture())
 	{

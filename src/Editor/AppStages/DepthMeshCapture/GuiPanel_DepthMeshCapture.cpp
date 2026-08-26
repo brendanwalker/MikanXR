@@ -1,6 +1,7 @@
 #include "DepthMeshCapture/GuiPanel_DepthMeshCapture.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 #include <cfloat>
 #include <cstdio>
@@ -16,15 +17,15 @@ void GuiPanel_DepthMeshCapture::onGui()
 	{
 	case eDepthMeshCaptureMenuState::pendingVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Starting the video stream...");
+		ImGui::TextWrapped("%s", locText("depthMeshCapture.startingVideoStream"));
 	}
 	break;
 
 	case eDepthMeshCaptureMenuState::failedVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Failed to start the video stream.");
+		ImGui::TextWrapped("%s", locText("depthMeshCapture.videoStreamStartFailed"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -34,29 +35,27 @@ void GuiPanel_DepthMeshCapture::onGui()
 
 	case eDepthMeshCaptureMenuState::verifyCameraSetup:
 	{
-		ImGui::TextWrapped("Frame the part of the scene the composited character will interact with - "
-						   "the floor and nearby surfaces that should catch its shadow. Thin structures "
-						   "and transparent surfaces reconstruct poorly.");
+		ImGui::TextWrapped("%s", locText("depthMeshCapture.frameSceneInstructions"));
 		ImGui::Spacing();
-		ImGui::TextWrapped("If one of the project's ArUco markers is visible in the frame, it is used to "
-						   "calibrate the metric scale automatically.");
+		ImGui::TextWrapped("%s", locText("depthMeshCapture.arucoAutoCalibrateNote"));
 		ImGui::Spacing();
 		if (!m_executionProvider.empty())
 		{
-			ImGui::TextWrapped("Inference backend: %s", m_executionProvider.c_str());
+			ImGui::TextWrapped("%s",
+							   locFormat("depthMeshCapture.inferenceBackendFmt", m_executionProvider.c_str()).c_str());
 			if (m_executionProvider == "CPU")
 			{
-				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "Running on CPU - expect ~10 seconds rather than ~1.");
+				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "%s", locText("depthMeshCapture.cpuWarning"));
 			}
 		}
 		ImGui::Spacing();
-		if (ImGui::Button("Capture"))
+		if (ImGui::Button(locLabel("depthMeshCapture.capture")))
 		{
 			if (OnCaptureEvent)
 				OnCaptureEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -66,24 +65,24 @@ void GuiPanel_DepthMeshCapture::onGui()
 
 	case eDepthMeshCaptureMenuState::runningInference:
 	{
-		const char* phaseLabel= "Working...";
+		const char* phaseLabel= locText("depthMeshCapture.working");
 		int stepIndex= 1;
 		switch (m_capturePhase)
 		{
 		case eDepthMeshCapturePhase::loadingModel:
-			phaseLabel= "Loading the depth model...";
+			phaseLabel= locText("depthMeshCapture.loadingModel");
 			stepIndex= 1;
 			break;
 		case eDepthMeshCapturePhase::runningInference:
-			phaseLabel= "Estimating scene depth...";
+			phaseLabel= locText("depthMeshCapture.estimatingDepth");
 			stepIndex= 2;
 			break;
 		case eDepthMeshCapturePhase::calibratingScale:
-			phaseLabel= "Calibrating metric scale...";
+			phaseLabel= locText("depthMeshCapture.calibratingScale");
 			stepIndex= 3;
 			break;
 		case eDepthMeshCapturePhase::generatingMesh:
-			phaseLabel= "Generating the proxy mesh...";
+			phaseLabel= locText("depthMeshCapture.generatingMesh");
 			stepIndex= 4;
 			break;
 		default:
@@ -91,7 +90,7 @@ void GuiPanel_DepthMeshCapture::onGui()
 		}
 
 		if (m_bCancellingCapture)
-			ImGui::TextWrapped("Cancelling...");
+			ImGui::TextWrapped("%s", locText("depthMeshCapture.cancelling"));
 		else
 			ImGui::TextWrapped("%s", phaseLabel);
 
@@ -100,13 +99,14 @@ void GuiPanel_DepthMeshCapture::onGui()
 		// inference) are exactly the opaque ones. The elapsed time ticks every
 		// frame, which is what actually shows the work is still alive.
 		char overlay[32];
-		snprintf(overlay, sizeof(overlay), "Step %d of %d", stepIndex, k_depthMeshCaptureStepCount);
+		snprintf(overlay, sizeof(overlay), locText("depthMeshCapture.stepOfStepsFmt"), stepIndex,
+				 k_depthMeshCaptureStepCount);
 		ImGui::ProgressBar(k_stepStartFraction[stepIndex - 1], ImVec2(-FLT_MIN, 0.f), overlay);
-		ImGui::TextWrapped("%.1f s elapsed", m_captureElapsedSeconds);
+		ImGui::TextWrapped("%s", locFormat("depthMeshCapture.elapsedSecondsFmt", m_captureElapsedSeconds).c_str());
 
 		ImGui::Spacing();
 		ImGui::BeginDisabled(m_bCancellingCapture);
-		if (ImGui::Button("Cancel Capture"))
+		if (ImGui::Button(locLabel("depthMeshCapture.cancelCapture")))
 		{
 			if (OnCancelCaptureEvent)
 				OnCancelCaptureEvent();
@@ -117,18 +117,18 @@ void GuiPanel_DepthMeshCapture::onGui()
 
 	case eDepthMeshCaptureMenuState::failedInference:
 	{
-		ImGui::TextWrapped("Depth mesh capture failed.");
+		ImGui::TextWrapped("%s", locText("depthMeshCapture.captureFailed"));
 		ImGui::Spacing();
 		if (!m_failureReason.empty())
 			ImGui::TextWrapped("%s", m_failureReason.c_str());
 		ImGui::Spacing();
-		if (ImGui::Button("Retry"))
+		if (ImGui::Button(locLabel("depthMeshCapture.retry")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -138,64 +138,59 @@ void GuiPanel_DepthMeshCapture::onGui()
 
 	case eDepthMeshCaptureMenuState::verifyMesh:
 	{
-		ImGui::TextWrapped("Proxy mesh: %d vertices, %d triangles.", m_vertexCount, m_triangleCount);
-		ImGui::TextWrapped("Depth range: %.2f - %.2f m", m_nearDepth, m_farDepth);
+		ImGui::TextWrapped("%s", locFormat("depthMeshCapture.meshSummaryFmt", m_vertexCount, m_triangleCount).c_str());
+		ImGui::TextWrapped("%s", locFormat("depthMeshCapture.depthRangeFmt", m_nearDepth, m_farDepth).c_str());
 
 		// Metric scale is the model's weakest output, so its correction status
 		// is surfaced as prominently as the confidence numbers elsewhere.
 		switch (m_scaleCorrectionSource)
 		{
 		case eDepthScaleCorrectionSource::arucoMarker:
-			ImGui::TextColored(ImVec4(0.4f, 1.f, 0.4f, 1.f), "Scale correction: %.3f (ArUco marker, spread %.1f%%)",
+			ImGui::TextColored(ImVec4(0.4f, 1.f, 0.4f, 1.f), locText("depthMeshCapture.scaleCorrectionArucoFmt"),
 							   m_scaleCorrectionFactor, m_scaleCornerSpread * 100.f);
 			if (m_scaleCornerSpread > 0.05f)
 			{
-				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f),
-								   "The marker corners disagree on the factor - the marker may be at a "
-								   "grazing angle or on a depth edge. Reposition it and redo.");
+				ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "%s",
+								   locText("depthMeshCapture.markerCornerDisagreement"));
 			}
 			else
 			{
-				ImGui::TextWrapped("Creating the stencil saves this factor to the camera for future "
-								   "marker-less captures.");
+				ImGui::TextWrapped("%s", locText("depthMeshCapture.scaleFactorSavedNote"));
 			}
 			break;
 		case eDepthScaleCorrectionSource::storedOnCamera:
-			ImGui::TextWrapped("Scale correction: %.3f (stored on camera)", m_scaleCorrectionFactor);
+			ImGui::TextWrapped("%s",
+							   locFormat("depthMeshCapture.scaleCorrectionStoredFmt", m_scaleCorrectionFactor).c_str());
 			break;
 		case eDepthScaleCorrectionSource::none:
-			ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "No scale calibration");
-			ImGui::TextWrapped("Metric scale is the model's raw guess and can be off by a large factor. "
-							   "Place an ArUco marker of known size in view and redo to calibrate.");
+			ImGui::TextColored(ImVec4(1.f, 0.7f, 0.f, 1.f), "%s", locText("depthMeshCapture.noScaleCalibration"));
+			ImGui::TextWrapped("%s", locText("depthMeshCapture.noScaleCalibrationExplanation"));
 			break;
 		default:
 			break;
 		}
 		if (m_culledCells > 0)
 		{
-			ImGui::TextWrapped("%d cells cut at depth discontinuities (expected along silhouettes - "
-							   "the mesh separates rather than stretching skirts between surfaces).",
-							   m_culledCells);
+			ImGui::TextWrapped("%s", locFormat("depthMeshCapture.culledCellsFmt", m_culledCells).c_str());
 		}
 
 		ImGui::Spacing();
-		ImGui::TextWrapped("The overlay colors the recovered depth (red = near, blue = far). Check that "
-						   "color edges hug the object silhouettes in the frame before applying.");
+		ImGui::TextWrapped("%s", locText("depthMeshCapture.previewOverlayNote"));
 		ImGui::Spacing();
 
-		if (ImGui::Button("Create Stencil"))
+		if (ImGui::Button(locLabel("depthMeshCapture.createStencil")))
 		{
 			if (OnApplyEvent)
 				OnApplyEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("depthMeshCapture.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -205,18 +200,16 @@ void GuiPanel_DepthMeshCapture::onGui()
 
 	case eDepthMeshCaptureMenuState::captureComplete:
 	{
-		ImGui::TextWrapped("Created model stencil '%s'.", m_createdStencilName.c_str());
+		ImGui::TextWrapped("%s", locFormat("depthMeshCapture.stencilCreatedFmt", m_createdStencilName.c_str()).c_str());
 		ImGui::Spacing();
-		ImGui::TextWrapped("The stencil is parented under the stage at the capturing camera's pose; "
-						   "connected clients pick it up automatically.");
+		ImGui::TextWrapped("%s", locText("depthMeshCapture.stencilParentedNote"));
 		if (m_scaleCorrectionSource == eDepthScaleCorrectionSource::arucoMarker)
 		{
-			ImGui::TextWrapped("Scale correction %.3f was saved to the camera and will apply to future "
-							   "captures without a marker in view.",
-							   m_scaleCorrectionFactor);
+			ImGui::TextWrapped("%s",
+							   locFormat("depthMeshCapture.scaleCorrectionSavedFmt", m_scaleCorrectionFactor).c_str());
 		}
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();

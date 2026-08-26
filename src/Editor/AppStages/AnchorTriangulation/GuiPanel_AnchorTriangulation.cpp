@@ -1,6 +1,7 @@
 #include "AnchorTriangulation/GuiPanel_AnchorTriangulation.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 void GuiPanel_AnchorTriangulation::onGui()
 {
@@ -8,15 +9,15 @@ void GuiPanel_AnchorTriangulation::onGui()
 	{
 	case eAnchorTriangulationMenuState::verifyInitialCameraSetup:
 	{
-		ImGui::TextWrapped("Verify that the camera is positioned correctly and the video stream is running.");
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.verifyCameraSetup"));
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -26,16 +27,16 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::captureOrigin1:
 	{
-		ImGui::TextWrapped("Camera position 1: Click the anchor origin point in the image.");
-		ImGui::Text("Points captured: %d", m_capturedPointCount);
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.captureOrigin1"));
+		ImGui::Text(locText("anchorTriangulation.pointsCapturedFmt"), m_capturedPointCount);
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -45,16 +46,16 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::captureXAxis1:
 	{
-		ImGui::TextWrapped("Camera position 1: Click a point along the anchor X axis.");
-		ImGui::Text("Points captured: %d", m_capturedPointCount);
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.captureXAxis1"));
+		ImGui::Text(locText("anchorTriangulation.pointsCapturedFmt"), m_capturedPointCount);
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -64,16 +65,16 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::captureYAxis1:
 	{
-		ImGui::TextWrapped("Camera position 1: Click a point along the anchor Y axis.");
-		ImGui::Text("Points captured: %d", m_capturedPointCount);
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.captureYAxis1"));
+		ImGui::Text(locText("anchorTriangulation.pointsCapturedFmt"), m_capturedPointCount);
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -83,22 +84,22 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::verifyInitialPointCapture:
 	{
-		ImGui::TextWrapped("Verify the captured points from position 1 look correct.");
-		ImGui::Text("Points captured: %d", m_capturedPointCount);
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.verifyInitialPointCapture"));
+		ImGui::Text(locText("anchorTriangulation.pointsCapturedFmt"), m_capturedPointCount);
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -108,15 +109,15 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::moveCamera:
 	{
-		ImGui::TextWrapped("Move the camera to a second position with a different angle to the anchor.");
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.moveCamera"));
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -126,16 +127,16 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::captureOrigin2:
 	{
-		ImGui::TextWrapped("Camera position 2: Click the anchor origin point in the image.");
-		ImGui::Text("Points captured: %d", m_capturedPointCount);
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.captureOrigin2"));
+		ImGui::Text(locText("anchorTriangulation.pointsCapturedFmt"), m_capturedPointCount);
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -145,16 +146,16 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::captureXAxis2:
 	{
-		ImGui::TextWrapped("Camera position 2: Click a point along the anchor X axis.");
-		ImGui::Text("Points captured: %d", m_capturedPointCount);
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.captureXAxis2"));
+		ImGui::Text(locText("anchorTriangulation.pointsCapturedFmt"), m_capturedPointCount);
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -164,16 +165,16 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::captureYAxis2:
 	{
-		ImGui::TextWrapped("Camera position 2: Click a point along the anchor Y axis.");
-		ImGui::Text("Points captured: %d", m_capturedPointCount);
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.captureYAxis2"));
+		ImGui::Text(locText("anchorTriangulation.pointsCapturedFmt"), m_capturedPointCount);
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -183,21 +184,21 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::verifyTriangulatedPoints:
 	{
-		ImGui::TextWrapped("Verify the triangulated anchor points look correct.");
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.verifyTriangulatedPoints"));
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -207,15 +208,15 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::testCalibration:
 	{
-		ImGui::Text("Anchor triangulation complete!");
+		ImGui::TextUnformatted(locText("anchorTriangulation.triangulationComplete"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("anchorTriangulation.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
@@ -225,9 +226,9 @@ void GuiPanel_AnchorTriangulation::onGui()
 
 	case eAnchorTriangulationMenuState::failedVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Error: Failed to start video stream.");
+		ImGui::TextWrapped("%s", locText("anchorTriangulation.failedVideoStream"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();

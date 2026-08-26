@@ -4,6 +4,7 @@
 #include "HttpInterprocessMessageServer.h"
 #include "IMkGraphicsContext.h"
 #include "IMkState.h"
+#include "LocText.h"
 #include "MikanServer.h"
 #include "MkGuiContext.h"
 #include "MkGuiScopedUpdate.h"
@@ -33,12 +34,13 @@ bool HttpTriggerWindow::startup()
 
 	bool success= true;
 
-	if (success && !startupWindow("HTTP Triggers", k_http_trigger_window_width, k_http_trigger_window_height))
+	if (success
+		&& !startupWindow(locText("windows.httpTriggers"), k_http_trigger_window_width, k_http_trigger_window_height))
 	{
 		success= false;
 	}
 
-	if (success && !startupGuiContext())
+	if (success && !startupGuiContext("http_triggers"))
 	{
 		success= false;
 	}
@@ -102,7 +104,7 @@ void HttpTriggerWindow::render()
 void HttpTriggerWindow::updateUI()
 {
 	ImGui::SetNextWindowSize(ImVec2(getWidth(), getHeight()), ImGuiCond_Once);
-	MkGuiScopedWindow httpTriggerWindow("HTTP Triggers", nullptr,
+	MkGuiScopedWindow httpTriggerWindow(locWindowTitle("windows.httpTriggers"), nullptr,
 										ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus
 											| ImGuiWindowFlags_NoMove);
 
@@ -111,7 +113,7 @@ void HttpTriggerWindow::updateUI()
 
 	if (routePaths.empty())
 	{
-		ImGui::TextUnformatted("No HTTP trigger routes registered");
+		ImGui::TextUnformatted(locText("httpTriggers.noRoutesRegistered"));
 		return;
 	}
 

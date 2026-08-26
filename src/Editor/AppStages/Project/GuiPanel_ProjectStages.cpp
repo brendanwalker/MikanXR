@@ -7,6 +7,7 @@
 #include "IconsForkAwesome.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -189,7 +190,8 @@ void GuiPanel_ProjectStages::onGui()
 	}
 
 	int stageIndex= m_stageDataSource->getEntryIndexByComponentId(m_selectedStageId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectStage", "Stage", m_stageDataSource.get(), stageIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectStage", locText("project.stage"),
+									m_stageDataSource.get(), stageIndex))
 	{
 		if (stageIndex >= 0)
 		{
@@ -229,8 +231,8 @@ void GuiPanel_ProjectStages::onGui()
 	}
 
 	int cameraIndex= m_cameraDataSource->getEntryIndexByComponentId(m_selectedCameraId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectCamera", "Camera", m_cameraDataSource.get(),
-									cameraIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectCamera", locText("project.camera"),
+									m_cameraDataSource.get(), cameraIndex))
 	{
 		if (cameraIndex >= 0)
 		{
@@ -345,8 +347,10 @@ void GuiPanel_ProjectStages::onGui()
 				if (!ownerStage || ownerStage->getComponentId() != m_selectedStageId)
 					continue;
 
-				const std::string name= comp->getName().empty() ? ("Env " + std::to_string(id)) : comp->getName();
-				const std::string label= "[Env] " + name + "##env" + std::to_string(id);
+				const std::string name=
+					comp->getName().empty() ? locFormat("project.envFallbackNameFmt", id) : comp->getName();
+				const std::string label=
+					std::string(locText("project.envPrefix")) + name + "##env" + std::to_string(id);
 
 				bool selected= (m_selectedLightKind == eSelectedLightKind::environment && m_selectedLightId == (int)id);
 				if (ImGui::Selectable(label.c_str(), selected))
@@ -373,8 +377,10 @@ void GuiPanel_ProjectStages::onGui()
 				if (comp->getDMXFixtureDefinition()->getOwnerStageId() != m_selectedStageId)
 					continue;
 
-				const std::string name= comp->getName().empty() ? ("Light " + std::to_string(id)) : comp->getName();
-				const std::string label= "[Spot] " + name + "##spot" + std::to_string(id);
+				const std::string name=
+					comp->getName().empty() ? locFormat("project.lightFallbackNameFmt", id) : comp->getName();
+				const std::string label=
+					std::string(locText("project.spotPrefix")) + name + "##spot" + std::to_string(id);
 
 				bool selected= (m_selectedLightKind == eSelectedLightKind::spot && m_selectedLightId == (int)id);
 				if (ImGui::Selectable(label.c_str(), selected))
@@ -400,8 +406,10 @@ void GuiPanel_ProjectStages::onGui()
 				if (comp->getDMXFixtureDefinition()->getOwnerStageId() != m_selectedStageId)
 					continue;
 
-				const std::string name= comp->getName().empty() ? ("Grid " + std::to_string(id)) : comp->getName();
-				const std::string label= "[Grid] " + name + "##grid" + std::to_string(id);
+				const std::string name=
+					comp->getName().empty() ? locFormat("project.gridFallbackNameFmt", id) : comp->getName();
+				const std::string label=
+					std::string(locText("project.gridPrefix")) + name + "##grid" + std::to_string(id);
 
 				bool selected= (m_selectedLightKind == eSelectedLightKind::pixelGrid && m_selectedLightId == (int)id);
 				if (ImGui::Selectable(label.c_str(), selected))

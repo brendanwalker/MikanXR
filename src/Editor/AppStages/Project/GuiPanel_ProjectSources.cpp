@@ -9,6 +9,7 @@
 #include "ModelShapeComponent.h"
 #include "ModelShapeSystem.h"
 #include "IconsForkAwesome.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "NetworkVideoSourceComponent.h"
@@ -264,7 +265,7 @@ void GuiPanel_ProjectSources::onGui()
 	}
 
 	int videoIndex= m_videoSourceDataSource->getEntryIndexByComponentId(m_selectedVideoSourceId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectVideoSource", "Video Source",
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectVideoSource", locText("project.videoSource"),
 									m_videoSourceDataSource.get(), videoIndex))
 	{
 		if (videoIndex >= 0)
@@ -339,7 +340,7 @@ void GuiPanel_ProjectSources::onGui()
 	}
 
 	int textureIndex= m_textureSourceDataSource->getEntryIndexByComponentId(m_selectedTextureSourceId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTextureSource", "Texture Source",
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTextureSource", locText("project.textureSource"),
 									m_textureSourceDataSource.get(), textureIndex))
 	{
 		if (textureIndex >= 0)
@@ -414,7 +415,8 @@ void GuiPanel_ProjectSources::onGui()
 	}
 
 	int shapeIndex= m_shapeDataSource->getEntryIndexByComponentId(m_selectedShapeId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectShape", "Shape", m_shapeDataSource.get(), shapeIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectShape", locText("project.shape"),
+									m_shapeDataSource.get(), shapeIndex))
 	{
 		if (shapeIndex >= 0)
 		{

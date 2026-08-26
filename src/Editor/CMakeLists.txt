@@ -371,7 +371,13 @@ file(GLOB MIKAN_LOCALIZATION_SRC
 )
 source_group("Localization" FILES ${MIKAN_LOCALIZATION_SRC})
 
-# Localization
+file(GLOB MIKAN_LOCALIZATION_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Localization/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Localization/Test/*.h"
+)
+source_group("Localization\\Test" FILES ${MIKAN_LOCALIZATION_TEST_SRC})
+
+# Math
 file(GLOB MIKAN_MATH_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Math/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Math/*.h"
@@ -499,6 +505,7 @@ set(MIKAN_SRC
     ${MIKAN_ECS_SRC}
     ${MIKAN_INTERPROCESS_SRC}
     ${MIKAN_LOCALIZATION_SRC}
+    ${MIKAN_LOCALIZATION_TEST_SRC}
     ${MIKAN_MATH_SRC}
     ${MIKAN_NODE_EDITORS_SRC}
     ${MIKAN_OBJECT_SRC}
@@ -546,6 +553,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanOnnx/Public
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
+  ${CMAKE_CURRENT_LIST_DIR}/Localization/Test
   ${CMAKE_CURRENT_LIST_DIR}/Math
   ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV
@@ -679,8 +687,8 @@ target_link_libraries(MikanCmd PRIVATE MikanEditor)
 add_dependencies(MikanCmd Mikan)
 
 # Runtime dependencies
-set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
-set(SDL2_TTF_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_ttf-2.0.15/lib/x64)
+set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.30.10/lib/x64/SDL2.dll)
+set(SDL2_TTF_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_ttf-2.24.0/lib/x64)
 set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 set(OPENVR_DLL ${ROOT_DIR}/thirdparty/openvr/bin/win64/openvr_api.dll)
 
@@ -755,15 +763,10 @@ function(copy_mikan_runtime_deps mikan_target)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:${mikan_target}>)
-  # SDL2_ttf.dll depends on libfreetype-6.dll, which in turn depends on
-  # zlib1.dll. All three ship together in the SDL2_ttf distribution and must
-  # be copied alongside the app, otherwise SDL2_ttf fails to load.
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-    "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
-    "${SDL2_TTF_DLL_FOLDER}/zlib1.dll"
     $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
@@ -844,12 +847,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(FILES "${RFK_SHARED_LIBRARIES}"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
-  # SDL2_ttf.dll also needs libfreetype-6.dll and zlib1.dll (see the
-  # post-build copy in copy_mikan_runtime_deps above).
   install(FILES
       "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-      "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
-      "${SDL2_TTF_DLL_FOLDER}/zlib1.dll"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES
@@ -865,7 +864,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   install(DIRECTORY ${ROOT_DIR}/resources
     DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.onnx")
+    # *.txt carries the font license files, which must ship alongside the fonts
+    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.txt" PATTERN "*.lua" PATTERN "*.onnx")
 
   # Install CEF binary and resource files
   if(DEFINED CEF_ROOT)

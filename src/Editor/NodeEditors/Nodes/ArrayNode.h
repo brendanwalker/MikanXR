@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LocText.h"
 #include "Node.h"
 
 class ArrayNodeConfig : public NodeConfig
@@ -28,7 +29,7 @@ public:
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator);
 
-	virtual std::string editorGetTitle() const { return "Make Array"; }
+	virtual std::string editorGetTitle() const { return locText("nodes.makeArrayTitle"); }
 
 protected:
 	virtual void editorRenderInputPins(const NodeEditorState& editorState) override;

@@ -14,6 +14,7 @@ public:
 	int getLabelWidth() const override { return m_labelWidth; }
 	int getValueWidth() const override { return m_valueWidth; }
 	struct ImFont* getFont() const override { return m_font; }
+	float getFontSize() const override { return m_fontSize; }
 
 	int getFloatVarCount() const override { return (int)m_floatVars.size(); }
 	const MkGuiStyleFloatEntry& getFloatVar(int index) const override { return m_floatVars[index]; }
@@ -31,6 +32,7 @@ public:
 	int& labelWidth() { return m_labelWidth; }
 	int& valueWidth() { return m_valueWidth; }
 	struct ImFont*& font() { return m_font; }
+	float& fontSize() { return m_fontSize; }
 	std::vector<MkGuiStyleFloatEntry>& floatVars() { return m_floatVars; }
 	std::vector<MkGuiStyleVec2Entry>& vec2Vars() { return m_vec2Vars; }
 	std::vector<MkGuiStyleColorEntry>& colors() { return m_colors; }
@@ -45,4 +47,5 @@ private:
 	std::vector<MkGuiStyleColorEntry> m_colors;
 	std::map<std::string, MkGuiStyleTextureEntry> m_textures;
 	struct ImFont* m_font= nullptr;
+	float m_fontSize= 0.f;
 };

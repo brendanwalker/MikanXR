@@ -9,6 +9,10 @@ enum class eEnumDisplayStyle
 	RadioButtons
 };
 
+// The choice strings are localization keys ("propertyValues.<name>"), not
+// display text: the panel resolves them through locText every frame so the
+// choices follow a language switch. Do not point this at one of the g_* enum
+// tables, which are the JSON persistence spellings.
 class EnumPropertyMetaData : public PropertyMetaData
 {
 public:

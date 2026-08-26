@@ -1,7 +1,7 @@
 #include "BoolPin.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
 
 const ImU32 BoolPin::editorValuePinColor(float alpha) const
 {
-	return ImGui::GetColorU32(NodeEditorUI::getBooleanColor(alpha));
+	return ImGui::GetColorU32(MkGui::getBooleanColor(alpha));
 }

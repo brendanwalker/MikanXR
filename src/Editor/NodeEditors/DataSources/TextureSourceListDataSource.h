@@ -1,12 +1,12 @@
 #pragma once
 
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
 #include "ComponentFwd.h"
 #include "MikanTypeFwd.h"
 #include "ObjectSystemFwd.h"
 #include <vector>
 
-class TextureSourceListDataSource : public NodeEditorUI::ComboBoxDataSource
+class TextureSourceListDataSource : public MkGui::ComboBoxDataSource
 {
 public:
 	TextureSourceListDataSource(ProjectManagerPtr projectManager);
@@ -14,8 +14,8 @@ public:
 	int getEntryIndex(TextureSourceComponentPtr textureSourceComponent) const;
 	TextureSourceComponentPtr getEntryAtIndex(int index) const;
 
-	virtual int getEntryCount() override;
-	virtual const std::string& getEntryDisplayString(int index) override;
+	virtual int getEntryCount() const override;
+	virtual const std::string& getEntryDisplayString(int index) const override;
 
 private:
 	std::vector<TextureSourceComponentPtr> comboEntrieValues;

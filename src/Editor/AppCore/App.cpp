@@ -124,9 +124,11 @@ bool App::startup(int argc, char** argv)
 
 	LoggerSettings settings= {};
 	settings.min_log_level= LogSeverityLevel::debug;
-	settings.enable_console= true;
+	// No console window: the editor shows the log in its own panel, and the
+	// same lines still go to MikanXR.log
+	settings.enable_console= false;
 	settings.log_filename= "MikanXR.log";
-	// Keep recent log lines readable through the automation server
+	// Feeds both the automation server's log command and the editor's log panel
 	settings.log_callback= AutomationLogBuffer::logCallback;
 
 	log_init(settings);
@@ -171,7 +173,8 @@ bool App::startup(int argc, char** argv)
 	// Enable auto-save on a cooldown when settings are changed
 	m_appSettings->setAutoSaveCooldownDuration(SETTINGS_SAVE_COOLDOWN);
 
-	if (success && !m_localizationManager->startup(m_appSettings))
+	const std::filesystem::path localizationDir= PathUtils::getResourceDirectory() / "localization";
+	if (success && !m_localizationManager->startup(localizationDir, m_appSettings))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
 		success= false;

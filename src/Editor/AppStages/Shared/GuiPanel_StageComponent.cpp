@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_StageComponent.h"
+#include "LocText.h"
 #include "MarkerTrackingVolumeComponent.h"
 #include "MarkerTrackingVolumeSystem.h"
 #include "MkGuiDrawUtils.h"
@@ -40,7 +41,7 @@ void GuiPanel_StageComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					stageComp->makePropertyUIIdentifier(StageComponentDefinition::k_trackingVolumeIdPropertyId),
-					"Tracking Volume", &m_trackingVolumeDataSource, selectedIndex))
+					locText("componentPanel.trackingVolume"), &m_trackingVolumeDataSource, selectedIndex))
 			{
 				MikanComponentPtr newVolume= m_trackingVolumeDataSource.getEntryAtIndex(selectedIndex);
 				if (newVolume)

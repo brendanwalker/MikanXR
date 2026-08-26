@@ -338,7 +338,7 @@ void Node::editorRenderTitle(const NodeEditorState& editorState) const
 	MkNodesScopedNodeTitleBar titleBar;
 	MkGuiScopedStyleVar styleVar;
 	styleVar.push(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-	ImGui::Text(titleString.c_str());
+	ImGui::TextUnformatted(titleString.c_str());
 }
 
 void Node::editorRenderInputPins(const NodeEditorState& editorState)

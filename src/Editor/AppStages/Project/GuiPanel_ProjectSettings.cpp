@@ -4,6 +4,7 @@
 #include "AppStage.h"
 #include "EditorObjectSystem.h"
 #include "HttpTriggerWindow.h"
+#include "LocText.h"
 #include "LocalizationManager.h"
 #include "MikanServer.h"
 #include "MkGuiDrawUtils.h"
@@ -13,6 +14,7 @@
 #include "Shared/GuiPanel_DMXObjectSystem.h"
 
 #include "imgui.h"
+#include <algorithm>
 #include <cstring>
 
 bool GuiPanel_ProjectSettings::init(ProjectGuiPanelContext* context)
@@ -25,8 +27,15 @@ bool GuiPanel_ProjectSettings::init(ProjectGuiPanelContext* context)
 
 	LocalizationManager* locManager= ownerAppStage->getOwnerWindow()->getLocalizationManager();
 	m_selectedLanguageId= locManager->getLanguage();
-	m_languageIdList= locManager->getSupportedLanguages();
-	m_languageDataSource.setEntries(m_languageIdList);
+
+	m_languageIdList.clear();
+	m_languageNameList.clear();
+	for (const LocalizationManager::LanguageInfo& info : locManager->getSupportedLanguageInfos())
+	{
+		m_languageIdList.push_back(info.code);
+		m_languageNameList.push_back(info.nativeName);
+	}
+	m_languageDataSource.setEntries(m_languageNameList);
 
 	return true;
 }
@@ -42,21 +51,21 @@ void GuiPanel_ProjectSettings::onGui()
 	const auto editorConfig= editorSystem->getEditorSystemConfigConst();
 
 	bool renderOrigin= editorConfig->getRenderOriginFlag();
-	if (ImGui::Checkbox("Render Origin", &renderOrigin))
+	if (ImGui::Checkbox(locLabel("projectSettings.renderOrigin"), &renderOrigin))
 	{
 		addDeferredGuiEvent([this, renderOrigin]()
 							{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderOriginFlag(renderOrigin); });
 	}
 
 	bool renderAnchors= editorConfig->getRenderAnchorsFlag();
-	if (ImGui::Checkbox("Render Anchors", &renderAnchors))
+	if (ImGui::Checkbox(locLabel("projectSettings.renderAnchors"), &renderAnchors))
 	{
 		addDeferredGuiEvent([this, renderAnchors]()
 							{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderAnchorsFlag(renderAnchors); });
 	}
 
 	bool renderQuadStencils= editorConfig->getRenderQuadStencilsFlag();
-	if (ImGui::Checkbox("Render Quad Stencils", &renderQuadStencils))
+	if (ImGui::Checkbox(locLabel("projectSettings.renderQuadStencils"), &renderQuadStencils))
 	{
 		addDeferredGuiEvent(
 			[this, renderQuadStencils]()
@@ -64,7 +73,7 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 
 	bool renderBoxStencils= editorConfig->getRenderBoxStencilsFlag();
-	if (ImGui::Checkbox("Render Box Stencils", &renderBoxStencils))
+	if (ImGui::Checkbox(locLabel("projectSettings.renderBoxStencils"), &renderBoxStencils))
 	{
 		addDeferredGuiEvent(
 			[this, renderBoxStencils]()
@@ -72,7 +81,7 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 
 	bool renderModelStencils= editorConfig->getRenderModelStencilsFlag();
-	if (ImGui::Checkbox("Render Model Stencils", &renderModelStencils))
+	if (ImGui::Checkbox(locLabel("projectSettings.renderModelStencils"), &renderModelStencils))
 	{
 		addDeferredGuiEvent(
 			[this, renderModelStencils]()
@@ -80,8 +89,10 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 
 	int stencilDisplayIndex= (int)editorConfig->getModelStencilDisplayMode();
-	const char* k_stencilDisplayLabels[]= {"Solid", "Wireframe", "Both"};
-	if (ImGui::Combo("Model Stencil Display", &stencilDisplayIndex, k_stencilDisplayLabels,
+	const char* k_stencilDisplayLabels[]= {locText("projectSettings.stencilDisplaySolid"),
+										   locText("projectSettings.stencilDisplayWireframe"),
+										   locText("projectSettings.stencilDisplayBoth")};
+	if (ImGui::Combo(locLabel("projectSettings.modelStencilDisplay"), &stencilDisplayIndex, k_stencilDisplayLabels,
 					 IM_ARRAYSIZE(k_stencilDisplayLabels)))
 	{
 		addDeferredGuiEvent(
@@ -93,11 +104,11 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetTooltip("Wireframe hides the opaque mesh so the real model in the video shows through.");
+		ImGui::SetTooltip("%s", locText("projectSettings.stencilDisplayTooltip"));
 	}
 
 	bool debugRenderInCompositor= editorConfig->getDebugRenderInCompositor();
-	if (ImGui::Checkbox("Debug Render in Compositor", &debugRenderInCompositor))
+	if (ImGui::Checkbox(locLabel("projectSettings.debugRenderInCompositor"), &debugRenderInCompositor))
 	{
 		addDeferredGuiEvent(
 			[this, debugRenderInCompositor]()
@@ -105,17 +116,16 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetTooltip("Draws the debug overlay above in the compositor output window too.\n"
-						  "Off (default): the compositor window shows only the composited shot.");
+		ImGui::SetTooltip("%s", locText("projectSettings.debugRenderInCompositorTooltip"));
 	}
 
 	ImGui::Separator();
 
 	// Floor grid + ruler snapping
-	ImGui::Text("Grid & Measurement");
+	ImGui::TextUnformatted(locText("projectSettings.gridAndMeasurement"));
 
 	float gridExtent= editorConfig->getGridExtent();
-	if (ImGui::InputFloat("Grid Extent (m)", &gridExtent, 0.5f, 1.f, "%.2f"))
+	if (ImGui::InputFloat(locLabel("projectSettings.gridExtent"), &gridExtent, 0.5f, 1.f, "%.2f"))
 	{
 		if (gridExtent < 0.1f)
 			gridExtent= 0.1f;
@@ -124,7 +134,7 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 
 	float gridCellSize= editorConfig->getGridCellSize();
-	if (ImGui::InputFloat("Grid Cell Size (m)", &gridCellSize, 0.05f, 0.1f, "%.3f"))
+	if (ImGui::InputFloat(locLabel("projectSettings.gridCellSize"), &gridCellSize, 0.05f, 0.1f, "%.3f"))
 	{
 		if (gridCellSize < 0.001f)
 			gridCellSize= 0.001f;
@@ -133,7 +143,7 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 
 	float snapIncrement= editorConfig->getSnapIncrement();
-	if (ImGui::InputFloat("Snap Increment (m)", &snapIncrement, 0.01f, 0.1f, "%.3f"))
+	if (ImGui::InputFloat(locLabel("projectSettings.snapIncrement"), &snapIncrement, 0.01f, 0.1f, "%.3f"))
 	{
 		if (snapIncrement < 0.f)
 			snapIncrement= 0.f;
@@ -142,20 +152,22 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 
 	bool snapEnabled= editorConfig->getSnapEnabled();
-	if (ImGui::Checkbox("Ruler Snap To Grid By Default", &snapEnabled))
+	if (ImGui::Checkbox(locLabel("projectSettings.rulerSnapToGridByDefault"), &snapEnabled))
 	{
 		addDeferredGuiEvent([this, snapEnabled]()
 							{ m_editorSystem.lock()->getEditorSystemConfig()->setSnapEnabled(snapEnabled); });
 	}
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetTooltip("Hold Shift while measuring to invert snapping.\n"
-						  "Off (default): hold Shift to snap, release to move freely.");
+		ImGui::SetTooltip("%s", locText("projectSettings.rulerSnapTooltip"));
 	}
 
 	int rulerUnitsIndex= (int)editorConfig->getRulerDisplayUnits();
-	const char* k_rulerUnitLabels[]= {"Meters", "Centimeters", "Millimeters"};
-	if (ImGui::Combo("Ruler Units", &rulerUnitsIndex, k_rulerUnitLabels, IM_ARRAYSIZE(k_rulerUnitLabels)))
+	const char* k_rulerUnitLabels[]= {locText("projectSettings.rulerUnitMeters"),
+									  locText("projectSettings.rulerUnitCentimeters"),
+									  locText("projectSettings.rulerUnitMillimeters")};
+	if (ImGui::Combo(locLabel("projectSettings.rulerUnits"), &rulerUnitsIndex, k_rulerUnitLabels,
+					 IM_ARRAYSIZE(k_rulerUnitLabels)))
 	{
 		addDeferredGuiEvent(
 			[this, rulerUnitsIndex]()
@@ -166,7 +178,7 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 
 	bool debugCameraAlignment= editorConfig->getDebugCameraAlignment();
-	if (ImGui::Checkbox("Debug Camera Alignment", &debugCameraAlignment))
+	if (ImGui::Checkbox(locLabel("projectSettings.debugCameraAlignment"), &debugCameraAlignment))
 	{
 		addDeferredGuiEvent(
 			[this, debugCameraAlignment]()
@@ -174,8 +186,7 @@ void GuiPanel_ProjectSettings::onGui()
 	}
 	if (ImGui::IsItemHovered())
 	{
-		ImGui::SetTooltip("Overlays the MR alignment chain: axes at stage origin / puck / aperture,\n"
-						  "and a window with live vs calibrated intrinsics, resolution, and offsets.");
+		ImGui::SetTooltip("%s", locText("projectSettings.debugCameraAlignmentTooltip"));
 	}
 
 	ImGui::Separator();
@@ -185,14 +196,15 @@ void GuiPanel_ProjectSettings::onGui()
 	LocalizationManager* locManager= ownerAppStage->getOwnerWindow()->getLocalizationManager();
 	m_selectedLanguageId= locManager->getLanguage();
 
-	m_languageDataSource.setEntries(m_languageIdList);
-	int selectedIndex= m_languageDataSource.getEntryIndexByString(m_selectedLanguageId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectLanguage", "Language", &m_languageDataSource,
-									selectedIndex))
+	m_languageDataSource.setEntries(m_languageNameList);
+	const auto selectedIt= std::find(m_languageIdList.begin(), m_languageIdList.end(), m_selectedLanguageId);
+	int selectedIndex= selectedIt != m_languageIdList.end() ? (int)(selectedIt - m_languageIdList.begin()) : -1;
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectLanguage", locText("projectSettings.language"),
+									&m_languageDataSource, selectedIndex))
 	{
-		if (selectedIndex >= 0)
+		if (selectedIndex >= 0 && selectedIndex < (int)m_languageIdList.size())
 		{
-			const std::string lang= m_languageDataSource.getEntryDisplayString(selectedIndex);
+			const std::string lang= m_languageIdList[selectedIndex];
 			addDeferredGuiEvent([locManager, lang]() { locManager->setLanguage(lang); });
 		}
 	}
@@ -204,7 +216,7 @@ void GuiPanel_ProjectSettings::onGui()
 		auto appSettings= App::getInstance()->getAppSettings();
 		char editorBuf[256];
 		strncpy_s(editorBuf, appSettings->getScriptEditorCommand().c_str(), sizeof(editorBuf) - 1);
-		if (ImGui::InputText("Script Editor Command", editorBuf, sizeof(editorBuf)))
+		if (ImGui::InputText(locLabel("projectSettings.scriptEditorCommand"), editorBuf, sizeof(editorBuf)))
 		{
 			const std::string newCmd(editorBuf);
 			addDeferredGuiEvent([appSettings, newCmd]() { appSettings->setScriptEditorCommand(newCmd); });
@@ -217,7 +229,7 @@ void GuiPanel_ProjectSettings::onGui()
 	{
 		auto appSettings= App::getInstance()->getAppSettings();
 		int httpPort= appSettings->getHttpServerPort();
-		if (ImGui::InputInt("HTTP Trigger Server Port", &httpPort))
+		if (ImGui::InputInt(locLabel("projectSettings.httpTriggerServerPort"), &httpPort))
 		{
 			if (httpPort < 1)
 				httpPort= 1;
@@ -232,7 +244,7 @@ void GuiPanel_ProjectSettings::onGui()
 				});
 		}
 
-		if (ImGui::Button("Show HTTP Triggers"))
+		if (ImGui::Button(locLabel("projectSettings.showHttpTriggers")))
 		{
 			addDeferredGuiEvent(
 				[]()

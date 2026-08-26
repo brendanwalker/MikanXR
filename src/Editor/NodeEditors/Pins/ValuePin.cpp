@@ -1,5 +1,5 @@
 #include "ValuePin.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
 
 // -- IntPin -----
 float ValuePin::editorComputeInputWidth() const
@@ -24,11 +24,11 @@ std::shared_ptr<MkNodesScopedColorStyle> ValuePin::editorRenderMakePinStyle(floa
 {
 	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Pin, editorValuePinColor(alpha))
-		.push(ImNodesCol_PinHovered, ImGui::GetColorU32(NodeEditorUI::getPinHoveredColor(alpha)));
+		.push(ImNodesCol_PinHovered, ImGui::GetColorU32(MkGui::getPinHoveredColor(alpha)));
 	return style;
 }
 
 const ImU32 ValuePin::editorValuePinColor(float alpha) const
 {
-	return ImGui::GetColorU32(NodeEditorUI::getPropertyColor(alpha));
+	return ImGui::GetColorU32(MkGui::getPropertyColor(alpha));
 }

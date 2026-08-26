@@ -45,6 +45,10 @@ public:
 	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport) override;
 
+	virtual bool getUsesDockspace() const override { return true; }
+	virtual void onMenuBarGui() override;
+	virtual void onBuildDefaultDockLayout(unsigned int dockspaceId) override;
+
 protected:
 	SceneComponentConstPtr getCurrentSceneConst() const;
 	StageComponentConstPtr getCurrentStageConst() const;
@@ -79,6 +83,9 @@ protected:
 	// MR camera-alignment debug overlay (toggled by EditorSettings::bDebugCameraAlignment)
 	void renderCameraAlignmentDebug(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderCameraAlignmentGui();
+	static const char* getPanelWindowTitle(eProjectAppStageActivePanel panel);
+	static const char* getPanelMenuLabel(eProjectAppStageActivePanel panel);
+	void applyPendingProjectActions();
 
 	// -- IRemoteControllable Interface -- //
 	virtual bool handleRemoteControlCommand(const std::string& command, const std::vector<std::string>& parameters,
@@ -120,6 +127,16 @@ protected:
 	class GuiPanel_ProjectMarkers* m_projectMarkersPanel= nullptr;
 	class GuiPanel_ProjectSettings* m_projectSettingsPanel= nullptr;
 	eProjectAppStageActivePanel m_activePanel= eProjectAppStageActivePanel::INVALID;
+	// Per-panel window visibility, driven by the View menu and persisted with
+	// the rest of the editor settings
+	bool m_panelVisible[(int)eProjectAppStageActivePanel::COUNT]= {true, true, true, true, true, true};
+	bool m_bShowLogPanel= true;
+	// Deferred project actions: a menu click must not swap the project out from
+	// under the panels drawing this frame
+	bool m_bPendingCloseProject= false;
+	bool m_bPendingExit= false;
+	std::filesystem::path m_pendingLoadProjectPath;
+	std::filesystem::path m_pendingNewProjectPath;
 
 	MikanViewportPtr m_viewport;
 	IMkScenePtr m_mkScene;

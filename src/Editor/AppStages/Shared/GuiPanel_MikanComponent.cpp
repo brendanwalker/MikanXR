@@ -2,6 +2,7 @@
 #include "AssetReferencePropertyMetaData.h"
 #include "GuiPanel_MikanComponent.h"
 #include "ComponentScriptContext.h"
+#include "LocText.h"
 #include "MikanComponent.h"
 #include "MkGuiStyleManager.h"
 
@@ -66,8 +67,8 @@ void GuiPanel_MikanComponent::onConstruct()
 
 				if (MkGui::drawFilePathProperty(
 						m_defaultGuiStyle,
-						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId), "Script",
-						scriptPath))
+						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId),
+						locText("componentPanel.script"), scriptPath))
 				{
 					addDeferredGuiEvent([component]() { component->selectComponentScript(); });
 				}
@@ -99,7 +100,8 @@ void GuiPanel_MikanComponent::onConstruct()
 			}
 			else
 			{
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "Script", "<No Script>");
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.script"),
+											  locText("componentPanel.noScript"));
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
 						m_defaultGuiStyle,
@@ -123,12 +125,22 @@ void GuiPanel_MikanComponent::onConstruct()
 
 void GuiPanel_MikanComponent::onGui()
 {
+	MikanComponentPtr component= m_component.lock();
+	if (!component)
+		return;
+
+	// One collapsible section per component, titled with the component's own
+	// name. The id is the class name so the open/closed state follows the kind
+	// of component rather than resetting when the user renames one.
+	const std::string sectionLabel= component->getName() + "##" + component->getComponentClassName();
+	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+	if (!ImGui::CollapsingHeader(sectionLabel.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth))
+		return;
+
 	// Auto-render all component properties
 	m_entityAccessor->onGui();
 
 	// Render script triggers as buttons
-	MikanComponentPtr component= m_component.lock();
-	if (component)
 	{
 		ComponentScriptContextPtr scriptContext= component->getScriptContext();
 		if (scriptContext)
@@ -137,7 +149,7 @@ void GuiPanel_MikanComponent::onGui()
 			if (!triggers.empty())
 			{
 				ImGui::Separator();
-				ImGui::Text("Script Triggers");
+				ImGui::TextUnformatted(locText("componentPanel.scriptTriggers"));
 				for (const std::string& triggerName : triggers)
 				{
 					if (ImGui::Button(triggerName.c_str()))

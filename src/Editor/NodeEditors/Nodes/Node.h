@@ -2,6 +2,7 @@
 
 #include "NodeFwd.h"
 #include "CommonConfig.h"
+#include "LocText.h"
 #include "ProjectManager.h"
 #include "ObjectSystemFwd.h"
 #include "Pins/NodePinConstants.h"
@@ -109,7 +110,7 @@ public:
 	virtual bool hasAnyConnectedPins() const;
 	virtual FlowPinPtr getOutputFlowPin() const;
 
-	virtual std::string editorGetTitle() const { return "Node"; }
+	virtual std::string editorGetTitle() const { return locText("nodes.nodeTitle"); }
 	virtual bool editorCanDelete() const { return true; }
 	virtual void editorRenderNode(const NodeEditorState& editorState);
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}

@@ -1,4 +1,5 @@
 #include "StencilAlignment/GuiPanel_StencilAlignment.h"
+#include "LocText.h"
 
 #include "imgui.h"
 
@@ -8,9 +9,9 @@ void GuiPanel_StencilAlignment::onGui()
 	{
 	case eStencilAlignmentMenuState::pendingVideoStart:
 	{
-		ImGui::TextWrapped("Starting video stream...");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.startingVideoStream"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -20,15 +21,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::verifyInitialCameraSetup:
 	{
-		ImGui::TextWrapped("Verify that the camera is positioned and video stream is running.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.verifyInitialCameraSetup"));
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -38,15 +39,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::captureOriginPixel:
 	{
-		ImGui::TextWrapped("Click the pixel in the camera image that corresponds to the stencil origin.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.captureOriginPixel"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -56,15 +57,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::captureOriginVertex:
 	{
-		ImGui::TextWrapped("Click the vertex on the stencil mesh that corresponds to the origin.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.captureOriginVertex"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -74,15 +75,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::captureXAxisPixel:
 	{
-		ImGui::TextWrapped("Click the pixel in the camera image along the X axis direction.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.captureXAxisPixel"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -92,15 +93,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::captureXAxisVertex:
 	{
-		ImGui::TextWrapped("Click the vertex on the stencil mesh along the X axis.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.captureXAxisVertex"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -110,15 +111,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::captureYAxisPixel:
 	{
-		ImGui::TextWrapped("Click the pixel in the camera image along the Y axis direction.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.captureYAxisPixel"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -128,15 +129,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::captureYAxisVertex:
 	{
-		ImGui::TextWrapped("Click the vertex on the stencil mesh along the Y axis.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.captureYAxisVertex"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -146,15 +147,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::captureZAxisPixel:
 	{
-		ImGui::TextWrapped("Click the pixel in the camera image along the Z axis direction.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.captureZAxisPixel"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -164,15 +165,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::captureZAxisVertex:
 	{
-		ImGui::TextWrapped("Click the vertex on the stencil mesh along the Z axis.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.captureZAxisVertex"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -182,21 +183,21 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::verifyPointsCapture:
 	{
-		ImGui::TextWrapped("Verify the captured alignment points look correct.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.verifyPointsCapture"));
 		ImGui::Spacing();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -206,15 +207,15 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::testCalibration:
 	{
-		ImGui::Text("Stencil alignment complete!");
+		ImGui::TextUnformatted(locText("stencilAlignment.alignmentComplete"));
 		ImGui::Spacing();
-		if (ImGui::Button("Redo"))
+		if (ImGui::Button(locLabel("stencilAlignment.redo")))
 		{
 			if (OnRedoEvent)
 				OnRedoEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnOkEvent)
 				OnOkEvent();
@@ -224,9 +225,9 @@ void GuiPanel_StencilAlignment::onGui()
 
 	case eStencilAlignmentMenuState::failedVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Error: Failed to start video stream.");
+		ImGui::TextWrapped("%s", locText("stencilAlignment.failedVideoStart"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();

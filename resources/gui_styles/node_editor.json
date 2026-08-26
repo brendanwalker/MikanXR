@@ -30,7 +30,7 @@
             { "name": "HeaderHovered",     "value": [0.1,  0.4,  0.9,  1.0] },
             { "name": "Tab",               "value": [0.06, 0.06, 0.06, 1.0] },
             { "name": "TabHovered",        "value": [0.4,  0.4,  0.4,  1.0] },
-            { "name": "TabActive",         "value": [0.25, 0.25, 0.25, 0.4] },
+            { "name": "TabSelected",       "value": [0.25, 0.25, 0.25, 0.4] },
             { "name": "ResizeGrip",        "value": [0.0,  0.0,  0.0,  0.0] },
             { "name": "ResizeGripHovered", "value": [0.0,  0.0,  0.0,  0.0] },
             { "name": "ResizeGripActive",  "value": [0.0,  0.0,  0.0,  0.0] },
@@ -121,6 +121,8 @@
     },
 
     "node_editor_property_value": {
+        "labelWidth": 100,
+        "valueWidth": 150,
         "colors": [
             { "name": "PopupBg", "value": [0.13, 0.13, 0.13, 1.0] }
         ]

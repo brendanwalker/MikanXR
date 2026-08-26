@@ -2,6 +2,7 @@
 
 #include "ComponentFwd.h"
 #include "CompositorConstants.h"
+#include "LocText.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
 
@@ -57,7 +58,7 @@ protected:
 	void drawShapeRenderable(IMkSceneRenderableConstPtr renderable, const glm::mat4& vpMatrix,
 							 IMkTexturePtr colorTexture);
 
-	virtual std::string editorGetTitle() const override { return "Draw Shapes"; }
+	virtual std::string editorGetTitle() const override { return locText("nodes.drawShapesTitle"); }
 
 protected:
 	ArrayPinPtr m_shapesPin;

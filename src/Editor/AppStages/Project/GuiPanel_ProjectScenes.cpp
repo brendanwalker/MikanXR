@@ -17,6 +17,7 @@
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
 #include "IconsForkAwesome.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "ModelStencilSystem.h"
@@ -383,7 +384,7 @@ void GuiPanel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 		SelectionComponentPtr selectionComponent= ownerObject->getComponentOfType<SelectionComponent>();
 
 		SceneOutlinerEntry entry;
-		entry.name= name.empty() ? "<No Name>" : name;
+		entry.name= name.empty() ? locText("project.noName") : name;
 		entry.depth= depth;
 		entry.selectionComponent= selectionComponent;
 		m_sceneOutliner.push_back(entry);
@@ -428,7 +429,8 @@ void GuiPanel_ProjectScenes::onGui()
 	}
 
 	int sceneIndex= m_sceneDataSource->getEntryIndexByComponentId(m_selectedSceneId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectScene", "Scene", m_sceneDataSource.get(), sceneIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectScene", locText("project.scene"),
+									m_sceneDataSource.get(), sceneIndex))
 	{
 		if (sceneIndex >= 0)
 		{
@@ -487,7 +489,7 @@ void GuiPanel_ProjectScenes::onGui()
 		}
 
 		int compositorIndex= m_compositorDataSource->getEntryIndexByComponentId(m_selectedCompositorId);
-		if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectCompositor", "Compositor",
+		if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectCompositor", locText("project.compositor"),
 										m_compositorDataSource.get(), compositorIndex))
 		{
 			if (compositorIndex >= 0)
@@ -660,7 +662,7 @@ void GuiPanel_ProjectScenes::onGui()
 				});
 		}
 
-		ImGui::Text("Scene Objects");
+		ImGui::TextUnformatted(locText("project.sceneObjects"));
 		if (ImGui::BeginListBox("##SceneOutliner", ImVec2(-1, 120)))
 		{
 			for (int i= 0; i < (int)m_sceneOutliner.size(); ++i)
@@ -690,7 +692,7 @@ void GuiPanel_ProjectScenes::onGui()
 		// Remove selected object
 		if (m_selectedSceneObjectListIndex >= 0 && m_selectedSceneObjectListIndex < (int)m_sceneOutliner.size())
 		{
-			if (ImGui::Button("Remove Selected"))
+			if (ImGui::Button(locLabel("project.removeSelected")))
 			{
 				SelectionComponentPtr selComp=
 					m_sceneOutliner[m_selectedSceneObjectListIndex].selectionComponent.lock();

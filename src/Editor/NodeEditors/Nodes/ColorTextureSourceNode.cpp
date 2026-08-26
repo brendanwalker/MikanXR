@@ -13,9 +13,11 @@
 #include "IMkTexture.h"
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "ProjectManager.h"
 #include "StringUtils.h"
 #include "TextureSourceQueries.h"
@@ -347,22 +349,27 @@ void ColorTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 
 void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Client Texture Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.clientTextureHeader")))
 	{
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type",
-													 "colorRGB\0colorRGBA\0shadowRGB\0shadowRGBA\0", iTextureType,
-													 editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "textureSourceColorType", locText("nodes.type"),
+											  "colorRGB\0colorRGBA\0shadowRGB\0shadowRGBA\0", iTextureType))
 		{
 			m_clientTextureType= (eTextureSourceColorType)iTextureType;
 		}
 
 		// No-client fallback texture (identity when no client renderer is attached)
+		const std::string fallbackModeItems=
+			std::string(locText("nodes.auto")) + '\0' + locText("nodes.fallbackTransparentBlack") + '\0'
+			+ locText("nodes.fallbackOpaqueBlack") + '\0' + locText("nodes.fallbackOpaqueWhite") + '\0';
 		int iFallbackMode= (int)m_fallbackMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("colorTextureFallbackMode", "No-Client Fallback",
-													 "Auto\0Transparent Black\0Opaque Black\0Opaque White\0",
-													 iFallbackMode, editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "colorTextureFallbackMode",
+											  locText("nodes.noClientFallback"), fallbackModeItems.c_str(),
+											  iFallbackMode))
 		{
 			m_fallbackMode= (eColorTextureFallbackMode)iFallbackMode;
 		}
@@ -375,15 +382,16 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			TextureSourceComponentPtr TextureSourceComponent= getTextureSourceComponent();
 
 			int selectedIndex= dataSource.getEntryIndex(TextureSourceComponent);
-			if (NodeEditorUI::DrawComboBoxProperty("textureSourceIndex", "Source", &dataSource, selectedIndex,
-												   editorState.styleManager))
+			if (MkGui::drawComboBoxProperty(propertyStyle, "textureSourceIndex", locText("nodes.source"), &dataSource,
+											selectedIndex))
 			{
 				m_textureSourceComponent= dataSource.getEntryAtIndex(selectedIndex);
 			}
 		}
 
 		// Vertical Flip
-		NodeEditorUI::DrawCheckBoxProperty("drawColorTextureVerticalFlip", "Vertical Flip", m_bVerticalFlip);
+		MkGui::drawCheckBoxProperty(propertyStyle, "drawColorTextureVerticalFlip", locText("nodes.verticalFlip"),
+									m_bVerticalFlip);
 	}
 }
 

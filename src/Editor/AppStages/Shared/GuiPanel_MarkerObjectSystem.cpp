@@ -1,4 +1,5 @@
 #include "AppStage.h"
+#include "LocText.h"
 #include "MarkerObjectSystem.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
@@ -32,7 +33,8 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
 											markerSystem->makePropertyUIIdentifier(
 												MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId),
-											"Aruco Dictionary", &m_dictDataSource, selectedIndex))
+											locText("objectSystemPanel.arucoDictionary"), &m_dictDataSource,
+											selectedIndex))
 			{
 				addDeferredGuiEvent(
 					[this, selectedIndex]()
@@ -59,7 +61,8 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
 											markerSystem->makePropertyUIIdentifier(
 												MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId),
-											"Charuco Dictionary", &m_dictDataSource, selectedIndex))
+											locText("objectSystemPanel.charucoDictionary"), &m_dictDataSource,
+											selectedIndex))
 			{
 				addDeferredGuiEvent(
 					[this, selectedIndex]()

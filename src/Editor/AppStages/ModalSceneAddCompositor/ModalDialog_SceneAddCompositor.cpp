@@ -2,6 +2,7 @@
 #include "AppStage.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
+#include "LocText.h"
 #include "ModalDialog_SceneAddCompositor.h"
 #include "SceneComponent.h"
 #include "StageComponent.h"
@@ -57,7 +58,7 @@ bool ModalDialog_SceneAddCompositor::init(SceneComponentPtr ownerScene, SelectCa
 				m_compositorIds.push_back(id);
 				CompositorComponentPtr comp= compositorSystem->getCompositorById(id);
 				const std::string name= comp ? comp->getName() : "";
-				m_compositorNames.push_back(name.empty() ? ("Compositor " + std::to_string(id)) : name);
+				m_compositorNames.push_back(name.empty() ? locFormat("project.compositorFallbackNameFmt", id) : name);
 			}
 		}
 	}
@@ -67,26 +68,25 @@ bool ModalDialog_SceneAddCompositor::init(SceneComponentPtr ownerScene, SelectCa
 
 void ModalDialog_SceneAddCompositor::onGui()
 {
-	static const char* k_popupId= "Add Compositor##SceneAddCompositorModal";
+	const std::string k_popupId= std::string(locText("windows.addCompositor")) + "##SceneAddCompositorModal";
 	if (m_bNeedsOpen)
 	{
-		ImGui::OpenPopup(k_popupId);
+		ImGui::OpenPopup(k_popupId.c_str());
 		m_bNeedsOpen= false;
 	}
 
 	ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	if (ImGui::BeginPopupModal(k_popupId.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
-		ImGui::Text("Add Compositor To Scene");
+		ImGui::TextUnformatted(locText("project.addCompositorToScene"));
 		ImGui::Separator();
 
-		auto itemGetter= [](void* data, int idx, const char** out) -> bool
+		auto itemGetter= [](void* data, int idx) -> const char*
 		{
 			const auto* names= static_cast<std::vector<std::string>*>(data);
 			if (idx < 0 || idx >= (int)names->size())
-				return false;
-			*out= (*names)[idx].c_str();
-			return true;
+				return nullptr;
+			return (*names)[idx].c_str();
 		};
 		ImGui::ListBox("##compositors", &m_selectedIndex, itemGetter, &m_compositorNames, (int)m_compositorNames.size(),
 					   8);
@@ -97,7 +97,7 @@ void ModalDialog_SceneAddCompositor::onGui()
 		const bool hasSelection= !m_compositorIds.empty();
 		if (!hasSelection)
 			ImGui::BeginDisabled();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			ImGui::CloseCurrentPopup();
 			selected= true;
@@ -105,7 +105,7 @@ void ModalDialog_SceneAddCompositor::onGui()
 		if (!hasSelection)
 			ImGui::EndDisabled();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			ImGui::CloseCurrentPopup();
 			cancelled= true;

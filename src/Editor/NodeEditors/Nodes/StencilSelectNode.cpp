@@ -1,8 +1,10 @@
 #include "StencilSelectNode.h"
 #include "CameraComponent.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 
 #include "QuadStencilComponent.h"
 #include "BoxStencilComponent.h"
@@ -164,11 +166,17 @@ void StencilSelectNode::editorRenderNode(const NodeEditorState& editorState)
 
 void StencilSelectNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Stencil Select Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.stencilSelectHeader")))
 	{
-		NodeEditorUI::DrawCheckBoxProperty("StencilSelectNodeEnableQuad", "Enable Quads", m_bEnableQuadStencils);
-		NodeEditorUI::DrawCheckBoxProperty("StencilSelectNodeEnableBox", "Enable Boxes", m_bEnableBoxStencils);
-		NodeEditorUI::DrawCheckBoxProperty("StencilSelectNodeEnableModel", "Enable Models", m_bEnableModelStencils);
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+		MkGui::drawCheckBoxProperty(propertyStyle, "StencilSelectNodeEnableQuad", locText("nodes.enableQuads"),
+									m_bEnableQuadStencils);
+		MkGui::drawCheckBoxProperty(propertyStyle, "StencilSelectNodeEnableBox", locText("nodes.enableBoxes"),
+									m_bEnableBoxStencils);
+		MkGui::drawCheckBoxProperty(propertyStyle, "StencilSelectNodeEnableModel", locText("nodes.enableModels"),
+									m_bEnableModelStencils);
 	}
 }
 

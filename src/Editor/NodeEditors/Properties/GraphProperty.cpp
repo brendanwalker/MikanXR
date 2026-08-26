@@ -1,6 +1,6 @@
 #include "GraphProperty.h"
 #include "Graphs/NodeGraph.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
 
 #include "imgui.h"
 
@@ -28,9 +28,9 @@ void GraphPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphProperty ------
-std::string GraphProperty::editorGetIcon() const { return NodeEditorUI::getVariableIcon(); }
+std::string GraphProperty::editorGetIcon() const { return MkGui::getVariableIcon(); }
 
-const ImVec4 GraphProperty::editorGetIconColor() const { return NodeEditorUI::getPropertyColor(); }
+const ImVec4 GraphProperty::editorGetIconColor() const { return MkGui::getPropertyColor(); }
 
 bool GraphProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {

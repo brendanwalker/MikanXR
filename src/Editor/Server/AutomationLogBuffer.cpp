@@ -42,3 +42,24 @@ void AutomationLogBuffer::getTail(int lineCount, int minLevel, std::vector<std::
 
 	std::reverse(outLines.begin(), outLines.end());
 }
+
+void AutomationLogBuffer::getLines(int minLevel, std::vector<LeveledLine>& outLines)
+{
+	std::lock_guard<std::mutex> lock(g_logBufferMutex);
+
+	outLines.reserve(g_logBuffer.size());
+	for (const BufferedLogLine& line : g_logBuffer)
+	{
+		if (line.level >= minLevel)
+		{
+			outLines.push_back({line.level, line.text});
+		}
+	}
+}
+
+void AutomationLogBuffer::clear()
+{
+	std::lock_guard<std::mutex> lock(g_logBufferMutex);
+
+	g_logBuffer.clear();
+}

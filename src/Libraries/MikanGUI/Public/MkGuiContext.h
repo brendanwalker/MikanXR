@@ -6,11 +6,17 @@
 #include "IMkWindowEventListener.h"
 #include "IMkGraphicsContext.h"
 
+#include <string>
+
 class MIKAN_GUI_CLASS MkGuiContext : public IMkWindowEventListener
 {
 public:
 	MkGuiContext()= delete;
-	MkGuiContext(class IMkWindowContext* window);
+	// An empty iniFilePath keeps ImGui's default (imgui.ini in the working
+	// directory). Docking is opt-in per context: only a window that hosts a
+	// dockspace wants it, and the single-window editors do not.
+	MkGuiContext(class IMkWindowContext* window, const std::string& iniFilePath= std::string(),
+				 bool bEnableDocking= false);
 	virtual ~MkGuiContext();
 
 	bool startup();
@@ -34,6 +40,9 @@ protected:
 
 private:
 	class IMkWindowContext* m_window= nullptr;
+	// Owns the string io.IniFilename points at, so it must outlive the ImGui context
+	std::string m_iniFilePath;
+	bool m_bEnableDocking= false;
 	struct ImGuiContext* m_imguiContext= nullptr;
 	struct ImNodesContext* m_imnodesContext= nullptr;
 	struct ImFont* m_NormalIconFont= nullptr;

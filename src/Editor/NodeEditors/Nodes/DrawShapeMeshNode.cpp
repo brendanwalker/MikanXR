@@ -7,6 +7,7 @@
 #include "IMkTexture.h"
 #include "IMkMesh.h"
 #include "IMkShader.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
@@ -15,7 +16,8 @@
 #include "IMkState.h"
 #include "ModelShapeComponent.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "QuadShapeComponent.h"
 #include "ShapeComponent.h"
 #include "StaticMeshComponent.h"
@@ -467,22 +469,28 @@ FlowPinPtr DrawShapeMeshNode::getOutputFlowPin() const { return getFirstPinOfTyp
 
 void DrawShapeMeshNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Draw Shape Mesh Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.drawShapeMeshHeader")))
 	{
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
 		// Material
 		const std::string materialName= m_material ? m_material->getName() : "<INVALID>";
-		NodeEditorUI::DrawStaticTextProperty("Material", materialName, editorState.styleManager);
+		MkGui::drawStaticTextProperty(propertyStyle, locText("nodes.material"), materialName);
 
 		// Blend Mode
+		const std::string blendModeItems=
+			std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendOn") + '\0';
 		int iBlendMode= (int)m_blendMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawShapeMeshNodeBlendMode", "Blend Mode",
-													 "Blend Off\0Blend On\0", iBlendMode, editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "drawShapeMeshNodeBlendMode", locText("nodes.blendMode"),
+											  blendModeItems.c_str(), iBlendMode))
 		{
 			m_blendMode= (eCompositorBlendMode)iBlendMode;
 		}
 
 		// Depth Test
-		NodeEditorUI::DrawCheckBoxProperty("drawShapeMeshNodeDepthTest", "Depth Test", m_bDepthTest);
+		MkGui::drawCheckBoxProperty(propertyStyle, "drawShapeMeshNodeDepthTest", locText("nodes.depthTest"),
+									m_bDepthTest);
 	}
 }
 

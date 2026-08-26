@@ -12,9 +12,11 @@
 #include "IMkTexture.h"
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "StringUtils.h"
 #include "ProjectManager.h"
 #include "TextureSourceQueries.h"
@@ -273,12 +275,15 @@ void DepthTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 
 void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Client Texture Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.clientTextureHeader")))
 	{
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type", "depthPackRGBA\0", iTextureType,
-													 editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "textureSourceColorType", locText("nodes.type"),
+											  "depthPackRGBA\0", iTextureType))
 		{
 			m_clientTextureType= (eTextureSourceDepthType)iTextureType;
 		}
@@ -291,15 +296,16 @@ void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			TextureSourceComponentPtr videoSourceComponent= getTextureSourceComponent();
 
 			int selectedIndex= dataSource.getEntryIndex(videoSourceComponent);
-			if (NodeEditorUI::DrawComboBoxProperty("textureSourceIndex", "Source", &dataSource, selectedIndex,
-												   editorState.styleManager))
+			if (MkGui::drawComboBoxProperty(propertyStyle, "textureSourceIndex", locText("nodes.source"), &dataSource,
+											selectedIndex))
 			{
 				m_textureSourceComponent= dataSource.getEntryAtIndex(selectedIndex);
 			}
 		}
 
 		// Vertical Flip
-		NodeEditorUI::DrawCheckBoxProperty("drawDepthTextureVerticalFlip", "Vertical Flip", m_bVerticalFlip);
+		MkGui::drawCheckBoxProperty(propertyStyle, "drawDepthTextureVerticalFlip", locText("nodes.verticalFlip"),
+									m_bVerticalFlip);
 	}
 }
 

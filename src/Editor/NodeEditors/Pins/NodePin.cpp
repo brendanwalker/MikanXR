@@ -247,7 +247,7 @@ void NodePin::editorRenderInputPin(const NodeEditorState& editorState)
 		ImGui::SameLine();
 		if (editorShowPinName())
 		{
-			ImGui::Text(m_name.c_str());
+			ImGui::TextUnformatted(m_name.c_str());
 		}
 		editorRenderInputTextEntry(editorState);
 	}
@@ -272,7 +272,7 @@ void NodePin::editorRenderOutputPin(const NodeEditorState& editorState, float pr
 		}
 		if (editorShowPinName())
 		{
-			ImGui::Text(m_name.c_str());
+			ImGui::TextUnformatted(m_name.c_str());
 		}
 		ImGui::SameLine();
 		ImGui::Dummy(ImVec2(11.0f, 1.0f));

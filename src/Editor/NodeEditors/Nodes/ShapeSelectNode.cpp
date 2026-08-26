@@ -1,7 +1,9 @@
 #include "ShapeSelectNode.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 
 #include "QuadShapeComponent.h"
 #include "BoxShapeComponent.h"
@@ -143,11 +145,17 @@ void ShapeSelectNode::editorRenderNode(const NodeEditorState& editorState)
 
 void ShapeSelectNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Shape Select Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.shapeSelectHeader")))
 	{
-		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableQuad", "Enable Quads", m_bEnableQuadShapes);
-		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableBox", "Enable Boxes", m_bEnableBoxShapes);
-		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableModel", "Enable Models", m_bEnableModelShapes);
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+		MkGui::drawCheckBoxProperty(propertyStyle, "ShapeSelectNodeEnableQuad", locText("nodes.enableQuads"),
+									m_bEnableQuadShapes);
+		MkGui::drawCheckBoxProperty(propertyStyle, "ShapeSelectNodeEnableBox", locText("nodes.enableBoxes"),
+									m_bEnableBoxShapes);
+		MkGui::drawCheckBoxProperty(propertyStyle, "ShapeSelectNodeEnableModel", locText("nodes.enableModels"),
+									m_bEnableModelShapes);
 	}
 }
 

@@ -1,23 +1,16 @@
 #include "AppSettingsConfig.h"
 #include "LocalizationManager.h"
 #include "LocalizationRemoteFetcher.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
-#include "Version.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable : 4458) // declaration of 'file_name' hides class member
-#pragma warning(disable : 4267) //'return' : conversion from 'size_t' to 'int', possible loss of data
-#endif
-#include "csv.h"
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+#include <nlohmann/json.hpp>
 
-#include <locale>
-#include <codecvt>
+#include <cstdarg>
+#include <cstdio>
+#include <fstream>
 
 #include <easy/profiler.h>
 
@@ -25,37 +18,149 @@
 #include "windows.h"
 #endif // _WIN32
 
-static const std::string kDefaultLanguage= std::string("ja");
+using json= nlohmann::json;
 
-LocalizationManager::LocalizationManager()
-	: m_currentLanguageCode("")
-	, m_currentLanguage(nullptr)
+static const char* k_defaultLanguageCode= "en";
+// The CDN file list shipped and cached beside the tables, not a language
+static const char* k_manifestFileStem= "manifest";
+
+LocalizationManager* LocalizationManager::s_instance= nullptr;
+
+// Extracts the ordered printf conversion sequence of a format string as
+// normalized tokens ("d", "ld", "f", "s", ...; '*' width/precision emit an
+// extra "d"). Returns false on a malformed specifier.
+static bool parsePrintfSpecs(const std::string& text, std::vector<std::string>& outSpecs)
 {
+	const std::string flagChars= "-+ #0";
+	const std::string convChars= "diouxXeEfFgGaAcsp";
+
+	for (size_t i= 0; i < text.size(); ++i)
+	{
+		if (text[i] != '%')
+			continue;
+
+		++i;
+		if (i >= text.size())
+			return false;
+		if (text[i] == '%')
+			continue;
+
+		while (i < text.size() && flagChars.find(text[i]) != std::string::npos)
+			++i;
+		if (i < text.size() && text[i] == '*')
+		{
+			outSpecs.push_back("d");
+			++i;
+		}
+		else
+		{
+			while (i < text.size() && isdigit((unsigned char)text[i]))
+				++i;
+		}
+		if (i < text.size() && text[i] == '.')
+		{
+			++i;
+			if (i < text.size() && text[i] == '*')
+			{
+				outSpecs.push_back("d");
+				++i;
+			}
+			else
+			{
+				while (i < text.size() && isdigit((unsigned char)text[i]))
+					++i;
+			}
+		}
+
+		std::string lengthModifier;
+		while (i < text.size() && std::string("hljztL").find(text[i]) != std::string::npos)
+		{
+			lengthModifier+= text[i];
+			++i;
+		}
+
+		if (i >= text.size() || convChars.find(text[i]) == std::string::npos)
+			return false;
+		outSpecs.push_back(lengthModifier + text[i]);
+	}
+
+	return true;
 }
+
+LocalizationManager::LocalizationManager()= default;
 
 LocalizationManager::~LocalizationManager() { shutdown(); }
 
-bool LocalizationManager::startup(AppSettingsConfigPtr appSettings)
+bool LocalizationManager::startup(const std::filesystem::path& localizationDir, AppSettingsConfigPtr appSettings,
+								  bool bEnableCommunityTranslations)
 {
 	EASY_FUNCTION();
 
+	m_localizationDir= localizationDir;
 	m_appSettings= appSettings;
+	m_loadWarnings.clear();
+	m_languages.clear();
+	m_currentLanguage= nullptr;
+	m_english= nullptr;
 
-	reloadLangages();
-
-	// Try to set the language in order: user setting, system language, default language
-	if (!setLanguage(appSettings->getAppLanguage()))
+	// English first: it is the fallback source every other language is
+	// validated against
 	{
-		if (!setLanguage(getSystemLanguage()))
+		Language english;
+		if (!loadLanguageFile(localizationDir / "en.json", english))
 		{
-			if (!setLanguage(getDefaultLanguage()))
-			{
-				return false;
-			}
+			MIKAN_LOG_ERROR("LocalizationManager::startup")
+				<< "No usable en.json under " << localizationDir << "; every fetch will return its key";
+			s_instance= this;
+			return false;
+		}
+		m_languages["en"]= std::move(english);
+		m_english= &m_languages["en"];
+	}
+
+	if (std::filesystem::is_directory(localizationDir))
+	{
+		for (const std::string& filename : PathUtils::listFilenamesInDirectory(localizationDir, ".json"))
+		{
+			const std::string code= std::filesystem::path(filename).stem().string();
+			if (code == "en" || code == k_manifestFileStem)
+				continue;
+
+			Language language;
+			if (loadLanguageFile(localizationDir / filename, language))
+				m_languages[code]= std::move(language);
 		}
 	}
 
-	startRemoteFetch();
+	// Overlay community translations fetched on a previous run. These override
+	// bundled strings per key, and are validated below like any other text.
+	const std::filesystem::path cacheDir= getUserLocalizationCacheDir();
+	if (bEnableCommunityTranslations && std::filesystem::is_directory(cacheDir))
+	{
+		for (const std::string& filename : PathUtils::listFilenamesInDirectory(cacheDir, ".json"))
+		{
+			if (std::filesystem::path(filename).stem().string() == k_manifestFileStem)
+				continue;
+
+			overlayLanguageFile(cacheDir / filename);
+		}
+	}
+
+	for (auto& [code, language] : m_languages)
+		finalizeLanguage(language);
+
+	m_currentLanguageCode= resolveStartupLanguage();
+	m_currentLanguage= &m_languages[m_currentLanguageCode];
+
+	MIKAN_LOG_INFO("LocalizationManager::startup")
+		<< m_languages.size() << " language(s) loaded, active: " << m_currentLanguageCode;
+
+	s_instance= this;
+
+	if (bEnableCommunityTranslations)
+	{
+		startRemoteFetch();
+	}
 
 	return true;
 }
@@ -68,155 +173,297 @@ void LocalizationManager::shutdown()
 		m_remoteFetcher.reset();
 	}
 
-	unloadLanguages();
+	if (s_instance == this)
+		s_instance= nullptr;
+	m_languages.clear();
+	m_currentLanguage= nullptr;
+	m_english= nullptr;
 }
 
-const std::string& LocalizationManager::getDefaultLanguage() const { return kDefaultLanguage; }
-
-t_language_tags LocalizationManager::getSystemLanguage() const
+bool LocalizationManager::loadLanguageFile(const std::filesystem::path& path, Language& outLanguage)
 {
-	std::string localeName;
+	std::ifstream file(path);
+	if (!file.is_open())
+		return false;
 
-#ifdef WIN32
-	LCID lcid= GetThreadLocale();
-	wchar_t wszLocaleName[LOCALE_NAME_MAX_LENGTH];
-	if (LCIDToLocaleName(lcid, wszLocaleName, LOCALE_NAME_MAX_LENGTH, 0) != 0)
+	json j;
+	try
 	{
-		char szLocaleName[LOCALE_NAME_MAX_LENGTH];
-		StringUtils::convertWcsToMbs(wszLocaleName, szLocaleName, sizeof(szLocaleName));
-
-		localeName= szLocaleName;
+		file >> j;
 	}
-#else
-	localeName= std::locale("").name();
-#endif
-
-	std::vector<std::string> result;
-	if (localeName == "*" || localeName.length() == 0)
+	catch (const std::exception& e)
 	{
-		result.push_back(getDefaultLanguage());
+		addLoadWarning("Failed to parse " + path.filename().string() + ": " + e.what());
+		return false;
+	}
+
+	const std::string code= path.stem().string();
+	outLanguage.info.code= code;
+	outLanguage.info.nativeName= code;
+	if (j.contains("_meta") && j["_meta"].is_object())
+	{
+		const json& meta= j["_meta"];
+		outLanguage.info.nativeName= meta.value("nativeName", code);
+		if (meta.value("code", code) != code)
+			addLoadWarning(path.filename().string() + ": _meta.code does not match the filename");
 	}
 	else
 	{
-		std::vector<std::string> localeParts= StringUtils::splitString(localeName, '.');
-		std::string language= localeParts[0];
-
-		result= StringUtils::splitString(language, '-');
+		addLoadWarning(path.filename().string() + ": missing _meta section");
 	}
 
-	return result;
+	for (const auto& [sectionName, section] : j.items())
+	{
+		if (!sectionName.empty() && sectionName[0] == '_')
+			continue;
+		if (!section.is_object())
+		{
+			addLoadWarning(path.filename().string() + ": section '" + sectionName + "' is not an object");
+			continue;
+		}
+
+		for (const auto& [stringKey, value] : section.items())
+		{
+			if (!value.is_string())
+			{
+				addLoadWarning(path.filename().string() + ": " + sectionName + "." + stringKey + " is not a string");
+				continue;
+			}
+			outLanguage.rawStrings[sectionName + "." + stringKey]= value.get<std::string>();
+		}
+	}
+
+	return true;
 }
 
-void LocalizationManager::loadCSVsFromDirectory(const std::filesystem::path& locFolderPath, bool allowOverwrite)
+void LocalizationManager::overlayLanguageFile(const std::filesystem::path& path)
 {
-	const std::vector<std::string> locFiles= PathUtils::listFilenamesInDirectory(locFolderPath, ".csv");
+	Language overlay;
+	if (!loadLanguageFile(path, overlay))
+		return;
 
-	for (auto baseFileName : locFiles)
+	const std::string& code= overlay.info.code;
+	auto it= m_languages.find(code);
+	if (it == m_languages.end())
 	{
-		const std::filesystem::path locFilePath= locFolderPath / baseFileName;
-		std::string baseFileNameNoExt= std::filesystem::path(baseFileName).stem().string();
-		std::vector<std::string> parts= StringUtils::splitString(baseFileNameNoExt, '_');
+		// A language the shipped build does not bundle at all
+		m_languages[code]= std::move(overlay);
+		return;
+	}
 
-		if (parts.size() == 2)
+	Language& target= it->second;
+	target.info.nativeName= overlay.info.nativeName;
+	for (auto& [key, text] : overlay.rawStrings)
+	{
+		target.rawStrings[key]= text;
+	}
+}
+
+void LocalizationManager::finalizeLanguage(Language& language)
+{
+	const bool bIsEnglish= &language == m_english;
+
+	// Orphans: keys English does not define never made it into code, so they
+	// are dead weight (and usually typos)
+	if (!bIsEnglish)
+	{
+		for (const auto& [key, text] : language.rawStrings)
 		{
-			const std::string& tableName= parts[0];
-			const std::string& langCode= parts[1];
+			if (m_english->rawStrings.find(key) == m_english->rawStrings.end())
+				addLoadWarning(language.info.code + ": orphan key '" + key + "' (not in en)");
+		}
+	}
 
-			// Fetch or create the language
-			Language* language= nullptr;
-			auto langIt= m_languages.find(langCode);
-			if (langIt != m_languages.end())
+	for (const auto& [key, englishText] : m_english->rawStrings)
+	{
+		std::string text= englishText;
+
+		if (!bIsEnglish)
+		{
+			const auto it= language.rawStrings.find(key);
+			if (it == language.rawStrings.end())
 			{
-				language= langIt->second;
+				addLoadWarning(language.info.code + ": missing key '" + key + "'");
 			}
 			else
 			{
-				language= new Language;
-				m_languages.insert({langCode, language});
-			}
+				const std::string& translated= it->second;
+				std::vector<std::string> englishSpecs, translatedSpecs;
+				const bool bEnglishOk= parsePrintfSpecs(englishText, englishSpecs);
+				const bool bTranslatedOk= parsePrintfSpecs(translated, translatedSpecs);
 
-			// Fetch or create the string table
-			StringTable* stringTable= nullptr;
-			auto tableIt= language->stringTables.find(tableName);
-			if (tableIt != language->stringTables.end())
-			{
-				stringTable= tableIt->second;
-			}
-			else
-			{
-				stringTable= new StringTable;
-				language->stringTables.insert({tableName, stringTable});
-			}
-
-			io::CSVReader<2> in(locFilePath.string());
-			in.read_header(io::ignore_extra_column, "key", "text");
-
-			std::string key;
-			char* utf8Text;
-			while (in.read_row(key, utf8Text))
-			{
-				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
-				std::wstring myunicodestr= convert.from_bytes(utf8Text);
-				StringEntry entry= {utf8Text, myunicodestr};
-
-				auto keyIt= stringTable->keyToTextMap.find(key);
-				if (keyIt == stringTable->keyToTextMap.end())
+				if (translated.find("##") != std::string::npos)
 				{
-					stringTable->keyToTextMap.insert({key, entry});
+					addLoadWarning(language.info.code + ": '" + key + "' contains ## (reserved for ImGui IDs)");
 				}
-				else if (allowOverwrite)
+				else if (!bTranslatedOk || (bEnglishOk && englishSpecs != translatedSpecs))
 				{
-					stringTable->keyToTextMap.erase(keyIt);
-					stringTable->keyToTextMap.insert({key, entry});
+					addLoadWarning(language.info.code + ": '" + key + "' printf specifiers do not match en");
 				}
 				else
 				{
-					MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory")
-						<< "Duplicate key \'" << key << "\' in table \'" << tableName << "\'";
+					text= translated;
 				}
 			}
 		}
 		else
 		{
-			MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory")
-				<< "Malformed loc filename: " << locFilePath;
+			std::vector<std::string> specs;
+			if (englishText.find("##") != std::string::npos)
+				addLoadWarning("en: '" + key + "' contains ## (reserved for ImGui IDs)");
+			if (!parsePrintfSpecs(englishText, specs))
+				addLoadWarning("en: '" + key + "' has a malformed printf specifier");
 		}
+
+		StringEntry entry;
+		entry.text= text;
+		entry.label= text + "##" + key;
+		entry.windowTitle= text + "###" + englishText;
+		language.entries[key]= std::move(entry);
 	}
 }
 
-void LocalizationManager::reloadLangages()
+std::string LocalizationManager::resolveStartupLanguage() const
 {
-	unloadLanguages();
-
-	// Load bundled strings shipped with the app
-	const std::filesystem::path bundledLocPath= PathUtils::getResourceDirectory() / std::string("localization");
-	loadCSVsFromDirectory(bundledLocPath, /*allowOverwrite=*/false);
-
-	// Overlay cached strings fetched from the remote CDN (community translations)
-	const std::filesystem::path cacheLocPath= getUserLocalizationCacheDir();
-	if (std::filesystem::exists(cacheLocPath))
+	AppSettingsConfigPtr appSettings= m_appSettings.lock();
+	if (appSettings && !appSettings->getAppLanguage().empty() && isLanguageSupported(appSettings->getAppLanguage()))
 	{
-		loadCSVsFromDirectory(cacheLocPath, /*allowOverwrite=*/true);
+		return appSettings->getAppLanguage();
 	}
-}
 
-void LocalizationManager::unloadLanguages()
-{
-	for (auto langIt= m_languages.begin(); langIt != m_languages.end();)
+#ifdef _WIN32
+	// OS language, primary subtag only ("ja-JP" -> "ja")
+	wchar_t localeName[LOCALE_NAME_MAX_LENGTH]= {};
+	if (GetUserDefaultLocaleName(localeName, LOCALE_NAME_MAX_LENGTH) > 0)
 	{
-		Language* language= langIt->second;
-
-		for (auto tableIt= language->stringTables.begin(); tableIt != language->stringTables.end();)
+		char localeUtf8[LOCALE_NAME_MAX_LENGTH * 4]= {};
+		if (StringUtils::convertWcsToMbs(localeName, localeUtf8, sizeof(localeUtf8)))
 		{
-			StringTable* stringTable= tableIt->second;
-			delete stringTable;
-
-			tableIt= language->stringTables.erase(tableIt);
+			std::string primaryTag(localeUtf8);
+			const size_t dashPos= primaryTag.find('-');
+			if (dashPos != std::string::npos)
+				primaryTag= primaryTag.substr(0, dashPos);
+			if (isLanguageSupported(primaryTag))
+				return primaryTag;
 		}
-
-		delete language;
-		langIt= m_languages.erase(langIt);
 	}
+#endif // _WIN32
+
+	return k_defaultLanguageCode;
+}
+
+std::vector<std::string> LocalizationManager::getSupportedLanguages() const
+{
+	std::vector<std::string> codes;
+	for (const LanguageInfo& info : getSupportedLanguageInfos())
+		codes.push_back(info.code);
+	return codes;
+}
+
+std::vector<LocalizationManager::LanguageInfo> LocalizationManager::getSupportedLanguageInfos() const
+{
+	// English first, the rest in code order (map order gives en first only by
+	// luck of the alphabet, so be explicit)
+	std::vector<LanguageInfo> languages;
+	const auto englishIt= m_languages.find("en");
+	if (englishIt != m_languages.end())
+		languages.push_back(englishIt->second.info);
+	for (const auto& [code, language] : m_languages)
+	{
+		if (code != "en")
+			languages.push_back(language.info);
+	}
+	return languages;
+}
+
+bool LocalizationManager::isLanguageSupported(const std::string& langCode) const
+{
+	return m_languages.find(langCode) != m_languages.end();
+}
+
+bool LocalizationManager::setLanguage(const std::string& langCode)
+{
+	const auto it= m_languages.find(langCode);
+	if (it == m_languages.end())
+		return false;
+	if (langCode == m_currentLanguageCode)
+		return true;
+
+	m_currentLanguage= &it->second;
+	m_currentLanguageCode= langCode;
+
+	// Any other system that needs to know about the language change can listen
+	// for changes to the app settings now that it has been updated
+	AppSettingsConfigPtr appSettings= m_appSettings.lock();
+	if (appSettings)
+	{
+		appSettings->setAppLanguage(langCode);
+	}
+
+	MIKAN_LOG_INFO("LocalizationManager::setLanguage") << "Language set to " << langCode;
+	return true;
+}
+
+bool LocalizationManager::hasKey(const char* key) const
+{
+	return m_currentLanguage != nullptr
+		   && m_currentLanguage->entries.find(std::string_view(key)) != m_currentLanguage->entries.end();
+}
+
+const char* LocalizationManager::fetchText(const char* key) const
+{
+	if (m_currentLanguage != nullptr)
+	{
+		const auto it= m_currentLanguage->entries.find(std::string_view(key));
+		if (it != m_currentLanguage->entries.end())
+			return it->second.text.c_str();
+	}
+
+	// Only reachable when the key is absent from en too (a code bug) or
+	// nothing loaded: pass the key through so the UI shows something greppable
+	if (m_warnedMissingKeys.insert(key).second)
+		MIKAN_LOG_WARNING("LocalizationManager::fetchText") << "Unknown string key: " << key;
+	return key;
+}
+
+const char* LocalizationManager::fetchLabel(const char* key) const
+{
+	if (m_currentLanguage != nullptr)
+	{
+		const auto it= m_currentLanguage->entries.find(std::string_view(key));
+		if (it != m_currentLanguage->entries.end())
+			return it->second.label.c_str();
+	}
+
+	if (m_warnedMissingKeys.insert(key).second)
+		MIKAN_LOG_WARNING("LocalizationManager::fetchLabel") << "Unknown string key: " << key;
+	return key;
+}
+
+const char* LocalizationManager::fetchWindowTitle(const char* key) const
+{
+	if (m_currentLanguage != nullptr)
+	{
+		const auto it= m_currentLanguage->entries.find(std::string_view(key));
+		if (it != m_currentLanguage->entries.end())
+			return it->second.windowTitle.c_str();
+	}
+
+	if (m_warnedMissingKeys.insert(key).second)
+		MIKAN_LOG_WARNING("LocalizationManager::fetchWindowTitle") << "Unknown string key: " << key;
+	return key;
+}
+
+const std::map<std::string, std::string>* LocalizationManager::getRawStrings(const std::string& langCode) const
+{
+	const auto it= m_languages.find(langCode);
+	return it != m_languages.end() ? &it->second.rawStrings : nullptr;
+}
+
+void LocalizationManager::addLoadWarning(const std::string& warning)
+{
+	MIKAN_LOG_WARNING("LocalizationManager") << warning;
+	m_loadWarnings.push_back(warning);
 }
 
 std::filesystem::path LocalizationManager::getUserLocalizationCacheDir() const
@@ -235,150 +482,61 @@ void LocalizationManager::startRemoteFetch()
 	m_remoteFetcher->startFetch();
 }
 
-bool LocalizationManager::isLanguageSupported(const char* langCode) const
+// -- LocText.h helpers ----
+const char* locText(const char* key)
 {
-	return m_languages.find(langCode) != m_languages.end();
+	LocalizationManager* manager= LocalizationManager::getInstance();
+	return manager != nullptr ? manager->fetchText(key) : key;
 }
 
-std::vector<std::string> LocalizationManager::getSupportedLanguages() const
+const char* locLabel(const char* key)
 {
-	std::vector<std::string> langCodes;
-
-	for (auto const& iter : m_languages)
-		langCodes.push_back(iter.first);
-
-	return langCodes;
+	LocalizationManager* manager= LocalizationManager::getInstance();
+	return manager != nullptr ? manager->fetchLabel(key) : key;
 }
 
-bool LocalizationManager::setLanguage(const t_language_tags& langCodes)
+const char* locWindowTitle(const char* key)
 {
-	t_language_tags langCodeAttempt= langCodes;
-
-	while (langCodeAttempt.size() > 0)
-	{
-		std::string languageId= StringUtils::joinString(langCodeAttempt, '-');
-		if (setLanguage(languageId))
-		{
-			return true;
-		}
-		else
-		{
-			langCodeAttempt.pop_back();
-		}
-	}
-
-	return false;
+	LocalizationManager* manager= LocalizationManager::getInstance();
+	return manager != nullptr ? manager->fetchWindowTitle(key) : key;
 }
 
-bool LocalizationManager::setLanguage(const std::string& languageId)
+std::string locResolveDescriptorKey(const std::string& entityClassName, const std::string& sharedSection,
+									const std::string& descriptorId)
 {
-	auto langIt= m_languages.find(languageId);
-	if (langIt != m_languages.end())
+	LocalizationManager* manager= LocalizationManager::getInstance();
+	if (manager == nullptr)
+		return std::string();
+
+	if (!entityClassName.empty())
 	{
-		m_currentLanguage= langIt->second;
-		m_currentLanguageCode= languageId;
-
-		// Update the app settings with the new language.
-		// Any other systems that need to know about the language change
-		// can listen for changes to the app settings now that it has been updated.
-		m_appSettings.lock()->setAppLanguage(languageId);
-
-		return true;
+		const std::string overrideKey= entityClassName + "." + descriptorId;
+		if (manager->hasKey(overrideKey.c_str()))
+			return overrideKey;
 	}
 
-	return false;
+	const std::string sharedKey= sharedSection + "." + descriptorId;
+	return manager->hasKey(sharedKey.c_str()) ? sharedKey : std::string();
 }
 
-const char* LocalizationManager::fetchUTF8Text(const char* tableName, const char* stringKey, bool* outHasString)
+std::string locFormat(const char* key, ...)
 {
-	const char* actualTableName= tableName;
-	if (tableName == nullptr || tableName[0] == '\0')
+	const char* format= locText(key);
+
+	va_list args;
+	va_start(args, key);
+	va_list argsCopy;
+	va_copy(argsCopy, args);
+	const int length= vsnprintf(nullptr, 0, format, argsCopy);
+	va_end(argsCopy);
+
+	std::string result;
+	if (length > 0)
 	{
-		actualTableName= "default";
+		result.resize((size_t)length);
+		vsnprintf(result.data(), (size_t)length + 1, format, args);
 	}
-
-	bool bHasString= false;
-	const char* result= nullptr;
-
-	if (m_currentLanguage != nullptr)
-	{
-		auto tableIt= m_currentLanguage->stringTables.find(actualTableName);
-		if (tableIt != m_currentLanguage->stringTables.end())
-		{
-			StringTable* stringTable= tableIt->second;
-
-			auto textIt= stringTable->keyToTextMap.find(stringKey);
-			if (textIt != stringTable->keyToTextMap.end())
-			{
-				result= textIt->second.utf8Text.c_str();
-				bHasString= true;
-			}
-			else
-			{
-				result= "<INVALID STRING KEY>";
-			}
-		}
-		else
-		{
-			result= "<INVALID TABLE>";
-		}
-	}
-	else
-	{
-		result= "<INVALID LANGUAGE>";
-	}
-
-	if (outHasString != nullptr)
-	{
-		*outHasString= bHasString;
-	}
-
-	return result;
-}
-
-const wchar_t* LocalizationManager::fetchUTF16Text(const char* tableName, const char* stringKey, bool* outHasString)
-{
-	const char* actualTableName= tableName;
-	if (tableName == nullptr || tableName[0] == '\0')
-	{
-		actualTableName= "default";
-	}
-
-	bool bHasString= false;
-	const wchar_t* result= nullptr;
-
-	if (m_currentLanguage != nullptr)
-	{
-		auto tableIt= m_currentLanguage->stringTables.find(actualTableName);
-		if (tableIt != m_currentLanguage->stringTables.end())
-		{
-			StringTable* stringTable= tableIt->second;
-
-			auto textIt= stringTable->keyToTextMap.find(stringKey);
-			if (textIt != stringTable->keyToTextMap.end())
-			{
-				result= textIt->second.utf16Text.c_str();
-				bHasString= true;
-			}
-			else
-			{
-				result= L"<INVALID STRING KEY>";
-			}
-		}
-		else
-		{
-			result= L"<INVALID TABLE>";
-		}
-	}
-	else
-	{
-		result= L"<INVALID LANGUAGE>";
-	}
-
-	if (outHasString != nullptr)
-	{
-		*outHasString= bHasString;
-	}
+	va_end(args);
 
 	return result;
 }

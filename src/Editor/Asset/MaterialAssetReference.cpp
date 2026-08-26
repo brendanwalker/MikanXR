@@ -1,7 +1,9 @@
 #include "MaterialAssetReference.h"
 #include "NodeEditorState.h"
 #include "PathUtils.h"
-#include "NodeEditorUI.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "StringUtils.h"
 
 #include "Graphs/NodeGraph.h"
@@ -41,9 +43,10 @@ void MaterialAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState
 
 void MaterialAssetReference::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Material Asset", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("assets.materialAssetHeader")))
 	{
-		const std::string buttonName= StringUtils::stringify(ICON_FK_FOLDER_OPEN, "Material##material");
+		const std::string buttonName= StringUtils::stringify(ICON_FK_FOLDER_OPEN, locLabel("assets.material"));
 
 		if (ImGui::SmallButton(buttonName.c_str()))
 		{
@@ -51,8 +54,8 @@ void MaterialAssetReference::editorRenderPropertySheet(const NodeEditorState& ed
 			static const char* filterItems[1]= {"*.mat"};
 
 			const char* picked=
-				tinyfd_openFileDialog("Load Material", materialPath.c_str(), 1, filterItems, "Material Files (*.mat)",
-									  0); // disallow multiple selections
+				tinyfd_openFileDialog(locText("assets.loadMaterialDialogTitle"), materialPath.c_str(), 1, filterItems,
+									  locText("assets.materialFilterDescription"), 0); // disallow multiple selections
 
 			if (picked != nullptr && picked[0] != '\0')
 			{

@@ -4,13 +4,15 @@
 #include "IMkShader.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
+#include "LocText.h"
 #include "Logger.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MkScopedObjectBinding.h"
 #include "MkStateStack.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
 
 #include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -369,10 +371,12 @@ void ApplyMaterialNode::editorRenderNode(const NodeEditorState& editorState)
 
 void ApplyMaterialNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Apply Material Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.applyMaterialHeader")))
 	{
 		const std::string material_name= m_material ? m_material->getName() : "<INVALID>";
-		NodeEditorUI::DrawStaticTextProperty("Material", material_name, editorState.styleManager);
+		MkGui::drawStaticTextProperty(editorState.styleManager->getStyle("node_editor_property_value"),
+									  locText("nodes.material"), material_name);
 	}
 }
 

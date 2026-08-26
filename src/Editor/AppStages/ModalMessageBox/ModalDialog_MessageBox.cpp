@@ -1,5 +1,6 @@
 //-- includes -----
 #include "AppStage.h"
+#include "LocText.h"
 #include "ModalDialog_MessageBox.h"
 
 #include "imgui.h"
@@ -30,7 +31,7 @@ bool ModalDialog_MessageBox::init(const std::string& message, const std::string&
 								  DismissCallback dismissCallback)
 {
 	m_message= message;
-	m_buttonLabel= buttonLabel.empty() ? "OK" : buttonLabel;
+	m_buttonLabel= buttonLabel.empty() ? locLabel("common.ok") : buttonLabel;
 	m_dismissCallback= dismissCallback;
 	return true;
 }

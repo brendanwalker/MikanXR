@@ -2,7 +2,7 @@
 #include "App.h"
 #include "AssetReference.h"
 #include "Logger.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
 #include "ShapeComponent.h"
 #include "ShapeNodeEditorWindow.h"
 
@@ -99,7 +99,7 @@ void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& 
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
+		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleGraphVariablesDragDrop(editorState);
 			return;
@@ -113,8 +113,7 @@ void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& edito
 		getNodeGraph()->editorGetValidPropertyFactories(editorState);
 	for (auto factory : validPropertyFactories)
 	{
-		if (auto property=
-				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
+		if (auto property= MkGui::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -125,7 +124,7 @@ void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& edito
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
+		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleMainFrameDragDrop(editorState);
 			return;

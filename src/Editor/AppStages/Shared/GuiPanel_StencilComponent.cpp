@@ -3,6 +3,7 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "GuiDataSource_ComboBox.h"
+#include "LocText.h"
 #include "QuadStencilComponent.h"
 #include "QuadStencilSystem.h"
 #include "BoxStencilComponent.h"
@@ -50,7 +51,8 @@ void GuiPanel_StencilComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
 											stencilComponent->makePropertyUIIdentifier(
 												TransformComponentDefinition::k_parentTransformIdPropertyId),
-											"Parent", &m_parentTransformDataSource, selectedIndex))
+											locText("componentPanel.parent"), &m_parentTransformDataSource,
+											selectedIndex))
 			{
 				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
 				if (newParent)

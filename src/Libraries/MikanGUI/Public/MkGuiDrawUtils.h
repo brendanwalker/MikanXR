@@ -46,7 +46,7 @@ public:
 	virtual int getEntryCount() const= 0;
 	virtual const std::string& getEntryDisplayString(int index) const= 0;
 
-	static bool itemGetter(void* data, int idx, const char** out_str);
+	static const char* itemGetter(void* data, int idx);
 };
 MIKAN_GUI_FUNC(bool) drawComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 										  const std::string label, ComboBoxDataSource* dataSource,
@@ -57,6 +57,23 @@ MIKAN_GUI_FUNC(bool) drawEnumComboBoxProperty(MkGuiStyleConstPtr style, const st
 MIKAN_GUI_FUNC(bool) drawRadioButtonsProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 											  const std::string label, const std::vector<std::string>& entries,
 											  int& inout_selectedIndex);
+
+MIKAN_GUI_FUNC(ImVec2) mousePosToGridSpace();
+
+MIKAN_GUI_FUNC(const std::string&) getVariableIcon();
+MIKAN_GUI_FUNC(const std::string&) getArrayIcon();
+
+MIKAN_GUI_FUNC(ImVec4) getPinHoveredColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getBooleanColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getEnumColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getIntColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getIntVectorColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getFloatColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getFloatVectorColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getMatrixColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getPropertyColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getTextureColor(float alpha= 1.f);
+MIKAN_GUI_FUNC(ImVec4) getComponentColor(float alpha= 1.f);
 
 MIKAN_GUI_FUNC(void*) receiveDragDropPayload(const std::string& PayloadType);
 template <class t_payload_type>

@@ -1,4 +1,5 @@
 #pragma once
+#include "LocText.h"
 #include "Node.h"
 
 class MousePosNode : public Node
@@ -13,7 +14,7 @@ public:
 protected:
 	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
 		const NodeEditorState& editorState) const override;
-	virtual std::string editorGetTitle() const override { return "MousePosition"; }
+	virtual std::string editorGetTitle() const override { return locText("nodes.mousePositionTitle"); }
 };
 
 class MousePosNodeFactory : public TypedNodeFactory<MousePosNode, NodeConfig>

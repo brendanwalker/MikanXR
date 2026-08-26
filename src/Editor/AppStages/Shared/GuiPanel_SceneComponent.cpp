@@ -2,6 +2,7 @@
 #include "Shared/GuiPanel_SceneComponent.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 
 GuiPanel_SceneComponent::GuiPanel_SceneComponent(AppStage* ownerAppStage)
@@ -36,7 +37,7 @@ void GuiPanel_SceneComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					sceneComp->makePropertyUIIdentifier(SceneComponentDefinition::k_displayCompositorIdPropertyId),
-					"Display Compositor", &m_compositorDataSource, selectedIndex))
+					locText("componentPanel.displayCompositor"), &m_compositorDataSource, selectedIndex))
 			{
 				MikanComponentPtr newCompositor= m_compositorDataSource.getEntryAtIndex(selectedIndex);
 				if (newCompositor)

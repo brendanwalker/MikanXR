@@ -12,10 +12,12 @@
 #include "IMkTriangulatedMesh.h"
 #include "MkMaterialInstance.h"
 #include "IMkGraphicsContext.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "VideoSourceComponent.h"
 
 #include "QuadStencilComponent.h"
@@ -273,12 +275,17 @@ void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 void DepthMaskNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	if (NodeEditorUI::DrawPropertySheetHeader("Depth Mask Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.depthMaskHeader")))
 	{
-		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableQuadStencil", "Disable Quads", m_bDisableQuadStencil);
-		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableBoxStencil", "Disable Boxes", m_bDisableBoxStencil);
-		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableModelStencil", "Disable Models",
-										   m_bDisableModelStencil);
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+		MkGui::drawCheckBoxProperty(propertyStyle, "DepthMaskNodeDisableQuadStencil", locText("nodes.disableQuads"),
+									m_bDisableQuadStencil);
+		MkGui::drawCheckBoxProperty(propertyStyle, "DepthMaskNodeDisableBoxStencil", locText("nodes.disableBoxes"),
+									m_bDisableBoxStencil);
+		MkGui::drawCheckBoxProperty(propertyStyle, "DepthMaskNodeDisableModelStencil", locText("nodes.disableModels"),
+									m_bDisableModelStencil);
 	}
 }
 
