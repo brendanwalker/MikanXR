@@ -85,6 +85,9 @@ public:
 
 	// -- Saving -----
 
+	// Serialize the whole graph to a JSON string (the undo snapshot format)
+	std::string saveToSnapshotString() const;
+
 	virtual void saveToConfig(NodeGraphConfig& config) const;
 	virtual void saveGraphPropertyToConfig(GraphPropertyConstPtr prop, NodeGraphConfig& graphConfig) const;
 	virtual void saveAssetRefToConfig(AssetReferenceConstPtr assetRef, NodeGraphConfig& graphConfig) const;
@@ -285,6 +288,7 @@ public:
 	}
 
 	NodePinPtr getPinById(t_node_pin_id id) const;
+	const std::map<t_node_pin_id, NodePinPtr>& getPinsMap() const { return m_Pins; }
 
 	void addPin(NodePinPtr newPin);
 	MulticastDelegate<void(t_node_pin_id id)> OnPinCreated;
@@ -295,6 +299,7 @@ public:
 	// -- Links -----
 
 	NodeLinkPtr getLinkById(t_node_link_id id) const;
+	const std::map<t_node_link_id, NodeLinkPtr>& getLinksMap() const { return m_Links; }
 
 	NodeLinkPtr createLink(t_node_pin_id startPinId, t_node_pin_id endPinId);
 	MulticastDelegate<void(t_node_link_id id)> OnLinkCreated;
@@ -344,6 +349,8 @@ public:
 	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const;
 
 	static NodeGraphPtr loadNodeGraph(class IEditorWindow* ownerWindow, const std::filesystem::path& path);
+	static NodeGraphPtr loadNodeGraphFromConfig(class IEditorWindow* ownerWindow, NodeGraphConfig& config);
+	static NodeGraphPtr loadNodeGraphFromSnapshotString(class IEditorWindow* ownerWindow, const std::string& snapshot);
 	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);
 
 	template <class t_node_factory_class>

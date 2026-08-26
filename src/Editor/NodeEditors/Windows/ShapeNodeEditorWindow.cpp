@@ -53,6 +53,19 @@ bool ShapeNodeEditorWindow::bindShapeComponent(ShapeComponentPtr shapeComponent)
 	return true;
 }
 
+void ShapeNodeEditorWindow::onGraphRestored()
+{
+	if (m_shapeComponent == nullptr)
+	{
+		return;
+	}
+
+	// Rebind the rebuilt graph instance so the shape component evaluates it
+	auto shapeNodeGraph= std::static_pointer_cast<ShapeNodeGraph>(m_editorState.nodeGraph);
+	shapeNodeGraph->bindToShapeComponent(m_shapeComponent);
+	m_shapeComponent->setEditorShapeNodeGraph(shapeNodeGraph);
+}
+
 void ShapeNodeEditorWindow::update(float deltaSeconds)
 {
 	m_lastNodeEvalErrors.clear();
@@ -88,6 +101,7 @@ bool ShapeNodeEditorWindow::saveGraph(bool bShowFileDialog)
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
 		m_shapeComponent->setShapeGraphAssetPath(m_editorState.nodeGraphPath);
+		return true;
 	}
 
 	return false;

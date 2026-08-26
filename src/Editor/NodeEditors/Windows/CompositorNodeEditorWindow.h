@@ -26,6 +26,9 @@ public:
 	bool bindCompositorComponent(CompositorComponentPtr compositorComponent);
 
 protected:
+	virtual void onGraphRestored() override;
+
+protected:
 	CompositorComponentPtr m_compositorComponent;
 	bool m_isRunningCompositor= true;
 };

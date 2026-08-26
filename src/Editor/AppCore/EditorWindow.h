@@ -61,7 +61,7 @@ public:
 	eWindowAPI getWindowAPI() const;
 	void* getNativeWindowHandle() const;
 	void makeContextCurrent();
-	bool wantsDestroy() const;
+	virtual bool wantsDestroy() const;
 	void present();
 	void setTitle(const std::string& title);
 	void setSize(int width, int height);

@@ -459,6 +459,14 @@ bool NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
 	return true;
 }
 
+std::string NodeGraph::saveToSnapshotString() const
+{
+	NodeGraphConfig config;
+	saveToConfig(config);
+
+	return configuru::dump_string(config.writeToJSON(), configuru::JSON);
+}
+
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const
 {
 	config.className= getClassName();
@@ -1019,12 +1027,18 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 		return NodeGraphPtr();
 	}
 
+	return loadNodeGraphFromConfig(ownerWindow, config);
+}
+
+NodeGraphPtr NodeGraphFactory::loadNodeGraphFromConfig(IEditorWindow* ownerWindow, NodeGraphConfig& config)
+{
 	// Find the appropriate factory based on the node class name
 	const std::string& nodeGraphClassName= config.className;
 	auto it= s_factoryMap.find(nodeGraphClassName);
 	if (it == s_factoryMap.end())
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Unknown node graph class name: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromConfig")
+			<< "Unknown node graph class name: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
@@ -1032,7 +1046,7 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 	NodeGraphPtr nodeGraph= it->second->allocateNodeGraph();
 	if (!nodeGraph)
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromConfig")
 			<< "Failed to allocate node graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
@@ -1045,7 +1059,7 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 	// we can actually create the graph object configs using the factories from the graph
 	if (!config.postReadFromJSON(nodeGraph))
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromConfig")
 			<< "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
@@ -1053,12 +1067,29 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 	// Init node graph from the parsed config
 	if (!nodeGraph->loadFromConfig(config))
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromConfig")
 			<< "Failed to init all graph objects in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
 	return nodeGraph;
+}
+
+NodeGraphPtr NodeGraphFactory::loadNodeGraphFromSnapshotString(IEditorWindow* ownerWindow, const std::string& snapshot)
+{
+	NodeGraphConfig config;
+	try
+	{
+		config.readFromJSON(configuru::parse_string(snapshot.c_str(), configuru::JSON, "NodeGraphSnapshot"));
+	}
+	catch (const std::exception& e)
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromSnapshotString")
+			<< "Failed to parse graph snapshot: " << e.what();
+		return NodeGraphPtr();
+	}
+
+	return loadNodeGraphFromConfig(ownerWindow, config);
 }
 
 void NodeGraphFactory::saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph)

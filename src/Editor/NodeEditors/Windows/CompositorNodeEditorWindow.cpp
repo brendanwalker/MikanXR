@@ -61,6 +61,19 @@ bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr 
 	return true;
 }
 
+void CompositorNodeEditorWindow::onGraphRestored()
+{
+	if (m_compositorComponent == nullptr)
+	{
+		return;
+	}
+
+	// Rebind the rebuilt graph instance so the compositor evaluates it
+	auto compositorNodeGraph= std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
+	compositorNodeGraph->bindToCompositorComponent(m_compositorComponent);
+	m_compositorComponent->setEditorCompositorNodeGraph(compositorNodeGraph);
+}
+
 void CompositorNodeEditorWindow::update(float deltaSeconds)
 {
 	m_lastNodeEvalErrors.clear();
@@ -99,6 +112,7 @@ bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
 		m_compositorComponent->setCompositorGraphAssetPath(m_editorState.nodeGraphPath);
+		return true;
 	}
 
 	return false;
@@ -162,7 +176,7 @@ void CompositorNodeEditorWindow::renderToolbar()
 		MkGuiScopedStyle controlPanelStyle(getMkGuiStyleManager()->getStyle("node_editor_control_panel"));
 
 		ImGui::SameLine();
-		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
+		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(100, 30), true, ImGuiWindowFlags_NoScrollbar);
 		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
 
 		{
@@ -190,6 +204,12 @@ void CompositorNodeEditorWindow::renderToolbar()
 			if (ImGui::SmallButton(ICON_FK_UNDO))
 			{
 				undo();
+			}
+
+			ImGui::SameLine();
+			if (ImGui::SmallButton(ICON_FK_REPEAT))
+			{
+				redo();
 			}
 		}
 	}

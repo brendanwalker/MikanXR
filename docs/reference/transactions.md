@@ -48,6 +48,14 @@ Ctrl+Z undoes and Ctrl+Shift+Z redoes while the project stage is up (Ctrl+Y is u
 
 The log is the post-session diagnosis trail: it records what changed, in what order, and what was undone, and a set op's `old`/`new` text values re-apply directly through `property set` automation commands.
 
+## Node graph undo
+
+The node editor windows keep their own undo history, separate from the component transaction stack: node graphs are standalone assets outside the project config, and their edits (node property sheet writes, ImNodes drags) have no property-notification chokepoint to record ops from. Each `NodeEditorWindow` owns a `NodeGraphHistory` (`src/Editor/NodeEditors/Graphs/NodeGraphHistory`), a bounded stack of whole-graph JSON snapshots seeded when a graph is created or loaded.
+
+A snapshot commits once per quiescent frame. The graph delegates (node, pin, link, property, and asset reference create/delete), a widget interaction ending, and left-mouse release all mark a checkpoint, and the window serializes and pushes once no widget or mouse interaction is active. Identical snapshots dedup, so a burst (a delete cascade, a whole node drag) lands as one undo step. Undo and redo rebuild the graph instance from the target snapshot through `NodeGraphFactory::loadNodeGraphFromConfig` and rebind it to its owning compositor or shape component, so the compositor keeps evaluating the editor graph across undo.
+
+Ctrl+Z / Ctrl+Shift+Z work while a node editor window has focus (the same chords as the main window), alongside the toolbar undo and redo buttons. The automation face is the `nodegraph` namespace ([automation.md](./automation.md)).
+
 ## Known unrecordable properties
 
 Properties whose change notifications carry names with no property descriptor are invisible to undo (and to websocket property events). The recorder warns once per name at runtime, and the guard test asserts the set does not grow silently. Standing entries include the `EditorObjectSystem` settings names and `depth_mesh_scale_correction`; `RGBSpotLightComponent` `red`/`green`/`blue` are runtime-only members with no definition backing at all.

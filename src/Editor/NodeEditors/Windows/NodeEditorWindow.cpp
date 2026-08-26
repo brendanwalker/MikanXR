@@ -35,6 +35,7 @@
 #include "StringUtils.h"
 #include "TextStyle.h"
 
+#include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
 
 #include "imgui.h"
@@ -111,6 +112,16 @@ void NodeEditorWindow::update(float deltaSeconds)
 {
 	EASY_FUNCTION();
 
+	// Run parked automation work and scheduled history steps outside the
+	// ImGui frame, where graph rebuilds and context pushes are safe
+	flushAutomationTasks();
+	if (m_pendingHistorySteps != 0)
+	{
+		const int steps= m_pendingHistorySteps;
+		m_pendingHistorySteps= 0;
+		stepHistory(steps);
+	}
+
 	// Push the ImGui Update scope
 	MkGuiScopedUpdate scopedCtx(*m_guiContext);
 
@@ -177,6 +188,21 @@ void NodeEditorWindow::updateUI()
 
 	// Right Panel
 	renderSelectedObjectPanel();
+
+	// Undo/redo chords (Ctrl+Z / Ctrl+Shift+Z); text fields keep ImGui's own undo
+	if (ImGui::IsKeyPressed(ImGuiKey_Z, false) && ImGui::GetIO().KeyCtrl && !ImGui::IsAnyItemActive())
+	{
+		if (ImGui::GetIO().KeyShift)
+		{
+			redo();
+		}
+		else
+		{
+			undo();
+		}
+	}
+
+	updateHistoryCapture();
 }
 
 void NodeEditorWindow::renderMainFrame()
@@ -429,6 +455,12 @@ void NodeEditorWindow::renderToolbar()
 			if (ImGui::SmallButton(ICON_FK_UNDO))
 			{
 				undo();
+			}
+
+			ImGui::SameLine();
+			if (ImGui::SmallButton(ICON_FK_REPEAT))
+			{
+				redo();
 			}
 		}
 	}
@@ -789,10 +821,13 @@ void NodeEditorWindow::deleteSelectedItem()
 	}
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET && m_objectSelection.getObjectCount() > 0)
 	{
-		std::vector<AssetReferencePtr>& assetList= getNodeGraph()->getAssetReferencesMutable();
+		const std::vector<AssetReferencePtr>& assetList= getNodeGraph()->getAssetReferences();
 		const int assetIndex= m_objectSelection.getObjectId(0);
 
-		assetList.erase(assetList.begin() + assetIndex);
+		if (assetIndex >= 0 && assetIndex < (int)assetList.size())
+		{
+			getNodeGraph()->deleteAssetReference(assetList[assetIndex]);
+		}
 		m_objectSelection.clear();
 	}
 }
@@ -814,6 +849,11 @@ void NodeEditorWindow::newGraph()
 	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
 
 	onNodeGraphCreated();
+
+	if (m_editorState.nodeGraph)
+	{
+		m_history.reset(m_editorState.nodeGraph->saveToSnapshotString());
+	}
 }
 
 bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
@@ -832,6 +872,7 @@ bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 	{
 		m_editorState.nodeGraphPath= path;
 		onNodeGraphCreated();
+		m_history.reset(m_editorState.nodeGraph->saveToSnapshotString());
 		return true;
 	}
 	else
@@ -875,7 +916,279 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 
 void NodeEditorWindow::undo()
 {
-	// TODO
+	// Applied at the top of the next update, outside the ImGui frame
+	m_pendingHistorySteps-= 1;
+}
+
+void NodeEditorWindow::redo() { m_pendingHistorySteps+= 1; }
+
+bool NodeEditorWindow::stepHistory(int steps)
+{
+	// Walk the cursor first so a multi-step request rebuilds the graph once
+	const std::string* targetSnapshot= nullptr;
+	while (steps != 0)
+	{
+		const std::string* snapshot= (steps < 0) ? m_history.undo() : m_history.redo();
+		if (snapshot == nullptr)
+		{
+			break;
+		}
+
+		targetSnapshot= snapshot;
+		steps+= (steps < 0) ? 1 : -1;
+	}
+
+	if (targetSnapshot == nullptr)
+	{
+		return false;
+	}
+
+	return restoreGraphSnapshot(*targetSnapshot);
+}
+
+bool NodeEditorWindow::restoreGraphSnapshot(const std::string& snapshot)
+{
+	m_bApplyingHistory= true;
+
+	// Push this window's GL context before graph resource creation (VAOs, VBOs).
+	// See comment in newGraph() for details.
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+
+	NodeGraphPtr restoredGraph= NodeGraphFactory::loadNodeGraphFromSnapshotString(this, snapshot);
+
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	if (!restoredGraph)
+	{
+		MIKAN_LOG_ERROR("NodeEditorWindow::restoreGraphSnapshot") << "Failed to rebuild graph from snapshot";
+		m_bApplyingHistory= false;
+		return false;
+	}
+
+	// Swap in the restored graph using the same window plumbing a load uses
+	onNodeGraphDeleted();
+	m_editorState.nodeGraph= restoredGraph;
+	m_editorState.startedLinkPinId= -1;
+	m_editorState.bLinkHanged= false;
+	onNodeGraphCreated();
+
+	// Stale selections may reference objects the snapshot does not contain
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+		ImNodes::ClearNodeSelection();
+		ImNodes::ClearLinkSelection();
+	}
+	m_objectSelection.clear();
+
+	// Let subclasses rebind the restored graph to its owning component
+	onGraphRestored();
+
+	m_bCheckpointPending= false;
+	m_bApplyingHistory= false;
+
+	return true;
+}
+
+void NodeEditorWindow::updateHistoryCapture()
+{
+	if (m_bApplyingHistory)
+	{
+		return;
+	}
+
+	// Edits with no graph delegate (node property sheets, node drags) surface
+	// as a widget going inactive or a mouse release; commit dedup drops false triggers
+	const bool bAnyItemActive= ImGui::IsAnyItemActive();
+	if ((m_bAnyItemActiveLastFrame && !bAnyItemActive) || ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	{
+		m_bCheckpointPending= true;
+	}
+	m_bAnyItemActiveLastFrame= bAnyItemActive;
+
+	// Commit once the interaction settles, coalescing a burst (a delete
+	// cascade, a whole drag) into a single undo step
+	if (m_bCheckpointPending && !bAnyItemActive && !ImGui::IsMouseDown(ImGuiMouseButton_Left))
+	{
+		NodeGraphPtr nodeGraph= getNodeGraph();
+		if (nodeGraph)
+		{
+			m_history.commit(nodeGraph->saveToSnapshotString());
+		}
+		m_bCheckpointPending= false;
+	}
+}
+
+void NodeEditorWindow::enqueueAutomationTask(std::function<void()>&& task)
+{
+	m_automationTasks.push_back(std::move(task));
+}
+
+void NodeEditorWindow::flushAutomationTasks()
+{
+	while (!m_automationTasks.empty())
+	{
+		std::function<void()> task= std::move(m_automationTasks.front());
+		m_automationTasks.erase(m_automationTasks.begin());
+		task();
+	}
+}
+
+bool NodeEditorWindow::wantsDestroy() const { return m_bCloseRequested || EditorWindow::wantsDestroy(); }
+
+bool NodeEditorWindow::automationCreateNode(const std::string& nodeClassName, const glm::vec2& gridPos,
+											t_node_id& outNodeId, std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	NodeFactoryPtr nodeFactory= nodeGraph->getNodeFactory(nodeClassName);
+	if (!nodeFactory)
+	{
+		outError= "unknown node class '" + nodeClassName + "'";
+		return false;
+	}
+
+	// Node creation touches GL resources and, via onNodeCreated, ImNodes state
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	NodePtr newNode;
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		m_editorState.hangPosGridSpace= ImVec2(gridPos.x, gridPos.y);
+		newNode= nodeGraph->createNode(nodeFactory, m_editorState);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	if (!newNode)
+	{
+		outError= "node creation failed";
+		return false;
+	}
+
+	outNodeId= newNode->getId();
+	return true;
+}
+
+bool NodeEditorWindow::automationDeleteNode(t_node_id nodeId, std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	NodePtr node= nodeGraph->getNodeById(nodeId);
+	if (!node)
+	{
+		outError= "no node with id " + std::to_string(nodeId);
+		return false;
+	}
+
+	if (!node->editorCanDelete())
+	{
+		outError= "node " + std::to_string(nodeId) + " is not deletable";
+		return false;
+	}
+
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		nodeGraph->deleteNodeById(nodeId);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	return true;
+}
+
+bool NodeEditorWindow::automationCreateLink(t_node_pin_id startPinId, t_node_pin_id endPinId, t_node_link_id& outLinkId,
+											std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	NodePinPtr startPin= nodeGraph->getPinById(startPinId);
+	if (!startPin)
+	{
+		outError= "no pin with id " + std::to_string(startPinId);
+		return false;
+	}
+
+	NodePinPtr endPin= nodeGraph->getPinById(endPinId);
+	if (!endPin)
+	{
+		outError= "no pin with id " + std::to_string(endPinId);
+		return false;
+	}
+
+	if (!startPin->canPinsBeConnected(endPin))
+	{
+		outError= "pins " + std::to_string(startPinId) + " and " + std::to_string(endPinId) + " cannot connect";
+		return false;
+	}
+
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	NodeLinkPtr link;
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		link= nodeGraph->createLink(startPinId, endPinId);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	if (!link)
+	{
+		outError= "link creation failed";
+		return false;
+	}
+
+	outLinkId= link->getId();
+	return true;
+}
+
+bool NodeEditorWindow::automationDeleteLink(t_node_link_id linkId, std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	if (!nodeGraph->getLinkById(linkId))
+	{
+		outError= "no link with id " + std::to_string(linkId);
+		return false;
+	}
+
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		nodeGraph->deleteLinkById(linkId);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	return true;
 }
 
 void NodeEditorWindow::onNodeGraphCreated()
@@ -885,10 +1198,14 @@ void NodeEditorWindow::onNodeGraphCreated()
 
 	graph->OnNodeCreated+= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 	graph->OnNodeDeleted+= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+	graph->OnLinkCreated+= MakeDelegate(this, &NodeEditorWindow::onLinkCreated);
 	graph->OnLinkDeleted+= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+	graph->OnPinCreated+= MakeDelegate(this, &NodeEditorWindow::onPinCreated);
+	graph->OnPinDeleted+= MakeDelegate(this, &NodeEditorWindow::onPinDeleted);
 	graph->OnPropertyCreated+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
 	graph->OnPropertyModifed+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 	graph->OnPropertyDeleted+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	graph->OnAssetReferenceDeleted+= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceDeleted);
 
 	// Register the node positions with ImNode
 	for (auto iter= graph->getNodesMap().begin(); iter != graph->getNodesMap().end(); iter++)
@@ -909,10 +1226,14 @@ void NodeEditorWindow::onNodeGraphDeleted()
 	{
 		graph->OnNodeCreated-= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 		graph->OnNodeDeleted-= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+		graph->OnLinkCreated-= MakeDelegate(this, &NodeEditorWindow::onLinkCreated);
 		graph->OnLinkDeleted-= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+		graph->OnPinCreated-= MakeDelegate(this, &NodeEditorWindow::onPinCreated);
+		graph->OnPinDeleted-= MakeDelegate(this, &NodeEditorWindow::onPinDeleted);
 		graph->OnPropertyCreated-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
 		graph->OnPropertyModifed-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 		graph->OnPropertyDeleted-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+		graph->OnAssetReferenceDeleted-= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceDeleted);
 	}
 }
 
@@ -934,6 +1255,8 @@ void NodeEditorWindow::onNodeCreated(t_node_id id)
 	ImNodes::ClearLinkSelection();
 	ImNodes::ClearNodeSelection();
 	ImNodes::SelectNode(id);
+
+	markHistoryCheckpoint();
 }
 
 void NodeEditorWindow::onNodeDeleted(t_node_id id)
@@ -942,7 +1265,11 @@ void NodeEditorWindow::onNodeDeleted(t_node_id id)
 	{
 		ImNodes::ClearNodeSelection();
 	}
+
+	markHistoryCheckpoint();
 }
+
+void NodeEditorWindow::onLinkCreated(t_node_link_id id) { markHistoryCheckpoint(); }
 
 void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
 {
@@ -950,10 +1277,29 @@ void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
 	{
 		ImNodes::ClearLinkSelection();
 	}
+
+	markHistoryCheckpoint();
 }
+
+void NodeEditorWindow::onPinCreated(t_node_pin_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onPinDeleted(t_node_pin_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onGraphPropertyCreated(t_graph_property_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onGraphPropertyModified(t_graph_property_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onGraphPropertyDeleted(t_graph_property_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onAssetReferenceCreated(AssetReferencePtr assetRef) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onAssetReferenceDeleted(AssetReferencePtr assetRef) { markHistoryCheckpoint(); }
 
 void NodeEditorWindow::shutdown()
 {
+	// Run parked automation work so its deferred replies still send
+	flushAutomationTasks();
+
 	onNodeGraphDeleted();
 	m_editorState.nodeGraph= nullptr;
 	m_editorState.nodeGraphPath.clear();
