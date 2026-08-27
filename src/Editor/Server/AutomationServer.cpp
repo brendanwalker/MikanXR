@@ -23,6 +23,14 @@
 #include "PropertyDatabaseEnumerator.h"
 #include "ScriptRequestHandler.h"
 
+#include "Graphs/NodeGraph.h"
+#include "Nodes/Node.h"
+#include "Pins/NodeLink.h"
+#include "Pins/NodePin.h"
+#include "Properties/GraphProperty.h"
+#include "Windows/CompositorNodeEditorWindow.h"
+#include "Windows/NodeEditorWindow.h"
+
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
@@ -228,6 +236,15 @@ void AutomationServer::registerCoreNamespaces()
 
 	registerCommandNamespace("log", {"log tail <lineCount> [trace|debug|info|warning|error|fatal]"},
 							 std::bind(&AutomationServer::handleLogCommand, this, _1, _2, _3));
+
+	registerCommandNamespace(
+		"nodegraph",
+		{"nodegraph open [compositorComponentId]", "nodegraph close", "nodegraph info",
+		 "nodegraph list nodes|pins|links|properties", "nodegraph createnode <nodeClassName> [x y]",
+		 "nodegraph deletenode <nodeId>", "nodegraph createlink <startPinId> <endPinId>",
+		 "nodegraph deletelink <linkId>", "nodegraph undo [n]", "nodegraph redo [n]", "nodegraph run on|off",
+		 "nodegraph renamevar <propertyId> <name...>", "nodegraph reordervar <movedPropertyId> <targetPropertyId>"},
+		std::bind(&AutomationServer::handleNodeGraphCommand, this, _1, _2, _3));
 
 	// The history namespace is registered by TransactionHistory after startup
 }
@@ -669,6 +686,365 @@ bool AutomationServer::handleScreenshotCommand(const std::vector<std::string>& a
 		m_windowCapturePath= args.size() >= 2 ? args[1] : "mikan_window.png";
 		m_bWindowCapturePending= true;
 		m_bReplyDeferred= true;
+		return true;
+	}
+
+	outError= "unknown verb '" + verb + "'";
+	return false;
+}
+
+bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+											  std::string& outError)
+{
+	if (args.empty())
+	{
+		outError= "usage: nodegraph open|close|info|list|createnode|deletenode|createlink|deletelink|undo|redo";
+		return false;
+	}
+
+	const std::string& verb= args[0];
+
+	if (verb == "open")
+	{
+		// Optional compositor component id; default to the project's single compositor
+		int compositorId= -1;
+		if (args.size() >= 2 && !parseComponentId(args[1], compositorId))
+		{
+			outError= "invalid compositor component id '" + args[1] + "'";
+			return false;
+		}
+
+		auto compositorSystem= m_mainWindow->getProjectManager()->getSystemOfType<CompositorObjectSystem>();
+		if (!compositorSystem)
+		{
+			outError= "no compositor system";
+			return false;
+		}
+
+		if (compositorId == -1)
+		{
+			std::vector<int> compositorIds;
+			compositorSystem->getComponentIdList(CompositorComponent::k_componentClassName, compositorIds);
+			if (compositorIds.size() != 1)
+			{
+				outError= "give a compositor component id (project has " + std::to_string(compositorIds.size())
+						  + " compositors)";
+				return false;
+			}
+			compositorId= compositorIds[0];
+		}
+
+		CompositorComponentPtr compositor= compositorSystem->getCompositorById(compositorId);
+		if (!compositor)
+		{
+			outError= "no compositor with id " + std::to_string(compositorId);
+			return false;
+		}
+
+		// Opens the compositor node editor window if one is not already open
+		compositor->editCompositorGraph();
+		return true;
+	}
+
+	// Every other verb targets the open node editor window
+	NodeEditorWindow* window= App::getInstance()->getWindowOfType<NodeEditorWindow>();
+	if (window == nullptr)
+	{
+		outError= "no node editor window open";
+		return false;
+	}
+
+	if (verb == "close")
+	{
+		// Torn down by the app at the end of this frame
+		window->requestClose();
+		return true;
+	}
+
+	NodeGraphPtr nodeGraph= window->getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	if (verb == "info")
+	{
+		const std::string& path= window->getNodeGraphPath().string();
+
+		outLines.push_back("class " + nodeGraph->getClassName());
+		outLines.push_back("path " + (path.empty() ? std::string("none") : path));
+		outLines.push_back("nodes " + std::to_string(nodeGraph->getNodesMap().size()));
+		outLines.push_back("pins " + std::to_string(nodeGraph->getPinsMap().size()));
+		outLines.push_back("links " + std::to_string(nodeGraph->getLinksMap().size()));
+		outLines.push_back("properties " + std::to_string(nodeGraph->getPropertyMap().size()));
+		outLines.push_back(std::string("can_undo ") + (window->canUndo() ? "true" : "false"));
+		outLines.push_back(std::string("can_redo ") + (window->canRedo() ? "true" : "false"));
+		outLines.push_back("history_depth " + std::to_string(window->getHistory().getDepth()));
+		outLines.push_back("history_cursor " + std::to_string(window->getHistory().getCursor()));
+
+		const std::string logPath= window->getGraphLogFilePath().string();
+		outLines.push_back("log " + (logPath.empty() ? std::string("none") : logPath));
+
+		auto* compositorWindow= dynamic_cast<CompositorNodeEditorWindow*>(window);
+		if (compositorWindow != nullptr)
+		{
+			outLines.push_back(std::string("running ") + (compositorWindow->isCompositorRunning() ? "true" : "false"));
+		}
+		return true;
+	}
+	else if (verb == "list")
+	{
+		const std::string kind= args.size() >= 2 ? args[1] : "";
+
+		if (kind == "nodes")
+		{
+			for (const auto& [nodeId, node] : nodeGraph->getNodesMap())
+			{
+				outLines.push_back(std::to_string(nodeId) + " " + node->getClassName() + " " + node->editorGetTitle());
+			}
+		}
+		else if (kind == "pins")
+		{
+			for (const auto& [pinId, pin] : nodeGraph->getPinsMap())
+			{
+				NodePtr ownerNode= pin->getOwnerNode();
+				const std::string direction= pin->getDirection() == eNodePinDirection::INPUT ? "in" : "out";
+
+				outLines.push_back(std::to_string(pinId) + " " + pin->getClassName() + " "
+								   + std::to_string(ownerNode ? ownerNode->getId() : -1) + " " + direction + " "
+								   + pin->getName());
+			}
+		}
+		else if (kind == "links")
+		{
+			for (const auto& [linkId, link] : nodeGraph->getLinksMap())
+			{
+				NodePinPtr startPin= link->getStartPin();
+				NodePinPtr endPin= link->getEndPin();
+
+				outLines.push_back(std::to_string(linkId) + " " + std::to_string(startPin ? startPin->getId() : -1)
+								   + " " + std::to_string(endPin ? endPin->getId() : -1));
+			}
+		}
+		else if (kind == "properties")
+		{
+			// Listed in variable-list order so a reorder is observable here
+			for (GraphPropertyPtr property : nodeGraph->getPropertiesInSortOrder())
+			{
+				outLines.push_back(std::to_string(property->getId()) + " " + property->getClassName() + " "
+								   + property->getName());
+			}
+		}
+		else
+		{
+			outError= "usage: nodegraph list nodes|pins|links|properties";
+			return false;
+		}
+
+		return true;
+	}
+	else if (verb == "createnode")
+	{
+		if (args.size() < 2)
+		{
+			outError= "usage: nodegraph createnode <nodeClassName> [x y]";
+			return false;
+		}
+
+		const std::string nodeClassName= args[1];
+		glm::vec2 gridPos(0.f, 0.f);
+		if (args.size() >= 4)
+		{
+			gridPos.x= (float)atof(args[2].c_str());
+			gridPos.y= (float)atof(args[3].c_str());
+		}
+
+		// Node creation must run inside the window's update, where its GL and
+		// gui contexts can be made current; the reply is sent from the task
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, window, nodeClassName, gridPos]()
+			{
+				t_node_id newNodeId= -1;
+				std::string error;
+				if (window->automationCreateNode(nodeClassName, gridPos, newNodeId, error))
+				{
+					sendReply({std::to_string(newNodeId)});
+				}
+				else
+				{
+					sendErrorReply("nodegraph createnode: " + error);
+				}
+			});
+		return true;
+	}
+	else if (verb == "deletenode")
+	{
+		int nodeId= -1;
+		if (args.size() < 2 || !parseComponentId(args[1], nodeId))
+		{
+			outError= "usage: nodegraph deletenode <nodeId>";
+			return false;
+		}
+
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, window, nodeId]()
+			{
+				std::string error;
+				if (window->automationDeleteNode(nodeId, error))
+				{
+					sendReply({});
+				}
+				else
+				{
+					sendErrorReply("nodegraph deletenode: " + error);
+				}
+			});
+		return true;
+	}
+	else if (verb == "createlink")
+	{
+		int startPinId= -1;
+		int endPinId= -1;
+		if (args.size() < 3 || !parseComponentId(args[1], startPinId) || !parseComponentId(args[2], endPinId))
+		{
+			outError= "usage: nodegraph createlink <startPinId> <endPinId>";
+			return false;
+		}
+
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, window, startPinId, endPinId]()
+			{
+				t_node_link_id newLinkId= -1;
+				std::string error;
+				if (window->automationCreateLink(startPinId, endPinId, newLinkId, error))
+				{
+					sendReply({std::to_string(newLinkId)});
+				}
+				else
+				{
+					sendErrorReply("nodegraph createlink: " + error);
+				}
+			});
+		return true;
+	}
+	else if (verb == "deletelink")
+	{
+		int linkId= -1;
+		if (args.size() < 2 || !parseComponentId(args[1], linkId))
+		{
+			outError= "usage: nodegraph deletelink <linkId>";
+			return false;
+		}
+
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, window, linkId]()
+			{
+				std::string error;
+				if (window->automationDeleteLink(linkId, error))
+				{
+					sendReply({});
+				}
+				else
+				{
+					sendErrorReply("nodegraph deletelink: " + error);
+				}
+			});
+		return true;
+	}
+	else if (verb == "undo" || verb == "redo")
+	{
+		int requestedSteps= 1;
+		if (args.size() >= 2 && (!parseComponentId(args[1], requestedSteps) || requestedSteps <= 0))
+		{
+			outError= "usage: nodegraph " + verb + " [n]";
+			return false;
+		}
+
+		const int steps= (verb == "undo") ? -requestedSteps : requestedSteps;
+
+		// Applied inside the window's update; replies the resulting cursor
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, window, steps]()
+			{
+				window->stepHistory(steps);
+				sendReply({std::to_string(window->getHistory().getCursor())});
+			});
+		return true;
+	}
+	else if (verb == "renamevar")
+	{
+		int propertyId= -1;
+		if (args.size() < 3 || !parseComponentId(args[1], propertyId))
+		{
+			outError= "usage: nodegraph renamevar <propertyId> <name...>";
+			return false;
+		}
+
+		GraphPropertyPtr property= nodeGraph->getPropertyById(propertyId);
+		if (!property)
+		{
+			outError= "no property with id " + std::to_string(propertyId);
+			return false;
+		}
+
+		// The name is the rest of the line, rejoined so spaces survive
+		std::string newName= args[2];
+		for (size_t argIndex= 3; argIndex < args.size(); ++argIndex)
+		{
+			newName+= " " + args[argIndex];
+		}
+
+		property->setName(newName);
+		property->notifyPropertyModified();
+		return true;
+	}
+	else if (verb == "reordervar")
+	{
+		int movedId= -1;
+		int targetId= -1;
+		if (args.size() < 3 || !parseComponentId(args[1], movedId) || !parseComponentId(args[2], targetId))
+		{
+			outError= "usage: nodegraph reordervar <movedPropertyId> <targetPropertyId>";
+			return false;
+		}
+
+		if (!nodeGraph->reorderPropertyBefore(movedId, targetId))
+		{
+			outError= "could not move property " + std::to_string(movedId) + " before " + std::to_string(targetId);
+			return false;
+		}
+
+		return true;
+	}
+	else if (verb == "run")
+	{
+		const std::string state= args.size() >= 2 ? args[1] : "";
+		if (state != "on" && state != "off")
+		{
+			outError= "usage: nodegraph run on|off";
+			return false;
+		}
+
+		auto* compositorWindow= dynamic_cast<CompositorNodeEditorWindow*>(window);
+		if (compositorWindow == nullptr)
+		{
+			outError= "the open node editor is not a compositor graph editor";
+			return false;
+		}
+
+		if (!compositorWindow->setCompositorRunning(state == "on"))
+		{
+			outError= "no compositor component bound";
+			return false;
+		}
+
+		outLines.push_back(std::string("running ") + (compositorWindow->isCompositorRunning() ? "true" : "false"));
 		return true;
 	}
 

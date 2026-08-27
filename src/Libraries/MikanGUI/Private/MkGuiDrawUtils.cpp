@@ -296,19 +296,24 @@ ImVec4 getTextureColor(float alpha) { return ImVec4(0.6f, 0.263f, 0.969f, alpha)
 
 ImVec4 getComponentColor(float alpha) { return ImVec4(0.008f, 0.643f, 0.949f, alpha); }
 
-void* receiveDragDropPayload(const std::string& PayloadType)
+bool receiveDragDropPayload(const std::string& payloadType, const std::function<void(const void*)>& onPayloadReceived)
 {
-	void* payload= nullptr;
-
 	MkGuiScopedDragDropTarget ddt;
 	if (ddt)
 	{
-		if (const ImGuiPayload* imguiPayload= ImGui::AcceptDragDropPayload(PayloadType.c_str()))
+		if (const ImGuiPayload* imguiPayload= ImGui::AcceptDragDropPayload(payloadType.c_str()))
 		{
-			payload= imguiPayload->Data;
+			if (imguiPayload->Data != nullptr && onPayloadReceived)
+			{
+				// Consume the payload here, inside the target scope: a payload is
+				// only handed out on the delivery frame, and closing the target
+				// on that frame clears the buffer this data lives in
+				onPayloadReceived(imguiPayload->Data);
+				return true;
+			}
 		}
 	}
 
-	return payload;
+	return false;
 }
 }; // namespace MkGui

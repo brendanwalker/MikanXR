@@ -85,6 +85,10 @@ public:
 
 	// -- Saving -----
 
+	// Serialize the whole graph to JSON (the undo snapshot format)
+	configuru::Config saveToSnapshotConfig() const;
+	std::string saveToSnapshotString() const;
+
 	virtual void saveToConfig(NodeGraphConfig& config) const;
 	virtual void saveGraphPropertyToConfig(GraphPropertyConstPtr prop, NodeGraphConfig& graphConfig) const;
 	virtual void saveAssetRefToConfig(AssetReferenceConstPtr assetRef, NodeGraphConfig& graphConfig) const;
@@ -188,14 +192,9 @@ public:
 	template <class t_property_type>
 	std::shared_ptr<t_property_type> createTypedProperty()
 	{
-		t_graph_property_id newPropertyId= allocateId();
-		std::string newPropertyName= StringUtils::stringify(t_property_type::k_propertyClassName, newPropertyId);
-
 		auto property= std::make_shared<t_property_type>();
-		property->setOwnerGraph(shared_from_this());
-		property->setId(newPropertyId);
-		property->setName(newPropertyName);
 
+		initNewProperty(property);
 		addProperty(property);
 
 		return property;
@@ -204,6 +203,16 @@ public:
 	GraphPropertyPtr createProperty(GraphPropertyFactoryPtr propertyFactory);
 	void addProperty(GraphPropertyPtr property);
 	bool deletePropertyById(t_graph_property_id id);
+
+	// Appends a numeric suffix when baseName is already taken by another property
+	std::string makeUniquePropertyName(const std::string& baseName) const;
+
+	// Moves a property to the target's slot in the variable list ordering,
+	// renumbering every property's sort order to match the result
+	bool reorderPropertyBefore(t_graph_property_id movedId, t_graph_property_id targetId);
+
+	// Properties in variable list order (sort order, then id for legacy graphs)
+	std::vector<GraphPropertyPtr> getPropertiesInSortOrder() const;
 
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyCreated;
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyModifed;
@@ -285,6 +294,7 @@ public:
 	}
 
 	NodePinPtr getPinById(t_node_pin_id id) const;
+	const std::map<t_node_pin_id, NodePinPtr>& getPinsMap() const { return m_Pins; }
 
 	void addPin(NodePinPtr newPin);
 	MulticastDelegate<void(t_node_pin_id id)> OnPinCreated;
@@ -295,6 +305,7 @@ public:
 	// -- Links -----
 
 	NodeLinkPtr getLinkById(t_node_link_id id) const;
+	const std::map<t_node_link_id, NodeLinkPtr>& getLinksMap() const { return m_Links; }
 
 	NodeLinkPtr createLink(t_node_pin_id startPinId, t_node_pin_id endPinId);
 	MulticastDelegate<void(t_node_link_id id)> OnLinkCreated;
@@ -303,6 +314,10 @@ public:
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDeleted;
 
 protected:
+	// Assigns the owner graph, a fresh id, and the default display name shared
+	// by every property creation path
+	void initNewProperty(GraphPropertyPtr property);
+
 	// The window that created this node graph
 	class IEditorWindow* m_ownerWindow= nullptr;
 
@@ -344,6 +359,8 @@ public:
 	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const;
 
 	static NodeGraphPtr loadNodeGraph(class IEditorWindow* ownerWindow, const std::filesystem::path& path);
+	static NodeGraphPtr loadNodeGraphFromConfig(class IEditorWindow* ownerWindow, NodeGraphConfig& config);
+	static NodeGraphPtr loadNodeGraphFromSnapshotString(class IEditorWindow* ownerWindow, const std::string& snapshot);
 	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);
 
 	template <class t_node_factory_class>

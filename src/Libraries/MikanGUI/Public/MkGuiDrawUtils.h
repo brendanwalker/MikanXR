@@ -3,6 +3,7 @@
 #include "MkGuiExport.h"
 #include "IMkGuiStyle.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -75,19 +76,21 @@ MIKAN_GUI_FUNC(ImVec4) getPropertyColor(float alpha= 1.f);
 MIKAN_GUI_FUNC(ImVec4) getTextureColor(float alpha= 1.f);
 MIKAN_GUI_FUNC(ImVec4) getComponentColor(float alpha= 1.f);
 
-MIKAN_GUI_FUNC(void*) receiveDragDropPayload(const std::string& PayloadType);
+// Receives a drag-drop payload of the given type, invoking the callback with the
+// payload bytes. The callback must copy what it needs rather than retain the
+// pointer: ImGui frees its payload buffer as the drop target closes, and the
+// delivery frame is the only frame the payload is handed out at all.
+MIKAN_GUI_FUNC(bool)
+receiveDragDropPayload(const std::string& payloadType, const std::function<void(const void*)>& onPayloadReceived);
+
 template <class t_payload_type>
 std::shared_ptr<t_payload_type> receiveTypedDragDropPayload(const std::string& PayloadType)
 {
-	void* payload= receiveDragDropPayload(PayloadType);
+	std::shared_ptr<t_payload_type> result;
 
-	if (payload)
-	{
-		return *reinterpret_cast<std::shared_ptr<t_payload_type>*>(payload);
-	}
-	else
-	{
-		return std::shared_ptr<t_payload_type>();
-	}
+	receiveDragDropPayload(PayloadType, [&result](const void* payloadData)
+						   { result= *reinterpret_cast<const std::shared_ptr<t_payload_type>*>(payloadData); });
+
+	return result;
 }
 }; // namespace MkGui

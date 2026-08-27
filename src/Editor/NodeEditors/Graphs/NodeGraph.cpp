@@ -459,6 +459,19 @@ bool NodeGraph::loadLinkFromConfig(NodeLinkConfigPtr linkConfig)
 	return true;
 }
 
+configuru::Config NodeGraph::saveToSnapshotConfig() const
+{
+	NodeGraphConfig config;
+	saveToConfig(config);
+
+	return config.writeToJSON();
+}
+
+std::string NodeGraph::saveToSnapshotString() const
+{
+	return configuru::dump_string(saveToSnapshotConfig(), configuru::JSON);
+}
+
 void NodeGraph::saveToConfig(NodeGraphConfig& config) const
 {
 	config.className= getClassName();
@@ -605,13 +618,114 @@ bool NodeGraph::deleteAssetReference(AssetReferencePtr assetRef)
 GraphPropertyPtr NodeGraph::createProperty(GraphPropertyFactoryPtr propertyFactory)
 {
 	GraphPropertyPtr property= propertyFactory->allocateProperty();
-	property->setOwnerGraph(shared_from_this());
-	property->setId(allocateId());
-	property->setName(StringUtils::stringify(property->editorGetTitle(), property->getId()));
 
+	initNewProperty(property);
 	addProperty(property);
 
 	return property;
+}
+
+void NodeGraph::initNewProperty(GraphPropertyPtr property)
+{
+	property->setOwnerGraph(shared_from_this());
+	property->setId(allocateId());
+	property->setName(StringUtils::stringify(property->editorGetTitle(), property->getId()));
+}
+
+std::string NodeGraph::makeUniquePropertyName(const std::string& baseName) const
+{
+	if (baseName.empty())
+	{
+		return baseName;
+	}
+
+	auto isNameTaken= [this](const std::string& name)
+	{
+		for (const auto& propertyPair : m_properties)
+		{
+			if (propertyPair.second->getName() == name)
+				return true;
+		}
+
+		return false;
+	};
+
+	if (!isNameTaken(baseName))
+	{
+		return baseName;
+	}
+
+	for (int suffix= 1;; ++suffix)
+	{
+		const std::string candidate= StringUtils::stringify(baseName, suffix);
+		if (!isNameTaken(candidate))
+		{
+			return candidate;
+		}
+	}
+}
+
+std::vector<GraphPropertyPtr> NodeGraph::getPropertiesInSortOrder() const
+{
+	std::vector<GraphPropertyPtr> sortedProperties;
+	sortedProperties.reserve(m_properties.size());
+
+	for (const auto& propertyPair : m_properties)
+	{
+		sortedProperties.push_back(propertyPair.second);
+	}
+
+	// A graph saved before sort orders existed has -1 everywhere, which leaves
+	// the list in id order, matching how it used to display
+	std::stable_sort(sortedProperties.begin(), sortedProperties.end(),
+					 [](const GraphPropertyPtr& a, const GraphPropertyPtr& b)
+					 {
+						 if (a->getSortOrder() != b->getSortOrder())
+							 return a->getSortOrder() < b->getSortOrder();
+
+						 return a->getId() < b->getId();
+					 });
+
+	return sortedProperties;
+}
+
+bool NodeGraph::reorderPropertyBefore(t_graph_property_id movedId, t_graph_property_id targetId)
+{
+	if (movedId == targetId)
+	{
+		return false;
+	}
+
+	std::vector<GraphPropertyPtr> sortedProperties= getPropertiesInSortOrder();
+
+	auto movedIter= std::find_if(sortedProperties.begin(), sortedProperties.end(),
+								 [movedId](const GraphPropertyPtr& p) { return p->getId() == movedId; });
+	if (movedIter == sortedProperties.end())
+	{
+		return false;
+	}
+
+	GraphPropertyPtr movedProperty= *movedIter;
+	sortedProperties.erase(movedIter);
+
+	auto targetIter= std::find_if(sortedProperties.begin(), sortedProperties.end(),
+								  [targetId](const GraphPropertyPtr& p) { return p->getId() == targetId; });
+	if (targetIter == sortedProperties.end())
+	{
+		return false;
+	}
+
+	sortedProperties.insert(targetIter, movedProperty);
+
+	// Renumber every entry, which also migrates a legacy graph off -1 in one pass
+	for (int sortOrder= 0; sortOrder < (int)sortedProperties.size(); ++sortOrder)
+	{
+		sortedProperties[sortOrder]->setSortOrder(sortOrder);
+	}
+
+	movedProperty->notifyPropertyModified();
+
+	return true;
 }
 
 void NodeGraph::addProperty(GraphPropertyPtr property)
@@ -1019,12 +1133,18 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 		return NodeGraphPtr();
 	}
 
+	return loadNodeGraphFromConfig(ownerWindow, config);
+}
+
+NodeGraphPtr NodeGraphFactory::loadNodeGraphFromConfig(IEditorWindow* ownerWindow, NodeGraphConfig& config)
+{
 	// Find the appropriate factory based on the node class name
 	const std::string& nodeGraphClassName= config.className;
 	auto it= s_factoryMap.find(nodeGraphClassName);
 	if (it == s_factoryMap.end())
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Unknown node graph class name: " << nodeGraphClassName;
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromConfig")
+			<< "Unknown node graph class name: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
@@ -1032,7 +1152,7 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 	NodeGraphPtr nodeGraph= it->second->allocateNodeGraph();
 	if (!nodeGraph)
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromConfig")
 			<< "Failed to allocate node graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
@@ -1045,7 +1165,7 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 	// we can actually create the graph object configs using the factories from the graph
 	if (!config.postReadFromJSON(nodeGraph))
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromConfig")
 			<< "Failed to create all graph object configs in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
@@ -1053,12 +1173,29 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 	// Init node graph from the parsed config
 	if (!nodeGraph->loadFromConfig(config))
 	{
-		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromConfig")
 			<< "Failed to init all graph objects in graph class: " << nodeGraphClassName;
 		return NodeGraphPtr();
 	}
 
 	return nodeGraph;
+}
+
+NodeGraphPtr NodeGraphFactory::loadNodeGraphFromSnapshotString(IEditorWindow* ownerWindow, const std::string& snapshot)
+{
+	NodeGraphConfig config;
+	try
+	{
+		config.readFromJSON(configuru::parse_string(snapshot.c_str(), configuru::JSON, "NodeGraphSnapshot"));
+	}
+	catch (const std::exception& e)
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraphFromSnapshotString")
+			<< "Failed to parse graph snapshot: " << e.what();
+		return NodeGraphPtr();
+	}
+
+	return loadNodeGraphFromConfig(ownerWindow, config);
 }
 
 void NodeGraphFactory::saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph)

@@ -10,10 +10,9 @@
 #include "MkGuiScopedWindow.h"
 #include "MkGuiScopedGroup.h"
 #include "MkGuiScopedPopup.h"
-#include "MkGuiScopedTabBar.h"
-#include "MkGuiScopedTabItem.h"
 #include "MkGuiScopedDragDropSource.h"
 #include "MkGuiScopedDragDropTarget.h"
+#include "MkGuiDockspace.h"
 #include "MkNodesScopedNodeEditor.h"
 
 #include "App.h"
@@ -32,9 +31,12 @@
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "PathUtils.h"
+#include "ProjectConfig.h"
+#include "ProjectManager.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 
+#include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
 
 #include "imgui.h"
@@ -47,11 +49,36 @@
 
 #include <easy/profiler.h>
 
+#include <cfloat>
+#include <typeinfo>
+
 #include "glm/ext/vector_float4.hpp"
 
 // Drag-Drop Payload Types
 #define DRAG_DROP_TYPE_VARIABLE "Variable"
 #define DRAG_DROP_TYPE_ASSET_REF "Asset"
+
+// Truncate UTF-8 text to fit maxWidth in the current font, appending an ellipsis
+static std::string truncateTextWithEllipsis(const std::string& text, float maxWidth)
+{
+	if (ImGui::CalcTextSize(text.c_str()).x <= maxWidth)
+	{
+		return text;
+	}
+
+	std::string truncated= text;
+	while (!truncated.empty() && ImGui::CalcTextSize((truncated + "...").c_str()).x > maxWidth)
+	{
+		// Pop one codepoint (skip UTF-8 continuation bytes)
+		truncated.pop_back();
+		while (!truncated.empty() && ((unsigned char)truncated.back() & 0xC0) == 0x80)
+		{
+			truncated.pop_back();
+		}
+	}
+
+	return truncated + "...";
+}
 
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow(App* ownerApp)
@@ -79,7 +106,7 @@ bool NodeEditorWindow::startup()
 		success= false;
 	}
 
-	if (success && !startupGuiContext("node_editor"))
+	if (success && !startupGuiContext("node_editor", /*bEnableDocking=*/true))
 	{
 		success= false;
 	}
@@ -110,6 +137,16 @@ bool NodeEditorWindow::startup()
 void NodeEditorWindow::update(float deltaSeconds)
 {
 	EASY_FUNCTION();
+
+	// Run parked automation work and scheduled history steps outside the
+	// ImGui frame, where graph rebuilds and context pushes are safe
+	flushAutomationTasks();
+	if (m_pendingHistorySteps != 0)
+	{
+		const int steps= m_pendingHistorySteps;
+		m_pendingHistorySteps= 0;
+		stepHistory(steps);
+	}
 
 	// Push the ImGui Update scope
 	MkGuiScopedUpdate scopedCtx(*m_guiContext);
@@ -152,31 +189,130 @@ void NodeEditorWindow::updateUI()
 {
 	MkGuiScopedStyle baseStyle(m_styleManager->getStyle("node_editor_base"));
 
-	ImGui::SetNextWindowSize(ImVec2(getWidth(), getHeight()), ImGuiCond_Once);
-	MkGuiScopedWindow nodeEditorWindow(locWindowTitle("windows.nodeEditor"), nullptr,
-									   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoBringToFrontOnFocus
-										   | ImGuiWindowFlags_NoMove);
-
-	// Toolbar
-	renderToolbar();
-
-	// Left Panel
-	renderGraphVariablesPanel();
-
-	ImGui::SameLine();
+	bool bNeedsDefaultLayout= false;
+	const ImGuiID dockspaceId=
+		MkGui::beginDockspaceHost("##NodeEditorDockHost", "NodeEditorDockspace", bNeedsDefaultLayout);
+	if (bNeedsDefaultLayout)
 	{
-		MkGuiScopedChild mainPanel("Main Panel",
-								   ImVec2(ImGui::GetContentRegionAvail().x - 250, ImGui::GetContentRegionAvail().y));
-
-		// Main Frame
-		renderMainFrame();
-
-		// Bottom Panel
-		renderAssetsPanel();
+		buildDefaultDockLayout((unsigned int)dockspaceId);
+		MkGui::dockBuilderFinish(dockspaceId);
 	}
 
-	// Right Panel
-	renderSelectedObjectPanel();
+	if (ImGui::BeginMenuBar())
+	{
+		renderMenuBar();
+		ImGui::EndMenuBar();
+	}
+
+	// Each panel is its own dockable window; the View menu toggles all but the graph
+	{
+		MkGuiScopedWindow graphWindow(locWindowTitle("windows.nodeGraphPanel"));
+		if (graphWindow)
+		{
+			renderMainFrame();
+		}
+	}
+
+	if (m_bShowVariablesPanel)
+	{
+		MkGuiScopedWindow variablesWindow(locWindowTitle("windows.nodeVariablesPanel"), &m_bShowVariablesPanel);
+		if (variablesWindow)
+		{
+			renderGraphVariablesPanel();
+		}
+	}
+
+	if (m_bShowAssetsPanel)
+	{
+		MkGuiScopedWindow assetsWindow(locWindowTitle("windows.nodeAssetsPanel"), &m_bShowAssetsPanel);
+		if (assetsWindow)
+		{
+			renderAssetsPanel();
+		}
+	}
+
+	if (m_bShowDetailsPanel)
+	{
+		MkGuiScopedWindow detailsWindow(locWindowTitle("windows.nodeDetailsPanel"), &m_bShowDetailsPanel);
+		if (detailsWindow)
+		{
+			renderSelectedObjectPanel();
+		}
+	}
+
+	MkGui::endDockspaceHost();
+
+	// Keyboard chords; text fields keep ImGui's own undo
+	const ImGuiIO& io= ImGui::GetIO();
+	if (ImGui::IsKeyPressed(ImGuiKey_Z, false) && io.KeyCtrl && !ImGui::IsAnyItemActive())
+	{
+		if (io.KeyShift)
+		{
+			redo();
+		}
+		else
+		{
+			undo();
+		}
+	}
+	if (ImGui::IsKeyPressed(ImGuiKey_S, false) && io.KeyCtrl && !ImGui::IsAnyItemActive())
+	{
+		saveGraph(false);
+	}
+
+	updateHistoryCapture();
+}
+
+void NodeEditorWindow::renderMenuBar()
+{
+	if (ImGui::BeginMenu(locLabel("mainWindow.fileMenu")))
+	{
+		if (ImGui::MenuItem(locLabel("nodeEditor.save"), "Ctrl+S"))
+		{
+			saveGraph(false);
+		}
+		if (ImGui::MenuItem(locLabel("nodeEditor.saveAs")))
+		{
+			saveGraph(true);
+		}
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::BeginMenu(locLabel("nodeEditor.editMenu")))
+	{
+		if (ImGui::MenuItem(locLabel("nodeEditor.undo"), "Ctrl+Z", false, canUndo()))
+		{
+			undo();
+		}
+		if (ImGui::MenuItem(locLabel("nodeEditor.redo"), "Ctrl+Shift+Z", false, canRedo()))
+		{
+			redo();
+		}
+		ImGui::EndMenu();
+	}
+
+	if (ImGui::BeginMenu(locLabel("mainWindow.viewMenu")))
+	{
+		ImGui::MenuItem(locLabel("nodeEditor.variables"), nullptr, &m_bShowVariablesPanel);
+		ImGui::MenuItem(locLabel("nodeEditor.assetsTab"), nullptr, &m_bShowAssetsPanel);
+		ImGui::MenuItem(locLabel("nodeEditor.details"), nullptr, &m_bShowDetailsPanel);
+		ImGui::EndMenu();
+	}
+
+	renderMenuBarExtras();
+}
+
+void NodeEditorWindow::buildDefaultDockLayout(unsigned int dockspaceId)
+{
+	ImGuiID remaining= (ImGuiID)dockspaceId;
+	const ImGuiID leftId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Left, 0.18f, remaining);
+	const ImGuiID rightId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Right, 0.25f, remaining);
+	const ImGuiID bottomId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Down, 0.28f, remaining);
+
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeVariablesPanel"), leftId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeDetailsPanel"), rightId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeAssetsPanel"), bottomId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeGraphPanel"), remaining);
 }
 
 void NodeEditorWindow::renderMainFrame()
@@ -184,8 +320,7 @@ void NodeEditorWindow::renderMainFrame()
 	NodeGraphPtr nodeGraph= getNodeGraph();
 
 	{
-		MkGuiScopedChild mainChild("Main",
-								   ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y - 226));
+		MkGuiScopedChild mainChild("Main", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y));
 		{
 			MkNodesScopedNodeEditor nodeEditor;
 
@@ -239,10 +374,12 @@ void NodeEditorWindow::renderMainFrame()
 
 	// Drag and drop creation
 	{
-		NodeEditorState editorStateCopy= m_editorState;
-		editorStateCopy.hangPosGridSpace= MkGui::mousePosToGridSpace();
+		// Update the member rather than a copy: onNodeCreated places the new
+		// node from m_editorState.hangPosGridSpace, so a copy would drop the
+		// node at whatever stale position the member still held
+		m_editorState.hangPosGridSpace= MkGui::mousePosToGridSpace();
 
-		handleMainFrameDragDrop(editorStateCopy);
+		handleMainFrameDragDrop(m_editorState);
 	}
 
 	// Delete key event (and not focused on a text input)
@@ -401,60 +538,20 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 	}
 }
 
-void NodeEditorWindow::renderToolbar()
-{
-	MkGuiScopedStyle toolbarStyle(m_styleManager->getStyle("node_editor_toolbar"));
-
-	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
-
-	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
-
-	const std::string saveButtonLabel= std::string(ICON_FK_FLOPPY_O "   ") + locLabel("nodeEditor.save");
-	if (ImGui::Button(saveButtonLabel.c_str(), ImVec2(0, 30)))
-	{
-		saveGraph(false);
-	}
-
-	// Editor Control
-	{
-		MkGuiScopedStyle controlPanelStyle(m_styleManager->getStyle("node_editor_control_panel"));
-
-		ImGui::SameLine();
-		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
-
-		ImGui::SameLine();
-		{
-			MkGuiScopedStyle undoStyle(m_styleManager->getStyle("node_editor_undo_button"));
-			if (ImGui::SmallButton(ICON_FK_UNDO))
-			{
-				undo();
-			}
-		}
-	}
-}
-
 void NodeEditorWindow::renderGraphVariablesPanel()
 {
-	MkGuiScopedChild leftPanel("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
-
-	// Title bar
-	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	bool isNodeOpened;
-	{
-		MkGuiScopedStyle headerStyle(m_styleManager->getStyle("node_editor_panel_header"));
-		isNodeOpened= ImGui::CollapsingHeader(locLabel("nodeEditor.variables"), ImGuiTreeNodeFlags_SpanAvailWidth);
-	}
-
-	if (isNodeOpened)
 	{
 		MkGuiScopedStyle selectionStyle(m_styleManager->getStyle("node_editor_variable_list"));
 
-		auto propertyMap= getNodeGraph()->getPropertyMap();
-		for (auto it= propertyMap.begin(); it != propertyMap.end(); it++)
+		// A reorder mutates sort orders, so the drop is applied after the list
+		// has finished rendering
+		t_graph_property_id pendingReorderMovedId= -1;
+		t_graph_property_id pendingReorderTargetId= -1;
+
+		std::vector<GraphPropertyPtr> sortedProperties= getNodeGraph()->getPropertiesInSortOrder();
+		for (GraphPropertyPtr variable : sortedProperties)
 		{
-			t_graph_property_id propertyId= it->first;
-			GraphPropertyPtr variable= it->second;
+			const t_graph_property_id propertyId= variable->getId();
 
 			// Variable
 			const std::string varIcon= variable->editorGetIcon();
@@ -489,6 +586,21 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 				}
 			}
 
+			// Dropping a variable onto another row reorders the list. The row's
+			// target only opens while that row is hovered, so dragging out to
+			// the graph still creates a node instead.
+			for (auto propertyFactory : getNodeGraph()->editorGetValidPropertyFactories(m_editorState))
+			{
+				auto droppedVariable=
+					MkGui::receiveTypedDragDropPayload<GraphProperty>(propertyFactory->getGraphPropertyClassName());
+				if (droppedVariable && droppedVariable->getId() != propertyId)
+				{
+					pendingReorderMovedId= droppedVariable->getId();
+					pendingReorderTargetId= propertyId;
+					break;
+				}
+			}
+
 			// Context menu
 			{
 				MkGuiScopedStyle varContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
@@ -508,14 +620,18 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 				}
 			}
 		}
+
+		if (pendingReorderMovedId != -1)
+		{
+			getNodeGraph()->reorderPropertyBefore(pendingReorderMovedId, pendingReorderTargetId);
+		}
 	}
 
 	// Drag and drop creation
 	{
-		NodeEditorState editorStateCopy= m_editorState;
-		editorStateCopy.hangPosGridSpace= MkGui::mousePosToGridSpace();
+		m_editorState.hangPosGridSpace= MkGui::mousePosToGridSpace();
 
-		handleGraphVariablesDragDrop(editorStateCopy);
+		handleGraphVariablesDragDrop(m_editorState);
 	}
 
 	renderNewGraphVariablesContextMenu(m_editorState);
@@ -568,156 +684,161 @@ void NodeEditorWindow::renderAssetsPanel()
 {
 	NodeGraphPtr nodeGraph= getNodeGraph();
 
-	MkGuiScopedChild assetsPanel("Assets Panel", ImVec2(ImGui::GetContentRegionAvail().x, 216));
+	MkGuiScopedChild assetSubFrame("AssetSubFrame");
+
+	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 1));
+
+	if (nodeGraph)
 	{
-		MkGuiScopedTabBar assetTabBar("AssetsTabBar");
-		if (assetTabBar)
+		auto& factoryMap= nodeGraph->getAssetReferenceFactories();
+		for (auto it= factoryMap.begin(); it != factoryMap.end(); it++)
 		{
-			MkGuiScopedStyle assetTabStyle(m_styleManager->getStyle("node_editor_asset_tab"));
-			MkGuiScopedTabItem assetTabItem(locLabel("nodeEditor.assetsTab"));
-			if (assetTabItem)
+			auto& assetRefFactory= it->second;
+			const std::string& assetTypeName= assetRefFactory->getAssetTypeName();
+			const std::string addAssetLabel= locFormat("nodeEditor.addAssetFmt", assetTypeName.c_str());
+			const std::string buttonName=
+				StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  ", addAssetLabel, "##", assetTypeName);
+
+			if (ImGui::SmallButton(buttonName.c_str()))
 			{
-				MkGuiScopedChild assetSubFrame("AssetSubFrame");
+				const char* picked= tinyfd_openFileDialog(
+					assetRefFactory->getFileDialogTitle(), assetRefFactory->getDefaultPath(),
+					assetRefFactory->getFilterPatternCount(), assetRefFactory->getFilterPatterns(),
+					assetRefFactory->getFilterDescription(), 1);
 
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 1));
-
-				if (nodeGraph)
+				if (picked != nullptr && picked[0] != '\0')
 				{
-					auto& factoryMap= nodeGraph->getAssetReferenceFactories();
-					for (auto it= factoryMap.begin(); it != factoryMap.end(); it++)
+					std::stringstream ssPaths(picked);
+					std::string path;
+					while (std::getline(ssPaths, path, '|'))
 					{
-						auto& assetRefFactory= it->second;
-						const std::string& assetTypeName= assetRefFactory->getAssetTypeName();
-						const std::string addAssetLabel= locFormat("nodeEditor.addAssetFmt", assetTypeName.c_str());
-						const std::string buttonName=
-							StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  ", addAssetLabel, "##", assetTypeName);
+						std::string universalPath(path);
+						std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
 
-						if (ImGui::SmallButton(buttonName.c_str()))
+						// Create the asset reference
+						AssetReferencePtr assetRef= assetRefFactory->allocateAssetReference();
+						if (assetRef)
 						{
-							const char* picked= tinyfd_openFileDialog(
-								assetRefFactory->getFileDialogTitle(), assetRefFactory->getDefaultPath(),
-								assetRefFactory->getFilterPatternCount(), assetRefFactory->getFilterPatterns(),
-								assetRefFactory->getFilterDescription(), 1);
+							// Assign path to the asset
+							assetRef->setAssetPath(universalPath);
 
-							if (picked != nullptr && picked[0] != '\0')
-							{
-								std::stringstream ssPaths(picked);
-								std::string path;
-								while (std::getline(ssPaths, path, '|'))
-								{
-									std::string universalPath(path);
-									std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
-
-									// Create the asset reference
-									AssetReferencePtr assetRef= assetRefFactory->allocateAssetReference();
-									if (assetRef)
-									{
-										// Assign path to the asset
-										assetRef->setAssetPath(universalPath);
-
-										// Register the asset reference with the graph
-										nodeGraph->getAssetReferencesMutable().push_back(assetRef);
-										onAssetReferenceCreated(assetRef);
-									}
-								}
-							}
-						}
-						ImGui::SameLine();
-					}
-				}
-
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 18);
-				ImGui::Separator();
-
-				// Assets browser
-				if (nodeGraph)
-				{
-					auto& assetRefArray= nodeGraph->getAssetReferences();
-
-					MkGuiScopedChild assetBrowser("AssetBrowser");
-
-					ImGui::Dummy(ImVec2(1, 10));
-					for (int assetIndex= 0; assetIndex < assetRefArray.size(); assetIndex++)
-					{
-						AssetReferencePtr assetRefPtr= assetRefArray[assetIndex];
-
-						ImGui::Dummy(ImVec2(10, 140));
-						ImGui::SameLine();
-						{
-							MkGuiScopedGroup assetGroup;
-							std::string idStr= "##asset" + std::to_string(assetIndex);
-							ImGui::Button(idStr.c_str(), ImVec2(120, 140));
-
-							{
-								MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
-								if (dds)
-								{
-									ImGui::SetDragDropPayload(assetRefPtr->getClassName().c_str(), &assetRefPtr,
-															  sizeof(AssetReferencePtr));
-									ImGui::TextUnformatted(assetRefPtr->getShortName().c_str());
-								}
-							}
-
-							// Context menu
-							bool itemDeleted= false;
-							{
-								MkGuiScopedStyle assetContextMenuStyle(
-									m_styleManager->getStyle("node_editor_context_menu"));
-								MkGuiScopedPopupContextItem assetContextMenu;
-								if (assetContextMenu)
-								{
-									ImNodes::ClearLinkSelection();
-									ImNodes::ClearNodeSelection();
-
-									m_objectSelection= GraphObjectSelection(GraphObjectIdType::ASSET, 1);
-									m_objectSelection.setObjectId(0, assetIndex);
-
-									if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
-									{
-										deleteSelectedItem();
-										itemDeleted= true;
-									}
-								}
-							}
-
-							if (!itemDeleted)
-							{
-								IMkTexturePtr texture= assetRefPtr->getPreviewTexture();
-
-								ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-								ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
-
-								if (texture && texture->getGlTextureId() != 0)
-								{
-									ImGui::Image((void*)(intptr_t)texture->getGlTextureId(), ImVec2(100, 100));
-								}
-								ImGui::Dummy(ImVec2(2, 1));
-								ImGui::SameLine();
-								ImGui::SetNextItemWidth(108);
-								ImGui::TextUnformatted(assetRefPtr->getShortName().c_str());
-							}
-						}
-
-						ImGui::SameLine();
-						if (ImGui::GetContentRegionAvail().x < 130)
-						{
-							ImGui::NewLine();
-							ImGui::NewLine();
+							// Register the asset reference with the graph
+							nodeGraph->getAssetReferencesMutable().push_back(assetRef);
+							onAssetReferenceCreated(assetRef);
 						}
 					}
-					ImGui::NewLine();
-					ImGui::Dummy(ImVec2(1, 10));
 				}
 			}
+			ImGui::SameLine();
 		}
+	}
+
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 18);
+	ImGui::Separator();
+
+	// Assets browser
+	if (nodeGraph)
+	{
+		auto& assetRefArray= nodeGraph->getAssetReferences();
+
+		MkGuiScopedChild assetBrowser("AssetBrowser");
+
+		ImGui::Dummy(ImVec2(1, 10));
+		for (int assetIndex= 0; assetIndex < assetRefArray.size(); assetIndex++)
+		{
+			AssetReferencePtr assetRefPtr= assetRefArray[assetIndex];
+
+			ImGui::Dummy(ImVec2(10, 140));
+			ImGui::SameLine();
+			{
+				MkGuiScopedGroup assetGroup;
+				std::string idStr= "##asset" + std::to_string(assetIndex);
+				ImGui::Button(idStr.c_str(), ImVec2(120, 140));
+
+				{
+					MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
+					if (dds)
+					{
+						ImGui::SetDragDropPayload(assetRefPtr->getClassName().c_str(), &assetRefPtr,
+												  sizeof(AssetReferencePtr));
+						ImGui::TextUnformatted(assetRefPtr->getShortName().c_str());
+					}
+				}
+
+				// Context menu
+				bool itemDeleted= false;
+				{
+					MkGuiScopedStyle assetContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
+					MkGuiScopedPopupContextItem assetContextMenu;
+					if (assetContextMenu)
+					{
+						ImNodes::ClearLinkSelection();
+						ImNodes::ClearNodeSelection();
+
+						m_objectSelection= GraphObjectSelection(GraphObjectIdType::ASSET, 1);
+						m_objectSelection.setObjectId(0, assetIndex);
+
+						if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
+						{
+							deleteSelectedItem();
+							itemDeleted= true;
+						}
+					}
+				}
+
+				if (!itemDeleted)
+				{
+					IMkTexturePtr texture= assetRefPtr->getPreviewTexture();
+
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
+
+					if (texture && texture->getGlTextureId() != 0)
+					{
+						ImGui::Image((void*)(intptr_t)texture->getGlTextureId(), ImVec2(100, 100));
+					}
+					else
+					{
+						// Type icon stand-in for assets with no preview image
+						const ImVec2 tileMin= ImGui::GetCursorScreenPos();
+						ImGui::Dummy(ImVec2(100, 100));
+
+						const char* icon= assetRefPtr->editorGetIcon();
+						ImFont* font= ImGui::GetFont();
+						const float iconFontSize= ImGui::GetFontSize() * 3.f;
+						const ImVec2 iconSize= font->CalcTextSizeA(iconFontSize, FLT_MAX, 0.f, icon);
+						const ImVec2 iconPos(tileMin.x + (100.f - iconSize.x) * 0.5f,
+											 tileMin.y + (100.f - iconSize.y) * 0.5f);
+						ImGui::GetWindowDrawList()->AddText(font, iconFontSize, iconPos,
+															ImGui::GetColorU32(ImGuiCol_Text), icon);
+					}
+					ImGui::Dummy(ImVec2(2, 1));
+					ImGui::SameLine();
+
+					const std::string& shortName= assetRefPtr->getShortName();
+					const std::string clippedName= truncateTextWithEllipsis(shortName, 104.f);
+					ImGui::TextUnformatted(clippedName.c_str());
+					if (ImGui::IsItemHovered() && clippedName != shortName)
+					{
+						ImGui::SetTooltip("%s", shortName.c_str());
+					}
+				}
+			}
+
+			ImGui::SameLine();
+			if (ImGui::GetContentRegionAvail().x < 130)
+			{
+				ImGui::NewLine();
+				ImGui::NewLine();
+			}
+		}
+		ImGui::NewLine();
+		ImGui::Dummy(ImVec2(1, 10));
 	}
 }
 
 void NodeEditorWindow::renderSelectedObjectPanel()
 {
-	ImGui::SameLine();
-	MkGuiScopedChild rightPanel("Right Panel", ImVec2(344, ImGui::GetContentRegionAvail().y));
-
 	if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
 	{
 		NodePtr node= getNodeGraph()->getNodeById(m_objectSelection.getObjectId(0));
@@ -743,8 +864,45 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 
 		if (property)
 		{
+			renderVariableNameField(property);
 			property->editorRenderPropertySheet(m_editorState);
 		}
+	}
+}
+
+void NodeEditorWindow::renderVariableNameField(GraphPropertyPtr property)
+{
+	// Refill the edit buffer when the selection moves to a different variable,
+	// leaving in-progress typing alone otherwise
+	if (m_variableNameBufferId != property->getId())
+	{
+		m_variableNameBufferId= property->getId();
+		strncpy(m_variableNameBuffer, property->getName().c_str(), sizeof(m_variableNameBuffer) - 1);
+		m_variableNameBuffer[sizeof(m_variableNameBuffer) - 1]= '\0';
+	}
+
+	MkGuiStyleConstPtr propertyStyle= m_styleManager->getStyle("node_editor_property_value");
+	// The label is drawn as plain text and the field id comes from the fieldName
+	// argument, so this takes locText rather than locLabel
+	if (MkGui::drawStringProperty(propertyStyle, "variableName", locText("nodeEditor.variableName"),
+								  m_variableNameBuffer, sizeof(m_variableNameBuffer)))
+	{
+		const std::string typedName= m_variableNameBuffer;
+		const size_t firstIndex= typedName.find_first_not_of(" \t");
+		const size_t lastIndex= typedName.find_last_not_of(" \t");
+		const std::string newName= (firstIndex == std::string::npos)
+									   ? std::string()
+									   : typedName.substr(firstIndex, lastIndex - firstIndex + 1);
+
+		if (!newName.empty())
+		{
+			property->setName(newName);
+			property->notifyPropertyModified();
+		}
+
+		// Reflect whatever the property actually kept (an all-space entry is dropped)
+		strncpy(m_variableNameBuffer, property->getName().c_str(), sizeof(m_variableNameBuffer) - 1);
+		m_variableNameBuffer[sizeof(m_variableNameBuffer) - 1]= '\0';
 	}
 }
 
@@ -789,10 +947,13 @@ void NodeEditorWindow::deleteSelectedItem()
 	}
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET && m_objectSelection.getObjectCount() > 0)
 	{
-		std::vector<AssetReferencePtr>& assetList= getNodeGraph()->getAssetReferencesMutable();
+		const std::vector<AssetReferencePtr>& assetList= getNodeGraph()->getAssetReferences();
 		const int assetIndex= m_objectSelection.getObjectId(0);
 
-		assetList.erase(assetList.begin() + assetIndex);
+		if (assetIndex >= 0 && assetIndex < (int)assetList.size())
+		{
+			getNodeGraph()->deleteAssetReference(assetList[assetIndex]);
+		}
 		m_objectSelection.clear();
 	}
 }
@@ -814,6 +975,12 @@ void NodeEditorWindow::newGraph()
 	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
 
 	onNodeGraphCreated();
+
+	if (m_editorState.nodeGraph)
+	{
+		m_history.reset(m_editorState.nodeGraph->saveToSnapshotString());
+		logGraphBaseline();
+	}
 }
 
 bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
@@ -832,6 +999,8 @@ bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 	{
 		m_editorState.nodeGraphPath= path;
 		onNodeGraphCreated();
+		m_history.reset(m_editorState.nodeGraph->saveToSnapshotString());
+		logGraphBaseline();
 		return true;
 	}
 	else
@@ -875,7 +1044,330 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 
 void NodeEditorWindow::undo()
 {
-	// TODO
+	// Applied at the top of the next update, outside the ImGui frame
+	m_pendingHistorySteps-= 1;
+}
+
+void NodeEditorWindow::redo() { m_pendingHistorySteps+= 1; }
+
+bool NodeEditorWindow::stepHistory(int steps)
+{
+	// Walk the cursor first so a multi-step request rebuilds the graph once
+	const bool bIsUndo= steps < 0;
+	int appliedSteps= 0;
+	const std::string* targetSnapshot= nullptr;
+	while (steps != 0)
+	{
+		const std::string* snapshot= bIsUndo ? m_history.undo() : m_history.redo();
+		if (snapshot == nullptr)
+		{
+			break;
+		}
+
+		targetSnapshot= snapshot;
+		appliedSteps++;
+		steps+= bIsUndo ? 1 : -1;
+	}
+
+	if (targetSnapshot == nullptr)
+	{
+		return false;
+	}
+
+	if (!restoreGraphSnapshot(*targetSnapshot))
+	{
+		m_logWriter.writeEvent("restore_failed");
+		return false;
+	}
+
+	m_logWriter.writeHistoryStep(bIsUndo ? "undo" : "redo", appliedSteps, m_history.getCursor(),
+								 m_editorState.nodeGraph->saveToSnapshotConfig());
+
+	return true;
+}
+
+bool NodeEditorWindow::restoreGraphSnapshot(const std::string& snapshot)
+{
+	m_bApplyingHistory= true;
+
+	// Push this window's GL context before graph resource creation (VAOs, VBOs).
+	// See comment in newGraph() for details.
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+
+	NodeGraphPtr restoredGraph= NodeGraphFactory::loadNodeGraphFromSnapshotString(this, snapshot);
+
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	if (!restoredGraph)
+	{
+		MIKAN_LOG_ERROR("NodeEditorWindow::restoreGraphSnapshot") << "Failed to rebuild graph from snapshot";
+		m_bApplyingHistory= false;
+		return false;
+	}
+
+	// Swap in the restored graph using the same window plumbing a load uses
+	onNodeGraphDeleted();
+	m_editorState.nodeGraph= restoredGraph;
+	m_editorState.startedLinkPinId= -1;
+	m_editorState.bLinkHanged= false;
+	onNodeGraphCreated();
+
+	// Stale selections may reference objects the snapshot does not contain
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+		ImNodes::ClearNodeSelection();
+		ImNodes::ClearLinkSelection();
+	}
+	m_objectSelection.clear();
+
+	// Let subclasses rebind the restored graph to its owning component
+	onGraphRestored();
+
+	m_bCheckpointPending= false;
+	m_bApplyingHistory= false;
+
+	return true;
+}
+
+void NodeEditorWindow::updateHistoryCapture()
+{
+	if (m_bApplyingHistory)
+	{
+		return;
+	}
+
+	// Edits with no graph delegate (node property sheets, node drags) surface
+	// as a widget going inactive or a mouse release; commit dedup drops false triggers
+	const bool bAnyItemActive= ImGui::IsAnyItemActive();
+	if ((m_bAnyItemActiveLastFrame && !bAnyItemActive) || ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+	{
+		m_bCheckpointPending= true;
+	}
+	m_bAnyItemActiveLastFrame= bAnyItemActive;
+
+	// Commit once the interaction settles, coalescing a burst (a delete
+	// cascade, a whole drag) into a single undo step
+	if (m_bCheckpointPending && !bAnyItemActive && !ImGui::IsMouseDown(ImGuiMouseButton_Left))
+	{
+		NodeGraphPtr nodeGraph= getNodeGraph();
+		if (nodeGraph)
+		{
+			const configuru::Config snapshotConfig= nodeGraph->saveToSnapshotConfig();
+			if (m_history.commit(configuru::dump_string(snapshotConfig, configuru::JSON)))
+			{
+				m_logWriter.writeSnapshotCommit(m_nextLogSequenceNumber++, snapshotConfig);
+			}
+		}
+		m_bCheckpointPending= false;
+	}
+}
+
+void NodeEditorWindow::logGraphBaseline()
+{
+	NodeGraphPtr nodeGraph= m_editorState.nodeGraph;
+	if (!nodeGraph)
+	{
+		return;
+	}
+
+	// One log file per window session, opened when the first graph arrives.
+	// Skipped when no project is loaded (the log lives in the project folder).
+	if (!m_logWriter.isOpen())
+	{
+		ProjectManagerPtr projectManager= getProjectManager();
+		ProjectConfigPtr projectConfig= projectManager ? projectManager->getProjectConfig() : nullptr;
+		if (!projectConfig)
+		{
+			return;
+		}
+
+		std::string windowClassName= typeid(*this).name();
+		if (windowClassName.rfind("class ", 0) == 0)
+		{
+			windowClassName= windowClassName.substr(6);
+		}
+
+		if (!m_logWriter.open(projectConfig->getLoadedConfigPath(), windowClassName))
+		{
+			return;
+		}
+	}
+
+	m_logWriter.writeBaseline(m_editorState.nodeGraphPath, nodeGraph->getClassName(),
+							  nodeGraph->saveToSnapshotConfig());
+}
+
+void NodeEditorWindow::enqueueAutomationTask(std::function<void()>&& task)
+{
+	m_automationTasks.push_back(std::move(task));
+}
+
+void NodeEditorWindow::flushAutomationTasks()
+{
+	while (!m_automationTasks.empty())
+	{
+		std::function<void()> task= std::move(m_automationTasks.front());
+		m_automationTasks.erase(m_automationTasks.begin());
+		task();
+	}
+}
+
+bool NodeEditorWindow::wantsDestroy() const { return m_bCloseRequested || EditorWindow::wantsDestroy(); }
+
+bool NodeEditorWindow::automationCreateNode(const std::string& nodeClassName, const glm::vec2& gridPos,
+											t_node_id& outNodeId, std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	NodeFactoryPtr nodeFactory= nodeGraph->getNodeFactory(nodeClassName);
+	if (!nodeFactory)
+	{
+		outError= "unknown node class '" + nodeClassName + "'";
+		return false;
+	}
+
+	// Node creation touches GL resources and, via onNodeCreated, ImNodes state
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	NodePtr newNode;
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		m_editorState.hangPosGridSpace= ImVec2(gridPos.x, gridPos.y);
+		newNode= nodeGraph->createNode(nodeFactory, m_editorState);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	if (!newNode)
+	{
+		outError= "node creation failed";
+		return false;
+	}
+
+	outNodeId= newNode->getId();
+	return true;
+}
+
+bool NodeEditorWindow::automationDeleteNode(t_node_id nodeId, std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	NodePtr node= nodeGraph->getNodeById(nodeId);
+	if (!node)
+	{
+		outError= "no node with id " + std::to_string(nodeId);
+		return false;
+	}
+
+	if (!node->editorCanDelete())
+	{
+		outError= "node " + std::to_string(nodeId) + " is not deletable";
+		return false;
+	}
+
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		nodeGraph->deleteNodeById(nodeId);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	return true;
+}
+
+bool NodeEditorWindow::automationCreateLink(t_node_pin_id startPinId, t_node_pin_id endPinId, t_node_link_id& outLinkId,
+											std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	NodePinPtr startPin= nodeGraph->getPinById(startPinId);
+	if (!startPin)
+	{
+		outError= "no pin with id " + std::to_string(startPinId);
+		return false;
+	}
+
+	NodePinPtr endPin= nodeGraph->getPinById(endPinId);
+	if (!endPin)
+	{
+		outError= "no pin with id " + std::to_string(endPinId);
+		return false;
+	}
+
+	if (!startPin->canPinsBeConnected(endPin))
+	{
+		outError= "pins " + std::to_string(startPinId) + " and " + std::to_string(endPinId) + " cannot connect";
+		return false;
+	}
+
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	NodeLinkPtr link;
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		link= nodeGraph->createLink(startPinId, endPinId);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	if (!link)
+	{
+		outError= "link creation failed";
+		return false;
+	}
+
+	outLinkId= link->getId();
+	return true;
+}
+
+bool NodeEditorWindow::automationDeleteLink(t_node_link_id linkId, std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	if (!nodeGraph->getLinkById(linkId))
+	{
+		outError= "no link with id " + std::to_string(linkId);
+		return false;
+	}
+
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		nodeGraph->deleteLinkById(linkId);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	return true;
 }
 
 void NodeEditorWindow::onNodeGraphCreated()
@@ -885,10 +1377,14 @@ void NodeEditorWindow::onNodeGraphCreated()
 
 	graph->OnNodeCreated+= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 	graph->OnNodeDeleted+= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+	graph->OnLinkCreated+= MakeDelegate(this, &NodeEditorWindow::onLinkCreated);
 	graph->OnLinkDeleted+= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+	graph->OnPinCreated+= MakeDelegate(this, &NodeEditorWindow::onPinCreated);
+	graph->OnPinDeleted+= MakeDelegate(this, &NodeEditorWindow::onPinDeleted);
 	graph->OnPropertyCreated+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
 	graph->OnPropertyModifed+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 	graph->OnPropertyDeleted+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	graph->OnAssetReferenceDeleted+= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceDeleted);
 
 	// Register the node positions with ImNode
 	for (auto iter= graph->getNodesMap().begin(); iter != graph->getNodesMap().end(); iter++)
@@ -909,10 +1405,14 @@ void NodeEditorWindow::onNodeGraphDeleted()
 	{
 		graph->OnNodeCreated-= MakeDelegate(this, &NodeEditorWindow::onNodeCreated);
 		graph->OnNodeDeleted-= MakeDelegate(this, &NodeEditorWindow::onNodeDeleted);
+		graph->OnLinkCreated-= MakeDelegate(this, &NodeEditorWindow::onLinkCreated);
 		graph->OnLinkDeleted-= MakeDelegate(this, &NodeEditorWindow::onLinkDeleted);
+		graph->OnPinCreated-= MakeDelegate(this, &NodeEditorWindow::onPinCreated);
+		graph->OnPinDeleted-= MakeDelegate(this, &NodeEditorWindow::onPinDeleted);
 		graph->OnPropertyCreated-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
 		graph->OnPropertyModifed-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 		graph->OnPropertyDeleted-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+		graph->OnAssetReferenceDeleted-= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceDeleted);
 	}
 }
 
@@ -934,6 +1434,8 @@ void NodeEditorWindow::onNodeCreated(t_node_id id)
 	ImNodes::ClearLinkSelection();
 	ImNodes::ClearNodeSelection();
 	ImNodes::SelectNode(id);
+
+	markHistoryCheckpoint();
 }
 
 void NodeEditorWindow::onNodeDeleted(t_node_id id)
@@ -942,7 +1444,11 @@ void NodeEditorWindow::onNodeDeleted(t_node_id id)
 	{
 		ImNodes::ClearNodeSelection();
 	}
+
+	markHistoryCheckpoint();
 }
+
+void NodeEditorWindow::onLinkCreated(t_node_link_id id) { markHistoryCheckpoint(); }
 
 void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
 {
@@ -950,13 +1456,33 @@ void NodeEditorWindow::onLinkDeleted(t_node_link_id id)
 	{
 		ImNodes::ClearLinkSelection();
 	}
+
+	markHistoryCheckpoint();
 }
+
+void NodeEditorWindow::onPinCreated(t_node_pin_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onPinDeleted(t_node_pin_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onGraphPropertyCreated(t_graph_property_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onGraphPropertyModified(t_graph_property_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onGraphPropertyDeleted(t_graph_property_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onAssetReferenceCreated(AssetReferencePtr assetRef) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onAssetReferenceDeleted(AssetReferencePtr assetRef) { markHistoryCheckpoint(); }
 
 void NodeEditorWindow::shutdown()
 {
+	// Run parked automation work so its deferred replies still send
+	flushAutomationTasks();
+
 	onNodeGraphDeleted();
 	m_editorState.nodeGraph= nullptr;
 	m_editorState.nodeGraphPath.clear();
+	m_logWriter.close();
 
 	shutdownTextureCache();
 	shutdownModelResourceManager();
