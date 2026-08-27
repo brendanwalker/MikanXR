@@ -3,6 +3,7 @@
 // IMGUI_DEFINE_MATH_OPERATORS comes from the MikanGUI target definitions
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "imgui_node_editor.h"
 
 // clang-format off
 namespace MkCanvas
@@ -238,16 +239,26 @@ static void drawIconGeometry(ImDrawList* drawList, const ImVec2& a, const ImVec2
 
 // clang-format on
 
-void drawPinIcon(const ImVec2& size, PinIcon icon, bool bFilled, const ImVec4& color, const ImVec4& innerColor)
+void drawPinIcon(const ImVec2& size, PinIcon icon, bool bFilled, MkCanvasPinDirection direction, const ImVec4& color,
+				 const ImVec4& innerColor)
 {
+	const ImVec2 cursorPos= ImGui::GetCursorScreenPos();
+
 	if (ImGui::IsRectVisible(size))
 	{
-		const ImVec2 cursorPos= ImGui::GetCursorScreenPos();
 		ImDrawList* drawList= ImGui::GetWindowDrawList();
 
 		drawIconGeometry(drawList, cursorPos, cursorPos + size, icon, bFilled, ImColor(color), ImColor(innerColor));
 	}
 
 	ImGui::Dummy(size);
+
+	// Anchor the link endpoint to a fixed point on the icon's connection edge.
+	// A degenerate pivot rect keeps the endpoint from sliding along the icon
+	// boundary as link angles change; the pin's full item rect would land
+	// endpoints out beside the label text.
+	const float pivotX= (direction == MkCanvasPinDirection::Output) ? cursorPos.x + size.x : cursorPos.x;
+	const ImVec2 pivotPoint(pivotX, cursorPos.y + size.y * 0.5f);
+	ax::NodeEditor::PinPivotRect(pivotPoint, pivotPoint);
 }
 } // namespace MkCanvas

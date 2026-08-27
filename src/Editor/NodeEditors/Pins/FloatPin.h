@@ -11,8 +11,8 @@ public:
 	inline static const std::string k_pinClassName= "FloatPinBase";
 	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual float editorComputeInputWidth() const;
-	virtual ImNodesPinShape editorComputePinShape() const override;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha) override;
+	virtual MkCanvas::PinIcon editorGetPinIcon() const override;
+	virtual ImVec4 editorGetPinColor() const override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
 };
 
@@ -29,7 +29,6 @@ public:
 	virtual size_t getDataSize() const { return sizeof(float); }
 	virtual void copyValueFromSourcePin() override;
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) override;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeLinkStyle(float alpha) override;
 	virtual ImU32 editorGetLinkStyleColor() const override;
 
 protected:

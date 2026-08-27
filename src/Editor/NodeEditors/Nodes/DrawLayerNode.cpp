@@ -44,7 +44,6 @@
 #include "StringUtils.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 #include <glm/gtc/type_ptr.hpp>
 

@@ -33,8 +33,7 @@ public:
 	virtual bool editorCanDelete() const override { return false; }
 
 protected:
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
-		const NodeEditorState& editorState) const override;
+	virtual ImVec4 editorGetHeaderColor() const override;
 	virtual std::string editorGetTitle() const override;
 
 protected:

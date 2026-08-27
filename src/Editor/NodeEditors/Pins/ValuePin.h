@@ -13,8 +13,8 @@ public:
 
 	// Shared value pin functions
 	virtual float editorComputeInputWidth() const;
-	virtual ImNodesPinShape editorComputePinShape() const override;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha) override;
+	virtual MkCanvas::PinIcon editorGetPinIcon() const override;
+	virtual ImVec4 editorGetPinColor() const override;
 
 	// Override these in derived pin types
 	inline static const std::string k_pinClassName= "ValuePin";

@@ -23,6 +23,14 @@
 
 #include "glm/ext/vector_float2.hpp"
 
+namespace ax
+{
+namespace NodeEditor
+{
+struct EditorContext;
+}
+} // namespace ax
+
 //-- definitions -----
 class NodeEditorWindow : public EditorWindow
 {
@@ -85,7 +93,7 @@ protected:
 	virtual void updateUI();
 
 	virtual void renderMainFrame();
-	virtual void renderNodeEvalErrors();
+	virtual void renderNodeEvalErrors(const std::vector<ImVec2>& errorScreenPositions);
 	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderMainFrameContextMenu(const class NodeEditorState& editorState);
@@ -129,8 +137,14 @@ protected:
 	// Open the session log (first graph only) and record the graph baseline
 	void logGraphBaseline();
 
+	// Clear the canvas node/link selection from outside the canvas frame scope
+	void clearCanvasSelection();
+
 protected:
 	NodeEditorState m_editorState;
+
+	// The canvas view state (pan/zoom/selection) for this window's graph
+	ax::NodeEditor::EditorContext* m_canvasContext= nullptr;
 
 	GraphObjectSelection m_objectSelection;
 

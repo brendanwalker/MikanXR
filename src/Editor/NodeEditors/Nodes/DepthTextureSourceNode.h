@@ -43,8 +43,7 @@ protected:
 	void updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateDepthTexture(IMkState* glState, IMkTexturePtr depthTexture);
 
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
-		const NodeEditorState& editorState) const override;
+	virtual ImVec4 editorGetHeaderColor() const override;
 	virtual std::string editorGetTitle() const override;
 
 protected:

@@ -35,7 +35,6 @@
 #include "Properties/GraphMaterialProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 #include <glm/gtc/type_ptr.hpp>
 

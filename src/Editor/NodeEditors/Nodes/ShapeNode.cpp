@@ -8,8 +8,7 @@
 #include "Properties/GraphShapeProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- ShapeNodeConfig -----
 configuru::Config ShapeNodeConfig::writeToJSON()
@@ -102,21 +101,16 @@ bool ShapeNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> ShapeNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+ImVec4 ShapeNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(80, 150, 130, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(80, 150, 130, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(80, 150, 130, 225));
-	return style;
+	return ImVec4(80.f / 255.f, 150.f / 255.f, 130.f / 255.f, 225.f / 255.f);
 }
 
 void ShapeNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 	editorRenderOutputPins(editorState);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));

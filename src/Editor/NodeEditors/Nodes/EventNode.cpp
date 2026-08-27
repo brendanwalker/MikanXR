@@ -5,7 +5,6 @@
 #include "Pins/FlowPin.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 #include <typeinfo>
 
@@ -58,13 +57,9 @@ bool EventNode::evaluateNode(NodeEvaluator& evaluator)
 
 FlowPinPtr EventNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
 
-std::shared_ptr<MkNodesScopedColorStyle> EventNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+ImVec4 EventNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(150, 30, 30, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 30, 30, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 30, 30, 225));
-	return style;
+	return ImVec4(150.f / 255.f, 30.f / 255.f, 30.f / 255.f, 225.f / 255.f);
 }
 
 std::string EventNode::editorGetTitle() const { return !m_eventName.empty() ? m_eventName : k_nodeClassName; }

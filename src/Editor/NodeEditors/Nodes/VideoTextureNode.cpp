@@ -29,8 +29,7 @@
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- VideoTextureNodeConfig -----
 configuru::Config VideoTextureNodeConfig::writeToJSON()
@@ -230,23 +229,17 @@ IMkTexturePtr VideoTextureNode::linearizeVideoTexture(NodeEvaluator& evaluator, 
 	return m_linearFrameBuffer->getColorTexture();
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> VideoTextureNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 VideoTextureNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	return ImVec4(150.f / 255.f, 130.f / 255.f, 110.f / 255.f, 225.f / 255.f);
 }
 
 void VideoTextureNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));

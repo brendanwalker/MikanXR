@@ -37,7 +37,6 @@
 #include "Properties/GraphShapeProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 #include <glm/glm.hpp>
 

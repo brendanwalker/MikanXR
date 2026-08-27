@@ -8,7 +8,6 @@
 #include "MikanViewport.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 bool MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 {
@@ -27,14 +26,9 @@ bool MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> MousePosNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 MousePosNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(160, 160, 40, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(160, 160, 40, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(160, 160, 40, 225));
-	return style;
+	return ImVec4(160.f / 255.f, 160.f / 255.f, 40.f / 255.f, 225.f / 255.f);
 }
 
 // -- MousePosNode Factory -----

@@ -38,8 +38,7 @@
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -247,11 +246,10 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 
 void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 

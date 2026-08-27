@@ -6,8 +6,8 @@
 #include "ProjectManager.h"
 #include "ObjectSystemFwd.h"
 #include "Pins/NodePinConstants.h"
-#include "MkNodesScopedColorStyle.h"
 #include "glm/ext/vector_float2.hpp"
+#include "imgui.h"
 
 #include <memory>
 #include <string>
@@ -121,10 +121,10 @@ protected:
 
 	bool evaluateInputs(NodeEvaluator& evaluator);
 
-	virtual void editorRenderTitle(const NodeEditorState& editorState) const;
+	virtual void editorRenderTitle(class MkCanvasScopedNode& scopedNode) const;
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
-		const NodeEditorState& editorState) const;
+	// Color of the node's title band on the canvas
+	virtual ImVec4 editorGetHeaderColor() const;
 	virtual void editorRenderInputPins(const NodeEditorState& editorState);
 	virtual void editorRenderOutputPins(const NodeEditorState& editorState) const;
 

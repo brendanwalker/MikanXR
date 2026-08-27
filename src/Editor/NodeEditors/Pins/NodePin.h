@@ -4,9 +4,7 @@
 #include "NodeFwd.h"
 #include "NodePinConstants.h"
 #include "MulticastDelegate.h"
-#include "MkNodesScopedColorStyle.h"
-
-#include "imnodes.h"
+#include "MkCanvasWidgets.h"
 
 #include <memory>
 #include <string>
@@ -87,9 +85,9 @@ public:
 	virtual void editorRenderInputPin(const NodeEditorState& editorState);
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) {}
 	virtual void editorRenderOutputPin(const NodeEditorState& editorState, float prefixWidth= 0.f);
-	virtual ImNodesPinShape editorComputePinShape() const;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha);
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeLinkStyle(float alpha);
+	// Canvas icon for this pin type; drawn filled when any link is connected
+	virtual MkCanvas::PinIcon editorGetPinIcon() const;
+	virtual ImVec4 editorGetPinColor() const;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) {}
 	virtual ImU32 editorGetLinkStyleColor() const;
 

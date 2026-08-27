@@ -15,7 +15,6 @@
 #include "Properties/GraphValueProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 const std::string g_variableEvalModeStrings[(int)eVariableEvalMode::COUNT]= {"get", "set"};
 extern const std::string* k_variableEvalModeStrings= g_variableEvalModeStrings;
@@ -258,16 +257,11 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 	return bSuccess;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> VariableNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 VariableNode::editorGetHeaderColor() const
 {
-	const unsigned int titleBarColor= m_outputValuePin ? m_outputValuePin->editorValuePinColor(1.f)
-													   : ImGui::GetColorU32(MkGui::getPropertyColor(1.f));
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, titleBarColor)
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	const unsigned int headerColor= m_outputValuePin ? m_outputValuePin->editorValuePinColor(1.f)
+													 : ImGui::GetColorU32(MkGui::getPropertyColor(1.f));
+	return ImGui::ColorConvertU32ToFloat4(headerColor);
 }
 
 std::string VariableNode::editorGetTitle() const

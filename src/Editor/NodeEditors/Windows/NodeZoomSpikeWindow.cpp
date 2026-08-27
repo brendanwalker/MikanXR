@@ -122,7 +122,8 @@ void NodeZoomSpikeWindow::updateUI()
 				MkCanvasScopedPin pin(k_nodeAOutPinId, MkCanvasPinDirection::Output);
 				ImGui::Text("out");
 				ImGui::SameLine();
-				MkCanvas::drawPinIcon(pinIconSize, MkCanvas::PinIcon::Circle, getLinkCount() > 0, pinColor);
+				MkCanvas::drawPinIcon(pinIconSize, MkCanvas::PinIcon::Circle, getLinkCount() > 0,
+									  MkCanvasPinDirection::Output, pinColor);
 			}
 		}
 
@@ -135,7 +136,8 @@ void NodeZoomSpikeWindow::updateUI()
 
 			{
 				MkCanvasScopedPin pin(k_nodeBInPinId, MkCanvasPinDirection::Input);
-				MkCanvas::drawPinIcon(pinIconSize, MkCanvas::PinIcon::Flow, false, pinColor);
+				MkCanvas::drawPinIcon(pinIconSize, MkCanvas::PinIcon::Flow, false, MkCanvasPinDirection::Input,
+									  pinColor);
 				ImGui::SameLine();
 				ImGui::Text("in");
 			}
@@ -144,7 +146,8 @@ void NodeZoomSpikeWindow::updateUI()
 				MkCanvasScopedPin pin(k_nodeBOutPinId, MkCanvasPinDirection::Output);
 				ImGui::Text("out");
 				ImGui::SameLine();
-				MkCanvas::drawPinIcon(pinIconSize, MkCanvas::PinIcon::Circle, false, pinColor);
+				MkCanvas::drawPinIcon(pinIconSize, MkCanvas::PinIcon::Circle, false, MkCanvasPinDirection::Output,
+									  pinColor);
 			}
 		}
 
@@ -157,7 +160,8 @@ void NodeZoomSpikeWindow::updateUI()
 
 			{
 				MkCanvasScopedPin pin(k_nodeCInPinId, MkCanvasPinDirection::Input);
-				MkCanvas::drawPinIcon(pinIconSize, MkCanvas::PinIcon::Grid, false, pinColor);
+				MkCanvas::drawPinIcon(pinIconSize, MkCanvas::PinIcon::Grid, false, MkCanvasPinDirection::Input,
+									  pinColor);
 				ImGui::SameLine();
 				ImGui::Text("in");
 			}

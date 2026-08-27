@@ -6,7 +6,6 @@
 #include "Pins/FloatPin.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 // -- TimeNode -----
 bool TimeNode::evaluateNode(NodeEvaluator& evaluator)
@@ -22,13 +21,9 @@ bool TimeNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> TimeNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+ImVec4 TimeNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(110, 146, 104, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(110, 146, 104, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(110, 146, 104, 225));
-	return style;
+	return ImVec4(110.f / 255.f, 146.f / 255.f, 104.f / 255.f, 225.f / 255.f);
 }
 
 // -- TimeNode Factory -----

@@ -1,4 +1,5 @@
 #include "MkCanvasScopedNode.h"
+#include "MkCanvasWidgets.h"
 
 #include "imgui.h"
 #include "imgui_node_editor.h"
@@ -6,7 +7,7 @@
 namespace ed= ax::NodeEditor;
 
 MkCanvasScopedNode::MkCanvasScopedNode(int nodeId, const ImVec4& headerColor)
-	: m_nodeId(nodeId)
+	: m_nodeId(MkCanvas::toCanvasId(nodeId))
 	, m_headerColor(ImColor(headerColor))
 {
 	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(8.f, 4.f, 8.f, 8.f));

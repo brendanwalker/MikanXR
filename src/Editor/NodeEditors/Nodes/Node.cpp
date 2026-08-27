@@ -4,16 +4,13 @@
 #include "Graphs/NodeEvaluator.h"
 #include "Pins/NodePin.h"
 #include "Pins/FlowPin.h"
+#include "MkCanvasScopedNode.h"
 #include "MkGuiScopedGroup.h"
 #include "MkGuiScopedStyleVar.h"
-#include "MkNodesScopedColorStyle.h"
-#include "MkNodesScopedNode.h"
-#include "MkNodesScopedNodeTitleBar.h"
 #include "Logger.h"
 #include "StringUtils.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 // -- NodeConfig -----
 configuru::Config NodeConfig::writeToJSON()
@@ -280,11 +277,10 @@ FlowPinPtr Node::getOutputFlowPin() const { return FlowPinPtr(); }
 
 void Node::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 
@@ -297,14 +293,7 @@ void Node::editorRenderNode(const NodeEditorState& editorState)
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> Node::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(85, 85, 85, 255))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(85, 85, 85, 255))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(85, 85, 85, 255));
-	return style;
-}
+ImVec4 Node::editorGetHeaderColor() const { return ImVec4(85.f / 255.f, 85.f / 255.f, 85.f / 255.f, 1.f); }
 
 void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
 {
@@ -331,14 +320,17 @@ void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
 	outDims.totalNodeWidth= std::max(outDims.totalNodeWidth, outDims.inputColomnWidth + outDims.outputColomnWidth);
 }
 
-void Node::editorRenderTitle(const NodeEditorState& editorState) const
+void Node::editorRenderTitle(MkCanvasScopedNode& scopedNode) const
 {
 	const std::string titleString= editorGetTitle();
 
-	MkNodesScopedNodeTitleBar titleBar;
-	MkGuiScopedStyleVar styleVar;
-	styleVar.push(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-	ImGui::TextUnformatted(titleString.c_str());
+	scopedNode.beginHeader();
+	{
+		MkGuiScopedStyleVar styleVar;
+		styleVar.push(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+		ImGui::TextUnformatted(titleString.c_str());
+	}
+	scopedNode.endHeader();
 }
 
 void Node::editorRenderInputPins(const NodeEditorState& editorState)
