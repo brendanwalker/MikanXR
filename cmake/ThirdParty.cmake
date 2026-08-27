@@ -120,6 +120,17 @@ list(APPEND IMNODES_SOURCE
      ${IMNODES_DIR}/imnodes.cpp
 )
 
+# ImGui Node Editor (TEMP SPIKE: zoom-capable node canvas under evaluation on
+# the node-zoom branch; an untracked clone of pthom/imgui-node-editor@imgui_bundle)
+set(IMGUI_NODE_EDITOR_DIR ${ROOT_DIR}/thirdparty/imgui-node-editor)
+set(IMGUI_NODE_EDITOR_SOURCE "")
+list(APPEND IMGUI_NODE_EDITOR_SOURCE
+     ${IMGUI_NODE_EDITOR_DIR}/crude_json.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_canvas.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_node_editor.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_node_editor_api.cpp
+)
+
 # IXWebSocket
 option(USE_ZLIB "Add ZLib support" FALSE)
 option(IXWEBSOCKET_INSTALL "Install IXWebSocket" FALSE)
