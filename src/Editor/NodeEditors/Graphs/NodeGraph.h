@@ -192,14 +192,9 @@ public:
 	template <class t_property_type>
 	std::shared_ptr<t_property_type> createTypedProperty()
 	{
-		t_graph_property_id newPropertyId= allocateId();
-		std::string newPropertyName= StringUtils::stringify(t_property_type::k_propertyClassName, newPropertyId);
-
 		auto property= std::make_shared<t_property_type>();
-		property->setOwnerGraph(shared_from_this());
-		property->setId(newPropertyId);
-		property->setName(newPropertyName);
 
+		initNewProperty(property);
 		addProperty(property);
 
 		return property;
@@ -208,6 +203,16 @@ public:
 	GraphPropertyPtr createProperty(GraphPropertyFactoryPtr propertyFactory);
 	void addProperty(GraphPropertyPtr property);
 	bool deletePropertyById(t_graph_property_id id);
+
+	// Appends a numeric suffix when baseName is already taken by another property
+	std::string makeUniquePropertyName(const std::string& baseName) const;
+
+	// Moves a property to the target's slot in the variable list ordering,
+	// renumbering every property's sort order to match the result
+	bool reorderPropertyBefore(t_graph_property_id movedId, t_graph_property_id targetId);
+
+	// Properties in variable list order (sort order, then id for legacy graphs)
+	std::vector<GraphPropertyPtr> getPropertiesInSortOrder() const;
 
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyCreated;
 	MulticastDelegate<void(t_graph_property_id id)> OnPropertyModifed;
@@ -309,6 +314,10 @@ public:
 	MulticastDelegate<void(t_node_link_id id)> OnLinkDeleted;
 
 protected:
+	// Assigns the owner graph, a fresh id, and the default display name shared
+	// by every property creation path
+	void initNewProperty(GraphPropertyPtr property);
+
 	// The window that created this node graph
 	class IEditorWindow* m_ownerWindow= nullptr;
 

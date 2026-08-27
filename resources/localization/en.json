@@ -312,6 +312,7 @@
 		"saveAs": "Save As...",
 		"saveCompositorGraphDialogTitle": "Save Compositor Graph",
 		"undo": "Undo",
+		"variableName": "Variable Name",
 		"variables": "Variables"
 	},
 	"nodes": {

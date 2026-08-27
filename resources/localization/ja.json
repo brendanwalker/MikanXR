@@ -312,6 +312,7 @@
 		"saveAs": "名前を付けて保存...",
 		"saveCompositorGraphDialogTitle": "コンポジターグラフを保存",
 		"undo": "元に戻す",
+		"variableName": "変数名",
 		"variables": "変数"
 	},
 	"nodes": {

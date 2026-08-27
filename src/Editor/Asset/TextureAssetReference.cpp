@@ -33,6 +33,7 @@ void TextureAssetReference::editorHandleGraphVariablesDragDrop(const NodeEditorS
 	// Create a texture property to hold the reference to this asset
 	auto textureProperty= editorState.nodeGraph->createTypedProperty<GraphTextureProperty>();
 	textureProperty->setTextureAssetReference(self);
+	textureProperty->setName(editorState.nodeGraph->makeUniquePropertyName(getShortName()));
 }
 
 void TextureAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState& editorState)
@@ -42,6 +43,7 @@ void TextureAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState&
 	// Create an material property first to hold the reference to this asset
 	auto textureProperty= editorState.nodeGraph->createTypedProperty<GraphTextureProperty>();
 	textureProperty->setTextureAssetReference(self);
+	textureProperty->setName(editorState.nodeGraph->makeUniquePropertyName(getShortName()));
 
 	// Then create a material node in the graph that references the material property
 	auto textureNode= editorState.nodeGraph->createTypedNode<TextureNode>(editorState);

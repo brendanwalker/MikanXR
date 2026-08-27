@@ -26,6 +26,8 @@ public:
 	t_graph_property_id id= -1;
 	t_graph_property_id parentId= -1;
 	std::string name;
+	// -1 in graphs saved before variable ordering existed, which sorts them by id
+	int sortOrder= -1;
 };
 
 class GraphProperty : public std::enable_shared_from_this<GraphProperty>
@@ -52,6 +54,10 @@ public:
 	inline void setName(const std::string& name) { m_name= name; }
 	inline const std::string& getName() const { return m_name; }
 
+	// Position in the editor's variable list; -1 until the list is reordered
+	inline void setSortOrder(int sortOrder) { m_sortOrder= sortOrder; }
+	inline int getSortOrder() const { return m_sortOrder; }
+
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
 	virtual std::string editorGetIcon() const;
@@ -63,6 +69,7 @@ protected:
 	t_graph_property_id m_id;
 	t_graph_property_id m_parentId;
 	std::string m_name;
+	int m_sortOrder= -1;
 	NodeGraphPtr m_ownerGraph;
 };
 

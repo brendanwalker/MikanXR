@@ -103,13 +103,17 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 - `nodegraph open [compositorComponentId]` opens the compositor graph editor window (the id may be omitted when the project has exactly one compositor)
 - `nodegraph close` asks the app to tear the window down at the end of the frame
 - `nodegraph info` replies the graph class and path, node/pin/link/property counts, `can_undo`/`can_redo`, the history depth and cursor, the session log path ([transactions.md](./transactions.md)), and for the compositor editor a `running` line
-- `nodegraph list nodes|pins|links|properties` replies one object per line: nodes as `<id> <class>`, pins adding owner node id, direction, and name, links as `<id> <startPinId> <endPinId>`
+- `nodegraph list nodes|pins|links|properties` replies one object per line: nodes as `<id> <class> <editorTitle>`, pins adding owner node id, direction, and name, links as `<id> <startPinId> <endPinId>`
 - `nodegraph createnode <nodeClassName> [x y]` creates a node at the grid position, replying the new node id
 - `nodegraph deletenode <nodeId>` deletes a node with its pins and links
 - `nodegraph createlink <startPinId> <endPinId>` connects two compatible pins, replying the new link id
 - `nodegraph deletelink <linkId>` deletes a link
 - `nodegraph undo [n]` / `nodegraph redo [n]` step the window's snapshot history, replying the resulting cursor
 - `nodegraph run on|off` pauses or resumes compositor evaluation of the editor graph (the Compositor menu's Run item), replying the resulting state
+- `nodegraph renamevar <propertyId> <name...>` renames a graph variable (the name is the rest of the line, so spaces survive)
+- `nodegraph reordervar <movedPropertyId> <targetPropertyId>` moves a variable to the target's slot in the list, the headless equivalent of dragging one variable row onto another
+
+`nodegraph list properties` replies in variable-list order, so a reorder is observable there.
 
 Mutations and undo/redo run inside the node editor window's next update (its GL and gui contexts are only current there), so those replies land a frame late, and a mutation's undo snapshot commits on the window's next quiescent frame. A drive polls `nodegraph info` (or rides automate.py's inter-command delay) before asserting `can_undo`.
 

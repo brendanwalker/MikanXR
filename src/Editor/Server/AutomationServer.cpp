@@ -237,13 +237,14 @@ void AutomationServer::registerCoreNamespaces()
 	registerCommandNamespace("log", {"log tail <lineCount> [trace|debug|info|warning|error|fatal]"},
 							 std::bind(&AutomationServer::handleLogCommand, this, _1, _2, _3));
 
-	registerCommandNamespace("nodegraph",
-							 {"nodegraph open [compositorComponentId]", "nodegraph close", "nodegraph info",
-							  "nodegraph list nodes|pins|links|properties",
-							  "nodegraph createnode <nodeClassName> [x y]", "nodegraph deletenode <nodeId>",
-							  "nodegraph createlink <startPinId> <endPinId>", "nodegraph deletelink <linkId>",
-							  "nodegraph undo [n]", "nodegraph redo [n]", "nodegraph run on|off"},
-							 std::bind(&AutomationServer::handleNodeGraphCommand, this, _1, _2, _3));
+	registerCommandNamespace(
+		"nodegraph",
+		{"nodegraph open [compositorComponentId]", "nodegraph close", "nodegraph info",
+		 "nodegraph list nodes|pins|links|properties", "nodegraph createnode <nodeClassName> [x y]",
+		 "nodegraph deletenode <nodeId>", "nodegraph createlink <startPinId> <endPinId>",
+		 "nodegraph deletelink <linkId>", "nodegraph undo [n]", "nodegraph redo [n]", "nodegraph run on|off",
+		 "nodegraph renamevar <propertyId> <name...>", "nodegraph reordervar <movedPropertyId> <targetPropertyId>"},
+		std::bind(&AutomationServer::handleNodeGraphCommand, this, _1, _2, _3));
 
 	// The history namespace is registered by TransactionHistory after startup
 }
@@ -800,7 +801,7 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 		{
 			for (const auto& [nodeId, node] : nodeGraph->getNodesMap())
 			{
-				outLines.push_back(std::to_string(nodeId) + " " + node->getClassName());
+				outLines.push_back(std::to_string(nodeId) + " " + node->getClassName() + " " + node->editorGetTitle());
 			}
 		}
 		else if (kind == "pins")
@@ -828,9 +829,10 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 		}
 		else if (kind == "properties")
 		{
-			for (const auto& [propertyId, property] : nodeGraph->getPropertyMap())
+			// Listed in variable-list order so a reorder is observable here
+			for (GraphPropertyPtr property : nodeGraph->getPropertiesInSortOrder())
 			{
-				outLines.push_back(std::to_string(propertyId) + " " + property->getClassName() + " "
+				outLines.push_back(std::to_string(property->getId()) + " " + property->getClassName() + " "
 								   + property->getName());
 			}
 		}
@@ -973,6 +975,51 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 				window->stepHistory(steps);
 				sendReply({std::to_string(window->getHistory().getCursor())});
 			});
+		return true;
+	}
+	else if (verb == "renamevar")
+	{
+		int propertyId= -1;
+		if (args.size() < 3 || !parseComponentId(args[1], propertyId))
+		{
+			outError= "usage: nodegraph renamevar <propertyId> <name...>";
+			return false;
+		}
+
+		GraphPropertyPtr property= nodeGraph->getPropertyById(propertyId);
+		if (!property)
+		{
+			outError= "no property with id " + std::to_string(propertyId);
+			return false;
+		}
+
+		// The name is the rest of the line, rejoined so spaces survive
+		std::string newName= args[2];
+		for (size_t argIndex= 3; argIndex < args.size(); ++argIndex)
+		{
+			newName+= " " + args[argIndex];
+		}
+
+		property->setName(newName);
+		property->notifyPropertyModified();
+		return true;
+	}
+	else if (verb == "reordervar")
+	{
+		int movedId= -1;
+		int targetId= -1;
+		if (args.size() < 3 || !parseComponentId(args[1], movedId) || !parseComponentId(args[2], targetId))
+		{
+			outError= "usage: nodegraph reordervar <movedPropertyId> <targetPropertyId>";
+			return false;
+		}
+
+		if (!nodeGraph->reorderPropertyBefore(movedId, targetId))
+		{
+			outError= "could not move property " + std::to_string(movedId) + " before " + std::to_string(targetId);
+			return false;
+		}
+
 		return true;
 	}
 	else if (verb == "run")

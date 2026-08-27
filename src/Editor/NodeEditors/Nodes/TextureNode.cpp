@@ -122,15 +122,21 @@ std::string TextureNode::editorGetTitle() const
 {
 	if (m_sourceProperty)
 	{
+		// The graph variable's name is what the editor lets you rename, so it
+		// titles the node; the asset name is only a fallback for an unnamed one
+		const std::string& propertyName= m_sourceProperty->getName();
+		if (!propertyName.empty())
+		{
+			return propertyName;
+		}
+
 		auto assetRef= m_sourceProperty->getTextureAssetReference();
 		if (assetRef)
 		{
 			return assetRef->getShortName();
 		}
-		else
-		{
-			return m_sourceProperty->getName();
-		}
+
+		return propertyName;
 	}
 	else
 	{

@@ -97,6 +97,7 @@ protected:
 	virtual void renderNewGraphVariablesContextMenu(const NodeEditorState& editorState);
 	virtual void renderAssetsPanel();
 	virtual void renderSelectedObjectPanel();
+	void renderVariableNameField(GraphPropertyPtr property);
 
 	virtual void deleteSelectedItem();
 
@@ -151,6 +152,10 @@ protected:
 	std::vector<std::function<void()>> m_automationTasks;
 
 	bool m_bCloseRequested= false;
+
+	// Rename field state for the selected graph variable
+	char m_variableNameBuffer[256]= {};
+	t_graph_property_id m_variableNameBufferId= -1;
 
 	// Dockable panel visibility, toggled from the View menu (not persisted;
 	// the dock geometry itself persists via the window's imgui ini)

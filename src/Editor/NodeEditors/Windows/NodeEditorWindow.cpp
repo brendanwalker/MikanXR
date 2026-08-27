@@ -374,10 +374,12 @@ void NodeEditorWindow::renderMainFrame()
 
 	// Drag and drop creation
 	{
-		NodeEditorState editorStateCopy= m_editorState;
-		editorStateCopy.hangPosGridSpace= MkGui::mousePosToGridSpace();
+		// Update the member rather than a copy: onNodeCreated places the new
+		// node from m_editorState.hangPosGridSpace, so a copy would drop the
+		// node at whatever stale position the member still held
+		m_editorState.hangPosGridSpace= MkGui::mousePosToGridSpace();
 
-		handleMainFrameDragDrop(editorStateCopy);
+		handleMainFrameDragDrop(m_editorState);
 	}
 
 	// Delete key event (and not focused on a text input)
@@ -541,11 +543,15 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	{
 		MkGuiScopedStyle selectionStyle(m_styleManager->getStyle("node_editor_variable_list"));
 
-		auto propertyMap= getNodeGraph()->getPropertyMap();
-		for (auto it= propertyMap.begin(); it != propertyMap.end(); it++)
+		// A reorder mutates sort orders, so the drop is applied after the list
+		// has finished rendering
+		t_graph_property_id pendingReorderMovedId= -1;
+		t_graph_property_id pendingReorderTargetId= -1;
+
+		std::vector<GraphPropertyPtr> sortedProperties= getNodeGraph()->getPropertiesInSortOrder();
+		for (GraphPropertyPtr variable : sortedProperties)
 		{
-			t_graph_property_id propertyId= it->first;
-			GraphPropertyPtr variable= it->second;
+			const t_graph_property_id propertyId= variable->getId();
 
 			// Variable
 			const std::string varIcon= variable->editorGetIcon();
@@ -580,6 +586,21 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 				}
 			}
 
+			// Dropping a variable onto another row reorders the list. The row's
+			// target only opens while that row is hovered, so dragging out to
+			// the graph still creates a node instead.
+			for (auto propertyFactory : getNodeGraph()->editorGetValidPropertyFactories(m_editorState))
+			{
+				auto droppedVariable=
+					MkGui::receiveTypedDragDropPayload<GraphProperty>(propertyFactory->getGraphPropertyClassName());
+				if (droppedVariable && droppedVariable->getId() != propertyId)
+				{
+					pendingReorderMovedId= droppedVariable->getId();
+					pendingReorderTargetId= propertyId;
+					break;
+				}
+			}
+
 			// Context menu
 			{
 				MkGuiScopedStyle varContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
@@ -599,14 +620,18 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 				}
 			}
 		}
+
+		if (pendingReorderMovedId != -1)
+		{
+			getNodeGraph()->reorderPropertyBefore(pendingReorderMovedId, pendingReorderTargetId);
+		}
 	}
 
 	// Drag and drop creation
 	{
-		NodeEditorState editorStateCopy= m_editorState;
-		editorStateCopy.hangPosGridSpace= MkGui::mousePosToGridSpace();
+		m_editorState.hangPosGridSpace= MkGui::mousePosToGridSpace();
 
-		handleGraphVariablesDragDrop(editorStateCopy);
+		handleGraphVariablesDragDrop(m_editorState);
 	}
 
 	renderNewGraphVariablesContextMenu(m_editorState);
@@ -839,8 +864,45 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 
 		if (property)
 		{
+			renderVariableNameField(property);
 			property->editorRenderPropertySheet(m_editorState);
 		}
+	}
+}
+
+void NodeEditorWindow::renderVariableNameField(GraphPropertyPtr property)
+{
+	// Refill the edit buffer when the selection moves to a different variable,
+	// leaving in-progress typing alone otherwise
+	if (m_variableNameBufferId != property->getId())
+	{
+		m_variableNameBufferId= property->getId();
+		strncpy(m_variableNameBuffer, property->getName().c_str(), sizeof(m_variableNameBuffer) - 1);
+		m_variableNameBuffer[sizeof(m_variableNameBuffer) - 1]= '\0';
+	}
+
+	MkGuiStyleConstPtr propertyStyle= m_styleManager->getStyle("node_editor_property_value");
+	// The label is drawn as plain text and the field id comes from the fieldName
+	// argument, so this takes locText rather than locLabel
+	if (MkGui::drawStringProperty(propertyStyle, "variableName", locText("nodeEditor.variableName"),
+								  m_variableNameBuffer, sizeof(m_variableNameBuffer)))
+	{
+		const std::string typedName= m_variableNameBuffer;
+		const size_t firstIndex= typedName.find_first_not_of(" \t");
+		const size_t lastIndex= typedName.find_last_not_of(" \t");
+		const std::string newName= (firstIndex == std::string::npos)
+									   ? std::string()
+									   : typedName.substr(firstIndex, lastIndex - firstIndex + 1);
+
+		if (!newName.empty())
+		{
+			property->setName(newName);
+			property->notifyPropertyModified();
+		}
+
+		// Reflect whatever the property actually kept (an all-space entry is dropped)
+		strncpy(m_variableNameBuffer, property->getName().c_str(), sizeof(m_variableNameBuffer) - 1);
+		m_variableNameBuffer[sizeof(m_variableNameBuffer) - 1]= '\0';
 	}
 }
 

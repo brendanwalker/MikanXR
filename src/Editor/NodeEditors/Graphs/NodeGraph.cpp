@@ -618,13 +618,114 @@ bool NodeGraph::deleteAssetReference(AssetReferencePtr assetRef)
 GraphPropertyPtr NodeGraph::createProperty(GraphPropertyFactoryPtr propertyFactory)
 {
 	GraphPropertyPtr property= propertyFactory->allocateProperty();
-	property->setOwnerGraph(shared_from_this());
-	property->setId(allocateId());
-	property->setName(StringUtils::stringify(property->editorGetTitle(), property->getId()));
 
+	initNewProperty(property);
 	addProperty(property);
 
 	return property;
+}
+
+void NodeGraph::initNewProperty(GraphPropertyPtr property)
+{
+	property->setOwnerGraph(shared_from_this());
+	property->setId(allocateId());
+	property->setName(StringUtils::stringify(property->editorGetTitle(), property->getId()));
+}
+
+std::string NodeGraph::makeUniquePropertyName(const std::string& baseName) const
+{
+	if (baseName.empty())
+	{
+		return baseName;
+	}
+
+	auto isNameTaken= [this](const std::string& name)
+	{
+		for (const auto& propertyPair : m_properties)
+		{
+			if (propertyPair.second->getName() == name)
+				return true;
+		}
+
+		return false;
+	};
+
+	if (!isNameTaken(baseName))
+	{
+		return baseName;
+	}
+
+	for (int suffix= 1;; ++suffix)
+	{
+		const std::string candidate= StringUtils::stringify(baseName, suffix);
+		if (!isNameTaken(candidate))
+		{
+			return candidate;
+		}
+	}
+}
+
+std::vector<GraphPropertyPtr> NodeGraph::getPropertiesInSortOrder() const
+{
+	std::vector<GraphPropertyPtr> sortedProperties;
+	sortedProperties.reserve(m_properties.size());
+
+	for (const auto& propertyPair : m_properties)
+	{
+		sortedProperties.push_back(propertyPair.second);
+	}
+
+	// A graph saved before sort orders existed has -1 everywhere, which leaves
+	// the list in id order, matching how it used to display
+	std::stable_sort(sortedProperties.begin(), sortedProperties.end(),
+					 [](const GraphPropertyPtr& a, const GraphPropertyPtr& b)
+					 {
+						 if (a->getSortOrder() != b->getSortOrder())
+							 return a->getSortOrder() < b->getSortOrder();
+
+						 return a->getId() < b->getId();
+					 });
+
+	return sortedProperties;
+}
+
+bool NodeGraph::reorderPropertyBefore(t_graph_property_id movedId, t_graph_property_id targetId)
+{
+	if (movedId == targetId)
+	{
+		return false;
+	}
+
+	std::vector<GraphPropertyPtr> sortedProperties= getPropertiesInSortOrder();
+
+	auto movedIter= std::find_if(sortedProperties.begin(), sortedProperties.end(),
+								 [movedId](const GraphPropertyPtr& p) { return p->getId() == movedId; });
+	if (movedIter == sortedProperties.end())
+	{
+		return false;
+	}
+
+	GraphPropertyPtr movedProperty= *movedIter;
+	sortedProperties.erase(movedIter);
+
+	auto targetIter= std::find_if(sortedProperties.begin(), sortedProperties.end(),
+								  [targetId](const GraphPropertyPtr& p) { return p->getId() == targetId; });
+	if (targetIter == sortedProperties.end())
+	{
+		return false;
+	}
+
+	sortedProperties.insert(targetIter, movedProperty);
+
+	// Renumber every entry, which also migrates a legacy graph off -1 in one pass
+	for (int sortOrder= 0; sortOrder < (int)sortedProperties.size(); ++sortOrder)
+	{
+		sortedProperties[sortOrder]->setSortOrder(sortOrder);
+	}
+
+	movedProperty->notifyPropertyModified();
+
+	return true;
 }
 
 void NodeGraph::addProperty(GraphPropertyPtr property)
