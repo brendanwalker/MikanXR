@@ -1,4 +1,5 @@
 #include "DrawShapeMeshNode.h"
+#include "IconsForkAwesome.h"
 #include "BoxShapeComponent.h"
 #include "CompositorConstants.h"
 #include "IMkGraphicsContext.h"
@@ -35,7 +36,6 @@
 #include "Properties/GraphMaterialProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -516,3 +516,5 @@ NodePtr DrawShapeMeshNodeFactory::createNode(const NodeEditorState& editorState)
 
 	return node;
 }
+
+const char* DrawShapeMeshNode::editorGetHeaderIcon() const { return ICON_FK_CUBES; }

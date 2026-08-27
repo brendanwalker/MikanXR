@@ -4,7 +4,8 @@
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
 
-#include "imnodes.h"
+#include "imgui.h"
+#include "imgui_node_editor.h"
 
 // -- NodeConfig -----
 configuru::Config NodeLinkConfig::writeToJSON()
@@ -69,8 +70,12 @@ NodePinPtr NodeLink::getConnectedPin(NodePinPtr pin) const
 
 void NodeLink::editorRender(const NodeEditorState& editorState)
 {
-	const int alpha= editorState.startedLinkPinId == -1 ? 255 : 50;
+	// Dim existing links while a new link is being dragged
+	const float alpha= editorState.startedLinkPinId == -1 ? 1.f : 0.2f;
 
-	auto linkStyle= m_startPin->editorRenderMakeLinkStyle(alpha);
-	ImNodes::Link(m_id, m_startPin->getId(), m_endPin->getId());
+	ImVec4 linkColor= ImGui::ColorConvertU32ToFloat4(m_startPin->editorGetLinkStyleColor());
+	linkColor.w*= alpha;
+
+	ax::NodeEditor::Link(MkCanvas::toCanvasId(m_id), MkCanvas::toCanvasId(m_startPin->getId()),
+						 MkCanvas::toCanvasId(m_endPin->getId()), linkColor, 2.f);
 }

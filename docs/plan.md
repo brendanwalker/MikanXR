@@ -8,6 +8,7 @@ The living plan: what is in flight now, what comes next, and the open questions.
 - [ ] Decide whether the editor wants multi-viewport docking (`ImGuiConfigFlags_ViewportsEnable`), which would let a floating panel become a real OS window on a second monitor. Deliberately left off: MikanXR runs four independent ImGui contexts over one shared GL context, and the SDL2 backend's viewport bookkeeping is the least-tested path in that setup.
 - [ ] Localize the USB video setting slider labels. `GuiPanel_USBVideoSourceComponent` builds them at runtime from `k_videoSettingPropertyPrefixes` ("brightness" to "Brightness") inside a custom renderer, so they sit outside the descriptor label mechanism and still read English in every language.
 - [ ] ARKit video source (`iphone` branch): pose-in-RTP streaming and the hardware/software two-tier decode landed through Phase 7; verify a live iPhone session end to end and confirm an old saved project referencing removed texture-source enum names still loads (relies on `VideoTextureNode`'s `FindEnumValue` fallback).
+- [ ] Node editor link UX niceties deferred from the migration: Ctrl+drag to detach an existing link off a pin and rewire it, and a pin right-click menu with a disconnect item (`ed::ShowPinContextMenu` plus the existing `NodePin::editorRenderContextMenu` hook). Dragging a new link from a connected input pin already rewires it, since input pins keep a single connection.
 
 ## Next
 

@@ -17,21 +17,9 @@ float IntPinBase::editorComputeInputWidth() const
 	return NodePin::editorComputeInputWidth();
 }
 
-ImNodesPinShape IntPinBase::editorComputePinShape() const
-{
-	if (m_connectedLinks.size() > 0)
-		return ImNodesPinShape_CircleFilled;
-	else
-		return ImNodesPinShape_Circle;
-}
+MkCanvas::PinIcon IntPinBase::editorGetPinIcon() const { return MkCanvas::PinIcon::Circle; }
 
-std::shared_ptr<MkNodesScopedColorStyle> IntPinBase::editorRenderMakePinStyle(float alpha)
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_Pin, IM_COL32(33, 227, 175, (unsigned char)(alpha * 255)))
-		.push(ImNodesCol_PinHovered, IM_COL32(135, 239, 195, (unsigned char)(alpha * 255)));
-	return style;
-}
+ImVec4 IntPinBase::editorGetPinColor() const { return ImVec4(33.f / 255.f, 227.f / 255.f, 175.f / 255.f, 1.f); }
 
 void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState) {}
 

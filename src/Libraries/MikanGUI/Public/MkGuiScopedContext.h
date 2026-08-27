@@ -12,5 +12,4 @@ public:
 
 private:
 	struct ImGuiContext* m_prevImGuiContext= nullptr;
-	struct ImNodesContext* m_prevImNodesContext= nullptr;
 };

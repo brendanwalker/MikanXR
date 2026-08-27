@@ -53,6 +53,7 @@ protected:
 	void evaluateModelDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
 
 	virtual std::string editorGetTitle() const override { return locText("nodes.depthMaskTitle"); }
+	virtual const char* editorGetHeaderIcon() const override;
 
 	void onGraphLoaded(bool success);
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;

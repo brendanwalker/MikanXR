@@ -34,8 +34,8 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
-		const NodeEditorState& editorState) const override;
+	virtual ImVec4 editorGetHeaderColor() const override;
+	virtual const char* editorGetHeaderIcon() const override;
 	virtual std::string editorGetTitle() const override { return locText("nodes.videoTextureTitle"); }
 
 	IMkTexturePtr getTextureResource() const;

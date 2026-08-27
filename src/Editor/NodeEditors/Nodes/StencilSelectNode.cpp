@@ -1,4 +1,5 @@
 #include "StencilSelectNode.h"
+#include "IconsForkAwesome.h"
 #include "CameraComponent.h"
 #include "LocText.h"
 #include "Logger.h"
@@ -20,8 +21,7 @@
 #include "Properties/GraphStencilProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- StencilSelectNodeConfig -----
 configuru::Config StencilSelectNodeConfig::writeToJSON()
@@ -140,23 +140,17 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> StencilSelectNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 StencilSelectNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	return ImVec4(150.f / 255.f, 130.f / 255.f, 110.f / 255.f, 225.f / 255.f);
 }
 
 void StencilSelectNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	// Outputs
 	editorRenderOutputPins(editorState);
@@ -192,3 +186,5 @@ NodePtr StencilSelectNodeFactory::createNode(const NodeEditorState& editorState)
 
 	return node;
 }
+
+const char* StencilSelectNode::editorGetHeaderIcon() const { return ICON_FK_LIST_UL; }

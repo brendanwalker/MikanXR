@@ -1,4 +1,5 @@
 #include "CameraComponent.h"
+#include "IconsForkAwesome.h"
 #include "DepthMaskNode.h"
 #include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
@@ -38,8 +39,7 @@
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -247,11 +247,10 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 
 void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 
@@ -584,3 +583,5 @@ NodePtr DepthMaskNodeFactory::createNode(const NodeEditorState& editorState) con
 
 	return node;
 }
+
+const char* DepthMaskNode::editorGetHeaderIcon() const { return ICON_FK_ADJUST; }

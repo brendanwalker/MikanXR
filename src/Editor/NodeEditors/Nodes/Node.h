@@ -6,8 +6,8 @@
 #include "ProjectManager.h"
 #include "ObjectSystemFwd.h"
 #include "Pins/NodePinConstants.h"
-#include "MkNodesScopedColorStyle.h"
 #include "glm/ext/vector_float2.hpp"
+#include "imgui.h"
 
 #include <memory>
 #include <string>
@@ -111,6 +111,11 @@ public:
 	virtual FlowPinPtr getOutputFlowPin() const;
 
 	virtual std::string editorGetTitle() const { return locText("nodes.nodeTitle"); }
+	// Optional ForkAwesome glyph rendered before the title in the header band
+	virtual const char* editorGetHeaderIcon() const { return nullptr; }
+	// The header string as actually rendered (icon prefix included), so width
+	// math and rendering can never disagree
+	std::string editorGetComposedTitle() const;
 	virtual bool editorCanDelete() const { return true; }
 	virtual void editorRenderNode(const NodeEditorState& editorState);
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}
@@ -121,10 +126,10 @@ protected:
 
 	bool evaluateInputs(NodeEvaluator& evaluator);
 
-	virtual void editorRenderTitle(const NodeEditorState& editorState) const;
+	virtual void editorRenderTitle(class MkCanvasScopedNode& scopedNode) const;
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
-		const NodeEditorState& editorState) const;
+	// Color of the node's title band on the canvas
+	virtual ImVec4 editorGetHeaderColor() const;
 	virtual void editorRenderInputPins(const NodeEditorState& editorState);
 	virtual void editorRenderOutputPins(const NodeEditorState& editorState) const;
 

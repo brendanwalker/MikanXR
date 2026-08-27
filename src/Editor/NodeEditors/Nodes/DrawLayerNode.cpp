@@ -1,4 +1,5 @@
 #include "CameraComponent.h"
+#include "IconsForkAwesome.h"
 #include "DrawLayerNode.h"
 #include "MkMaterial.h"
 #include "MikanRenderModelResource.h"
@@ -44,7 +45,6 @@
 #include "StringUtils.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -960,3 +960,5 @@ NodePtr DrawLayerNodeFactory::createNode(const NodeEditorState& editorState) con
 
 	return node;
 }
+
+const char* DrawLayerNode::editorGetHeaderIcon() const { return ICON_FK_CLONE; }

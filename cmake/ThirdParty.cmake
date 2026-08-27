@@ -113,11 +113,15 @@ list(APPEND IMGUI_SOURCE
      ${IMGUI_DIR}/imgui_widgets.cpp
 )
 
-# ImNodes
-set(IMNODES_DIR ${ROOT_DIR}/thirdparty/imnodes)
-set(IMNODES_SOURCE "")
-list(APPEND IMNODES_SOURCE
-     ${IMNODES_DIR}/imnodes.cpp
+# ImGui Node Editor (zoom-capable node canvas; submodule tracking the
+# mikanxr-patches branch of the MikanXR fork of pthom/imgui-node-editor)
+set(IMGUI_NODE_EDITOR_DIR ${ROOT_DIR}/thirdparty/imgui-node-editor)
+set(IMGUI_NODE_EDITOR_SOURCE "")
+list(APPEND IMGUI_NODE_EDITOR_SOURCE
+     ${IMGUI_NODE_EDITOR_DIR}/crude_json.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_canvas.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_node_editor.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_node_editor_api.cpp
 )
 
 # IXWebSocket

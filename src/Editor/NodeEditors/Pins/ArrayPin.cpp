@@ -74,30 +74,9 @@ void ArrayPin::copyValueFromSourcePin()
 	}
 }
 
-ImNodesPinShape ArrayPin::editorComputePinShape() const
-{
-	if (m_connectedLinks.size() > 0)
-		return ImNodesPinShape_QuadFilled;
-	else
-		return ImNodesPinShape_Quad;
-}
+MkCanvas::PinIcon ArrayPin::editorGetPinIcon() const { return MkCanvas::PinIcon::Square; }
 
-std::shared_ptr<MkNodesScopedColorStyle> ArrayPin::editorRenderMakePinStyle(float alpha)
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_Pin, IM_COL32(148, 0, 0, (unsigned char)(alpha * 255)))
-		.push(ImNodesCol_PinHovered, IM_COL32(183, 137, 137, (unsigned char)(alpha * 255)));
-	return style;
-}
-
-std::shared_ptr<MkNodesScopedColorStyle> ArrayPin::editorRenderMakeLinkStyle(float alpha)
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_Link, IM_COL32(148, 0, 0, (unsigned char)alpha))
-		.push(ImNodesCol_LinkHovered, IM_COL32(183, 137, 137, (unsigned char)alpha))
-		.push(ImNodesCol_LinkSelected, IM_COL32(183, 137, 137, 255));
-	return style;
-}
+ImVec4 ArrayPin::editorGetPinColor() const { return ImVec4(148.f / 255.f, 0.f / 255.f, 0.f / 255.f, 1.f); }
 
 void ArrayPin::editorRenderContextMenu(const NodeEditorState& editorState) {}
 

@@ -12,21 +12,9 @@ float ValuePin::editorComputeInputWidth() const
 	return NodePin::editorComputeInputWidth();
 }
 
-ImNodesPinShape ValuePin::editorComputePinShape() const
-{
-	if (m_connectedLinks.size() > 0)
-		return ImNodesPinShape_CircleFilled;
-	else
-		return ImNodesPinShape_Circle;
-}
+MkCanvas::PinIcon ValuePin::editorGetPinIcon() const { return MkCanvas::PinIcon::Circle; }
 
-std::shared_ptr<MkNodesScopedColorStyle> ValuePin::editorRenderMakePinStyle(float alpha)
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_Pin, editorValuePinColor(alpha))
-		.push(ImNodesCol_PinHovered, ImGui::GetColorU32(MkGui::getPinHoveredColor(alpha)));
-	return style;
-}
+ImVec4 ValuePin::editorGetPinColor() const { return ImGui::ColorConvertU32ToFloat4(editorValuePinColor(1.f)); }
 
 const ImU32 ValuePin::editorValuePinColor(float alpha) const
 {

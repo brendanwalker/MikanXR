@@ -23,9 +23,7 @@
 
 #include "Properties/GraphArrayProperty.h"
 
-#include "MkNodesScopedColorStyle.h"
-
-#include "imnodes.h"
+#include "imgui_node_editor.h"
 
 #include <filesystem>
 #include <functional>
@@ -1074,23 +1072,17 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 
 void NodeGraph::editorRender(const NodeEditorState& editorState)
 {
-	// Nodes rendering
+	// Nodes rendering (hover and selection borders come from the canvas style)
 	for (auto it= m_Nodes.begin(); it != m_Nodes.end(); ++it)
 	{
 		NodePtr node= it->second;
 
-		const bool bNodeSelected= ImNodes::IsNodeSelected(node->getId());
-		MkNodesScopedColorStyle nodeOutlineStyle;
-		nodeOutlineStyle.push(ImNodesCol_NodeOutline,
-							  bNodeSelected ? IM_COL32(220, 140, 0, 255) : IM_COL32(24, 24, 24, 255));
-		ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, bNodeSelected ? 2.6f : 2.0f);
-
 		node->editorRenderNode(editorState);
 
-		const ImVec2 nodePos= ImNodes::GetNodeGridSpacePos(node->getId());
+		// Write the canvas position back so drags land in the definition the
+		// undo snapshots and graph file serialize
+		const ImVec2 nodePos= ax::NodeEditor::GetNodePosition(MkCanvas::toCanvasId(node->getId()));
 		node->setNodePos({nodePos.x, nodePos.y});
-
-		ImNodes::PopStyleVar();
 	}
 
 	// Links Rendering

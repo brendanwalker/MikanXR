@@ -30,7 +30,7 @@ MikanXR/
 
 - `deps/` holds prebuilt downloads (SDL2, OpenCV, GLEW, Spout2, easy_profiler, Refureku, libharu, CEF, nuget.exe). It is recreated from scratch by `InitialSetup_x64.bat`; never edit it by hand. GStreamer is the exception: its MSIs install system-wide rather than into `deps/`.
 
-- `thirdparty/` holds git submodules (see `.gitmodules`: `openvr`, `glm`, `Configuru`, `stb`, `fast-cpp-csv-parser`, `LuaBridge3`, `imgui`, `imnodes`, `fast_obj`, `IXWebSocket`, `readerwriterqueue`, `nlohmann_json`) plus vendored non-submodule dirs (`lua` prebuilt binaries, `lrdb`, `tinyfiledialogs`). `thirdparty/CMakeLists.txt` builds `fast_obj_lib`, `ixwebsocket`, and CEF's `libcef_dll_wrapper`; the rest are consumed header-only or as source lists from `cmake/ThirdParty.cmake`.
+- `thirdparty/` holds git submodules (see `.gitmodules`: `openvr`, `glm`, `Configuru`, `stb`, `fast-cpp-csv-parser`, `LuaBridge3`, `imgui`, `imgui-node-editor`, `fast_obj`, `IXWebSocket`, `readerwriterqueue`, `nlohmann_json`) plus vendored non-submodule dirs (`lua` prebuilt binaries, `lrdb`, `tinyfiledialogs`). `thirdparty/CMakeLists.txt` builds `fast_obj_lib`, `ixwebsocket`, and CEF's `libcef_dll_wrapper`; the rest are consumed header-only or as source lists from `cmake/ThirdParty.cmake`.
 
 - `build/` layout depends on the generator: the VS generator puts executables in per-target per-config folders (e.g. `build\src\Editor\Release\Mikan.exe`), while CI flattens everything to `build\bin` via `CMAKE_RUNTIME_OUTPUT_DIRECTORY`. Refureku reflection codegen output lands in `build/RfkGenerated/<Library>`.
 

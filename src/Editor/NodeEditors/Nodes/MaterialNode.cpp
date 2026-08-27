@@ -1,4 +1,5 @@
 #include "MaterialNode.h"
+#include "IconsForkAwesome.h"
 #include "MkMaterial.h"
 #include "IMkTexture.h"
 #include "Logger.h"
@@ -10,8 +11,7 @@
 #include "Properties/GraphMaterialProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- MaterialNodeConfig -----
 configuru::Config MaterialNodeConfig::writeToJSON()
@@ -113,14 +113,9 @@ bool MaterialNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> MaterialNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 MaterialNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	return ImVec4(150.f / 255.f, 130.f / 255.f, 110.f / 255.f, 225.f / 255.f);
 }
 
 std::string MaterialNode::editorGetTitle() const
@@ -151,11 +146,10 @@ std::string MaterialNode::editorGetTitle() const
 
 void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
@@ -205,3 +199,5 @@ NodePtr MaterialNodeFactory::createNode(const NodeEditorState& editorState) cons
 
 	return node;
 }
+
+const char* MaterialNode::editorGetHeaderIcon() const { return ICON_FK_PAINT_BRUSH; }

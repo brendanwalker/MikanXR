@@ -41,8 +41,6 @@
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_opengl3.h"
 
-#include "imnodes.h"
-
 MkGuiContext::MkGuiContext(class IMkWindowContext* window, const std::string& iniFilePath, bool bEnableDocking)
 	: m_window(window)
 	, m_iniFilePath(iniFilePath)
@@ -58,9 +56,8 @@ bool MkGuiContext::startup()
 {
 	bool success= true;
 
-	// Store previous contexts so we can restore them after we're done setting up our own contexts
+	// Store the previous context so we can restore it after we're done setting up our own context
 	ImGuiContext* prevImGuiContext= ImGui::GetCurrentContext();
-	ImNodesContext* prevImNodesContext= ImNodes::GetCurrentContext();
 
 	// Setup ImGui context
 	IMGUI_CHECKVERSION();
@@ -109,28 +106,8 @@ bool MkGuiContext::startup()
 		}
 	}
 
-	// Setup the ImNodes context
-	if (success)
-	{
-		m_imnodesContext= ImNodes::CreateContext();
-		if (m_imnodesContext != nullptr)
-		{
-			// Set the current ImNodes context to the one we just created
-			ImNodes::SetCurrentContext(m_imnodesContext);
-
-			// Setup ImNodes configuration
-			configImNodes();
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("MkGuiContext::startup") << "Unable to create imnodes context";
-			success= false;
-		}
-	}
-
-	// Restore previous contexts
+	// Restore the previous context
 	ImGui::SetCurrentContext(prevImGuiContext);
-	ImNodes::SetCurrentContext(prevImNodesContext);
 
 	return success;
 }
@@ -222,17 +199,8 @@ bool MkGuiContext::onWindowEvent(const MkWindowEvent& event)
 
 void MkGuiContext::shutdown()
 {
-	// Store previous contexts so we can restore them after we're done setting up our own contexts
+	// Store the previous context so we can restore it after teardown
 	ImGuiContext* prevImGuiContext= ImGui::GetCurrentContext();
-	ImNodesContext* prevImNodesContext= ImNodes::GetCurrentContext();
-
-	// Tear down imnodes first, if valid
-	if (m_imnodesContext != nullptr)
-	{
-		ImNodes::SetCurrentContext(m_imnodesContext);
-		ImNodes::DestroyContext(m_imnodesContext);
-		m_imnodesContext= nullptr;
-	}
 
 	// Set the current ImGui context to the one we are about to
 	if (m_imguiContext != nullptr)
@@ -261,16 +229,11 @@ void MkGuiContext::shutdown()
 		m_imguiContext= nullptr;
 	}
 
-	// Restore previous contexts
+	// Restore the previous context
 	ImGui::SetCurrentContext(prevImGuiContext);
-	ImNodes::SetCurrentContext(prevImNodesContext);
 }
 
-void MkGuiContext::makeCurrent()
-{
-	ImGui::SetCurrentContext(m_imguiContext);
-	ImNodes::SetCurrentContext(m_imnodesContext);
-}
+void MkGuiContext::makeCurrent() { ImGui::SetCurrentContext(m_imguiContext); }
 
 void MkGuiContext::submitDrawData()
 {
@@ -307,19 +270,4 @@ void MkGuiContext::configImGui()
 	ImFont* uiFont= MkGuiTheme::loadFonts();
 	m_NormalIconFont= uiFont;
 	m_BigIconFont= uiFont;
-}
-
-void MkGuiContext::configImNodes()
-{
-	ImNodes::GetIO().AltMouseButton= ImGuiMouseButton_Right;
-
-	ImNodes::GetStyle().NodePadding= ImVec2(12.0f, 5.0f);
-	ImNodes::GetStyle().PinOffset= -16.0f;
-	ImNodes::GetStyle().PinCircleRadius= 5.0f;
-	ImNodes::GetStyle().NodeCornerRounding= 6.0f;
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackground]= IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackgroundHovered]= IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackgroundSelected]= IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_GridBackground]= IM_COL32(38, 38, 38, 255);
-	ImNodes::GetStyle().Colors[ImNodesCol_GridLine]= IM_COL32(53, 53, 53, 255);
 }

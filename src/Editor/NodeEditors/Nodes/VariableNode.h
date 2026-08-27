@@ -54,9 +54,9 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState);
 
 protected:
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
-		const NodeEditorState& editorState) const override;
+	virtual ImVec4 editorGetHeaderColor() const override;
 	virtual std::string editorGetTitle() const override;
+	virtual const char* editorGetHeaderIcon() const override;
 
 	void onGraphPropertyDeleted(t_graph_property_id id);
 	void rebuildPins();

@@ -33,4 +33,10 @@ MIKAN_GUI_FUNC(void) dockBuilderFinish(ImGuiID dockspaceId);
 // that host window is still current (from the stage's gui pass), because the id
 // resolves against the current window's id stack.
 MIKAN_GUI_FUNC(bool) getDockspaceCentralRect(const char* dockspaceId, ImVec2& outPos, ImVec2& outSize);
+
+// Sets ImGui's font rasterizer density (an imgui_internal state), returning
+// the previous value. Glyphs bake at density x resolution while keeping
+// logical metrics, so geometry scaled up by a canvas transform samples a
+// matching-density bitmap and stays crisp. Used by MkCanvasScopedEditor.
+MIKAN_GUI_FUNC(float) setFontRasterizerDensity(float density);
 } // namespace MkGui

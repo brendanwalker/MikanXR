@@ -58,4 +58,11 @@ bool getDockspaceCentralRect(const char* dockspaceId, ImVec2& outPos, ImVec2& ou
 	outSize= centralNode->Size;
 	return true;
 }
+
+float setFontRasterizerDensity(float density)
+{
+	const float previousDensity= ImGui::GetFontRasterizerDensity();
+	ImGui::SetFontRasterizerDensity(density);
+	return previousDensity;
+}
 } // namespace MkGui

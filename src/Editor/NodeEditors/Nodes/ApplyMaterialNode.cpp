@@ -1,4 +1,5 @@
 #include "ApplyMaterialNode.h"
+#include "IconsForkAwesome.h"
 #include "IMkFrameBuffer.h"
 #include "IMkGraphicsContext.h"
 #include "IMkShader.h"
@@ -27,8 +28,7 @@
 #include "StringUtils.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -345,11 +345,10 @@ bool ApplyMaterialNode::evaluateNode(NodeEvaluator& evaluator)
 
 void ApplyMaterialNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 
@@ -547,3 +546,5 @@ NodePtr ApplyMaterialNodeFactory::createNode(const NodeEditorState& editorState)
 
 	return node;
 }
+
+const char* ApplyMaterialNode::editorGetHeaderIcon() const { return ICON_FK_MAGIC; }

@@ -201,3 +201,5 @@ NodePtr ArrayNodeFactory::createNode(const NodeEditorState& editorState) const
 
 	return node;
 }
+
+const char* ArrayNode::editorGetHeaderIcon() const { return ICON_FK_TH; }

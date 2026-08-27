@@ -5,9 +5,6 @@
 #include "StringUtils.h"
 #include "IMkTexture.h"
 
-#include "imnodes.h"
-#include "imnodes_internal.h"
-
 #include "IconsForkAwesome.h"
 
 namespace MkGui
@@ -251,15 +248,6 @@ bool drawRadioButtonsProperty(MkGuiStyleConstPtr style, const std::string fieldN
 		ImGui::RadioButton(id.c_str(), &inout_selectedIndex, i);
 	}
 	return inout_selectedIndex != prevIndex;
-}
-
-ImVec2 mousePosToGridSpace()
-{
-	ImVec2 canvasOrigin= ImNodes::GetCurrentContext()->CanvasOriginScreenSpace;
-	ImVec2 canvasPan= ImNodes::EditorContextGetPanning();
-	ImVec2 mousePos= ImGui::GetMousePos();
-
-	return mousePos - canvasOrigin - canvasPan;
 }
 
 const std::string& getVariableIcon()

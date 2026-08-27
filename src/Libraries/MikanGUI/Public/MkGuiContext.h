@@ -36,7 +36,6 @@ protected:
 	bool initImGuiOpenGlBackend();
 
 	void configImGui();
-	void configImNodes();
 
 private:
 	class IMkWindowContext* m_window= nullptr;
@@ -44,7 +43,6 @@ private:
 	std::string m_iniFilePath;
 	bool m_bEnableDocking= false;
 	struct ImGuiContext* m_imguiContext= nullptr;
-	struct ImNodesContext* m_imnodesContext= nullptr;
 	struct ImFont* m_NormalIconFont= nullptr;
 	struct ImFont* m_BigIconFont= nullptr;
 	eWindowAPI m_imguiWindowAPI= eWindowAPI::INVALID;
