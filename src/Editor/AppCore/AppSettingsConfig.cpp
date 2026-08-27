@@ -7,6 +7,7 @@ const std::string AppSettingsConfig::k_appLanguagePropertyId= "appLanguage";
 const std::string AppSettingsConfig::k_scriptEditorCommandPropertyId= "scriptEditorCommand";
 const std::string AppSettingsConfig::k_httpServerPortPropertyId= "httpServerPort";
 const std::string AppSettingsConfig::k_automationServerPortPropertyId= "automationServerPort";
+const std::string AppSettingsConfig::k_spoutLogEnabledPropertyId= "spoutLogEnabled";
 
 AppSettingsConfig::AppSettingsConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase) {};
@@ -20,6 +21,7 @@ configuru::Config AppSettingsConfig::writeToJSON()
 	pt[k_scriptEditorCommandPropertyId]= m_scriptEditorCommand;
 	pt[k_httpServerPortPropertyId]= m_httpServerPort;
 	pt[k_automationServerPortPropertyId]= m_automationServerPort;
+	pt[k_spoutLogEnabledPropertyId]= m_bSpoutLogEnabled;
 
 	return pt;
 }
@@ -33,6 +35,7 @@ void AppSettingsConfig::readFromJSON(const configuru::Config& pt)
 	m_scriptEditorCommand= pt.get_or<std::string>(k_scriptEditorCommandPropertyId, m_scriptEditorCommand);
 	m_httpServerPort= pt.get_or<int>(k_httpServerPortPropertyId, m_httpServerPort);
 	m_automationServerPort= pt.get_or<int>(k_automationServerPortPropertyId, m_automationServerPort);
+	m_bSpoutLogEnabled= pt.get_or<bool>(k_spoutLogEnabledPropertyId, m_bSpoutLogEnabled);
 }
 
 void AppSettingsConfig::setLastProjectPath(const std::filesystem::path& projectPath)
@@ -77,5 +80,14 @@ void AppSettingsConfig::setAutomationServerPort(int port)
 	{
 		m_automationServerPort= port;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_automationServerPortPropertyId));
+	}
+}
+
+void AppSettingsConfig::setSpoutLogEnabled(bool bEnabled)
+{
+	if (m_bSpoutLogEnabled != bEnabled)
+	{
+		m_bSpoutLogEnabled= bEnabled;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutLogEnabledPropertyId));
 	}
 }

@@ -643,6 +643,7 @@ set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/AutomationSoc
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/HttpInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SharedTextureReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SpoutLogRelay.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 # All editor code is compiled once into a shared OBJECT library that both the
 # GUI executable (Mikan) and the command-line tool (MikanCmd) link.

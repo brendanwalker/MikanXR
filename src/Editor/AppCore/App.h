@@ -22,6 +22,7 @@ class EditorWindow;
 class EventBus;
 class LocalizationManager;
 class MainWindow;
+class SpoutLogRelay;
 
 //-- definitions -----
 class App
@@ -38,6 +39,7 @@ public:
 	IEditorWindow* getCurrentlyRenderingWindow() const;
 	inline EventBus* getEventBus() const { return m_eventBus.get(); }
 	inline class LocalizationManager* getLocalizationManager() const { return m_localizationManager; }
+	inline SpoutLogRelay* getSpoutLogRelay() const { return m_spoutLogRelay.get(); }
 
 	double getSecondsSinceAppStart() const;
 	inline float getFPS() const { return m_fps; }
@@ -116,6 +118,9 @@ private:
 
 	// Window Context Manager
 	IMkWindowContextManagerPtr m_windowManager;
+
+	// Forwards Spout's own logs into the editor log
+	std::unique_ptr<SpoutLogRelay> m_spoutLogRelay;
 
 	// Open windows (including the MainWindow)
 	std::vector<EditorWindow*> m_appWindows;

@@ -12,6 +12,7 @@
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "Shared/GuiPanel_DMXObjectSystem.h"
+#include "SpoutLogRelay.h"
 
 #include "imgui.h"
 #include <algorithm>
@@ -253,6 +254,27 @@ void GuiPanel_ProjectSettings::onGui()
 					if (!app->hasWindowOfType<HttpTriggerWindow>())
 						app->createAppWindow<HttpTriggerWindow>();
 				});
+		}
+	}
+
+	ImGui::Separator();
+
+	// Spout log relay (Spout's own diagnostics, folded into the editor log)
+	{
+		auto appSettings= App::getInstance()->getAppSettings();
+		bool spoutLogEnabled= appSettings->getSpoutLogEnabled();
+		if (ImGui::Checkbox(locLabel("projectSettings.spoutLogging"), &spoutLogEnabled))
+		{
+			addDeferredGuiEvent(
+				[appSettings, spoutLogEnabled]()
+				{
+					appSettings->setSpoutLogEnabled(spoutLogEnabled);
+					App::getInstance()->getSpoutLogRelay()->setEnabled(spoutLogEnabled);
+				});
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("%s", locText("projectSettings.spoutLoggingTooltip"));
 		}
 	}
 

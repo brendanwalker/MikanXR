@@ -497,6 +497,8 @@
 		"scriptEditorCommand": "スクリプトエディタコマンド",
 		"showHttpTriggers": "HTTPトリガーを表示",
 		"snapIncrement": "スナップ間隔 (m)",
+		"spoutLogging": "Spoutログを転送",
+		"spoutLoggingTooltip": "Spout自身の診断メッセージをログパネルとMikanXR.logに取り込みます。\nオフ(既定): Spoutのログは無効で、Spoutのコンソールウィンドウは開きません。",
 		"stencilDisplayBoth": "両方",
 		"stencilDisplaySolid": "ソリッド",
 		"stencilDisplayTooltip": "ワイヤーフレームは不透明メッシュを隠すので、映像内の実際のモデルが透けて見えます。",

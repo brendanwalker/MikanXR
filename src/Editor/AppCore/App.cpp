@@ -19,6 +19,7 @@
 #include "PathUtils.h"
 #include "ProjectConfig.h"
 #include "IMkWindowContextManager.h"
+#include "SpoutLogRelay.h"
 #include "TypeRegistry.h"
 
 // #include "Windows/TestNodeEditorWindow.h"
@@ -46,6 +47,7 @@ App::App()
 	, m_eventBus(std::make_unique<EventBus>())
 	, m_localizationManager(new LocalizationManager())
 	, m_windowManager(createMkWindowContextManager())
+	, m_spoutLogRelay(std::make_unique<SpoutLogRelay>())
 	, m_bShutdownRequested(false)
 {
 	m_instance= this;
@@ -173,6 +175,9 @@ bool App::startup(int argc, char** argv)
 	// Enable auto-save on a cooldown when settings are changed
 	m_appSettings->setAutoSaveCooldownDuration(SETTINGS_SAVE_COOLDOWN);
 
+	// Configure Spout's own logging before anything opens a Spout sender or receiver
+	m_spoutLogRelay->setEnabled(m_appSettings->getSpoutLogEnabled());
+
 	const std::filesystem::path localizationDir= PathUtils::getResourceDirectory() / "localization";
 	if (success && !m_localizationManager->startup(localizationDir, m_appSettings))
 	{
@@ -233,6 +238,9 @@ bool App::startup(int argc, char** argv)
 
 void App::shutdown()
 {
+	// Drain any remaining Spout logs and close the relay's log file
+	m_spoutLogRelay->setEnabled(false);
+
 	// Tear down Chromium Embedded Framework
 	CefShutdown();
 
@@ -284,6 +292,9 @@ void App::tick()
 
 	// Tick the sim and then render each window
 	tickWindows(deltaSeconds);
+
+	// Forward anything Spout logged this frame into the editor log
+	m_spoutLogRelay->update();
 
 	// Update app settings auto-save
 	m_appSettings->updateAutoSave(deltaSeconds);

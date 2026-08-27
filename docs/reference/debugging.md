@@ -10,7 +10,7 @@ The logger lives in `MikanCoreApp` (`src/Libraries/MikanCoreApp/Public/Logger.h`
 
 Every line goes to stdout (stderr for error and above) and, if configured, to the log file. Log files are opened with a relative path, so they land in the process working directory:
 
-- `Mikan.exe`: `MikanXR.log`, minimum level debug, console enabled (`App::startup`).
+- `Mikan.exe`: `MikanXR.log`, minimum level debug, no console (`App::startup`); the same lines feed the editor's log panel through `AutomationLogBuffer::logCallback`.
 - `MikanCmd.exe`: `MikanCmd.log`, minimum level debug (`CmdApp::exec`).
 
 Both executables parse `-flag` and `-key=value` command-line arguments (`hasCommandLineFlag` / `getCommandLineStringArg`).
@@ -59,6 +59,22 @@ Second known gotcha: with the default `CMAKE_UNITY_BUILD=ON`, a transitively inc
 ## In-process GStreamer decode failures
 
 The GStreamer hardware decoder plugins (`nvh264dec`, `d3d11h264dec`) wrap D3D11/CUDA-touching DLLs that can conflict with the process's own D3D11/CUDA usage (`MikanWMFVideo`, `MikanRenderer`), failing to load only when run inside `Mikan.exe`/`unit_test_suite_cpp.exe` (`Failed to load plugin ... The specified procedure could not be found`, or `decodebin` reporting `no suitable plugins found`). The software decoder `openh264dec` does not share the problem, which is why the `iphone` branch's ARKit device decodes in two tiers (see [videosources.md](./videosources.md)). Before suspecting pipeline code, run the identical pipeline string through a standalone `gst-launch-1.0.exe`: if it decodes there but not in-process, it is this loading gap. A failed hardware open also produces harmless `GStreamer-CRITICAL`/`GLib-GObject-CRITICAL` assertion spam (GStreamer's own cleanup on this failure mode); it does not crash the process.
+
+---
+
+## Spout logging
+
+Spout keeps its own diagnostics, and Spout 2.007 exposes no log callback: `EnableSpoutLog()` allocates a console window titled "Spout Log" over the host process, and `EnableSpoutLogFile()` appends to a file. Both flags live in module globals, so one call configures every sender and receiver in that module. Spout logging is off by default everywhere.
+
+The editor turns it on through `SpoutLogRelay` (`src/Editor/Interprocess/SpoutLogRelay.cpp`), owned by `App` and gated on the `spoutLogEnabled` setting in `AppSettingsConfig` (the "Relay Spout Logs" checkbox in the project Settings panel, off by default). Enabling it points Spout's file logging at `MikanSpout.log` in the working directory at verbose level, and `App::tick` tails the new bytes each frame into the logger under the `Spout` scope, so Spout's output lands in the log panel and `MikanXR.log` with no extra window. Level tags map `[warning]`/`[error]`/`[fatal]` onto the matching severity; `[notice]` and untagged verbose lines log as info.
+
+Client processes (and the editor's own sender path inside `MikanSharedTexture`) have no settings file to read, so they gate on the `MIKAN_SPOUT_LOG` environment variable instead, applied once per process in `SharedTextureWriter.cpp`:
+
+- unset, `0`, `off`: no Spout logging (default)
+- `console`, `1`, `on`, `true`: Spout's own console window
+- `file`: `MikanSpoutSender.log` in the Spout log folder (`%APPDATA%\Spout`)
+
+The variable wins over the editor setting. When it is set, `SpoutLogRelay` logs one line saying so and stands down, so the two never fight over Spout's log destination.
 
 ---
 
