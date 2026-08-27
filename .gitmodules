@@ -36,3 +36,7 @@
 [submodule "thirdparty/nlohmann_json"]
 	path = thirdparty/nlohmann_json
 	url = https://github.com/nlohmann/json.git
+[submodule "thirdparty/imgui-node-editor"]
+	path = thirdparty/imgui-node-editor
+	url = git@github.com:MikanXR/imgui-node-editor.git
+	branch = mikanxr-patches
