@@ -28,6 +28,7 @@
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
 #include "Properties/GraphProperty.h"
+#include "Windows/CompositorNodeEditorWindow.h"
 #include "Windows/NodeEditorWindow.h"
 
 #include <algorithm>
@@ -241,7 +242,7 @@ void AutomationServer::registerCoreNamespaces()
 							  "nodegraph list nodes|pins|links|properties",
 							  "nodegraph createnode <nodeClassName> [x y]", "nodegraph deletenode <nodeId>",
 							  "nodegraph createlink <startPinId> <endPinId>", "nodegraph deletelink <linkId>",
-							  "nodegraph undo [n]", "nodegraph redo [n]"},
+							  "nodegraph undo [n]", "nodegraph redo [n]", "nodegraph run on|off"},
 							 std::bind(&AutomationServer::handleNodeGraphCommand, this, _1, _2, _3));
 
 	// The history namespace is registered by TransactionHistory after startup
@@ -783,6 +784,12 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 
 		const std::string logPath= window->getGraphLogFilePath().string();
 		outLines.push_back("log " + (logPath.empty() ? std::string("none") : logPath));
+
+		auto* compositorWindow= dynamic_cast<CompositorNodeEditorWindow*>(window);
+		if (compositorWindow != nullptr)
+		{
+			outLines.push_back(std::string("running ") + (compositorWindow->isCompositorRunning() ? "true" : "false"));
+		}
 		return true;
 	}
 	else if (verb == "list")
@@ -966,6 +973,31 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 				window->stepHistory(steps);
 				sendReply({std::to_string(window->getHistory().getCursor())});
 			});
+		return true;
+	}
+	else if (verb == "run")
+	{
+		const std::string state= args.size() >= 2 ? args[1] : "";
+		if (state != "on" && state != "off")
+		{
+			outError= "usage: nodegraph run on|off";
+			return false;
+		}
+
+		auto* compositorWindow= dynamic_cast<CompositorNodeEditorWindow*>(window);
+		if (compositorWindow == nullptr)
+		{
+			outError= "the open node editor is not a compositor graph editor";
+			return false;
+		}
+
+		if (!compositorWindow->setCompositorRunning(state == "on"))
+		{
+			outError= "no compositor component bound";
+			return false;
+		}
+
+		outLines.push_back(std::string("running ") + (compositorWindow->isCompositorRunning() ? "true" : "false"));
 		return true;
 	}
 

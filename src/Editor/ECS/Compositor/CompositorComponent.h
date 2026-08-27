@@ -107,6 +107,10 @@ public:
 	IMkTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
 	IMkTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 	void setEditorCompositorNodeGraph(CompositorNodeGraphPtr editorNodeGraph);
+	// Editor pause: skip graph evaluation while frames keep draining, freezing
+	// the composite. Runtime-only, cleared when the editor graph unbinds.
+	void setEditorEvaluationPaused(bool bPaused) { m_bEditorEvaluationPaused= bPaused; }
+	bool getEditorEvaluationPaused() const { return m_bEditorEvaluationPaused; }
 	const std::vector<NodeEvaluationError>& getLastNodeEvalErrors() const { return m_lastNodeEvalErrors; }
 	IMkTextureConstPtr getCompositedFrameTexture() const;
 	IMkTexturePtr getCompositedFrameTextureMutable();
@@ -170,6 +174,7 @@ private:
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
 	CompositorNodeGraphPtr m_nodeGraph;
 	CompositorNodeGraphWeakPtr m_editorNodeGraph;
+	bool m_bEditorEvaluationPaused= false;
 
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;

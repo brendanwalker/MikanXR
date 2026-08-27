@@ -11,6 +11,7 @@ public:
 	inline static const std::string k_assetClassName= "TextureAssetReference";
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "Texture"; }
+	virtual const char* editorGetIcon() const override { return ICON_FK_PICTURE_O; }
 
 	virtual void editorHandleGraphVariablesDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;

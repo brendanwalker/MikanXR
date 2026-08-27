@@ -263,8 +263,10 @@ void CompositorComponent::tryCompositeOldestFrame(float deltaSeconds)
 		nodeGraph= m_nodeGraph;
 	}
 
-	// If we have a valid compositor node graph, use that to composite the frame
-	if (nodeGraph)
+	// If we have a valid compositor node graph, use that to composite the frame.
+	// The editor pause skips evaluation but keeps the frame queue draining,
+	// freezing the output at the last composite.
+	if (nodeGraph && !m_bEditorEvaluationPaused)
 	{
 		evaluateCompositorNodeGraph(nodeGraph);
 	}
@@ -393,10 +395,24 @@ IMkTexturePtr CompositorComponent::getVideoPreviewTexture(eVideoTextureSource te
 void CompositorComponent::setEditorCompositorNodeGraph(CompositorNodeGraphPtr editorNodeGraph)
 {
 	m_editorNodeGraph= editorNodeGraph;
+
+	// Closing the editor always resumes evaluation
+	if (editorNodeGraph == nullptr)
+	{
+		m_bEditorEvaluationPaused= false;
+	}
 }
 
 IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
 {
+	// Prefer the editor graph, mirroring the evaluation fallback in
+	// tryCompositeOldestFrame: whichever graph composites is the one shown
+	CompositorNodeGraphPtr editorNodeGraph= m_editorNodeGraph.lock();
+	if (editorNodeGraph)
+	{
+		return editorNodeGraph->getCompositedFrameTexture();
+	}
+
 	return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : IMkTextureConstPtr();
 }
 

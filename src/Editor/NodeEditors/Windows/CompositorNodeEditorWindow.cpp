@@ -78,12 +78,9 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 {
 	m_lastNodeEvalErrors.clear();
 
-	if (m_isRunningCompositor)
+	if (m_compositorComponent != nullptr)
 	{
-		if (m_compositorComponent != nullptr)
-		{
-			m_lastNodeEvalErrors= m_compositorComponent->getLastNodeEvalErrors();
-		}
+		m_lastNodeEvalErrors= m_compositorComponent->getLastNodeEvalErrors();
 	}
 
 	NodeEditorWindow::update(deltaSeconds);
@@ -157,60 +154,31 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 	}
 }
 
-void CompositorNodeEditorWindow::renderToolbar()
+void CompositorNodeEditorWindow::renderMenuBarExtras()
 {
-	MkGuiScopedStyle toolbarStyle(getMkGuiStyleManager()->getStyle("node_editor_toolbar"));
-
-	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
-
-	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
-
-	const std::string saveButtonLabel= std::string(ICON_FK_FLOPPY_O "   ") + locLabel("nodeEditor.save");
-	if (ImGui::Button(saveButtonLabel.c_str(), ImVec2(0, 30)))
+	if (ImGui::BeginMenu(locLabel("nodeEditor.compositorMenu")))
 	{
-		saveGraph(false);
+		bool bRunning= m_compositorComponent ? !m_compositorComponent->getEditorEvaluationPaused() : true;
+		if (ImGui::MenuItem(locLabel("nodeEditor.runCompositor"), nullptr, &bRunning) && m_compositorComponent)
+		{
+			m_compositorComponent->setEditorEvaluationPaused(!bRunning);
+		}
+		ImGui::EndMenu();
+	}
+}
+
+bool CompositorNodeEditorWindow::setCompositorRunning(bool bRunning)
+{
+	if (m_compositorComponent == nullptr)
+	{
+		return false;
 	}
 
-	// Editor Control
-	{
-		MkGuiScopedStyle controlPanelStyle(getMkGuiStyleManager()->getStyle("node_editor_control_panel"));
+	m_compositorComponent->setEditorEvaluationPaused(!bRunning);
+	return true;
+}
 
-		ImGui::SameLine();
-		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(100, 30), true, ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
-
-		{
-			const char* playStopStyleName= m_isRunningCompositor ? "compositor_stop_button" : "compositor_play_button";
-			MkGuiScopedStyle playStopStyle(getMkGuiStyleManager()->getStyle(playStopStyleName));
-			if (m_isRunningCompositor)
-			{
-				if (ImGui::SmallButton(ICON_FK_STOP))
-				{
-					m_isRunningCompositor= false;
-				}
-			}
-			else
-			{
-				if (ImGui::SmallButton(ICON_FK_PLAY))
-				{
-					m_isRunningCompositor= true;
-				}
-			}
-		}
-
-		ImGui::SameLine();
-		{
-			MkGuiScopedStyle undoStyle(getMkGuiStyleManager()->getStyle("node_editor_undo_button"));
-			if (ImGui::SmallButton(ICON_FK_UNDO))
-			{
-				undo();
-			}
-
-			ImGui::SameLine();
-			if (ImGui::SmallButton(ICON_FK_REPEAT))
-			{
-				redo();
-			}
-		}
-	}
+bool CompositorNodeEditorWindow::isCompositorRunning() const
+{
+	return m_compositorComponent != nullptr && !m_compositorComponent->getEditorEvaluationPaused();
 }

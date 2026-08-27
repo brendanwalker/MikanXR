@@ -89,7 +89,10 @@ protected:
 	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderMainFrameContextMenu(const class NodeEditorState& editorState);
-	virtual void renderToolbar();
+	void renderMenuBar();
+	// Extra menus appended after File/Edit/View (the compositor window's Compositor menu)
+	virtual void renderMenuBarExtras() {}
+	void buildDefaultDockLayout(unsigned int dockspaceId);
 	virtual void renderGraphVariablesPanel();
 	virtual void renderNewGraphVariablesContextMenu(const NodeEditorState& editorState);
 	virtual void renderAssetsPanel();
@@ -148,4 +151,10 @@ protected:
 	std::vector<std::function<void()>> m_automationTasks;
 
 	bool m_bCloseRequested= false;
+
+	// Dockable panel visibility, toggled from the View menu (not persisted;
+	// the dock geometry itself persists via the window's imgui ini)
+	bool m_bShowVariablesPanel= true;
+	bool m_bShowAssetsPanel= true;
+	bool m_bShowDetailsPanel= true;
 };

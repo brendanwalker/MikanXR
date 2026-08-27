@@ -18,7 +18,7 @@ Compositing is driven by a `CompositorNodeGraph` (`src/Editor/NodeEditors/Graphs
 
 `CompositorComponent::update()` runs during `ProjectManager::update()` each tick and does two things, in order:
 
-- `tryCompositeOldestFrame()`: composites the frame at the front of `m_frameEventQueue`, but only once the queue is full (`VideoFrameDistortionView::getMaxFrameQueueSize()`, from the video source's frame queue size setting) and a new video frame has arrived. Filling the queue first maximizes the time clients have to render each frame; gating on new video frames locks the composite rate to the source frame rate.
+- `tryCompositeOldestFrame()`: composites the frame at the front of `m_frameEventQueue`, but only once the queue is full (`VideoFrameDistortionView::getMaxFrameQueueSize()`, from the video source's frame queue size setting) and a new video frame has arrived. Filling the queue first maximizes the time clients have to render each frame; gating on new video frames locks the composite rate to the source frame rate. The node editor's pause (`setEditorEvaluationPaused`) skips graph evaluation here while frames keep popping, freezing the composite at the last output; closing the editor window always resumes.
 
 - `tryEnqueueNewFrame()`: calls `VideoFrameDistortionView::readAndProcessVideoFrame()` to pull and undistort the next camera frame, builds a `MikanCameraNewFrameEvent` (frame index plus camera pose/intrinsics), pushes it on the queue, and publishes it to all clients via `CameraRequestHandler::publishCameraNewFrameEvent()`.
 

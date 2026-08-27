@@ -10,6 +10,7 @@ public:
 	inline static const std::string k_assetClassName= "ModelAssetReference";
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "Model"; }
+	virtual const char* editorGetIcon() const override { return ICON_FK_CUBE; }
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 
 protected:

@@ -2,6 +2,7 @@
 
 #include "AssetFwd.h"
 #include "CommonConfig.h"
+#include "IconsForkAwesome.h"
 #include "MikanRendererFwd.h"
 
 #include <memory>
@@ -40,6 +41,8 @@ public:
 	virtual void saveToConfig(AssetReferenceConfigPtr config) const;
 
 	virtual std::string getAssetTypeName() const { return "Asset"; }
+	// ForkAwesome glyph shown when the asset has no preview texture
+	virtual const char* editorGetIcon() const { return ICON_FK_FILE_O; }
 	inline IMkTexturePtr getPreviewTexture() const { return m_previewTexture; }
 
 	const std::filesystem::path& getInternalAssetPath() const;
