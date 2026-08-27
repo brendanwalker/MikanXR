@@ -1,4 +1,5 @@
 #include "DrawShapesNode.h"
+#include "IconsForkAwesome.h"
 #include "CameraComponent.h"
 #include "CompositorConstants.h"
 #include "IMkGraphicsContext.h"
@@ -342,3 +343,5 @@ NodePtr DrawShapesNodeFactory::createNode(const NodeEditorState& editorState) co
 
 	return node;
 }
+
+const char* DrawShapesNode::editorGetHeaderIcon() const { return ICON_FK_CUBES; }

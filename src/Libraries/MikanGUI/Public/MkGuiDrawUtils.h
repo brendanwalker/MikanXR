@@ -59,8 +59,6 @@ MIKAN_GUI_FUNC(bool) drawRadioButtonsProperty(MkGuiStyleConstPtr style, const st
 											  const std::string label, const std::vector<std::string>& entries,
 											  int& inout_selectedIndex);
 
-MIKAN_GUI_FUNC(ImVec2) mousePosToGridSpace();
-
 MIKAN_GUI_FUNC(const std::string&) getVariableIcon();
 MIKAN_GUI_FUNC(const std::string&) getArrayIcon();
 

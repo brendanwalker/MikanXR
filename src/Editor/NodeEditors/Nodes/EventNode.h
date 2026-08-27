@@ -35,6 +35,7 @@ public:
 protected:
 	virtual ImVec4 editorGetHeaderColor() const override;
 	virtual std::string editorGetTitle() const override;
+	virtual const char* editorGetHeaderIcon() const override;
 
 protected:
 	std::string m_eventName;

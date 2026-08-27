@@ -59,6 +59,7 @@ protected:
 							 IMkTexturePtr colorTexture);
 
 	virtual std::string editorGetTitle() const override { return locText("nodes.drawShapesTitle"); }
+	virtual const char* editorGetHeaderIcon() const override;
 
 protected:
 	ArrayPinPtr m_shapesPin;

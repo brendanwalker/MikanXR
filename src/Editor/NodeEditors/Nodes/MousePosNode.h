@@ -13,6 +13,7 @@ public:
 
 protected:
 	virtual ImVec4 editorGetHeaderColor() const override;
+	virtual const char* editorGetHeaderIcon() const override;
 	virtual std::string editorGetTitle() const override { return locText("nodes.mousePositionTitle"); }
 };
 

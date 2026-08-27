@@ -54,6 +54,7 @@ public:
 
 protected:
 	virtual std::string editorGetTitle() const override { return locText("nodes.drawShapeMeshTitle"); }
+	virtual const char* editorGetHeaderIcon() const override;
 
 	void onGraphLoaded(bool success);
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;

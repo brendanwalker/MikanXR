@@ -30,6 +30,7 @@ public:
 	virtual bool evaluateNode(NodeEvaluator& evaluator);
 
 	virtual std::string editorGetTitle() const { return locText("nodes.makeArrayTitle"); }
+	virtual const char* editorGetHeaderIcon() const override;
 
 protected:
 	virtual void editorRenderInputPins(const NodeEditorState& editorState) override;

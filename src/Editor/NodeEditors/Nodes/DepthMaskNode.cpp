@@ -1,4 +1,5 @@
 #include "CameraComponent.h"
+#include "IconsForkAwesome.h"
 #include "DepthMaskNode.h"
 #include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
@@ -582,3 +583,5 @@ NodePtr DepthMaskNodeFactory::createNode(const NodeEditorState& editorState) con
 
 	return node;
 }
+
+const char* DepthMaskNode::editorGetHeaderIcon() const { return ICON_FK_ADJUST; }

@@ -1,4 +1,5 @@
 #include "IMkTexture.h"
+#include "IconsForkAwesome.h"
 #include "TextureSourceNode.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
@@ -206,3 +207,5 @@ NodePtr TextureSourceNodeFactory::createNode(const NodeEditorState& textureSourc
 
 	return node;
 }
+
+const char* TextureSourceNode::editorGetHeaderIcon() const { return ICON_FK_PICTURE_O; }

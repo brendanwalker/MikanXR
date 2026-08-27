@@ -1,4 +1,5 @@
 #include "EventNode.h"
+#include "IconsForkAwesome.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodePin.h"
@@ -77,3 +78,5 @@ NodePtr EventNodeFactory::createNode(const NodeEditorState& editorState) const
 
 	return node;
 }
+
+const char* EventNode::editorGetHeaderIcon() const { return ICON_FK_BOLT; }

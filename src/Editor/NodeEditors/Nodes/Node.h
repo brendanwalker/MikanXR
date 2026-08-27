@@ -111,6 +111,11 @@ public:
 	virtual FlowPinPtr getOutputFlowPin() const;
 
 	virtual std::string editorGetTitle() const { return locText("nodes.nodeTitle"); }
+	// Optional ForkAwesome glyph rendered before the title in the header band
+	virtual const char* editorGetHeaderIcon() const { return nullptr; }
+	// The header string as actually rendered (icon prefix included), so width
+	// math and rendering can never disagree
+	std::string editorGetComposedTitle() const;
 	virtual bool editorCanDelete() const { return true; }
 	virtual void editorRenderNode(const NodeEditorState& editorState);
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}

@@ -1,4 +1,5 @@
 #include "StencilNode.h"
+#include "IconsForkAwesome.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
 #include "StencilComponent.h"
@@ -172,3 +173,5 @@ NodePtr StencilNodeFactory::createNode(const NodeEditorState& editorState) const
 
 	return node;
 }
+
+const char* StencilNode::editorGetHeaderIcon() const { return ICON_FK_CROP; }

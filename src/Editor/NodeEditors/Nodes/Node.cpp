@@ -297,7 +297,8 @@ ImVec4 Node::editorGetHeaderColor() const { return ImVec4(85.f / 255.f, 85.f / 2
 
 void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
 {
-	const std::string titleString= editorGetTitle();
+	// Measure the header string as rendered, icon prefix included
+	const std::string titleString= editorGetComposedTitle();
 	outDims.titleWidth= ImGui::CalcTextSize(titleString.c_str()).x;
 	outDims.totalNodeWidth= outDims.titleWidth;
 	outDims.inputColomnWidth= 0.0f;
@@ -305,7 +306,11 @@ void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
 
 	for (auto& pin : m_pinsIn)
 	{
-		float textWidth= ImGui::CalcTextSize(pin->getName().c_str()).x + 11.0f;
+		// Pins that hide their name contribute only their icon footprint
+		const float nameWidth= pin->editorShowPinName()
+								   ? ImGui::CalcTextSize(pin->getName().c_str()).x + NodePin::k_editorPinIconSpacing
+								   : 0.f;
+		const float textWidth= NodePin::k_editorPinIconSize + NodePin::k_editorPinIconSpacing + nameWidth;
 		const float inputWidth= pin->editorComputeInputWidth();
 
 		outDims.inputColomnWidth= std::max(outDims.inputColomnWidth, std::max(textWidth, inputWidth));
@@ -313,16 +318,26 @@ void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
 
 	for (auto& pin : m_pinsOut)
 	{
-		outDims.outputColomnWidth=
-			std::max(outDims.outputColomnWidth, ImGui::CalcTextSize(pin->getName().c_str()).x + 11.0f);
+		const float nameWidth= pin->editorShowPinName()
+								   ? ImGui::CalcTextSize(pin->getName().c_str()).x + NodePin::k_editorPinIconSpacing
+								   : 0.f;
+
+		outDims.outputColomnWidth= std::max(outDims.outputColomnWidth, nameWidth + NodePin::k_editorPinIconSize);
 	}
 
 	outDims.totalNodeWidth= std::max(outDims.totalNodeWidth, outDims.inputColomnWidth + outDims.outputColomnWidth);
 }
 
+std::string Node::editorGetComposedTitle() const
+{
+	const char* headerIcon= editorGetHeaderIcon();
+
+	return headerIcon != nullptr ? std::string(headerIcon) + "  " + editorGetTitle() : editorGetTitle();
+}
+
 void Node::editorRenderTitle(MkCanvasScopedNode& scopedNode) const
 {
-	const std::string titleString= editorGetTitle();
+	const std::string titleString= editorGetComposedTitle();
 
 	scopedNode.beginHeader();
 	{
@@ -356,13 +371,20 @@ void Node::editorRenderOutputPins(const NodeEditorState& editorState) const
 	NodeDimensions nodeDims= {};
 	editorComputeNodeDimensions(nodeDims);
 
+	// Right-align each output row against the node's content width, measured
+	// from the actual cursor so rows starting after other content (a preview
+	// image, the input column) pad by exactly the remaining distance
+	const float rowRightEdgeX= MkCanvasScopedNode::getCurrentContentStartX() + nodeDims.totalNodeWidth;
+
 	MkGuiScopedGroup group;
 	for (auto& pin : m_pinsOut)
 	{
-		const float prefixWidth=
-			nodeDims.totalNodeWidth - nodeDims.inputColomnWidth - ImGui::CalcTextSize(pin->getName().c_str()).x;
+		const float nameWidth= pin->editorShowPinName()
+								   ? ImGui::CalcTextSize(pin->getName().c_str()).x + NodePin::k_editorPinIconSpacing
+								   : 0.f;
+		const float prefixWidth= rowRightEdgeX - ImGui::GetCursorPosX() - nameWidth - NodePin::k_editorPinIconSize;
 
-		pin->editorRenderOutputPin(editorState, prefixWidth);
+		pin->editorRenderOutputPin(editorState, std::max(prefixWidth, 0.f));
 	}
 }
 

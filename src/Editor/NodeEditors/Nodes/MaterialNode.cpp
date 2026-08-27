@@ -1,4 +1,5 @@
 #include "MaterialNode.h"
+#include "IconsForkAwesome.h"
 #include "MkMaterial.h"
 #include "IMkTexture.h"
 #include "Logger.h"
@@ -198,3 +199,5 @@ NodePtr MaterialNodeFactory::createNode(const NodeEditorState& editorState) cons
 
 	return node;
 }
+
+const char* MaterialNode::editorGetHeaderIcon() const { return ICON_FK_PAINT_BRUSH; }

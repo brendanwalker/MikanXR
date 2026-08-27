@@ -52,7 +52,7 @@ OpenGL rendering abstraction (`IMkTexture`, `MkMaterial`, `MkStateModifiers`, sh
 SDL window/context management (`IMkWindowContext`, `IMkWindowContextManager`, `IMkFontManager`, window events). Wraps SDL2, SDL2_image, SDL2_ttf; uses easy_profiler headers. Links `MikanCoreApp`, `MikanRenderer`, `MikanUtility`. Linked by `MikanGUI`, `MikanSteamVR`, `MikanEditor`.
 
 ### MikanGUI
-Immediate-mode UI DLL. Compiles Dear ImGui (docking branch) and ImNodes sources directly into the DLL (re-exported via `IMGUI_API`/`IMNODES_API` dllexport defines) rather than linking them as libraries. Owns the whole ImGui surface the editor sees: `MkGuiContext` (one ImGui + ImNodes context per window, each with its own ini file), the `MkGuiScoped*` RAII wrappers, `MkGuiDrawUtils` (the `MkGui::drawXProperty` widget vocabulary, including the node-editor widgets and colors), `MkGuiStyleManager` (named scoped styles loaded from `resources/gui_styles/*.json`), `MkGuiTheme` (the base palette, metrics, and the UI font with the icon font merged in), and `MkGuiDockspace` (the dockspace host and the DockBuilder calls, which keeps ImGui's internal API out of the editor). Docking is opt-in per context and enabled only for the main window. Links SDL2 family, OpenGL/GLEW, `MikanCoreApp`, `MikanRenderer`, `MikanUtility`, `MikanWindow`. Linked by `MikanEditor` only.
+Immediate-mode UI DLL. Compiles Dear ImGui (docking branch) and imgui-node-editor sources directly into the DLL (re-exported via `IMGUI_API`/`IMGUI_NODE_EDITOR_API` dllexport defines) rather than linking them as libraries. Owns the whole ImGui surface the editor sees: `MkGuiContext` (one ImGui context per window, each with its own ini file), the `MkGuiScoped*` RAII wrappers, the `MkCanvas*` facade over imgui-node-editor (scoped editor/node/pin brackets, pin icon drawing, the graph-id to canvas-id offset, and the zoom-tied font density that keeps canvas text crisp), `MkGuiDrawUtils` (the `MkGui::drawXProperty` widget vocabulary, including the node-editor widgets and colors), `MkGuiStyleManager` (named scoped styles loaded from `resources/gui_styles/*.json`), `MkGuiTheme` (the base palette, metrics, and the UI font with the icon font merged in), and `MkGuiDockspace` (the dockspace host and the DockBuilder calls, which keeps ImGui's internal API out of the editor). Docking is opt-in per context and enabled only for the main window. Links SDL2 family, OpenGL/GLEW, `MikanCoreApp`, `MikanRenderer`, `MikanUtility`, `MikanWindow`. Linked by `MikanEditor` only.
 
 ### MikanDMX
 `STATIC` library: standalone E1.31 (sACN) DMX lighting sender. No editor/ECS dependencies; links only `Ws2_32` on Windows. Linked by `MikanEditor`.
@@ -121,7 +121,7 @@ Subdirectories (each is a source group, not a separate target):
 
 - `Math`: editor-side math helpers (`CameraMath`, `MathTypeConversion` between glm/OpenCV/Mikan types).
 
-- `NodeEditors` holds the ImNodes-based visual scripting: `Graphs`, `Nodes`, `Pins`, `Properties`, `DataSources`, `Windows`. See [scripting.md](./scripting.md).
+- `NodeEditors` holds the node graph visual scripting: `Graphs`, `Nodes`, `Pins`, `Properties`, `DataSources`, `Windows`. See [scripting.md](./scripting.md).
 
 - `OpenCV`: `OpenCVManager`, `DeepNeuralNetwork` (OpenCV DNN), OpenCV math glue.
 

@@ -1,4 +1,5 @@
 #include "VariableNode.h"
+#include "IconsForkAwesome.h"
 #include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
@@ -319,3 +320,5 @@ NodePtr VariableNodeFactory::createNode(const NodeEditorState& editorState) cons
 
 	return node;
 }
+
+const char* VariableNode::editorGetHeaderIcon() const { return ICON_FK_SQUARE; }

@@ -229,8 +229,6 @@ float NodePin::editorComputeNodeAlpha(const NodeEditorState& editorState) const
 	}
 }
 
-static const float k_pinIconSize= 16.f;
-
 void NodePin::editorRenderInputPin(const NodeEditorState& editorState)
 {
 	const float alpha= editorComputeNodeAlpha(editorState);
@@ -243,8 +241,8 @@ void NodePin::editorRenderInputPin(const NodeEditorState& editorState)
 
 	{
 		MkCanvasScopedPin pin(m_id, MkCanvasPinDirection::Input);
-		MkCanvas::drawPinIcon(ImVec2(k_pinIconSize, k_pinIconSize), editorGetPinIcon(), hasAnyConnectedLinks(),
-							  MkCanvasPinDirection::Input, pinColor);
+		MkCanvas::drawPinIcon(ImVec2(k_editorPinIconSize, k_editorPinIconSize), editorGetPinIcon(),
+							  hasAnyConnectedLinks(), MkCanvasPinDirection::Input, pinColor);
 		ImGui::SameLine();
 		if (editorShowPinName())
 		{
@@ -276,8 +274,8 @@ void NodePin::editorRenderOutputPin(const NodeEditorState& editorState, float pr
 			ImGui::TextUnformatted(m_name.c_str());
 			ImGui::SameLine();
 		}
-		MkCanvas::drawPinIcon(ImVec2(k_pinIconSize, k_pinIconSize), editorGetPinIcon(), hasAnyConnectedLinks(),
-							  MkCanvasPinDirection::Output, pinColor);
+		MkCanvas::drawPinIcon(ImVec2(k_editorPinIconSize, k_editorPinIconSize), editorGetPinIcon(),
+							  hasAnyConnectedLinks(), MkCanvasPinDirection::Output, pinColor);
 	}
 }
 

@@ -39,6 +39,7 @@ public:
 protected:
 	virtual ImVec4 editorGetHeaderColor() const override;
 	virtual std::string editorGetTitle() const override;
+	virtual const char* editorGetHeaderIcon() const override;
 
 	void onGraphPropertyDeleted(t_graph_property_id id);
 

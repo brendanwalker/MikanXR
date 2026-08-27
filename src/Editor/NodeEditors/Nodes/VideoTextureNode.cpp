@@ -1,4 +1,5 @@
 #include "CompositorComponent.h"
+#include "IconsForkAwesome.h"
 #include "IEditorWindow.h"
 #include "IMkFrameBuffer.h"
 #include "IMkGraphicsContext.h"
@@ -320,3 +321,5 @@ NodePtr VideoTextureNodeFactory::createNode(const NodeEditorState& editorState) 
 
 	return node;
 }
+
+const char* VideoTextureNode::editorGetHeaderIcon() const { return ICON_FK_VIDEO_CAMERA; }

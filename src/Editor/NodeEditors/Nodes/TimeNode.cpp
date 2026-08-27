@@ -1,4 +1,5 @@
 #include "TimeNode.h"
+#include "IconsForkAwesome.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -39,3 +40,5 @@ NodePtr TimeNodeFactory::createNode(const NodeEditorState& editorState) const
 
 	return node;
 }
+
+const char* TimeNode::editorGetHeaderIcon() const { return ICON_FK_CLOCK_O; }

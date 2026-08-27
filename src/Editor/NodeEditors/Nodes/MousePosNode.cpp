@@ -1,4 +1,5 @@
 #include "MousePosNode.h"
+#include "IconsForkAwesome.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -44,3 +45,5 @@ NodePtr MousePosNodeFactory::createNode(const NodeEditorState& editorState) cons
 
 	return node;
 }
+
+const char* MousePosNode::editorGetHeaderIcon() const { return ICON_FK_MOUSE_POINTER; }

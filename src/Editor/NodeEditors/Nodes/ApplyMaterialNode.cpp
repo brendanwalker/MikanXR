@@ -1,4 +1,5 @@
 #include "ApplyMaterialNode.h"
+#include "IconsForkAwesome.h"
 #include "IMkFrameBuffer.h"
 #include "IMkGraphicsContext.h"
 #include "IMkShader.h"
@@ -545,3 +546,5 @@ NodePtr ApplyMaterialNodeFactory::createNode(const NodeEditorState& editorState)
 
 	return node;
 }
+
+const char* ApplyMaterialNode::editorGetHeaderIcon() const { return ICON_FK_MAGIC; }

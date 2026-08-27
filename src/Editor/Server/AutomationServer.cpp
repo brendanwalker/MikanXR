@@ -30,7 +30,6 @@
 #include "Properties/GraphProperty.h"
 #include "Windows/CompositorNodeEditorWindow.h"
 #include "Windows/NodeEditorWindow.h"
-#include "Windows/NodeZoomSpikeWindow.h" // TEMP SPIKE (node-zoom branch)
 
 #include <algorithm>
 #include <cstdlib>
@@ -246,41 +245,6 @@ void AutomationServer::registerCoreNamespaces()
 		 "nodegraph deletelink <linkId>", "nodegraph undo [n]", "nodegraph redo [n]", "nodegraph run on|off",
 		 "nodegraph renamevar <propertyId> <name...>", "nodegraph reordervar <movedPropertyId> <targetPropertyId>"},
 		std::bind(&AutomationServer::handleNodeGraphCommand, this, _1, _2, _3));
-
-	// TEMP SPIKE (node-zoom branch): drives the imgui-node-editor evaluation window
-	registerCommandNamespace(
-		"spike", {"spike open", "spike info"},
-		[](const std::vector<std::string>& args, std::vector<std::string>& outLines, std::string& outError)
-		{
-			const std::string verb= args.empty() ? "" : args[0];
-			App* app= App::getInstance();
-
-			if (verb == "open")
-			{
-				if (!app->hasWindowOfType<NodeZoomSpikeWindow>())
-				{
-					app->createAppWindow<NodeZoomSpikeWindow>();
-				}
-				return true;
-			}
-			else if (verb == "info")
-			{
-				auto* window= app->getWindowOfType<NodeZoomSpikeWindow>();
-				if (window == nullptr)
-				{
-					outError= "spike window not open";
-					return false;
-				}
-
-				outLines.push_back("zoom " + std::to_string(window->getLastZoom()));
-				outLines.push_back("links " + std::to_string(window->getLinkCount()));
-				outLines.push_back("frames " + std::to_string(window->getFrameCount()));
-				return true;
-			}
-
-			outError= "usage: spike open|info";
-			return false;
-		});
 
 	// The history namespace is registered by TransactionHistory after startup
 }

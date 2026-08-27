@@ -113,15 +113,8 @@ list(APPEND IMGUI_SOURCE
      ${IMGUI_DIR}/imgui_widgets.cpp
 )
 
-# ImNodes
-set(IMNODES_DIR ${ROOT_DIR}/thirdparty/imnodes)
-set(IMNODES_SOURCE "")
-list(APPEND IMNODES_SOURCE
-     ${IMNODES_DIR}/imnodes.cpp
-)
-
-# ImGui Node Editor (TEMP SPIKE: zoom-capable node canvas under evaluation on
-# the node-zoom branch; an untracked clone of pthom/imgui-node-editor@imgui_bundle)
+# ImGui Node Editor (zoom-capable node canvas; submodule tracking the
+# mikanxr-patches branch of the MikanXR fork of pthom/imgui-node-editor)
 set(IMGUI_NODE_EDITOR_DIR ${ROOT_DIR}/thirdparty/imgui-node-editor)
 set(IMGUI_NODE_EDITOR_SOURCE "")
 list(APPEND IMGUI_NODE_EDITOR_SOURCE

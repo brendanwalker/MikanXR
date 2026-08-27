@@ -1,4 +1,5 @@
 #include "ShapeSelectNode.h"
+#include "IconsForkAwesome.h"
 #include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
@@ -164,3 +165,5 @@ NodePtr ShapeSelectNodeFactory::createNode(const NodeEditorState& editorState) c
 
 	return node;
 }
+
+const char* ShapeSelectNode::editorGetHeaderIcon() const { return ICON_FK_LIST_UL; }

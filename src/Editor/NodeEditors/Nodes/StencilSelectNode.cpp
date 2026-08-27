@@ -1,4 +1,5 @@
 #include "StencilSelectNode.h"
+#include "IconsForkAwesome.h"
 #include "CameraComponent.h"
 #include "LocText.h"
 #include "Logger.h"
@@ -185,3 +186,5 @@ NodePtr StencilSelectNodeFactory::createNode(const NodeEditorState& editorState)
 
 	return node;
 }
+
+const char* StencilSelectNode::editorGetHeaderIcon() const { return ICON_FK_LIST_UL; }

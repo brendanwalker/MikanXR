@@ -25,8 +25,15 @@ public:
 	void beginHeader();
 	void endHeader();
 
+	// Window-space X of the active node's content origin, for right-aligning
+	// rows against a target content width regardless of what a row has
+	// already consumed. Valid only while a node scope is open.
+	static float getCurrentContentStartX();
+
 private:
 	int m_nodeId;
+	float m_contentStartX= 0.f;
+	MkCanvasScopedNode* m_previousNode= nullptr;
 	unsigned int m_headerColor;
 	ImVec2 m_headerMin;
 	ImVec2 m_headerMax;

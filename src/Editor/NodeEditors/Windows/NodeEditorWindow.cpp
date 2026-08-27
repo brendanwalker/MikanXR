@@ -131,6 +131,10 @@ bool NodeEditorWindow::startup()
 
 		m_canvasContext= MkCanvas::createEditorContext();
 		success= (m_canvasContext != nullptr);
+		if (success)
+		{
+			MkCanvas::applyEditorStyle(m_canvasContext);
+		}
 	}
 
 	if (success && !startupTextureCache())
@@ -380,14 +384,15 @@ void NodeEditorWindow::renderMainFrame()
 				NodePinPtr endPin= nodeGraph ? nodeGraph->getPinById(endGraphPinId) : NodePinPtr();
 				if (startPin && endPin && startPin->canPinsBeConnected(endPin))
 				{
-					if (ed::AcceptNewItem())
+					const ImVec4 previewColor= ImGui::ColorConvertU32ToFloat4(startPin->editorGetLinkStyleColor());
+					if (ed::AcceptNewItem(previewColor, 3.f))
 					{
 						pendingLinkCreates.push_back({startGraphPinId, endGraphPinId});
 					}
 				}
 				else
 				{
-					ed::RejectNewItem();
+					ed::RejectNewItem(ImVec4(1.f, 0.25f, 0.25f, 1.f), 3.f);
 				}
 			}
 			else if (ed::QueryNewNode(&hangPinId))
@@ -1364,7 +1369,7 @@ bool NodeEditorWindow::automationCreateNode(const std::string& nodeClassName, co
 		return false;
 	}
 
-	// Node creation touches GL resources and, via onNodeCreated, ImNodes state
+	// Node creation touches GL resources and, via onNodeCreated, canvas editor state
 	auto* ownerApp= getOwnerApp();
 	auto* windowContext= m_mkWindowContext.get();
 	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);

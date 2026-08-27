@@ -1,4 +1,5 @@
 #include "ShapeNode.h"
+#include "IconsForkAwesome.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
 #include "ShapeComponent.h"
@@ -158,3 +159,5 @@ NodePtr ShapeNodeFactory::createNode(const NodeEditorState& editorState) const
 
 	return node;
 }
+
+const char* ShapeNode::editorGetHeaderIcon() const { return ICON_FK_CUBE; }

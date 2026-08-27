@@ -6,6 +6,8 @@
 
 namespace ed= ax::NodeEditor;
 
+static MkCanvasScopedNode* s_currentNode= nullptr;
+
 MkCanvasScopedNode::MkCanvasScopedNode(int nodeId, const ImVec4& headerColor)
 	: m_nodeId(MkCanvas::toCanvasId(nodeId))
 	, m_headerColor(ImColor(headerColor))
@@ -13,10 +15,21 @@ MkCanvasScopedNode::MkCanvasScopedNode(int nodeId, const ImVec4& headerColor)
 	ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(8.f, 4.f, 8.f, 8.f));
 	ed::BeginNode(m_nodeId);
 	ImGui::PushID(m_nodeId);
+
+	m_contentStartX= ImGui::GetCursorPosX();
+	m_previousNode= s_currentNode;
+	s_currentNode= this;
+}
+
+float MkCanvasScopedNode::getCurrentContentStartX()
+{
+	return s_currentNode != nullptr ? s_currentNode->m_contentStartX : 0.f;
 }
 
 MkCanvasScopedNode::~MkCanvasScopedNode()
 {
+	s_currentNode= m_previousNode;
+
 	ed::EndNode();
 
 	// The node rect is the last submitted item; paint the header band across
@@ -37,8 +50,19 @@ MkCanvasScopedNode::~MkCanvasScopedNode()
 		{
 			drawList->AddRectFilled(headerBandMin, headerBandMax, m_headerColor, rounding, ImDrawFlags_RoundCornersTop);
 
-			// Thin separator between the header band and the node body
+			// Soft top-light gradient over the band, inset past the corner
+			// rounding so the highlight stays within the rounded silhouette
 			const int alpha= (int)(255 * ImGui::GetStyle().Alpha);
+			const ImVec2 gradientMin(headerBandMin.x + rounding, headerBandMin.y);
+			const ImVec2 gradientMax(headerBandMax.x - rounding, headerBandMax.y);
+			if (gradientMax.x > gradientMin.x)
+			{
+				drawList->AddRectFilledMultiColor(gradientMin, gradientMax, IM_COL32(255, 255, 255, 45 * alpha / 255),
+												  IM_COL32(255, 255, 255, 45 * alpha / 255), IM_COL32(255, 255, 255, 0),
+												  IM_COL32(255, 255, 255, 0));
+			}
+
+			// Thin separator between the header band and the node body
 			drawList->AddLine(ImVec2(headerBandMin.x, headerBandMax.y - 0.5f),
 							  ImVec2(headerBandMax.x, headerBandMax.y - 0.5f),
 							  IM_COL32(255, 255, 255, 32 * alpha / 255), 1.f);

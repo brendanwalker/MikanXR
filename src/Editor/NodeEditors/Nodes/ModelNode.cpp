@@ -1,4 +1,5 @@
 #include "ModelNode.h"
+#include "IconsForkAwesome.h"
 #include "MkMaterial.h"
 #include "IMkTexture.h"
 #include "Logger.h"
@@ -178,3 +179,5 @@ NodePtr ModelNodeFactory::createNode(const NodeEditorState& editorState) const
 
 	return node;
 }
+
+const char* ModelNode::editorGetHeaderIcon() const { return ICON_FK_CUBE; }
