@@ -47,7 +47,7 @@ jobs:
       # ---------------------------------------------------------------
       # Shallow checkout without recursive submodules. We init only the
       # submodules actually needed for the build, skipping heavy/unused
-      # ones (LuaBridge3/ThirdParty nested submodules, imnodes/vcpkg).
+      # ones (LuaBridge3/ThirdParty nested submodules).
       # ---------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -65,13 +65,12 @@ jobs:
             thirdparty/fast-cpp-csv-parser \
             thirdparty/LuaBridge3 \
             thirdparty/imgui \
-            thirdparty/imnodes \
+            thirdparty/imgui-node-editor \
             thirdparty/fast_obj \
             thirdparty/IXWebSocket \
             thirdparty/readerwriterqueue \
             thirdparty/nlohmann_json
           # LuaBridge3 has its own sub-submodules we don't need, so skip them.
-          # imnodes/vcpkg is also excluded for the same reason.
 
       # ---------------------------------------------------------------
       # sccache speeds up incremental builds by caching compiled object
