@@ -16,6 +16,7 @@
 #include "MkScopedObjectBinding.h"
 #include "IMkStaticMeshInstance.h"
 #include "MkScene.h"
+#include "MkStateModifiers.h"
 #include "MkStateStack.h"
 #include "MikanTextRenderer.h"
 #include "IMkLineRenderer.h"
@@ -339,6 +340,9 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 void AppStage_StencilAlignment::renderStencilScene()
 {
 	IMkGraphicsContext* graphicsContext= getGraphicsContext();
+
+	// Clear the depth buffer so the scene draws over the video frame
+	mkStateClearBuffer(graphicsContext->getMkStateStack().getCurrentState(), eMkClearFlags::depth);
 
 	m_scene->render(m_mkCamera, graphicsContext->getMkStateStack());
 

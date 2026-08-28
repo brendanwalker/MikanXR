@@ -29,6 +29,7 @@
 #include "QuadStencilSystem.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
+#include "LightEnvironmentSystem.h"
 #include "StageObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "MarkerTrackingVolumeSystem.h"
@@ -83,6 +84,7 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<DMXObjectSystem>();
 	addSystem<RGBSpotLightSystem>();
 	addSystem<RGBPixelGridSystem>();
+	addSystem<LightEnvironmentSystem>();
 
 	// Gather all property descriptors from all the systems and add them to the database
 	for (int i= 0; i < (int)m_systems.size(); i++)

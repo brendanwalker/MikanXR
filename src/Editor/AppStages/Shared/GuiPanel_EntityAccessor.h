@@ -63,12 +63,21 @@ protected:
 	void onEntityConfigChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:
+	// A descriptor plus the localization key its label resolves to. The key is
+	// resolved once at init because the choice between the per-class override
+	// and the shared section does not vary by language.
+	template <class t_descriptor_type>
+	struct LabeledDescriptor
+	{
+		t_descriptor_type descriptor;
+		std::string labelKey;
+	};
+
 	bool m_bWasAccessorSet= false;
 	IEntityAccessorWeakPtr m_entityAccessor;
 	std::string m_modelName;
-	std::map<std::string, PropertyDescriptorConstPtr> m_propertyDescriptors;
-	std::vector<PropertyDescriptorConstPtr> m_orderedPropertyDescriptors;
-	std::vector<FunctionDescriptorConstPtr> m_functionDescriptors;
+	std::vector<LabeledDescriptor<PropertyDescriptorConstPtr>> m_orderedPropertyDescriptors;
+	std::vector<LabeledDescriptor<FunctionDescriptorConstPtr>> m_functionDescriptors;
 	std::map<std::string, PropertyRendererCallback> m_propertyRenderers;
 	OnConstruct m_onConstructCallback;
 	MkGuiStyleConstPtr m_defaultGuiStyle;

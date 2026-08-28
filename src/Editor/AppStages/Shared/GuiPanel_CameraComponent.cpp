@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_CameraComponent.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "ARKitVideoSourceComponent.h"
 #include "ARKitVideoSourceSystem.h"
@@ -46,8 +47,8 @@ void GuiPanel_CameraComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
-					cameraComp->makePropertyUIIdentifier(CameraDefinition::k_videoSourceIdPropertyId), "Video Source",
-					&m_videoSourceDataSource, selectedIndex))
+					cameraComp->makePropertyUIIdentifier(CameraDefinition::k_videoSourceIdPropertyId),
+					locText("componentPanel.videoSource"), &m_videoSourceDataSource, selectedIndex))
 			{
 				MikanComponentPtr newVideoSource= m_videoSourceDataSource.getEntryAtIndex(selectedIndex);
 				if (newVideoSource)
@@ -78,7 +79,7 @@ void GuiPanel_CameraComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					cameraComp->makePropertyUIIdentifier(CameraDefinition::k_trackingMountIdPropertyId),
-					"Tracking Mount", &m_trackingMountDataSource, selectedIndex))
+					locText("componentPanel.trackingMount"), &m_trackingMountDataSource, selectedIndex))
 			{
 				MikanComponentPtr newMount= m_trackingMountDataSource.getEntryAtIndex(selectedIndex);
 				if (newMount)

@@ -1,4 +1,5 @@
 #include "AppStage.h"
+#include "LocText.h"
 #include "MarkerComponent.h"
 #include "MikanCoreTypes.h"
 #include "Shared/GuiPanel_VRTrackingVolumeComponent.h"
@@ -50,7 +51,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_charucoMountIdPropertyId),
-					"Charuco Mount", &m_charucoMountDataSource, selectedIndex))
+					locText("componentPanel.charucoMount"), &m_charucoMountDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -82,7 +83,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_originMarkerIdPropertyId),
-					"Origin Marker", &m_originMarkerDataSource, selectedIndex))
+					locText("componentPanel.originMarker"), &m_originMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -114,7 +115,7 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId),
-					"Utility Marker", &m_utilityMarkerDataSource, selectedIndex))
+					locText("componentPanel.utilityMarker"), &m_utilityMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{

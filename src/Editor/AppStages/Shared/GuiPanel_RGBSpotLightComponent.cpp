@@ -1,4 +1,5 @@
 #include "AppStage.h"
+#include "LocText.h"
 #include "RGBSpotLightComponent.h"
 #include "Shared/GuiPanel_RGBSpotLightComponent.h"
 
@@ -18,7 +19,7 @@ void GuiPanel_RGBSpotLightComponent::onConstruct()
 												  return false;
 
 											  int red= (int)comp->getRed();
-											  if (ImGui::SliderInt("Red", &red, 0, 255))
+											  if (ImGui::SliderInt(locLabel("componentPanel.red"), &red, 0, 255))
 											  {
 												  addDeferredGuiEvent(
 													  [this, red]()
@@ -38,7 +39,7 @@ void GuiPanel_RGBSpotLightComponent::onConstruct()
 												  return false;
 
 											  int green= (int)comp->getGreen();
-											  if (ImGui::SliderInt("Green", &green, 0, 255))
+											  if (ImGui::SliderInt(locLabel("componentPanel.green"), &green, 0, 255))
 											  {
 												  addDeferredGuiEvent(
 													  [this, green]()
@@ -58,7 +59,7 @@ void GuiPanel_RGBSpotLightComponent::onConstruct()
 												  return false;
 
 											  int blue= (int)comp->getBlue();
-											  if (ImGui::SliderInt("Blue", &blue, 0, 255))
+											  if (ImGui::SliderInt(locLabel("componentPanel.blue"), &blue, 0, 255))
 											  {
 												  addDeferredGuiEvent(
 													  [this, blue]()

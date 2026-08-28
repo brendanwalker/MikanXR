@@ -1,4 +1,5 @@
 #pragma once
+#include "LocText.h"
 #include "Node.h"
 
 class MousePosNode : public Node
@@ -11,9 +12,9 @@ public:
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 
 protected:
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(
-		const NodeEditorState& editorState) const override;
-	virtual std::string editorGetTitle() const override { return "MousePosition"; }
+	virtual ImVec4 editorGetHeaderColor() const override;
+	virtual const char* editorGetHeaderIcon() const override;
+	virtual std::string editorGetTitle() const override { return locText("nodes.mousePositionTitle"); }
 };
 
 class MousePosNodeFactory : public TypedNodeFactory<MousePosNode, NodeConfig>

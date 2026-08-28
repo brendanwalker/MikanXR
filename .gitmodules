@@ -19,10 +19,7 @@
 [submodule "thirdparty/imgui"]
 	path = thirdparty/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "thirdparty/imnodes"]
-	path = thirdparty/imnodes
-	url = https://github.com/MikanXR/imnodes.git
-	branch = mikanxr-patches
+	branch = docking
 [submodule "thirdparty/fast_obj"]
 	path = thirdparty/fast_obj
 	url = https://github.com/thisistherk/fast_obj.git
@@ -35,3 +32,7 @@
 [submodule "thirdparty/nlohmann_json"]
 	path = thirdparty/nlohmann_json
 	url = https://github.com/nlohmann/json.git
+[submodule "thirdparty/imgui-node-editor"]
+	path = thirdparty/imgui-node-editor
+	url = https://github.com/MikanXR/imgui-node-editor.git
+	branch = mikanxr-patches

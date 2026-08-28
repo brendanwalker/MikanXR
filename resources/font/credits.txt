@@ -1,1 +1,1 @@
-mona- http://monafont.sourceforge.net/index-e.html
+MochiyPopOne- https://github.com/fontdasu/Mochiypop (SIL OFL 1.1, license text in OFL.txt)

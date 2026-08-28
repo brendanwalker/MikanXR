@@ -3,6 +3,7 @@
 #include "MarkerObjectSystem.h"
 #include "MikanCoreTypes.h"
 #include "IconsForkAwesome.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -28,9 +29,10 @@ bool GuiPanel_ProjectMarkers::init(ProjectGuiPanelContext* context)
 		[](MikanComponentPtr comp) -> std::string
 		{
 			auto marker= std::static_pointer_cast<MarkerComponent>(comp);
-			std::string name=
-				comp->getName().empty() ? ("Marker " + std::to_string(comp->getComponentId())) : comp->getName();
-			return name + " (Aruco:" + std::to_string(marker->getMarkerDefinition()->getArucoId()) + ")";
+			std::string name= comp->getName().empty()
+								  ? locFormat("project.markerFallbackNameFmt", comp->getComponentId())
+								  : comp->getName();
+			return name + locFormat("project.markerArucoSuffixFmt", marker->getMarkerDefinition()->getArucoId());
 		});
 
 	// Auto-select first marker if available
@@ -85,8 +87,8 @@ void GuiPanel_ProjectMarkers::onGui()
 	}
 
 	int markerIndex= m_markerDataSource->getEntryIndexByComponentId(m_selectedMarkerId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectMarker", "Marker", m_markerDataSource.get(),
-									markerIndex))
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectMarker", locText("project.marker"),
+									m_markerDataSource.get(), markerIndex))
 	{
 		if (markerIndex >= 0)
 		{

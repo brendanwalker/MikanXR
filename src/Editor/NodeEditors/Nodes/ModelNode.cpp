@@ -1,4 +1,5 @@
 #include "ModelNode.h"
+#include "IconsForkAwesome.h"
 #include "MkMaterial.h"
 #include "IMkTexture.h"
 #include "Logger.h"
@@ -10,8 +11,7 @@
 #include "Properties/GraphModelProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- ModelNodeConfig -----
 configuru::Config ModelNodeConfig::writeToJSON()
@@ -105,28 +105,30 @@ bool ModelNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> ModelNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
+ImVec4 ModelNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	return ImVec4(150.f / 255.f, 130.f / 255.f, 110.f / 255.f, 225.f / 255.f);
 }
 
 std::string ModelNode::editorGetTitle() const
 {
 	if (m_sourceProperty)
 	{
+		// The graph variable's name is what the editor lets you rename, so it
+		// titles the node; the asset name is only a fallback for an unnamed one
+		const std::string& propertyName= m_sourceProperty->getName();
+		if (!propertyName.empty())
+		{
+			return propertyName;
+		}
+
 		auto assetRef= m_sourceProperty->getModelAssetReference();
 		if (assetRef)
 		{
 			return assetRef->getShortName();
 		}
-		else
-		{
-			return m_sourceProperty->getName();
-		}
+
+		return propertyName;
 	}
 	else
 	{
@@ -136,11 +138,10 @@ std::string ModelNode::editorGetTitle() const
 
 void ModelNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
@@ -178,3 +179,5 @@ NodePtr ModelNodeFactory::createNode(const NodeEditorState& editorState) const
 
 	return node;
 }
+
+const char* ModelNode::editorGetHeaderIcon() const { return ICON_FK_CUBE; }

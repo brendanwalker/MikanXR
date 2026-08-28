@@ -85,7 +85,7 @@ void SelectionComponent::notifyTransformGizmoBound()
 
 void SelectionComponent::notifyTransformGizmoUnbound()
 {
-	m_bIsTransformGizmoBound= true;
+	m_bIsTransformGizmoBound= false;
 	if (OnTransformGizmoUnbound)
 		OnTransformGizmoUnbound();
 }

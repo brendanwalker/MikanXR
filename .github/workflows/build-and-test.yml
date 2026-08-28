@@ -47,7 +47,7 @@ jobs:
       # ---------------------------------------------------------------
       # Shallow checkout without recursive submodules. We init only the
       # submodules actually needed for the build, skipping heavy/unused
-      # ones (LuaBridge3/ThirdParty nested submodules, imnodes/vcpkg).
+      # ones (LuaBridge3/ThirdParty nested submodules).
       # ---------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -65,13 +65,12 @@ jobs:
             thirdparty/fast-cpp-csv-parser \
             thirdparty/LuaBridge3 \
             thirdparty/imgui \
-            thirdparty/imnodes \
+            thirdparty/imgui-node-editor \
             thirdparty/fast_obj \
             thirdparty/IXWebSocket \
             thirdparty/readerwriterqueue \
             thirdparty/nlohmann_json
           # LuaBridge3 has its own sub-submodules we don't need, so skip them.
-          # imnodes/vcpkg is also excluded for the same reason.
 
       # ---------------------------------------------------------------
       # sccache speeds up incremental builds by caching compiled object
@@ -164,12 +163,12 @@ jobs:
             -DOpenCV_DIR=%DEPS_ROOT_PATH%\opencv\build ^
             -DOPENVR_ROOT_DIR=%THIRDPARTY_ROOT_PATH%\openvr ^
             -DOPENVR_HEADERS_ROOT_DIR=%THIRDPARTY_ROOT_PATH%\openvr\include ^
-            -DSDL2_LIBRARY="%DEPS_ROOT_PATH%\SDL2-2.0.10\lib\x64\sdl2.lib" ^
-            -DSDL2_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2-2.0.10\include" ^
-            -DSDL2TTF_LIBRARY="%DEPS_ROOT_PATH%\SDL2_ttf-2.0.15\lib\x64\sdl2_ttf.lib" ^
-            -DSDL2TTF_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2_ttf-2.0.15\include" ^
-            -DSDL2_IMAGE_LIBRARY="%DEPS_ROOT_PATH%\SDL2_image-2.0.5\lib\x64\sdl2_image.lib" ^
-            -DSDL2_IMAGE_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2_image-2.0.5\include" ^
+            -DSDL2_LIBRARY="%DEPS_ROOT_PATH%\SDL2-2.30.10\lib\x64\sdl2.lib" ^
+            -DSDL2_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2-2.30.10\include" ^
+            -DSDL2TTF_LIBRARY="%DEPS_ROOT_PATH%\SDL2_ttf-2.24.0\lib\x64\sdl2_ttf.lib" ^
+            -DSDL2TTF_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2_ttf-2.24.0\include" ^
+            -DSDL2_IMAGE_LIBRARY="%DEPS_ROOT_PATH%\SDL2_image-2.8.8\lib\x64\sdl2_image.lib" ^
+            -DSDL2_IMAGE_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2_image-2.8.8\include" ^
             -DCMAKE_PREFIX_PATH="%DEPS_ROOT_PATH%\easy_profiler\lib\cmake\easy_profiler" ^
             -DNUGET_PATH="%DEPS_ROOT_PATH%" ^
             -DMIKAN_WITH_GSTREAMER=OFF ^

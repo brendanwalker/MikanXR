@@ -12,9 +12,11 @@
 #include "IMkTexture.h"
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "StringUtils.h"
 #include "ProjectManager.h"
 #include "TextureSourceQueries.h"
@@ -33,8 +35,7 @@
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- ClientTextureNodeConfig -----
 configuru::Config DepthTextureSourceNodeConfig::writeToJSON()
@@ -226,14 +227,9 @@ void DepthTextureSourceNode::evaluateDepthTexture(IMkState* glState, IMkTextureP
 	}
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> DepthTextureSourceNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 DepthTextureSourceNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	return ImVec4(150.f / 255.f, 130.f / 255.f, 110.f / 255.f, 225.f / 255.f);
 }
 
 std::string DepthTextureSourceNode::editorGetTitle() const
@@ -251,11 +247,10 @@ std::string DepthTextureSourceNode::editorGetTitle() const
 
 void DepthTextureSourceNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	// Texture Preview (color texture of the frame buffer)
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
@@ -273,12 +268,15 @@ void DepthTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 
 void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Client Texture Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.clientTextureHeader")))
 	{
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type", "depthPackRGBA\0", iTextureType,
-													 editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "textureSourceColorType", locText("nodes.type"),
+											  "depthPackRGBA\0", iTextureType))
 		{
 			m_clientTextureType= (eTextureSourceDepthType)iTextureType;
 		}
@@ -291,15 +289,16 @@ void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			TextureSourceComponentPtr videoSourceComponent= getTextureSourceComponent();
 
 			int selectedIndex= dataSource.getEntryIndex(videoSourceComponent);
-			if (NodeEditorUI::DrawComboBoxProperty("textureSourceIndex", "Source", &dataSource, selectedIndex,
-												   editorState.styleManager))
+			if (MkGui::drawComboBoxProperty(propertyStyle, "textureSourceIndex", locText("nodes.source"), &dataSource,
+											selectedIndex))
 			{
 				m_textureSourceComponent= dataSource.getEntryAtIndex(selectedIndex);
 			}
 		}
 
 		// Vertical Flip
-		NodeEditorUI::DrawCheckBoxProperty("drawDepthTextureVerticalFlip", "Vertical Flip", m_bVerticalFlip);
+		MkGui::drawCheckBoxProperty(propertyStyle, "drawDepthTextureVerticalFlip", locText("nodes.verticalFlip"),
+									m_bVerticalFlip);
 	}
 }
 

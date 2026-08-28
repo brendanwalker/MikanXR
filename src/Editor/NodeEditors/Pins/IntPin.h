@@ -12,8 +12,8 @@ public:
 	inline static const std::string k_pinClassName= "IntPinBase";
 	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual float editorComputeInputWidth() const;
-	virtual ImNodesPinShape editorComputePinShape() const override;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha) override;
+	virtual MkCanvas::PinIcon editorGetPinIcon() const override;
+	virtual ImVec4 editorGetPinColor() const override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
 };
 

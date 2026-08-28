@@ -414,12 +414,15 @@ IMkShaderCodeConstPtr getPWireframeShaderCode()
 		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_P_WIREFRAME,
 										  // vertex shader
 										  R""""(
-				#version 410 
-				uniform mat4 mvpMatrix; 
-				layout(location = 0) in vec3 in_position; 
-				void main() 
-				{ 
-					gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
+				#version 410
+				uniform mat4 mvpMatrix;
+				layout(location = 0) in vec3 in_position;
+				void main()
+				{
+					gl_Position = mvpMatrix * vec4(in_position.xyz, 1);
+					// Bias toward the camera so wireframe overlays win the depth
+					// tie against the coincident solid mesh they are drawn over
+					gl_Position.z -= 0.001 * gl_Position.w;
 				}
 				)"""",
 										  // fragment shader
@@ -1058,6 +1061,90 @@ IMkShaderCodeConstPtr getPConeVolumeShaderCode()
 	return x_shaderCode;
 }
 
+IMkShaderCodeConstPtr getPSHEnvironmentShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		// Draws an order-2 spherical harmonic environment on a mesh, evaluating
+		// radiance along the direction from the mesh's origin to the fragment.
+		// Intended for a unit sphere, where the object-space position IS that
+		// direction - so the mesh must be drawn with an unrotated transform for
+		// the environment (which is world space) to line up.
+		//
+		// This is the editor twin of the Unreal skydome material, and uses the
+		// same basis constants as sh_eval_basis in SphericalHarmonics.cpp.
+		// Unreal needs a Y/Z swap because its space is a handedness flip away;
+		// here the direction is already Mikan space, so there is no swap.
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_P_SH_ENVIRONMENT,
+										  // vertex shader
+										  R""""(
+				#version 330 core
+				layout (location = 0) in vec3 aPos;
+
+				uniform mat4 mvpMatrix;
+
+				out vec3 vertDirection;
+
+				void main()
+				{
+					vertDirection = aPos;
+					gl_Position = mvpMatrix * vec4(aPos, 1.0);
+				}
+				)"""",
+										  // fragment shader
+										  R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in vec3 vertDirection;
+
+				uniform vec3 shCoefficient0;
+				uniform vec3 shCoefficient1;
+				uniform vec3 shCoefficient2;
+				uniform vec3 shCoefficient3;
+				uniform vec3 shCoefficient4;
+				uniform vec3 shCoefficient5;
+				uniform vec3 shCoefficient6;
+				uniform vec3 shCoefficient7;
+				uniform vec3 shCoefficient8;
+
+				void main()
+				{
+					vec3 n = normalize(vertDirection);
+
+					vec3 radiance =
+						  0.282095 * shCoefficient0
+						+ 0.488603 * (n.y * shCoefficient1 + n.z * shCoefficient2 + n.x * shCoefficient3)
+						+ 1.092548 * (n.x * n.y) * shCoefficient4
+						+ 1.092548 * (n.y * n.z) * shCoefficient5
+						+ 0.315392 * (3.0 * n.z * n.z - 1.0) * shCoefficient6
+						+ 1.092548 * (n.x * n.z) * shCoefficient7
+						+ 0.546274 * (n.x * n.x - n.y * n.y) * shCoefficient8;
+
+					// Order-2 SH rings negative around sharp lights - that is
+					// inherent to the representation, not a bad fit - so clamp
+					// exactly as every other consumer of this environment does.
+					FragColor = vec4(max(radiance, vec3(0.0)), 1.0);
+				}
+				)"""");
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+		x_shaderCode->addUniform("shCoefficient0", eUniformSemantic::shCoefficient0);
+		x_shaderCode->addUniform("shCoefficient1", eUniformSemantic::shCoefficient1);
+		x_shaderCode->addUniform("shCoefficient2", eUniformSemantic::shCoefficient2);
+		x_shaderCode->addUniform("shCoefficient3", eUniformSemantic::shCoefficient3);
+		x_shaderCode->addUniform("shCoefficient4", eUniformSemantic::shCoefficient4);
+		x_shaderCode->addUniform("shCoefficient5", eUniformSemantic::shCoefficient5);
+		x_shaderCode->addUniform("shCoefficient6", eUniformSemantic::shCoefficient6);
+		x_shaderCode->addUniform("shCoefficient7", eUniformSemantic::shCoefficient7);
+		x_shaderCode->addUniform("shCoefficient8", eUniformSemantic::shCoefficient8);
+	}
+
+	return x_shaderCode;
+}
+
 IMkShaderCodeConstPtr getPTLinearizeRGBShaderCode()
 {
 	static IMkShaderCodePtr x_shaderCode= nullptr;
@@ -1225,6 +1312,7 @@ bool registerInternalShaders(IMkShaderCache* shaderCache)
 		getPTVisualizeGLDepthShaderCode(),
 		getPM5544TestCardShaderCode(),
 		getPConeVolumeShaderCode(),
+		getPSHEnvironmentShaderCode(),
 		getPTLinearizeRGBShaderCode(),
 		getPTLinearToSRGBShaderCode(),
 	};

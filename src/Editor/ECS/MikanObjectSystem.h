@@ -82,11 +82,30 @@ public:
 	MikanObjectPtr newEmptyObject();
 	virtual MikanComponentPtr addNewObjectByUntypedDefinition(const std::string& primaryComponentClass,
 															  Serialization::PolymorphicObjectPtr initParams);
+
+	// Create an object of the system's primary component type with a default
+	// initialized definition. Returns null when the class does not match.
+	virtual MikanComponentPtr addNewObjectWithDefaultDefinition(const std::string& primaryComponentClass)
+	{
+		return MikanComponentPtr();
+	}
+
+	// Recreate an object from a saved definition JSON under its original
+	// component id (undo of a destroy). Returns null when the id is still
+	// live or the system has no typed pool.
+	virtual MikanComponentPtr recreateObjectFromDefinitionJson(const configuru::Config& definitionConfig)
+	{
+		return MikanComponentPtr();
+	}
+
 	virtual bool deleteObject(MikanObjectPtr objectPtr);
 	void deleteAllObjects();
 	inline const MikanObjectList& getObjectList() const { return m_objects; }
 
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectPtr)> OnNewObjectFinalized;
+	// Fired before teardown begins, while the primary component's definition
+	// still holds its pre-destroy state (dispose rewrites parenting)
+	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentPtr)> OnObjectWillBeDestroyed;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectConstPtr)> OnObjectDisposed;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentPtr)> OnComponentInitialized;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentConstPtr)> OnComponentDisposed;

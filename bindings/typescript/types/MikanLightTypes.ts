@@ -1,5 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
+import { MikanVector3f } from './MikanMathTypes.js';
 import { MikanSystemValues } from './MikanPropertyTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 import type { SerializationField } from './SerializationTypes.js';
@@ -16,6 +17,26 @@ export class MikanDMXData {
   static __serializationMetadata: SerializationField[] = [
     { name: 'server_time_seconds', type: 'double' },
     { name: 'universes', type: 'MikanUniverseDMXData', isArray: true }
+  ];
+}
+
+export class MikanLightEnvironmentSystemValues extends MikanSystemValues {
+
+  static __serializationMetadata: SerializationField[] = [
+  ];
+}
+
+export class MikanLightEnvironmentComponentValues extends MikanTransformComponentValues {
+  sh_coefficients: number[] = [];
+  exposure_scale: number = 1;
+  directionality: number = 0;
+  key_light_direction: MikanVector3f = new MikanVector3f();
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'sh_coefficients', type: 'float', isArray: true },
+    { name: 'exposure_scale', type: 'float' },
+    { name: 'directionality', type: 'float' },
+    { name: 'key_light_direction', type: 'MikanVector3f' }
   ];
 }
 

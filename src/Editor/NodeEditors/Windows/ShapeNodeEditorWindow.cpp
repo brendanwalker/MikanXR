@@ -2,7 +2,7 @@
 #include "App.h"
 #include "AssetReference.h"
 #include "Logger.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
 #include "ShapeComponent.h"
 #include "ShapeNodeEditorWindow.h"
 
@@ -53,6 +53,19 @@ bool ShapeNodeEditorWindow::bindShapeComponent(ShapeComponentPtr shapeComponent)
 	return true;
 }
 
+void ShapeNodeEditorWindow::onGraphRestored()
+{
+	if (m_shapeComponent == nullptr)
+	{
+		return;
+	}
+
+	// Rebind the rebuilt graph instance so the shape component evaluates it
+	auto shapeNodeGraph= std::static_pointer_cast<ShapeNodeGraph>(m_editorState.nodeGraph);
+	shapeNodeGraph->bindToShapeComponent(m_shapeComponent);
+	m_shapeComponent->setEditorShapeNodeGraph(shapeNodeGraph);
+}
+
 void ShapeNodeEditorWindow::update(float deltaSeconds)
 {
 	m_lastNodeEvalErrors.clear();
@@ -88,6 +101,7 @@ bool ShapeNodeEditorWindow::saveGraph(bool bShowFileDialog)
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
 		m_shapeComponent->setShapeGraphAssetPath(m_editorState.nodeGraphPath);
+		return true;
 	}
 
 	return false;
@@ -99,7 +113,7 @@ void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& 
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
+		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleGraphVariablesDragDrop(editorState);
 			return;
@@ -113,8 +127,7 @@ void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& edito
 		getNodeGraph()->editorGetValidPropertyFactories(editorState);
 	for (auto factory : validPropertyFactories)
 	{
-		if (auto property=
-				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
+		if (auto property= MkGui::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -125,7 +138,7 @@ void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& edito
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
+		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleMainFrameDragDrop(editorState);
 			return;

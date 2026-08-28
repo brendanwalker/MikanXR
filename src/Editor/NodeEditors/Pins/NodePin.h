@@ -4,9 +4,7 @@
 #include "NodeFwd.h"
 #include "NodePinConstants.h"
 #include "MulticastDelegate.h"
-#include "MkNodesScopedColorStyle.h"
-
-#include "imnodes.h"
+#include "MkCanvasWidgets.h"
 
 #include <memory>
 #include <string>
@@ -44,6 +42,11 @@ public:
 	virtual ~NodePin()= default;
 
 	inline static const std::string k_pinClassName= "NodePin";
+
+	// Canvas footprint of the pin icon plus its trailing spacing, shared by
+	// the node width/alignment math in Node::editorComputeNodeDimensions
+	static constexpr float k_editorPinIconSize= 16.f;
+	static constexpr float k_editorPinIconSpacing= 8.f;
 	virtual std::string getClassName() const { return k_pinClassName; }
 
 	virtual bool loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config);
@@ -87,9 +90,9 @@ public:
 	virtual void editorRenderInputPin(const NodeEditorState& editorState);
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) {}
 	virtual void editorRenderOutputPin(const NodeEditorState& editorState, float prefixWidth= 0.f);
-	virtual ImNodesPinShape editorComputePinShape() const;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha);
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeLinkStyle(float alpha);
+	// Canvas icon for this pin type; drawn filled when any link is connected
+	virtual MkCanvas::PinIcon editorGetPinIcon() const;
+	virtual ImVec4 editorGetPinColor() const;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) {}
 	virtual ImU32 editorGetLinkStyleColor() const;
 

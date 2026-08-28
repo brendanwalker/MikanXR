@@ -23,7 +23,10 @@ private:
 	EditorObjectSystemWeakPtr m_editorSystem;
 
 	std::string m_selectedLanguageId;
+	// Parallel lists: the combo displays native names, the selection maps back
+	// through the matching code
 	std::vector<std::string> m_languageIdList;
+	std::vector<std::string> m_languageNameList;
 
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 	GuiDataSource_StringList m_languageDataSource;

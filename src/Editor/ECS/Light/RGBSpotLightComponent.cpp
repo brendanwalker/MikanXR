@@ -49,9 +49,23 @@ RGBSpotLightDefinition::RGBSpotLightDefinition(MikanLightID lightId)
 	setDMXChannelCount(3);
 }
 
-void RGBSpotLightDefinition::setConeAngleDegrees(float deg) { m_coneAngleDegrees= deg; }
+void RGBSpotLightDefinition::setConeAngleDegrees(float deg)
+{
+	if (m_coneAngleDegrees != deg)
+	{
+		m_coneAngleDegrees= deg;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_coneAngleDegreesPropertyId));
+	}
+}
 
-void RGBSpotLightDefinition::setConeRangeMeters(float m) { m_coneRangeMeters= m; }
+void RGBSpotLightDefinition::setConeRangeMeters(float m)
+{
+	if (m_coneRangeMeters != m)
+	{
+		m_coneRangeMeters= m;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_coneRangeMetersPropertyId));
+	}
+}
 
 configuru::Config RGBSpotLightDefinition::writeToJSON()
 {

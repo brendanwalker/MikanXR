@@ -1,4 +1,5 @@
 #include "AlignCameraByOriginMarker/GuiPanel_AlignCameraByOriginMarker.h"
+#include "LocText.h"
 
 #include "imgui.h"
 
@@ -8,9 +9,9 @@ void GuiPanel_AlignCameraByOriginMarker::onGui()
 	{
 	case eAlignCameraByOriginMarkerMenuState::pendingVideoStart:
 	{
-		ImGui::TextWrapped("Starting video stream...");
+		ImGui::TextWrapped("%s", locText("alignCameraByOriginMarker.startingVideoStream"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -20,13 +21,15 @@ void GuiPanel_AlignCameraByOriginMarker::onGui()
 
 	case eAlignCameraByOriginMarkerMenuState::verifySetup:
 	{
-		ImGui::TextWrapped("Point the camera at the Origin Marker until it is detected, then click Begin.");
+		ImGui::TextWrapped("%s", locText("alignCameraByOriginMarker.verifySetup"));
 		ImGui::Spacing();
-		ImGui::Text("Origin Marker Detected: %s", m_isMarkerVisible ? "Yes" : "No");
+		ImGui::Text(locText("alignCameraByOriginMarker.markerDetectedFmt"),
+					m_isMarkerVisible ? locText("alignCameraByOriginMarker.yes")
+									  : locText("alignCameraByOriginMarker.no"));
 		ImGui::Spacing();
 		if (!m_isMarkerVisible)
 			ImGui::BeginDisabled();
-		if (ImGui::Button("Begin"))
+		if (ImGui::Button(locLabel("alignCameraByOriginMarker.begin")))
 		{
 			if (OnBeginEvent)
 				OnBeginEvent();
@@ -34,7 +37,7 @@ void GuiPanel_AlignCameraByOriginMarker::onGui()
 		if (!m_isMarkerVisible)
 			ImGui::EndDisabled();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -44,11 +47,11 @@ void GuiPanel_AlignCameraByOriginMarker::onGui()
 
 	case eAlignCameraByOriginMarkerMenuState::capturing:
 	{
-		ImGui::Text("Sampling Origin Marker transforms...");
+		ImGui::TextUnformatted(locText("alignCameraByOriginMarker.samplingTransforms"));
 		ImGui::Spacing();
 		ImGui::ProgressBar(m_capturePercent / 100.f);
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -58,16 +61,16 @@ void GuiPanel_AlignCameraByOriginMarker::onGui()
 
 	case eAlignCameraByOriginMarkerMenuState::testCalibration:
 	{
-		ImGui::Text("Camera aligned successfully!");
-		ImGui::TextWrapped("Verify the axes overlay appears correctly over the Origin Marker.");
+		ImGui::TextUnformatted(locText("alignCameraByOriginMarker.alignmentComplete"));
+		ImGui::TextWrapped("%s", locText("alignCameraByOriginMarker.verifyAxesOverlay"));
 		ImGui::Spacing();
-		if (ImGui::Button("Restart"))
+		if (ImGui::Button(locLabel("alignCameraByOriginMarker.restart")))
 		{
 			if (OnRestartEvent)
 				OnRestartEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnReturnEvent)
 				OnReturnEvent();
@@ -77,9 +80,9 @@ void GuiPanel_AlignCameraByOriginMarker::onGui()
 
 	case eAlignCameraByOriginMarkerMenuState::failedVideoStart:
 	{
-		ImGui::TextWrapped("Error: Failed to start video stream.");
+		ImGui::TextWrapped("%s", locText("alignCameraByOriginMarker.failedVideoStart"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();

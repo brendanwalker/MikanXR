@@ -191,6 +191,48 @@ public:
 		return MikanComponentPtr();
 	}
 
+	virtual MikanComponentPtr addNewObjectWithDefaultDefinition(const std::string& primaryComponentClass) override
+	{
+		if (primaryComponentClass == TComponent::k_componentClassName)
+		{
+			return addNewObjectByTypedDefinition();
+		}
+		return MikanComponentPtr();
+	}
+
+	virtual MikanComponentPtr recreateObjectFromDefinitionJson(const configuru::Config& definitionConfig) override
+	{
+		SystemDefinitionPtr systemDefinition= getTypedDefinition();
+		assert(systemDefinition);
+
+		// Always a fresh definition instance built from the JSON, carrying
+		// its original component id
+		ComponentDefinitionPtr componentDefinition= systemDefinition->allocateDefinitionFromJSON(definitionConfig);
+		if (!componentDefinition)
+			return MikanComponentPtr();
+
+		const TID componentId= (TID)componentDefinition->getComponentId();
+		if (getComponentById(componentId) != nullptr || systemDefinition->getDefinitionById(componentId) != nullptr)
+		{
+			// The id is still live; refusing beats silently leaking a duplicate
+			return MikanComponentPtr();
+		}
+
+		// Runs the full object factory: init, postInit (which reattaches by
+		// parent_transform_id), and addDefinition (which fires the pool change)
+		ComponentPtr component= createObjectFromDefinition(componentDefinition);
+		if (component)
+		{
+			MikanObjectPtr objectPtr= component->getOwnerObject();
+			assert(objectPtr);
+
+			if (OnNewObjectFinalized)
+				OnNewObjectFinalized(shared_from_this(), objectPtr);
+		}
+
+		return component;
+	}
+
 	ComponentPtr addNewObjectByTypedDefinition(DefinitionInitFunction definitionInit= {})
 	{
 		SystemDefinitionPtr systemDefinition= getTypedDefinition();
@@ -237,6 +279,11 @@ public:
 			assert(systemDefinition);
 			MikanObjectPtr objectPtr= component->getOwnerObject();
 			assert(objectPtr);
+
+			// Notify listeners while the definition still holds pre-destroy
+			// state (dispose rewrites parenting on it and its children)
+			if (OnObjectWillBeDestroyed)
+				OnObjectWillBeDestroyed(shared_from_this(), component);
 
 			return
 				// 1. Remove the object from the system first (fires object/component disposed events)

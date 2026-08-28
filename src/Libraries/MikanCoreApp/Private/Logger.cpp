@@ -94,14 +94,9 @@ void log_init(const LoggerSettings& settings)
 			g_file_stream= new std::ofstream(settings.log_filename, std::ofstream::out);
 		}
 
-		if (settings.log_callback != nullptr)
-		{
-			g_logger_callback= settings.log_callback;
-		}
-		else
-		{
-			g_logger_callback= log_default_callback;
-		}
+		// A supplied callback is an extra sink, not a replacement: the standard
+		// streams and the log file stay connected either way
+		g_logger_callback= settings.log_callback;
 
 		g_logger_mutex= new std::mutex();
 
@@ -177,11 +172,16 @@ public:
 
 	void write_line()
 	{
-		if (g_is_initialized && g_logger_callback != nullptr && m_hasWrittenLog && log_can_emit_level(m_level))
+		if (g_is_initialized && m_hasWrittenLog && log_can_emit_level(m_level))
 		{
 			const std::string line= m_lineBuffer.str();
 
-			(*g_logger_callback)((int)m_level, line.c_str());
+			log_default_callback((int)m_level, line.c_str());
+
+			if (g_logger_callback != nullptr)
+			{
+				(*g_logger_callback)((int)m_level, line.c_str());
+			}
 		}
 	}
 };

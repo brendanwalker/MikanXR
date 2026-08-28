@@ -20,12 +20,17 @@ public:
 	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) override;
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 
-	virtual void renderToolbar() override;
-
 	// -- CompositorNodeEditorWindow ----
 	bool bindCompositorComponent(CompositorComponentPtr compositorComponent);
 
+	// Editor pause of compositor evaluation (the Compositor menu's Run item)
+	bool setCompositorRunning(bool bRunning);
+	bool isCompositorRunning() const;
+
+protected:
+	virtual void onGraphRestored() override;
+	virtual void renderMenuBarExtras() override;
+
 protected:
 	CompositorComponentPtr m_compositorComponent;
-	bool m_isRunningCompositor= true;
 };

@@ -7,8 +7,11 @@
 #include "EditorObjectSystem.h"
 #include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
+#include "IMkState.h"
 #include "InputManager.h"
 #include "IEditorWindow.h"
+#include "MkScopedState.h"
+#include "MkStateStack.h"
 #include "MathGLM.h"
 #include "MikanCamera.h"
 #include "MikanObject.h"
@@ -56,6 +59,13 @@ float GizmoTransformComponent::computeDisplayScale() const
 	if (!camera)
 		return 1.0f;
 
+	// Orthographic on-screen size depends on the view extent, not the camera
+	// distance (the ortho eye point sits far out along the view axis)
+	if (camera->isOrthographic())
+	{
+		return glm::max(camera->getOrthoExtent() * k_gizmoOrthoScreenSizeFactor, 0.001f);
+	}
+
 	const glm::vec3 cameraPos= camera->getCameraPositionFromViewMatrix();
 	const glm::vec3 gizmoPos= getWorldLocation();
 	const float distance= glm::length(cameraPos - gizmoPos);
@@ -87,6 +97,42 @@ void GizmoTransformComponent::bindInput()
 
 void GizmoTransformComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
+	if (m_gizmoMode == eGizmoMode::none)
+		return;
+
+	MkStateStack& stateStack= graphicsContext->getMkStateStack();
+
+	// Occluded pass: queued without the depth test, so the line renderer routes
+	// it to the overlay batch that draws first. The depth tested pass then
+	// overwrites it wherever the gizmo is visible, leaving only the occluded
+	// portion dimmed.
+	{
+		MkScopedState scopedState= stateStack.createScopedState("gizmoOccludedPass");
+		scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
+
+		GizmoDrawStyle drawStyle;
+		drawStyle.lineWidth= k_gizmoLineWidth;
+		drawStyle.colorScale= k_gizmoOccludedColorScale;
+		drawStyle.bDrawLabels= false;
+
+		renderActiveGizmo(graphicsContext, viewportCamera, drawStyle);
+	}
+
+	// Visible pass: depth tested at full brightness
+	{
+		MkScopedState scopedState= stateStack.createScopedState("gizmoVisiblePass");
+		scopedState.getStackState()->enableFlag(eMkStateFlagType::depthTest);
+
+		GizmoDrawStyle drawStyle;
+		drawStyle.lineWidth= k_gizmoLineWidth;
+
+		renderActiveGizmo(graphicsContext, viewportCamera, drawStyle);
+	}
+}
+
+void GizmoTransformComponent::renderActiveGizmo(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+												const GizmoDrawStyle& drawStyle) const
+{
 	GizmoTranslateComponentPtr translatePtr= m_translateComponent.lock();
 	GizmoRotateComponentPtr rotatePtr= m_rotateComponent.lock();
 	GizmoScaleComponentPtr scalePtr= m_scaleComponent.lock();
@@ -94,13 +140,13 @@ void GizmoTransformComponent::customRender(IMkGraphicsContext* graphicsContext, 
 	switch (m_gizmoMode)
 	{
 	case eGizmoMode::rotate:
-		rotatePtr->customRender(graphicsContext, viewportCamera);
+		rotatePtr->customRender(graphicsContext, viewportCamera, drawStyle);
 		break;
 	case eGizmoMode::translate:
-		translatePtr->customRender(graphicsContext, viewportCamera);
+		translatePtr->customRender(graphicsContext, viewportCamera, drawStyle);
 		break;
 	case eGizmoMode::scale:
-		scalePtr->customRender(graphicsContext, viewportCamera);
+		scalePtr->customRender(graphicsContext, viewportCamera, drawStyle);
 		break;
 	}
 }

@@ -13,9 +13,11 @@
 #include "IMkTexture.h"
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "ProjectManager.h"
 #include "StringUtils.h"
 #include "TextureSourceQueries.h"
@@ -33,8 +35,7 @@
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- ClientTextureNodeConfig -----
 configuru::Config ColorTextureSourceNodeConfig::writeToJSON()
@@ -301,14 +302,9 @@ void ColorTextureSourceNode::evaluateFlippedColorTexture(IMkState* glState, IMkT
 	}
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> ColorTextureSourceNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 ColorTextureSourceNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	return ImVec4(150.f / 255.f, 130.f / 255.f, 110.f / 255.f, 225.f / 255.f);
 }
 
 std::string ColorTextureSourceNode::editorGetTitle() const
@@ -326,11 +322,10 @@ std::string ColorTextureSourceNode::editorGetTitle() const
 
 void ColorTextureSourceNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	// Texture Preview
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
@@ -347,22 +342,27 @@ void ColorTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 
 void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Client Texture Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.clientTextureHeader")))
 	{
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("textureSourceColorType", "Type",
-													 "colorRGB\0colorRGBA\0shadowRGB\0shadowRGBA\0", iTextureType,
-													 editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "textureSourceColorType", locText("nodes.type"),
+											  "colorRGB\0colorRGBA\0shadowRGB\0shadowRGBA\0", iTextureType))
 		{
 			m_clientTextureType= (eTextureSourceColorType)iTextureType;
 		}
 
 		// No-client fallback texture (identity when no client renderer is attached)
+		const std::string fallbackModeItems=
+			std::string(locText("nodes.auto")) + '\0' + locText("nodes.fallbackTransparentBlack") + '\0'
+			+ locText("nodes.fallbackOpaqueBlack") + '\0' + locText("nodes.fallbackOpaqueWhite") + '\0';
 		int iFallbackMode= (int)m_fallbackMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("colorTextureFallbackMode", "No-Client Fallback",
-													 "Auto\0Transparent Black\0Opaque Black\0Opaque White\0",
-													 iFallbackMode, editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "colorTextureFallbackMode",
+											  locText("nodes.noClientFallback"), fallbackModeItems.c_str(),
+											  iFallbackMode))
 		{
 			m_fallbackMode= (eColorTextureFallbackMode)iFallbackMode;
 		}
@@ -375,15 +375,16 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			TextureSourceComponentPtr TextureSourceComponent= getTextureSourceComponent();
 
 			int selectedIndex= dataSource.getEntryIndex(TextureSourceComponent);
-			if (NodeEditorUI::DrawComboBoxProperty("textureSourceIndex", "Source", &dataSource, selectedIndex,
-												   editorState.styleManager))
+			if (MkGui::drawComboBoxProperty(propertyStyle, "textureSourceIndex", locText("nodes.source"), &dataSource,
+											selectedIndex))
 			{
 				m_textureSourceComponent= dataSource.getEntryAtIndex(selectedIndex);
 			}
 		}
 
 		// Vertical Flip
-		NodeEditorUI::DrawCheckBoxProperty("drawColorTextureVerticalFlip", "Vertical Flip", m_bVerticalFlip);
+		MkGui::drawCheckBoxProperty(propertyStyle, "drawColorTextureVerticalFlip", locText("nodes.verticalFlip"),
+									m_bVerticalFlip);
 	}
 }
 

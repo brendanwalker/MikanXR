@@ -22,6 +22,18 @@ public:
 		m_shaderCodeHash= hasher(vertexCode + fragmentCode);
 	}
 
+	GlShaderCode(const std::string& programName, const std::string& vertexCode, const std::string& geometryCode,
+				 const std::string& fragmentCode)
+		: m_programName(programName)
+		, m_vertexShaderCode(vertexCode)
+		, m_geometryShaderCode(geometryCode)
+		, m_fragmentShaderCode(fragmentCode)
+	{
+		std::hash<std::string> hasher;
+
+		m_shaderCodeHash= hasher(vertexCode + geometryCode + fragmentCode);
+	}
+
 	virtual const std::string& getProgramName() const override { return m_programName; }
 
 	virtual void setProgramName(const std::string& inName) override { m_programName= inName; }
@@ -31,6 +43,10 @@ public:
 	virtual const std::filesystem::path& getVertexShaderFilePath() const override { return m_vertexShaderFilePath; }
 
 	virtual void setVertexShaderFilePath(const std::filesystem::path& path) override { m_vertexShaderFilePath= path; }
+
+	virtual const char* getGeometryShaderCode() const override { return m_geometryShaderCode.c_str(); }
+
+	virtual bool hasGeometryShaderCode() const override { return m_geometryShaderCode.size() > 0; }
 
 	virtual const char* getFragmentShaderCode() const override { return m_fragmentShaderCode.c_str(); }
 
@@ -77,6 +93,7 @@ protected:
 	std::string m_programName;
 	std::string m_vertexShaderCode;
 	std::filesystem::path m_vertexShaderFilePath;
+	std::string m_geometryShaderCode;
 	std::string m_fragmentShaderCode;
 	std::filesystem::path m_fragmentShaderFilePath;
 	std::vector<IMkVertexAttributeConstPtr> m_vertexAttributes;
@@ -95,4 +112,10 @@ IMkShaderCodePtr createIMkShaderCode(const std::string& programName, const std::
 									 const std::string& fragmentCode)
 {
 	return std::make_shared<GlShaderCode>(programName, vertexCode, fragmentCode);
+}
+
+IMkShaderCodePtr createIMkShaderCode(const std::string& programName, const std::string& vertexCode,
+									 const std::string& geometryCode, const std::string& fragmentCode)
+{
+	return std::make_shared<GlShaderCode>(programName, vertexCode, geometryCode, fragmentCode);
 }

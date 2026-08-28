@@ -1,7 +1,11 @@
 #include "GuiPanel_EntityAccessor.h"
+#include "AppStage.h"
 #include "AssetReferencePropertyMetaData.h"
 #include "EnumPropertyMetaData.h"
 #include "CommonConfig.h"
+#include "IEditorWindow.h"
+#include "LocText.h"
+#include "TransactionHistory.h"
 #include "MikanVariantTypes.h"
 #include "MkGuiStyleManager.h"
 #include "StringUtils.h"
@@ -34,7 +38,6 @@ bool GuiPanel_EntityAccessor::init(const std::string& modelName,
 	clearEntityAccessor();
 
 	m_modelName= modelName;
-	m_propertyDescriptors.clear();
 	m_orderedPropertyDescriptors.clear();
 	m_functionDescriptors.clear();
 	m_onConstructCallback= onConstructCallback;
@@ -49,13 +52,14 @@ bool GuiPanel_EntityAccessor::init(const std::string& modelName,
 		if (descriptor->isUIHidden() && !m_propertyRenderers.contains(propertyName))
 			continue;
 
-		m_propertyDescriptors.insert({propertyName, descriptor});
-		m_orderedPropertyDescriptors.push_back(descriptor);
+		m_orderedPropertyDescriptors.push_back(
+			{descriptor, locResolveDescriptorKey(m_modelName, "properties", propertyName)});
 	}
 
 	for (const FunctionDescriptorConstPtr& descriptor : functionDescriptors)
 	{
-		m_functionDescriptors.push_back(descriptor);
+		m_functionDescriptors.push_back(
+			{descriptor, locResolveDescriptorKey(m_modelName, "functions", descriptor->getFunctionName())});
 	}
 
 	return true;
@@ -64,7 +68,6 @@ bool GuiPanel_EntityAccessor::init(const std::string& modelName,
 void GuiPanel_EntityAccessor::dispose()
 {
 	clearEntityAccessor();
-	m_propertyDescriptors.clear();
 	m_orderedPropertyDescriptors.clear();
 	m_functionDescriptors.clear();
 	m_propertyRenderers.clear();
@@ -133,8 +136,9 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 	}
 
 	// Render auto-generated property widgets
-	for (const PropertyDescriptorConstPtr& desc : m_orderedPropertyDescriptors)
+	for (const LabeledDescriptor<PropertyDescriptorConstPtr>& entry : m_orderedPropertyDescriptors)
 	{
+		const PropertyDescriptorConstPtr& desc= entry.descriptor;
 		const std::string& propName= desc->getName();
 		const std::string uiFieldId= accessor->makePropertyUIIdentifier(propName);
 
@@ -146,6 +150,14 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		auto rendererIt= m_propertyRenderers.find(propName);
 		if (rendererIt != m_propertyRenderers.end() && rendererIt->second(desc))
 			continue;
+
+		// Resolved after the custom renderer runs, since a renderer that handled
+		// the property drew its own label. A property with no label key falls
+		// back to its raw id: that only happens for UI-hidden properties whose
+		// custom renderer declined (no entries to pick from, component gone),
+		// because the coverage guard requires a key for every property that
+		// always draws a generic widget.
+		const char* label= entry.labelKey.empty() ? propName.c_str() : locText(entry.labelKey.c_str());
 
 		const bool isReadOnly= desc->isReadOnly();
 
@@ -164,7 +176,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		if (variantType == MikanVariantType::BOOL)
 		{
 			bool v= value.getBoolValue();
-			if (MkGui::drawCheckBoxProperty(m_defaultGuiStyle, uiFieldId, propName, v))
+			if (MkGui::drawCheckBoxProperty(m_defaultGuiStyle, uiFieldId, label, v))
 			{
 				newValue= v;
 				bValueChanged= true;
@@ -176,13 +188,17 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 			const auto* enumMeta= desc->getMetaDataOfType<EnumPropertyMetaData>();
 			if (enumMeta)
 			{
+				// The metadata holds localization keys for the choices, not display text
+				std::vector<std::string> choices;
+				choices.reserve(enumMeta->getStrings().size());
+				for (const std::string& choiceKey : enumMeta->getStrings())
+					choices.push_back(locText(choiceKey.c_str()));
+
 				bool changed= false;
 				if (enumMeta->getDisplayStyle() == eEnumDisplayStyle::RadioButtons)
-					changed= MkGui::drawRadioButtonsProperty(m_defaultGuiStyle, uiFieldId, propName,
-															 enumMeta->getStrings(), v);
+					changed= MkGui::drawRadioButtonsProperty(m_defaultGuiStyle, uiFieldId, label, choices, v);
 				else
-					changed= MkGui::drawEnumComboBoxProperty(m_defaultGuiStyle, uiFieldId, propName,
-															 enumMeta->getStrings(), v);
+					changed= MkGui::drawEnumComboBoxProperty(m_defaultGuiStyle, uiFieldId, label, choices, v);
 				if (changed)
 				{
 					newValue= v;
@@ -191,7 +207,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 			}
 			else
 			{
-				if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, propName, v))
+				if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, label, v))
 				{
 					newValue= v;
 					bValueChanged= true;
@@ -201,7 +217,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		else if (variantType == MikanVariantType::LONG)
 		{
 			int v= static_cast<int>(value.getLongValue());
-			if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, propName, v))
+			if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, label, v))
 			{
 				newValue= static_cast<long>(v);
 				bValueChanged= true;
@@ -210,7 +226,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		else if (variantType == MikanVariantType::FLOAT)
 		{
 			float v= value.getFloatValue();
-			if (MkGui::drawFloatProperty(m_defaultGuiStyle, uiFieldId, propName, v))
+			if (MkGui::drawFloatProperty(m_defaultGuiStyle, uiFieldId, label, v))
 			{
 				newValue= v;
 				bValueChanged= true;
@@ -219,7 +235,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		else if (variantType == MikanVariantType::DOUBLE)
 		{
 			float vf= static_cast<float>(value.getDoubleValue());
-			if (MkGui::drawFloatProperty(m_defaultGuiStyle, uiFieldId, propName, vf))
+			if (MkGui::drawFloatProperty(m_defaultGuiStyle, uiFieldId, label, vf))
 			{
 				newValue= static_cast<double>(vf);
 				bValueChanged= true;
@@ -231,7 +247,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 			const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
 			if (assetMeta)
 			{
-				if (MkGui::drawFilePathProperty(m_defaultGuiStyle, uiFieldId, propName, v))
+				if (MkGui::drawFilePathProperty(m_defaultGuiStyle, uiFieldId, label, v))
 				{
 					const AssetReferenceFactory* factory= assetMeta->getFactory();
 					const char* picked= tinyfd_openFileDialog(
@@ -248,7 +264,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 			{
 				char buf[256];
 				strncpy_s(buf, sizeof(buf), v.c_str(), _TRUNCATE);
-				if (MkGui::drawStringProperty(m_defaultGuiStyle, uiFieldId, propName, buf, sizeof(buf)))
+				if (MkGui::drawStringProperty(m_defaultGuiStyle, uiFieldId, label, buf, sizeof(buf)))
 				{
 					newValue= buf;
 					bValueChanged= true;
@@ -259,7 +275,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		{
 			const MikanVector2f& vec= value.getVector2fValue();
 			float v[2]= {vec.x, vec.y};
-			if (MkGui::drawFloat2Property(m_defaultGuiStyle, uiFieldId, propName, v))
+			if (MkGui::drawFloat2Property(m_defaultGuiStyle, uiFieldId, label, v))
 			{
 				newValue= MikanVector2f{v[0], v[1]};
 				bValueChanged= true;
@@ -269,7 +285,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		{
 			const MikanVector3f& vec= value.getVector3fValue();
 			float v[3]= {vec.x, vec.y, vec.z};
-			if (MkGui::drawFloat3Property(m_defaultGuiStyle, uiFieldId, propName, v))
+			if (MkGui::drawFloat3Property(m_defaultGuiStyle, uiFieldId, label, v))
 			{
 				newValue= MikanVector3f{v[0], v[1], v[2]};
 				bValueChanged= true;
@@ -279,7 +295,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		{
 			const MikanVector4f& vec= value.getVector4fValue();
 			float v[4]= {vec.x, vec.y, vec.z, vec.w};
-			if (MkGui::drawFloat4Property(m_defaultGuiStyle, uiFieldId, propName, v))
+			if (MkGui::drawFloat4Property(m_defaultGuiStyle, uiFieldId, label, v))
 			{
 				newValue= MikanVector4f{v[0], v[1], v[2], v[3]};
 				bValueChanged= true;
@@ -288,7 +304,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		else if (variantType == MikanVariantType::INT_ARRAY)
 		{
 			const auto& intList= value.getIntArrayValue();
-			ImGui::LabelText(propName.c_str(), "[%d items]", (int)intList.size());
+			ImGui::LabelText(label, locText("entityAccessor.itemsCountFmt"), (int)intList.size());
 			for (int i= 0; i < (int)intList.size(); ++i)
 			{
 				ImGui::Text("  [%d] %d", i, intList[i]);
@@ -298,6 +314,25 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		if (isReadOnly)
 		{
 			ImGui::EndDisabled();
+		}
+
+		// Bracket an in-progress widget edit (a slider drag, typing in an
+		// input field) as one transaction gesture, keeping the per-frame
+		// value writes flowing for live preview
+		if (!isReadOnly)
+		{
+			TransactionHistory* transactionHistory= m_ownerAppStage->getOwnerWindow()->getTransactionHistory();
+			if (transactionHistory != nullptr)
+			{
+				if (ImGui::IsItemActive())
+				{
+					transactionHistory->beginGesture("gui:" + propName);
+				}
+				else if (ImGui::IsItemDeactivated())
+				{
+					transactionHistory->endGesture();
+				}
+			}
 		}
 
 		if (bValueChanged && !isReadOnly && accessor)
@@ -323,8 +358,10 @@ void GuiPanel_EntityAccessor::drawFunctionsGui(const std::set<std::string>& func
 	if (!m_functionDescriptors.empty())
 	{
 		ImGui::Separator();
-		for (const FunctionDescriptorConstPtr& funcDesc : m_functionDescriptors)
+		for (const LabeledDescriptor<FunctionDescriptorConstPtr>& entry : m_functionDescriptors)
 		{
+			const FunctionDescriptorConstPtr& funcDesc= entry.descriptor;
+
 			// If a function is UI hidden, skip it
 			if (funcDesc->isUIHidden())
 			{
@@ -337,7 +374,8 @@ void GuiPanel_EntityAccessor::drawFunctionsGui(const std::set<std::string>& func
 				continue;
 			}
 
-			if (ImGui::Button(funcDesc->getDisplayName().c_str()))
+			if (ImGui::Button(entry.labelKey.empty() ? funcDesc->getDisplayName().c_str()
+													 : locLabel(entry.labelKey.c_str())))
 			{
 				const std::string funcName= funcDesc->getFunctionName();
 				addDeferredGuiEvent(

@@ -8,15 +8,18 @@ The foundational contract in MikanXR: every struct and enum in `src/Libraries/Mi
 
 Two DLLs define everything that crosses the process boundary:
 
-- `src/Libraries/MikanClientCore` — the low-level client. A C API (`Public/MikanCoreCAPI.h`: `Mikan_Initialize`, `Mikan_Connect`, `Mikan_SendRequestJSON`, `Mikan_FetchNextEvent`, render target texture functions) plus the core types and enums in `Public/MikanCoreTypes.h` (`MikanCoreResult`, `MikanClientGraphicsApi`, `MikanRenderTargetDescriptor`, ...).
-- `src/Libraries/MikanClientAPI` — the typed C++ API. `Public/MikanAPI.h` declares `IMikanAPI` (`connect`, `sendRequest`, `fetchNextEvent`). The rest of `Public/` is one header per domain holding the request/response/event structs and shared value types: `Mikan*Requests.h`, `Mikan*Events.h`, `Mikan*Types.h` (camera, stencil, stage, marker, light, property, script, shape, texture source, video source, remote control, ...).
+- `src/Libraries/MikanClientCore` is the low-level client. A C API (`Public/MikanCoreCAPI.h`: `Mikan_Initialize`, `Mikan_Connect`, `Mikan_SendRequestJSON`, `Mikan_FetchNextEvent`, render target texture functions) plus the core types and enums in `Public/MikanCoreTypes.h` (`MikanCoreResult`, `MikanClientGraphicsApi`, `MikanRenderTargetDescriptor`, ...).
+
+- `src/Libraries/MikanClientAPI`: the typed C++ API. `Public/MikanAPI.h` declares `IMikanAPI` (`connect`, `sendRequest`, `fetchNextEvent`). The rest of `Public/` is one header per domain holding the request/response/event structs and shared value types: `Mikan*Requests.h`, `Mikan*Events.h`, `Mikan*Types.h` (camera, stencil, stage, marker, light, property, script, shape, texture source, video source, remote control, ...).
 
 Base types live in `Public/MikanAPITypes.h`: `MikanRequest` (`requestTypeName`, `requestId`), `MikanResponse` (`responseTypeName`, `requestId`, `resultCode`), `MikanEvent` (`eventTypeName`). Every concrete request/response/event derives from one of these.
 
 Rules that follow from this being the wire contract:
 
 - The wire type name of a message is the C++ struct name. Each struct's constructor stamps its type-name field via `MIKAN_REQUEST_TYPE_INFO_INIT` / `MIKAN_RESPONSE_TYPE_INFO_INIT` / `MIKAN_EVENT_TYPE_INFO_INIT`, which read `staticGetArchetype().getName()` from Refureku. Renaming a struct renames the message on the wire.
+
 - Enum values must stay numerically stable across versions. `MikanAPIResult` in `MikanAPITypes.h` says so explicitly, and its low range must stay in sync with `MikanCoreResult` in `MikanCoreTypes.h`.
+
 - Strings in these structs are `Serialization::String`, never `std::string` (see the serialization section).
 
 ---
@@ -53,9 +56,13 @@ enum class ENUM(Serialization::CodeGenModule("MikanAPITypes")) MikanAPIResult
 The moving parts:
 
 - `STRUCT(...)` / `ENUM(...)` / `FIELD()` / `CLASS()` are the Refureku parse markers. Only marked entities are reflected (the `shouldParseAll*` flags in `RefurekuSettings.toml` are false, except enum values).
+
 - `Serialization::CodeGenModule("Name")` (defined in `MikanSerialization/Public/SerializationProperty.h`) is an `rfk::Property` that tags the entity with an output-module name. The codegen tool groups types by this tag; one tag becomes one generated `.cs`/`.ts` file.
+
 - Each header includes its generated `<Name>.rfkh.h` and ends with `File_<Name>_GENERATED`; each struct body carries `<Name>_GENERATED`. These expand to the reflection metadata.
+
 - Each library has a `RefurekuSettings.toml` listing exactly which headers are parsed (`toProcessFiles`) and where generated files go (`build/RfkGenerated/<LibraryName>`). A new header with wire types must be added to that list or it is invisible to reflection and codegen.
+
 - CMake runs the generator before compiling: `src/Libraries/MikanClientAPI/CMakeLists.txt` defines a `MikanClientAPIReflection` custom target that runs `RefurekuGenerator.exe` on the toml, and `MikanClientAPI` depends on it. `MikanClientCore` and `MikanSerialization` follow the same pattern.
 
 ---
@@ -67,6 +74,7 @@ The moving parts:
 How it runs (all wired in CMake, not manual):
 
 - `bindings/csharp/CMakeLists.txt` defines the custom target `MikanCSharpCodeGen`, which runs `MikanClientCodeGen` with `bindings/csharp/CSharpCodeGenConfig.json` (`"output_path": "Generated"`). The `MikanClientCSharp` project depends on it, so building the C# bindings regenerates first. C# only builds under the Visual Studio generator (the project is `LANGUAGES CSharp`), so it is skipped under Ninja and in CI.
+
 - `bindings/typescript/CMakeLists.txt` defines `MikanTypeScriptCodeGen`, which runs the tool with `TypescriptCodeGenConfig.json` (`"output_path": "types"`), then `MikanTypeScriptNpmInstall` (`npm install`), then `MikanClientTypeScript` (`npm run build`) compile to `dist/`.
 
 The generated outputs are checked into git (`bindings/csharp/CMakeLists.txt` carries a TODO about removing that need). This creates the hard rule:
@@ -80,7 +88,9 @@ The generated outputs are checked into git (`bindings/csharp/CMakeLists.txt` car
 `src/Editor/Interprocess/WebsocketInterprocessMessageServer` hosts the socket (IXWebSocket, `ws://127.0.0.1`, port `8080`, protocol prefix `Mikan-`, all `#define`d in `InterprocessMessageServerInterface.h`).
 
 - Requests are JSON text frames. `WebsocketInterprocessMessageServer::processRequests` SAX-scans the incoming string for `requestTypeName` and dispatches to the handler registered under that exact name; `requestId` is optional (fire-and-forget when absent). An unregistered type name gets a plain `MikanResponse` with `MikanAPIResult::UnknownFunction`.
+
 - Responses fill a `ClientResponse` with either `utf8String` (sent as a text frame) or `binaryData` (sent as a binary frame). Binary responses use the `BinarySerializer` path; JSON responses use `Serialization::serializeToJsonString`.
+
 - Events are server-to-client JSON pushes. `MikanServer::publishMikanJsonEvent` fans a serialized `MikanEvent` subclass out to every connection. Clients poll them off a queue via `IMikanAPI::fetchNextEvent` / `Mikan_FetchNextEvent`; there is no per-event acknowledgement.
 
 ---
@@ -121,9 +131,9 @@ Recipe for a new remote-controllable capability (do not modify request routing i
 
 A client-facing property must be wired consistently in three places:
 
-1. **Values struct** — the `Mikan*Values` struct in `MikanClientAPI` (e.g. `MikanAnchorComponentValues` in `MikanAnchorTypes.h`) with a `FIELD()` per property. This is what `ComponentGetValuesRequest`/`SystemGetValuesRequest` return, filled generically by `Serialization::serializeFromEntity` (`src/Editor/Server/ServerEntitySerializer.cpp`), whose `EntityAccessorReadVisitor` maps each field type to a required `MikanVariantType`.
-2. **Descriptor** — the class's static `getPropertyDescriptors` must advertise a `PropertyDescriptor` (`src/Editor/ECS/PropertyInterface.h`) with the same name and the exact `MikanVariantType` the serializer demands. Descriptors default to `isClientAPIHidden() == true`; a descriptor left hidden is invisible to clients and exempt from the field check.
-3. **`getPropertyValue`** — the component/system's `IPropertyInterface::getPropertyValue` must answer for that name with a `MikanVariant` of that type, since `EntityAccessorReadVisitor` fills every values-struct field by calling it.
+1. **Values struct**: the `Mikan*Values` struct in `MikanClientAPI` (e.g. `MikanAnchorComponentValues` in `MikanAnchorTypes.h`) with a `FIELD()` per property. This is what `ComponentGetValuesRequest`/`SystemGetValuesRequest` return, filled generically by `Serialization::serializeFromEntity` (`src/Editor/Server/ServerEntitySerializer.cpp`), whose `EntityAccessorReadVisitor` maps each field type to a required `MikanVariantType`.
+2. **Descriptor**: the class's static `getPropertyDescriptors` must advertise a `PropertyDescriptor` (`src/Editor/ECS/PropertyInterface.h`) with the same name and the exact `MikanVariantType` the serializer demands. Descriptors default to `isClientAPIHidden() == true`; a descriptor left hidden is invisible to clients and exempt from the field check.
+3. **`getPropertyValue`**: the component/system's `IPropertyInterface::getPropertyValue` must answer for that name with a `MikanVariant` of that type, since `EntityAccessorReadVisitor` fills every values-struct field by calling it.
 
 The guard test is `src/Editor/Server/Test/ClientApiPropertySchemaTests.cpp`, run from `CmdApp::runTests` via `MikanCmd.exe -runTests` (see [commands.md](./commands.md)). For every entry in `k_schemaTestEntries` (each `SCHEMA_ENTRY(EditorClass, ValuesStruct)` pair, covering all components and object systems) it:
 

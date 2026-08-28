@@ -1,4 +1,5 @@
 #include "CameraComponent.h"
+#include "IconsForkAwesome.h"
 #include "DepthMaskNode.h"
 #include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
@@ -12,10 +13,12 @@
 #include "IMkTriangulatedMesh.h"
 #include "MkMaterialInstance.h"
 #include "IMkGraphicsContext.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "VideoSourceComponent.h"
 
 #include "QuadStencilComponent.h"
@@ -36,8 +39,7 @@
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -245,11 +247,10 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 
 void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 
@@ -273,12 +274,17 @@ void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 void DepthMaskNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	if (NodeEditorUI::DrawPropertySheetHeader("Depth Mask Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.depthMaskHeader")))
 	{
-		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableQuadStencil", "Disable Quads", m_bDisableQuadStencil);
-		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableBoxStencil", "Disable Boxes", m_bDisableBoxStencil);
-		NodeEditorUI::DrawCheckBoxProperty("DepthMaskNodeDisableModelStencil", "Disable Models",
-										   m_bDisableModelStencil);
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+		MkGui::drawCheckBoxProperty(propertyStyle, "DepthMaskNodeDisableQuadStencil", locText("nodes.disableQuads"),
+									m_bDisableQuadStencil);
+		MkGui::drawCheckBoxProperty(propertyStyle, "DepthMaskNodeDisableBoxStencil", locText("nodes.disableBoxes"),
+									m_bDisableBoxStencil);
+		MkGui::drawCheckBoxProperty(propertyStyle, "DepthMaskNodeDisableModelStencil", locText("nodes.disableModels"),
+									m_bDisableModelStencil);
 	}
 }
 
@@ -577,3 +583,5 @@ NodePtr DepthMaskNodeFactory::createNode(const NodeEditorState& editorState) con
 
 	return node;
 }
+
+const char* DepthMaskNode::editorGetHeaderIcon() const { return ICON_FK_ADJUST; }

@@ -2,6 +2,7 @@
 #include "Shared/GuiPanel_CompositorComponent.h"
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 
 #include "imgui.h"
@@ -35,8 +36,8 @@ void GuiPanel_CompositorComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
-					compositorComp->makePropertyUIIdentifier(CompositorDefinition::k_cameraIdPropertyId), "Camera",
-					&m_cameraDataSource, selectedIndex))
+					compositorComp->makePropertyUIIdentifier(CompositorDefinition::k_cameraIdPropertyId),
+					locText("componentPanel.camera"), &m_cameraDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -72,7 +73,7 @@ void GuiPanel_CompositorComponent::onConstruct()
 				if (MkGui::drawFilePathProperty(m_defaultGuiStyle,
 												compositorComp->makePropertyUIIdentifier(
 													CompositorComponent::k_addNewCompositorGraphFunctionId),
-												"Graph", scriptPath))
+												locText("componentPanel.graph"), scriptPath))
 				{
 					addDeferredGuiEvent([compositorComp]() { compositorComp->selectCompositorGraph(); });
 				}
@@ -97,7 +98,8 @@ void GuiPanel_CompositorComponent::onConstruct()
 			}
 			else
 			{
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "Graph", "<No Graph>");
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.graph"),
+											  locText("componentPanel.noGraph"));
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(m_defaultGuiStyle,
 										   compositorComp->makePropertyUIIdentifier(

@@ -63,6 +63,21 @@ enum class eUniformSemantic : int
 	lumaTexture,       // 8-bit single-channel NV12 luma (Y) plane
 	chromaTexture,     // 8-bit two-channel NV12 chroma (UV) plane, half resolution
 
+	// Order-2 spherical harmonic environment, one RGB coefficient per slot.
+	// Nine separate uniforms rather than an array because the uniform binding
+	// layer is one semantic per uniform. Deliberately mirrors the SH0..SH8
+	// parameters on the Unreal skydome material so the two evaluations can be
+	// compared directly.
+	shCoefficient0,
+	shCoefficient1,
+	shCoefficient2,
+	shCoefficient3,
+	shCoefficient4,
+	shCoefficient5,
+	shCoefficient6,
+	shCoefficient7,
+	shCoefficient8,
+
 	COUNT
 };
 

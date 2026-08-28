@@ -1,5 +1,8 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_USBVideoSourceComponent.h"
+#include "IEditorWindow.h"
+#include "LocText.h"
+#include "TransactionHistory.h"
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
 
@@ -39,7 +42,7 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_desiredDevicePathPropertyId),
-					"USB Device", &m_devicePathDataSource, selectedIndex))
+					locText("componentPanel.usbDevice"), &m_devicePathDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -71,7 +74,7 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoResolutionPropertyId),
-					"Resolution", &m_resolutionDataSource, selectedIndex))
+					locText("componentPanel.resolution"), &m_resolutionDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -109,7 +112,7 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
 					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoFrameRatePropertyId),
-					"Frame Rate", &m_frameRateDataSource, selectedIndex))
+					locText("componentPanel.frameRate"), &m_frameRateDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -146,8 +149,8 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
-					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoFormatPropertyId), "Format",
-					&m_formatDataSource, selectedIndex))
+					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoFormatPropertyId),
+					locText("componentPanel.format"), &m_formatDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -204,6 +207,21 @@ void GuiPanel_USBVideoSourceComponent::onGui()
 		{
 			addDeferredGuiEvent([usbComp, settingType, fraction]()
 								{ usbComp->setVideoSettingAsFloatFraction(settingType, fraction); });
+		}
+
+		// Bracket the slider drag as one transaction gesture while keeping
+		// the per-frame writes flowing for live camera preview
+		TransactionHistory* transactionHistory= getOwnerAppStage()->getOwnerWindow()->getTransactionHistory();
+		if (transactionHistory != nullptr)
+		{
+			if (ImGui::IsItemActive())
+			{
+				transactionHistory->beginGesture("gui:" + fieldName);
+			}
+			else if (ImGui::IsItemDeactivated())
+			{
+				transactionHistory->endGesture();
+			}
 		}
 	}
 }

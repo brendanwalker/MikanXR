@@ -1,4 +1,5 @@
 #include "AppStage.h"
+#include "LocText.h"
 #include "Shared/GuiPanel_TrackingMountComponent.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
@@ -42,8 +43,8 @@ void GuiPanel_TrackingMountComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
-					mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_devicePathPropertyId), "VR Device",
-					&m_devicePathDataSource, selectedIndex))
+					mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_devicePathPropertyId),
+					locText("componentPanel.vrDevice"), &m_devicePathDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{
@@ -73,8 +74,8 @@ void GuiPanel_TrackingMountComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 					m_defaultGuiStyle,
-					mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_socketNamePropertyId), "Socket",
-					&m_socketNameDataSource, selectedIndex))
+					mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_socketNamePropertyId),
+					locText("componentPanel.socket"), &m_socketNameDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{

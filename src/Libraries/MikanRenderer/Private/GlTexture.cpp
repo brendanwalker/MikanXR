@@ -1017,3 +1017,47 @@ bool saveMkTextureToPNG(IMkTexturePtr texture, const char* filename)
 
 	return bSuccess;
 }
+
+bool saveDefaultFramebufferToPNG(int width, int height, const char* filename)
+{
+	if (width <= 0 || height <= 0)
+	{
+		return false;
+	}
+
+	const int channels= 3;
+	const int stride= width * channels;
+	const size_t bufferSize= (size_t)stride * height;
+	uint8_t* buffer= new uint8_t[bufferSize];
+
+	// Read the back buffer, preserving the caller's read framebuffer and pack state
+	GLint prevReadFramebuffer= 0;
+	GLint prevPackAlignment= 4;
+	glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &prevReadFramebuffer);
+	glGetIntegerv(GL_PACK_ALIGNMENT, &prevPackAlignment);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glReadBuffer(GL_BACK);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer);
+
+	glPixelStorei(GL_PACK_ALIGNMENT, prevPackAlignment);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, prevReadFramebuffer);
+
+	// glReadPixels rows are bottom-up; flip vertically for the PNG
+	for (int row= 0; row < height / 2; ++row)
+	{
+		uint8_t* topRow= buffer + (size_t)row * stride;
+		uint8_t* bottomRow= buffer + (size_t)(height - 1 - row) * stride;
+		for (int i= 0; i < stride; ++i)
+		{
+			std::swap(topRow[i], bottomRow[i]);
+		}
+	}
+
+	const bool bSuccess= stbi_write_png(filename, width, height, channels, buffer, stride) != 0;
+
+	delete[] buffer;
+
+	return bSuccess;
+}

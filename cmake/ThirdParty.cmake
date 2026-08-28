@@ -105,20 +105,23 @@ set (FastCSV_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/fast-cpp-csv-parser)
 set(IMGUI_DIR ${ROOT_DIR}/thirdparty/imgui)
 set(IMGUI_SOURCE "")
 list(APPEND IMGUI_SOURCE
-     ${IMGUI_DIR}/backends/imgui_impl_sdl.cpp
+     ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
      ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
      ${IMGUI_DIR}/imgui.cpp
      ${IMGUI_DIR}/imgui_draw.cpp
      ${IMGUI_DIR}/imgui_tables.cpp
      ${IMGUI_DIR}/imgui_widgets.cpp
-     ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
 )
 
-# ImNodes
-set(IMNODES_DIR ${ROOT_DIR}/thirdparty/imnodes)
-set(IMNODES_SOURCE "")
-list(APPEND IMNODES_SOURCE
-     ${IMNODES_DIR}/imnodes.cpp
+# ImGui Node Editor (zoom-capable node canvas; submodule tracking the
+# mikanxr-patches branch of the MikanXR fork of pthom/imgui-node-editor)
+set(IMGUI_NODE_EDITOR_DIR ${ROOT_DIR}/thirdparty/imgui-node-editor)
+set(IMGUI_NODE_EDITOR_SOURCE "")
+list(APPEND IMGUI_NODE_EDITOR_SOURCE
+     ${IMGUI_NODE_EDITOR_DIR}/crude_json.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_canvas.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_node_editor.cpp
+     ${IMGUI_NODE_EDITOR_DIR}/imgui_node_editor_api.cpp
 )
 
 # IXWebSocket
@@ -191,6 +194,18 @@ if (WIN32)
     ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK/SpoutLibrary/Binaries/x64)
   set (SPOUT2_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.lib)
   set (SPOUT2_SHARED_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.dll)
+endif()
+
+# ONNX Runtime w/ DirectML (from nuget packages, fetched by InitialSetup_x64.bat).
+# Used by the scene lighting estimator to run the Marigold models in-process.
+if (WIN32)
+  set (ONNXRUNTIME_DIR ${ROOT_DIR}/deps/onnxruntime)
+  set (ONNXRUNTIME_INCLUDE_DIRS ${ONNXRUNTIME_DIR}/build/native/include)
+  set (ONNXRUNTIME_LIBRARIES ${ONNXRUNTIME_DIR}/runtimes/win-x64/native/onnxruntime.lib)
+  list (APPEND ONNXRUNTIME_SHARED_LIBRARIES
+    ${ONNXRUNTIME_DIR}/runtimes/win-x64/native/onnxruntime.dll
+    ${ROOT_DIR}/deps/directml/bin/x64-win/DirectML.dll
+  )
 endif()
 
 # CEF (Chromium Embedded Framework)

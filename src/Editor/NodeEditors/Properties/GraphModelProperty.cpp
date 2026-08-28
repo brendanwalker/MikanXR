@@ -3,9 +3,11 @@
 #include "IMkVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "ModelAssetReference.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
 #include "Nodes/ModelNode.h"
 
 #include "imgui.h"
@@ -94,14 +96,16 @@ void GraphModelProperty::editorHandleMainFrameDragDrop(const class NodeEditorSta
 
 void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Model", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("graphProperties.modelHeader")))
 	{
 		// Name
-		NodeEditorUI::DrawStaticTextProperty("Name", m_modelResource->getName(), editorState.styleManager);
+		MkGui::drawStaticTextProperty(editorState.styleManager->getStyle("node_editor_property_value"),
+									  locText("graphProperties.name"), m_modelResource->getName());
 
 		// Drag-Drop Handling
 		auto modelAssetRef=
-			NodeEditorUI::receiveTypedDragDropPayload<ModelAssetReference>(ModelAssetReference::k_assetClassName);
+			MkGui::receiveTypedDragDropPayload<ModelAssetReference>(ModelAssetReference::k_assetClassName);
 		if (modelAssetRef)
 		{
 			setModelAssetReference(modelAssetRef);

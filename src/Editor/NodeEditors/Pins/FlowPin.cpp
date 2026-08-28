@@ -6,30 +6,9 @@ FlowPin::FlowPin()
 	m_bEditorShowPinName= false;
 }
 
-ImNodesPinShape FlowPin::editorComputePinShape() const
-{
-	if (m_connectedLinks.size() > 0)
-		return ImNodesPinShape_TriangleFilled;
-	else
-		return ImNodesPinShape_Triangle;
-}
+MkCanvas::PinIcon FlowPin::editorGetPinIcon() const { return MkCanvas::PinIcon::Flow; }
 
-std::shared_ptr<MkNodesScopedColorStyle> FlowPin::editorRenderMakePinStyle(float alpha)
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_Pin, IM_COL32(225, 225, 225, (unsigned char)(alpha * 255)))
-		.push(ImNodesCol_PinHovered, IM_COL32(255, 255, 255, (unsigned char)(alpha * 255)));
-	return style;
-}
-
-std::shared_ptr<MkNodesScopedColorStyle> FlowPin::editorRenderMakeLinkStyle(float alpha)
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_Link, IM_COL32(225, 225, 225, (unsigned char)alpha))
-		.push(ImNodesCol_LinkHovered, IM_COL32(255, 255, 255, (unsigned char)alpha))
-		.push(ImNodesCol_LinkSelected, IM_COL32(255, 255, 255, 255));
-	return style;
-}
+ImVec4 FlowPin::editorGetPinColor() const { return ImVec4(225.f / 255.f, 225.f / 255.f, 225.f / 255.f, 1.f); }
 
 void FlowPin::editorRenderContextMenu(const NodeEditorState& editorState) {}
 

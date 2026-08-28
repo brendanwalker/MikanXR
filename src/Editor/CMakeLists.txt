@@ -66,6 +66,18 @@ file(GLOB MIKAN_APP_STAGES_LIGHT_FIXTURE_CALIBRATION_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/LightFixtureCalibration/*.h"
 )
 source_group("AppStages\\LightFixtureCalibration" FILES ${MIKAN_APP_STAGES_LIGHT_FIXTURE_CALIBRATION_SRC})
+## SceneLightingCapture
+file(GLOB MIKAN_APP_STAGES_SCENE_LIGHTING_CAPTURE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/SceneLightingCapture/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/SceneLightingCapture/*.h"
+)
+source_group("AppStages\\SceneLightingCapture" FILES ${MIKAN_APP_STAGES_SCENE_LIGHTING_CAPTURE_SRC})
+## DepthMeshCapture
+file(GLOB MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/DepthMeshCapture/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/DepthMeshCapture/*.h"
+)
+source_group("AppStages\\DepthMeshCapture" FILES ${MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC})
 ## MainMenu
 file(GLOB MIKAN_APP_STAGES_MAIN_MENU_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/MainMenu/*.cpp"
@@ -153,6 +165,8 @@ set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_ALIGN_CAMERA_BY_ORIGIN_MARKER_SRC}
     ${MIKAN_APP_STAGES_ANCHOR_CALIBRATION_SRC}
     ${MIKAN_APP_STAGES_LIGHT_FIXTURE_CALIBRATION_SRC}
+    ${MIKAN_APP_STAGES_SCENE_LIGHTING_CAPTURE_SRC}
+    ${MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC}
     ${MIKAN_APP_STAGES_MAIN_MENU_SRC}
     ${MIKAN_APP_STAGES_MODAL_CONFIRM_SRC}
     ${MIKAN_APP_STAGES_MODAL_MESSAGE_BOX_SRC}
@@ -357,7 +371,13 @@ file(GLOB MIKAN_LOCALIZATION_SRC
 )
 source_group("Localization" FILES ${MIKAN_LOCALIZATION_SRC})
 
-# Localization
+file(GLOB MIKAN_LOCALIZATION_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Localization/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Localization/Test/*.h"
+)
+source_group("Localization\\Test" FILES ${MIKAN_LOCALIZATION_TEST_SRC})
+
+# Math
 file(GLOB MIKAN_MATH_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Math/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Math/*.h"
@@ -459,6 +479,13 @@ file(GLOB MIKAN_SERVER_TEST_SRC
 )
 source_group("Server\\Test" FILES ${MIKAN_SERVER_TEST_SRC})
 
+# Transactions
+file(GLOB MIKAN_TRANSACTIONS_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Transactions/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Transactions/*.h"
+)
+source_group("Transactions" FILES ${MIKAN_TRANSACTIONS_SRC})
+
 # TinyFileDialogs's source files are included in directly, rather than linking against a lib
 source_group("TinyFileDialogs" FILES ${TINYFILEDIALOGS_SOURCE})
 
@@ -478,6 +505,7 @@ set(MIKAN_SRC
     ${MIKAN_ECS_SRC}
     ${MIKAN_INTERPROCESS_SRC}
     ${MIKAN_LOCALIZATION_SRC}
+    ${MIKAN_LOCALIZATION_TEST_SRC}
     ${MIKAN_MATH_SRC}
     ${MIKAN_NODE_EDITORS_SRC}
     ${MIKAN_OBJECT_SRC}
@@ -488,6 +516,7 @@ set(MIKAN_SRC
     ${MIKAN_SERVER_SRC}
     ${MIKAN_SERVER_TEST_SRC}
     ${MIKAN_SYSTEM_SRC}
+    ${MIKAN_TRANSACTIONS_SRC}
     ${TINYFILEDIALOGS_SOURCE}
 )
 
@@ -521,8 +550,10 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Light
   ${MIKAN_LIBRARIES_DIR}/MikanDMX/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanOnnx/Public
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
+  ${CMAKE_CURRENT_LIST_DIR}/Localization/Test
   ${CMAKE_CURRENT_LIST_DIR}/Math
   ${CMAKE_CURRENT_LIST_DIR}/NodeEditors
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV
@@ -531,6 +562,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Server
   ${CMAKE_CURRENT_LIST_DIR}/Server/Test
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
+  ${CMAKE_CURRENT_LIST_DIR}/Transactions
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
@@ -547,7 +579,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
   ${RFK_GENERATED_ROOT_DIR}/MikanSerialization
   ${IMGUI_DIR}
-  ${IMNODES_DIR}
+  ${IMGUI_NODE_EDITOR_DIR}
   ${IXWEBSOCKET_INCLUDE_DIR}
   ${LOCKFREEQUEUE_INCLUDE_DIR}
   ${LIBHARU_INCLUDE_DIRS}
@@ -598,6 +630,7 @@ list(APPEND MIKAN_REQ_LIBS
   MikanDMX
   MikanGUI
   MikanMath
+  MikanOnnx
   MikanRenderer
   MikanSerialization
   MikanSharedTexture
@@ -606,9 +639,11 @@ list(APPEND MIKAN_REQ_LIBS
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/OpenCVCameraEnumerator.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/AutomationSocket.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/HttpInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SharedTextureReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SpoutLogRelay.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 # All editor code is compiled once into a shared OBJECT library that both the
 # GUI executable (Mikan) and the command-line tool (MikanCmd) link.
@@ -653,8 +688,8 @@ target_link_libraries(MikanCmd PRIVATE MikanEditor)
 add_dependencies(MikanCmd Mikan)
 
 # Runtime dependencies
-set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
-set(SDL2_TTF_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_ttf-2.0.15/lib/x64)
+set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.30.10/lib/x64/SDL2.dll)
+set(SDL2_TTF_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_ttf-2.24.0/lib/x64)
 set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 set(OPENVR_DLL ${ROOT_DIR}/thirdparty/openvr/bin/win64/openvr_api.dll)
 
@@ -732,19 +767,20 @@ function(copy_mikan_runtime_deps mikan_target)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:${mikan_target}>)
-  # SDL2_ttf.dll depends on libfreetype-6.dll, which in turn depends on
-  # zlib1.dll. All three ship together in the SDL2_ttf distribution and must
-  # be copied alongside the app, otherwise SDL2_ttf fails to load.
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-    "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
-    "${SDL2_TTF_DLL_FOLDER}/zlib1.dll"
     $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:${mikan_target}>)
+  # ONNX Runtime + DirectML (scene lighting estimator)
+  add_custom_command(
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${ONNXRUNTIME_SHARED_LIBRARIES}
+    $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -815,12 +851,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(FILES "${RFK_SHARED_LIBRARIES}"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
-  # SDL2_ttf.dll also needs libfreetype-6.dll and zlib1.dll (see the
-  # post-build copy in copy_mikan_runtime_deps above).
   install(FILES
       "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-      "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
-      "${SDL2_TTF_DLL_FOLDER}/zlib1.dll"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES
@@ -836,7 +868,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   install(DIRECTORY ${ROOT_DIR}/resources
     DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.onnx")
+    # *.txt carries the font license files, which must ship alongside the fonts
+    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.txt" PATTERN "*.lua" PATTERN "*.onnx")
 
   # Install CEF binary and resource files
   if(DEFINED CEF_ROOT)

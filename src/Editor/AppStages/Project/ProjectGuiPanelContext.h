@@ -13,6 +13,7 @@ class GuiPanel_CameraComponent;
 class GuiPanel_ClientTextureSourceComponent;
 class GuiPanel_CompositorComponent;
 class GuiPanel_MarkerComponent;
+class GuiPanel_LightEnvironmentComponent;
 class GuiPanel_MarkerTrackingVolumeComponent;
 class GuiPanel_ModelShapeComponent;
 class GuiPanel_ModelStencilComponent;
@@ -54,6 +55,7 @@ public:
 		return m_clientTextureSourcePanel;
 	}
 	inline GuiPanel_CompositorComponent* getCompositorPanel() const { return m_compositorPanel; }
+	inline GuiPanel_LightEnvironmentComponent* getLightEnvironmentPanel() const { return m_lightEnvironmentPanel; }
 	inline GuiPanel_MarkerComponent* getMarkerPanel() const { return m_markerPanel; }
 	inline GuiPanel_MarkerTrackingVolumeComponent* getMarkerTrackingVolumePanel() const
 	{
@@ -95,6 +97,7 @@ private:
 	GuiPanel_CameraComponent* m_cameraPanel= nullptr;
 	GuiPanel_ClientTextureSourceComponent* m_clientTextureSourcePanel= nullptr;
 	GuiPanel_CompositorComponent* m_compositorPanel= nullptr;
+	GuiPanel_LightEnvironmentComponent* m_lightEnvironmentPanel= nullptr;
 	GuiPanel_MarkerComponent* m_markerPanel= nullptr;
 	GuiPanel_MarkerTrackingVolumeComponent* m_markerTrackingVolumePanel= nullptr;
 	GuiPanel_ModelShapeComponent* m_modelShapePanel= nullptr;

@@ -8,7 +8,96 @@
 #include "SharedTextureUtility.h"
 
 #include "assert.h"
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
 #include <sstream>
+#include <string>
+
+// -- Spout log policy -----
+// Spout writes its diagnostics to a console it allocates itself, which pops a second
+// window over the host process. Nothing is enabled unless MIKAN_SPOUT_LOG asks for it:
+//   unset, "0", "off"        no Spout logging (default)
+//   "console", "1", "on"     Spout's own console window
+//   "file"                   MikanSpoutSender.log in the Spout log folder (%APPDATA%\Spout)
+// The editor drives its own Spout logging through SpoutLogRelay, which routes the same
+// output into the log panel instead, and stands down whenever this variable is set.
+namespace
+{
+enum class SpoutLogTarget
+{
+	none,
+	console,
+	file,
+};
+
+const char* k_spoutSenderLogFileName= "MikanSpoutSender.log";
+
+SpoutLogTarget getSpoutLogTarget()
+{
+	const char* setting= std::getenv("MIKAN_SPOUT_LOG");
+	if (setting == nullptr)
+		return SpoutLogTarget::none;
+
+	std::string value(setting);
+	std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+
+	if (value == "console" || value == "1" || value == "on" || value == "true")
+		return SpoutLogTarget::console;
+	if (value == "file")
+		return SpoutLogTarget::file;
+
+	return SpoutLogTarget::none;
+}
+
+// Spout keeps its log state in module globals, so each of the two Spout code paths
+// only has to be configured once per process.
+void applySpoutLibraryLogPolicy(SPOUTLIBRARY* spoutLibrary)
+{
+	static bool s_bPolicyApplied= false;
+	if (spoutLibrary == nullptr || s_bPolicyApplied)
+		return;
+	s_bPolicyApplied= true;
+
+	switch (getSpoutLogTarget())
+	{
+	case SpoutLogTarget::console:
+		spoutLibrary->EnableSpoutLog();
+		break;
+	case SpoutLogTarget::file:
+		spoutLibrary->EnableSpoutLogFile(k_spoutSenderLogFileName);
+		break;
+	case SpoutLogTarget::none:
+		return;
+	}
+
+	spoutLibrary->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
+}
+
+// The Direct3D writers link the in-tree SpoutDX sources, which carry their own copy
+// of the Spout log globals separate from the ones inside SpoutLibrary.
+void applySpoutDXLogPolicy()
+{
+	static bool s_bPolicyApplied= false;
+	if (s_bPolicyApplied)
+		return;
+	s_bPolicyApplied= true;
+
+	switch (getSpoutLogTarget())
+	{
+	case SpoutLogTarget::console:
+		EnableSpoutLog();
+		break;
+	case SpoutLogTarget::file:
+		EnableSpoutLogFile(k_spoutSenderLogFileName);
+		break;
+	case SpoutLogTarget::none:
+		return;
+	}
+
+	SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
+}
+} // namespace
 
 // -- SharedTextureWriteAccessor -----
 class SharedTextureWriteAccessor : public ISharedTextureWriteAccessor
@@ -92,12 +181,12 @@ public:
 			return false;
 		}
 
+		applySpoutLibraryLogPolicy(m_spoutColorFrame);
+
 		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
 			|| descriptor->color_buffer_type == SharedColorBufferType::BGRA32
 			|| descriptor->color_buffer_type == SharedColorBufferType::RGBA16F)
 		{
-			m_spoutColorFrame->EnableSpoutLog();
-			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutColorFrame->SetSenderName(m_parentAccessor->getColorSenderName().c_str());
 
 			if (descriptor->color_buffer_type == SharedColorBufferType::RGBA16F)
@@ -130,8 +219,6 @@ public:
 				return false;
 			}
 
-			m_spoutDepthFrame->EnableSpoutLog();
-			m_spoutDepthFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutDepthFrame->SetSenderName(m_parentAccessor->getDepthSenderName().c_str());
 
 			// Initialize the depth texture packer if we are sending float depth textures
@@ -177,8 +264,6 @@ public:
 				return false;
 			}
 
-			m_spoutShadowFrame->EnableSpoutLog();
-			m_spoutShadowFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutShadowFrame->SetSenderName(m_parentAccessor->getShadowSenderName().c_str());
 
 			if (descriptor->shadow_buffer_type == SharedShadowBufferType::RGBA16F)
@@ -322,9 +407,7 @@ public:
 
 		dispose();
 
-		EnableSpoutLog();
-		EnableSpoutLogFile("sender.log");
-		SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
+		applySpoutDXLogPolicy();
 
 		// Initialize the color spout frame
 		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32
@@ -526,9 +609,7 @@ public:
 
 		dispose();
 
-		EnableSpoutLog();
-		EnableSpoutLogFile("sender.log");
-		SetSpoutLogLevel(SpoutLogLevel::SPOUT_LOG_VERBOSE);
+		applySpoutDXLogPolicy();
 
 		// Initialize the color spout frame
 		if (descriptor->color_buffer_type == SharedColorBufferType::RGBA32

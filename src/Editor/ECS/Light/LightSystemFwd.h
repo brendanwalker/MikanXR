@@ -23,6 +23,26 @@ using DMXObjectSystemPtr= std::shared_ptr<DMXObjectSystem>;
 using DMXObjectSystemConstPtr= std::shared_ptr<const DMXObjectSystem>;
 using DMXObjectSystemWeakPtr= std::weak_ptr<DMXObjectSystem>;
 
+// -- LightEnvironment --
+class LightEnvironmentDefinition;
+using LightEnvironmentDefinitionPtr= std::shared_ptr<LightEnvironmentDefinition>;
+using LightEnvironmentDefinitionConstPtr= std::shared_ptr<const LightEnvironmentDefinition>;
+using LightEnvironmentDefinitionWeakPtr= std::weak_ptr<LightEnvironmentDefinition>;
+
+class LightEnvironmentComponent;
+using LightEnvironmentComponentPtr= std::shared_ptr<LightEnvironmentComponent>;
+using LightEnvironmentComponentConstPtr= std::shared_ptr<const LightEnvironmentComponent>;
+using LightEnvironmentComponentWeakPtr= std::weak_ptr<LightEnvironmentComponent>;
+
+class LightEnvironmentSystemDefinition;
+using LightEnvironmentSystemDefinitionPtr= std::shared_ptr<LightEnvironmentSystemDefinition>;
+using LightEnvironmentSystemDefinitionConstPtr= std::shared_ptr<const LightEnvironmentSystemDefinition>;
+
+class LightEnvironmentSystem;
+using LightEnvironmentSystemPtr= std::shared_ptr<LightEnvironmentSystem>;
+using LightEnvironmentSystemConstPtr= std::shared_ptr<const LightEnvironmentSystem>;
+using LightEnvironmentSystemWeakPtr= std::weak_ptr<LightEnvironmentSystem>;
+
 // -- RGBSpotLight --
 class RGBSpotLightDefinition;
 using RGBSpotLightDefinitionPtr= std::shared_ptr<RGBSpotLightDefinition>;

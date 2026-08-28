@@ -24,5 +24,7 @@ public:
 	bool bindShapeComponent(ShapeComponentPtr shapeComponent);
 
 protected:
+	virtual void onGraphRestored() override;
+
 	ShapeComponentPtr m_shapeComponent;
 };

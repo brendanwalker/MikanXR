@@ -367,22 +367,28 @@ void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 {
 	MikanCameraPtr camera= std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 
-	glm::vec2 viewportPos;
-	if (camera && getCursorViewportPixelPos(viewportPos))
+	if (camera)
 	{
-		if (!m_isMouseInViewport)
+		// Compute the relative cursor position in the viewport
+		glm::vec2 viewportPos;
+		if (getCursorViewportPixelPos(viewportPos))
 		{
-			m_isMouseInViewport= true;
-			if (OnMouseEntered)
-				OnMouseEntered();
+			// See if we just entered the viewport
+			if (!m_isMouseInViewport)
+			{
+				m_isMouseInViewport= true;
+				if (OnMouseEntered)
+					OnMouseEntered();
+			}
+
+			// Compute the camera ray through the cursor's pixel position
+			glm::vec3 rayOrigin, rayDir;
+			camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
+
+			// Broadcast to any viewport raycast listeners
+			if (OnMouseRayChanged)
+				OnMouseRayChanged(rayOrigin, rayDir);
 		}
-
-		glm::vec3 rayOrigin, rayDir;
-		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
-
-		// Broadcast to any viewport raycast listeners
-		if (OnMouseRayChanged)
-			OnMouseRayChanged(rayOrigin, rayDir);
 
 		if (m_isCameraRotateButtonPressed)
 		{
@@ -463,15 +469,18 @@ void MikanViewport::onMouseButtonReleased(int button)
 {
 	MikanCameraPtr camera= std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 
-	glm::vec2 viewportPos;
-	if (camera && getCursorViewportPixelPos(viewportPos))
+	if (camera)
 	{
-		glm::vec3 rayOrigin, rayDir;
-		camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
+		glm::vec2 viewportPos;
+		if (getCursorViewportPixelPos(viewportPos))
+		{
+			glm::vec3 rayOrigin, rayDir;
+			camera->computeCameraRayThruPixel(shared_from_this(), viewportPos, rayOrigin, rayDir);
 
-		// Broadcast to any viewport raycast listeners
-		if (OnMouseRayButtonUp)
-			OnMouseRayButtonUp(rayOrigin, rayDir, button);
+			// Broadcast to any viewport raycast listeners
+			if (OnMouseRayButtonUp)
+				OnMouseRayButtonUp(rayOrigin, rayDir, button);
+		}
 
 		if (button == MkMouseButton::RIGHT)
 		{

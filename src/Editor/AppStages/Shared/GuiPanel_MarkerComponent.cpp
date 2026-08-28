@@ -1,6 +1,7 @@
 #include "AppStage.h"
 #include "IMkGraphicsContext.h"
 #include "IMkTexture.h"
+#include "LocText.h"
 #include "MarkerComponent.h"
 #include "Shared/GuiDataSource_IntList.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
@@ -48,7 +49,7 @@ void GuiPanel_MarkerComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
 											markerComp->makePropertyUIIdentifier(MarkerDefinition::k_arucoIdPropertyId),
-											"Aruco ID", &m_arucoIdDataSource, selectedIndex))
+											locText("componentPanel.arucoId"), &m_arucoIdDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
 				{

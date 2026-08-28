@@ -5,6 +5,7 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "GuiDataSource_ComboBox.h"
+#include "LocText.h"
 #include "MikanCoreTypes.h"
 #include "QuadShapeComponent.h"
 #include "QuadShapeSystem.h"
@@ -52,7 +53,8 @@ void GuiPanel_ShapeComponent::onConstruct()
 			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle,
 											shapeComponent->makePropertyUIIdentifier(
 												TransformComponentDefinition::k_parentTransformIdPropertyId),
-											"Parent", &m_parentTransformDataSource, selectedIndex))
+											locText("componentPanel.parent"), &m_parentTransformDataSource,
+											selectedIndex))
 			{
 				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
 				if (newParent)
@@ -85,8 +87,8 @@ void GuiPanel_ShapeComponent::onConstruct()
 
 				if (MkGui::drawFilePathProperty(
 						m_defaultGuiStyle,
-						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId), "Graph",
-						graphPath))
+						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId),
+						locText("componentPanel.graph"), graphPath))
 				{
 					addDeferredGuiEvent([shapeComponent]() { shapeComponent->selectShapeGraph(); });
 				}
@@ -111,7 +113,8 @@ void GuiPanel_ShapeComponent::onConstruct()
 			}
 			else
 			{
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "Graph", "<No Graph>");
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.graph"),
+											  locText("componentPanel.noGraph"));
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
 						m_defaultGuiStyle,

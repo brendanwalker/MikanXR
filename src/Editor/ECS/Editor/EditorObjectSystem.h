@@ -52,6 +52,12 @@ struct EditorSettings
 	eRulerDisplayUnits rulerDisplayUnits= eRulerDisplayUnits::millimeters; // ruler readout units
 	bool bDebugCameraAlignment= false; // draw the MR camera-alignment debug overlay in the compositor view
 	eStencilDisplayMode modelStencilDisplayMode= eStencilDisplayMode::both; // how model stencils are drawn
+
+	// Master gate for the editor debug overlay in the compositor output window. The per-object
+	// "Render <X>" flags above still apply on top of this, but they are authoring aids for the
+	// editor viewport - the compositor window shows what the shot looks like, so it stays clean
+	// by default.
+	bool bDebugRenderInCompositor= false;
 };
 
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
@@ -131,6 +137,10 @@ public:
 	static const std::string k_modelStencilDisplayModePropertyId;
 	eStencilDisplayMode getModelStencilDisplayMode() const { return m_editorSettings.modelStencilDisplayMode; }
 	void setModelStencilDisplayMode(eStencilDisplayMode mode);
+
+	static const std::string k_debugRenderInCompositorPropertyId;
+	bool getDebugRenderInCompositor() const { return m_editorSettings.bDebugRenderInCompositor; }
+	void setDebugRenderInCompositor(bool enabled);
 
 private:
 	EditorSettings m_editorSettings;

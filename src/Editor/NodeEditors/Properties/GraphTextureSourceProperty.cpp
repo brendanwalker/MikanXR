@@ -2,8 +2,10 @@
 #include "MkMaterial.h"
 #include "IMkVertexDefinition.h"
 #include "Logger.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
 #include "ProjectConfigConstants.h"
 #include "StringUtils.h"
 
@@ -23,7 +25,7 @@
 #include "IconsForkAwesome.h"
 
 // -- MaterialAssetComboDataSource ---
-class TextureSourceComboDataSource : public NodeEditorUI::ComboBoxDataSource
+class TextureSourceComboDataSource : public MkGui::ComboBoxDataSource
 {
 public:
 	TextureSourceComboDataSource(NodeGraphPtr ownerGraph, TextureSourceComponentPtr textureSourceComponent,
@@ -100,9 +102,9 @@ public:
 		return comboEntries[index].TextureSource;
 	}
 
-	virtual int getEntryCount() override { return (int)comboEntries.size(); }
+	virtual int getEntryCount() const override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override
+	virtual const std::string& getEntryDisplayString(int index) const override
 	{
 		assert(index >= 0 && index < (int)comboEntries.size());
 		return comboEntries[index].entryString;
@@ -234,15 +236,20 @@ void GraphTextureSourceProperty::editorHandleMainFrameDragDrop(const class NodeE
 
 void GraphTextureSourceProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("TextureSource", editorState.styleManager))
+	MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("graphProperties.textureSourceHeader")))
 	{
 		// Name
-		std::string name= m_textureSourceComponent ? m_textureSourceComponent->getName() : "<No TextureSource>";
-		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
+		std::string name=
+			m_textureSourceComponent ? m_textureSourceComponent->getName() : locText("graphProperties.noTextureSource");
+		MkGui::drawStaticTextProperty(propertyStyle, locText("graphProperties.name"), name);
 
 		// TextureSource Type
 		int TextureSourceTypeIdex= (int)m_textureSourceType;
-		if (ImGui::Combo("Type", &TextureSourceTypeIdex, k_szTextureSourceTypeStrings, (int)eTextureSourceType::COUNT))
+		if (ImGui::Combo(locLabel("graphProperties.type"), &TextureSourceTypeIdex, k_szTextureSourceTypeStrings,
+						 (int)eTextureSourceType::COUNT))
 		{
 			setTextureSourceComponent(TextureSourceComponentPtr());
 			m_textureSourceType= (eTextureSourceType)TextureSourceTypeIdex;
@@ -251,12 +258,12 @@ void GraphTextureSourceProperty::editorRenderPropertySheet(const class NodeEdito
 		// TextureSource
 		TextureSourceComboDataSource dataSource(m_ownerGraph, m_textureSourceComponent, m_textureSourceType);
 		int selectedIndex= dataSource.getCurrentTextureSourceIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("TextureSourceSelection", "Source", &dataSource, selectedIndex,
-											   editorState.styleManager))
+		if (MkGui::drawComboBoxProperty(propertyStyle, "TextureSourceSelection", locText("graphProperties.source"),
+										&dataSource, selectedIndex))
 		{
 			setTextureSourceComponent(dataSource.getEntryTextureSource(selectedIndex));
 		}
 	}
 }
 
-const ImVec4 GraphTextureSourceProperty::editorGetIconColor() const { return NodeEditorUI::getComponentColor(); }
+const ImVec4 GraphTextureSourceProperty::editorGetIconColor() const { return MkGui::getComponentColor(); }

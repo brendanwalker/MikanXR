@@ -1,9 +1,13 @@
 #include "GraphBoolProperty.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 
 void GraphBoolProperty::editorRenderValue(const NodeEditorState& editorState)
 {
-	NodeEditorUI::DrawCheckBoxProperty("boolPropertyDefaultValue", "Default", m_value);
-	NodeEditorUI::DrawStaticTextProperty("Value", m_value ? "True" : "False", editorState.styleManager);
+	MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+	MkGui::drawCheckBoxProperty(propertyStyle, "boolPropertyDefaultValue", locText("graphProperties.default"), m_value);
+	MkGui::drawStaticTextProperty(propertyStyle, locText("graphProperties.value"), m_value ? "True" : "False");
 }

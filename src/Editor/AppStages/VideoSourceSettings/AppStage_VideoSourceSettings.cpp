@@ -7,6 +7,7 @@
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
+#include "LocText.h"
 #include "MikanTextRenderer.h"
 #include "MainWindow.h"
 #include "MkGuiScopedWindow.h"
@@ -139,7 +140,7 @@ void AppStage_VideoSourceSettings::onGui()
 	if (!panel)
 		return;
 
-	if (ImGui::Button("Return"))
+	if (ImGui::Button(locLabel("videoSourceSettings.return")))
 		onReturnEvent();
 	ImGui::Separator();
 
@@ -158,8 +159,9 @@ void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 	TextStyle style= getDefaultTextStyle();
 	style.horizontalAlignment= eHorizontalTextAlignment::Left;
 	style.verticalAlignment= eVerticalTextAlignment::Bottom;
-	drawTextAtScreenPosition(getGraphicsContext(), style, glm::vec2(0.f, m_ownerWindow->getHeight() - 1),
-							 L"Camera %.1ffps", m_videoBufferView ? m_videoBufferView->getFPS() : 0.f);
+	drawTextAtScreenPosition(
+		getGraphicsContext(), style, glm::vec2(0.f, m_ownerWindow->getHeight() - 1), L"%hs",
+		locFormat("videoSourceSettings.cameraFpsFmt", m_videoBufferView ? m_videoBufferView->getFPS() : 0.f).c_str());
 }
 
 void AppStage_VideoSourceSettings::onReturnEvent() { getOwnerWindow()->popAppState(); }

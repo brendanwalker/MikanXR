@@ -1,6 +1,7 @@
 //-- includes -----
 #include "App.h"
 #include "AppSettingsConfig.h"
+#include "AutomationLogBuffer.h"
 #include "CommonConfig.h"
 #include "EventBus.h"
 #include "FrameTimer.h"
@@ -18,6 +19,7 @@
 #include "PathUtils.h"
 #include "ProjectConfig.h"
 #include "IMkWindowContextManager.h"
+#include "SpoutLogRelay.h"
 #include "TypeRegistry.h"
 
 // #include "Windows/TestNodeEditorWindow.h"
@@ -45,6 +47,7 @@ App::App()
 	, m_eventBus(std::make_unique<EventBus>())
 	, m_localizationManager(new LocalizationManager())
 	, m_windowManager(createMkWindowContextManager())
+	, m_spoutLogRelay(std::make_unique<SpoutLogRelay>())
 	, m_bShutdownRequested(false)
 {
 	m_instance= this;
@@ -123,8 +126,12 @@ bool App::startup(int argc, char** argv)
 
 	LoggerSettings settings= {};
 	settings.min_log_level= LogSeverityLevel::debug;
-	settings.enable_console= true;
+	// No console window: the editor shows the log in its own panel, and the
+	// same lines still go to MikanXR.log
+	settings.enable_console= false;
 	settings.log_filename= "MikanXR.log";
+	// Feeds both the automation server's log command and the editor's log panel
+	settings.log_callback= AutomationLogBuffer::logCallback;
 
 	log_init(settings);
 
@@ -168,7 +175,11 @@ bool App::startup(int argc, char** argv)
 	// Enable auto-save on a cooldown when settings are changed
 	m_appSettings->setAutoSaveCooldownDuration(SETTINGS_SAVE_COOLDOWN);
 
-	if (success && !m_localizationManager->startup(m_appSettings))
+	// Configure Spout's own logging before anything opens a Spout sender or receiver
+	m_spoutLogRelay->setEnabled(m_appSettings->getSpoutLogEnabled());
+
+	const std::filesystem::path localizationDir= PathUtils::getResourceDirectory() / "localization";
+	if (success && !m_localizationManager->startup(localizationDir, m_appSettings))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
 		success= false;
@@ -227,6 +238,9 @@ bool App::startup(int argc, char** argv)
 
 void App::shutdown()
 {
+	// Drain any remaining Spout logs and close the relay's log file
+	m_spoutLogRelay->setEnabled(false);
+
 	// Tear down Chromium Embedded Framework
 	CefShutdown();
 
@@ -278,6 +292,9 @@ void App::tick()
 
 	// Tick the sim and then render each window
 	tickWindows(deltaSeconds);
+
+	// Forward anything Spout logged this frame into the editor log
+	m_spoutLogRelay->update();
 
 	// Update app settings auto-save
 	m_appSettings->updateAutoSave(deltaSeconds);
@@ -385,6 +402,10 @@ void App::destroyAppWindow(EditorWindow* appWindow)
 	{
 		m_windowManager->popCurrentWindowContext(appWindowContext);
 	}
+
+	// Teardown does GL work (ImGui backend, texture cache, model resources),
+	// and destroying an earlier window can leave no GL context current
+	appWindow->makeContextCurrent();
 
 	// Tear down the window and graphics context it owns
 	appWindow->shutdown();

@@ -2,8 +2,10 @@
 #include "MkMaterial.h"
 #include "IMkVertexDefinition.h"
 #include "Logger.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
 #include "ProjectConfigConstants.h"
 #include "StringUtils.h"
 
@@ -23,7 +25,7 @@
 #include "IconsForkAwesome.h"
 
 // -- MaterialAssetComboDataSource ---
-class StencilComboDataSource : public NodeEditorUI::ComboBoxDataSource
+class StencilComboDataSource : public MkGui::ComboBoxDataSource
 {
 public:
 	StencilComboDataSource(NodeGraphPtr ownerGraph, StencilComponentPtr stencilComponent, eStencilType stencilType)
@@ -99,9 +101,9 @@ public:
 		return comboEntries[index].stencil;
 	}
 
-	virtual int getEntryCount() override { return (int)comboEntries.size(); }
+	virtual int getEntryCount() const override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override
+	virtual const std::string& getEntryDisplayString(int index) const override
 	{
 		assert(index >= 0 && index < (int)comboEntries.size());
 		return comboEntries[index].entryString;
@@ -225,15 +227,19 @@ void GraphStencilProperty::editorHandleMainFrameDragDrop(const class NodeEditorS
 
 void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Stencil", editorState.styleManager))
+	MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("graphProperties.stencilHeader")))
 	{
 		// Name
-		std::string name= m_stencilComponent ? m_stencilComponent->getName() : "<No Stencil>";
-		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
+		std::string name= m_stencilComponent ? m_stencilComponent->getName() : locText("graphProperties.noStencil");
+		MkGui::drawStaticTextProperty(propertyStyle, locText("graphProperties.name"), name);
 
 		// Stencil Type
 		int stencilTypeIdex= (int)m_stencilType;
-		if (ImGui::Combo("Type", &stencilTypeIdex, k_szStencilTypeStrings, (int)eStencilType::COUNT))
+		if (ImGui::Combo(locLabel("graphProperties.type"), &stencilTypeIdex, k_szStencilTypeStrings,
+						 (int)eStencilType::COUNT))
 		{
 			setStencilComponent(StencilComponentPtr());
 			m_stencilType= (eStencilType)stencilTypeIdex;
@@ -242,12 +248,12 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 		// Stencil
 		StencilComboDataSource dataSource(m_ownerGraph, m_stencilComponent, m_stencilType);
 		int selectedIndex= dataSource.getCurrentStencilIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("stencilSelection", "Source", &dataSource, selectedIndex,
-											   editorState.styleManager))
+		if (MkGui::drawComboBoxProperty(propertyStyle, "stencilSelection", locText("graphProperties.source"),
+										&dataSource, selectedIndex))
 		{
 			setStencilComponent(dataSource.getEntryStencil(selectedIndex));
 		}
 	}
 }
 
-const ImVec4 GraphStencilProperty::editorGetIconColor() const { return NodeEditorUI::getComponentColor(); }
+const ImVec4 GraphStencilProperty::editorGetIconColor() const { return MkGui::getComponentColor(); }

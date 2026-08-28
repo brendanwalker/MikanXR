@@ -2,7 +2,7 @@
 #include "PathUtils.h"
 
 static TextStyle gDefaultTextStyle= {
-	"mona",
+	"MochiyPopOne-Regular",
 	18,
 	TEXT_STYLE_NORMAL,
 	eHorizontalTextAlignment::Middle,
@@ -15,13 +15,6 @@ static TextStyle gDefaultTextStyle= {
 };
 
 const TextStyle& getDefaultTextStyle() { return gDefaultTextStyle; }
-
-const std::filesystem::path getDefaultJapaneseFontPath()
-{
-	const std::filesystem::path japaneseFontPath= PathUtils::getFontPath("mona");
-
-	return japaneseFontPath;
-}
 
 const std::filesystem::path getForkAwesomeWebFontPath()
 {

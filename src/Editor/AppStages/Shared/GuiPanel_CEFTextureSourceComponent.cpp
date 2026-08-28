@@ -1,6 +1,7 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_CEFTextureSourceComponent.h"
 #include "CEFTextureSourceComponent.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 
 bool GuiPanel_CEFTextureSourceComponent::init() { return initTypedPropertyInterface<CEFTextureSourceComponent>(); }
@@ -24,7 +25,7 @@ void GuiPanel_CEFTextureSourceComponent::onConstruct()
 
 			if (MkGui::drawStringProperty(m_defaultGuiStyle,
 										  comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_urlPropertyId),
-										  "URL", buf, sizeof(buf)))
+										  locText("componentPanel.url"), buf, sizeof(buf)))
 			{
 				std::string newUrl(buf);
 				addDeferredGuiEvent([comp, newUrl]() { comp->getCEFTextureSourceDefinition()->setUrl(newUrl); });
@@ -45,7 +46,7 @@ void GuiPanel_CEFTextureSourceComponent::onConstruct()
 
 			if (MkGui::drawIntProperty(m_defaultGuiStyle,
 									   comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_widthPropertyId),
-									   "Width", w))
+									   locText("componentPanel.width"), w))
 			{
 				addDeferredGuiEvent([comp, w]() { comp->getCEFTextureSourceDefinition()->setWidth(w); });
 			}
@@ -65,7 +66,7 @@ void GuiPanel_CEFTextureSourceComponent::onConstruct()
 
 			if (MkGui::drawIntProperty(m_defaultGuiStyle,
 									   comp->makePropertyUIIdentifier(CEFTextureSourceDefinition::k_heightPropertyId),
-									   "Height", h))
+									   locText("componentPanel.height"), h))
 			{
 				addDeferredGuiEvent([comp, h]() { comp->getCEFTextureSourceDefinition()->setHeight(h); });
 			}

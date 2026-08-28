@@ -24,7 +24,7 @@ MkGuiScopedStyle::MkGuiScopedStyle(MkGuiStyleConstPtr style)
 	// Push font first (popped last)
 	if (style->getFont())
 	{
-		m_impl->font= std::make_unique<MkGuiScopedFont>(style->getFont());
+		m_impl->font= std::make_unique<MkGuiScopedFont>(style->getFont(), style->getFontSize());
 	}
 
 	// Push style floats

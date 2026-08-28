@@ -10,6 +10,7 @@ public:
 	inline static const std::string k_assetClassName= "NodeGraphAssetReference";
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "NodeGraph"; }
+	virtual const char* editorGetIcon() const override { return ICON_FK_SITEMAP; }
 
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 

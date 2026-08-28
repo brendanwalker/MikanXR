@@ -26,13 +26,13 @@ bool PropertyRequestHandler::startup(MainWindow* mainWindow)
 {
 	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
-	// Property Change Callbacks
-	ProjectConfigPtr projectConfig= getProjectConfig();
-	if (projectConfig)
-	{
-		projectConfig->OnPropertyChanged+= MakeDelegate(this, &PropertyRequestHandler::onProjectConfigChanged);
-		m_projectConfig= projectConfig;
-	}
+	// Property Change Callbacks.
+	// Bind to the current project config and follow project loads, since
+	// loading a project replaces the ProjectConfig instance.
+	bindProjectConfig(getProjectConfig());
+	ProjectManagerPtr projectManager= getProjectManager();
+	projectManager->OnProjectLoaded+= MakeDelegate(this, &PropertyRequestHandler::onProjectLoaded);
+	projectManager->OnProjectPreUnload+= MakeDelegate(this, &PropertyRequestHandler::onProjectPreUnload);
 
 	// Property Requests
 	messageServer->setRequestHandler(PropertySetValueRequest::staticGetArchetype().getName(),
@@ -59,11 +59,40 @@ bool PropertyRequestHandler::startup(MainWindow* mainWindow)
 
 void PropertyRequestHandler::shutdown()
 {
+	unbindProjectConfig();
+
+	ProjectManagerPtr projectManager= getProjectManager();
+	if (projectManager)
+	{
+		projectManager->OnProjectLoaded-= MakeDelegate(this, &PropertyRequestHandler::onProjectLoaded);
+		projectManager->OnProjectPreUnload-= MakeDelegate(this, &PropertyRequestHandler::onProjectPreUnload);
+	}
+}
+
+void PropertyRequestHandler::onProjectLoaded(ProjectManagerPtr projectManager)
+{
+	bindProjectConfig(projectManager->getProjectConfig());
+}
+
+void PropertyRequestHandler::onProjectPreUnload(ProjectManagerPtr projectManager) { unbindProjectConfig(); }
+
+void PropertyRequestHandler::bindProjectConfig(ProjectConfigPtr projectConfig)
+{
+	if (projectConfig)
+	{
+		projectConfig->OnPropertyChanged+= MakeDelegate(this, &PropertyRequestHandler::onProjectConfigChanged);
+		m_projectConfig= projectConfig;
+	}
+}
+
+void PropertyRequestHandler::unbindProjectConfig()
+{
 	ProjectConfigPtr projectConfig= m_projectConfig.lock();
 	if (projectConfig)
 	{
 		projectConfig->OnPropertyChanged-= MakeDelegate(this, &PropertyRequestHandler::onProjectConfigChanged);
 	}
+	m_projectConfig.reset();
 }
 
 // Project Config Change Callbacks

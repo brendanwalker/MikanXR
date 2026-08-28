@@ -1,9 +1,12 @@
 #include "VariableNode.h"
+#include "IconsForkAwesome.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "StringUtils.h"
 
 #include "Pins/FlowPin.h"
@@ -13,13 +16,12 @@
 #include "Properties/GraphValueProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 const std::string g_variableEvalModeStrings[(int)eVariableEvalMode::COUNT]= {"get", "set"};
 extern const std::string* k_variableEvalModeStrings= g_variableEvalModeStrings;
 
 // -- ValueSourceComboDataSource ---
-class ValueSourceComboDataSource : public NodeEditorUI::ComboBoxDataSource
+class ValueSourceComboDataSource : public MkGui::ComboBoxDataSource
 {
 public:
 	ValueSourceComboDataSource(VariableNodePtr ownerNode)
@@ -50,9 +52,12 @@ public:
 
 	inline GraphValuePropertyPtr getEntryValueSource(int index) { return comboEntries[index].valueSource; }
 
-	virtual int getEntryCount() override { return (int)comboEntries.size(); }
+	virtual int getEntryCount() const override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override { return comboEntries[index].entryString; }
+	virtual const std::string& getEntryDisplayString(int index) const override
+	{
+		return comboEntries[index].entryString;
+	}
 
 private:
 	struct ComboEntry
@@ -138,18 +143,23 @@ bool VariableNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	if (NodeEditorUI::DrawPropertySheetHeader("Variable Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.variableHeader")))
 	{
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
 		bool bPinsNeedRebuild= false;
 
 		// Name
 		const std::string property_name= m_sourceProperty ? m_sourceProperty->getName() : "<INVALID>";
-		NodeEditorUI::DrawStaticTextProperty("Name", property_name, editorState.styleManager);
+		MkGui::drawStaticTextProperty(propertyStyle, locText("nodes.name"), property_name);
 
 		// Evaluation Mode
+		const std::string evalModeItems=
+			std::string(locText("nodes.evalModeGet")) + '\0' + locText("nodes.evalModeSet") + '\0';
 		int iEvalMode= (int)m_evalMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("variableNodeEvalMode", "Eval Mode", "Get\0Set\0", iEvalMode,
-													 editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "variableNodeEvalMode", locText("nodes.evalMode"),
+											  evalModeItems.c_str(), iEvalMode))
 		{
 			m_evalMode= (eVariableEvalMode)iEvalMode;
 			bPinsNeedRebuild= true;
@@ -159,8 +169,8 @@ void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 		auto self= std::static_pointer_cast<VariableNode>(shared_from_this());
 		ValueSourceComboDataSource dataSource(self);
 		int valueSourceIndex= dataSource.getCurrentValueSourceIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("variableSource", "Source", &dataSource, valueSourceIndex,
-											   editorState.styleManager))
+		if (MkGui::drawComboBoxProperty(propertyStyle, "variableSource", locText("nodes.source"), &dataSource,
+										valueSourceIndex))
 		{
 			m_sourceProperty= dataSource.getEntryValueSource(valueSourceIndex);
 			bPinsNeedRebuild= true;
@@ -248,16 +258,11 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 	return bSuccess;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> VariableNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 VariableNode::editorGetHeaderColor() const
 {
-	const unsigned int titleBarColor= m_outputValuePin ? m_outputValuePin->editorValuePinColor(1.f)
-													   : ImGui::GetColorU32(NodeEditorUI::getPropertyColor(1.f));
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, titleBarColor)
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	const unsigned int headerColor= m_outputValuePin ? m_outputValuePin->editorValuePinColor(1.f)
+													 : ImGui::GetColorU32(MkGui::getPropertyColor(1.f));
+	return ImGui::ColorConvertU32ToFloat4(headerColor);
 }
 
 std::string VariableNode::editorGetTitle() const
@@ -315,3 +320,5 @@ NodePtr VariableNodeFactory::createNode(const NodeEditorState& editorState) cons
 
 	return node;
 }
+
+const char* VariableNode::editorGetHeaderIcon() const { return ICON_FK_SQUARE; }

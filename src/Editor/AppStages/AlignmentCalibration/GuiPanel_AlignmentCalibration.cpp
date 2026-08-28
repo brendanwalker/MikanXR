@@ -1,6 +1,7 @@
 #include "AlignmentCalibration/GuiPanel_AlignmentCalibration.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 void GuiPanel_AlignmentCalibration::setCurrentChessboardValid(bool valid)
 {
@@ -42,9 +43,9 @@ void GuiPanel_AlignmentCalibration::onGui()
 	{
 	case eAlignmentCalibrationMenuState::pendingVideoStart:
 	{
-		ImGui::TextWrapped("Starting video stream...");
+		ImGui::TextWrapped("%s", locText("alignmentCalibration.startingVideoStream"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -54,14 +55,18 @@ void GuiPanel_AlignmentCalibration::onGui()
 
 	case eAlignmentCalibrationMenuState::verifySetup:
 	{
-		ImGui::TextWrapped("Position the calibration chessboard so it is visible in the camera view.");
+		ImGui::TextWrapped("%s", locText("alignmentCalibration.positionChessboard"));
 		ImGui::Spacing();
-		ImGui::Text("Chessboard Detected: %s", m_isCurrentChessboardValid ? "Yes" : "No");
-		ImGui::Text("Chessboard Stable: %s", m_isCurrentChessboardStable ? "Yes" : "No");
+		ImGui::Text(locText("alignmentCalibration.chessboardDetectedFmt"), m_isCurrentChessboardValid
+																			   ? locText("alignmentCalibration.yes")
+																			   : locText("alignmentCalibration.no"));
+		ImGui::Text(locText("alignmentCalibration.chessboardStableFmt"), m_isCurrentChessboardStable
+																			 ? locText("alignmentCalibration.yes")
+																			 : locText("alignmentCalibration.no"));
 		ImGui::Spacing();
 		if (!m_isCurrentChessboardStable)
 			ImGui::BeginDisabled();
-		if (ImGui::Button("Begin"))
+		if (ImGui::Button(locLabel("alignmentCalibration.begin")))
 		{
 			if (OnBeginEvent)
 				OnBeginEvent();
@@ -69,7 +74,7 @@ void GuiPanel_AlignmentCalibration::onGui()
 		if (!m_isCurrentChessboardStable)
 			ImGui::EndDisabled();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -79,11 +84,11 @@ void GuiPanel_AlignmentCalibration::onGui()
 
 	case eAlignmentCalibrationMenuState::capture:
 	{
-		ImGui::Text("Capturing calibration samples...");
+		ImGui::TextUnformatted(locText("alignmentCalibration.capturingSamples"));
 		ImGui::Spacing();
 		ImGui::ProgressBar(m_calibrationPercent / 100.f);
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();
@@ -93,15 +98,15 @@ void GuiPanel_AlignmentCalibration::onGui()
 
 	case eAlignmentCalibrationMenuState::testCalibration:
 	{
-		ImGui::Text("Camera alignment calibrated successfully!");
+		ImGui::TextUnformatted(locText("alignmentCalibration.calibratedSuccessfully"));
 		ImGui::Spacing();
-		if (ImGui::Button("Restart"))
+		if (ImGui::Button(locLabel("alignmentCalibration.restart")))
 		{
 			if (OnRestartEvent)
 				OnRestartEvent();
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Ok"))
+		if (ImGui::Button(locLabel("common.ok")))
 		{
 			if (OnReturnEvent)
 				OnReturnEvent();
@@ -111,9 +116,9 @@ void GuiPanel_AlignmentCalibration::onGui()
 
 	case eAlignmentCalibrationMenuState::failedVideoStartStreamRequest:
 	{
-		ImGui::TextWrapped("Error: Failed to start video stream.");
+		ImGui::TextWrapped("%s", locText("alignmentCalibration.failedVideoStream"));
 		ImGui::Spacing();
-		if (ImGui::Button("Cancel"))
+		if (ImGui::Button(locLabel("common.cancel")))
 		{
 			if (OnCancelEvent)
 				OnCancelEvent();

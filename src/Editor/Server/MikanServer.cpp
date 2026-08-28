@@ -89,7 +89,6 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	EASY_FUNCTION();
 
 	m_ownerWindow= mainWindow;
-	m_projectConfig= mainWindow->getProjectManager()->getProjectConfig();
 
 	if (!m_messageServer->initialize())
 	{
@@ -238,7 +237,11 @@ void MikanServer::restartHttpMessageServer(int port)
 
 ProjectManagerPtr MikanServer::getProjectManager() const { return m_ownerWindow->getProjectManager(); }
 
-ProjectConfigPtr MikanServer::getProjectConfig() const { return m_projectConfig.lock(); }
+// Fetched live rather than cached: loading a project replaces the ProjectConfig instance
+ProjectConfigPtr MikanServer::getProjectConfig() const
+{
+	return m_ownerWindow != nullptr ? getProjectManager()->getProjectConfig() : nullptr;
+}
 
 void MikanServer::publishMikanJsonEvent(const std::string& mikanJsonEvent)
 {

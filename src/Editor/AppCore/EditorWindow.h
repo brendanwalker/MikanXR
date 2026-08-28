@@ -61,7 +61,7 @@ public:
 	eWindowAPI getWindowAPI() const;
 	void* getNativeWindowHandle() const;
 	void makeContextCurrent();
-	bool wantsDestroy() const;
+	virtual bool wantsDestroy() const;
 	void present();
 	void setTitle(const std::string& title);
 	void setSize(int width, int height);
@@ -76,7 +76,7 @@ protected:
 	void shareGraphicsContextWithMainWindow();
 
 	bool startupWindow(const std::string& title, int width, int height);
-	bool startupGuiContext();
+	bool startupGuiContext(const std::string& iniName, bool bEnableDocking= false);
 	bool startupStyleManager();
 	bool startupTextureCache();
 	bool startupModelResourceManager();

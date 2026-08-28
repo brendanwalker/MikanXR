@@ -24,19 +24,19 @@ void drawPoint(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, 
 }
 
 void drawSegment(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& start,
-				 const glm::vec3& end, const glm::vec3& color)
+				 const glm::vec3& end, const glm::vec3& color, const float size)
 {
-	graphicsContext->getLineRenderer()->addSegment3d(transform, start, color, end, color);
+	graphicsContext->getLineRenderer()->addSegment3d(transform, start, color, end, color, size, size);
 }
 
 void drawSegment(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& start,
-				 const glm::vec3& end, const glm::vec3& colorStart, const glm::vec3& colorEnd)
+				 const glm::vec3& end, const glm::vec3& colorStart, const glm::vec3& colorEnd, const float size)
 {
-	graphicsContext->getLineRenderer()->addSegment3d(transform, start, colorStart, end, colorEnd);
+	graphicsContext->getLineRenderer()->addSegment3d(transform, start, colorStart, end, colorEnd, size, size);
 }
 
 void drawArrow(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& start,
-			   const glm::vec3& end, const float headFraction, const glm::vec3& color)
+			   const glm::vec3& end, const float headFraction, const glm::vec3& color, const float size)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -54,20 +54,20 @@ void drawArrow(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, 
 	const glm::vec3 headYPos= headOrigin + headUp * headSize;
 	const glm::vec3 headYNeg= headOrigin - headUp * headSize;
 
-	lineRenderer->addSegment3d(transform, start, color, end, color);
+	lineRenderer->addSegment3d(transform, start, color, end, color, size, size);
 
-	lineRenderer->addSegment3d(transform, headXPos, color, headYPos, color);
-	lineRenderer->addSegment3d(transform, headYPos, color, headXNeg, color);
-	lineRenderer->addSegment3d(transform, headXNeg, color, headYNeg, color);
-	lineRenderer->addSegment3d(transform, headYNeg, color, headXPos, color);
+	lineRenderer->addSegment3d(transform, headXPos, color, headYPos, color, size, size);
+	lineRenderer->addSegment3d(transform, headYPos, color, headXNeg, color, size, size);
+	lineRenderer->addSegment3d(transform, headXNeg, color, headYNeg, color, size, size);
+	lineRenderer->addSegment3d(transform, headYNeg, color, headXPos, color, size, size);
 
-	lineRenderer->addSegment3d(transform, headXPos, color, end, color);
-	lineRenderer->addSegment3d(transform, headYPos, color, end, color);
-	lineRenderer->addSegment3d(transform, headXNeg, color, end, color);
-	lineRenderer->addSegment3d(transform, headYNeg, color, end, color);
+	lineRenderer->addSegment3d(transform, headXPos, color, end, color, size, size);
+	lineRenderer->addSegment3d(transform, headYPos, color, end, color, size, size);
+	lineRenderer->addSegment3d(transform, headXNeg, color, end, color, size, size);
+	lineRenderer->addSegment3d(transform, headYNeg, color, end, color, size, size);
 
-	lineRenderer->addSegment3d(transform, headXPos, color, headXNeg, color);
-	lineRenderer->addSegment3d(transform, headYPos, color, headYNeg, color);
+	lineRenderer->addSegment3d(transform, headXPos, color, headXNeg, color, size, size);
+	lineRenderer->addSegment3d(transform, headYPos, color, headYNeg, color, size, size);
 }
 
 void drawTransformedAxes(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float scale, bool drawLabels)
@@ -107,7 +107,7 @@ void drawTransformedAxes(IMkGraphicsContext* graphicsContext, const glm::mat4& t
 }
 
 void drawTransformedCircle(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float radius,
-						   const glm::vec3& color, int segmentCount)
+						   const glm::vec3& color, int segmentCount, const float size)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -128,13 +128,14 @@ void drawTransformedCircle(IMkGraphicsContext* graphicsContext, const glm::mat4&
 	{
 		const glm::vec3 nextPoint= glm::vec3(cosf(angle), 0.f, sinf(angle)) * radius;
 
-		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color);
+		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color, size, size);
 		prevPoint= nextPoint;
 	}
 }
 
 void drawTransformedSpiralArc(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float radius,
-							  float radiusFractionPerCircle, float totalAngle, const glm::vec3& color, int segmentCount)
+							  float radiusFractionPerCircle, float totalAngle, const glm::vec3& color, int segmentCount,
+							  const float size)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -158,7 +159,7 @@ void drawTransformedSpiralArc(IMkGraphicsContext* graphicsContext, const glm::ma
 	glm::vec3 prevPoint= glm::vec3(spiralRadius, 0.f, 0.f);
 
 	// Draw start radial line
-	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
+	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color, size, size);
 
 	// Draw the spiral arc, clamping the last segment to exactly totalAngle
 	while (fabsf(currentAngle) < absTotal - 1e-6f)
@@ -168,14 +169,14 @@ void drawTransformedSpiralArc(IMkGraphicsContext* graphicsContext, const glm::ma
 		const float nextAngle= currentAngle + angleStep * stepFrac;
 		const glm::vec3 nextPoint= glm::vec3(cosf(nextAngle), 0.f, sinf(nextAngle)) * spiralRadius;
 
-		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color);
+		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color, size, size);
 		prevPoint= nextPoint;
 		currentAngle= nextAngle;
 		spiralRadius+= radiusStepPerFullSegment * stepFrac;
 	}
 
 	// Draw the end radial line
-	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
+	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color, size, size);
 }
 
 void drawGrid(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float xSize, float zSize, int xSubDiv,
@@ -225,13 +226,13 @@ void drawTransformedTriangle(IMkGraphicsContext* graphicsContext, const glm::mat
 }
 
 void drawTransformedBox(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& half_extents,
-						const glm::vec3& color)
+						const glm::vec3& color, const float size)
 {
-	drawTransformedBox(graphicsContext, transform, -half_extents, half_extents, color);
+	drawTransformedBox(graphicsContext, transform, -half_extents, half_extents, color, size);
 }
 
 void drawTransformedBox(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const glm::vec3& box_min,
-						const glm::vec3& box_max, const glm::vec3& color)
+						const glm::vec3& box_max, const glm::vec3& color, const float size)
 {
 	IMkLineRenderer* lineRenderer= graphicsContext->getLineRenderer();
 
@@ -244,20 +245,20 @@ void drawTransformedBox(IMkGraphicsContext* graphicsContext, const glm::mat4& tr
 	const glm::vec3 v6(box_min.x, box_min.y, box_min.z);
 	const glm::vec3 v7(box_max.x, box_min.y, box_min.z);
 
-	lineRenderer->addSegment3d(transform, v0, color, v1, color);
-	lineRenderer->addSegment3d(transform, v1, color, v2, color);
-	lineRenderer->addSegment3d(transform, v2, color, v3, color);
-	lineRenderer->addSegment3d(transform, v3, color, v0, color);
+	lineRenderer->addSegment3d(transform, v0, color, v1, color, size, size);
+	lineRenderer->addSegment3d(transform, v1, color, v2, color, size, size);
+	lineRenderer->addSegment3d(transform, v2, color, v3, color, size, size);
+	lineRenderer->addSegment3d(transform, v3, color, v0, color, size, size);
 
-	lineRenderer->addSegment3d(transform, v4, color, v5, color);
-	lineRenderer->addSegment3d(transform, v5, color, v6, color);
-	lineRenderer->addSegment3d(transform, v6, color, v7, color);
-	lineRenderer->addSegment3d(transform, v7, color, v4, color);
+	lineRenderer->addSegment3d(transform, v4, color, v5, color, size, size);
+	lineRenderer->addSegment3d(transform, v5, color, v6, color, size, size);
+	lineRenderer->addSegment3d(transform, v6, color, v7, color, size, size);
+	lineRenderer->addSegment3d(transform, v7, color, v4, color, size, size);
 
-	lineRenderer->addSegment3d(transform, v0, color, v4, color);
-	lineRenderer->addSegment3d(transform, v1, color, v5, color);
-	lineRenderer->addSegment3d(transform, v2, color, v6, color);
-	lineRenderer->addSegment3d(transform, v3, color, v7, color);
+	lineRenderer->addSegment3d(transform, v0, color, v4, color, size, size);
+	lineRenderer->addSegment3d(transform, v1, color, v5, color, size, size);
+	lineRenderer->addSegment3d(transform, v2, color, v6, color, size, size);
+	lineRenderer->addSegment3d(transform, v3, color, v7, color, size, size);
 }
 
 void drawTransformedFrustum(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, const float hfov_radians,

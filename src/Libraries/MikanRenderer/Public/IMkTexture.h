@@ -86,3 +86,8 @@ MIKAN_RENDERER_FUNC(IMkExternalTexturePtr) CreateMkExternalTexture();
 MIKAN_RENDERER_FUNC(IMkExternalTexturePtr) CreateMkExternalTexture(void* platformTexture);
 
 MIKAN_RENDERER_FUNC(bool) saveMkTextureToPNG(IMkTexturePtr texture, const char* filename);
+
+/// Read the default framebuffer's back buffer and write it as a PNG.
+/// Call with the target window's GL context bound, after rendering completes
+/// and before the frame is presented.
+MIKAN_RENDERER_FUNC(bool) saveDefaultFramebufferToPNG(int width, int height, const char* filename);

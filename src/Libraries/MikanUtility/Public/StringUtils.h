@@ -76,8 +76,11 @@ MIKAN_UTILITY_FUNC(std::string) joinString(const std::vector<std::string>& elems
 
 /// Formats a wide character string into the given target buffer
 /// \param buffer The target buffer to write in to
-/// \param buffer_size The max number of bytes that can be written to the buffer
-/// \param format The formatting string that will be written to the buffer
+/// \param buffer_size The max number of WIDE CHARACTERS that can be written to
+///        the buffer, not bytes: pass std::size(buffer), never sizeof(buffer).
+///        The count is forwarded to vswprintf and used to place the terminator.
+/// \param format The formatting string that will be written to the buffer.
+///        A narrow (char*) argument needs %hs here, not %s.
 /// \return The number of characters successfully written
 MIKAN_UTILITY_FUNC(int) formatWString(wchar_t* buffer, size_t buffer_size, const wchar_t* format, ...);
 

@@ -17,21 +17,9 @@ float FloatPinBase::editorComputeInputWidth() const
 	return NodePin::editorComputeInputWidth();
 }
 
-ImNodesPinShape FloatPinBase::editorComputePinShape() const
-{
-	if (m_connectedLinks.size() > 0)
-		return ImNodesPinShape_CircleFilled;
-	else
-		return ImNodesPinShape_Circle;
-}
+MkCanvas::PinIcon FloatPinBase::editorGetPinIcon() const { return MkCanvas::PinIcon::Circle; }
 
-std::shared_ptr<MkNodesScopedColorStyle> FloatPinBase::editorRenderMakePinStyle(float alpha)
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_Pin, IM_COL32(156, 253, 65, (unsigned char)(alpha * 255)))
-		.push(ImNodesCol_PinHovered, IM_COL32(144, 225, 137, (unsigned char)(alpha * 255)));
-	return style;
-}
+ImVec4 FloatPinBase::editorGetPinColor() const { return ImVec4(156.f / 255.f, 253.f / 255.f, 65.f / 255.f, 1.f); }
 
 void FloatPinBase::editorRenderContextMenu(const NodeEditorState& editorState) {}
 
@@ -54,15 +42,6 @@ void FloatPin::copyValueFromSourcePin()
 	{
 		setValue(sourcePin->getValue());
 	}
-}
-
-std::shared_ptr<MkNodesScopedColorStyle> FloatPin::editorRenderMakeLinkStyle(float alpha)
-{
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_Link, IM_COL32(156, 253, 65, (unsigned char)alpha))
-		.push(ImNodesCol_LinkHovered, IM_COL32(144, 225, 137, (unsigned char)alpha))
-		.push(ImNodesCol_LinkSelected, IM_COL32(144, 225, 137, 255));
-	return style;
 }
 
 ImU32 FloatPin::editorGetLinkStyleColor() const { return IM_COL32(156, 253, 65, 255); }

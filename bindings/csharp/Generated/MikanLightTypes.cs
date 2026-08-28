@@ -32,6 +32,18 @@ namespace MikanXR
 		public float transmit_rate_hz;
 	};
 
+	public class MikanLightEnvironmentComponentValues : MikanTransformComponentValues
+	{
+		public List<float> sh_coefficients;
+		public float exposure_scale;
+		public float directionality;
+		public MikanVector3f key_light_direction;
+	};
+
+	public class MikanLightEnvironmentSystemValues : MikanSystemValues
+	{
+	};
+
 	public class MikanRGBPixelGridComponentValues : MikanDMXFixtureComponentValues
 	{
 		public int grid_columns;

@@ -1,7 +1,10 @@
 #include "ShapeSelectNode.h"
+#include "IconsForkAwesome.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 
 #include "QuadShapeComponent.h"
 #include "BoxShapeComponent.h"
@@ -16,8 +19,7 @@
 #include "Properties/GraphShapeProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- ShapeSelectNodeConfig -----
 configuru::Config ShapeSelectNodeConfig::writeToJSON()
@@ -120,22 +122,16 @@ bool ShapeSelectNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> ShapeSelectNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 ShapeSelectNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(80, 150, 130, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(80, 150, 130, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(80, 150, 130, 225));
-	return style;
+	return ImVec4(80.f / 255.f, 150.f / 255.f, 130.f / 255.f, 225.f / 255.f);
 }
 
 void ShapeSelectNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 	editorRenderOutputPins(editorState);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
@@ -143,11 +139,17 @@ void ShapeSelectNode::editorRenderNode(const NodeEditorState& editorState)
 
 void ShapeSelectNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Shape Select Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.shapeSelectHeader")))
 	{
-		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableQuad", "Enable Quads", m_bEnableQuadShapes);
-		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableBox", "Enable Boxes", m_bEnableBoxShapes);
-		NodeEditorUI::DrawCheckBoxProperty("ShapeSelectNodeEnableModel", "Enable Models", m_bEnableModelShapes);
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+		MkGui::drawCheckBoxProperty(propertyStyle, "ShapeSelectNodeEnableQuad", locText("nodes.enableQuads"),
+									m_bEnableQuadShapes);
+		MkGui::drawCheckBoxProperty(propertyStyle, "ShapeSelectNodeEnableBox", locText("nodes.enableBoxes"),
+									m_bEnableBoxShapes);
+		MkGui::drawCheckBoxProperty(propertyStyle, "ShapeSelectNodeEnableModel", locText("nodes.enableModels"),
+									m_bEnableModelShapes);
 	}
 }
 
@@ -163,3 +165,5 @@ NodePtr ShapeSelectNodeFactory::createNode(const NodeEditorState& editorState) c
 
 	return node;
 }
+
+const char* ShapeSelectNode::editorGetHeaderIcon() const { return ICON_FK_LIST_UL; }

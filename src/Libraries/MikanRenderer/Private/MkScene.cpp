@@ -105,9 +105,6 @@ void MkScene::render(IMkCameraConstPtr camera, MkStateStack& MkStateStack) const
 	// Enable Depth Test while drawing the scene
 	mkState->enableFlag(eMkStateFlagType::depthTest);
 
-	// Clear the depth buffer before drawing the scene
-	mkStateClearBuffer(mkState, eMkClearFlags::depth);
-
 	for (auto drawCallIter= m_impl->drawCalls.begin(); drawCallIter != m_impl->drawCalls.end(); drawCallIter++)
 	{
 		MkMaterialConstPtr material= drawCallIter->first;

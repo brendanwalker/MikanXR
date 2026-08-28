@@ -1,4 +1,5 @@
 #include "CameraComponent.h"
+#include "IconsForkAwesome.h"
 #include "DrawLayerNode.h"
 #include "MkMaterial.h"
 #include "MikanRenderModelResource.h"
@@ -12,10 +13,12 @@
 #include "IMkTriangulatedMesh.h"
 #include "MkMaterialInstance.h"
 #include "IMkGraphicsContext.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 
 #include "QuadStencilComponent.h"
 #include "BoxStencilComponent.h"
@@ -42,7 +45,6 @@
 #include "StringUtils.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -404,35 +406,43 @@ FlowPinPtr DrawLayerNode::getOutputFlowPin() const { return getFirstPinOfType<Fl
 void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	if (NodeEditorUI::DrawPropertySheetHeader("Draw Layer Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.drawLayerHeader")))
 	{
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
 		// Material
 		const std::string material_name= m_material ? m_material->getName() : "<INVALID>";
-		NodeEditorUI::DrawStaticTextProperty("Material", material_name, editorState.styleManager);
+		MkGui::drawStaticTextProperty(propertyStyle, locText("nodes.material"), material_name);
 
 		// Blend Mode
+		const std::string blendModeItems= std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendNormal")
+										  + '\0' + locText("nodes.blendMultiply") + '\0';
 		int iBlendMode= (int)m_blendMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawLayerNodeBlendMode", "Blend Mode",
-													 "Blend Off\0Blend Normal\0Blend Multiply\0", iBlendMode,
-													 editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "drawLayerNodeBlendMode", locText("nodes.blendMode"),
+											  blendModeItems.c_str(), iBlendMode))
 		{
 			m_blendMode= (eCompositorBlendMode)iBlendMode;
 		}
 
 		// Stencil Mode
+		const std::string stencilModeItems= std::string(locText("nodes.stencilNone")) + '\0'
+											+ locText("nodes.stencilInside") + '\0' + locText("nodes.stencilOutside")
+											+ '\0';
 		int iStencilMode= (int)m_stencilMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawLayerNodeStencilMode", "Stencil Mode",
-													 "None\0Inside\0Outside\0", iStencilMode, editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "drawLayerNodeStencilMode", locText("nodes.stencilMode"),
+											  stencilModeItems.c_str(), iStencilMode))
 		{
 			m_stencilMode= (eCompositorStencilMode)iStencilMode;
 		}
 
 		// Invert when camera inside stencil options
-		NodeEditorUI::DrawCheckBoxProperty("drawLayerNodeNodeStencilInvert", "Cam Inside Invert",
-										   m_bInvertWhenCameraInside);
+		MkGui::drawCheckBoxProperty(propertyStyle, "drawLayerNodeNodeStencilInvert", locText("nodes.camInsideInvert"),
+									m_bInvertWhenCameraInside);
 
 		// Vertical Flip
-		NodeEditorUI::DrawCheckBoxProperty("drawLayerNodeNodeVerticalflip", "Vertical Flip", m_bVerticalFlip);
+		MkGui::drawCheckBoxProperty(propertyStyle, "drawLayerNodeNodeVerticalflip", locText("nodes.verticalFlip"),
+									m_bVerticalFlip);
 	}
 }
 
@@ -950,3 +960,5 @@ NodePtr DrawLayerNodeFactory::createNode(const NodeEditorState& editorState) con
 
 	return node;
 }
+
+const char* DrawLayerNode::editorGetHeaderIcon() const { return ICON_FK_CLONE; }

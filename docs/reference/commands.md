@@ -63,8 +63,35 @@ build\bin\MikanCmd.exe -runTests
 build\bin\unit_test_suite_cpp.exe
 ```
 
-- `MikanCmd.exe -runTests` runs the interprocess/client-API integration tests and writes details to `MikanCmd.log` in the working directory in addition to stdout. Check that file if the run fails with no console output (e.g. a crash exit code like `0xC0000005`).
+- `MikanCmd.exe -runTests` runs the editor unit test modules (tracker pose calibrator, client-API property schema guard, depth mesh generator, DMX universe RLE, light environment persistence) and writes details to `MikanCmd.log` in the working directory in addition to stdout. Check that file if the run fails with no console output (e.g. a crash exit code like `0xC0000005`).
+
 - Both suites must pass in CI (`.github/workflows/build-and-test.yml`).
+
+---
+
+## ML models and headless capture
+
+The scene lighting estimator and the depth proxy mesh capture run ONNX models out of a gitignored `models/` at the repo root. `InitialSetup_x64.bat` does not fetch them; they are produced once per developer machine by the Python tools in `tools/`, which need `diffusers` pinned to 0.34.0 under torch 2.4.1:
+
+```
+python tools/fetch_moge2_onnx.py
+python tools/export_marigold_onnx.py
+```
+
+`fetch_moge2_onnx.py` downloads the authors' official MoGe-2 export into `models/moge2` (1.3GB, no local export step). `export_marigold_onnx.py` converts the Marigold checkpoints into `models/marigold` (~6.8GB). Details in [scene-lighting.md](./scene-lighting.md) and [depth-proxy-mesh.md](./depth-proxy-mesh.md).
+
+Both capture pipelines have a headless entry point that runs the same C++ code the editor stages do, which is how they are validated against the Python references:
+
+```
+MikanCmd.exe -estimateLighting -image=<path> [-fov=<degrees>] [-seed=<n>] [-dump=<dir>] [-cpu]
+MikanCmd.exe -depthMesh -image=<path> -fov=<degrees> [-obj=<path>] [-stride=<n>] [-maxDepth=<metres>] [-cpu]
+```
+
+- `-estimateLighting` prints the recovered spherical harmonic environment plus its confidence numbers; `-dump=<dir>` also writes the raw model outputs as float TIFFs and the three reconstruction views the capture panel shows.
+
+- `-depthMesh` prints the mesh statistics and writes the OBJ (plus the source frame as a sibling `.png` for the projected texture).
+
+- `-cpu` forces the CPU execution provider instead of DirectML. Both commands take `-models=<dir>` / `-mogeModels=<dir>` to override the default `models/marigold` and `models/moge2` paths.
 
 ---
 

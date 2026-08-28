@@ -11,15 +11,19 @@
 #include "Project/AppStage_Project.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "MkGuiScopedWindow.h"
+#include "ProjectFileDialogs.h"
 #include "ProjectManager.h"
 #include "App.h"
 #include "AppSettingsConfig.h"
+#include "LocText.h"
 #include "MainWindow.h"
 #include "PathUtils.h"
 #include "Logger.h"
 
 #include "imgui.h"
 #include "tinyfiledialogs.h"
+
+#include <algorithm>
 
 //-- statics ----
 const char* AppStage_MainMenu::APP_STAGE_NAME= "MainMenu";
@@ -35,8 +39,10 @@ void AppStage_MainMenu::enter()
 	AppStage::enter();
 
 	App* app= App::getInstance();
+	IEditorWindow* ownerWindow= getOwnerWindow();
+
 	m_appSettingsConfig= app->getAppSettings();
-	m_projectManager= app->getMainWindow()->getProjectManager();
+	m_projectManager= ownerWindow->getProjectManager();
 
 	// Create the background quad
 	if (!m_fullscreenRGBQuad)
@@ -46,8 +52,21 @@ void AppStage_MainMenu::enter()
 				INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
 
 		m_fullscreenRGBQuad=
-			createFullscreenQuadMesh(getOwnerWindow()->getGraphicsContext().get(), backgroundMaterial, false);
+			createFullscreenQuadMesh(ownerWindow->getGraphicsContext().get(), backgroundMaterial, false);
 	}
+
+	// Language selector
+	LocalizationManager* locManager= ownerWindow->getLocalizationManager();
+	m_selectedLanguageId= locManager->getLanguage();
+
+	m_languageIdList.clear();
+	m_languageNameList.clear();
+	for (const LocalizationManager::LanguageInfo& info : locManager->getSupportedLanguageInfos())
+	{
+		m_languageIdList.push_back(info.code);
+		m_languageNameList.push_back(info.nativeName);
+	}
+	m_languageDataSource.setEntries(m_languageNameList);
 }
 
 void AppStage_MainMenu::onResumeProject()
@@ -58,16 +77,9 @@ void AppStage_MainMenu::onResumeProject()
 
 void AppStage_MainMenu::onOpenProject()
 {
-	std::string defaultPath= (PathUtils::getProjectsRootDirectory() / "").string();
-	static const char* filterItems[1]= {"*.mikanproj"};
-
-	const char* picked=
-		tinyfd_openFileDialog("Open Project", defaultPath.c_str(), 1, filterItems, "Project Files (*.mikanproj)", 1);
-
-	if (picked == nullptr || picked[0] == '\0')
+	const std::filesystem::path projectFilePath= ProjectFileDialogs::pickProjectToOpen();
+	if (projectFilePath.empty())
 		return;
-
-	std::filesystem::path projectFilePath(picked);
 
 	std::vector<std::string> parameters= {projectFilePath.string()};
 	std::vector<std::string> outResults;
@@ -76,17 +88,9 @@ void AppStage_MainMenu::onOpenProject()
 
 void AppStage_MainMenu::onNewProject()
 {
-	std::string defaultPath= (PathUtils::getProjectsRootDirectory() / "").string();
-
-	const char* picked= tinyfd_selectFolderDialog("New Project Folder", defaultPath.c_str());
-
-	if (picked == nullptr || picked[0] == '\0')
+	const std::filesystem::path projectFilePath= ProjectFileDialogs::pickNewProjectPath();
+	if (projectFilePath.empty())
 		return;
-
-	std::filesystem::path projectFolderPath(picked);
-	std::string projectFileName=
-		projectFolderPath.filename().string() + std::string(ProjectManager::k_mikanProjectFileExtension);
-	std::filesystem::path projectFilePath= std::filesystem::path(projectFolderPath) / projectFileName;
 
 	std::vector<std::string> parameters= {projectFilePath.string()};
 	std::vector<std::string> outResults;
@@ -117,25 +121,48 @@ void AppStage_MainMenu::onGui()
 
 	const float buttonWidth= k_panelWidth - 40.f;
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	ImGui::Text("Main Menu");
+	ImGui::TextUnformatted(locText("mainMenu.title"));
 	ImGui::Separator();
 	ImGui::Spacing();
 
 	if (m_appSettingsConfig->hasLastProjectPath())
 	{
 		ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-		if (ImGui::Button("Resume Project", ImVec2(buttonWidth, 0)))
+		if (ImGui::Button(locLabel("mainMenu.resumeProject"), ImVec2(buttonWidth, 0)))
 			onResumeProject();
 	}
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	if (ImGui::Button("Open Project", ImVec2(buttonWidth, 0)))
+	if (ImGui::Button(locLabel("mainMenu.openProject"), ImVec2(buttonWidth, 0)))
 		onOpenProject();
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	if (ImGui::Button("New Project", ImVec2(buttonWidth, 0)))
+	if (ImGui::Button(locLabel("mainMenu.newProject"), ImVec2(buttonWidth, 0)))
 		onNewProject();
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	if (ImGui::Button("Exit", ImVec2(buttonWidth, 0)))
+	if (ImGui::Button(locLabel("mainMenu.exit"), ImVec2(buttonWidth, 0)))
 		onExit();
+
+	// Language selector. No label: the property-row helpers put the label at x=0
+	// and the value at the style's label width, which is sized for the wide
+	// component panels and would overrun this narrow centered menu. The combo
+	// shows the language's own native name, so it reads without one.
+	ImGui::Spacing();
+
+	LocalizationManager* locManager= getOwnerWindow()->getLocalizationManager();
+	m_selectedLanguageId= locManager->getLanguage();
+
+	const auto selectedIt= std::find(m_languageIdList.begin(), m_languageIdList.end(), m_selectedLanguageId);
+	int selectedIndex= selectedIt != m_languageIdList.end() ? (int)(selectedIt - m_languageIdList.begin()) : -1;
+
+	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
+	ImGui::SetNextItemWidth(buttonWidth);
+	if (ImGui::Combo("##mainMenuLanguage", &selectedIndex, &MkGui::ComboBoxDataSource::itemGetter,
+					 &m_languageDataSource, m_languageDataSource.getEntryCount()))
+	{
+		if (selectedIndex >= 0 && selectedIndex < (int)m_languageIdList.size())
+		{
+			locManager->setLanguage(m_languageIdList[selectedIndex]);
+		}
+	}
 }
 
 void AppStage_MainMenu::render(IMkViewportPtr targetViewport)
@@ -203,6 +230,7 @@ bool AppStage_MainMenu::handleResumeProjectCommand(std::vector<std::string>& out
 	{
 		m_ownerWindow->pushAppStageOfType<AppStage_Project>();
 		outResults.push_back(IRemoteControllable::k_success);
+		return true;
 	}
 	else if (m_appSettingsConfig->hasLastProjectPath())
 	{
@@ -212,6 +240,7 @@ bool AppStage_MainMenu::handleResumeProjectCommand(std::vector<std::string>& out
 		{
 			m_ownerWindow->pushAppStageOfType<AppStage_Project>();
 			outResults.push_back(IRemoteControllable::k_success);
+			return true;
 		}
 	}
 
@@ -243,8 +272,10 @@ bool AppStage_MainMenu::handleOpenProjectCommand(const std::vector<std::string>&
 		}
 	}
 
+	// Missing path parameter: the command is recognized, so report the failure
+	// through the results rather than an unrecognized-command error
 	outResults.push_back(IRemoteControllable::k_failure);
-	return false;
+	return true;
 }
 
 bool AppStage_MainMenu::handleNewProjectCommand(const std::vector<std::string>& parameters,
@@ -271,7 +302,7 @@ bool AppStage_MainMenu::handleNewProjectCommand(const std::vector<std::string>& 
 	}
 
 	outResults.push_back(IRemoteControllable::k_failure);
-	return false;
+	return true;
 }
 
 bool AppStage_MainMenu::handleExitCommand(std::vector<std::string>& outResults)

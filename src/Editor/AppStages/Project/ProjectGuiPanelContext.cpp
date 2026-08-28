@@ -10,6 +10,7 @@
 #include "Shared/GuiPanel_DMXObjectSystem.h"
 #include "Shared/GuiPanel_MarkerObjectSystem.h"
 #include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
+#include "Shared/GuiPanel_LightEnvironmentComponent.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "Shared/GuiPanel_SceneComponent.h"
@@ -70,6 +71,9 @@ bool ProjectGuiPanelContext::init()
 
 	m_modelShapePanel= m_ownerAppStage->addGuiPanel<GuiPanel_ModelShapeComponent>();
 	m_modelShapePanel->init();
+
+	m_lightEnvironmentPanel= m_ownerAppStage->addGuiPanel<GuiPanel_LightEnvironmentComponent>();
+	m_lightEnvironmentPanel->init();
 
 	m_modelStencilPanel= m_ownerAppStage->addGuiPanel<GuiPanel_ModelStencilComponent>();
 	m_modelStencilPanel->init();

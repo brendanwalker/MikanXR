@@ -108,6 +108,7 @@ const char* MikanSceneSystemValues::k_systemName= "SceneObjectSystem";
 const char* MikanDMXObjectSystemValues::k_systemName= "DMXObjectSystem";
 const char* MikanRGBSpotLightSystemValues::k_systemName= "RGBSpotLightSystem";
 const char* MikanRGBPixelGridSystemValues::k_systemName= "RGBPixelGridSystem";
+const char* MikanLightEnvironmentSystemValues::k_systemName= "LightEnvironmentSystem";
 const char* MikanVRObjectSystemValues::k_systemName= "VRObjectSystem";
 
 // Static component class name and owner system name definitions
@@ -141,6 +142,9 @@ const char* MikanRGBSpotLightComponentValues::k_ownerSystemName= MikanRGBSpotLig
 
 const char* MikanRGBPixelGridComponentValues::k_componentClassName= "RGBPixelGridComponent";
 const char* MikanRGBPixelGridComponentValues::k_ownerSystemName= MikanRGBPixelGridSystemValues::k_systemName;
+
+const char* MikanLightEnvironmentComponentValues::k_componentClassName= "LightEnvironmentComponent";
+const char* MikanLightEnvironmentComponentValues::k_ownerSystemName= MikanLightEnvironmentSystemValues::k_systemName;
 
 const char* MikanModelStencilComponentValues::k_componentClassName= "ModelStencilComponent";
 const char* MikanModelStencilComponentValues::k_ownerSystemName= MikanModelStencilSystemValues::k_systemName;

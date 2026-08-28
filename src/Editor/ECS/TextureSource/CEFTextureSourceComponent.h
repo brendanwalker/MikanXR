@@ -50,6 +50,15 @@ class CEFTextureSourceComponent : public TextureSourceComponent
 public:
 	CEFTextureSourceComponent(MikanObjectWeakPtr owner);
 
+	// Declared out of line, and defined in the .cpp where cef_browser.h is
+	// included. The CefRefPtr members below are declared against forward
+	// declarations only, and ~scoped_refptr requires the complete type - so an
+	// implicit destructor would force every translation unit that destroys this
+	// component to have included the full CEF browser headers. That happened to
+	// hold under one CMake unity grouping and broke as soon as the grouping
+	// shifted.
+	virtual ~CEFTextureSourceComponent();
+
 	inline CEFTextureSourceDefinitionPtr getCEFTextureSourceDefinition() const
 	{
 		return std::static_pointer_cast<CEFTextureSourceDefinition>(m_definition);

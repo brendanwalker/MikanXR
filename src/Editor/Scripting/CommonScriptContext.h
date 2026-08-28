@@ -20,11 +20,17 @@ public:
 	void disposeScriptState();
 	void updateScript(float deltaSeconds);
 	inline bool hasScriptFilename() const { return !m_scriptFilename.empty(); }
+	inline const std::filesystem::path& getScriptFilename() const { return m_scriptFilename; }
 	inline bool hasLoadedScript() const { return m_luaState != nullptr; }
 	inline lua_State* getLuaState() const { return m_luaState; }
 
 	const std::vector<std::string>& getScriptTriggers() const { return m_triggers; }
 	bool invokeScriptTrigger(const std::string& triggerName);
+
+	/// Run a Lua statement in this context's state and stringify what it
+	/// returns (or the error message on failure). Used by the automation
+	/// server's script eval command.
+	bool evalString(const std::string& code, std::string& outResult);
 
 	const std::vector<std::string>& getScriptMessageHandler() const { return m_messageHandlers; }
 	bool invokeScriptMessageHandler(const std::string& message);

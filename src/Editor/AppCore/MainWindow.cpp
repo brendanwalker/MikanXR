@@ -4,8 +4,11 @@
 #include "Version.h"
 
 #include "App.h"
+#include "AppSettingsConfig.h"
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
+#include "AutomationServer.h"
+#include "TransactionHistory.h"
 #include "ClientSourceManager.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
@@ -23,6 +26,7 @@
 #include "MikanViewport.h"
 #include "MikanModelResourceManager.h"
 #include "MkGuiContext.h"
+#include "MkGuiDockspace.h"
 #include "MkGuiScopedUpdate.h"
 #include "MkGuiStyleManager.h"
 #include "MkStateStack.h"
@@ -38,6 +42,7 @@
 #include "TextStyle.h"
 
 #include <chrono>
+#include <cstdlib>
 
 // App Stages
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
@@ -45,6 +50,8 @@
 #include "AlignCameraByOriginMarker/AppStage_AlignCameraByOriginMarker.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
 #include "LightFixtureCalibration/AppStage_LightFixtureCalibration.h"
+#include "DepthMeshCapture/AppStage_DepthMeshCapture.h"
+#include "SceneLightingCapture/AppStage_SceneLightingCapture.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "Project/AppStage_Project.h"
@@ -69,6 +76,8 @@ static const glm::vec3 k_frustum_color= glm::vec3(0.1f, 0.7f, 0.3f);
 MainWindow::MainWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 	, m_mikanServer(new MikanServer())
+	, m_automationServer(new AutomationServer())
+	, m_transactionHistory(new TransactionHistory())
 	, m_clientSourceManager(new ClientSourceManager(DEFAULT_VIDEO_FRAME_QUEUE_SIZE))
 	, m_inputManager(new InputManager(this))
 	, m_projectManager(std::make_shared<ProjectManager>(this))
@@ -88,7 +97,9 @@ MainWindow::MainWindow(App* ownerApp)
 	m_appStageFactory.addAppStageConstructor<AppStage_AlignCameraByUtilityMarker>();
 	m_appStageFactory.addAppStageConstructor<AppStage_AlignCameraByOriginMarker>();
 	m_appStageFactory.addAppStageConstructor<AppStage_AnchorTriangulation>();
+	m_appStageFactory.addAppStageConstructor<AppStage_DepthMeshCapture>();
 	m_appStageFactory.addAppStageConstructor<AppStage_LightFixtureCalibration>();
+	m_appStageFactory.addAppStageConstructor<AppStage_SceneLightingCapture>();
 	m_appStageFactory.addAppStageConstructor<AppStage_MainMenu>();
 	m_appStageFactory.addAppStageConstructor<AppStage_MonoLensCalibration>();
 	m_appStageFactory.addAppStageConstructor<AppStage_Project>();
@@ -103,6 +114,8 @@ MainWindow::~MainWindow()
 	m_projectManager= nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
+	delete m_transactionHistory;
+	delete m_automationServer;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
 }
@@ -140,7 +153,7 @@ bool MainWindow::startup()
 	if (success)
 	{
 		bool ok= false;
-		MIKAN_TIMED_STARTUP("startupGuiContext", ok= startupGuiContext());
+		MIKAN_TIMED_STARTUP("startupGuiContext", ok= startupGuiContext("main", /*bEnableDocking=*/true));
 		if (!ok)
 			success= false;
 	}
@@ -231,6 +244,26 @@ bool MainWindow::startup()
 		LuaDebugServer::getInstance()->startListening();
 	}
 
+	if (success && !m_ownerApp->hasCommandLineFlag("noAutomationServer"))
+	{
+		// Start the automation text command server (loopback only).
+		// A failed bind is logged and tolerated.
+		int automationPort= m_ownerApp->getAppSettings()->getAutomationServerPort();
+		const std::string portOverride= m_ownerApp->getCommandLineStringArg("automationPort");
+		if (!portOverride.empty())
+			automationPort= atoi(portOverride.c_str());
+
+		m_automationServer->startup(this, (uint16_t)automationPort);
+	}
+
+	if (success)
+	{
+		// Start transaction recording (binds to the already-loaded initial
+		// project) and expose the history commands over the automation channel
+		m_transactionHistory->startup(this);
+		m_transactionHistory->registerAutomationCommands(m_automationServer);
+	}
+
 #undef MIKAN_TIMED_STARTUP
 
 	if (success)
@@ -270,11 +303,21 @@ void MainWindow::update(float deltaSeconds)
 	// Service Lua debugger socket I/O (between Lua script updates)
 	LuaDebugServer::getInstance()->poll();
 
+	// Service automation command socket I/O (dispatches commands inline)
+	m_automationServer->poll();
+
+	// Seal any transaction whose coalescing window lapsed
+	m_transactionHistory->update(deltaSeconds);
+
 	// Garbage collect stale baked text
 	m_fontManager->garbageCollect();
 
 	// Process any pending app stage operations queued by pushAppStage/popAppStage from last frame
 	processPendingAppStageOps();
+
+	// Apply a project switch requested from a project stage's File menu, now
+	// that the requesting stage has popped
+	processPendingProjectRequest();
 
 	// Process most recent SDL events (keyboard, mouse, etc)
 	m_mkWindowContext->handleEvents(this);
@@ -290,7 +333,9 @@ void MainWindow::update(float deltaSeconds)
 		if (!m_bIsMainWindowGuiHidden && !m_projectManager->isAnySystemLoading())
 		{
 			EASY_BLOCK("appStage onGui");
+			beginDockspaceHost(appStage);
 			appStage->onGui();
+			endDockspaceHost();
 		}
 
 		// Update the simulation of the current app stage
@@ -298,6 +343,72 @@ void MainWindow::update(float deltaSeconds)
 			EASY_BLOCK("appStage Update");
 			appStage->update(deltaSeconds);
 		}
+	}
+}
+
+void MainWindow::requestOpenProject(const std::filesystem::path& projectFilePath)
+{
+	m_pendingProjectRequest= ePendingProjectRequest::open;
+	m_pendingProjectRequestPath= projectFilePath;
+}
+
+void MainWindow::requestNewProject(const std::filesystem::path& projectFilePath)
+{
+	m_pendingProjectRequest= ePendingProjectRequest::create;
+	m_pendingProjectRequestPath= projectFilePath;
+}
+
+void MainWindow::processPendingProjectRequest()
+{
+	if (m_pendingProjectRequest == ePendingProjectRequest::none)
+		return;
+
+	// Wait for the requesting stage to finish popping: the main menu stage is
+	// the one that knows how to load a project and push the project stage
+	AppStage* appStage= getCurrentAppStage();
+	if (appStage == nullptr || appStage->getUsesDockspace())
+		return;
+
+	const char* command= m_pendingProjectRequest == ePendingProjectRequest::open ? "open_project" : "new_project";
+	const std::vector<std::string> parameters= {m_pendingProjectRequestPath.string()};
+	std::vector<std::string> results;
+
+	m_pendingProjectRequest= ePendingProjectRequest::none;
+	m_pendingProjectRequestPath.clear();
+
+	appStage->handleRemoteControlCommand(command, parameters, results);
+}
+
+void MainWindow::beginDockspaceHost(AppStage* appStage)
+{
+	m_bDockspaceHostOpen= false;
+
+	if (appStage == nullptr || !appStage->getUsesDockspace())
+		return;
+
+	bool bNeedsDefaultLayout= false;
+	const ImGuiID dockspaceId= MkGui::beginDockspaceHost("##MikanDockHost", "MikanDockspace", bNeedsDefaultLayout);
+	m_bDockspaceHostOpen= true;
+
+	if (bNeedsDefaultLayout)
+	{
+		appStage->onBuildDefaultDockLayout((unsigned int)dockspaceId);
+		MkGui::dockBuilderFinish(dockspaceId);
+	}
+
+	if (ImGui::BeginMenuBar())
+	{
+		appStage->onMenuBarGui();
+		ImGui::EndMenuBar();
+	}
+}
+
+void MainWindow::endDockspaceHost()
+{
+	if (m_bDockspaceHostOpen)
+	{
+		MkGui::endDockspaceHost();
+		m_bDockspaceHostOpen= false;
 	}
 }
 
@@ -324,6 +435,10 @@ void MainWindow::render()
 
 		// Finalize rendering
 		m_graphicsContext->renderEnd();
+
+		// Capture the finished frame for any pending automation screenshot
+		m_automationServer->servicePendingWindowCapture((int)m_mkWindowContext->getWidth(),
+														(int)m_mkWindowContext->getHeight());
 
 		// Present the rendered frame to the window (may block on vsync or SteamVR overlay DWM handshake)
 		m_mkWindowContext->present();
@@ -417,6 +532,12 @@ void MainWindow::shutdown()
 		popAppState();
 	}
 	processPendingAppStageOps();
+
+	assert(m_transactionHistory != nullptr);
+	m_transactionHistory->shutdown();
+
+	assert(m_automationServer != nullptr);
+	m_automationServer->shutdown();
 
 	assert(m_mikanServer != nullptr);
 	m_mikanServer->shutdown();

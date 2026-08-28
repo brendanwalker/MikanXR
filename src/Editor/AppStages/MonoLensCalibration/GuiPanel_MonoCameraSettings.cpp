@@ -1,17 +1,21 @@
 #include "MonoLensCalibration/GuiPanel_MonoCameraSettings.h"
 
 #include "imgui.h"
+#include "LocText.h"
 
 void GuiPanel_MonoCameraSettings::onGui()
 {
 	ImGui::Separator();
-	ImGui::Text("Display Mode");
+	ImGui::TextUnformatted(locText("monoLensCalibration.displayMode"));
 
 	const int prevMode= m_videoDisplayMode;
 
-	ImGui::RadioButton("Normal (BGR)", &m_videoDisplayMode, (int)eVideoDisplayMode::mode_bgr);
-	ImGui::RadioButton("Undistorted", &m_videoDisplayMode, (int)eVideoDisplayMode::mode_undistored);
-	ImGui::RadioButton("Grayscale", &m_videoDisplayMode, (int)eVideoDisplayMode::mode_grayscale);
+	ImGui::RadioButton(locLabel("monoLensCalibration.normalBgr"), &m_videoDisplayMode,
+					   (int)eVideoDisplayMode::mode_bgr);
+	ImGui::RadioButton(locLabel("monoLensCalibration.undistorted"), &m_videoDisplayMode,
+					   (int)eVideoDisplayMode::mode_undistored);
+	ImGui::RadioButton(locLabel("monoLensCalibration.grayscale"), &m_videoDisplayMode,
+					   (int)eVideoDisplayMode::mode_grayscale);
 
 	if (m_videoDisplayMode != prevMode)
 	{

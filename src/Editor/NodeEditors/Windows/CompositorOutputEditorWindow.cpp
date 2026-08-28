@@ -19,6 +19,7 @@
 #include "IMkTriangulatedMesh.h"
 #include "InputManager.h"
 #include "LocalizationManager.h"
+#include "LocText.h"
 #include "MainWindow.h"
 #include "MikanCamera.h"
 #include "MikanModelResourceManager.h"
@@ -66,12 +67,13 @@ bool CompositorOutputEditorWindow::startup()
 	bool success= true;
 
 	if (success
-		&& !startupWindow("Compositor Output", k_compositor_output_window_width, k_compositor_output_window_height))
+		&& !startupWindow(locText("nodeEditor.compositorOutputWindowTitle"), k_compositor_output_window_width,
+						  k_compositor_output_window_height))
 	{
 		success= false;
 	}
 
-	if (success && !startupGuiContext())
+	if (success && !startupGuiContext("compositor_output"))
 	{
 		success= false;
 	}
@@ -193,8 +195,8 @@ void CompositorOutputEditorWindow::rebindCompositorFromScene()
 	}
 
 	// Update window title
-	std::string compositorName= compositor ? compositor->getName() : "No Compositor";
-	setTitle(compositorName + " - Compositor Output");
+	std::string compositorName= compositor ? compositor->getName() : locText("nodeEditor.noCompositor");
+	setTitle(locFormat("nodeEditor.compositorOutputTitleFmt", compositorName.c_str()));
 }
 
 void CompositorOutputEditorWindow::onSceneActivated(SceneComponentPtr newScene) { bindSceneComponent(newScene); }
@@ -344,27 +346,38 @@ void CompositorOutputEditorWindow::render()
 
 				if (currentScene)
 				{
-					// Clear the scene of any previously rendered instances
+					// Clear the scene of any previously rendered instances. Done even while the
+					// overlay is disabled, so toggling it off does not leave the scene holding
+					// renderables belonging to since-deleted actors.
 					m_mkScene->removeAllInstances();
 
-					// Add scene actors to the MkScene for rendering
-					if (editorConfig.bDebugRenderBoxStencils)
+					// This window shows what the shot looks like, so the editor's authoring
+					// overlay stays out of it unless "Debug Render in Compositor" is explicitly
+					// enabled. The per-object "Render <X>" flags still apply on top of it.
+					if (editorConfig.bDebugRenderInCompositor)
 					{
-						addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene);
-					}
+						// Add scene actors to the MkScene for rendering
+						if (editorConfig.bDebugRenderBoxStencils)
+						{
+							addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene);
+						}
 
-					if (editorConfig.bDebugRenderModelStencils)
-					{
-						addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene);
-					}
+						if (editorConfig.bDebugRenderModelStencils)
+						{
+							addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene);
+						}
 
-					if (editorConfig.bDebugRenderQuadStencils)
-					{
-						addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
-					}
+						if (editorConfig.bDebugRenderQuadStencils)
+						{
+							addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
+						}
 
-					// Render the 3d scene
-					m_mkScene->render(m_viewCamera, stateStack);
+						// Clear the depth buffer so the overlay scene draws over the composited frame
+						mkStateClearBuffer(stateStack.getCurrentState(), eMkClearFlags::depth);
+
+						// Render the 3d scene
+						m_mkScene->render(m_viewCamera, stateStack);
+					}
 				}
 			}
 		}
@@ -384,7 +397,7 @@ void CompositorOutputEditorWindow::render()
 			style.horizontalAlignment= eHorizontalTextAlignment::Left;
 			style.verticalAlignment= eVerticalTextAlignment::Top;
 
-			std::string compositorName= compositor ? compositor->getName() : "No Compositor";
+			std::string compositorName= compositor ? compositor->getName() : locText("nodeEditor.noCompositor");
 			std::string videoSourceName;
 			if (compositor)
 			{

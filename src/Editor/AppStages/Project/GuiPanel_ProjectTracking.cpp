@@ -3,6 +3,7 @@
 #include "MarkerTrackingVolumeSystem.h"
 #include "MikanCoreTypes.h"
 #include "IconsForkAwesome.h"
+#include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -175,7 +176,7 @@ void GuiPanel_ProjectTracking::onGui()
 	}
 
 	int volumeIndex= m_trackingVolumeDataSource->getEntryIndexByComponentId(m_selectedTrackingVolumeId);
-	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTrackingVolume", "Tracking Volume",
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTrackingVolume", locText("project.trackingVolume"),
 									m_trackingVolumeDataSource.get(), volumeIndex))
 	{
 		if (volumeIndex >= 0)
@@ -229,7 +230,7 @@ void GuiPanel_ProjectTracking::onGui()
 			}
 
 			int mountIndex= m_trackingMountDataSource->getEntryIndexByComponentId(m_selectedTrackingMountId);
-			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTrackingMount", "Tracking Mount",
+			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTrackingMount", locText("project.trackingMount"),
 											m_trackingMountDataSource.get(), mountIndex))
 			{
 				if (mountIndex >= 0)

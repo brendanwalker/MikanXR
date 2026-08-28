@@ -2,6 +2,7 @@
 
 #include "ComponentFwd.h"
 #include "CompositorConstants.h"
+#include "LocText.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
 
@@ -51,7 +52,8 @@ protected:
 	void evaluateBoxDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
 	void evaluateModelDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
 
-	virtual std::string editorGetTitle() const override { return "Depth Mask"; }
+	virtual std::string editorGetTitle() const override { return locText("nodes.depthMaskTitle"); }
+	virtual const char* editorGetHeaderIcon() const override;
 
 	void onGraphLoaded(bool success);
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;

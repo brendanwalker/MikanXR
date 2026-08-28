@@ -41,8 +41,6 @@ public:
 		m_spoutColorFrame= GetSpout();
 		if (m_spoutColorFrame != nullptr)
 		{
-			m_spoutColorFrame->EnableSpoutLog();
-			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutColorFrame->SetReceiverName(colorSenderName.c_str());
 		}
 		else
@@ -58,8 +56,6 @@ public:
 			m_spoutDepthFrame= GetSpout();
 			if (m_spoutDepthFrame != nullptr)
 			{
-				m_spoutDepthFrame->EnableSpoutLog();
-				m_spoutDepthFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 				m_spoutDepthFrame->SetReceiverName(depthSenderName.c_str());
 			}
 			else
@@ -76,8 +72,6 @@ public:
 			m_spoutShadowFrame= GetSpout();
 			if (m_spoutShadowFrame != nullptr)
 			{
-				m_spoutShadowFrame->EnableSpoutLog();
-				m_spoutShadowFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 				m_spoutShadowFrame->SetReceiverName(shadowSenderName.c_str());
 			}
 			else

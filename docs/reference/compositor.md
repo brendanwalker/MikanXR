@@ -18,12 +18,13 @@ Compositing is driven by a `CompositorNodeGraph` (`src/Editor/NodeEditors/Graphs
 
 `CompositorComponent::update()` runs during `ProjectManager::update()` each tick and does two things, in order:
 
-- `tryCompositeOldestFrame()` — composites the frame at the front of `m_frameEventQueue`, but only once the queue is full (`VideoFrameDistortionView::getMaxFrameQueueSize()`, from the video source's frame queue size setting) and a new video frame has arrived. Filling the queue first maximizes the time clients have to render each frame; gating on new video frames locks the composite rate to the source frame rate.
-- `tryEnqueueNewFrame()` — calls `VideoFrameDistortionView::readAndProcessVideoFrame()` to pull and undistort the next camera frame, builds a `MikanCameraNewFrameEvent` (frame index plus camera pose/intrinsics), pushes it on the queue, and publishes it to all clients via `CameraRequestHandler::publishCameraNewFrameEvent()`.
+- `tryCompositeOldestFrame()`: composites the frame at the front of `m_frameEventQueue`, but only once the queue is full (`VideoFrameDistortionView::getMaxFrameQueueSize()`, from the video source's frame queue size setting) and a new video frame has arrived. Filling the queue first maximizes the time clients have to render each frame; gating on new video frames locks the composite rate to the source frame rate. The node editor's pause (`setEditorEvaluationPaused`) skips graph evaluation here while frames keep popping, freezing the composite at the last output; closing the editor window always resumes.
+
+- `tryEnqueueNewFrame()`: calls `VideoFrameDistortionView::readAndProcessVideoFrame()` to pull and undistort the next camera frame, builds a `MikanCameraNewFrameEvent` (frame index plus camera pose/intrinsics), pushes it on the queue, and publishes it to all clients via `CameraRequestHandler::publishCameraNewFrameEvent()`.
 
 So each frame makes a round trip: the editor announces frame N with a camera pose, clients render their scene from that pose and submit textures, and the editor composites frame N several ticks later when the queue cycles around. `getPendingCompositedFrameIndex()` is the frame currently awaiting composite; `OnNewFrameComposited` fires after each composite. If the queue overflows, oldest frames are dropped with an error log.
 
-Video always comes through a `VideoFrameDistortionView` in `eVideoFrameProcessorMode::COMPOSITOR` mode with `eVideoDisplayMode::mode_undistored` — compositing always uses the undistorted frame (see [videosources.md](./videosources.md)).
+Video always comes through a `VideoFrameDistortionView` in `eVideoFrameProcessorMode::COMPOSITOR` mode with `eVideoDisplayMode::mode_undistored`. Compositing always uses the undistorted frame (see [videosources.md](./videosources.md)).
 
 ---
 
@@ -39,13 +40,13 @@ In the scene, a `ClientTextureSourceComponent` (a `TextureSourceComponent` subcl
 
 `CompositorNodeGraph::compositeFrame(NodeEvaluator&)` is the per-frame entry point, called from `CompositorComponent::evaluateCompositorNodeGraph()`. It:
 
-- resizes and (re)creates two framebuffers to the video dimensions: `m_compositingFrameBuffer` (RGBA16, linear working buffer — compositing in linear space keeps blend math correct and the extra depth avoids banding) and `m_outputFrameBuffer` (8-bit sRGB output);
+- resizes and (re)creates two framebuffers to the video dimensions: `m_compositingFrameBuffer` (RGBA16, a linear working buffer, since compositing in linear space keeps blend math correct and the extra depth avoids banding) and `m_outputFrameBuffer` (8-bit sRGB output);
 - binds the working framebuffer with depth test disabled and runs `NodeEvaluator::evaluateFlowPinChain()` from the `OnCompositeFrame` `EventNode`;
 - runs `encodeLinearFrameToSRGB()`, a fullscreen pass with the internal `Internal_PT_LinearToSRGB` material, into the output buffer.
 
 Node types the graph can spawn (registered in the `CompositorNodeGraph` constructor): `EventNode`, `DrawLayerNode`, `DrawShapesNode`, `DepthMaskNode`, `ApplyMaterialNode`, `ColorTextureSourceNode`, `DepthTextureSourceNode`, `VideoTextureNode`, `TextureNode`, `MaterialNode`, `StencilNode`, `StencilSelectNode`, `ShapeNode`, `ShapeSelectNode`, `ArrayNode`, `MousePosNode`, `TimeNode`. `VideoTextureNode` yields the camera texture (raw or distortion-corrected, `eVideoTextureSource`). Evaluation errors are collected as `NodeEvaluationError` values; `CompositorComponent::getLastNodeEvalErrors()` exposes them and the node editor window displays them.
 
-`DrawLayerNode` is the core layer primitive. It takes a material (`GraphMaterialProperty`) and an optional stencil array, then draws a fullscreen quad (`getLayerMesh()`, or the v-flipped variant for sources with inverted texture coordinates) with that material. Its input pins are rebuilt dynamically from the bound material's shader uniforms — each float/vec2/vec3/vec4/texture uniform becomes a pin, with per-node default values persisted in `DrawLayerNodeConfig`. Per-node options: `eCompositorBlendMode` (off, normal `SRC_ALPHA/ONE_MINUS_SRC_ALPHA`, multiply `DST_COLOR/ZERO`), `eCompositorStencilMode` (none/inside/outside), vertical flip, and invert-when-camera-inside.
+`DrawLayerNode` is the core layer primitive. It takes a material (`GraphMaterialProperty`) and an optional stencil array, then draws a fullscreen quad (`getLayerMesh()`, or the v-flipped variant for sources with inverted texture coordinates) with that material. Its input pins are rebuilt dynamically from the bound material's shader uniforms: each float/vec2/vec3/vec4/texture uniform becomes a pin, with per-node default values persisted in `DrawLayerNodeConfig`. Per-node options: `eCompositorBlendMode` (off, normal `SRC_ALPHA/ONE_MINUS_SRC_ALPHA`, multiply `DST_COLOR/ZERO`), `eCompositorStencilMode` (none/inside/outside), vertical flip, and invert-when-camera-inside.
 
 ---
 
@@ -62,7 +63,8 @@ Supporting machinery in `CompositorNodeGraph`: unit quad/box meshes for quad and
 Layer materials are `MkMaterial` objects from the `MikanRenderer` OpenGL abstraction (see [modules.md](./modules.md)), managed by `MikanShaderCache` (`src/Editor/Renderer/MikanShaderCache.h`). Two populations exist:
 
 - Built-in internal materials compiled from embedded GLSL in `GlShaderCache.cpp`, named by the `INTERNAL_MATERIAL_*` constants in `IMkShaderCache.h` (fullscreen texture blits, linear/sRGB conversion, linear depth, solid color, NV12 conversion, depth packing, etc.).
-- User materials loaded from `*.mat` files via `MaterialAssetReference` and `MikanShaderConfig` — a Configuru config naming the material, vertex/fragment shader file paths, a uniform-to-semantic map, and vertex attributes. These are what `MaterialNode`/`GraphMaterialProperty` feed into `DrawLayerNode`, and their uniforms become the node's dynamic pins.
+
+- User materials loaded from `*.mat` files via `MaterialAssetReference` and `MikanShaderConfig`: a Configuru config naming the material, vertex/fragment shader file paths, a uniform-to-semantic map, and vertex attributes. These are what `MaterialNode`/`GraphMaterialProperty` feed into `DrawLayerNode`, and their uniforms become the node's dynamic pins.
 
 Draw state (blend, stencil, masks, viewport) is managed through the scoped `MkStateStack`/`MkScopedState` system rather than raw GL calls.
 
@@ -70,8 +72,10 @@ Draw state (blend, stencil, masks, viewport) is managed through the scoped `MkSt
 
 ## Outputs
 
-- **Editor display.** `CompositorOutputEditorWindow` (`src/Editor/NodeEditors/Windows/`) is a dedicated output window that draws the composited frame texture on a fullscreen quad over the bound scene. `CompositorComponent::renderToViewportQuad()` is a helper that blits the composited texture into the current viewport with the fullscreen RGB material (no in-tree caller found, unverified use).
+- **Editor display.** `CompositorOutputEditorWindow` (`src/Editor/NodeEditors/Windows/`) is a dedicated output window that draws the composited frame texture on a fullscreen quad over the bound scene. Because this window is meant to show what the shot looks like, the editor's authoring overlay is suppressed in it unless the `debug_render_in_compositor` editor setting ("Debug Render in Compositor", off by default) is on; the per-object "Render X" flags then still apply on top of it. Scene instances are cleared each frame either way, so toggling the overlay off cannot strand renderables belonging to deleted objects. `CompositorComponent::renderToViewportQuad()` is a helper that blits the composited texture into the current viewport with the fullscreen RGB material (no in-tree caller found, unverified use).
+
 - **Spout.** When `spout_enable_output` is set, `startOutputStreaming()` creates an `ISharedTextureWriteAccessor` (`createSharedTextureWriteAccessor`, Spout2/`MikanSharedTexture`) named by `spout_output_name` (default `DEFAULT_SPOUT_OUTPUT_NAME`), RGBA32/OpenGL, and each composited frame is pushed via `writeColorFrameTexture()`. OBS or any Spout receiver can pick this up. Toggling the definition properties starts/stops the sender live.
+
 - **Video recording.** No video-file recorder currently exists in the compositor path; `eSupportedCodec` (MP4V/MJPG/RGBA) in `CompositorConstants.h` is defined but unreferenced outside that file.
 
 ---
@@ -82,5 +86,7 @@ Where a frame goes, from `App::exec` (`src/Editor/AppCore/App.cpp`) down:
 
 1. `App::exec` loops `tick()` under a `FrameTimer(11)` (~90 fps cap). `App::tick` clamps `deltaSeconds` to 0.1 s, pumps the CEF message loop, polls SDL events, then calls `tickWindows()`.
 2. `tickWindows` runs `update(deltaSeconds)` then `render()` for each `EditorWindow` (main window plus any node editor / compositor output windows).
-3. `MainWindow::update`: `MikanServer::update()` first (websocket socket events and queued client requests, which is also where client render-target updates land in `ClientSourceManager`), then `LuaDebugServer::poll()`, SDL event handling, `ProjectManager::update()` — which ticks the object systems, running `CompositorComponent::update()` (composite oldest frame, then enqueue/publish the next camera frame) — and finally the current `AppStage` GUI and update.
+3. `MainWindow::update`: `MikanServer::update()` first (websocket socket events and queued client requests, which is also where client render-target updates land in `ClientSourceManager`), then `LuaDebugServer::poll()`, SDL event handling, and `ProjectManager::update()`, which ticks the object systems, running `CompositorComponent::update()` (composite oldest frame, then enqueue/publish the next camera frame). Finally the current `AppStage` GUI and update.
 4. `MainWindow::render`: renders each enabled `MikanViewport` for the app stage, then the UI, then presents. The compositor's GL work happens during the update phase (inside node graph evaluation), not here; render only displays already-composited textures.
+
+Debug lines and points (`drawGrid`, `drawArrow`, gizmo handles, frustums) queue into the shared line renderer during the app stage render and flush once per viewport at the end of `renderStageViewport`. The `depthTest` flag on the current `MkState` at queue time routes each primitive to a depth-tested or an overlay batch, so the `MkScopedState` wrapping the draw call decides how it renders. The overlay batch draws first with the depth test off, which lets a caller queue the same geometry twice, dimmed overlay plus bright depth-tested, to render an occluded shape dimmed instead of hidden (the transform gizmo's treatment). Lines rasterize as screen-space quads through a geometry shader, with the per-vertex size selecting the width in pixels (core-profile wide lines are unreliable across drivers). Calling `IMkLineRenderer::render(true)` overrides the routing and draws everything without depth, which is what the calibration stages use over their video framebuffers. `MkScene::render` does not clear the depth buffer; a caller drawing a scene as an overlay on a video or composited layer clears depth explicitly first, as the calibration stages and `CompositorOutputEditorWindow` do.

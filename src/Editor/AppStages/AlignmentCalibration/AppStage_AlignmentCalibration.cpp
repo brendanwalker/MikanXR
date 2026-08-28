@@ -42,6 +42,7 @@
 #include "glm/ext/vector_float4.hpp"
 
 #include "imgui.h"
+#include "LocText.h"
 
 //-- statics ----
 const char* AppStage_AlignmentCalibration::APP_STAGE_NAME= "AlignmentCalibration";
@@ -78,17 +79,13 @@ bool AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(AppStage* fromA
 	VideoSourceComponentPtr videoSourceComponent= forCameraComponent->getVideoSourceComponent();
 	if (!videoSourceComponent)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Camera is not associated with a video source. Please set a video source for the camera before aligning.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignmentCalibration.noVideoSourceMsg"));
 		return false;
 	}
 
 	if (!videoSourceComponent->areCameraIntrinsicsValid())
 	{
-		ModalDialog_MessageBox::showMessageBox(fromAppStage,
-											   "Camera does not have valid aperture intrinsics. Please calibrate the "
-											   "camera's intrinsics before using it for alignment.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignmentCalibration.invalidIntrinsicsMsg"));
 		return false;
 	}
 
@@ -96,18 +93,14 @@ bool AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(AppStage* fromA
 		forCameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
 	if (!cameraPuckPose_VRSystemSpace)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"Camera is missing a tracking mount. Please ensure the camera tracking mount puck is on before aligning.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignmentCalibration.noTrackingMountMsg"));
 		return false;
 	}
 
 	VRTrackingVolumeComponentConstPtr trackingVolumeComponent= forCameraComponent->getVRTrackingVolumeComponent();
 	if (!trackingVolumeComponent)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage, "Camera is not associated with a VR tracking volume. Please assign a VR tracking volume to "
-						  "the stage this camera is attached to before aligning.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignmentCalibration.noTrackingVolumeMsg"));
 		return false;
 	}
 
@@ -115,9 +108,7 @@ bool AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(AppStage* fromA
 		trackingVolumeComponent->makeChArUcoTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
 	if (!matPuckPose_VRSystemSpace)
 	{
-		ModalDialog_MessageBox::showMessageBox(
-			fromAppStage,
-			"VRTracking volume missing ChArUco Mount. Please ensure the ChArUco tracking puck is on before aligning.");
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("alignmentCalibration.noCharucoMountMsg"));
 		return false;
 	}
 
@@ -485,6 +476,9 @@ void AppStage_AlignmentCalibration::renderVRDevices(IMkCameraConstPtr camera)
 
 	// Add all renderable VR objects
 	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_scene);
+
+	// Clear the depth buffer so the stageView draws over the video frame
+	mkStateClearBuffer(graphicsContext->getMkStateStack().getCurrentState(), eMkClearFlags::depth);
 
 	// Render the stageView
 	stageView->render(camera, graphicsContext->getMkStateStack());

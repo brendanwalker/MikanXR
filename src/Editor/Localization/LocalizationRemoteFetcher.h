@@ -8,7 +8,7 @@
 #include <thread>
 #include <vector>
 
-// Fetches localization CSV files from a remote CDN into a local cache directory.
+// Fetches localization JSON files from a remote CDN into a local cache directory.
 // The fetch runs on a background thread and does not block app startup.
 // Cache freshness is checked against a TTL; stale or absent cache triggers a re-fetch.
 // On non-Windows platforms this class is a no-op (WinHTTP is used for HTTPS).

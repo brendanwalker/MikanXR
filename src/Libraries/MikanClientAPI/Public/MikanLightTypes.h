@@ -51,6 +51,16 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 #endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanLightEnvironmentSystemValues
+	: public MikanSystemValues
+{
+	static const char* k_systemName;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanLightEnvironmentSystemValues_GENERATED
+#endif
+};
+
 // -- Component Values --
 
 /// Base values shared by all DMX fixture types.
@@ -100,6 +110,53 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRGBPixelGridComponentValues_GENERATED
+#endif
+};
+
+/// A probe holding the scene's estimated low-frequency lighting, recovered from
+/// a captured video frame.
+///
+/// The environment is order-2 spherical harmonics, which is enough to carry the
+/// diffuse lighting of a Lambertian surface but cannot represent a sharp light
+/// source. Clients should treat it as a soft environment (a SkyLight) and add
+/// their own key light if they need crisp shadows.
+///
+/// This derives from MikanTransformComponentValues so the probe has a world
+/// position: a single environment assumes spatially-invariant lighting, which
+/// real interiors violate, so multiple probes are the expected escape hatch.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanLightEnvironmentComponentValues
+	: public MikanTransformComponentValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	/// 27 floats: 9 order-2 SH coefficients, each RGB, in Mikan world space.
+	/// Laid out flat rather than as vectors because the serializer's list
+	/// element types do not include a 3-vector. Index (coefficient * 3 +
+	/// channel). These are RADIANCE, so evaluating them directly against the SH
+	/// basis produces an environment map; the Lambertian convolution factors
+	/// are already folded out.
+	///
+	/// May evaluate NEGATIVE in some directions: order-2 SH rings around sharp
+	/// lights and no regularization removes that. Clamp before use.
+	FIELD() Serialization::List<float> sh_coefficients;
+
+	/// Manual exposure calibration. The underlying decomposition recovers
+	/// shading only up to a global scale, so this is set once per shoot by eye.
+	FIELD() float exposure_scale= 1.f;
+
+	/// l=1 over l=0 band energy - how directional the estimate is. Below about
+	/// 0.25 the scene is effectively uniform ambient and key_light_direction is
+	/// meaningless. Clients should not present a low-directionality estimate as
+	/// a confident one.
+	FIELD() float directionality= 0.f;
+
+	/// Suggested key light direction in world space. Only meaningful when
+	/// directionality is high.
+	FIELD() MikanVector3f key_light_direction;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanLightEnvironmentComponentValues_GENERATED
 #endif
 };
 

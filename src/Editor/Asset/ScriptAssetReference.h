@@ -10,6 +10,7 @@ public:
 	inline static const std::string k_assetClassName= "ScriptAssetReference";
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "Script"; }
+	virtual const char* editorGetIcon() const override { return ICON_FK_FILE_CODE_O; }
 };
 
 class ScriptAssetReferenceFactory : public TypedAssetReferenceFactory<ScriptAssetReference, AssetReferenceConfig>

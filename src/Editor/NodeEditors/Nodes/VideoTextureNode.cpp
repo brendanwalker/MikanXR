@@ -1,4 +1,5 @@
 #include "CompositorComponent.h"
+#include "IconsForkAwesome.h"
 #include "IEditorWindow.h"
 #include "IMkFrameBuffer.h"
 #include "IMkGraphicsContext.h"
@@ -6,13 +7,15 @@
 #include "IMkState.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MkScopedObjectBinding.h"
 #include "MkStateStack.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "StringUtils.h"
 #include "VideoTextureNode.h"
 #include "VideoSourceComponent.h"
@@ -27,8 +30,7 @@
 #include "Properties/GraphTextureProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
-#include "MkNodesScopedNode.h"
+#include "MkCanvasScopedNode.h"
 
 // -- VideoTextureNodeConfig -----
 configuru::Config VideoTextureNodeConfig::writeToJSON()
@@ -228,23 +230,17 @@ IMkTexturePtr VideoTextureNode::linearizeVideoTexture(NodeEvaluator& evaluator, 
 	return m_linearFrameBuffer->getColorTexture();
 }
 
-std::shared_ptr<MkNodesScopedColorStyle> VideoTextureNode::editorRenderMakeNodeStyle(
-	const NodeEditorState& editorState) const
+ImVec4 VideoTextureNode::editorGetHeaderColor() const
 {
-	auto style= std::make_shared<MkNodesScopedColorStyle>();
-	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
-		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
-	return style;
+	return ImVec4(150.f / 255.f, 130.f / 255.f, 110.f / 255.f, 225.f / 255.f);
 }
 
 void VideoTextureNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
-	MkNodesScopedNode scopedNode(m_id);
+	MkCanvasScopedNode scopedNode(m_id, editorGetHeaderColor());
 
 	// Title
-	editorRenderTitle(editorState);
+	editorRenderTitle(scopedNode);
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
@@ -261,14 +257,18 @@ void VideoTextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Video Texture Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.videoTextureHeader")))
 	{
-		const char* k_videoSourceOptions= "Video\0Distortion\0";
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+		const std::string videoSourceOptions=
+			std::string(locText("nodes.videoSourceVideo")) + '\0' + locText("nodes.videoSourceDistortion") + '\0';
 
 		// Texture Source
 		int iTextureSource= (int)m_videoTextureSource;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("videoTextureNodeSource", "Source", k_videoSourceOptions,
-													 iTextureSource, editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "videoTextureNodeSource", locText("nodes.source"),
+											  videoSourceOptions.c_str(), iTextureSource))
 		{
 			m_videoTextureSource= (eVideoTextureSource)iTextureSource;
 		}
@@ -281,8 +281,12 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 			eVideoTransferFunction::Gamma_2_6, eVideoTransferFunction::Gamma_2_8, eVideoTransferFunction::BT709,
 			eVideoTransferFunction::SRGB,
 		};
-		const char* k_tfComboOptions=
-			"Auto\0Linear\0Gamma 1.8\0Gamma 2.0\0Gamma 2.2\0Gamma 2.6\0Gamma 2.8\0BT.709\0sRGB\0";
+		const std::string tfComboOptions= std::string(locText("nodes.auto")) + '\0' + locText("nodes.transferLinear")
+										  + '\0' + locText("nodes.transferGamma18") + '\0'
+										  + locText("nodes.transferGamma20") + '\0' + locText("nodes.transferGamma22")
+										  + '\0' + locText("nodes.transferGamma26") + '\0'
+										  + locText("nodes.transferGamma28") + '\0' + locText("nodes.transferBt709")
+										  + '\0' + locText("nodes.transferSrgb") + '\0';
 		const int k_tfOptionCount= sizeof(k_tfOptions) / sizeof(k_tfOptions[0]);
 
 		int iTransferFunction= 0;
@@ -295,8 +299,8 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 			}
 		}
 
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("videoTextureNodeTransferFunction", "Transfer Func",
-													 k_tfComboOptions, iTransferFunction, editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "videoTextureNodeTransferFunction",
+											  locText("nodes.transferFunc"), tfComboOptions.c_str(), iTransferFunction))
 		{
 			m_transferFunctionOverride= k_tfOptions[iTransferFunction];
 		}
@@ -317,3 +321,5 @@ NodePtr VideoTextureNodeFactory::createNode(const NodeEditorState& editorState) 
 
 	return node;
 }
+
+const char* VideoTextureNode::editorGetHeaderIcon() const { return ICON_FK_VIDEO_CAMERA; }

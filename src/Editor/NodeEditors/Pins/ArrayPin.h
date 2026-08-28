@@ -35,9 +35,8 @@ public:
 	virtual size_t getDataSize() const { return sizeof(GraphPropertyPtr) * m_array.size(); }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const override;
 	virtual void copyValueFromSourcePin() override;
-	virtual ImNodesPinShape editorComputePinShape() const override;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha) override;
-	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeLinkStyle(float alpha) override;
+	virtual MkCanvas::PinIcon editorGetPinIcon() const override;
+	virtual ImVec4 editorGetPinColor() const override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
 	virtual ImU32 editorGetLinkStyleColor() const override;
 

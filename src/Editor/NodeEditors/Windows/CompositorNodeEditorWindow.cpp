@@ -5,10 +5,11 @@
 #include "CompositorObjectSystem.h"
 #include "CompositorNodeEditorWindow.h"
 #include "Logger.h"
+#include "LocText.h"
 #include "MkGuiScopedChild.h"
 #include "MkGuiScopedStyle.h"
 #include "MkGuiStyleManager.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
 
 #include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -60,16 +61,26 @@ bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr 
 	return true;
 }
 
+void CompositorNodeEditorWindow::onGraphRestored()
+{
+	if (m_compositorComponent == nullptr)
+	{
+		return;
+	}
+
+	// Rebind the rebuilt graph instance so the compositor evaluates it
+	auto compositorNodeGraph= std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
+	compositorNodeGraph->bindToCompositorComponent(m_compositorComponent);
+	m_compositorComponent->setEditorCompositorNodeGraph(compositorNodeGraph);
+}
+
 void CompositorNodeEditorWindow::update(float deltaSeconds)
 {
 	m_lastNodeEvalErrors.clear();
 
-	if (m_isRunningCompositor)
+	if (m_compositorComponent != nullptr)
 	{
-		if (m_compositorComponent != nullptr)
-		{
-			m_lastNodeEvalErrors= m_compositorComponent->getLastNodeEvalErrors();
-		}
+		m_lastNodeEvalErrors= m_compositorComponent->getLastNodeEvalErrors();
 	}
 
 	NodeEditorWindow::update(deltaSeconds);
@@ -98,6 +109,7 @@ bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
 		m_compositorComponent->setCompositorGraphAssetPath(m_editorState.nodeGraphPath);
+		return true;
 	}
 
 	return false;
@@ -109,7 +121,7 @@ void CompositorNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorSt
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
+		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleGraphVariablesDragDrop(editorState);
 			return;
@@ -123,8 +135,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 		getNodeGraph()->editorGetValidPropertyFactories(editorState);
 	for (auto factory : validPropertyFactories)
 	{
-		if (auto property=
-				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
+		if (auto property= MkGui::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -135,7 +146,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef= NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
+		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -143,53 +154,31 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 	}
 }
 
-void CompositorNodeEditorWindow::renderToolbar()
+void CompositorNodeEditorWindow::renderMenuBarExtras()
 {
-	MkGuiScopedStyle toolbarStyle(getMkGuiStyleManager()->getStyle("node_editor_toolbar"));
-
-	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
-
-	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
-
-	if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
+	if (ImGui::BeginMenu(locLabel("nodeEditor.compositorMenu")))
 	{
-		saveGraph(false);
+		bool bRunning= m_compositorComponent ? !m_compositorComponent->getEditorEvaluationPaused() : true;
+		if (ImGui::MenuItem(locLabel("nodeEditor.runCompositor"), nullptr, &bRunning) && m_compositorComponent)
+		{
+			m_compositorComponent->setEditorEvaluationPaused(!bRunning);
+		}
+		ImGui::EndMenu();
+	}
+}
+
+bool CompositorNodeEditorWindow::setCompositorRunning(bool bRunning)
+{
+	if (m_compositorComponent == nullptr)
+	{
+		return false;
 	}
 
-	// Editor Control
-	{
-		MkGuiScopedStyle controlPanelStyle(getMkGuiStyleManager()->getStyle("node_editor_control_panel"));
+	m_compositorComponent->setEditorEvaluationPaused(!bRunning);
+	return true;
+}
 
-		ImGui::SameLine();
-		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
-		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
-
-		{
-			const char* playStopStyleName= m_isRunningCompositor ? "compositor_stop_button" : "compositor_play_button";
-			MkGuiScopedStyle playStopStyle(getMkGuiStyleManager()->getStyle(playStopStyleName));
-			if (m_isRunningCompositor)
-			{
-				if (ImGui::SmallButton(ICON_FK_STOP))
-				{
-					m_isRunningCompositor= false;
-				}
-			}
-			else
-			{
-				if (ImGui::SmallButton(ICON_FK_PLAY))
-				{
-					m_isRunningCompositor= true;
-				}
-			}
-		}
-
-		ImGui::SameLine();
-		{
-			MkGuiScopedStyle undoStyle(getMkGuiStyleManager()->getStyle("node_editor_undo_button"));
-			if (ImGui::SmallButton(ICON_FK_UNDO))
-			{
-				undo();
-			}
-		}
-	}
+bool CompositorNodeEditorWindow::isCompositorRunning() const
+{
+	return m_compositorComponent != nullptr && !m_compositorComponent->getEditorEvaluationPaused();
 }

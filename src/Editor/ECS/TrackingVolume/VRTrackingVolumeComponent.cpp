@@ -123,7 +123,7 @@ void VRTrackingVolumeDefinition::setCharucoTrackingMountId(MikanTrackingMountID 
 void VRTrackingVolumeDefinition::setCharucoMountOffsetMM(const MikanVector3f& offset)
 {
 	m_charucoMountOffsetMM= offset;
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName("charucoMountOffsetMM"));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoMountOffsetPropertyId));
 }
 
 void VRTrackingVolumeDefinition::setUtilityMarkerId(MikanMarkerID markerId)
@@ -225,7 +225,8 @@ const std::string VRTrackingVolumeComponent::k_vrDevicePositionOffsetPropertyId=
 const std::string VRTrackingVolumeComponent::k_vrDeviceRotationOffsetPropertyId= "vr_device_rotation_offset";
 const std::string VRTrackingVolumeComponent::k_displayTrackingSpacePropertyId= "display_tracking_space";
 
-static const std::string k_trackingSpaceStrings[]= {"Stage Space", "VR Space"};
+// Localization keys, not display text (see EnumPropertyMetaData)
+static const std::string k_trackingSpaceStrings[]= {"propertyValues.stage_space", "propertyValues.vr_space"};
 
 void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {

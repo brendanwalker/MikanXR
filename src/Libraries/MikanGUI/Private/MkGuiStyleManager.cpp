@@ -93,9 +93,15 @@ static const std::unordered_map<std::string, ImGuiCol> k_styleColorTable= {
 	{"ResizeGripActive", ImGuiCol_ResizeGripActive},
 	{"Tab", ImGuiCol_Tab},
 	{"TabHovered", ImGuiCol_TabHovered},
-	{"TabActive", ImGuiCol_TabActive},
-	{"TabUnfocused", ImGuiCol_TabUnfocused},
-	{"TabUnfocusedActive", ImGuiCol_TabUnfocusedActive},
+	{"TabSelected", ImGuiCol_TabSelected},
+	{"TabSelectedOverline", ImGuiCol_TabSelectedOverline},
+	{"TabDimmed", ImGuiCol_TabDimmed},
+	{"TabDimmedSelected", ImGuiCol_TabDimmedSelected},
+	{"TabDimmedSelectedOverline", ImGuiCol_TabDimmedSelectedOverline},
+	// Pre-1.90.9 names kept as aliases so older style JSON keeps loading
+	{"TabActive", ImGuiCol_TabSelected},
+	{"TabUnfocused", ImGuiCol_TabDimmed},
+	{"TabUnfocusedActive", ImGuiCol_TabDimmedSelected},
 	{"PlotLines", ImGuiCol_PlotLines},
 	{"PlotLinesHovered", ImGuiCol_PlotLinesHovered},
 	{"PlotHistogram", ImGuiCol_PlotHistogram},
@@ -106,8 +112,13 @@ static const std::unordered_map<std::string, ImGuiCol> k_styleColorTable= {
 	{"TableRowBg", ImGuiCol_TableRowBg},
 	{"TableRowBgAlt", ImGuiCol_TableRowBgAlt},
 	{"TextSelectedBg", ImGuiCol_TextSelectedBg},
+	{"TextLink", ImGuiCol_TextLink},
+	{"TreeLines", ImGuiCol_TreeLines},
+	{"InputTextCursor", ImGuiCol_InputTextCursor},
 	{"DragDropTarget", ImGuiCol_DragDropTarget},
-	{"NavHighlight", ImGuiCol_NavHighlight},
+	{"NavCursor", ImGuiCol_NavCursor},
+	// Pre-1.91.4 name kept as an alias so older style JSON keeps loading
+	{"NavHighlight", ImGuiCol_NavCursor},
 	{"NavWindowingHighlight", ImGuiCol_NavWindowingHighlight},
 	{"NavWindowingDimBg", ImGuiCol_NavWindowingDimBg},
 	{"ModalWindowDimBg", ImGuiCol_ModalWindowDimBg},
@@ -186,6 +197,8 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 		{
 			const std::string fontName= styleJson["font"].get<std::string>();
 
+			// Both names resolve to the one UI font (icons are merged into it);
+			// "big_icon" differs only by push size
 			if (fontName == "normal_icon")
 			{
 				style->font()= m_impl->guiContext->getNormalIconFont();
@@ -193,7 +206,14 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 			else if (fontName == "big_icon")
 			{
 				style->font()= m_impl->guiContext->getBigIconFont();
+				style->fontSize()= 22.f;
 			}
+		}
+
+		// Optional explicit font size (overrides the font-name default)
+		if (styleJson.contains("fontSize") && styleJson["fontSize"].is_number())
+		{
+			style->fontSize()= styleJson["fontSize"].get<float>();
 		}
 
 		// Optional label widths

@@ -2,7 +2,9 @@
 #include "IMkTexture.h"
 #include "NodeEditorState.h"
 #include "PathUtils.h"
-#include "NodeEditorUI.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "StringUtils.h"
 
 #include "Graphs/NodeGraph.h"
@@ -31,6 +33,7 @@ void TextureAssetReference::editorHandleGraphVariablesDragDrop(const NodeEditorS
 	// Create a texture property to hold the reference to this asset
 	auto textureProperty= editorState.nodeGraph->createTypedProperty<GraphTextureProperty>();
 	textureProperty->setTextureAssetReference(self);
+	textureProperty->setName(editorState.nodeGraph->makeUniquePropertyName(getShortName()));
 }
 
 void TextureAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState& editorState)
@@ -40,6 +43,7 @@ void TextureAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState&
 	// Create an material property first to hold the reference to this asset
 	auto textureProperty= editorState.nodeGraph->createTypedProperty<GraphTextureProperty>();
 	textureProperty->setTextureAssetReference(self);
+	textureProperty->setName(editorState.nodeGraph->makeUniquePropertyName(getShortName()));
 
 	// Then create a material node in the graph that references the material property
 	auto textureNode= editorState.nodeGraph->createTypedNode<TextureNode>(editorState);
@@ -48,15 +52,16 @@ void TextureAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState&
 
 void TextureAssetReference::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Texture Asset", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("assets.textureAssetHeader")))
 	{
-		const std::string buttonName= StringUtils::stringify(ICON_FK_FOLDER_OPEN, "Texture##texture");
+		const std::string buttonName= StringUtils::stringify(ICON_FK_FOLDER_OPEN, locLabel("assets.texture"));
 
 		if (ImGui::SmallButton(buttonName.c_str()))
 		{
 			static std::string texturePath= TextureAssetReferenceFactory::getDefaultTexturePath();
 
-			const char* picked= tinyfd_openFileDialog("Load Texture", texturePath.c_str(),
+			const char* picked= tinyfd_openFileDialog(locText("assets.loadTextureDialogTitle"), texturePath.c_str(),
 													  TextureAssetReferenceFactory::getTextureFilterPatternCount(),
 													  TextureAssetReferenceFactory::getTextureFilterPatterns(),
 													  TextureAssetReferenceFactory::getTextureFilterDescription(),

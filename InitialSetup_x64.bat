@@ -19,76 +19,42 @@ rmdir /s /q deps
 mkdir deps
 pushd deps
 
-:: Download and unzip the prebuilt libs
-echo "Downloading SDL2..."
-curl https://www.libsdl.org/release/SDL2-2.0.10-win32-x64.zip --output sdl2.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2-2.0.10-win32-x64.zip"
-  goto failure
-)
-%UNZIP_EXE% e sdl2.zip -obuild/debug -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2-2.0.10-win32-x64.zip"
-  goto failure
-)
-
+:: Download and unzip the prebuilt libs.
+:: The SDL devel zips carry the runtime DLLs in lib/x64, so no separate
+:: runtime zips are needed.
 echo "Downloading SDL2-devel..."
-curl https://www.libsdl.org/release/SDL2-devel-2.0.10-VC.zip --output sdl2-devel.zip
+curl https://www.libsdl.org/release/SDL2-devel-2.30.10-VC.zip --output sdl2-devel.zip
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2-devel-2.0.10-VC.zip"
+  echo "Error downloading SDL2-devel-2.30.10-VC.zip"
   goto failure
 )
 %UNZIP_EXE% e sdl2-devel.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2-devel-2.0.10-VC.zip"
+  echo "Error unzipping SDL2-devel-2.30.10-VC.zip"
   goto failure
 )
 
-echo "Downloading SDL2-image..."
-curl https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5-win32-x64.zip --output sdl2img.zip
+echo "Downloading SDL2-image-devel..."
+curl -L https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.8/SDL2_image-devel-2.8.8-VC.zip --output sdl2img-devel.zip
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2_image-2.0.5-win32-x64.zip"
-  goto failure
-)
-%UNZIP_EXE% e sdl2img.zip -obuild/debug -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2_image-2.0.5-win32-x64.zip"
-  goto failure
-)
-
-echo "Downloading SDL2-image..."
-curl https://www.libsdl.org/projects/SDL_image/release/SDL2_image-devel-2.0.5-VC.zip --output sdl2img-devel.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2_image-devel-2.0.5-VC.zip"
+  echo "Error downloading SDL2_image-devel-2.8.8-VC.zip"
   goto failure
 )
 %UNZIP_EXE% e sdl2img-devel.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2_image-devel-2.0.5-VC.zip"
-  goto failure
-)
-
-echo "Downloading SDL2-ttf..."
-curl https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-2.0.15-win32-x64.zip --output sdl2ttf.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2_ttf-2.0.15-win32-x64.zip"
-  goto failure
-)
-%UNZIP_EXE% e sdl2ttf.zip -obuild/debug -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2_ttf-2.0.15-win32-x64.zip"
+  echo "Error unzipping SDL2_image-devel-2.8.8-VC.zip"
   goto failure
 )
 
 echo "Downloading SDL2-ttf-devel..."
-curl https://www.libsdl.org/projects/SDL_ttf/release/SDL2_ttf-devel-2.0.15-VC.zip --output sdl2ttf-devel.zip
+curl -L https://github.com/libsdl-org/SDL_ttf/releases/download/release-2.24.0/SDL2_ttf-devel-2.24.0-VC.zip --output sdl2ttf-devel.zip
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading SDL2_ttf-devel-2.0.15-VC.zip"
+  echo "Error downloading SDL2_ttf-devel-2.24.0-VC.zip"
   goto failure
 )
-%UNZIP_EXE% e sdl2ttf-devel.zip -y -r -spf        
+%UNZIP_EXE% e sdl2ttf-devel.zip -y -r -spf
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping SDL2_ttf-devel-2.0.15-VC.zip"
+  echo "Error unzipping SDL2_ttf-devel-2.24.0-VC.zip"
   goto failure
 )
 
@@ -203,6 +169,40 @@ IF %ERRORLEVEL% NEQ 0 (
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error extracting cef_binary_windows64.tar.bz2"
   goto failure
+)
+
+:: ONNX Runtime (DirectML flavor) - used by the scene lighting estimator.
+:: A .nupkg is a zip. Contains headers + onnxruntime.dll built against DirectML.
+echo "Downloading ONNX Runtime DirectML 1.20.1..."
+curl -L https://api.nuget.org/v3-flatcontainer/microsoft.ml.onnxruntime.directml/1.20.1/microsoft.ml.onnxruntime.directml.1.20.1.nupkg --output onnxruntime-directml.nupkg
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading Microsoft.ML.OnnxRuntime.DirectML 1.20.1"
+  goto failure
+)
+%UNZIP_EXE% x onnxruntime-directml.nupkg -oonnxruntime -y > nul
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping onnxruntime-directml.nupkg"
+  goto failure
+)
+del onnxruntime-directml.nupkg
+
+echo "Downloading DirectML 1.15.4..."
+curl -L https://api.nuget.org/v3-flatcontainer/microsoft.ai.directml/1.15.4/microsoft.ai.directml.1.15.4.nupkg --output directml.nupkg
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading Microsoft.AI.DirectML 1.15.4"
+  goto failure
+)
+%UNZIP_EXE% x directml.nupkg -odirectml -y > nul
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping directml.nupkg"
+  goto failure
+)
+del directml.nupkg
+
+:: The package ships every architecture (arm, x86, linux, xbox) at ~350MB total.
+:: Only x64-win is ever used, so drop the rest to keep deps/ (and the CI cache) small.
+for /d %%A in (directml\bin\*) do (
+  if /I NOT "%%~nxA"=="x64-win" rmdir /s /q "%%A"
 )
 
 :: NuGet tool used to fetch c# packages

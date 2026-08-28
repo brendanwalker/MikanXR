@@ -96,6 +96,8 @@ CEFTextureSourceComponent::CEFTextureSourceComponent(MikanObjectWeakPtr owner)
 	m_bWantsUpdate= true;
 }
 
+CEFTextureSourceComponent::~CEFTextureSourceComponent()= default;
+
 // -- IEntityAccessor ----
 rfk::Struct const* CEFTextureSourceComponent::getClientAPIValuesStructType() const
 {

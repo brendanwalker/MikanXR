@@ -37,13 +37,22 @@ const std::string g_UniformSemanticName[(int)eUniformSemantic::COUNT]= {"transfo
 																		"distortionTexture",
 																		"depthTexture",
 																		"lumaTexture",
-																		"chromaTexture"};
+																		"chromaTexture",
+																		"shCoefficient0",
+																		"shCoefficient1",
+																		"shCoefficient2",
+																		"shCoefficient3",
+																		"shCoefficient4",
+																		"shCoefficient5",
+																		"shCoefficient6",
+																		"shCoefficient7",
+																		"shCoefficient8"};
 
 eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic)
 {
 	eUniformDataType dataType= eUniformDataType::INVALID;
 
-	static_assert((int)eUniformSemantic::COUNT == 37, "getUniformSemanticDataType out of date with eUniformSemantic");
+	static_assert((int)eUniformSemantic::COUNT == 46, "getUniformSemanticDataType out of date with eUniformSemantic");
 	switch (semantic)
 	{
 	case eUniformSemantic::transformMatrix:
@@ -63,6 +72,15 @@ eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic)
 	case eUniformSemantic::specularColorRGB:
 	case eUniformSemantic::cameraPosition:
 	case eUniformSemantic::lightDirection:
+	case eUniformSemantic::shCoefficient0:
+	case eUniformSemantic::shCoefficient1:
+	case eUniformSemantic::shCoefficient2:
+	case eUniformSemantic::shCoefficient3:
+	case eUniformSemantic::shCoefficient4:
+	case eUniformSemantic::shCoefficient5:
+	case eUniformSemantic::shCoefficient6:
+	case eUniformSemantic::shCoefficient7:
+	case eUniformSemantic::shCoefficient8:
 		dataType= eUniformDataType::datatype_float3;
 		break;
 	case eUniformSemantic::screenPosition:

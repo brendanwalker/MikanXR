@@ -5,6 +5,7 @@
 #include "ScriptingFwd.h"
 
 #include <string>
+#include <vector>
 
 class ScriptRequestHandler : public IServerRequestHandler
 {
@@ -20,6 +21,9 @@ public:
 	// Scripting Events
 	void bindScriptContect(CommonScriptContextPtr scriptContext);
 	void unbindScriptContect(CommonScriptContextPtr scriptContext);
+
+	// Snapshot of the live bound script contexts (dead weak references skipped)
+	void getBoundScriptContexts(std::vector<CommonScriptContextPtr>& outContexts) const;
 
 	// HTTP trigger routes (e.g. for Stream Deck style integrations). routeName is registered
 	// under "/trigger/<routeName>" on the HTTP interprocess message server. Callable from

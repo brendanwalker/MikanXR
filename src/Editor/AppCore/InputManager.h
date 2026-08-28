@@ -27,7 +27,14 @@ public:
 	EventBindingSet()= default;
 	virtual ~EventBindingSet();
 
-	std::map<MkKeySym, KeyEventBindings*> keybindings;
+	// Bindings key on (keysym, required MkKeyMod mask). A mask of
+	// MkKeyMod::ANY fires regardless of held modifiers.
+	static uint64_t makeKeyBindingKey(MkKeySym key, uint16_t modMask)
+	{
+		return ((uint64_t)modMask << 32) | (uint32_t)key;
+	}
+
+	std::map<uint64_t, KeyEventBindings*> keybindings;
 	MulticastDelegate<void(int dx, int dy)> OnMouseMotionEvent;
 	MulticastDelegate<void(int button)> OnMouseButtonPressedEvent;
 	MulticastDelegate<void(int button)> OnMouseButtonReleasedEvent;
@@ -46,8 +53,8 @@ public:
 	bool onWindowEvent(const MkWindowEvent& event);
 	void getMouseScreenPosition(int& outScreenX, int& outScreenY) const;
 
-	KeyEventBindings* getKeyBindings(MkKeySym key);
-	KeyEventBindings* fetchOrAddKeyBindings(MkKeySym key);
+	KeyEventBindings* getKeyBindings(MkKeySym key, uint16_t modMask= MkKeyMod::ANY);
+	KeyEventBindings* fetchOrAddKeyBindings(MkKeySym key, uint16_t modMask= MkKeyMod::ANY);
 
 	EventBindingSet* pushEventBindingSet();
 	void popEventBindingSet();

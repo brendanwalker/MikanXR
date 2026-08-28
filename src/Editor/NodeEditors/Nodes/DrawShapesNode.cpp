@@ -1,4 +1,5 @@
 #include "DrawShapesNode.h"
+#include "IconsForkAwesome.h"
 #include "CameraComponent.h"
 #include "CompositorConstants.h"
 #include "IMkGraphicsContext.h"
@@ -6,6 +7,7 @@
 #include "IMkStaticMeshInstance.h"
 #include "IMkTexture.h"
 #include "IMkMesh.h"
+#include "LocText.h"
 #include "Logger.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
@@ -13,7 +15,8 @@
 #include "MkStateModifiers.h"
 #include "IMkState.h"
 #include "NodeEditorState.h"
-#include "NodeEditorUI.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "StringUtils.h"
 
 #include "BoxShapeComponent.h"
@@ -35,7 +38,6 @@
 #include "Properties/GraphShapeProperty.h"
 
 #include "imgui.h"
-#include "imnodes.h"
 
 #include <glm/glm.hpp>
 
@@ -298,18 +300,23 @@ FlowPinPtr DrawShapesNode::getOutputFlowPin() const { return getFirstPinOfType<F
 
 void DrawShapesNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Draw Shapes Node", editorState.styleManager))
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locText("nodes.drawShapesHeader")))
 	{
+		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
 		// Blend Mode
+		const std::string blendModeItems=
+			std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendOn") + '\0';
 		int iBlendMode= (int)m_blendMode;
-		if (NodeEditorUI::DrawSimpleComboBoxProperty("drawShapesNodeBlendMode", "Blend Mode", "Blend Off\0Blend On\0",
-													 iBlendMode, editorState.styleManager))
+		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "drawShapesNodeBlendMode", locText("nodes.blendMode"),
+											  blendModeItems.c_str(), iBlendMode))
 		{
 			m_blendMode= (eCompositorBlendMode)iBlendMode;
 		}
 
 		// Depth Test
-		NodeEditorUI::DrawCheckBoxProperty("drawShapesNodeDepthTest", "Depth Test", m_bDepthTest);
+		MkGui::drawCheckBoxProperty(propertyStyle, "drawShapesNodeDepthTest", locText("nodes.depthTest"), m_bDepthTest);
 	}
 }
 
@@ -336,3 +343,5 @@ NodePtr DrawShapesNodeFactory::createNode(const NodeEditorState& editorState) co
 
 	return node;
 }
+
+const char* DrawShapesNode::editorGetHeaderIcon() const { return ICON_FK_CUBES; }

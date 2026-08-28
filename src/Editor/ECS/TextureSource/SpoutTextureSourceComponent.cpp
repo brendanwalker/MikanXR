@@ -190,11 +190,6 @@ void SpoutTextureSourceComponent::openTextureSource()
 		m_spoutColorFrame= GetSpout();
 		if (m_spoutColorFrame != nullptr)
 		{
-
-			m_spoutColorFrame->EnableSpoutLog();
-			// m_spoutColorFrame->EnableSpoutLogFile("Mikan.log");
-			// m_spoutColorFrame->ShowSpoutLogs();
-			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutColorFrame->SetReceiverName(spoutSourceName.c_str());
 		}
 		else

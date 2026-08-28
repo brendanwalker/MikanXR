@@ -7,5 +7,4 @@
 #include <string>
 
 MIKAN_GUI_FUNC(const TextStyle&) getDefaultTextStyle();
-MIKAN_GUI_FUNC(const std::filesystem::path) getDefaultJapaneseFontPath();
 MIKAN_GUI_FUNC(const std::filesystem::path) getForkAwesomeWebFontPath();

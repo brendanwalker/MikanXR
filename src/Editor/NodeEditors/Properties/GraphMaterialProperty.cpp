@@ -5,7 +5,9 @@
 #include "Logger.h"
 #include "MaterialAssetReference.h"
 #include "MikanModelResourceManager.h"
-#include "NodeEditorUI.h"
+#include "LocText.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "NodeEditorState.h"
 #include "Nodes/MaterialNode.h"
 #include "IEditorWindow.h"
@@ -15,7 +17,7 @@
 #include "IconsForkAwesome.h"
 
 // -- MaterialAssetComboDataSource ---
-class MaterialAssetComboDataSource : public NodeEditorUI::ComboBoxDataSource
+class MaterialAssetComboDataSource : public MkGui::ComboBoxDataSource
 {
 public:
 	MaterialAssetComboDataSource(GraphMaterialPropertyPtr ownerProperty)
@@ -36,7 +38,9 @@ public:
 					selectedAssetRefIndex= listIndex;
 				}
 
-				ComboEntry entry= {matAssetRef, matAssetRef ? assetRef->getShortName() : "<No Asset Ref>"};
+				const std::string entryString=
+					matAssetRef ? assetRef->getShortName() : locText("graphProperties.noAssetRef");
+				ComboEntry entry= {matAssetRef, entryString};
 
 				comboEntries.push_back(entry);
 				listIndex++;
@@ -48,9 +52,12 @@ public:
 
 	inline MaterialAssetReferencePtr getEntryAssetRef(int index) { return comboEntries[index].assetReference; }
 
-	virtual int getEntryCount() override { return (int)comboEntries.size(); }
+	virtual int getEntryCount() const override { return (int)comboEntries.size(); }
 
-	virtual const std::string& getEntryDisplayString(int index) override { return comboEntries[index].entryString; }
+	virtual const std::string& getEntryDisplayString(int index) const override
+	{
+		return comboEntries[index].entryString;
+	}
 
 private:
 	struct ComboEntry
@@ -169,24 +176,27 @@ void GraphMaterialProperty::editorHandleMainFrameDragDrop(const NodeEditorState&
 
 void GraphMaterialProperty::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Material", editorState.styleManager))
+	MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
+
+	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+									   locLabel("graphProperties.materialHeader")))
 	{
 		// Name
 		std::string name= m_materialResource ? m_materialResource->getName() : "";
-		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
+		MkGui::drawStaticTextProperty(propertyStyle, locText("graphProperties.name"), name);
 
 		// Material Asset
 		MaterialAssetComboDataSource dataSource(std::static_pointer_cast<GraphMaterialProperty>(shared_from_this()));
 		int selectedIndex= dataSource.getCurrentAssetIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("materialSelection", "Material", &dataSource, selectedIndex,
-											   editorState.styleManager))
+		if (MkGui::drawComboBoxProperty(propertyStyle, "materialSelection", locText("graphProperties.material"),
+										&dataSource, selectedIndex))
 		{
 			setMaterialAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}
 
 		// Drag-Drop Handling
 		auto materialAssetRef=
-			NodeEditorUI::receiveTypedDragDropPayload<MaterialAssetReference>(MaterialAssetReference::k_assetClassName);
+			MkGui::receiveTypedDragDropPayload<MaterialAssetReference>(MaterialAssetReference::k_assetClassName);
 		if (materialAssetRef)
 		{
 			setMaterialAssetReference(materialAssetRef);
