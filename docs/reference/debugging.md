@@ -64,6 +64,10 @@ Second known gotcha: with the default `CMAKE_UNITY_BUILD=ON`, a transitively inc
 
 So launching `Mikan.exe` from Git Bash silently forces the software decode tier, while the same binary launched from Explorer, Visual Studio, or `cmd` gets hardware decode. Verified both ways: with the machine PATH the ARKit device logs `Decoded CUDA video frame` and never emits the fallback message.
 
+The same cause also presents as `Hardware decode pipeline unavailable ... link has no sink`, logged by `MikanARKitVideoDevice::openOnThread` before it falls back to software. That message reads like a pipeline construction bug rather than a loader problem, because by the time linking is attempted the unloadable element simply does not exist. Do not take the wording as evidence against the PATH explanation.
+
+Filtering the offending directory out of `PATH` needs care from a shell: Git Bash lists it as `/mingw64/bin`, not as anything containing `Program Files/Git`, so a filter written against the Windows-style spelling silently keeps it. Retaining only the `/c/`-prefixed entries is a reliable way to get a Windows-equivalent `PATH`. Note that this also drops `/usr/bin`, so anything invoked through it (`nohup`, `timeout`) must be called by absolute path or avoided.
+
 Before suspecting pipeline code, check how the process was launched, then run the identical pipeline string through a standalone `gst-launch-1.0.exe`. A failed hardware open also produces harmless `GStreamer-CRITICAL`/`GLib-GObject-CRITICAL` assertion spam (GStreamer's own cleanup on this failure mode); it does not crash the process.
 
 ---

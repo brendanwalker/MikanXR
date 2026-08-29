@@ -179,6 +179,8 @@ python tools/automate.py "app resume" "until:app info:stage Compositor" "screens
 python tools/automate.py "property get <system> <id> <name>" "log tail 20 error" "app quit"
 ```
 
+`app push <stageName>` enters a stage but gives it no target, so a stage that normally acts on a selected object comes up empty. Reach those through the owning component instead: `function invoke ARKitVideoObjectSystem <componentId> show_video_source_settings` is what the editor's own button calls, and it both enters `VideoSourceSettings` and binds the source to it. A bare `app push VideoSourceSettings` reports the expected stage from `app info` while showing no video at all, which reads like a broken device rather than a missing selection. Video sources open on demand from that path too, so nothing binds the receive socket until it runs.
+
 A handler that cannot answer straight away (the ARKit channel's `arkit send` is the one case today) calls `AutomationServer::deferReply`, then answers later through `sendDeferredReply`. Nothing bounds that wait to the current frame, so a handler that defers owns arming its own timeout.
 
 Growth convention: when a feature adds automation commands, register the namespace in `AutomationServer::registerCoreNamespaces` (or from the owning subsystem) and add its section here.
