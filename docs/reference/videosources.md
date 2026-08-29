@@ -103,6 +103,15 @@ The appsink's `max-buffers` is the other tuned value, and it matters more than i
 
 Latency stays bounded because the poll runs faster than frames arrive, so the queue drains rather than accumulating, and `drop=TRUE` caps the worst case at three frames.
 
+The dominant latency term was never on this side of the wire. VideoToolbox selects the H.264 profile level automatically, and the level implies a decoded picture buffer of `min(MaxDpbMbs / PicSizeInMbs, 16)` frames: at 1920x1440 that is 10 frames under Level 5.0 and 16 under Level 5.1. The phone encodes with `AllowFrameReordering` off, so nothing in the stream needs that buffer, but the SPS carries no VUI `bitstream_restriction` saying so and hardware decoders honour the level default. Each IDR then flushes the buffer, which is where the once-per-keyframe stall came from. `openh264dec` ignores the declaration and never showed either symptom, which is what identified the bitstream rather than either decoder as the cause.
+
+The phone now rewrites the SPS before sending it (`H264SPSRewriter` in MikanARStreamer), declaring `max_num_reorder_frames = 0` and `max_dec_frame_buffering = max_num_ref_frames`. The statement is true rather than merely convenient, so encoded picture data is unchanged and only the SPS grows, by two bytes per keyframe. Measured through `nvh264dec` on the same stream:
+
+- 30fps: p50 latency 333.5ms to 33.8ms, standard deviation 101.3ms to 4.2ms, stalls over 100ms from 1.00/s to none in steady state
+- 60fps: p50 latency 268.2ms to 17.1ms, full 60.0fps delivered
+
+The consistency matters as much as the magnitude. Before the rewrite only 48.6 percent of frames landed within a frame period of the median latency, because each IDR dumped the buffer and then refilled it; a sawtooth like that cannot be compensated by a fixed offset the way a stable delay can. Afterwards 99.4 percent do.
+
 ---
 
 ## Crossing the process boundary
