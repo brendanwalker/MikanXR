@@ -348,7 +348,21 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 				// pull.
 				gst_app_sink_set_emit_signals(GST_APP_SINK(m_impl->appsink), FALSE);
 				gst_app_sink_set_drop(GST_APP_SINK(m_impl->appsink), TRUE);
-				gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 1);
+				// 3 rather than 1. With a single slot any frames that arrive between
+				// two polls cost all but the newest, and the hardware decoder delivers
+				// burstier than the software one, so the cap bites hardest exactly where
+				// throughput matters. Measured at 1920x1440 on nvh264dec, going from 1 to
+				// 3 slots:
+				//   30fps  27.65 -> 29.97 fps received, 7.66% -> 0.13% lost
+				//   60fps  57.42 -> 59.50 fps received, 3.43% -> 0.11% lost
+				// The losses were overwhelmingly isolated single frames, not bursts, which
+				// is the signature of a queue collision rather than a starved consumer -
+				// the render loop had ample headroom at 97.5Hz, and the identical pipeline
+				// into a standalone fakesink (no such cap) sustained a full 60fps.
+				// Latency stays bounded: the poll runs faster than frames arrive, so the
+				// queue drains rather than accumulating, and drop=TRUE caps the worst case
+				// at three frames.
+				gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 3);
 
 				m_openState= eOpenState::open;
 

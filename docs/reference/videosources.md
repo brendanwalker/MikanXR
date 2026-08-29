@@ -96,6 +96,13 @@ The RTP receive pipeline sets `udpsrc buffer-size` explicitly. A keyframe is an 
 
 Measured at 1920x1440 and 30fps: with the default buffer, every stall was a lost keyframe and lasted exactly one 4s keyframe period. With the buffer sized to hold several bursts, 6621 consecutive frames across roughly 55 keyframe periods arrived with zero loss and no stall over 100ms.
 
+The appsink's `max-buffers` is the other tuned value, and it matters more than it looks. The sink is polled once per render tick with `drop=TRUE`, so a single slot loses every frame but the newest whenever more than one arrives between polls. That is not a starved consumer: the losses are overwhelmingly isolated single frames, the render loop has ample headroom, and the identical pipeline into a standalone `fakesink` sustains the full source rate. The hardware decoder delivers burstier than the software one, so the cap bites hardest where throughput matters. Going from one slot to three, measured on `nvh264dec`:
+
+- 30fps: 27.65 to 29.97 fps received, 7.66 percent to 0.13 percent lost
+- 60fps: 57.42 to 59.50 fps received, 3.43 percent to 0.11 percent lost
+
+Latency stays bounded because the poll runs faster than frames arrive, so the queue drains rather than accumulating, and `drop=TRUE` caps the worst case at three frames.
+
 ---
 
 ## Crossing the process boundary

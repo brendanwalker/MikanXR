@@ -8,12 +8,12 @@ The living plan: what is in flight now, what comes next, and the open questions.
 - [ ] Decide whether the editor wants multi-viewport docking (`ImGuiConfigFlags_ViewportsEnable`), which would let a floating panel become a real OS window on a second monitor. Deliberately left off: MikanXR runs four independent ImGui contexts over one shared GL context, and the SDL2 backend's viewport bookkeeping is the least-tested path in that setup.
 - [ ] Localize the USB video setting slider labels. `GuiPanel_USBVideoSourceComponent` builds them at runtime from `k_videoSettingPropertyPrefixes` ("brightness" to "Brightness") inside a custom renderer, so they sit outside the descriptor label mechanism and still read English in every language.
 - [ ] ARKit video source (`iphone` branch): pose-in-RTP streaming and the hardware/software two-tier decode landed through Phase 7; verify a live iPhone session end to end and confirm an old saved project referencing removed texture-source enum names still loads (relies on `VideoTextureNode`'s `FindEnumValue` fallback).
-- [ ] ARKit video source: 60fps is not usable on the software decode path. Measured across the full bitrate matrix at 1920x1440, every 60fps configuration loses frames (1.4 to 8 percent) with receive rate below capture rate, and the numbers swing widely between runs, so it is saturation limited rather than cleanly bitrate limited. 15 and 30fps are clean at every preset (0.00 percent loss, no stalls). Re-measure once the in-process `nvh264dec` gap below is closed, and until then treat 60fps as unsupported rather than merely degraded.
+- [ ] ARKit video source: 30fps intervals still show occasional gaps over 100ms (roughly one every two seconds at 1920x1440) that are not frame loss, since the frames do arrive. They persist at both appsink queue depths so they are not the queue, and they are worth attributing before calling the receive path finished.
+- [ ] The video source settings overlay's "Camera fps" readout is unreliable: it showed 68.7fps against a 30fps stream and 0.0fps against a live 60fps one, while the editor's own frame counter beside it reads correctly. Either fix it or remove it, since it currently contradicts measured rates.
 - [ ] Node editor link UX niceties deferred from the migration: Ctrl+drag to detach an existing link off a pin and rewire it, and a pin right-click menu with a disconnect item (`ed::ShowPinContextMenu` plus the existing `NodePin::editorRenderContextMenu` hook). Dragging a new link from a connected input pin already rewires it, since input pins keep a single connection.
 
 ## Next
 
-- [ ] Root-cause the in-process `nvh264dec`/`d3d11h264dec` plugin loading gap (see `docs/reference/debugging.md`) so the ARKit hardware decode tier works inside `Mikan.exe`.
 
 ## Later
 
