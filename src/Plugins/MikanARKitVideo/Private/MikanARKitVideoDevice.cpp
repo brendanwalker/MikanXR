@@ -43,6 +43,14 @@
 // MikanGStreamerVideoDevice.h's m_impl pattern.
 struct GStreamerImpl
 {
+	// Sized to hold several keyframe bursts rather than the OS default (~64KB),
+	// which one 1920x1440 IDR overruns on its own. See the pipeline builders.
+	static constexpr int k_udpReceiveBufferBytes= 4 * 1024 * 1024;
+
+	// Enough to ride out a burst that arrives faster than the once-per-tick
+	// drain. The previous 50ms left almost no slack at 30fps.
+	static constexpr int k_jitterBufferLatencyMs= 200;
+
 	uint16_t videoPort;
 
 	GstElement* pipeline= nullptr;
@@ -60,7 +68,16 @@ struct GStreamerImpl
 		std::stringstream ss;
 		ss << "udpsrc port=" << videoPort << " "
 		   << "caps=\"application/x-rtp,media=video,encoding-name=H264,payload=96\" "
-		   << "! rtpjitterbuffer latency=50 "
+		   // A keyframe is an order of magnitude larger than a P-frame and leaves
+		   // the sender as one back-to-back burst of hundreds of RTP packets,
+		   // while this socket is only drained once per render tick. On the OS
+		   // default receive buffer (~64KB) that burst overruns and the keyframe
+		   // arrives incomplete, which costs a full keyframe interval of video
+		   // because the decoder has no reference until the next IDR. Measured
+		   // live at 1920x1440: every stall was a lost keyframe and lasted
+		   // exactly one 4s keyframe period.
+		   << "buffer-size=" << k_udpReceiveBufferBytes << " "
+		   << "! rtpjitterbuffer latency=" << k_jitterBufferLatencyMs << " "
 		   << "! rtph264depay name=depay "
 		   << "! h264parse "
 		   << "! nvh264dec "
@@ -79,7 +96,16 @@ struct GStreamerImpl
 		std::stringstream ss;
 		ss << "udpsrc port=" << videoPort << " "
 		   << "caps=\"application/x-rtp,media=video,encoding-name=H264,payload=96\" "
-		   << "! rtpjitterbuffer latency=50 "
+		   // A keyframe is an order of magnitude larger than a P-frame and leaves
+		   // the sender as one back-to-back burst of hundreds of RTP packets,
+		   // while this socket is only drained once per render tick. On the OS
+		   // default receive buffer (~64KB) that burst overruns and the keyframe
+		   // arrives incomplete, which costs a full keyframe interval of video
+		   // because the decoder has no reference until the next IDR. Measured
+		   // live at 1920x1440: every stall was a lost keyframe and lasted
+		   // exactly one 4s keyframe period.
+		   << "buffer-size=" << k_udpReceiveBufferBytes << " "
+		   << "! rtpjitterbuffer latency=" << k_jitterBufferLatencyMs << " "
 		   << "! rtph264depay name=depay "
 		   << "! h264parse "
 		   << "! openh264dec "
