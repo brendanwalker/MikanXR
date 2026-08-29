@@ -115,6 +115,25 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 
 `nodegraph list properties` replies in variable-list order, so a reorder is observable there.
 
+### ARKit debug channel (arkit)
+
+Relays debug traffic to and from the MikanARStreamer iPhone app ([videosources.md](./videosources.md)). The phone pushes diagnostics, which are re-emitted through the editor's own logger and so read back through `log tail` interleaved with editor lines on one timeline. Commands travel the other way.
+
+- `arkit status` replies whether the listener is enabled, its port, whether a phone is connected, and that phone's address, device name, and protocol version
+- `arkit send <text...>` sends one command line to the phone and replies with the phone's own reply
+
+The channel is off by default. Unlike this server it binds every interface, because its peer is a phone on the LAN, so it is opt-in: `arkitDebugChannelEnabled` in `AppSettingsConfig` (port `arkitDebugChannelPort`, default 21121), or `-arkitDebugChannel` on the command line with `-arkitDebugPort=<n>` to override the port. The `arkit` namespace registers either way, so `arkit status` still answers when the listener is off.
+
+`arkit send` takes the raw rest of the line, so quoting reaches the phone verbatim. Its reply is parked until the phone answers rather than being answered immediately, and a phone that goes quiet fails the command after five seconds instead of leaving the client waiting. Only one command is in flight at a time. The command text is opaque to the editor: the phone owns its own vocabulary, so it can grow without an editor rebuild.
+
+`tools/arkit_debug_stub.py` stands in for the phone, which is how the channel is tested without a device on the bench. It answers `ping`, `stats`, and `empty`, and deliberately ignores `silent` so the timeout path can be exercised.
+
+```
+build/src/Editor/Release/Mikan.exe -arkitDebugChannel
+python tools/arkit_debug_stub.py
+python tools/automate.py "arkit status" "arkit send ping" "log tail 20 info"
+```
+
 Mutations and undo/redo run inside the node editor window's next update (its GL and gui contexts are only current there), so those replies land a frame late, and a mutation's undo snapshot commits on the window's next quiescent frame. A drive polls `nodegraph info` (or rides automate.py's inter-command delay) before asserting `can_undo`.
 
 ## Client helper
@@ -142,5 +161,7 @@ The standard way to verify an editor feature objectively: launch `Mikan.exe`, dr
 python tools/automate.py "app resume" "until:app info:stage Compositor" "screenshot compositor"
 python tools/automate.py "property get <system> <id> <name>" "log tail 20 error" "app quit"
 ```
+
+A handler that cannot answer straight away (the ARKit channel's `arkit send` is the one case today) calls `AutomationServer::deferReply`, then answers later through `sendDeferredReply`. Nothing bounds that wait to the current frame, so a handler that defers owns arming its own timeout.
 
 Growth convention: when a feature adds automation commands, register the namespace in `AutomationServer::registerCoreNamespaces` (or from the owning subsystem) and add its section here.

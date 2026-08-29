@@ -39,6 +39,14 @@ public:
 	inline bool getSpoutLogEnabled() const { return m_bSpoutLogEnabled; }
 	void setSpoutLogEnabled(bool bEnabled);
 
+	static const std::string k_arkitDebugChannelEnabledPropertyId;
+	inline bool getARKitDebugChannelEnabled() const { return m_bARKitDebugChannelEnabled; }
+	void setARKitDebugChannelEnabled(bool bEnabled);
+
+	static const std::string k_arkitDebugChannelPortPropertyId;
+	inline int getARKitDebugChannelPort() const { return m_arkitDebugChannelPort; }
+	void setARKitDebugChannelPort(int port);
+
 protected:
 	std::filesystem::path m_lastProjectPath;
 	std::string m_appLanguage;
@@ -46,4 +54,8 @@ protected:
 	int m_httpServerPort= 8090;        // mirrors HTTP_SERVER_PORT in HttpInterprocessMessageServer.h
 	int m_automationServerPort= 21120; // loopback automation command channel
 	bool m_bSpoutLogEnabled= false;    // relays Spout's own logs into the editor log
+	// The ARKit debug channel binds every interface, unlike the loopback-only
+	// automation channel, so it stays off until asked for
+	bool m_bARKitDebugChannelEnabled= false;
+	int m_arkitDebugChannelPort= 21121;
 };

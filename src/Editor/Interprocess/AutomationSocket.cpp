@@ -42,14 +42,15 @@ static void setNonBlocking(AutomationSocket::SocketHandle sock)
 
 // ---- AutomationSocket ------------------------------------------------------
 
-AutomationSocket::AutomationSocket(uint16_t port)
+AutomationSocket::AutomationSocket(uint16_t port, eBindScope bindScope, const std::string& channelName)
 	: m_port(port)
+	, m_channelName(channelName)
 {
 	// Create TCP listener socket
 	SOCKET listener= ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (listener == INVALID_SOCKET)
 	{
-		MIKAN_LOG_ERROR("AutomationSocket") << "Failed to create listener socket";
+		MIKAN_LOG_ERROR("AutomationSocket") << m_channelName << ": failed to create listener socket";
 		return;
 	}
 
@@ -57,23 +58,25 @@ AutomationSocket::AutomationSocket(uint16_t port)
 	int optval= 1;
 	::setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char*>(&optval), sizeof(optval));
 
-	// Loopback only: the automation channel is a local debug surface
+	const bool bLoopbackOnly= bindScope == eBindScope::loopback;
+
 	sockaddr_in addr{};
 	addr.sin_family= AF_INET;
-	addr.sin_addr.s_addr= htonl(INADDR_LOOPBACK);
+	addr.sin_addr.s_addr= htonl(bLoopbackOnly ? INADDR_LOOPBACK : INADDR_ANY);
 	addr.sin_port= htons(port);
 
 	if (::bind(listener, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == SOCKET_ERROR
 		|| ::listen(listener, 1) == SOCKET_ERROR)
 	{
-		MIKAN_LOG_ERROR("AutomationSocket") << "Failed to bind/listen on port " << port;
+		MIKAN_LOG_ERROR("AutomationSocket") << m_channelName << ": failed to bind/listen on port " << port;
 		closesocket(listener);
 		return;
 	}
 
 	setNonBlocking(listener);
 	m_listenSocket= static_cast<SocketHandle>(listener);
-	MIKAN_LOG_INFO("AutomationSocket") << "Listening for automation clients on port " << port;
+	MIKAN_LOG_INFO("AutomationSocket") << m_channelName << ": listening on port " << port
+									   << (bLoopbackOnly ? " (loopback)" : " (all interfaces)");
 }
 
 AutomationSocket::~AutomationSocket() { close(); }
@@ -92,6 +95,7 @@ void AutomationSocket::close()
 #endif
 		closesocket(static_cast<SOCKET>(m_clientSocket));
 		m_clientSocket= k_invalidSocket;
+		m_clientAddress.clear();
 	}
 	if (m_listenSocket != k_invalidSocket)
 	{
@@ -113,7 +117,14 @@ void AutomationSocket::tryAccept()
 
 	setNonBlocking(client);
 	m_clientSocket= static_cast<SocketHandle>(client);
-	MIKAN_LOG_INFO("AutomationSocket") << "Automation client connected";
+
+	char addressText[INET_ADDRSTRLEN]= {};
+	if (::inet_ntop(AF_INET, &clientAddr.sin_addr, addressText, sizeof(addressText)) != nullptr)
+		m_clientAddress= addressText;
+	else
+		m_clientAddress= "unknown";
+
+	MIKAN_LOG_INFO("AutomationSocket") << m_channelName << ": client connected from " << m_clientAddress;
 
 	if (onClientConnected)
 		onClientConnected();
@@ -142,9 +153,15 @@ void AutomationSocket::readAvailable()
 				if (!line.empty() && line.back() == '\r')
 					line.pop_back();
 
-				MIKAN_LOG_DEBUG("AutomationSocket") << "RX: " << line;
+				MIKAN_LOG_DEBUG("AutomationSocket") << m_channelName << " RX: " << line;
 				if (onLineReceived)
 					onLineReceived(line);
+			}
+
+			if (m_readBuffer.size() > k_maxBufferedLineBytes)
+			{
+				handleDisconnect("line exceeded the maximum buffered length");
+				return;
 			}
 		}
 		else if (n == 0)
@@ -175,10 +192,11 @@ void AutomationSocket::handleDisconnect(const char* reason)
 		return;
 
 	if (reason)
-		MIKAN_LOG_INFO("AutomationSocket") << "Automation client disconnected: " << reason;
+		MIKAN_LOG_INFO("AutomationSocket") << m_channelName << ": client disconnected: " << reason;
 
 	closesocket(static_cast<SOCKET>(m_clientSocket));
 	m_clientSocket= k_invalidSocket;
+	m_clientAddress.clear();
 	m_readBuffer.clear();
 
 	if (onClientDisconnected)
@@ -186,6 +204,8 @@ void AutomationSocket::handleDisconnect(const char* reason)
 }
 
 // ---- Public interface ------------------------------------------------------
+
+void AutomationSocket::disconnectClient(const char* reason) { handleDisconnect(reason); }
 
 void AutomationSocket::poll()
 {

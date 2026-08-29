@@ -82,6 +82,14 @@ The `iphone` branch's ARKit source instead implements `IFrameCoupledPoseProvider
 
 ---
 
+## ARKit debug side channel
+
+Separate from the video path and independent of it: `ARKitDebugChannel` (`src\Editor\Interprocess\ARKitDebugChannel.h`) is a TCP line channel to the MikanARStreamer app, exposed as the automation server's `arkit` namespace ([automation.md](./automation.md)). The phone dials out, because the editor cannot learn the phone's address from a GStreamer `udpsrc`. Diagnostics the phone pushes are re-emitted through the editor's logger, which is what puts phone-side encode timing and editor-side receive timing on one ordered timeline. Commands travel the other way, with the phone owning the vocabulary.
+
+It has no dependency on `ARKitVideoSourceComponent` or the plugin, and works whether or not video is streaming. It also binds every interface rather than loopback, so it is off unless enabled.
+
+---
+
 ## Crossing the process boundary
 
 Pixel data never travels over the websocket; only events and requests do (see [wire-protocol.md](./wire-protocol.md)).
