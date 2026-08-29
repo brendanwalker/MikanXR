@@ -35,6 +35,9 @@ public:
 	bool isReceivingFrames() const;
 	inline float getFPS() const { return m_fps; }
 
+	/// Fold one new-frame arrival into the rolling frame rate estimate.
+	void updateFrameRateStatistic();
+
 	inline eVideoDisplayMode getVideoDisplayMode() const { return m_videoDisplayMode; }
 	inline void setVideoDisplayMode(eVideoDisplayMode newMode) { m_videoDisplayMode= newMode; }
 
@@ -80,6 +83,8 @@ protected:
 	int m_frameWidth;
 	int m_frameHeight;
 	float m_fps;
+	// Smoothed inter-frame interval backing m_fps (see updateFrameRateStatistic)
+	float m_frameIntervalSeconds= 0.f;
 
 	// BGR source buffer
 	std::mutex m_bgrSourceBufferMutex;

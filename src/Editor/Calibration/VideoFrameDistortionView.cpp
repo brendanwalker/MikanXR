@@ -418,6 +418,33 @@ bool VideoFrameDistortionView::hasNewVideoFrame() const
 	return m_lastVideoFrameReadIndex != m_lastVideoFrameWriteIndex;
 }
 
+void VideoFrameDistortionView::updateFrameRateStatistic()
+{
+	const auto now= std::chrono::steady_clock::now();
+
+	// Skip the very first sample: m_lastFrameTimestamp starts at the epoch, so its
+	// delta is meaningless and would drag the average for a long time. Deliberately
+	// unclamped, unlike the app's per-frame delta - clamping here would make a
+	// genuine multi-second stall read as a healthy rate, which is the opposite of
+	// what this number exists to show (see debugging.md on the delta clamp).
+	if (m_lastFrameTimestamp.time_since_epoch().count() != 0)
+	{
+		const float deltaSeconds= std::chrono::duration<float>(now - m_lastFrameTimestamp).count();
+		if (deltaSeconds > 0.f)
+		{
+			// Smooth the interval and invert once, rather than averaging 1/delta.
+			// Averaging instantaneous rates over-weights short intervals: a 33ms
+			// and a 5ms sample average to ~115fps when the true rate across them is
+			// ~52, which had this reading 45fps against a measured 30fps stream.
+			m_frameIntervalSeconds=
+				(m_frameIntervalSeconds > 0.f) ? (m_frameIntervalSeconds * 0.9f) + (deltaSeconds * 0.1f) : deltaSeconds;
+			m_fps= (m_frameIntervalSeconds > 0.f) ? (1.0f / m_frameIntervalSeconds) : 0.f;
+		}
+	}
+
+	m_lastFrameTimestamp= now;
+}
+
 bool VideoFrameDistortionView::isReceivingFrames() const
 {
 	return m_lastVideoFrameWriteIndex > 0 || m_videoSourceComponent->getDirectColorTexture() != nullptr;
@@ -432,12 +459,7 @@ int64_t VideoFrameDistortionView::readNextVideoFrameIndex()
 		// Copy the image from the video view
 		if (hasNewVideoFrame())
 		{
-			// Update framerate statistics
-			const auto now= std::chrono::steady_clock::now();
-			const float deltaSeconds= fminf(std::chrono::duration<float>(now - m_lastFrameTimestamp).count(), 0.1f);
-			const float fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
-			m_fps= (m_fps * 0.9f) + (fps * 0.1f);
-			m_lastFrameTimestamp= now;
+			updateFrameRateStatistic();
 
 			// Read the next video frame into the source buffer and update the last read frame index
 			m_lastVideoFrameReadIndex= m_lastVideoFrameWriteIndex;
@@ -555,7 +577,16 @@ int64_t VideoFrameDistortionView::readAndProcessVideoFrame()
 		// provide one.
 		const int64_t directFrameIndex= m_videoSourceComponent->getDirectFrameIndex();
 		m_bVideoIsStreaming= true;
-		m_lastVideoFrameReadIndex= (directFrameIndex >= 0) ? directFrameIndex : (m_lastVideoFrameReadIndex + 1);
+
+		// This branch returns before readNextVideoFrameIndex() is ever reached, so
+		// the frame rate statistic has to be sampled here too - otherwise it stays
+		// at its initial value for every GPU-direct source and the settings screen
+		// reports 0fps against a live stream.
+		const int64_t newReadIndex= (directFrameIndex >= 0) ? directFrameIndex : (m_lastVideoFrameReadIndex + 1);
+		if (newReadIndex != m_lastVideoFrameReadIndex)
+			updateFrameRateStatistic();
+
+		m_lastVideoFrameReadIndex= newReadIndex;
 		return m_lastVideoFrameReadIndex;
 	}
 

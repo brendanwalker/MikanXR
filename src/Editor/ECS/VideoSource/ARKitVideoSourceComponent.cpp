@@ -293,6 +293,19 @@ void ARKitVideoSourceComponent::processDirectVideoFrame()
 	if (lumaGlId == 0 || chromaGlId == 0)
 		return; // no decoded frame yet this session
 
+	// Skip the conversion when no new frame has arrived. Callers run this every
+	// render tick, but frames only arrive at the source rate - a 30fps stream into
+	// a ~97Hz render loop means roughly three of every four passes reconvert
+	// pixels that have not changed, at full resolution. The output framebuffer
+	// keeps the last converted frame, so a caller reading the texture later in the
+	// same tick still sees valid content, which is what the unconditional call at
+	// the call site was protecting.
+	const int64_t currentFrameIndex= m_lastBundleFrameSeq.load();
+	if (currentFrameIndex >= 0 && currentFrameIndex == m_lastConvertedFrameIndex)
+		return;
+
+	m_lastConvertedFrameIndex= currentFrameIndex;
+
 	if (m_lumaTextureWrapper == nullptr)
 		m_lumaTextureWrapper= CreateMkExternalTexture();
 	m_lumaTextureWrapper->setExternalPlatformTexture(&lumaGlId);

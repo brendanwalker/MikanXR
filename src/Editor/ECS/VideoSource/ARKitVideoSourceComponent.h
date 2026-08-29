@@ -156,4 +156,8 @@ private:
 	// atomic rather than folding into m_latestPoseMutex since it's a single scalar
 	// updated unconditionally on every bundle, independent of pose validity.
 	std::atomic<int64_t> m_lastBundleFrameSeq{-1};
+
+	// Frame index of the last NV12->RGBA conversion, so processDirectVideoFrame()
+	// can skip re-converting an unchanged frame. Only touched on the GL thread.
+	int64_t m_lastConvertedFrameIndex= -1;
 };
