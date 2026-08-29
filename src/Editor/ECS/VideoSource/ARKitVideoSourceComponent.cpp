@@ -337,7 +337,14 @@ void ARKitVideoSourceComponent::processDirectVideoFrame()
 		m_nv12ConversionMaterial=
 			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_CONVERT_NV12_TO_RGBA);
 		m_nv12ConversionMaterialInstance= createMkMaterialInstance(m_nv12ConversionMaterial);
-		m_nv12ConversionQuad= createFullscreenQuadMesh(graphicsContext, m_nv12ConversionMaterial, true);
+		// Not v-flipped: this pass writes a video texture, it does not display one.
+		// The NV12 planes arrive with image row 0 at v=0 (a straight cuMemcpy2D of
+		// the decoded frame), which is the same convention copyOpenCVMatIntoGLTexture
+		// produces for CPU sources, and the output has to keep it so that consumers
+		// cannot tell which decode tier produced the frame. Flipping here would
+		// invert relative to every other source, and the display quad's own flip
+		// would then land the image upside down.
+		m_nv12ConversionQuad= createFullscreenQuadMesh(graphicsContext, m_nv12ConversionMaterial, false);
 	}
 
 	if (width != m_nv12ConversionWidth || height != m_nv12ConversionHeight)

@@ -64,6 +64,8 @@ Streaming is refcounted by consumers: `VideoSourceComponent::startVideoStream(Vi
 
 GPU-direct sources bypass the CPU buffer entirely: `VideoSourceComponent::getDirectColorTexture()` / `processDirectVideoFrame()` / `getDirectFrameIndex()` default to null/no-op and no source on `main` overrides them. On the `iphone` branch `ARKitVideoSourceComponent` does, and its NV12 luma/chroma GL textures (exposed by the plugin as raw GL ids) are wrapped in `IMkExternalTexture`s and converted to RGBA by a fullscreen shader pass once per tick.
 
+Whatever a source does internally, every video texture reaches `getVideoTexture()` in one orientation, image row 0 at `v=0`. That is what `copyOpenCVMatIntoGLTexture` produces for CPU sources, and the NV12 planes already arrive that way because the plugin copies them with a plain `cuMemcpy2D`. A conversion pass of this kind therefore builds its quad unflipped: it writes a video texture rather than displaying one, and the single V flip belongs to the consumer's own display quad ([conventions.md](./conventions.md)). Flipping in both places cost a period of upside-down video on the hardware decode tier only, which was invisible while a PATH problem was forcing every local run onto the software tier.
+
 ---
 
 ## Intrinsics, settings, and persistence
