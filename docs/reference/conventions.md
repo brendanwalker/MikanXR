@@ -92,6 +92,8 @@ A recovered lighting environment is a spherical function stored as 27 coefficien
 
 - GL samples with a bottom-left UV origin, so displaying a cv-ordered texture upright requires a V flip somewhere. Mikan does it in mesh texcoords, chosen per call site: `createFullscreenQuadMesh(ownerContext, vFlipped, ...)` (`src/Libraries/MikanRenderer/Private/GlTriangulatedMesh.cpp`) builds either a flipped or unflipped fullscreen quad, and each app stage picks (calibration stages pass `false`, `AppStage_TextureSourceSettings` passes `true`). There is no single global flip point.
 
+- Every video texture reaches its consumer with image row 0 at v=0, whatever produced it, so no consumer needs to know which source or decode tier a frame came from. A pass that writes a video texture rather than displaying one therefore builds its quad unflipped: `ARKitVideoSourceComponent::processDirectVideoFrame` converts NV12 to RGBA that way, and the V flip stays with the consumer's own display quad. See [videosources.md](./videosources.md).
+
 - Render-to-texture paths can instead flip in projection: `CameraComponent::getApertureProjectionMatrix(outProj, bVerticalFlip)` pre-multiplies `glm::scale(vec3(1, -1, 1))` "to account for OpenGL's inverted Y-axis"; the compositor's `ColorTextureSourceNode` exposes a `vertical_flip` option.
 
 - Horizontal mirroring for mirrored sources is separate: `VideoFrameDistortionView::writeVideoFrame` applies `cv::flip(mat, +1)` when the source definition's mirrored flag is set.
