@@ -133,6 +133,18 @@ The commands the MikanARStreamer app answers today:
 - `ping` replies `pong`
 - `stats` replies the capture, encode, drop, and send counters as `name value` lines
 - `verbose on|off` gates the per-frame encode-latency relay, which is off by default because one line per frame fills the 2000-line log ring in about a minute and evicts the editor's own diagnostics
+- `screenshot [name]` captures the app's own UI to a PNG in its container and replies with the path, pixel size, and byte count
+
+The screenshot command exists because nothing else can see that screen. `devicectl` can copy files off a device but cannot capture one, and `simctl io screenshot` is simulator only, so the app takes the picture itself and leaves it where a copy can reach:
+
+```
+python tools/automate.py "arkit send screenshot land"
+xcrun devicectl device copy from --device <deviceId> \
+  --domain-type appDataContainer --domain-identifier com.mikan.ARStreamer \
+  --source Documents/land.png --destination ./land.png
+```
+
+The image travels as a file rather than as base64 through the channel, which keeps a line-oriented text protocol from carrying megabytes. Note that `devicectl device orientation set` is not available on every device (an iPhone 12 Pro reports the capability as unsupported), so a layout has to be checked in whichever orientation the phone is physically in.
 
 A real phone session can be driven without touching the device. The app's settings live in `UserDefaults`, so launch arguments override them for that launch only, and `-autostart 1` starts streaming without a tap:
 
