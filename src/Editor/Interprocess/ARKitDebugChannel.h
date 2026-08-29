@@ -34,6 +34,13 @@ public:
 	/// deferred reply state wedged.
 	static const int k_commandTimeoutSeconds= 5;
 
+	/// How long a freshly accepted peer has to send its hello. Only one client
+	/// is accepted at a time, so a peer that connects and then says nothing
+	/// would otherwise hold the slot forever and lock out the real phone. Seen
+	/// live: an iOS reconnect race left a connected-but-silent socket that
+	/// blocked the channel until the app was relaunched.
+	static const int k_handshakeTimeoutSeconds= 10;
+
 	ARKitDebugChannel();
 	~ARKitDebugChannel();
 
@@ -62,6 +69,7 @@ public:
 private:
 	// ---- Line routing ----
 	void onLineReceived(const std::string& line);
+	void onClientConnected();
 	void onClientDisconnected();
 
 	/// First line from a new peer: `hello <protocolVersion> <deviceName...>`.
@@ -87,6 +95,9 @@ private:
 	bool m_bHandshakeComplete= false;
 	int m_peerProtocolVersion= 0;
 	std::string m_peerDeviceName;
+
+	// Counts down while a peer is connected but has not yet said hello
+	float m_handshakeTimeoutRemaining= 0.f;
 
 	// In-flight `arkit send`. Only one at a time, matching the automation
 	// server's own one-client-one-outstanding-command model.

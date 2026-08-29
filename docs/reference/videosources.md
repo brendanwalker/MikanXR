@@ -90,6 +90,14 @@ It has no dependency on `ARKitVideoSourceComponent` or the plugin, and works whe
 
 ---
 
+## ARKit receive tuning
+
+The RTP receive pipeline sets `udpsrc buffer-size` explicitly. A keyframe is an order of magnitude larger than a P-frame and leaves the phone as one back-to-back burst of hundreds of RTP packets, while the socket is drained once per render tick. On the OS default receive buffer that burst overruns, the keyframe arrives incomplete, and the decoder has no reference until the next IDR, so a single lost keyframe costs a whole keyframe interval of video. P-frames are small enough never to trigger it, which makes the symptom look periodic rather than load related.
+
+Measured at 1920x1440 and 30fps: with the default buffer, every stall was a lost keyframe and lasted exactly one 4s keyframe period. With the buffer sized to hold several bursts, 6621 consecutive frames across roughly 55 keyframe periods arrived with zero loss and no stall over 100ms.
+
+---
+
 ## Crossing the process boundary
 
 Pixel data never travels over the websocket; only events and requests do (see [wire-protocol.md](./wire-protocol.md)).

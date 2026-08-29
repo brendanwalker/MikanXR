@@ -126,6 +126,23 @@ The channel is off by default. Unlike this server it binds every interface, beca
 
 `arkit send` takes the raw rest of the line, so quoting reaches the phone verbatim. Its reply is parked until the phone answers rather than being answered immediately, and a phone that goes quiet fails the command after five seconds instead of leaving the client waiting. Only one command is in flight at a time. The command text is opaque to the editor: the phone owns its own vocabulary, so it can grow without an editor rebuild.
 
+Only one peer is accepted at a time, so a peer that connects and then never sends its hello is dropped after ten seconds rather than holding the slot. Without that, one wedged client locks the channel until the editor restarts.
+
+The commands the MikanARStreamer app answers today:
+
+- `ping` replies `pong`
+- `stats` replies the capture, encode, drop, and send counters as `name value` lines
+- `verbose on|off` gates the per-frame encode-latency relay, which is off by default because one line per frame fills the 2000-line log ring in about a minute and evicts the editor's own diagnostics
+
+A real phone session can be driven without touching the device. The app's settings live in `UserDefaults`, so launch arguments override them for that launch only, and `-autostart 1` starts streaming without a tap:
+
+```
+xcrun devicectl device process launch --device <deviceId> com.mikan.ARStreamer \
+  -- -settings.host <editorHost> -settings.basePort 27015 -autostart 1
+```
+
+The phone must be unlocked for install, and ARKit still needs textured surroundings for the pose to mean anything.
+
 `tools/arkit_debug_stub.py` stands in for the phone, which is how the channel is tested without a device on the bench. It answers `ping`, `stats`, and `empty`, and deliberately ignores `silent` so the timeout path can be exercised.
 
 ```

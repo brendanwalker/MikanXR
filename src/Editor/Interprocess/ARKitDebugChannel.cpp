@@ -29,6 +29,7 @@ bool ARKitDebugChannel::startup(uint16_t port)
 		return false;
 
 	socket->onLineReceived= [this](const std::string& line) { onLineReceived(line); };
+	socket->onClientConnected= [this]() { onClientConnected(); };
 	socket->onClientDisconnected= [this]() { onClientDisconnected(); };
 
 	m_socket= std::move(socket);
@@ -41,6 +42,19 @@ void ARKitDebugChannel::poll(float deltaSeconds)
 		return;
 
 	m_socket->poll();
+
+	// A peer that connects and never identifies itself holds the single client
+	// slot, so drop it and go back to listening
+	if (m_socket->isClientConnected() && !m_bHandshakeComplete)
+	{
+		m_handshakeTimeoutRemaining-= deltaSeconds;
+		if (m_handshakeTimeoutRemaining <= 0.f)
+		{
+			MIKAN_LOG_WARNING("ARKitDebugChannel")
+				<< "Dropping a peer that connected but never sent a hello within " << k_handshakeTimeoutSeconds << "s";
+			m_socket->disconnectClient("handshake timed out");
+		}
+	}
 
 	if (m_bCommandPending)
 	{
@@ -101,6 +115,12 @@ void ARKitDebugChannel::onLineReceived(const std::string& line)
 		MIKAN_LOG_WARNING("ARKitDebugChannel") << "Ignoring unrecognized line: " << line;
 		break;
 	}
+}
+
+void ARKitDebugChannel::onClientConnected()
+{
+	m_bHandshakeComplete= false;
+	m_handshakeTimeoutRemaining= (float)k_handshakeTimeoutSeconds;
 }
 
 void ARKitDebugChannel::onClientDisconnected()
