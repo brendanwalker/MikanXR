@@ -363,6 +363,14 @@ void AppStage_AlignCameraByOriginMarker::setupCalibrator()
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_targetVideoSource->getCameraIntrinsics(cameraIntrinsics);
 	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
+
+	// The test view draws the origin axes over the video through the viewport
+	// camera, so that camera has to see the world the way the real lens does.
+	// Left on its default projection the axes are drawn at the wrong field of
+	// view, which reads as an overlay that misses the marker by more the further
+	// the marker sits from image center.
+	MikanCameraPtr mkCamera= getFirstViewport()->getCurrentMikanCamera();
+	mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 	m_frameBuffer->setName("AlignCameraByOriginMarker");
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
 	m_frameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
