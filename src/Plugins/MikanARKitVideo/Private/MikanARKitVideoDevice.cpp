@@ -492,7 +492,7 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 
 					if (bHaveFrameSeqMeta)
 					{
-						MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
+						MIKAN_LOG_TRACE("MikanARKitVideoDevice::update")
 							<< "Decoded CUDA video frame: " << width << "x" << height
 							<< ", devicePtr=" << devicePtrForLogging << ", frameSeq=" << bundle.frameSeq
 							<< (bundle.hasPose ? " (pose attached)" : " (no pose)");
@@ -538,7 +538,7 @@ void MikanARKitVideoDevice::update(float deltaSeconds)
 				{
 					if (bHaveFrameSeqMeta)
 					{
-						MIKAN_LOG_INFO("MikanARKitVideoDevice::update")
+						MIKAN_LOG_TRACE("MikanARKitVideoDevice::update")
 							<< "Decoded software video frame: " << width << "x" << height
 							<< ", frameSeq=" << bundle.frameSeq << (bundle.hasPose ? " (pose attached)" : " (no pose)");
 
