@@ -40,7 +40,7 @@ A camera pose is a camera-to-world `glm::mat4` in the GL convention above (colum
 
 - View matrix: `computeGLMCameraViewMatrix(poseXform)` in `src/Editor/Math/CameraMath.cpp` builds the inverse rigid transform directly from the pose columns (adapted from `glm::lookAt`). `CameraComponent::getApertureViewMatrix` feeds it `getStageSpaceAperturePose`.
 
-- Projection matrix: `computeOpenGLProjMatFromCameraIntrinsics` (`CameraMath.cpp`) converts a calibrated OpenCV camera matrix into a GL frustum by composing an NDC ortho matrix with the augmented intrinsic matrix (technique credited in-code to Gregson/Tabb/Simek). This is the single point where pixel-unit intrinsics become GL clip space.
+- Projection matrix: `computeOpenGLProjMatFromCameraIntrinsics` (`CameraMath.cpp`) converts a calibrated OpenCV camera matrix into a GL frustum by composing an NDC ortho matrix with the augmented intrinsic matrix (technique credited in-code to Gregson/Tabb/Simek). This is the single point where pixel-unit intrinsics become GL clip space. The principal point changes frame on the way through: OpenCV measures `cy` down from the image top, the NDC mapping puts y=0 at the viewport bottom, so that conversion uses `pixelHeight - cy`. `cx` needs no equivalent. The flip is invisible for a lens-calibrated camera, whose `cy` sits at the exact image center because calibration runs with `CALIB_FIX_PRINCIPAL_POINT`; it only shows up for a source that reports its own off-center principal point, where getting it wrong slides the whole CG overlay vertically.
 
 - OpenCV extrinsics from a GL pose: `computeOpenCVCameraExtrinsicMatrix` (`CameraMath.cpp`) inverts the stage-space aperture pose and transposes it into a row-major `cv::Matx34f`.
 

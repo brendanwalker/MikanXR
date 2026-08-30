@@ -341,6 +341,16 @@ static void computeOpenGLProjMatFromCameraMatrix(const double pixelWidth, const 
 										   v0,    // principal point y (usually image center y)
 										   skew); // skew (usually 0)
 
+	// OpenCV measures the principal point down from the image top, while the NDC
+	// mapping below puts y=0 at the viewport bottom, so v0 has to be flipped into
+	// that frame. u0 needs no equivalent: x runs the same way in both.
+	//
+	// This stayed invisible for years because lens calibration runs with
+	// CALIB_FIX_PRINCIPAL_POINT, which pins v0 to the exact image center where the
+	// flip is a no-op. A source that reports its own off-center principal point
+	// (ARKit) is the first to expose it.
+	v0= (float)pixelHeight - v0;
+
 	// These parameters define the final viewport that is rendered into by
 	// the camera.
 	const float& L= 0;
