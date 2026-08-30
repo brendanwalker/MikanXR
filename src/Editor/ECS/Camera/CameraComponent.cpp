@@ -314,12 +314,20 @@ void CameraComponent::maybeUpdateFrameCoupledIntrinsics(VideoSourceComponentPtr 
 		const MikanMatrix3d& currentMatrix= currentIntrinsics.getMonoIntrinsics().undistorted_camera_matrix;
 		const MikanMatrix3d& newMatrix= newIntrinsics.getMonoIntrinsics().undistorted_camera_matrix;
 
-		const double fxChange=
-			currentMatrix.x0 != 0.0 ? std::abs(newMatrix.x0 - currentMatrix.x0) / std::abs(currentMatrix.x0) : 1.0;
-		const double fyChange=
-			currentMatrix.y1 != 0.0 ? std::abs(newMatrix.y1 - currentMatrix.y1) / std::abs(currentMatrix.y1) : 1.0;
+		// Focal length and principal point both, not just focal length: a stored
+		// principal point that disagrees with the live one is exactly as wrong as a
+		// stored focal length, and comparing only fx/fy pins the stale value in
+		// place forever because the thing that differs is never looked at.
+		auto relativeChange= [](double current, double updated)
+		{ return current != 0.0 ? std::abs(updated - current) / std::abs(current) : 1.0; };
 
-		if (fxChange < k_relativeChangeThreshold && fyChange < k_relativeChangeThreshold)
+		const double fxChange= relativeChange(currentMatrix.x0, newMatrix.x0);
+		const double fyChange= relativeChange(currentMatrix.y1, newMatrix.y1);
+		const double cxChange= relativeChange(currentMatrix.z0, newMatrix.z0);
+		const double cyChange= relativeChange(currentMatrix.z1, newMatrix.z1);
+
+		if (fxChange < k_relativeChangeThreshold && fyChange < k_relativeChangeThreshold
+			&& cxChange < k_relativeChangeThreshold && cyChange < k_relativeChangeThreshold)
 			return; // Not a significant change - skip the recomputeCameraProjectionMatrix() this would trigger
 	}
 

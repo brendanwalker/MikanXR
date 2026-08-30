@@ -468,15 +468,21 @@ void ARKitVideoSourceComponent::notifyFrameBundleReceived(const ARKitVideoFrameB
 		// as-is (ARKit doesn't report clip planes, and pixel dimensions already
 		// match since they were used to build the synthetic intrinsics above).
 		// ARKit reports no distortion coefficients, so distorted == undistorted.
+		//
+		// MikanMatrix3d is column-major: x/y/z name the columns and the digit is
+		// the row (see its declaration comment), so OpenCV's [0][2]/[1][2]
+		// principal point lands in z0/z1, not x2/y2. Putting it in x2/y2 leaves
+		// cx/cy reading as zero through MikanMatrix3d_to_cv_mat33d, which collapses
+		// the undistortion map onto the image corner.
 		monoIntrinsics.undistorted_camera_matrix.x0= bundle.pose.fx;
 		monoIntrinsics.undistorted_camera_matrix.y1= bundle.pose.fy;
-		monoIntrinsics.undistorted_camera_matrix.x2= bundle.pose.cx;
-		monoIntrinsics.undistorted_camera_matrix.y2= bundle.pose.cy;
+		monoIntrinsics.undistorted_camera_matrix.z0= bundle.pose.cx;
+		monoIntrinsics.undistorted_camera_matrix.z1= bundle.pose.cy;
 		monoIntrinsics.distorted_camera_matrix= monoIntrinsics.undistorted_camera_matrix;
 		intrinsics.makeMonoIntrinsics()= monoIntrinsics;
 
 		std::lock_guard<std::mutex> lock(m_latestPoseMutex);
-		m_latestPose.transform= cameraToWorld;
+		m_latestPose.transform= cameraToStage;
 		m_latestPose.intrinsics= intrinsics;
 		m_latestPose.frameSeq= bundle.frameSeq;
 		m_latestPose.bValid= true;

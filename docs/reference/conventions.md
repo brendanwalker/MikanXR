@@ -66,6 +66,8 @@ A recovered lighting environment is a spherical function stored as 27 coefficien
 
 - Camera matrices are in pixel units, OpenCV convention: `fx`, `fy` on the diagonal, principal point `(cx, cy)` in pixels from the image top-left (element accessors in `extractCameraIntrinsicMatrixParameters`). The undistorted matrix is `cv::getOptimalNewCameraMatrix` with alpha 0 (border cropped).
 
+- `MikanMatrix3d` stores columns, not rows: `x`, `y`, `z` name the three column vectors and the digit is the row, so an OpenCV camera matrix lands as `x0 = fx`, `y1 = fy`, `z0 = cx`, `z1 = cy`. Populate one through `cv_mat33d_to_MikanMatrix3d` rather than by aggregate initialization, whose nine values read in declaration order and so transpose the matrix silently. A principal point written into `x2`/`y2` reads back as zero, which collapses `cv::remap` onto the image corner and leaves a nearly black undistorted frame.
+
 - Distortion model: OpenCV rational model, 8 coefficients `(k1, k2, p1, p2, k3, k4, k5, k6)`. Calibration runs `cv::calibrateCamera` with `CALIB_RATIONAL_MODEL + CALIB_ZERO_TANGENT_DIST + CALIB_FIX_K3/K4/K5 + CALIB_FIX_ASPECT_RATIO + CALIB_FIX_PRINCIPAL_POINT`, keeps the first 8 of OpenCV's 14 outputs, and stores them as a column vector (`cv_vec8_to_Mikan_distortion`; OpenCV's native row vector is transposed on the way in and back out via `Mikan_distortion_to_cv_vec8`).
 
 - Pose solves against undistorted image points pass zeroed distortion coefficients to `cv::solvePnP` (`computeOpenCVCameraRelativePatternTransform`).
