@@ -286,11 +286,24 @@ void CameraComponent::update(float deltaSeconds)
 		uint32_t frameSeq;
 		if (poseProvider->getLatestFrameCoupledPose(transform, intrinsics, frameSeq))
 		{
+			// Flagged before the write, so the transform notification this raises
+			// is already recognised as derived state and skips autosave and undo.
+			// A tracking mount is visible from the definition's own ids; a
+			// frame-coupled source is not, so it has to be reported from here.
+			getCameraDefinition()->setPoseDrivenPerFrame(true);
+
 			setRelativeTransform(GlmTransform(transform));
 			maybeUpdateFrameCoupledIntrinsics(videoSourceComponent, intrinsics);
 			return;
 		}
 	}
+
+	// Reaching here means no frame-coupled pose was written this tick, so the flag
+	// is cleared rather than latched: repointing the camera at an ordinary video
+	// source would otherwise leave its authored transform permanently unsaved. The
+	// tracking-mount case needs no equivalent, since the definition reads its own
+	// mount id.
+	getCameraDefinition()->setPoseDrivenPerFrame(false);
 
 	// If the camera is attached to a tracking puck, update the transform of the camera aperture
 	if (hasValidTrackingMountComponent())
