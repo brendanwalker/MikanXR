@@ -27,10 +27,17 @@ public:
 	// none have arrived yet (e.g. the device hasn't opened, or no pose packet has
 	// been received since). outFrameSeq lets the caller correlate this pose with
 	// the video frame it corresponds to (see VideoSourceComponent::getDirectFrameIndex()).
-	// outTransform is camera-to-world (matches CameraComponent::setRelativeTransform's
-	// expected space).
+	// outTransform is camera-to-stage: the pose offset below has already been
+	// applied, so this is directly what CameraComponent::setRelativeTransform wants.
 	virtual bool getLatestFrameCoupledPose(glm::mat4& outTransform, MikanVideoSourceIntrinsics& outIntrinsics,
 										   uint32_t& outFrameSeq) const= 0;
+
+	// The same pose before the offset, in the source's own world space.
+	//
+	// Solving for the offset needs this one, not the one above. Feeding an
+	// already-offset pose back into the solve folds the previous alignment into
+	// the new one, so re-aligning would compound rather than replace it.
+	virtual bool getLatestSourceWorldPose(glm::mat4& outTransform, uint32_t& outFrameSeq) const= 0;
 
 	// The transform taking this source's own world space into stage space,
 	// applied to every incoming pose. A frame-coupled camera moves, so it cannot

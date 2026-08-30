@@ -93,6 +93,7 @@ public:
 
 	virtual bool getLatestFrameCoupledPose(glm::mat4& outTransform, MikanVideoSourceIntrinsics& outIntrinsics,
 										   uint32_t& outFrameSeq) const override;
+	virtual bool getLatestSourceWorldPose(glm::mat4& outTransform, uint32_t& outFrameSeq) const override;
 
 	// -- IARKitVideoDeviceListener ----
 	virtual void notifyDeviceOpened(const class IARKitVideoDevice* device) override;
@@ -161,7 +162,11 @@ private:
 	mutable std::mutex m_latestPoseMutex;
 	struct LatestPose
 	{
+		// Camera-to-stage: what CameraComponent consumes, offset already applied.
 		glm::mat4 transform= glm::mat4(1.0f);
+		// The same pose in ARKit's own world space, kept because solving for the
+		// offset has to start from a pose the offset has not touched.
+		glm::mat4 sourceWorldTransform= glm::mat4(1.0f);
 		MikanVideoSourceIntrinsics intrinsics;
 		uint32_t frameSeq= 0;
 		bool bValid= false;

@@ -424,10 +424,12 @@ void AppStage_AlignCameraByOriginMarker::sampleFrameCoupledWorldToStage()
 	if (poseProvider == nullptr)
 		return;
 
+	// The source's own world space, not the stage-space pose CameraComponent
+	// consumes. Solving from the latter would fold any offset already stored into
+	// the new one, so a second alignment would compound rather than replace the first.
 	glm::mat4 cameraInWorld(1.f);
-	MikanVideoSourceIntrinsics intrinsics;
 	uint32_t frameSeq= 0;
-	if (!poseProvider->getLatestFrameCoupledPose(cameraInWorld, intrinsics, frameSeq))
+	if (!poseProvider->getLatestSourceWorldPose(cameraInWorld, frameSeq))
 		return;
 
 	// The marker is the stage origin, so inverting its aperture-relative pose

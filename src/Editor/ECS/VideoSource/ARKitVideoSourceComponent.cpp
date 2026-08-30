@@ -561,6 +561,7 @@ void ARKitVideoSourceComponent::notifyFrameBundleReceived(const ARKitVideoFrameB
 
 		std::lock_guard<std::mutex> lock(m_latestPoseMutex);
 		m_latestPose.transform= cameraToStage;
+		m_latestPose.sourceWorldTransform= cameraToWorld;
 		m_latestPose.intrinsics= intrinsics;
 		m_latestPose.frameSeq= bundle.frameSeq;
 		m_latestPose.bValid= true;
@@ -588,6 +589,17 @@ bool ARKitVideoSourceComponent::getLatestFrameCoupledPose(glm::mat4& outTransfor
 
 	outTransform= m_latestPose.transform;
 	outIntrinsics= m_latestPose.intrinsics;
+	outFrameSeq= m_latestPose.frameSeq;
+	return true;
+}
+
+bool ARKitVideoSourceComponent::getLatestSourceWorldPose(glm::mat4& outTransform, uint32_t& outFrameSeq) const
+{
+	std::lock_guard<std::mutex> lock(m_latestPoseMutex);
+	if (!m_latestPose.bValid)
+		return false;
+
+	outTransform= m_latestPose.sourceWorldTransform;
 	outFrameSeq= m_latestPose.frameSeq;
 	return true;
 }
