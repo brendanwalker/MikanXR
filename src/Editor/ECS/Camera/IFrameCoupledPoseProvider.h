@@ -31,4 +31,15 @@ public:
 	// expected space).
 	virtual bool getLatestFrameCoupledPose(glm::mat4& outTransform, MikanVideoSourceIntrinsics& outIntrinsics,
 										   uint32_t& outFrameSeq) const= 0;
+
+	// The transform taking this source's own world space into stage space,
+	// applied to every incoming pose. A frame-coupled camera moves, so it cannot
+	// be placed with a static CameraComponent::setRelativeTransform the way a
+	// tripod-mounted camera is; alignment instead solves for this offset once and
+	// leaves the per-frame poses to flow through it (AppStage_AlignCameraByOriginMarker).
+	//
+	// Identity means poses are passed through in the source's own world space.
+	virtual void setPoseOffset(const glm::mat4& worldToStageXform)= 0;
+	virtual glm::mat4 getPoseOffset() const= 0;
+	virtual bool hasPoseOffset() const= 0;
 };

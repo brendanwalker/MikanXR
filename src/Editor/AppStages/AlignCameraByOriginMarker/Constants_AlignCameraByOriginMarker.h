@@ -15,5 +15,6 @@ enum class eAlignCameraByOriginMarkerMenuState : int
 
 	COUNT
 };
+extern const std::string* k_alignCameraByOriginMarkerMenuStateStrings;
 
 #define ALIGN_CAMERA_BY_ORIGIN_MARKER_SAMPLE_COUNT 12

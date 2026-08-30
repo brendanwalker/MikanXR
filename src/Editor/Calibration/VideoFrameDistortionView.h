@@ -69,6 +69,10 @@ public:
 protected:
 	int64_t readNextVideoFrameIndex();
 	void processVideoFrame(int64_t newFrameIndex);
+	// Pull a GPU-direct source's converted frame back to the CPU and push it
+	// through writeVideoFrame, so calibration has pixels to work on. Returns
+	// false when there is no direct texture, no new frame, or the read failed.
+	bool readbackDirectColorTexture();
 	void ensureFrameBufferSize(int width, int height);
 	void rebuildDistortionMap();
 
@@ -93,6 +97,12 @@ protected:
 	int m_bgrSourceBufferHeight;
 	std::atomic_int64_t m_lastVideoFrameWriteIndex;
 	int64_t m_lastVideoFrameReadIndex;
+
+	// Staging for readbackDirectColorTexture: RGBA pixels straight off the GPU,
+	// and the frame index they came from so an unchanged frame is not re-read.
+	std::vector<uint8_t> m_directReadbackBuffer;
+	int64_t m_lastReadbackFrameIndex= -1;
+	bool m_bReadbackFailureLogged= false;
 	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 
 	// Camera Intrinsics / Distortion parameters

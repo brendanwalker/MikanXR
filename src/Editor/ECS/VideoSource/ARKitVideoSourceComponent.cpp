@@ -27,16 +27,19 @@
 
 // -- ARKitVideoSourceDefinition -----
 const std::string ARKitVideoSourceDefinition::k_basePortPropertyId= "base_port";
+const std::string ARKitVideoSourceDefinition::k_poseOffsetPropertyId= "pose_offset";
 
 ARKitVideoSourceDefinition::ARKitVideoSourceDefinition()
 	: VideoSourceDefinition()
 	, m_basePort(DEFAULT_ARKIT_BASE_PORT)
+	, m_poseOffset(1.f)
 {
 }
 
 ARKitVideoSourceDefinition::ARKitVideoSourceDefinition(MikanVideoSourceID videoSourceId)
 	: VideoSourceDefinition(videoSourceId)
 	, m_basePort(DEFAULT_ARKIT_BASE_PORT)
+	, m_poseOffset(1.f)
 {
 }
 
@@ -46,6 +49,23 @@ configuru::Config ARKitVideoSourceDefinition::writeToJSON()
 
 	pt[k_basePortPropertyId]= m_basePort;
 
+	// Written column-major, matching glm's own storage, and only when one has
+	// been solved - an absent key reads back as "never aligned" rather than as
+	// an identity offset that looks deliberate.
+	if (m_bHasPoseOffset)
+	{
+		std::vector<configuru::Config> offsetValues;
+		offsetValues.reserve(16);
+		for (int column= 0; column < 4; ++column)
+		{
+			for (int row= 0; row < 4; ++row)
+			{
+				offsetValues.push_back(configuru::Config(m_poseOffset[column][row]));
+			}
+		}
+		pt[k_poseOffsetPropertyId]= offsetValues;
+	}
+
 	return pt;
 }
 
@@ -54,6 +74,40 @@ void ARKitVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	VideoSourceDefinition::readFromJSON(pt);
 
 	m_basePort= pt.get_or<int>(k_basePortPropertyId, m_basePort);
+
+	m_bHasPoseOffset= false;
+	m_poseOffset= glm::mat4(1.f);
+	if (pt.has_key(k_poseOffsetPropertyId))
+	{
+		const configuru::Config& offsetValues= pt[k_poseOffsetPropertyId];
+		if (offsetValues.is_array() && offsetValues.array_size() == 16)
+		{
+			for (int index= 0; index < 16; ++index)
+			{
+				m_poseOffset[index / 4][index % 4]= (float)offsetValues[index].as_float();
+			}
+			m_bHasPoseOffset= true;
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("ARKitVideoSourceDefinition::readFromJSON")
+				<< "Ignoring malformed " << k_poseOffsetPropertyId << " (expected 16 floats)";
+		}
+	}
+}
+
+void ARKitVideoSourceDefinition::setPoseOffset(const glm::mat4& poseOffset)
+{
+	m_poseOffset= poseOffset;
+	m_bHasPoseOffset= true;
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_poseOffsetPropertyId));
+}
+
+void ARKitVideoSourceDefinition::clearPoseOffset()
+{
+	m_poseOffset= glm::mat4(1.f);
+	m_bHasPoseOffset= false;
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_poseOffsetPropertyId));
 }
 
 bool ARKitVideoSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
@@ -448,6 +502,8 @@ void ARKitVideoSourceComponent::notifyFrameBundleReceived(const ARKitVideoFrameB
 	// Frame-coupled pose (ticket E4).
 	if (bundle.hasPose)
 	{
+		ARKitVideoSourceDefinitionPtr definition= getARKitVideoSourceDefinition();
+
 		// ARKitPoseFrameBuffer::transform is row-major camera-to-world
 		// (IARKitVideoDevice.h) - glm::mat4's constructor/subscript operators are
 		// column-major, so this must be transposed, not just memcpy'd. This exact
@@ -458,6 +514,28 @@ void ARKitVideoSourceComponent::notifyFrameBundleReceived(const ARKitVideoFrameB
 		const float* t= bundle.pose.transform;
 		const glm::mat4 cameraToWorld(t[0], t[4], t[8], t[12], t[1], t[5], t[9], t[13], t[2], t[6], t[10], t[14], t[3],
 									  t[7], t[11], t[15]);
+
+		// A frameSeq that runs backwards means the phone restarted its ARKit
+		// session, and ARKit chooses a fresh world origin every session. Any
+		// stored offset describes the previous world, so keeping it would place
+		// the camera confidently in the wrong place rather than obviously
+		// failing. Drop it and make the operator re-align.
+		if (bundle.frameSeq < m_lastPoseFrameSeq && definition->hasPoseOffset())
+		{
+			MIKAN_LOG_WARNING("ARKitVideoSourceComponent::notifyFrameBundleReceived")
+				<< "frameSeq went backwards (" << m_lastPoseFrameSeq << " -> " << bundle.frameSeq
+				<< "), so the phone restarted its ARKit session. Clearing the marker alignment, which "
+				<< "described the previous session's world origin - re-align to restore it.";
+			definition->clearPoseOffset();
+		}
+		m_lastPoseFrameSeq= bundle.frameSeq;
+
+		// Single point where an ARKit pose leaves its own world space. The offset
+		// is solved once by marker alignment (AppStage_AlignCameraByOriginMarker)
+		// and is identity until then, so an unaligned source streams raw ARKit
+		// world poses exactly as before.
+		const glm::mat4 cameraToStage=
+			definition->hasPoseOffset() ? definition->getPoseOffset() * cameraToWorld : cameraToWorld;
 
 		MikanVideoSourceIntrinsics intrinsics;
 		MikanMonoIntrinsics monoIntrinsics;
@@ -490,6 +568,15 @@ void ARKitVideoSourceComponent::notifyFrameBundleReceived(const ARKitVideoFrameB
 }
 
 int64_t ARKitVideoSourceComponent::getDirectFrameIndex() const { return m_lastBundleFrameSeq.load(); }
+
+void ARKitVideoSourceComponent::setPoseOffset(const glm::mat4& worldToStageXform)
+{
+	getARKitVideoSourceDefinition()->setPoseOffset(worldToStageXform);
+}
+
+glm::mat4 ARKitVideoSourceComponent::getPoseOffset() const { return getARKitVideoSourceDefinition()->getPoseOffset(); }
+
+bool ARKitVideoSourceComponent::hasPoseOffset() const { return getARKitVideoSourceDefinition()->hasPoseOffset(); }
 
 bool ARKitVideoSourceComponent::getLatestFrameCoupledPose(glm::mat4& outTransform,
 														  MikanVideoSourceIntrinsics& outIntrinsics,

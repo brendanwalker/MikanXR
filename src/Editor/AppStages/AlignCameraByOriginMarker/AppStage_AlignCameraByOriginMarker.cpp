@@ -6,6 +6,7 @@
 #include "ArucoMarkerPoseSampler.h"
 #include "CalibrationRenderHelpers.h"
 #include "CameraComponent.h"
+#include "IFrameCoupledPoseProvider.h"
 #include "Colors.h"
 #include "IMkFrameBuffer.h"
 #include "IMkLineRenderer.h"
@@ -69,7 +70,11 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(AppStage* fromAppSt
 		return false;
 	}
 
-	// 2. Target camera must NOT have a tracking mount (this method is for static cameras)
+	// 2. Target camera must NOT have a tracking mount. A mounted camera is placed
+	//    by its tracker instead, so it uses the VR alignment flow. Both a fixed
+	//    camera and a frame-coupled one (an ARKit phone, whose pose arrives with
+	//    each video frame) belong here; they differ only in where the result is
+	//    stored, see computeAndApplyTargetTransform.
 	if (targetCameraComponent->hasValidTrackingMountComponent())
 	{
 		ModalDialog_MessageBox::showMessageBox(fromAppStage,
@@ -117,6 +122,10 @@ void AppStage_AlignCameraByOriginMarker::enter()
 {
 	AppStage::enter();
 	assert(m_targetCameraComponent != nullptr);
+
+	// Make sure the viewport camera is in stationary mode for the test calibration state
+	MikanCameraPtr mkCamera= getFirstViewport()->getCurrentMikanCamera();
+	mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Fetch the origin marker ID from the tracking volume
 	StageComponentConstPtr ownerStage= m_targetCameraComponent->getOwnerStageComponent();
@@ -201,6 +210,11 @@ void AppStage_AlignCameraByOriginMarker::update(float deltaSeconds)
 		// Keep video feed updated for preview
 		if (m_targetDistortionView)
 			m_targetDistortionView->readAndProcessVideoFrame();
+
+		// A frame-coupled camera keeps moving during the test, so the viewpoint
+		// snapshot taken when this state was entered goes stale immediately and
+		// the origin axes drift off the marker. Track the live pose instead.
+		syncViewportToTargetCamera();
 	}
 	break;
 
@@ -383,6 +397,7 @@ void AppStage_AlignCameraByOriginMarker::updateCapturing()
 		if (!m_targetMarkerSampler->hasFinishedSampling())
 		{
 			m_targetMarkerSampler->sampleLastApertureRelativeMarkerXform();
+			sampleFrameCoupledWorldToStage();
 		}
 	}
 
@@ -396,8 +411,87 @@ void AppStage_AlignCameraByOriginMarker::updateCapturing()
 	}
 }
 
+// Record one sample of the ARKit-world-to-stage offset.
+//
+// A frame-coupled camera is handheld and moves between samples, so its
+// aperture-relative marker poses each describe different geometry and cannot be
+// averaged against one another the way a tripod-mounted camera's can. What is
+// constant across samples is the offset from the source's own world space to
+// stage space, so each sample is converted into that before being accumulated.
+void AppStage_AlignCameraByOriginMarker::sampleFrameCoupledWorldToStage()
+{
+	IFrameCoupledPoseProvider* poseProvider= getFrameCoupledPoseProvider();
+	if (poseProvider == nullptr)
+		return;
+
+	glm::mat4 cameraInWorld(1.f);
+	MikanVideoSourceIntrinsics intrinsics;
+	uint32_t frameSeq= 0;
+	if (!poseProvider->getLatestFrameCoupledPose(cameraInWorld, intrinsics, frameSeq))
+		return;
+
+	// The marker is the stage origin, so inverting its aperture-relative pose
+	// gives where the camera sits in stage space for this frame.
+	const glm::dmat4 markerInCamera= m_targetMarkerSampler->getLastApertureRelativeMarkerXform();
+	const glm::dmat4 cameraInStage= glm::inverse(markerInCamera);
+
+	// cameraInStage = worldToStage * cameraInWorld, solved for worldToStage.
+	const glm::dmat4 worldToStage= cameraInStage * glm::inverse(glm::dmat4(cameraInWorld));
+
+	m_frameCoupledWorldToStageSamples.push_back(worldToStage);
+}
+
 void AppStage_AlignCameraByOriginMarker::computeAndApplyTargetTransform()
 {
+	// A frame-coupled source has its pose rewritten every frame from the video
+	// stream, so a static camera transform would be overwritten immediately.
+	// Its alignment is stored as a world-to-stage offset on the source instead.
+	if (IFrameCoupledPoseProvider* poseProvider= getFrameCoupledPoseProvider())
+	{
+		if (m_frameCoupledWorldToStageSamples.empty())
+			return;
+
+		// Average the per-sample offsets. Rotation goes through quaternions
+		// rather than averaging matrix elements, which would not stay a rotation.
+		const size_t sampleCount= m_frameCoupledWorldToStageSamples.size();
+		glm::dvec3 averageTranslation(0.0);
+		glm::dquat averageRotation= glm::quat_cast(m_frameCoupledWorldToStageSamples[0]);
+
+		for (size_t index= 0; index < sampleCount; ++index)
+		{
+			const glm::dmat4& sample= m_frameCoupledWorldToStageSamples[index];
+			averageTranslation+= glm::dvec3(sample[3]);
+
+			if (index == 0)
+				continue;
+
+			glm::dquat sampleRotation= glm::quat_cast(sample);
+
+			// Flip the sample into the same hemisphere as the running mean first:
+			// q and -q are the same rotation, so mixing the two signs averages
+			// them toward nothing.
+			if (glm::dot(averageRotation, sampleRotation) < 0.0)
+			{
+				sampleRotation= -sampleRotation;
+			}
+
+			// Running mean: weighting sample i by 1/(i+1) leaves the average of
+			// everything seen so far.
+			averageRotation= glm::slerp(averageRotation, sampleRotation, 1.0 / (double)(index + 1));
+		}
+		averageTranslation/= (double)sampleCount;
+
+		const glm::dmat4 avgWorldToStage= glm_mat4_from_pose(glm::normalize(averageRotation), averageTranslation);
+
+		poseProvider->setPoseOffset(glm::mat4(avgWorldToStage));
+
+		MIKAN_LOG_INFO("AppStage_AlignCameraByOriginMarker::computeAndApplyTargetTransform")
+			<< "Aligned frame-coupled camera from " << m_frameCoupledWorldToStageSamples.size() << " samples";
+
+		setMenuState(eAlignCameraByOriginMarkerMenuState::testCalibration);
+		return;
+	}
+
 	// 1. Get averaged aperture-to-marker transform
 	MikanQuatd markerRot;
 	MikanVector3d markerPos;
@@ -417,6 +511,13 @@ void AppStage_AlignCameraByOriginMarker::computeAndApplyTargetTransform()
 	setMenuState(eAlignCameraByOriginMarkerMenuState::testCalibration);
 }
 
+// The video source's frame-coupled pose interface, or null for the ordinary
+// case of a camera whose pose comes from a tracked puck.
+IFrameCoupledPoseProvider* AppStage_AlignCameraByOriginMarker::getFrameCoupledPoseProvider() const
+{
+	return dynamic_cast<IFrameCoupledPoseProvider*>(m_targetVideoSource.get());
+}
+
 void AppStage_AlignCameraByOriginMarker::setMenuState(eAlignCameraByOriginMarkerMenuState newState)
 {
 	if (m_calibrationPanel)
@@ -426,18 +527,26 @@ void AppStage_AlignCameraByOriginMarker::setMenuState(eAlignCameraByOriginMarker
 
 	if (newState == eAlignCameraByOriginMarkerMenuState::testCalibration)
 	{
-		if (m_targetCameraComponent)
-		{
-			MikanCameraPtr mkCamera= getFirstViewport()->getCurrentMikanCamera();
-			mkCamera->setCameraTransform(m_targetCameraComponent->getRelativeTransform().getMat4());
-		}
+		syncViewportToTargetCamera();
 	}
+}
+
+// Point the test viewpoint at wherever the target camera currently sits in stage
+// space, so the stage-origin axes are drawn from the same place the video was shot.
+void AppStage_AlignCameraByOriginMarker::syncViewportToTargetCamera()
+{
+	if (!m_targetCameraComponent)
+		return;
+
+	MikanCameraPtr mkCamera= getFirstViewport()->getCurrentMikanCamera();
+	mkCamera->setCameraTransform(m_targetCameraComponent->getRelativeTransform().getMat4());
 }
 
 void AppStage_AlignCameraByOriginMarker::onBeginEvent()
 {
 	if (m_targetMarkerSampler)
 		m_targetMarkerSampler->resetCalibrationState();
+	m_frameCoupledWorldToStageSamples.clear();
 
 	setMenuState(eAlignCameraByOriginMarkerMenuState::capturing);
 }
@@ -446,6 +555,7 @@ void AppStage_AlignCameraByOriginMarker::onRestartEvent()
 {
 	if (m_targetMarkerSampler)
 		m_targetMarkerSampler->resetCalibrationState();
+	m_frameCoupledWorldToStageSamples.clear();
 	m_calibrationPanel->setCaptureFraction(0.f);
 
 	setMenuState(eAlignCameraByOriginMarkerMenuState::verifySetup);
@@ -454,3 +564,71 @@ void AppStage_AlignCameraByOriginMarker::onRestartEvent()
 void AppStage_AlignCameraByOriginMarker::onCancelEvent() { m_ownerWindow->popAppState(); }
 
 void AppStage_AlignCameraByOriginMarker::onReturnEvent() { m_ownerWindow->popAppState(); }
+
+// -- Remote Control -----
+bool AppStage_AlignCameraByOriginMarker::handleRemoteControlCommand(const std::string& command,
+																	const std::vector<std::string>& parameters,
+																	std::vector<std::string>& outResults)
+{
+	if (command == "get_state")
+	{
+		return handleGetStateCommand(outResults);
+	}
+	else if (command == "get_marker_visible")
+	{
+		return handleGetMarkerVisibleCommand(outResults);
+	}
+	else if (command == "begin")
+	{
+		return handleBeginCommand(outResults);
+	}
+	else if (command == "restart")
+	{
+		return handleRestartCommand(outResults);
+	}
+
+	return AppStage::handleRemoteControlCommand(command, parameters, outResults);
+}
+
+bool AppStage_AlignCameraByOriginMarker::handleGetStateCommand(std::vector<std::string>& outResults)
+{
+	const eAlignCameraByOriginMarkerMenuState menuState= m_calibrationPanel->getMenuState();
+
+	outResults.push_back(k_alignCameraByOriginMarkerMenuStateStrings[(int)menuState]);
+
+	return true;
+}
+
+bool AppStage_AlignCameraByOriginMarker::handleGetMarkerVisibleCommand(std::vector<std::string>& outResults)
+{
+	const bool bIsVisible= m_calibrationPanel->getMarkerVisible();
+
+	outResults.push_back(bIsVisible ? IRemoteControllable::k_true : IRemoteControllable::k_false);
+
+	return true;
+}
+
+bool AppStage_AlignCameraByOriginMarker::handleBeginCommand(std::vector<std::string>& outResults)
+{
+	// Sampling only makes sense once the marker is actually in frame, which is the
+	// same condition the Begin button is gated on in the panel.
+	if (m_calibrationPanel->getMenuState() != eAlignCameraByOriginMarkerMenuState::verifySetup
+		|| !m_calibrationPanel->getMarkerVisible())
+	{
+		outResults.push_back(IRemoteControllable::k_failure);
+		return true;
+	}
+
+	onBeginEvent();
+	outResults.push_back(IRemoteControllable::k_success);
+
+	return true;
+}
+
+bool AppStage_AlignCameraByOriginMarker::handleRestartCommand(std::vector<std::string>& outResults)
+{
+	onRestartEvent();
+	outResults.push_back(IRemoteControllable::k_success);
+
+	return true;
+}

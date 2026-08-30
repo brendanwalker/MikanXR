@@ -321,6 +321,63 @@ IMkGraphicsContext* VideoFrameDistortionView::getGraphicsContext() const
 	return nullptr;
 }
 
+bool VideoFrameDistortionView::readbackDirectColorTexture()
+{
+	EASY_FUNCTION();
+
+	IMkTexturePtr directTexture= m_videoSourceComponent->getDirectColorTexture();
+	if (directTexture == nullptr)
+		return false;
+
+	// Skip a frame already read back, so a render loop faster than the source
+	// rate does not re-read identical pixels.
+	const int64_t directFrameIndex= m_videoSourceComponent->getDirectFrameIndex();
+	if (directFrameIndex >= 0 && directFrameIndex == m_lastReadbackFrameIndex)
+		return false;
+
+	const int width= directTexture->getTextureWidth();
+	const int height= directTexture->getTextureHeight();
+	if (width <= 0 || height <= 0)
+		return false;
+
+	// The conversion pass writes RGBA (see ARKitVideoSourceComponent's NV12
+	// conversion framebuffer), and the CPU path downstream wants BGR.
+	const size_t rgbaSize= (size_t)width * (size_t)height * 4;
+	if (m_directReadbackBuffer.size() != rgbaSize)
+		m_directReadbackBuffer.resize(rgbaSize);
+
+	if (!directTexture->readTextureIntoBuffer(m_directReadbackBuffer.data(), m_directReadbackBuffer.size()))
+	{
+		// Logged once rather than every frame: a readback that silently fails
+		// leaves calibration staring at a blank view with nothing to explain it.
+		if (!m_bReadbackFailureLogged)
+		{
+			m_bReadbackFailureLogged= true;
+			MIKAN_LOG_WARNING("VideoFrameDistortionView::readbackDirectColorTexture")
+				<< "Failed to read the direct color texture (" << width << "x" << height
+				<< ") back to the CPU, so calibration will see no frames from this source.";
+		}
+		return false;
+	}
+
+	const cv::Mat rgbaMat(height, width, CV_8UC4, m_directReadbackBuffer.data());
+	cv::Mat bgrMat;
+	cv::cvtColor(rgbaMat, bgrMat, cv::COLOR_RGBA2BGR);
+
+	// Row order needs no correction. readTextureIntoBuffer returns rows in
+	// texture order, and a video texture holds image row 0 at v=0 (see
+	// conventions.md), so this is already top-down like every other source.
+	// Mirroring stays the source definition's business, exactly as it is for a
+	// CPU frame, so writeVideoFrame is given the same flag it always gets.
+	VideoSourceDefinitionPtr definition= m_videoSourceComponent->getVideoSourceDefinition();
+	const bool bIsFrameMirrored= definition ? definition->getIsFrameMirrored() : false;
+
+	writeVideoFrame(bgrMat.data, cv::Size(width, height), bIsFrameMirrored);
+	m_lastReadbackFrameIndex= directFrameIndex;
+
+	return true;
+}
+
 void VideoFrameDistortionView::writeVideoFrame(const unsigned char* videoBuffer, const cv::Size& bufferDimensions,
 											   bool bIsFlipped)
 {
@@ -447,7 +504,16 @@ void VideoFrameDistortionView::updateFrameRateStatistic()
 
 bool VideoFrameDistortionView::isReceivingFrames() const
 {
-	return m_lastVideoFrameWriteIndex > 0 || m_videoSourceComponent->getDirectColorTexture() != nullptr;
+	// The direct-texture check alone deadlocks a GPU-direct source. That texture
+	// is created by processDirectVideoFrame(), which only runs inside
+	// readAndProcessVideoFrame(), which callers gate behind this very function -
+	// so a source that has never converted a frame is reported as not receiving
+	// any, and never gets the chance to convert one. getDirectFrameIndex() is set
+	// as each bundle arrives, independent of conversion, so it answers the
+	// question actually being asked. Non-direct sources return -1 and are
+	// unaffected.
+	return m_lastVideoFrameWriteIndex > 0 || m_videoSourceComponent->getDirectColorTexture() != nullptr
+		   || m_videoSourceComponent->getDirectFrameIndex() >= 0;
 }
 
 int64_t VideoFrameDistortionView::readNextVideoFrameIndex()
@@ -566,6 +632,29 @@ int64_t VideoFrameDistortionView::readAndProcessVideoFrame()
 
 	if (m_videoSourceComponent->getDirectColorTexture() != nullptr)
 	{
+		// Calibration needs pixels on the CPU, and a GPU-direct source never
+		// delivers any: its frames go decoder to GPU without passing through
+		// writeVideoFrame. Pull the converted texture back so the pattern
+		// finders downstream see frames like they would from any other source.
+		// Only in CALIBRATION mode - the compositor reads the texture directly
+		// and a readback there would stall every frame for nothing.
+		if (m_processorMode == eVideoFrameProcessorMode::CALIBRATION)
+		{
+			if (readbackDirectColorTexture())
+			{
+				// The readback wrote through writeVideoFrame, so the normal CPU
+				// path below has a frame waiting and can undistort and convert it
+				// exactly as it would for a USB camera.
+				if (hasNewVideoFrame())
+				{
+					processVideoFrame(readNextVideoFrameIndex());
+				}
+
+				m_bVideoIsStreaming= true;
+				return m_lastVideoFrameReadIndex;
+			}
+		}
+
 		// GPU-direct source (ticket E3/E4) - no CPU frame queue/undistortion
 		// pipeline to drive here; getVideoTexture() below already returns the live
 		// texture directly every call. Track a real frame index when the source

@@ -413,6 +413,40 @@ public:
 		}
 	}
 
+	virtual bool readTextureIntoBuffer(uint8_t* outBuffer, size_t bufferSize) override
+	{
+		if (outBuffer == nullptr || m_glTextureId == 0)
+		{
+			return false;
+		}
+
+		const size_t expectedSize=
+			(size_t)m_width * (size_t)m_height * (size_t)getBytesPerPixel(m_bufferFormat, m_pixelType);
+		if (expectedSize == 0 || bufferSize < expectedSize)
+		{
+			return false;
+		}
+
+		// Drain any error left behind by earlier, unrelated GL work. glGetError
+		// reports the oldest flagged error rather than the state of the last
+		// call, so without this the check below fails the read for something
+		// that happened elsewhere entirely.
+		while (glGetError() != GL_NO_ERROR)
+		{
+		}
+
+		// Straight synchronous read, no pixel buffer object. The stall this
+		// incurs is the point: the caller wants these pixels now, once, rather
+		// than every frame.
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_glTextureId);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glGetTexImage(GL_TEXTURE_2D, 0, m_bufferFormat, m_pixelType, outBuffer);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		return glGetError() == GL_NO_ERROR;
+	}
+
 	virtual void copyTextureIntoBuffer(uint8_t* outBuffer, size_t bufferSize) override
 	{
 		if (m_pboMode == PixelBufferObjectMode::SinglePBORead || m_pboMode == PixelBufferObjectMode::DoublePBORead)
@@ -864,6 +898,13 @@ public:
 	{
 		// Do nothing
 		return;
+	}
+
+	virtual bool readTextureIntoBuffer(uint8_t* outBuffer, size_t bufferSize) override
+	{
+		// An external texture's format and pixel type were chosen by whoever
+		// created it, so there is nothing reliable to hand glGetTexImage here.
+		return false;
 	}
 
 	virtual void disposeTexture() override

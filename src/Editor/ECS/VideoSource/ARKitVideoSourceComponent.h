@@ -29,8 +29,23 @@ public:
 	inline int getBasePort() const { return m_basePort; }
 	void setBasePort(int basePort);
 
+	// ARKit-world-to-stage offset solved by marker alignment, persisted so an
+	// alignment survives closing the project.
+	//
+	// Deliberately not a reflected property. A property descriptor would need
+	// matching legs in the client-API values struct and getPropertyValue to
+	// satisfy the schema guard, which means a wire change and regenerated
+	// bindings for something no client application has any use for.
+	static const std::string k_poseOffsetPropertyId;
+	inline const glm::mat4& getPoseOffset() const { return m_poseOffset; }
+	inline bool hasPoseOffset() const { return m_bHasPoseOffset; }
+	void setPoseOffset(const glm::mat4& poseOffset);
+	void clearPoseOffset();
+
 private:
 	int m_basePort;
+	glm::mat4 m_poseOffset;
+	bool m_bHasPoseOffset= false;
 };
 
 class ARKitVideoSourceComponent : public VideoSourceComponent,
@@ -72,6 +87,10 @@ public:
 	virtual int64_t getDirectFrameIndex() const override;
 
 	// -- IFrameCoupledPoseProvider ----
+	virtual void setPoseOffset(const glm::mat4& worldToStageXform) override;
+	virtual glm::mat4 getPoseOffset() const override;
+	virtual bool hasPoseOffset() const override;
+
 	virtual bool getLatestFrameCoupledPose(glm::mat4& outTransform, MikanVideoSourceIntrinsics& outIntrinsics,
 										   uint32_t& outFrameSeq) const override;
 
@@ -156,6 +175,11 @@ private:
 	// atomic rather than folding into m_latestPoseMutex since it's a single scalar
 	// updated unconditionally on every bundle, independent of pose validity.
 	std::atomic<int64_t> m_lastBundleFrameSeq{-1};
+
+	// Previous bundle's frameSeq, used to notice the phone restarting its ARKit
+	// session. Touched only where the pose is consumed, under the same
+	// same-thread reasoning as m_latestPose above.
+	uint32_t m_lastPoseFrameSeq= 0;
 
 	// Frame index of the last NV12->RGBA conversion, so processDirectVideoFrame()
 	// can skip re-converting an unchanged frame. Only touched on the GL thread.

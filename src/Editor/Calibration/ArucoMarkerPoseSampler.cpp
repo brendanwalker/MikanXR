@@ -135,6 +135,11 @@ bool ArucoMarkerPoseSampler::computeApertureRelativeMarkerXform()
 
 bool ArucoMarkerPoseSampler::hasValidApertureRelativeMarkerXform() const { return m_calibrationState->hasValidCapture; }
 
+glm::dmat4 ArucoMarkerPoseSampler::getLastApertureRelativeMarkerXform() const
+{
+	return m_calibrationState->cameraToMarkerXform;
+}
+
 void ArucoMarkerPoseSampler::sampleLastApertureRelativeMarkerXform()
 {
 	if (!m_calibrationState->hasValidCapture)

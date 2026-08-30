@@ -36,6 +36,15 @@ Stage transitions land on the frame after the command that requested them, so a 
 
 `stage <command> [parameters...]` passes a command to the current app stage's `IRemoteControllable::handleRemoteControlCommand`, the same channel the websocket `MikanRemoteControlCommand` request uses. The stage's result strings become the reply lines. The calibration stages answer commands such as `get_state` and `begin`; a stage that does not recognize the command answers an error naming the stage.
 
+`AlignCameraByOriginMarker` answers four, which is enough to drive a whole alignment headlessly:
+
+- `get_state` replies the menu state (`verifySetup`, `capturing`, `testCalibration`, ...)
+- `get_marker_visible` replies whether the origin marker is currently detected
+- `begin` starts sampling, failing unless the stage is in `verifySetup` with the marker visible
+- `restart` discards the samples and returns to `verifySetup`
+
+Reach the stage with `function invoke CameraObjectSystem <cameraId> align_camera`, which is what the editor's own Align Camera button calls.
+
 ### Scene introspection (system, component, property, function)
 
 These reach every object system and component through the property and function databases ([objects.md](./objects.md)).

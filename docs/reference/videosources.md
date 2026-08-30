@@ -64,6 +64,8 @@ Streaming is refcounted by consumers: `VideoSourceComponent::startVideoStream(Vi
 
 GPU-direct sources bypass the CPU buffer entirely: `VideoSourceComponent::getDirectColorTexture()` / `processDirectVideoFrame()` / `getDirectFrameIndex()` default to null/no-op and no source on `main` overrides them. On the `iphone` branch `ARKitVideoSourceComponent` does, and its NV12 luma/chroma GL textures (exposed by the plugin as raw GL ids) are wrapped in `IMkExternalTexture`s and converted to RGBA by a fullscreen shader pass once per tick.
 
+Calibration needs those pixels on the CPU, so a `CALIBRATION`-mode view reads the converted texture back (`readbackDirectColorTexture`, using `IMkTexture::readTextureIntoBuffer`) and pushes it through `writeVideoFrame`, after which the ordinary undistort and grayscale path runs exactly as it would for a USB camera. A `COMPOSITOR`-mode view never does this: it reads the texture directly, and a readback there would stall every frame for nothing. Note that `getVideoTexture()` returns the direct texture ahead of the queue, so live video on screen is not evidence that the readback is working.
+
 Whatever a source does internally, every video texture reaches `getVideoTexture()` in one orientation, image row 0 at `v=0`. That is what `copyOpenCVMatIntoGLTexture` produces for CPU sources, and the NV12 planes already arrive that way because the plugin copies them with a plain `cuMemcpy2D`. A conversion pass of this kind therefore builds its quad unflipped: it writes a video texture rather than displaying one, and the single V flip belongs to the consumer's own display quad ([conventions.md](./conventions.md)). Flipping in both places cost a period of upside-down video on the hardware decode tier only, which was invisible while a PATH problem was forcing every local run onto the software tier.
 
 ---
@@ -80,7 +82,17 @@ The depth proxy mesh capture is the one consumer that depends on these intrinsic
 
 A `CameraComponent` (`src/Editor/ECS/Camera/CameraComponent.h`) ties everything together via IDs on `CameraDefinition`: a `MikanVideoSourceID` (which video source feeds it), a `MikanTrackingMountID` (which physical tracker rig it sits on), and an aperture pose offset (tracker-to-lens transform produced by alignment calibration, see [calibration.md](./calibration.md)). `TrackingMountComponent` binds a VR device path plus an attachment socket name and produces a `VRDevicePoseView`; `CameraComponent::updateAperturePoseFromTrackingMount()` polls it each tick and composes the aperture offset to get the stage-space camera pose (`getStageSpaceAperturePose`, `getApertureViewMatrix`, `getApertureProjectionMatrix`).
 
-The `iphone` branch's ARKit source instead implements `IFrameCoupledPoseProvider` (`src/Editor/ECS/Camera/IFrameCoupledPoseProvider.h`): pose and intrinsics arrive coupled to each video frame in the RTP header extension, and `getLatestFrameCoupledPose()` hands `CameraComponent` a camera-to-world transform plus a frame sequence number for correlation, with intrinsics applied only when they change meaningfully.
+The `iphone` branch's ARKit source instead implements `IFrameCoupledPoseProvider` (`src/Editor/ECS/Camera/IFrameCoupledPoseProvider.h`): pose and intrinsics arrive coupled to each video frame in the RTP header extension, and `getLatestFrameCoupledPose()` hands `CameraComponent` a camera-to-world transform plus a frame sequence number for correlation, with intrinsics applied only when they change meaningfully. That change test compares focal length and principal point both, so a correction to either one propagates.
+
+### ARKit world-to-stage offset
+
+ARKit picks a fresh world origin every session, so a streamed pose only means something once it is anchored to the stage. The operator anchors it with the ordinary Align Camera action (`AppStage_AlignCameraByOriginMarker`, see [calibration.md](./calibration.md)), and the phone stays unaware that stage space exists.
+
+The stage detects that its video source is an `IFrameCoupledPoseProvider` and takes a different path than it does for a tripod camera. A static camera's aperture-relative marker poses can be averaged directly. A handheld one moves between samples, so each sample is first converted into the quantity that is actually constant, `worldToStage = inverse(markerInCamera) * inverse(cameraInWorld)`, using the ARKit pose from that same frame. Those are averaged (translation componentwise, rotation through quaternion slerp) and handed to `setPoseOffset` instead of `setRelativeTransform`, which a frame-coupled camera would overwrite on the next bundle.
+
+The offset is applied at exactly one point: `ARKitVideoSourceComponent::notifyFrameBundleReceived`, right after the row-major to column-major transpose of the incoming transform. It persists on `ARKitVideoSourceDefinition` as plain JSON with no property descriptor, since no client application has any use for it and a descriptor would mean a wire change. An absent key means never aligned, and the offset is identity until then.
+
+A stored offset describes the ARKit session it was solved in. A `frameSeq` that runs backwards means the phone restarted that session, so the offset is dropped and the reason logged rather than leaving the camera confidently in the wrong place.
 
 ---
 
