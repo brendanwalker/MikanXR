@@ -1,4 +1,6 @@
 #include "GuiPanel_ProjectSources.h"
+#include "ARKitVideoSourceComponent.h"
+#include "ARKitVideoSourceSystem.h"
 #include "BoxShapeComponent.h"
 #include "BoxShapeSystem.h"
 #include "CEFTextureSourceComponent.h"
@@ -19,6 +21,7 @@
 #include "ProjectManager.h"
 #include "QuadShapeComponent.h"
 #include "QuadShapeSystem.h"
+#include "Shared/GuiPanel_ARKitVideoSourceComponent.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_ShapeComponent.h"
 #include "ShapeUtils.h"
@@ -45,10 +48,10 @@ bool GuiPanel_ProjectSources::init(ProjectGuiPanelContext* context)
 
 	auto pm= ownerAppStage->getProjectManager();
 	m_videoSourceDataSource= std::make_unique<GuiDataSource_ComboBox>(
-		pm,
-		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-			{USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName},
-			{NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName}});
+		pm, std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+				{USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName},
+				{NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName},
+				{ARKitVideoSourceSystem::k_objectSystemClassName, ARKitVideoSourceComponent::k_componentClassName}});
 
 	m_textureSourceDataSource= std::make_unique<GuiDataSource_ComboBox>(
 		pm,
@@ -100,6 +103,13 @@ NetworkVideoSourceComponentPtr GuiPanel_ProjectSources::getSelectedNetworkVideoS
 {
 	auto pm= m_projectManager.lock();
 	auto sys= pm->getSystemOfType<NetworkVideoSourceSystem>();
+	return sys->getTypedComponentById((MikanVideoSourceID)m_selectedVideoSourceId);
+}
+
+ARKitVideoSourceComponentPtr GuiPanel_ProjectSources::getSelectedARKitVideoSource() const
+{
+	auto pm= m_projectManager.lock();
+	auto sys= pm->getSystemOfType<ARKitVideoSourceSystem>();
 	return sys->getTypedComponentById((MikanVideoSourceID)m_selectedVideoSourceId);
 }
 
@@ -157,6 +167,7 @@ void GuiPanel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 
 	m_context->getUSBVideoSourcePanel()->setComponent(nullptr);
 	m_context->getNetworkVideoSourcePanel()->setComponent(nullptr);
+	m_context->getARKitVideoSourcePanel()->setComponent(nullptr);
 
 	auto pm= m_projectManager.lock();
 	eVideoSourceType sourceType= VideoSourceQueries::getVideoSourceType(pm, videoSourceId);
@@ -169,6 +180,10 @@ void GuiPanel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 	case eVideoSourceType::networked:
 		if (NetworkVideoSourceComponentPtr src= getSelectedNetworkVideoSource())
 			m_context->getNetworkVideoSourcePanel()->setComponent(src);
+		break;
+	case eVideoSourceType::arkit:
+		if (ARKitVideoSourceComponentPtr src= getSelectedARKitVideoSource())
+			m_context->getARKitVideoSourcePanel()->setComponent(src);
 		break;
 	}
 }
@@ -255,6 +270,17 @@ void GuiPanel_ProjectSources::onGui()
 				sys->addNewObjectByTypedDefinition();
 			});
 	}
+	ImGui::SameLine();
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addARKitSource", "add_arkit_source"))
+	{
+		addDeferredGuiEvent(
+			[this]()
+			{
+				auto pm= m_projectManager.lock();
+				auto sys= pm->getSystemOfType<ARKitVideoSourceSystem>();
+				sys->addNewObjectByTypedDefinition();
+			});
+	}
 
 	m_videoSourceDataSource->refreshEntries();
 
@@ -293,6 +319,7 @@ void GuiPanel_ProjectSources::onGui()
 
 		m_context->getUSBVideoSourcePanel()->drawCompactGui();
 		m_context->getNetworkVideoSourcePanel()->drawCompactGui();
+		m_context->getARKitVideoSourcePanel()->drawCompactGui();
 	}
 
 	ImGui::Separator();

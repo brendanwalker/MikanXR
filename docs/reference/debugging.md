@@ -48,6 +48,8 @@ If a process dies instantly with exit status `0xC0000135` (`STATUS_DLL_NOT_FOUND
 
 Second known gotcha: with the default `CMAKE_UNITY_BUILD=ON`, a transitively included `windows.h` in a jumbo TU can rewrite a method name that collides with a Win32 macro (`GetObject` → `GetObjectA`, likewise `SendMessage`, `CreateWindow`, ...), producing an `LNK2019` far from the real conflict. Avoid such method names; see [build.md](./build.md).
 
+Third known gotcha, specific to the node editor: ImGui's `IM_ASSERT` is plain `assert()`, so imgui-node-editor's API-contract checks fire only in a Debug build and vanish under `NDEBUG`. Misusing that API therefore looks harmless in Release and stops the app dead in Debug. Its `Begin`/`End` pairs are not uniformly forgiving either, so read the one you are calling: `DeleteItemsAction::End` returns early when inactive and is safe to call unconditionally, while `CreateItemAction::End` asserts, so `ed::EndCreate()` may only run when `ed::BeginCreate()` returned true.
+
 ---
 
 ## Stall watchdogs and the delta clamp
@@ -58,7 +60,17 @@ Second known gotcha: with the default `CMAKE_UNITY_BUILD=ON`, a transitively inc
 
 ## In-process GStreamer decode failures
 
-The GStreamer hardware decoder plugins (`nvh264dec`, `d3d11h264dec`) wrap D3D11/CUDA-touching DLLs that can conflict with the process's own D3D11/CUDA usage (`MikanWMFVideo`, `MikanRenderer`), failing to load only when run inside `Mikan.exe`/`unit_test_suite_cpp.exe` (`Failed to load plugin ... The specified procedure could not be found`, or `decodebin` reporting `no suitable plugins found`). The software decoder `openh264dec` does not share the problem, which is why the `iphone` branch's ARKit device decodes in two tiers (see [videosources.md](./videosources.md)). Before suspecting pipeline code, run the identical pipeline string through a standalone `gst-launch-1.0.exe`: if it decodes there but not in-process, it is this loading gap. A failed hardware open also produces harmless `GStreamer-CRITICAL`/`GLib-GObject-CRITICAL` assertion spam (GStreamer's own cleanup on this failure mode); it does not crash the process.
+`Failed to load plugin ... The specified procedure could not be found` when loading `nvh264dec`/`d3d11h264dec` is a PATH problem, not a D3D11/CUDA conflict. That message is `ERROR_PROC_NOT_FOUND`: a dependency did load, but was missing an export the plugin needed.
+
+`libgstnvcodec.dll` links the MinGW runtime (`libstdc++-6.dll`, `libgcc_s_seh-1.dll`, `libwinpthread-1.dll`) alongside the GStreamer libraries. Git for Windows ships its own copies of all three in `C:\Program Files\Git\mingw64\bin`, built from a different GCC. That directory is not on the machine PATH, but Git Bash prepends it to the PATH of anything launched from a Git Bash shell. The loader then resolves the plugin's imports against Git's copies and the load fails. The software decoder `openh264dec` survives it, which is what makes the failure look decoder specific.
+
+So launching `Mikan.exe` from Git Bash silently forces the software decode tier, while the same binary launched from Explorer, Visual Studio, or `cmd` gets hardware decode. Verified both ways: with the machine PATH the ARKit device logs `Decoded CUDA video frame` and never emits the fallback message.
+
+The same cause also presents as `Hardware decode pipeline unavailable ... link has no sink`, logged by `MikanARKitVideoDevice::openOnThread` before it falls back to software. That message reads like a pipeline construction bug rather than a loader problem, because by the time linking is attempted the unloadable element simply does not exist. Do not take the wording as evidence against the PATH explanation.
+
+Filtering the offending directory out of `PATH` needs care from a shell: Git Bash lists it as `/mingw64/bin`, not as anything containing `Program Files/Git`, so a filter written against the Windows-style spelling silently keeps it. Retaining only the `/c/`-prefixed entries is a reliable way to get a Windows-equivalent `PATH`. Note that this also drops `/usr/bin`, so anything invoked through it (`nohup`, `timeout`) must be called by absolute path or avoided.
+
+Before suspecting pipeline code, check how the process was launched, then run the identical pipeline string through a standalone `gst-launch-1.0.exe`. A failed hardware open also produces harmless `GStreamer-CRITICAL`/`GLib-GObject-CRITICAL` assertion spam (GStreamer's own cleanup on this failure mode); it does not crash the process.
 
 ---
 

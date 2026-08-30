@@ -2,6 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "IFrameCoupledPoseProvider.h"
 #include "TransformComponent.h"
 #include "MikanTypeFwd.h"
 #include "MikanCameraTypes.h"
@@ -69,11 +70,27 @@ public:
 	inline float getDepthMeshScaleCorrection() const { return m_depthMeshScaleCorrection; }
 	void setDepthMeshScaleCorrection(float scaleCorrection);
 
+	/// Whether this camera's transform is rewritten every frame from an outside
+	/// pose source, which makes it derived state rather than authored config.
+	/// Runtime only and deliberately unserialized: it describes how the camera is
+	/// being driven right now, and CameraComponent::update sets it from what it
+	/// actually finds. A tracking mount is known from the definition alone, but a
+	/// frame-coupled video source is not, so the component reports that in.
+	inline void setPoseDrivenPerFrame(bool bDriven) { m_bPoseDrivenPerFrame= bDriven; }
+	inline bool getIsPoseDrivenPerFrame() const
+	{
+		return m_bPoseDrivenPerFrame || m_trackingMountId != INVALID_MIKAN_ID;
+	}
+
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const override
 	{
-		// Don't trigger save when a transform value changed and attached to a tracking mount
-		// (since the position is going to change every frame
-		if (m_trackingMountId != INVALID_MIKAN_ID
+		// A per-frame pose makes the transform derived, so saving it churns the
+		// project file at the video frame rate and buries every other line in the
+		// log. The authored data for such a camera is its aperture offset, or the
+		// pose offset on the video source, never this. Returning false here also
+		// keeps the write out of undo, which is equally right: nobody wants to
+		// step back through a camera's tracking history.
+		if (getIsPoseDrivenPerFrame()
 			&& (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId)
 				|| changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeQuaternionPropertyId)
 				|| changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId)))
@@ -94,6 +111,7 @@ private:
 	MikanQuatd m_apertureOrientationOffset;
 	MikanVector3d m_aperturePositionOffset;
 	bool m_bHasValidApertureOffset= false;
+	bool m_bPoseDrivenPerFrame= false;
 };
 
 class CameraComponent : public TransformComponent
@@ -170,6 +188,13 @@ protected:
 	void rebuildStageSpacePoseView();
 	void updateAperturePoseFromTrackingMount();
 	void onActiveDeviceListChanged(eTrackingRuntime runtime);
+
+	// Frame-coupled pose (ticket E4) - only applies latest intrinsics to the video
+	// source if they changed meaningfully (>1% relative fx/fy), avoiding an
+	// unnecessary recomputeCameraProjectionMatrix() every single tick when (as
+	// expected) ARKit's reported intrinsics are essentially constant frame to frame.
+	void maybeUpdateFrameCoupledIntrinsics(VideoSourceComponentPtr videoSourceComponent,
+										   const struct MikanVideoSourceIntrinsics& newIntrinsics);
 
 private:
 	SelectionComponentWeakPtr m_selectionComponent;

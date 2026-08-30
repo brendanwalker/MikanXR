@@ -8,6 +8,7 @@
         ],
         "textures": [
             { "name": "add_anchor", "path": "icons/add_anchor_icon.png", "width": 50, "height": 50 },
+            { "name": "add_arkit_source", "path": "icons/add_arkit_camera_source_icon.png", "width": 44, "height": 44 },
             { "name": "add_box_stencil", "path": "icons/add_box_stencil_icon.png", "width": 50, "height": 50 },
             { "name": "add_box_shape", "path": "icons/add_box_shape_icon.png", "width": 50, "height": 50 },
             { "name": "add_component", "path": "icons/add_component_icon.png", "width": 20, "height": 20 },

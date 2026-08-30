@@ -54,6 +54,23 @@ public:
 	void registerCommandNamespace(const std::string& namespaceName, const std::vector<std::string>& helpLines,
 								  CommandHandler handler);
 
+	/// Suppress the reply to the command currently dispatching, so a handler
+	/// that cannot answer yet can answer later through sendDeferredReply.
+	/// Nothing bounds the wait to this frame, so a handler may park across a
+	/// network round trip. A handler that defers owns answering: it must arm
+	/// its own timeout, or the waiting client never hears back.
+	void deferReply() { m_bReplyDeferred= true; }
+
+	/// Answer a command whose handler called deferReply. outLines is framed as
+	/// a normal reply; pass bIsError to frame it the way a handler returning
+	/// false would be framed.
+	void sendDeferredReply(const std::vector<std::string>& contentLines, bool bIsError= false);
+
+	/// The raw, untokenized line of the command currently dispatching, for
+	/// handlers whose final argument is free text. Pair with
+	/// AutomationProtocol::remainderAfterTokens.
+	const std::string& getCurrentCommandLine() const { return m_currentCommandLine; }
+
 private:
 	void handleCommandLine(const std::string& line);
 	void sendReply(const std::vector<std::string>& contentLines);

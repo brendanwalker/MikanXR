@@ -193,6 +193,14 @@ void AutomationServer::sendReply(const std::vector<std::string>& contentLines)
 
 void AutomationServer::sendErrorReply(const std::string& errorLine) { sendReply({errorLine}); }
 
+void AutomationServer::sendDeferredReply(const std::vector<std::string>& contentLines, bool bIsError)
+{
+	if (bIsError)
+		sendErrorReply(contentLines.empty() ? std::string("failed") : contentLines.front());
+	else
+		sendReply(contentLines);
+}
+
 // ---- Built-in command namespaces -----------------------------------------------
 
 void AutomationServer::registerCoreNamespaces()

@@ -40,7 +40,7 @@ A camera pose is a camera-to-world `glm::mat4` in the GL convention above (colum
 
 - View matrix: `computeGLMCameraViewMatrix(poseXform)` in `src/Editor/Math/CameraMath.cpp` builds the inverse rigid transform directly from the pose columns (adapted from `glm::lookAt`). `CameraComponent::getApertureViewMatrix` feeds it `getStageSpaceAperturePose`.
 
-- Projection matrix: `computeOpenGLProjMatFromCameraIntrinsics` (`CameraMath.cpp`) converts a calibrated OpenCV camera matrix into a GL frustum by composing an NDC ortho matrix with the augmented intrinsic matrix (technique credited in-code to Gregson/Tabb/Simek). This is the single point where pixel-unit intrinsics become GL clip space.
+- Projection matrix: `computeOpenGLProjMatFromCameraIntrinsics` (`CameraMath.cpp`) converts a calibrated OpenCV camera matrix into a GL frustum by composing an NDC ortho matrix with the augmented intrinsic matrix (technique credited in-code to Gregson/Tabb/Simek). This is the single point where pixel-unit intrinsics become GL clip space. The principal point changes frame on the way through: OpenCV measures `cy` down from the image top, the NDC mapping puts y=0 at the viewport bottom, so that conversion uses `pixelHeight - cy`. `cx` needs no equivalent. The flip is invisible for a lens-calibrated camera, whose `cy` sits at the exact image center because calibration runs with `CALIB_FIX_PRINCIPAL_POINT`; it only shows up for a source that reports its own off-center principal point, where getting it wrong slides the whole CG overlay vertically.
 
 - OpenCV extrinsics from a GL pose: `computeOpenCVCameraExtrinsicMatrix` (`CameraMath.cpp`) inverts the stage-space aperture pose and transposes it into a row-major `cv::Matx34f`.
 
@@ -66,6 +66,8 @@ A recovered lighting environment is a spherical function stored as 27 coefficien
 
 - Camera matrices are in pixel units, OpenCV convention: `fx`, `fy` on the diagonal, principal point `(cx, cy)` in pixels from the image top-left (element accessors in `extractCameraIntrinsicMatrixParameters`). The undistorted matrix is `cv::getOptimalNewCameraMatrix` with alpha 0 (border cropped).
 
+- `MikanMatrix3d` stores columns, not rows: `x`, `y`, `z` name the three column vectors and the digit is the row, so an OpenCV camera matrix lands as `x0 = fx`, `y1 = fy`, `z0 = cx`, `z1 = cy`. Populate one through `cv_mat33d_to_MikanMatrix3d` rather than by aggregate initialization, whose nine values read in declaration order and so transpose the matrix silently. A principal point written into `x2`/`y2` reads back as zero, which collapses `cv::remap` onto the image corner and leaves a nearly black undistorted frame.
+
 - Distortion model: OpenCV rational model, 8 coefficients `(k1, k2, p1, p2, k3, k4, k5, k6)`. Calibration runs `cv::calibrateCamera` with `CALIB_RATIONAL_MODEL + CALIB_ZERO_TANGENT_DIST + CALIB_FIX_K3/K4/K5 + CALIB_FIX_ASPECT_RATIO + CALIB_FIX_PRINCIPAL_POINT`, keeps the first 8 of OpenCV's 14 outputs, and stores them as a column vector (`cv_vec8_to_Mikan_distortion`; OpenCV's native row vector is transposed on the way in and back out via `Mikan_distortion_to_cv_vec8`).
 
 - Pose solves against undistorted image points pass zeroed distortion coefficients to `cv::solvePnP` (`computeOpenCVCameraRelativePatternTransform`).
@@ -82,7 +84,7 @@ A recovered lighting environment is a spherical function stored as 27 coefficien
 
 - Marker-based tracking volumes (`MarkerTrackingVolumeComponent`) anchor stage space to an ArUco origin marker (`TrackingVolumeDefinition::getOriginMarkerId`) instead of a VR-space offset.
 
-- ARKit (iPhone streaming), `iphone` branch only: `ARKitPosePacket` / `ARKitPoseInRTPPayload` (`src/Plugins/MikanARKitVideo/Private/ARKitWireProtocol.h`) carry a row-major `float[16]` camera-to-world transform plus per-frame `fx/fy/cx/cy`. The receiver conversion point is `ARKitVideoSourceComponent::onFrameBundleReceived` (`src/Editor/ECS/VideoSource/ARKitVideoSourceComponent.cpp`): a row-major to column-major transpose into `glm::mat4`, deliberately with no axis conversion; ARKit's camera convention (right handed, +Y up, -Z forward) is taken as already matching Mikan's. ARKit reports no distortion, so distorted and undistorted matrices are set equal. The pose is frame-coupled via `IFrameCoupledPoseProvider` rather than polled per tick like VR pucks.
+- ARKit (iPhone streaming), `iphone` branch only: `ARKitPosePacket` / `ARKitPoseInRTPPayload` (`src/Plugins/MikanARKitVideo/Private/ARKitWireProtocol.h`) carry a row-major `float[16]` camera-to-world transform plus per-frame `fx/fy/cx/cy`. The receiver conversion point is `ARKitVideoSourceComponent::onFrameBundleReceived` (`src/Editor/ECS/VideoSource/ARKitVideoSourceComponent.cpp`): a row-major to column-major transpose into `glm::mat4`, deliberately with no axis conversion; ARKit's camera convention (right handed, +Y up, -Z forward) is taken as already matching Mikan's. ARKit reports no distortion, so distorted and undistorted matrices are set equal. The pose is frame-coupled via `IFrameCoupledPoseProvider` rather than polled per tick like VR pucks. That same point is where the marker-solved ARKit-world-to-stage offset is applied, immediately after the transpose and nowhere else ([videosources.md](./videosources.md)).
 
 ---
 
@@ -91,6 +93,8 @@ A recovered lighting environment is a spherical function stored as 27 coefficien
 - Video frames flow through the editor as BGR `cv::Mat` buffers with OpenCV's top-left origin (row 0 is the top of the image). `VideoFrameDistortionView::copyOpenCVMatIntoGLTexture` (`src/Editor/Calibration/VideoFrameDistortionView.cpp`) uploads the bytes in row order via `IMkTexture::copyBufferIntoTexture`, so cv row 0 lands at GL texture coordinate v=0.
 
 - GL samples with a bottom-left UV origin, so displaying a cv-ordered texture upright requires a V flip somewhere. Mikan does it in mesh texcoords, chosen per call site: `createFullscreenQuadMesh(ownerContext, vFlipped, ...)` (`src/Libraries/MikanRenderer/Private/GlTriangulatedMesh.cpp`) builds either a flipped or unflipped fullscreen quad, and each app stage picks (calibration stages pass `false`, `AppStage_TextureSourceSettings` passes `true`). There is no single global flip point.
+
+- Every video texture reaches its consumer with image row 0 at v=0, whatever produced it, so no consumer needs to know which source or decode tier a frame came from. A pass that writes a video texture rather than displaying one therefore builds its quad unflipped: `ARKitVideoSourceComponent::processDirectVideoFrame` converts NV12 to RGBA that way, and the V flip stays with the consumer's own display quad. See [videosources.md](./videosources.md).
 
 - Render-to-texture paths can instead flip in projection: `CameraComponent::getApertureProjectionMatrix(outProj, bVerticalFlip)` pre-multiplies `glm::scale(vec3(1, -1, 1))` "to account for OpenGL's inverted Y-axis"; the compositor's `ColorTextureSourceNode` exposes a `vertical_flip` option.
 

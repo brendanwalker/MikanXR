@@ -47,9 +47,9 @@ bool MikanModule::load()
 			}
 		}
 	}
-	catch (std::exception* e)
+	catch (const std::exception& e)
 	{
-		MIKAN_LOG_ERROR("MikanModule::startup") << "Failed to load " << m_moduleName << " module: " << e->what();
+		MIKAN_LOG_ERROR("MikanModule::startup") << "Failed to load " << m_moduleName << " module: " << e.what();
 		return false;
 	}
 

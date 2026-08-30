@@ -7,6 +7,7 @@
 #include "AppSettingsConfig.h"
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
+#include "ARKitDebugChannel.h"
 #include "AutomationServer.h"
 #include "TransactionHistory.h"
 #include "ClientSourceManager.h"
@@ -77,6 +78,7 @@ MainWindow::MainWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 	, m_mikanServer(new MikanServer())
 	, m_automationServer(new AutomationServer())
+	, m_arkitDebugChannel(new ARKitDebugChannel())
 	, m_transactionHistory(new TransactionHistory())
 	, m_clientSourceManager(new ClientSourceManager(DEFAULT_VIDEO_FRAME_QUEUE_SIZE))
 	, m_inputManager(new InputManager(this))
@@ -115,6 +117,7 @@ MainWindow::~MainWindow()
 	delete m_openCVManager;
 	delete m_inputManager;
 	delete m_transactionHistory;
+	delete m_arkitDebugChannel;
 	delete m_automationServer;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
@@ -264,6 +267,29 @@ bool MainWindow::startup()
 		m_transactionHistory->registerAutomationCommands(m_automationServer);
 	}
 
+	if (success)
+	{
+		// The ARKit debug channel binds every interface, so unlike the
+		// loopback-only automation server it is opt-in. Its `arkit` namespace
+		// registers either way, so `arkit status` can report that it is off.
+		bool bARKitDebugEnabled= m_ownerApp->getAppSettings()->getARKitDebugChannelEnabled();
+		if (m_ownerApp->hasCommandLineFlag("arkitDebugChannel"))
+			bARKitDebugEnabled= true;
+
+		if (bARKitDebugEnabled)
+		{
+			int arkitDebugPort= m_ownerApp->getAppSettings()->getARKitDebugChannelPort();
+			const std::string portOverride= m_ownerApp->getCommandLineStringArg("arkitDebugPort");
+			if (!portOverride.empty())
+				arkitDebugPort= atoi(portOverride.c_str());
+
+			// A failed bind is logged and tolerated, matching the automation server
+			m_arkitDebugChannel->startup((uint16_t)arkitDebugPort);
+		}
+
+		m_arkitDebugChannel->registerAutomationCommands(m_automationServer);
+	}
+
 #undef MIKAN_TIMED_STARTUP
 
 	if (success)
@@ -305,6 +331,10 @@ void MainWindow::update(float deltaSeconds)
 
 	// Service automation command socket I/O (dispatches commands inline)
 	m_automationServer->poll();
+
+	// Service the ARKit debug channel after the automation server, so a command
+	// dispatched this frame can have its reply picked up on the next one
+	m_arkitDebugChannel->poll(deltaSeconds);
 
 	// Seal any transaction whose coalescing window lapsed
 	m_transactionHistory->update(deltaSeconds);
@@ -535,6 +565,11 @@ void MainWindow::shutdown()
 
 	assert(m_transactionHistory != nullptr);
 	m_transactionHistory->shutdown();
+
+	// Before the automation server, so an in-flight `arkit send` still gets its
+	// error reply out while the automation socket is alive to carry it
+	assert(m_arkitDebugChannel != nullptr);
+	m_arkitDebugChannel->shutdown();
 
 	assert(m_automationServer != nullptr);
 	m_automationServer->shutdown();

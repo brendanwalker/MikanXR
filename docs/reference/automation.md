@@ -36,6 +36,15 @@ Stage transitions land on the frame after the command that requested them, so a 
 
 `stage <command> [parameters...]` passes a command to the current app stage's `IRemoteControllable::handleRemoteControlCommand`, the same channel the websocket `MikanRemoteControlCommand` request uses. The stage's result strings become the reply lines. The calibration stages answer commands such as `get_state` and `begin`; a stage that does not recognize the command answers an error naming the stage.
 
+`AlignCameraByOriginMarker` answers four, which is enough to drive a whole alignment headlessly:
+
+- `get_state` replies the menu state (`verifySetup`, `capturing`, `testCalibration`, ...)
+- `get_marker_visible` replies whether the origin marker is currently detected
+- `begin` starts sampling, failing unless the stage is in `verifySetup` with the marker visible
+- `restart` discards the samples and returns to `verifySetup`
+
+Reach the stage with `function invoke CameraObjectSystem <cameraId> align_camera`, which is what the editor's own Align Camera button calls.
+
 ### Scene introspection (system, component, property, function)
 
 These reach every object system and component through the property and function databases ([objects.md](./objects.md)).
@@ -115,6 +124,54 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 
 `nodegraph list properties` replies in variable-list order, so a reorder is observable there.
 
+### ARKit debug channel (arkit)
+
+Relays debug traffic to and from the MikanARStreamer iPhone app ([videosources.md](./videosources.md)). The phone pushes diagnostics, which are re-emitted through the editor's own logger and so read back through `log tail` interleaved with editor lines on one timeline. Commands travel the other way.
+
+- `arkit status` replies whether the listener is enabled, its port, whether a phone is connected, and that phone's address, device name, and protocol version
+- `arkit send <text...>` sends one command line to the phone and replies with the phone's own reply
+
+The channel is off by default. Unlike this server it binds every interface, because its peer is a phone on the LAN, so it is opt-in: `arkitDebugChannelEnabled` in `AppSettingsConfig` (port `arkitDebugChannelPort`, default 21121), or `-arkitDebugChannel` on the command line with `-arkitDebugPort=<n>` to override the port. The `arkit` namespace registers either way, so `arkit status` still answers when the listener is off.
+
+`arkit send` takes the raw rest of the line, so quoting reaches the phone verbatim. Its reply is parked until the phone answers rather than being answered immediately, and a phone that goes quiet fails the command after five seconds instead of leaving the client waiting. Only one command is in flight at a time. The command text is opaque to the editor: the phone owns its own vocabulary, so it can grow without an editor rebuild.
+
+Only one peer is accepted at a time, so a peer that connects and then never sends its hello is dropped after ten seconds rather than holding the slot. Without that, one wedged client locks the channel until the editor restarts.
+
+The commands the MikanARStreamer app answers today:
+
+- `ping` replies `pong`
+- `stats` replies the capture, encode, drop, and send counters as `name value` lines
+- `verbose on|off` gates the per-frame encode-latency relay, which is off by default because one line per frame fills the 2000-line log ring in about a minute and evicts the editor's own diagnostics
+- `screenshot [name]` captures the app's own UI to a PNG in its container and replies with the path, pixel size, and byte count
+
+The screenshot command exists because nothing else can see that screen. `devicectl` can copy files off a device but cannot capture one, and `simctl io screenshot` is simulator only, so the app takes the picture itself and leaves it where a copy can reach:
+
+```
+python tools/automate.py "arkit send screenshot land"
+xcrun devicectl device copy from --device <deviceId> \
+  --domain-type appDataContainer --domain-identifier com.mikan.ARStreamer \
+  --source Documents/land.png --destination ./land.png
+```
+
+The image travels as a file rather than as base64 through the channel, which keeps a line-oriented text protocol from carrying megabytes. Note that `devicectl device orientation set` is not available on every device (an iPhone 12 Pro reports the capability as unsupported), so a layout has to be checked in whichever orientation the phone is physically in.
+
+A real phone session can be driven without touching the device. The app's settings live in `UserDefaults`, so launch arguments override them for that launch only, and `-autostart 1` starts streaming without a tap:
+
+```
+xcrun devicectl device process launch --device <deviceId> com.mikan.ARStreamer \
+  -- -settings.host <editorHost> -settings.basePort 27015 -autostart 1
+```
+
+The phone must be unlocked for install, and ARKit still needs textured surroundings for the pose to mean anything.
+
+`tools/arkit_debug_stub.py` stands in for the phone, which is how the channel is tested without a device on the bench. It answers `ping`, `stats`, and `empty`, and deliberately ignores `silent` so the timeout path can be exercised.
+
+```
+build/src/Editor/Release/Mikan.exe -arkitDebugChannel
+python tools/arkit_debug_stub.py
+python tools/automate.py "arkit status" "arkit send ping" "log tail 20 info"
+```
+
 Mutations and undo/redo run inside the node editor window's next update (its GL and gui contexts are only current there), so those replies land a frame late, and a mutation's undo snapshot commits on the window's next quiescent frame. A drive polls `nodegraph info` (or rides automate.py's inter-command delay) before asserting `can_undo`.
 
 ## Client helper
@@ -142,5 +199,9 @@ The standard way to verify an editor feature objectively: launch `Mikan.exe`, dr
 python tools/automate.py "app resume" "until:app info:stage Compositor" "screenshot compositor"
 python tools/automate.py "property get <system> <id> <name>" "log tail 20 error" "app quit"
 ```
+
+`app push <stageName>` enters a stage but gives it no target, so a stage that normally acts on a selected object comes up empty. Reach those through the owning component instead: `function invoke ARKitVideoObjectSystem <componentId> show_video_source_settings` is what the editor's own button calls, and it both enters `VideoSourceSettings` and binds the source to it. A bare `app push VideoSourceSettings` reports the expected stage from `app info` while showing no video at all, which reads like a broken device rather than a missing selection. Video sources open on demand from that path too, so nothing binds the receive socket until it runs.
+
+A handler that cannot answer straight away (the ARKit channel's `arkit send` is the one case today) calls `AutomationServer::deferReply`, then answers later through `sendDeferredReply`. Nothing bounds that wait to the current frame, so a handler that defers owns arming its own timeout.
 
 Growth convention: when a feature adds automation commands, register the namespace in `AutomationServer::registerCoreNamespaces` (or from the owning subsystem) and add its section here.

@@ -60,6 +60,8 @@ enum class eUniformSemantic : int
 	rgbaTexture,       // 32-bit RGBA texture
 	distortionTexture, // vec2f texture applying lens undistortion
 	depthTexture,      // float texture with depth values
+	lumaTexture,       // 8-bit single-channel NV12 luma (Y) plane
+	chromaTexture,     // 8-bit two-channel NV12 chroma (UV) plane, half resolution
 
 	// Order-2 spherical harmonic environment, one RGB coefficient per slot.
 	// Nine separate uniforms rather than an array because the uniform binding

@@ -5,6 +5,7 @@
 #include "IVideoDevice.h"
 #include "MikanComponent.h"
 #include "MikanTypeFwd.h"
+#include "MkRendererFwd.h"
 #include "MikanVideoSourceTypes.h"
 #include "OpenCVFwd.h"
 #include "ObjectSystemConfigFwd.h"
@@ -88,6 +89,29 @@ public:
 	virtual void update(float deltaSeconds) override;
 
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const;
+
+	// Zero-copy GPU texture access (ticket E3) - only overridden by video sources
+	// whose decoded frames live in GPU memory the whole way through (currently
+	// just ARKit's CUDA-GL interop pipeline; see ARKitVideoSourceComponent). The
+	// default null return means every other video source type (USB/Network) is
+	// unaffected - VideoFrameDistortionView's CPU-buffer pipeline (writeVideoFrame
+	// et al.) remains the only path for them.
+	virtual IMkTexturePtr getDirectColorTexture() const { return IMkTexturePtr(); }
+
+	// Runs any per-tick GPU processing a GPU-direct source needs before its
+	// getDirectColorTexture() is safe to read for compositing this tick (e.g.
+	// ARKit's NV12->RGBA shader conversion pass - see ARKitVideoSourceComponent::
+	// processDirectVideoFrame). Called once per tick by VideoFrameDistortionView::
+	// readAndProcessVideoFrame(), before any caller reads getDirectColorTexture()
+	// this same tick. Default no-op - every other video source type is unaffected.
+	virtual void processDirectVideoFrame() {}
+
+	// Frame index for GPU-direct sources (ticket E4), used by VideoFrameDistortionView
+	// as the "has a new frame arrived" change-detection key in place of the
+	// CPU-buffer m_lastVideoFrameWriteIndex (which GPU-direct sources never
+	// advance, since they never call writeVideoFrame()). Default -1 means "not
+	// applicable" - only overridden by GPU-direct sources (currently just ARKit).
+	virtual int64_t getDirectFrameIndex() const { return -1; }
 
 	virtual bool getVideoModeName(std::string& outVideoModeName) const;
 	virtual bool getFrameRate(float& outFrameRate) const;

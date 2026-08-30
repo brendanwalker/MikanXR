@@ -22,6 +22,11 @@ using AnchorObjectSystemDefinitionPtr= std::shared_ptr<AnchorObjectSystemDefinit
 using AnchorObjectSystemDefinitionConstPtr= std::shared_ptr<const AnchorObjectSystemDefinition>;
 using AnchorObjectSystemDefinitionWeakPtr= std::weak_ptr<AnchorObjectSystemDefinition>;
 
+class ARKitVideoSourceSystemDefinition;
+using ARKitVideoSourceSystemDefinitionPtr= std::shared_ptr<ARKitVideoSourceSystemDefinition>;
+using ARKitVideoSourceSystemDefinitionConstPtr= std::shared_ptr<const ARKitVideoSourceSystemDefinition>;
+using ARKitVideoSourceSystemDefinitionWeakPtr= std::weak_ptr<ARKitVideoSourceSystemDefinition>;
+
 class CameraObjectSystemDefinition;
 using CameraObjectSystemDefinitionPtr= std::shared_ptr<CameraObjectSystemDefinition>;
 using CameraObjectSystemDefinitionConstPtr= std::shared_ptr<const CameraObjectSystemDefinition>;

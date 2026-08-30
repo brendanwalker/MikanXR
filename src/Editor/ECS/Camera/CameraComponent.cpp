@@ -1,6 +1,8 @@
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
 #include "CameraMath.h"
+
+#include <cmath>
 #include "App.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "AlignCameraByUtilityMarker/AppStage_AlignCameraByUtilityMarker.h"
@@ -268,11 +270,81 @@ void CameraComponent::update(float deltaSeconds)
 {
 	TransformComponent::update(deltaSeconds);
 
+	// Frame-coupled pose (ticket E4): if this camera's video source delivers pose
+	// alongside its video frames (currently just ARKit - see
+	// IFrameCoupledPoseProvider's own comment for why this is keyed off
+	// videoSourceId rather than trackingMountId), prefer that over polling a
+	// separate VR-tracked puck once per tick. Falls through to the existing
+	// tracking-mount path unchanged for every other camera (non-ARKit video
+	// source, or an ARKit source that hasn't received a pose yet) - see
+	// IFrameCoupledPoseProvider.h for the full backward-compatibility argument.
+	VideoSourceComponentPtr videoSourceComponent= getVideoSourceComponent();
+	if (auto poseProvider= std::dynamic_pointer_cast<IFrameCoupledPoseProvider>(videoSourceComponent))
+	{
+		glm::mat4 transform;
+		MikanVideoSourceIntrinsics intrinsics;
+		uint32_t frameSeq;
+		if (poseProvider->getLatestFrameCoupledPose(transform, intrinsics, frameSeq))
+		{
+			// Flagged before the write, so the transform notification this raises
+			// is already recognised as derived state and skips autosave and undo.
+			// A tracking mount is visible from the definition's own ids; a
+			// frame-coupled source is not, so it has to be reported from here.
+			getCameraDefinition()->setPoseDrivenPerFrame(true);
+
+			setRelativeTransform(GlmTransform(transform));
+			maybeUpdateFrameCoupledIntrinsics(videoSourceComponent, intrinsics);
+			return;
+		}
+	}
+
+	// Reaching here means no frame-coupled pose was written this tick, so the flag
+	// is cleared rather than latched: repointing the camera at an ordinary video
+	// source would otherwise leave its authored transform permanently unsaved. The
+	// tracking-mount case needs no equivalent, since the definition reads its own
+	// mount id.
+	getCameraDefinition()->setPoseDrivenPerFrame(false);
+
 	// If the camera is attached to a tracking puck, update the transform of the camera aperture
 	if (hasValidTrackingMountComponent())
 	{
 		updateAperturePoseFromTrackingMount();
 	}
+}
+
+void CameraComponent::maybeUpdateFrameCoupledIntrinsics(VideoSourceComponentPtr videoSourceComponent,
+														const MikanVideoSourceIntrinsics& newIntrinsics)
+{
+	if (!videoSourceComponent || newIntrinsics.intrinsics_type != MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+		return;
+
+	constexpr double k_relativeChangeThreshold= 0.01; // 1%, per this ticket's edge-case note
+
+	MikanVideoSourceIntrinsics currentIntrinsics;
+	if (videoSourceComponent->getCameraIntrinsics(currentIntrinsics)
+		&& currentIntrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+	{
+		const MikanMatrix3d& currentMatrix= currentIntrinsics.getMonoIntrinsics().undistorted_camera_matrix;
+		const MikanMatrix3d& newMatrix= newIntrinsics.getMonoIntrinsics().undistorted_camera_matrix;
+
+		// Focal length and principal point both, not just focal length: a stored
+		// principal point that disagrees with the live one is exactly as wrong as a
+		// stored focal length, and comparing only fx/fy pins the stale value in
+		// place forever because the thing that differs is never looked at.
+		auto relativeChange= [](double current, double updated)
+		{ return current != 0.0 ? std::abs(updated - current) / std::abs(current) : 1.0; };
+
+		const double fxChange= relativeChange(currentMatrix.x0, newMatrix.x0);
+		const double fyChange= relativeChange(currentMatrix.y1, newMatrix.y1);
+		const double cxChange= relativeChange(currentMatrix.z0, newMatrix.z0);
+		const double cyChange= relativeChange(currentMatrix.z1, newMatrix.z1);
+
+		if (fxChange < k_relativeChangeThreshold && fyChange < k_relativeChangeThreshold
+			&& cxChange < k_relativeChangeThreshold && cyChange < k_relativeChangeThreshold)
+			return; // Not a significant change - skip the recomputeCameraProjectionMatrix() this would trigger
+	}
+
+	videoSourceComponent->setCameraIntrinsics(newIntrinsics);
 }
 
 void CameraComponent::updateAperturePoseFromTrackingMount()

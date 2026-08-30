@@ -197,6 +197,74 @@ IMkShaderCodeConstPtr getPTUndistortTexturedFullScreenRGBQuad()
 	return x_shaderCode;
 }
 
+// NV12 (Y + interleaved UV planes) -> RGBA color conversion (ticket "Phase 6").
+// Replaces the CUDA NV12ConversionKernel that used to do this on the plugin
+// side - the plugin now only copies the decoded planes into GL textures (see
+// CudaGLInterop.h in MikanARKitVideo), this shader does the actual YUV->RGB math.
+IMkShaderCodeConstPtr getPTConvertNV12ToRGBAQuad()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_CONVERT_NV12_TO_RGBA,
+										  // vertex shader
+										  R""""(
+				#version 330 core
+				layout (location = 0) in vec2 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+				}
+				)"""",
+										  // fragment shader
+										  R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in vec2 TexCoords;
+
+				uniform sampler2D lumaTexture;
+				uniform sampler2D chromaTexture;
+				// 1.0 selects BT.709 (HD) limited-range coefficients, 0.0 selects
+				// BT.601 (SD) - set from the source frame's resolution (see
+				// ARKitVideoSourceComponent::processDirectVideoFrame), the same
+				// resolution-based heuristic MikanGStreamerVideoDevice::
+				// extractColorimetryInfo falls back to when caps don't carry
+				// explicit colorimetry.
+				uniform float floatConstant0;
+
+				void main()
+				{
+					float y = texture(lumaTexture, TexCoords).r * 255.0;
+					vec2 uv = texture(chromaTexture, TexCoords).rg * 255.0;
+					float u = uv.x - 128.0;
+					float v = uv.y - 128.0;
+
+					float fy = 1.164 * (y - 16.0);
+
+					vec3 rgb601 = vec3(fy + 1.596 * v, fy - 0.391 * u - 0.813 * v, fy + 2.018 * u);
+					vec3 rgb709 = vec3(fy + 1.793 * v, fy - 0.213 * u - 0.533 * v, fy + 2.112 * u);
+					vec3 rgb = mix(rgb601, rgb709, floatConstant0);
+
+					FragColor = vec4(clamp(rgb / 255.0, 0.0, 1.0), 1.0);
+				}
+				)"""");
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("lumaTexture", eUniformSemantic::lumaTexture);
+		x_shaderCode->addUniform("chromaTexture", eUniformSemantic::chromaTexture);
+		x_shaderCode->addUniform("floatConstant0", eUniformSemantic::floatConstant0);
+	}
+
+	return x_shaderCode;
+}
+
 IMkShaderCodeConstPtr getPTTexturedFullScreenRGBAQuad()
 {
 	static IMkShaderCodePtr x_shaderCode= nullptr;
@@ -1230,6 +1298,7 @@ bool registerInternalShaders(IMkShaderCache* shaderCache)
 	std::vector<IMkShaderCodeConstPtr> internalShaders= {
 		getPTTexturedFullScreenRGBQuad(),
 		getPTUndistortTexturedFullScreenRGBQuad(),
+		getPTConvertNV12ToRGBAQuad(),
 		getPTTexturedFullScreenRGBAQuad(),
 		getTextShaderCode(),
 		getUnpackRGBALinearDepthTextureShaderCode(),

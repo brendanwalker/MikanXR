@@ -3,6 +3,7 @@
 #include "MarkerObjectSystem.h"
 #include "ProjectGuiPanelContext.h"
 #include "Shared/GuiPanel_AnchorComponent.h"
+#include "Shared/GuiPanel_ARKitVideoSourceComponent.h"
 #include "Shared/GuiPanel_CameraComponent.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_CompositorComponent.h"
@@ -43,6 +44,9 @@ bool ProjectGuiPanelContext::init()
 	// Component Panels
 	m_anchorPanel= m_ownerAppStage->addGuiPanel<GuiPanel_AnchorComponent>();
 	m_anchorPanel->init();
+
+	m_arkitVideoSourcePanel= m_ownerAppStage->addGuiPanel<GuiPanel_ARKitVideoSourceComponent>();
+	m_arkitVideoSourcePanel->init();
 
 	m_boxShapePanel= m_ownerAppStage->addGuiPanel<GuiPanel_BoxShapeComponent>();
 	m_boxShapePanel->init();

@@ -36,6 +36,8 @@ const std::string g_UniformSemanticName[(int)eUniformSemantic::COUNT]= {"transfo
 																		"rgbaTexture",
 																		"distortionTexture",
 																		"depthTexture",
+																		"lumaTexture",
+																		"chromaTexture",
 																		"shCoefficient0",
 																		"shCoefficient1",
 																		"shCoefficient2",
@@ -50,7 +52,7 @@ eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic)
 {
 	eUniformDataType dataType= eUniformDataType::INVALID;
 
-	static_assert((int)eUniformSemantic::COUNT == 44, "getUniformSemanticDataType out of date with eUniformSemantic");
+	static_assert((int)eUniformSemantic::COUNT == 46, "getUniformSemanticDataType out of date with eUniformSemantic");
 	switch (semantic)
 	{
 	case eUniformSemantic::transformMatrix:
@@ -107,6 +109,8 @@ eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic)
 	case eUniformSemantic::rgbaTexture:
 	case eUniformSemantic::distortionTexture:
 	case eUniformSemantic::depthTexture:
+	case eUniformSemantic::lumaTexture:
+	case eUniformSemantic::chromaTexture:
 		dataType= eUniformDataType::datatype_texture;
 		break;
 	default:

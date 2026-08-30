@@ -4,6 +4,59 @@ file(GLOB UNIT_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
 )
 
+# ARKitVideoDeviceManagerLoader doesn't have its own CMake target yet (that lands
+# with the plugin scaffolding), so pull it in directly.
+list(APPEND UNIT_TEST_SRC
+  ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoDeviceManagerLoader.h
+  ${MIKAN_EDITOR_DIR}/ECS/VideoSource/ARKitVideoDeviceManagerLoader.cpp
+)
+
+# NOTE: ARKitRTPHeaderExtension.h/.cpp (ticket C3) is deliberately NOT pulled in
+# here directly. It registers named GObject/GstMeta types
+# (G_DEFINE_TYPE, gst_meta_api_type_register) - GLib's type registry is process-
+# global and shared across DLL boundaries, so compiling this file into both this
+# executable AND MikanARKitVideo.dll (which also globs it - see that plugin's
+# CMakeLists.txt) causes a duplicate-name type registration failure as soon as
+# both copies' registration code runs in the same process (confirmed empirically:
+# "cannot register existing type 'ARKitRTPHeaderExtension'" once the DLL is
+# loaded by arkit_video_source_system's tests). It's only exercised indirectly,
+# through the already-loaded plugin DLL, same as MikanARKitVideoDevice.cpp itself.
+
+# CudaGLInterop.h/.cpp (ticket D4; NV12 planes as of "Phase 6") is plain CUDA
+# Driver API C++ - no GObject/GstMeta registration, so (unlike
+# ARKitRTPHeaderExtension.cpp above) it's safe to dual-compile into both this
+# executable and MikanARKitVideo.dll. Needs the CUDA Toolkit headers/driver lib,
+# which - like GStreamer's own CUDA support - are only available when
+# MIKAN_WITH_GSTREAMER is ON (see ThirdParty.cmake).
+# Additionally needs MikanRenderer (IMkTexture) and GLEW (GLuint/GL_TEXTURE_2D
+# types, required before cudaGL.h) - compiling it here proves it builds cleanly
+# against the real headers/libs on every run, even though its actual CUDA-GL
+# registration/mapping behavior needs a live GL context this headless console
+# test executable doesn't have (see arkit_cuda_gl_interop_unit_tests.cpp's own
+# notes on what is/isn't covered here). MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE
+# gates that test file's actual test body (vs. a skip stub) on this block having
+# run - there's no PTX/kernel module to gate on anymore since "Phase 6" moved
+# NV12->RGBA conversion out of CUDA entirely.
+if(MIKAN_WITH_GSTREAMER)
+  list(APPEND UNIT_TEST_SRC
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.h
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.cpp
+  )
+
+  list(APPEND UNIT_TEST_INCL_DIRS
+    ${CUDA_TOOLKIT_INCLUDE_DIR}
+    ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda
+    ${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
+    ${GLEW_INCLUDE_DIRS}
+  )
+
+  list(APPEND UNIT_TEST_LIBS
+    ${CUDA_DRIVER_LIBRARY}
+    ${GLEW_LIBRARIES}
+    MikanRenderer
+  )
+endif()
+
 list(APPEND UNIT_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
   ${RFK_INCLUDE_DIR}
@@ -19,6 +72,8 @@ list(APPEND UNIT_TEST_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanOnnx/Public
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
+  ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private
+  ${MIKAN_EDITOR_DIR}/ECS/VideoSource
   ${ROOT_DIR}/thirdparty/glm/
 )
 
@@ -40,6 +95,9 @@ target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_SERIALIZATION_REFL
 target_compile_definitions(unit_test_suite_cpp PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANAPI_REFLECTION)
+if(MIKAN_WITH_GSTREAMER)
+  target_compile_definitions(unit_test_suite_cpp PRIVATE MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE)
+endif()
 SET_TARGET_PROPERTIES(unit_test_suite_cpp PROPERTIES FOLDER Test)
 
 # Create the command to run RefurekuGenerator
@@ -57,6 +115,9 @@ add_dependencies(unit_test_suite_cpp MikanMath)
 add_dependencies(unit_test_suite_cpp MikanSerialization)
 add_dependencies(unit_test_suite_cpp MikanSharedTexture)
 add_dependencies(unit_test_suite_cpp MikanUtility)
+if(MIKAN_WITH_GSTREAMER)
+  add_dependencies(unit_test_suite_cpp MikanARKitVideo)
+endif()
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
@@ -114,6 +175,21 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	COMMAND ${CMAKE_COMMAND} -E copy
 	"${RFK_SHARED_LIBRARIES}"
 	$<TARGET_FILE_DIR:unit_test_suite_cpp>)
+  if(MIKAN_WITH_GSTREAMER)
+    add_custom_command(
+	  TARGET unit_test_suite_cpp POST_BUILD
+	  COMMAND ${CMAKE_COMMAND} -E copy
+	  $<TARGET_FILE_DIR:MikanARKitVideo>/MikanARKitVideo.dll
+	  $<TARGET_FILE_DIR:unit_test_suite_cpp>)
+    # MikanARKitVideo.dll now links MikanRenderer (ticket D4, CudaGLInterop's
+    # IMkTexture usage) - needed alongside it for the DLL load to resolve, even
+    # though unit_test_suite_cpp itself never links MikanRenderer directly.
+    add_custom_command(
+	  TARGET unit_test_suite_cpp POST_BUILD
+	  COMMAND ${CMAKE_COMMAND} -E copy
+	  $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll
+	  $<TARGET_FILE_DIR:unit_test_suite_cpp>)
+  endif()
 ELSE() #Linux/Darwin
 ENDIF()
 

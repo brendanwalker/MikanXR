@@ -67,6 +67,13 @@ foreach(_component ${GStreamerPluginsBase_FIND_COMPONENTS})
         _find_gst_plugins_base_component(PBUTILS pbutils.h)
     elseif (${_component} STREQUAL "video")
         _find_gst_plugins_base_component(VIDEO video.h)
+    elseif (${_component} STREQUAL "cuda")
+        # gstcuda-1.0 technically ships as part of gst-plugins-bad, not
+        # gst-plugins-base, but follows the same gst<name>-1.0 library/header
+        # layout the _find_gst_plugins_base_component macro already handles
+        # generically (see "rtp" above), so it's reused here rather than adding a
+        # whole separate FindGStreamerPluginsBad.cmake for one library.
+        _find_gst_plugins_base_component(CUDA gstcudamemory.h)
     else()
         message (AUTHOR_WARNING "FindGStreamer.cmake: Invalid component \"${_component}\" was specified")
     endif()

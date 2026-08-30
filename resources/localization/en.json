@@ -508,6 +508,7 @@
 		"aruco_dictionary_type": "ArUco Dictionary Type",
 		"aruco_id": "ArUco ID",
 		"available_language_list": "Available Languages",
+		"base_port": "Base Port",
 		"blue": "Blue",
 		"box_x_size": "Box X Size",
 		"box_y_size": "Box Y Size",

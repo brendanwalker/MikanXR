@@ -3,6 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include "ComponentFwd.h"
+#include "MkRendererFwd.h"
 
 #include <memory>
 #include <vector>

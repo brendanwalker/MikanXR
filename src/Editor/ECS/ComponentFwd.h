@@ -146,6 +146,16 @@ using TextureSourceComponentConstPtr= std::shared_ptr<const TextureSourceCompone
 using TextureSourceComponentWeakPtr= std::weak_ptr<TextureSourceComponent>;
 
 // Video Sources
+class ARKitVideoSourceDefinition;
+using ARKitVideoSourceDefinitionPtr= std::shared_ptr<ARKitVideoSourceDefinition>;
+using ARKitVideoSourceDefinitionConstPtr= std::shared_ptr<const ARKitVideoSourceDefinition>;
+using ARKitVideoSourceDefinitionWeakPtr= std::weak_ptr<ARKitVideoSourceDefinition>;
+
+class ARKitVideoSourceComponent;
+using ARKitVideoSourceComponentPtr= std::shared_ptr<ARKitVideoSourceComponent>;
+using ARKitVideoSourceComponentConstPtr= std::shared_ptr<const ARKitVideoSourceComponent>;
+using ARKitVideoSourceComponentWeakPtr= std::weak_ptr<ARKitVideoSourceComponent>;
+
 class NetworkVideoSourceDefinition;
 using NetworkVideoSourceDefinitionPtr= std::shared_ptr<NetworkVideoSourceDefinition>;
 using NetworkVideoSourceDefinitionConstPtr= std::shared_ptr<const NetworkVideoSourceDefinition>;

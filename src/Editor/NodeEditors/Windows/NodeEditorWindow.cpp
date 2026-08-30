@@ -369,8 +369,16 @@ void NodeEditorWindow::renderMainFrame()
 			m_editorState.hangPosGridSpace= mouseCanvasPos;
 		}
 
-		// Link creation, with live accept/reject feedback from pin compatibility
-		if (ed::BeginCreate())
+		// Link creation, with live accept/reject feedback from pin compatibility.
+		//
+		// EndCreate() is only legal after a BeginCreate() that returned true: the
+		// action only marks itself active once it has a drag to report, and its
+		// End() asserts on that flag rather than tolerating the unpaired call.
+		// Calling it unconditionally therefore fires on every frame that is not
+		// mid-drag, which is nearly all of them. It went unnoticed because
+		// IM_ASSERT is assert(), so only a debug build trips it.
+		const bool bCreateStarted= ed::BeginCreate();
+		if (bCreateStarted)
 		{
 			ed::PinId startPinId, endPinId;
 			ed::PinId hangPinId;
@@ -412,7 +420,11 @@ void NodeEditorWindow::renderMainFrame()
 		{
 			m_editorState.startedLinkPinId= -1;
 		}
-		ed::EndCreate();
+
+		if (bCreateStarted)
+		{
+			ed::EndCreate();
+		}
 
 		// Deletion funnel: the canvas's Del-key and programmatic deletions all
 		// arrive here, gated by each node's editorCanDelete

@@ -6,6 +6,10 @@ class AnchorObjectSystem;
 using AnchorObjectSystemPtr= std::shared_ptr<AnchorObjectSystem>;
 using AnchorObjectSystemWeakPtr= std::weak_ptr<AnchorObjectSystem>;
 
+class ARKitVideoSourceSystem;
+using ARKitVideoSourceSystemPtr= std::shared_ptr<ARKitVideoSourceSystem>;
+using ARKitVideoSourceSystemWeakPtr= std::weak_ptr<ARKitVideoSourceSystem>;
+
 class CameraObjectSystem;
 using CameraObjectSystemPtr= std::shared_ptr<CameraObjectSystem>;
 using CameraObjectSystemWeakPtr= std::weak_ptr<CameraObjectSystem>;

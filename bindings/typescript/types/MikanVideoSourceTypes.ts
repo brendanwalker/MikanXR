@@ -264,6 +264,14 @@ export class MikanVideoSourceIntrinsics {
   ];
 }
 
+export class MikanARKitVideoSourceValues extends MikanVideoSourceValues {
+  base_port: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'base_port', type: 'int32' }
+  ];
+}
+
 export class MikanUSBVideoSourceSystemValues extends MikanSystemValues {
   usb_device_map: Record<string, string> = {};
 

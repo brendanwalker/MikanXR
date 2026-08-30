@@ -29,8 +29,14 @@ public:
 	inline VideoFrameSection getVideoFrameSection() const { return m_videoFrameSection; }
 	inline int getFrameWidth() const { return m_frameWidth; }
 	inline int getFrameHeight() const { return m_frameHeight; }
-	inline bool isReceivingFrames() const { return m_lastVideoFrameWriteIndex > 0; }
+	// GPU-direct sources (ticket E3) never advance m_lastVideoFrameWriteIndex - it's
+	// only bumped by writeVideoFrame(), which such sources never call - so this also
+	// checks for a live direct-color texture, matching hasNewVideoFrame()'s bypass.
+	bool isReceivingFrames() const;
 	inline float getFPS() const { return m_fps; }
+
+	/// Fold one new-frame arrival into the rolling frame rate estimate.
+	void updateFrameRateStatistic();
 
 	inline eVideoDisplayMode getVideoDisplayMode() const { return m_videoDisplayMode; }
 	inline void setVideoDisplayMode(eVideoDisplayMode newMode) { m_videoDisplayMode= newMode; }
@@ -63,6 +69,10 @@ public:
 protected:
 	int64_t readNextVideoFrameIndex();
 	void processVideoFrame(int64_t newFrameIndex);
+	// Pull a GPU-direct source's converted frame back to the CPU and push it
+	// through writeVideoFrame, so calibration has pixels to work on. Returns
+	// false when there is no direct texture, no new frame, or the read failed.
+	bool readbackDirectColorTexture();
 	void ensureFrameBufferSize(int width, int height);
 	void rebuildDistortionMap();
 
@@ -77,6 +87,8 @@ protected:
 	int m_frameWidth;
 	int m_frameHeight;
 	float m_fps;
+	// Smoothed inter-frame interval backing m_fps (see updateFrameRateStatistic)
+	float m_frameIntervalSeconds= 0.f;
 
 	// BGR source buffer
 	std::mutex m_bgrSourceBufferMutex;
@@ -85,6 +97,12 @@ protected:
 	int m_bgrSourceBufferHeight;
 	std::atomic_int64_t m_lastVideoFrameWriteIndex;
 	int64_t m_lastVideoFrameReadIndex;
+
+	// Staging for readbackDirectColorTexture: RGBA pixels straight off the GPU,
+	// and the frame index they came from so an unchanged frame is not re-read.
+	std::vector<uint8_t> m_directReadbackBuffer;
+	int64_t m_lastReadbackFrameIndex= -1;
+	bool m_bReadbackFailureLogged= false;
 	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 
 	// Camera Intrinsics / Distortion parameters

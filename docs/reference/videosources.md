@@ -64,6 +64,10 @@ Streaming is refcounted by consumers: `VideoSourceComponent::startVideoStream(Vi
 
 GPU-direct sources bypass the CPU buffer entirely: `VideoSourceComponent::getDirectColorTexture()` / `processDirectVideoFrame()` / `getDirectFrameIndex()` default to null/no-op and no source on `main` overrides them. On the `iphone` branch `ARKitVideoSourceComponent` does, and its NV12 luma/chroma GL textures (exposed by the plugin as raw GL ids) are wrapped in `IMkExternalTexture`s and converted to RGBA by a fullscreen shader pass once per tick.
 
+Calibration needs those pixels on the CPU, so a `CALIBRATION`-mode view reads the converted texture back (`readbackDirectColorTexture`, using `IMkTexture::readTextureIntoBuffer`) and pushes it through `writeVideoFrame`, after which the ordinary undistort and grayscale path runs exactly as it would for a USB camera. A `COMPOSITOR`-mode view never does this: it reads the texture directly, and a readback there would stall every frame for nothing. Note that `getVideoTexture()` returns the direct texture ahead of the queue, so live video on screen is not evidence that the readback is working.
+
+Whatever a source does internally, every video texture reaches `getVideoTexture()` in one orientation, image row 0 at `v=0`. That is what `copyOpenCVMatIntoGLTexture` produces for CPU sources, and the NV12 planes already arrive that way because the plugin copies them with a plain `cuMemcpy2D`. A conversion pass of this kind therefore builds its quad unflipped: it writes a video texture rather than displaying one, and the single V flip belongs to the consumer's own display quad ([conventions.md](./conventions.md)). Flipping in both places cost a period of upside-down video on the hardware decode tier only, which was invisible while a PATH problem was forcing every local run onto the software tier.
+
 ---
 
 ## Intrinsics, settings, and persistence
@@ -78,7 +82,51 @@ The depth proxy mesh capture is the one consumer that depends on these intrinsic
 
 A `CameraComponent` (`src/Editor/ECS/Camera/CameraComponent.h`) ties everything together via IDs on `CameraDefinition`: a `MikanVideoSourceID` (which video source feeds it), a `MikanTrackingMountID` (which physical tracker rig it sits on), and an aperture pose offset (tracker-to-lens transform produced by alignment calibration, see [calibration.md](./calibration.md)). `TrackingMountComponent` binds a VR device path plus an attachment socket name and produces a `VRDevicePoseView`; `CameraComponent::updateAperturePoseFromTrackingMount()` polls it each tick and composes the aperture offset to get the stage-space camera pose (`getStageSpaceAperturePose`, `getApertureViewMatrix`, `getApertureProjectionMatrix`).
 
-The `iphone` branch's ARKit source instead implements `IFrameCoupledPoseProvider` (`src/Editor/ECS/Camera/IFrameCoupledPoseProvider.h`): pose and intrinsics arrive coupled to each video frame in the RTP header extension, and `getLatestFrameCoupledPose()` hands `CameraComponent` a camera-to-world transform plus a frame sequence number for correlation, with intrinsics applied only when they change meaningfully.
+The `iphone` branch's ARKit source instead implements `IFrameCoupledPoseProvider` (`src/Editor/ECS/Camera/IFrameCoupledPoseProvider.h`): pose and intrinsics arrive coupled to each video frame in the RTP header extension, and `getLatestFrameCoupledPose()` hands `CameraComponent` a camera-to-world transform plus a frame sequence number for correlation, with intrinsics applied only when they change meaningfully. That change test compares focal length and principal point both, so a correction to either one propagates.
+
+### ARKit world-to-stage offset
+
+ARKit picks a fresh world origin every session, so a streamed pose only means something once it is anchored to the stage. The operator anchors it with the ordinary Align Camera action (`AppStage_AlignCameraByOriginMarker`, see [calibration.md](./calibration.md)), and the phone stays unaware that stage space exists.
+
+The stage detects that its video source is an `IFrameCoupledPoseProvider` and takes a different path than it does for a tripod camera. A static camera's aperture-relative marker poses can be averaged directly. A handheld one moves between samples, so each sample is first converted into the quantity that is actually constant, `worldToStage = inverse(markerInCamera) * inverse(cameraInWorld)`, using the ARKit pose from that same frame. Those are averaged (translation componentwise, rotation through quaternion slerp) and handed to `setPoseOffset` instead of `setRelativeTransform`, which a frame-coupled camera would overwrite on the next bundle.
+
+The solve reads the pose through `getLatestSourceWorldPose`, which reports it in ARKit's own world space, rather than `getLatestFrameCoupledPose`, which reports it in stage space with the current offset already applied. Solving from the latter folds the stored offset into the new one, so the first alignment on a fresh project looks right and every one after it compounds. Reproducibility is the test that catches this: two alignments in a row must agree on the offset even when the phone has moved between them.
+
+The offset is applied at exactly one point: `ARKitVideoSourceComponent::notifyFrameBundleReceived`, right after the row-major to column-major transpose of the incoming transform. It persists on `ARKitVideoSourceDefinition` as plain JSON with no property descriptor, since no client application has any use for it and a descriptor would mean a wire change. An absent key means never aligned, and the offset is identity until then.
+
+A stored offset describes the ARKit session it was solved in. A `frameSeq` that runs backwards means the phone restarted that session, so the offset is dropped and the reason logged rather than leaving the camera confidently in the wrong place.
+
+---
+
+## ARKit debug side channel
+
+Separate from the video path and independent of it: `ARKitDebugChannel` (`src\Editor\Interprocess\ARKitDebugChannel.h`) is a TCP line channel to the MikanARStreamer app, exposed as the automation server's `arkit` namespace ([automation.md](./automation.md)). The phone dials out, because the editor cannot learn the phone's address from a GStreamer `udpsrc`. Diagnostics the phone pushes are re-emitted through the editor's logger, which is what puts phone-side encode timing and editor-side receive timing on one ordered timeline. Commands travel the other way, with the phone owning the vocabulary.
+
+It has no dependency on `ARKitVideoSourceComponent` or the plugin, and works whether or not video is streaming. It also binds every interface rather than loopback, so it is off unless enabled.
+
+---
+
+## ARKit receive tuning
+
+The RTP receive pipeline sets `udpsrc buffer-size` explicitly. A keyframe is an order of magnitude larger than a P-frame and leaves the phone as one back-to-back burst of hundreds of RTP packets, while the socket is drained once per render tick. On the OS default receive buffer that burst overruns, the keyframe arrives incomplete, and the decoder has no reference until the next IDR, so a single lost keyframe costs a whole keyframe interval of video. P-frames are small enough never to trigger it, which makes the symptom look periodic rather than load related.
+
+Measured at 1920x1440 and 30fps: with the default buffer, every stall was a lost keyframe and lasted exactly one 4s keyframe period. With the buffer sized to hold several bursts, 6621 consecutive frames across roughly 55 keyframe periods arrived with zero loss and no stall over 100ms.
+
+The appsink's `max-buffers` is the other tuned value, and it matters more than it looks. The sink is polled once per render tick with `drop=TRUE`, so a single slot loses every frame but the newest whenever more than one arrives between polls. That is not a starved consumer: the losses are overwhelmingly isolated single frames, the render loop has ample headroom, and the identical pipeline into a standalone `fakesink` sustains the full source rate. The hardware decoder delivers burstier than the software one, so the cap bites hardest where throughput matters. Going from one slot to three, measured on `nvh264dec`:
+
+- 30fps: 27.65 to 29.97 fps received, 7.66 percent to 0.13 percent lost
+- 60fps: 57.42 to 59.50 fps received, 3.43 percent to 0.11 percent lost
+
+Latency stays bounded because the poll runs faster than frames arrive, so the queue drains rather than accumulating, and `drop=TRUE` caps the worst case at three frames.
+
+The dominant latency term was never on this side of the wire. VideoToolbox selects the H.264 profile level automatically, and the level implies a decoded picture buffer of `min(MaxDpbMbs / PicSizeInMbs, 16)` frames: at 1920x1440 that is 10 frames under Level 5.0 and 16 under Level 5.1. The phone encodes with `AllowFrameReordering` off, so nothing in the stream needs that buffer, but the SPS carries no VUI `bitstream_restriction` saying so and hardware decoders honour the level default. Each IDR then flushes the buffer, which is where the once-per-keyframe stall came from. `openh264dec` ignores the declaration and never showed either symptom, which is what identified the bitstream rather than either decoder as the cause.
+
+The phone now rewrites the SPS before sending it (`H264SPSRewriter` in MikanARStreamer), declaring `max_num_reorder_frames = 0` and `max_dec_frame_buffering = max_num_ref_frames`. The statement is true rather than merely convenient, so encoded picture data is unchanged and only the SPS grows, by two bytes per keyframe. Measured through `nvh264dec` on the same stream:
+
+- 30fps: p50 latency 333.5ms to 33.8ms, standard deviation 101.3ms to 4.2ms, stalls over 100ms from 1.00/s to none in steady state
+- 60fps: p50 latency 268.2ms to 17.1ms, full 60.0fps delivered
+
+The consistency matters as much as the magnitude. Before the rewrite only 48.6 percent of frames landed within a frame period of the median latency, because each IDR dumped the buffer and then refilled it; a sawtooth like that cannot be compensated by a fixed offset the way a stable delay can. Afterwards 99.4 percent do.
 
 ---
 

@@ -41,6 +41,11 @@ namespace MikanXR
 		STEREO= 1,
 	};
 
+	public class MikanARKitVideoSourceValues : MikanVideoSourceValues
+	{
+		public int base_port;
+	};
+
 	public class MikanBaseIntrinsics : PolymorphicStruct
 	{
 		public double pixel_width;

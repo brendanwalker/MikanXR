@@ -29,6 +29,11 @@ public:
 
 	bool computeApertureRelativeMarkerXform();
 	bool hasValidApertureRelativeMarkerXform() const;
+	// The marker's pose in aperture space for the most recent frame, before any
+	// averaging. A camera that moves between samples needs each sample converted
+	// into a camera-independent quantity first, which averaging inside this class
+	// cannot do (see AppStage_AlignCameraByOriginMarker's frame-coupled path).
+	glm::dmat4 getLastApertureRelativeMarkerXform() const;
 	void sampleLastApertureRelativeMarkerXform();
 	bool computeCalibratedMarkerPose(MikanQuatd& outRotation, MikanVector3d& outTranslation);
 

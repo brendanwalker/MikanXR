@@ -508,6 +508,7 @@
 		"aruco_dictionary_type": "ArUco 辞書タイプ",
 		"aruco_id": "ArUco ID",
 		"available_language_list": "利用可能な言語",
+		"base_port": "ベースポート",
 		"blue": "青",
 		"box_x_size": "ボックス X サイズ",
 		"box_y_size": "ボックス Y サイズ",

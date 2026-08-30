@@ -227,6 +227,19 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 #endif // MIKANAPI_REFLECTION_ENABLED
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanARKitVideoSourceValues
+	: public MikanVideoSourceValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() int base_port; ///< Video RTP on base_port+0, pose on base_port+2
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanARKitVideoSourceValues_GENERATED
+#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceValues
 	: public MikanVideoSourceValues
 {

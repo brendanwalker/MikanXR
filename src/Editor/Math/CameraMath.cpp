@@ -319,7 +319,9 @@ void createDefautMonoIntrinsics(int pixelWidth, int pixelHeight, MikanMonoIntrin
 	outIntrinsics.vfov= vfov;
 	outIntrinsics.znear= DEFAULT_MONO_ZNEAR;
 	outIntrinsics.zfar= DEFAULT_MONO_ZFAR;
-	outIntrinsics.distorted_camera_matrix= {f_x, 0.0, c_x, 0.0, f_y, c_y, 0.0, 0.0, 1.0};
+	// MikanMatrix3d's fields are declared column-major (x0,x1,x2 is the first
+	// column), so the principal point goes in the z column, not the third row.
+	outIntrinsics.distorted_camera_matrix= {f_x, 0.0, 0.0, 0.0, f_y, 0.0, c_x, c_y, 1.0};
 	outIntrinsics.undistorted_camera_matrix= outIntrinsics.distorted_camera_matrix;
 }
 // Adapted from https://jamesgregson.blogspot.com/2011/11/matching-calibrated-cameras-with-opengl.html
@@ -338,6 +340,16 @@ static void computeOpenGLProjMatFromCameraMatrix(const double pixelWidth, const 
 										   u0,    // principal point x (usually image center x)
 										   v0,    // principal point y (usually image center y)
 										   skew); // skew (usually 0)
+
+	// OpenCV measures the principal point down from the image top, while the NDC
+	// mapping below puts y=0 at the viewport bottom, so v0 has to be flipped into
+	// that frame. u0 needs no equivalent: x runs the same way in both.
+	//
+	// This stayed invisible for years because lens calibration runs with
+	// CALIB_FIX_PRINCIPAL_POINT, which pins v0 to the exact image center where the
+	// flip is a no-op. A source that reports its own off-center principal point
+	// (ARKit) is the first to expose it.
+	v0= (float)pixelHeight - v0;
 
 	// These parameters define the final viewport that is rendered into by
 	// the camera.
