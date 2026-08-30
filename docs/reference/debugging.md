@@ -48,6 +48,8 @@ If a process dies instantly with exit status `0xC0000135` (`STATUS_DLL_NOT_FOUND
 
 Second known gotcha: with the default `CMAKE_UNITY_BUILD=ON`, a transitively included `windows.h` in a jumbo TU can rewrite a method name that collides with a Win32 macro (`GetObject` → `GetObjectA`, likewise `SendMessage`, `CreateWindow`, ...), producing an `LNK2019` far from the real conflict. Avoid such method names; see [build.md](./build.md).
 
+Third known gotcha, specific to the node editor: ImGui's `IM_ASSERT` is plain `assert()`, so imgui-node-editor's API-contract checks fire only in a Debug build and vanish under `NDEBUG`. Misusing that API therefore looks harmless in Release and stops the app dead in Debug. Its `Begin`/`End` pairs are not uniformly forgiving either, so read the one you are calling: `DeleteItemsAction::End` returns early when inactive and is safe to call unconditionally, while `CreateItemAction::End` asserts, so `ed::EndCreate()` may only run when `ed::BeginCreate()` returned true.
+
 ---
 
 ## Stall watchdogs and the delta clamp
