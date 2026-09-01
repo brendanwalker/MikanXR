@@ -37,14 +37,15 @@
 #include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
-#include "Project/GuiPanel_ProjectMarkers.h"
-#include "Project/GuiPanel_ProjectScenes.h"
+#include "Project/GuiPanel_ProjectOutliner.h"
 #include "Project/GuiPanel_ProjectSettings.h"
-#include "Project/GuiPanel_ProjectSources.h"
-#include "Project/GuiPanel_ProjectStages.h"
-#include "Project/GuiPanel_ProjectTracking.h"
+#include "AnchorObjectSystem.h"
 #include "BoxShapeComponent.h"
 #include "BoxShapeSystem.h"
+#include "BoxStencilSystem.h"
+#include "CameraObjectSystem.h"
+#include "ModelStencilSystem.h"
+#include "QuadStencilSystem.h"
 #include "ModelShapeComponent.h"
 #include "ModelShapeSystem.h"
 #include "QuadShapeComponent.h"
@@ -52,9 +53,9 @@
 #include "ShapeComponent.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
-#include "Shared/GuiPanel_MarkerComponent.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
+#include "StageComponent.h"
 #include "TextStyle.h"
 #include "TrackingVolumeComponent.h"
 #include "VRTrackingVolumeComponent.h"
@@ -108,13 +109,13 @@ void AppStage_Project::enter()
 	m_pixelGridLightSystem= objectSystemManager->getSystemOfType<RGBPixelGridSystem>();
 	m_spotLightSystem= objectSystemManager->getSystemOfType<RGBSpotLightSystem>();
 
-	// Stage Panel collision set
+	// Stage view collision set
 	m_stageObjectSystemFilter.insert(m_editorSystem.lock().get());
 	m_stageObjectSystemFilter.insert(m_cameraObjectSystem.lock().get());
 	m_stageObjectSystemFilter.insert(m_pixelGridLightSystem.lock().get());
 	m_stageObjectSystemFilter.insert(m_spotLightSystem.lock().get());
 
-	// Scene Panel collision set
+	// Scene view collision set: the stage set plus the scene actors
 	m_sceneObjectSystemFilter.insert(m_anchorObjectSystem.lock().get());
 	m_sceneObjectSystemFilter.insert(m_quadStencilSystem.lock().get());
 	m_sceneObjectSystemFilter.insert(m_boxStencilSystem.lock().get());
@@ -124,8 +125,7 @@ void AppStage_Project::enter()
 	m_sceneObjectSystemFilter.insert(m_modelShapeSystem.lock().get());
 	m_sceneObjectSystemFilter.insert(m_stageObjectSystemFilter.begin(), m_stageObjectSystemFilter.end());
 
-	// Tracking Panel collision set
-	// nothing for now
+	// Tracking view collision set is empty
 
 	// Setup Scene viewport
 	{
@@ -148,31 +148,14 @@ void AppStage_Project::enter()
 		m_projectGuiPanelContext= new ProjectGuiPanelContext(this);
 		m_projectGuiPanelContext->init();
 
-		// Wire up component panel delegates
-		m_projectGuiPanelContext->getMarkerPanel()->OnMarkerSelected=
-			MakeDelegate(this, &AppStage_Project::onMarkerSelected);
-
-		m_projectScenesPanel= addGuiPanel<GuiPanel_ProjectScenes>();
-		m_projectScenesPanel->init(m_projectGuiPanelContext);
-
-		m_projectStagesPanel= addGuiPanel<GuiPanel_ProjectStages>();
-		m_projectStagesPanel->init(m_projectGuiPanelContext);
-
-		m_projectSourcesPanel= addGuiPanel<GuiPanel_ProjectSources>();
-		m_projectSourcesPanel->init(m_projectGuiPanelContext);
-
-		m_projectTrackingPanel= addGuiPanel<GuiPanel_ProjectTracking>();
-		m_projectTrackingPanel->init(m_projectGuiPanelContext);
-
-		m_projectMarkersPanel= addGuiPanel<GuiPanel_ProjectMarkers>();
-		m_projectMarkersPanel->init(m_projectGuiPanelContext);
-
 		m_projectSettingsPanel= addGuiPanel<GuiPanel_ProjectSettings>();
 		m_projectSettingsPanel->init(m_projectGuiPanelContext);
+
+		m_projectOutlinerPanel= addGuiPanel<GuiPanel_ProjectOutliner>();
+		m_projectOutlinerPanel->init(m_projectGuiPanelContext);
 	}
 
-	// Start of in the stages panel
-	setActivePanel(eProjectAppStageActivePanel::Stages);
+	setViewMode(eProjectViewMode::scene);
 }
 
 void AppStage_Project::exit()
@@ -183,11 +166,7 @@ void AppStage_Project::exit()
 	// Clean up the GuiPanel Context (panels themselves are owned by AppStage::m_guiPanels)
 	delete m_projectGuiPanelContext;
 	m_projectGuiPanelContext= nullptr;
-	m_projectScenesPanel= nullptr;
-	m_projectStagesPanel= nullptr;
-	m_projectSourcesPanel= nullptr;
-	m_projectTrackingPanel= nullptr;
-	m_projectMarkersPanel= nullptr;
+	m_projectOutlinerPanel= nullptr;
 	m_projectSettingsPanel= nullptr;
 
 	// Unregister all viewports from the editor
@@ -207,6 +186,29 @@ void AppStage_Project::update(float deltaSeconds)
 
 	// Update the timing dependent state for the project GuiPanels
 	m_projectGuiPanelContext->update(deltaSeconds);
+
+	// The outliner's selected node kind picks the viewport view and filter
+	if (m_projectOutlinerPanel != nullptr)
+	{
+		switch (m_projectOutlinerPanel->getSelectedNodeKind())
+		{
+		case eOutlinerNodeKind::trackingVolume:
+		case eOutlinerNodeKind::trackingMount:
+		case eOutlinerNodeKind::marker:
+			setViewMode(eProjectViewMode::tracking);
+			break;
+		case eOutlinerNodeKind::stage:
+		case eOutlinerNodeKind::camera:
+		case eOutlinerNodeKind::stageLight:
+		case eOutlinerNodeKind::videoSource:
+		case eOutlinerNodeKind::textureSource:
+			setViewMode(eProjectViewMode::stage);
+			break;
+		default:
+			setViewMode(eProjectViewMode::scene);
+			break;
+		}
+	}
 
 	applyPendingProjectActions();
 }
@@ -314,28 +316,24 @@ void AppStage_Project::onGui()
 		}
 	}
 
-	// Each panel is its own dockable window. The focused one decides what the 3d
-	// viewport renders and which object types are selectable, which is the role
-	// the old tab bar's selected tab played.
-	IGuiPanel* panels[(int)eProjectAppStageActivePanel::COUNT]= {m_projectScenesPanel,  m_projectStagesPanel,
-																 m_projectSourcesPanel, m_projectTrackingPanel,
-																 m_projectMarkersPanel, m_projectSettingsPanel};
-
-	for (int i= 0; i < (int)eProjectAppStageActivePanel::COUNT; i++)
+	// The unified project outliner window
+	if (m_bOutlinerVisible && m_projectOutlinerPanel != nullptr)
 	{
-		if (!m_panelVisible[i] || panels[i] == nullptr)
-			continue;
-
-		MkGuiScopedWindow panelWindow(getPanelWindowTitle((eProjectAppStageActivePanel)i), &m_panelVisible[i]);
-		if (!panelWindow)
-			continue;
-
-		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+		MkGuiScopedWindow outlinerWindow(locWindowTitle("windows.project"), &m_bOutlinerVisible);
+		if (outlinerWindow)
 		{
-			setActivePanel((eProjectAppStageActivePanel)i);
+			m_projectOutlinerPanel->onGui();
 		}
+	}
 
-		panels[i]->onGui();
+	// The settings window
+	if (m_bSettingsPanelVisible && m_projectSettingsPanel != nullptr)
+	{
+		MkGuiScopedWindow settingsWindow(locWindowTitle("windows.projectSettings"), &m_bSettingsPanelVisible);
+		if (settingsWindow)
+		{
+			m_projectSettingsPanel->onGui();
+		}
 	}
 
 	if (m_bShowLogPanel)
@@ -379,10 +377,8 @@ void AppStage_Project::onMenuBarGui()
 
 	if (ImGui::BeginMenu(locLabel("mainWindow.viewMenu")))
 	{
-		for (int i= 0; i < (int)eProjectAppStageActivePanel::COUNT; i++)
-		{
-			ImGui::MenuItem(getPanelMenuLabel((eProjectAppStageActivePanel)i), nullptr, &m_panelVisible[i]);
-		}
+		ImGui::MenuItem(locLabel("project.panelProject"), nullptr, &m_bOutlinerVisible);
+		ImGui::MenuItem(locLabel("project.panelSettings"), nullptr, &m_bSettingsPanelVisible);
 		ImGui::Separator();
 		ImGui::MenuItem(locLabel("mainWindow.logPanel"), nullptr, &m_bShowLogPanel);
 		ImGui::EndMenu();
@@ -427,88 +423,38 @@ void AppStage_Project::applyPendingProjectActions()
 	}
 }
 
-const char* AppStage_Project::getPanelMenuLabel(eProjectAppStageActivePanel panel)
-{
-	switch (panel)
-	{
-	case eProjectAppStageActivePanel::Scenes:
-		return locLabel("project.tabScenes");
-	case eProjectAppStageActivePanel::Stages:
-		return locLabel("project.tabStages");
-	case eProjectAppStageActivePanel::Sources:
-		return locLabel("project.tabSources");
-	case eProjectAppStageActivePanel::Tracking:
-		return locLabel("project.tabTracking");
-	case eProjectAppStageActivePanel::Markers:
-		return locLabel("project.tabMarkers");
-	case eProjectAppStageActivePanel::Settings:
-		return locLabel("project.tabSettings");
-	default:
-		return "";
-	}
-}
-
-const char* AppStage_Project::getPanelWindowTitle(eProjectAppStageActivePanel panel)
-{
-	switch (panel)
-	{
-	case eProjectAppStageActivePanel::Scenes:
-		return locWindowTitle("windows.scenes");
-	case eProjectAppStageActivePanel::Stages:
-		return locWindowTitle("windows.stages");
-	case eProjectAppStageActivePanel::Sources:
-		return locWindowTitle("windows.sources");
-	case eProjectAppStageActivePanel::Tracking:
-		return locWindowTitle("windows.tracking");
-	case eProjectAppStageActivePanel::Markers:
-		return locWindowTitle("windows.markers");
-	case eProjectAppStageActivePanel::Settings:
-		return locWindowTitle("windows.projectSettings");
-	default:
-		return "";
-	}
-}
-
 void AppStage_Project::onBuildDefaultDockLayout(unsigned int dockspaceId)
 {
-	// Panels right, log along the bottom, central node left empty for the scene.
-	// The right column is split in two so neither tab strip overflows into the
-	// scroll arrows that made the old single tab bar awkward to click through.
+	// Project and Settings tabbed on the right, log along the bottom, central
+	// node left empty for the scene
 	ImGuiID remaining= (ImGuiID)dockspaceId;
-	ImGuiID rightTopId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Right, 0.28f, remaining);
+	const ImGuiID rightId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Right, 0.28f, remaining);
 	const ImGuiID bottomId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Down, 0.25f, remaining);
-	const ImGuiID rightBottomId= MkGui::dockBuilderSplit(rightTopId, ImGuiDir_Down, 0.5f, rightTopId);
 
-	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Scenes), rightTopId);
-	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Stages), rightTopId);
-	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Sources), rightTopId);
-	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Tracking), rightBottomId);
-	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Markers), rightBottomId);
-	MkGui::dockBuilderDockWindow(getPanelWindowTitle(eProjectAppStageActivePanel::Settings), rightBottomId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.project"), rightId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.projectSettings"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.log"), bottomId);
 }
 
-// Panel Selection
-void AppStage_Project::setActivePanel(eProjectAppStageActivePanel newPanel)
+// Viewport view mode
+void AppStage_Project::setViewMode(eProjectViewMode newViewMode)
 {
-	if (newPanel != m_activePanel)
+	if (newViewMode != m_viewMode)
 	{
-		m_activePanel= newPanel;
-		onActivePanelChanged();
+		m_viewMode= newViewMode;
+		onViewModeChanged();
 	}
 }
 
-void AppStage_Project::onActivePanelChanged()
+void AppStage_Project::onViewModeChanged()
 {
 	// Update the collision filter on the editor system
-	switch (m_activePanel)
+	switch (m_viewMode)
 	{
-	case eProjectAppStageActivePanel::Scenes:
-	case eProjectAppStageActivePanel::Settings:
+	case eProjectViewMode::scene:
 		m_editorSystem.lock()->setObjectSystemSelectionFilter(m_sceneObjectSystemFilter);
 		break;
-	case eProjectAppStageActivePanel::Stages:
-	case eProjectAppStageActivePanel::Sources:
+	case eProjectViewMode::stage:
 		m_editorSystem.lock()->setObjectSystemSelectionFilter(m_stageObjectSystemFilter);
 		break;
 	default:
@@ -518,11 +464,6 @@ void AppStage_Project::onActivePanelChanged()
 
 // Compositor Model UI Events
 void AppStage_Project::onReturnEvent() { m_ownerWindow->popAppState(); }
-
-void AppStage_Project::onMarkerSelected(int arucoId)
-{
-	// Marker selected — arucoId can be used for custom rendering/preview in the future
-}
 
 void AppStage_Project::render(IMkViewportPtr targetViewport)
 {
@@ -539,19 +480,16 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	// Clear the scene of any previously rendered instances
 	m_mkScene->removeAllInstances();
 
-	// Panel specific rendering
-	switch (m_activePanel)
+	// View-mode specific rendering
+	switch (m_viewMode)
 	{
-	case eProjectAppStageActivePanel::Scenes:
-	case eProjectAppStageActivePanel::Settings:
+	case eProjectViewMode::scene:
 		renderProjectScene(graphicsContext, viewportCamera);
 		break;
-	case eProjectAppStageActivePanel::Stages:
-	case eProjectAppStageActivePanel::Sources:
+	case eProjectViewMode::stage:
 		renderProjectStage(graphicsContext, viewportCamera);
 		break;
-	case eProjectAppStageActivePanel::Tracking:
-	case eProjectAppStageActivePanel::Markers:
+	case eProjectViewMode::tracking:
 		renderProjectTracking(graphicsContext, viewportCamera);
 		break;
 	}
@@ -788,7 +726,7 @@ void AppStage_Project::renderVRTrackingVolume(IMkGraphicsContext* graphicsContex
 		markerComp= markerSystem->getMarkerById(originMarkerId);
 	}
 
-	if (m_activePanel == eProjectAppStageActivePanel::Tracking)
+	if (m_viewMode == eProjectViewMode::tracking)
 	{
 
 		switch (vrTrackingVolume->getDisplayTrackingSpace())

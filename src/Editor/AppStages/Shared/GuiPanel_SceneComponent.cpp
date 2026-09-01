@@ -10,6 +10,16 @@ GuiPanel_SceneComponent::GuiPanel_SceneComponent(AppStage* ownerAppStage)
 	, m_compositorDataSource(ownerAppStage->getProjectManager(), {{CompositorObjectSystem::k_objectSystemClassName,
 																   CompositorComponent::k_componentClassName}})
 {
+	m_compositorDataSource.setFilter(
+		[this](MikanComponentPtr comp) -> bool
+		{
+			SceneComponentPtr sceneComp= getSceneComponent();
+			if (!sceneComp)
+				return false;
+
+			auto compositor= std::static_pointer_cast<CompositorComponent>(comp);
+			return compositor && compositor->getCompositorDefinition()->getOwnerSceneId() == sceneComp->getSceneId();
+		});
 }
 
 bool GuiPanel_SceneComponent::init() { return initTypedPropertyInterface<SceneComponent>(); }

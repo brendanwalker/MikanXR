@@ -14,6 +14,7 @@
             { "name": "add_component", "path": "icons/add_component_icon.png", "width": 20, "height": 20 },
             { "name": "add_cef_source", "path": "icons/add_cef_texture_source_icon.png", "width": 44, "height": 44 },
             { "name": "add_client_source", "path": "icons/add_client_texture_source_icon.png", "width": 44, "height": 44 },
+			{ "name": "add_marker", "path": "icons/add_marker_icon.png", "width": 50, "height": 50 },
             { "name": "add_marker_tracking", "path": "icons/add_marker_tracking_icon.png", "width": 50, "height": 50 },
             { "name": "add_model_stencil", "path": "icons/add_model_stencil_icon.png", "width": 50, "height": 50 },
             { "name": "add_model_shape", "path": "icons/add_model_shape_icon.png", "width": 50, "height": 50 },
@@ -30,6 +31,18 @@
             { "name": "reload_component", "path": "icons/reload_component_icon.png", "width": 20, "height": 20 },
             { "name": "select_component", "path": "icons/select_component_icon.png", "width": 20, "height": 20 }
         ]
+    },
+    "project_outliner": {
+        "labelWidth": 190,
+        "valueWidth": 150,
+        "font": "normal_icon",
+        "colors": [
+            { "name": "Text",          "value": [0.55, 0.95, 0.55, 1.0] },
+            { "name": "Header",        "value": [0.30, 0.48, 0.34, 0.60] },
+            { "name": "HeaderHovered", "value": [0.36, 0.56, 0.40, 0.80] },
+            { "name": "HeaderActive",  "value": [0.40, 0.62, 0.44, 1.0] }
+        ],
+        "textures": []
     },
     "script_path": {
         "labelWidth": 190,

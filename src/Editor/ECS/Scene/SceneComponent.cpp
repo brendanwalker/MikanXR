@@ -244,17 +244,29 @@ bool SceneComponent::setPropertyValue(const std::string& propertyName, const Mik
 
 // -- IFunctionInterface ----
 const std::string SceneComponent::k_showCompositorOutputFunctionId= "show_compositor_output";
+const std::string SceneComponent::k_activateSceneFunctionId= "activate_scene";
 
 void SceneComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	TransformComponent::getFunctionDescriptors(outDescriptors);
 
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_activateSceneFunctionId, "Activate Scene"));
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_showCompositorOutputFunctionId, "Show Compositor Output"));
 }
 
 bool SceneComponent::invokeFunction(const std::string& functionName)
 {
+	if (functionName == SceneComponent::k_activateSceneFunctionId)
+	{
+		SceneObjectSystemPtr sceneSystem= getObjectSystemOfType<SceneObjectSystem>();
+		if (sceneSystem)
+		{
+			sceneSystem->setCurrentSceneById(getSceneId());
+		}
+		return true;
+	}
+
 	if (functionName == SceneComponent::k_showCompositorOutputFunctionId)
 	{
 		showCompositorOutput();

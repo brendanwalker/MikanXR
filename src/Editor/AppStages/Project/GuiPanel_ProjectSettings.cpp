@@ -12,6 +12,7 @@
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "Shared/GuiPanel_DMXObjectSystem.h"
+#include "Shared/GuiPanel_MarkerObjectSystem.h"
 #include "SpoutLogRelay.h"
 
 #include "imgui.h"
@@ -282,4 +283,9 @@ void GuiPanel_ProjectSettings::onGui()
 
 	// DMX system settings
 	m_context->getDMXSystemPanel()->onGui();
+
+	ImGui::Separator();
+
+	// Marker system settings
+	m_context->getMarkerSystemPanel()->onGui();
 }
