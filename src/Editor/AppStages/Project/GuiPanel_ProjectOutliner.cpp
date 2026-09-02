@@ -148,6 +148,12 @@ void GuiPanel_ProjectOutliner::rebuildIfDirty()
 		ProjectOutlinerNodePtr selectedNode= m_model.findNodeByComponentId(m_selectedComponentId);
 		setSelectedNode(selectedNode, false);
 	}
+	else if (m_selectedKind != eOutlinerNodeKind::projectRoot
+			 && !m_model.findFolderNode(m_selectedKind, m_selectedOwnerId))
+	{
+		// A selected per-stage folder whose stage was deleted falls back to the root
+		setSelectedNode(nullptr, false);
+	}
 }
 
 // -- Tree drawing ----
@@ -174,6 +180,12 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 	switch (node->kind)
 	{
 	case eOutlinerNodeKind::projectRoot:
+	case eOutlinerNodeKind::folderSources:
+	case eOutlinerNodeKind::folderMarkers:
+	case eOutlinerNodeKind::folderTrackingVolumes:
+	case eOutlinerNodeKind::folderCameras:
+	case eOutlinerNodeKind::folderLights:
+	case eOutlinerNodeKind::folderScenes:
 	case eOutlinerNodeKind::trackingVolume:
 	case eOutlinerNodeKind::stage:
 	case eOutlinerNodeKind::scene:
@@ -183,9 +195,16 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 		break;
 	}
 
-	const bool bIsSelected=
-		(node->componentId != INVALID_MIKAN_ID && node->componentId == m_selectedComponentId)
-		|| (node->kind == eOutlinerNodeKind::projectRoot && m_selectedComponentId == INVALID_MIKAN_ID);
+	// Synthetic rows (root and folders) carry no component id, so they select
+	// by kind plus owner id
+	const bool bIsSyntheticSelectable=
+		node->kind == eOutlinerNodeKind::projectRoot || node->kind == eOutlinerNodeKind::folderSources
+		|| node->kind == eOutlinerNodeKind::folderMarkers || node->kind == eOutlinerNodeKind::folderTrackingVolumes
+		|| node->kind == eOutlinerNodeKind::folderCameras || node->kind == eOutlinerNodeKind::folderLights
+		|| node->kind == eOutlinerNodeKind::folderScenes;
+	const bool bIsSelected= (node->componentId != INVALID_MIKAN_ID && node->componentId == m_selectedComponentId)
+							|| (bIsSyntheticSelectable && m_selectedComponentId == INVALID_MIKAN_ID
+								&& node->kind == m_selectedKind && node->ownerId == m_selectedOwnerId);
 	if (bIsSelected)
 		flags|= ImGuiTreeNodeFlags_Selected;
 
@@ -217,8 +236,8 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 		m_scrollOpenPathIds.clear();
 	}
 
-	// Group rows (the unparented tray) are not selectable
-	const bool bIsSelectable= node->componentId != INVALID_MIKAN_ID || node->kind == eOutlinerNodeKind::projectRoot;
+	// The unparented tray is the one row that is not selectable
+	const bool bIsSelectable= node->componentId != INVALID_MIKAN_ID || bIsSyntheticSelectable;
 	if (bIsSelectable && ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
 	{
 		ProjectOutlinerNodePtr clickedNode= node;
@@ -287,9 +306,36 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 
 	switch (selectedNode->kind)
 	{
-	case eOutlinerNodeKind::projectRoot:
-		drawRootAddButtons();
-		return;
+	case eOutlinerNodeKind::folderSources:
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddUSBSource", "add_usb_source"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addUSBVideoSource(pm); });
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddNetworkSource", "add_network_source"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addNetworkVideoSource(pm); });
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddARKitSource", "add_arkit_source"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addARKitVideoSource(pm); });
+
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddClientSource", "add_client_source"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addClientTextureSource(pm); });
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddSpoutSource", "add_spout_source"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addSpoutTextureSource(pm); });
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddCEFSource", "add_cef_source"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addCEFTextureSource(pm); });
+		break;
+	case eOutlinerNodeKind::folderMarkers:
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddMarker", "add_marker"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addMarker(pm); });
+		break;
+	case eOutlinerNodeKind::folderTrackingVolumes:
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddMarkerTracking", "add_marker_tracking"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addMarkerTrackingVolume(pm); });
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddVRTracking", "add_vr_tracking"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addVRTrackingVolume(pm); });
+		break;
 	case eOutlinerNodeKind::trackingVolume:
 	{
 		const int volumeId= selectedNode->componentId;
@@ -308,19 +354,18 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		}
 		break;
 	}
-	case eOutlinerNodeKind::stage:
+	case eOutlinerNodeKind::folderCameras:
 	{
-		const int stageId= selectedNode->componentId;
-		if (ImGui::Button(locLabel("project.outlinerAddScene")))
-		{
-			deferAddAction([stageId](ProjectManagerPtr pm) { return ProjectOutlinerActions::addScene(pm, stageId); });
-		}
-		ImGui::SameLine();
+		const int stageId= selectedNode->ownerId;
 		if (ImGui::Button(locLabel("project.outlinerAddCamera")))
 		{
 			deferAddAction([stageId](ProjectManagerPtr pm) { return ProjectOutlinerActions::addCamera(pm, stageId); });
 		}
-		ImGui::SameLine();
+		break;
+	}
+	case eOutlinerNodeKind::folderLights:
+	{
+		const int stageId= selectedNode->ownerId;
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddSpotLight", "add_spot_light"))
 		{
 			deferAddAction([stageId](ProjectManagerPtr pm)
@@ -331,6 +376,15 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		{
 			deferAddAction([stageId](ProjectManagerPtr pm)
 						   { return ProjectOutlinerActions::addPixelGrid(pm, stageId); });
+		}
+		break;
+	}
+	case eOutlinerNodeKind::folderScenes:
+	{
+		const int stageId= selectedNode->ownerId;
+		if (ImGui::Button(locLabel("project.outlinerAddScene")))
+		{
+			deferAddAction([stageId](ProjectManagerPtr pm) { return ProjectOutlinerActions::addScene(pm, stageId); });
 		}
 		break;
 	}
@@ -366,39 +420,6 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 	ImGui::Separator();
 
 	drawComponentPanelForNode(selectedNode);
-}
-
-void GuiPanel_ProjectOutliner::drawRootAddButtons()
-{
-	ImGui::TextUnformatted(locText("project.outlinerSourcesGroup"));
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddUSBSource", "add_usb_source"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addUSBVideoSource(pm); });
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddNetworkSource", "add_network_source"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addNetworkVideoSource(pm); });
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddARKitSource", "add_arkit_source"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addARKitVideoSource(pm); });
-
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddClientSource", "add_client_source"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addClientTextureSource(pm); });
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddSpoutSource", "add_spout_source"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addSpoutTextureSource(pm); });
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddCEFSource", "add_cef_source"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addCEFTextureSource(pm); });
-
-	ImGui::TextUnformatted(locText("project.outlinerMarkersGroup"));
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddMarker", "add_marker"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addMarker(pm); });
-
-	ImGui::TextUnformatted(locText("project.outlinerTrackingGroup"));
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddMarkerTracking", "add_marker_tracking"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addMarkerTrackingVolume(pm); });
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddVRTracking", "add_vr_tracking"))
-		deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addVRTrackingVolume(pm); });
 }
 
 void GuiPanel_ProjectOutliner::drawSceneActorAddButtons(ProjectOutlinerNodePtr selectedNode)
@@ -510,6 +531,9 @@ ProjectOutlinerNodePtr GuiPanel_ProjectOutliner::getSelectedNode() const
 			return node;
 	}
 
+	if (ProjectOutlinerNodePtr folderNode= m_model.findFolderNode(m_selectedKind, m_selectedOwnerId))
+		return folderNode;
+
 	return m_model.getRoot();
 }
 
@@ -517,6 +541,7 @@ void GuiPanel_ProjectOutliner::setSelectedNode(ProjectOutlinerNodePtr node, bool
 {
 	m_selectedComponentId= node ? node->componentId : INVALID_MIKAN_ID;
 	m_selectedKind= node ? node->kind : eOutlinerNodeKind::projectRoot;
+	m_selectedOwnerId= node ? node->ownerId : INVALID_MIKAN_ID;
 
 	clearComponentPanels();
 	if (node)

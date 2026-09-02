@@ -14,6 +14,7 @@
 #include "ClientTextureSourceSystem.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
+#include "IconsForkAwesome.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
 #include "LocText.h"
@@ -63,6 +64,7 @@ void ProjectOutlinerModel::clear()
 	m_root.reset();
 	m_unparentedGroup.reset();
 	m_nodeIndex.clear();
+	m_folderIndex.clear();
 }
 
 void ProjectOutlinerModel::rebuild(ProjectManagerPtr projectManager)
@@ -76,32 +78,40 @@ void ProjectOutlinerModel::rebuild(ProjectManagerPtr projectManager)
 	if (!projectManager)
 		return;
 
+	// The top-level folders always exist: they host the add buttons even when empty
+	ProjectOutlinerNodePtr sourcesFolder=
+		addFolderNode(m_root, eOutlinerNodeKind::folderSources, "project.outlinerSourcesGroup");
+	ProjectOutlinerNodePtr markersFolder=
+		addFolderNode(m_root, eOutlinerNodeKind::folderMarkers, "project.outlinerMarkersGroup");
+	ProjectOutlinerNodePtr trackingVolumesFolder=
+		addFolderNode(m_root, eOutlinerNodeKind::folderTrackingVolumes, "project.outlinerTrackingGroup");
+
 	// Video sources
 	if (auto sys= projectManager->getSystemOfType<USBVideoSourceSystem>())
 		sys->visitComponents([&](USBVideoSourceComponentPtr comp)
-							 { addComponentNode(m_root, eOutlinerNodeKind::videoSource, comp); });
+							 { addComponentNode(sourcesFolder, eOutlinerNodeKind::videoSource, comp); });
 	if (auto sys= projectManager->getSystemOfType<NetworkVideoSourceSystem>())
 		sys->visitComponents([&](NetworkVideoSourceComponentPtr comp)
-							 { addComponentNode(m_root, eOutlinerNodeKind::videoSource, comp); });
+							 { addComponentNode(sourcesFolder, eOutlinerNodeKind::videoSource, comp); });
 	if (auto sys= projectManager->getSystemOfType<ARKitVideoSourceSystem>())
 		sys->visitComponents([&](ARKitVideoSourceComponentPtr comp)
-							 { addComponentNode(m_root, eOutlinerNodeKind::videoSource, comp); });
+							 { addComponentNode(sourcesFolder, eOutlinerNodeKind::videoSource, comp); });
 
 	// Texture sources
 	if (auto sys= projectManager->getSystemOfType<ClientTextureSourceSystem>())
 		sys->visitComponents([&](ClientTextureSourceComponentPtr comp)
-							 { addComponentNode(m_root, eOutlinerNodeKind::textureSource, comp); });
+							 { addComponentNode(sourcesFolder, eOutlinerNodeKind::textureSource, comp); });
 	if (auto sys= projectManager->getSystemOfType<SpoutTextureSourceSystem>())
 		sys->visitComponents([&](SpoutTextureSourceComponentPtr comp)
-							 { addComponentNode(m_root, eOutlinerNodeKind::textureSource, comp); });
+							 { addComponentNode(sourcesFolder, eOutlinerNodeKind::textureSource, comp); });
 	if (auto sys= projectManager->getSystemOfType<CEFTextureSourceSystem>())
 		sys->visitComponents([&](CEFTextureSourceComponentPtr comp)
-							 { addComponentNode(m_root, eOutlinerNodeKind::textureSource, comp); });
+							 { addComponentNode(sourcesFolder, eOutlinerNodeKind::textureSource, comp); });
 
 	// Markers
 	if (auto sys= projectManager->getSystemOfType<MarkerObjectSystem>())
 		sys->visitComponents([&](MarkerComponentPtr comp)
-							 { addComponentNode(m_root, eOutlinerNodeKind::marker, comp); });
+							 { addComponentNode(markersFolder, eOutlinerNodeKind::marker, comp); });
 
 	// Tracking volumes, with mounts under the VR volumes that own them
 	TrackingMountObjectSystemPtr mountSystem= projectManager->getSystemOfType<TrackingMountObjectSystem>();
@@ -110,7 +120,8 @@ void ProjectOutlinerModel::rebuild(ProjectManagerPtr projectManager)
 		vrVolumeSystem->visitComponents(
 			[&](VRTrackingVolumeComponentPtr volume)
 			{
-				ProjectOutlinerNodePtr volumeNode= addComponentNode(m_root, eOutlinerNodeKind::trackingVolume, volume);
+				ProjectOutlinerNodePtr volumeNode=
+					addComponentNode(trackingVolumesFolder, eOutlinerNodeKind::trackingVolume, volume);
 
 				if (mountSystem)
 				{
@@ -124,8 +135,9 @@ void ProjectOutlinerModel::rebuild(ProjectManagerPtr projectManager)
 	}
 	if (auto markerVolumeSystem= projectManager->getSystemOfType<MarkerTrackingVolumeSystem>())
 	{
-		markerVolumeSystem->visitComponents([&](MarkerTrackingVolumeComponentPtr volume)
-											{ addComponentNode(m_root, eOutlinerNodeKind::trackingVolume, volume); });
+		markerVolumeSystem->visitComponents(
+			[&](MarkerTrackingVolumeComponentPtr volume)
+			{ addComponentNode(trackingVolumesFolder, eOutlinerNodeKind::trackingVolume, volume); });
 	}
 
 	// Stages parent under their volume; one with a missing volume falls back to the root
@@ -204,12 +216,20 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 	ProjectOutlinerNodePtr stageNode= addComponentNode(parentNode, eOutlinerNodeKind::stage, stageComponent);
 	const MikanStageID stageId= stageComponent->getStageId();
 
+	// Per-stage folders, always present so their add buttons are reachable
+	ProjectOutlinerNodePtr camerasFolder=
+		addFolderNode(stageNode, eOutlinerNodeKind::folderCameras, "project.outlinerCamerasGroup", stageId);
+	ProjectOutlinerNodePtr lightsFolder=
+		addFolderNode(stageNode, eOutlinerNodeKind::folderLights, "project.outlinerLightsGroup", stageId);
+	ProjectOutlinerNodePtr scenesFolder=
+		addFolderNode(stageNode, eOutlinerNodeKind::folderScenes, "project.outlinerScenesGroup", stageId);
+
 	// Cameras. Their compositors attach in a later pass, once every camera and
 	// scene row exists to hang them from.
 	if (auto cameraSystem= projectManager->getSystemOfType<CameraObjectSystem>())
 	{
 		cameraSystem->visitComponents([&](CameraComponentPtr camera)
-									  { addComponentNode(stageNode, eOutlinerNodeKind::camera, camera); },
+									  { addComponentNode(camerasFolder, eOutlinerNodeKind::camera, camera); },
 									  [stageId](CameraComponentPtr camera)
 									  { return camera->getCameraDefinition()->getOwnerStageId() == stageId; });
 	}
@@ -219,7 +239,7 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 	{
 		lightEnvironmentSystem->visitComponents(
 			[&](LightEnvironmentComponentPtr light)
-			{ addComponentNode(stageNode, eOutlinerNodeKind::stageLight, light, "project.envPrefix"); },
+			{ addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light, "project.envPrefix"); },
 			[stageId](LightEnvironmentComponentPtr light)
 			{
 				StageComponentConstPtr ownerStage= light->getOwnerStageComponent();
@@ -230,7 +250,7 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 	{
 		spotLightSystem->visitComponents(
 			[&](RGBSpotLightComponentPtr light)
-			{ addComponentNode(stageNode, eOutlinerNodeKind::stageLight, light, "project.spotPrefix"); },
+			{ addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light, "project.spotPrefix"); },
 			[stageId](RGBSpotLightComponentPtr light)
 			{ return light->getDMXFixtureDefinition()->getOwnerStageId() == stageId; });
 	}
@@ -238,7 +258,7 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 	{
 		pixelGridSystem->visitComponents(
 			[&](RGBPixelGridComponentPtr light)
-			{ addComponentNode(stageNode, eOutlinerNodeKind::stageLight, light, "project.gridPrefix"); },
+			{ addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light, "project.gridPrefix"); },
 			[stageId](RGBPixelGridComponentPtr light)
 			{ return light->getDMXFixtureDefinition()->getOwnerStageId() == stageId; });
 	}
@@ -246,7 +266,7 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 	// Scenes attached to this stage
 	if (auto sceneSystem= projectManager->getSystemOfType<SceneObjectSystem>())
 	{
-		sceneSystem->visitComponents([&](SceneComponentPtr scene) { buildSceneSubtree(scene, stageNode); },
+		sceneSystem->visitComponents([&](SceneComponentPtr scene) { buildSceneSubtree(scene, scenesFolder); },
 									 [stageId](SceneComponentPtr scene)
 									 { return scene->getParentStageId() == stageId; });
 	}
@@ -319,18 +339,34 @@ ProjectOutlinerNodePtr ProjectOutlinerModel::addComponentNode(ProjectOutlinerNod
 	return node;
 }
 
+ProjectOutlinerNodePtr ProjectOutlinerModel::addFolderNode(ProjectOutlinerNodePtr parentNode, eOutlinerNodeKind kind,
+														   const char* labelKey, int ownerId)
+{
+	ProjectOutlinerNodePtr folderNode= std::make_shared<ProjectOutlinerNode>();
+	folderNode->kind= kind;
+	folderNode->ownerId= ownerId;
+	folderNode->displayName= std::string(ICON_FK_FOLDER " ") + locText(labelKey);
+	folderNode->parent= parentNode;
+	parentNode->children.push_back(folderNode);
+	m_folderIndex[{(int)kind, ownerId}]= folderNode;
+
+	return folderNode;
+}
+
 ProjectOutlinerNodePtr ProjectOutlinerModel::getOrCreateUnparentedGroup()
 {
 	if (!m_unparentedGroup)
 	{
-		m_unparentedGroup= std::make_shared<ProjectOutlinerNode>();
-		m_unparentedGroup->kind= eOutlinerNodeKind::unparentedGroup;
-		m_unparentedGroup->displayName= locText("project.outlinerUnparented");
-		m_unparentedGroup->parent= m_root;
-		m_root->children.push_back(m_unparentedGroup);
+		m_unparentedGroup= addFolderNode(m_root, eOutlinerNodeKind::unparentedGroup, "project.outlinerUnparented");
 	}
 
 	return m_unparentedGroup;
+}
+
+ProjectOutlinerNodePtr ProjectOutlinerModel::findFolderNode(eOutlinerNodeKind kind, int ownerId) const
+{
+	auto it= m_folderIndex.find({(int)kind, ownerId});
+	return (it != m_folderIndex.end()) ? it->second.lock() : nullptr;
 }
 
 ProjectOutlinerNodePtr ProjectOutlinerModel::findNodeByComponentId(int componentId) const

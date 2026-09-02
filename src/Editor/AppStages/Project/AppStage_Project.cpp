@@ -192,11 +192,16 @@ void AppStage_Project::update(float deltaSeconds)
 	{
 		switch (m_projectOutlinerPanel->getSelectedNodeKind())
 		{
+		case eOutlinerNodeKind::folderMarkers:
+		case eOutlinerNodeKind::folderTrackingVolumes:
 		case eOutlinerNodeKind::trackingVolume:
 		case eOutlinerNodeKind::trackingMount:
 		case eOutlinerNodeKind::marker:
 			setViewMode(eProjectViewMode::tracking);
 			break;
+		case eOutlinerNodeKind::folderSources:
+		case eOutlinerNodeKind::folderCameras:
+		case eOutlinerNodeKind::folderLights:
 		case eOutlinerNodeKind::stage:
 		case eOutlinerNodeKind::camera:
 		case eOutlinerNodeKind::stageLight:

@@ -14,6 +14,12 @@ enum class eOutlinerNodeKind : int
 	INVALID= -1,
 
 	projectRoot= 0,
+	folderSources,
+	folderMarkers,
+	folderTrackingVolumes,
+	folderCameras,
+	folderLights,
+	folderScenes,
 	unparentedGroup,
 	videoSource,
 	textureSource,
@@ -40,6 +46,9 @@ class ProjectOutlinerNode
 public:
 	eOutlinerNodeKind kind= eOutlinerNodeKind::INVALID;
 	int componentId= -1;
+	// For a folder row: the component id of the row it belongs to (the stage
+	// above a Cameras folder); -1 for the top-level folders
+	int ownerId= -1;
 	std::string systemClassName;
 	std::string componentClassName;
 	std::string displayName;
@@ -58,6 +67,9 @@ public:
 	void clear();
 
 	ProjectOutlinerNodePtr getRoot() const { return m_root; }
+	// The folder of the given kind (and owning row for per-stage folders);
+	// null when the kind is not a folder or the owner is gone
+	ProjectOutlinerNodePtr findFolderNode(eOutlinerNodeKind kind, int ownerId= -1) const;
 	ProjectOutlinerNodePtr findNodeByComponentId(int componentId) const;
 	ProjectOutlinerNodePtr findNodeBySelection(SelectionComponentConstPtr selection) const;
 	// The scene node at or above the given node; null when the node is outside
@@ -71,9 +83,13 @@ private:
 						   ProjectOutlinerNodePtr parentNode);
 	void buildSceneSubtree(SceneComponentPtr sceneComponent, ProjectOutlinerNodePtr parentNode);
 	void addSceneActorSubtree(TransformComponentPtr transformComponent, ProjectOutlinerNodePtr parentNode);
+	ProjectOutlinerNodePtr addFolderNode(ProjectOutlinerNodePtr parentNode, eOutlinerNodeKind kind,
+										 const char* labelKey, int ownerId= -1);
 	ProjectOutlinerNodePtr getOrCreateUnparentedGroup();
 
 	ProjectOutlinerNodePtr m_root;
 	ProjectOutlinerNodePtr m_unparentedGroup;
 	std::map<int, ProjectOutlinerNodeWeakPtr> m_nodeIndex;
+	// Folder rows keyed by (kind, ownerId)
+	std::map<std::pair<int, int>, ProjectOutlinerNodeWeakPtr> m_folderIndex;
 };

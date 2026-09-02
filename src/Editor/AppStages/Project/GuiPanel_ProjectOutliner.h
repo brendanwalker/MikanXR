@@ -40,7 +40,6 @@ private:
 
 	// Selected-node action strip and bound component panel
 	void drawSelectedNodeActions(ProjectOutlinerNodePtr selectedNode);
-	void drawRootAddButtons();
 	void drawSceneActorAddButtons(ProjectOutlinerNodePtr selectedNode);
 	void requestDeleteNode(ProjectOutlinerNodePtr node);
 	int getAddParentTransformId(ProjectOutlinerNodePtr selectedNode) const;
@@ -73,9 +72,11 @@ private:
 	ProjectOutlinerModel m_model;
 	bool m_bTreeDirty= true;
 
-	// Selection survives rebuilds by component id, not by node pointer
+	// Selection survives rebuilds by component id, not by node pointer. A
+	// selected folder row has no component id and keys on kind plus owner id.
 	int m_selectedComponentId= -1;
 	eOutlinerNodeKind m_selectedKind= eOutlinerNodeKind::projectRoot;
+	int m_selectedOwnerId= -1;
 	int m_pendingSelectComponentId= -1;
 
 	// Viewport pick to tree sync: scroll to the row and open the path above it
