@@ -32,6 +32,13 @@
             { "name": "select_component", "path": "icons/select_component_icon.png", "width": 20, "height": 20 }
         ]
     },
+    "delete_button": {
+        "colors": [
+            { "name": "Button",        "value": [0.48, 0.24, 0.26, 0.70] },
+            { "name": "ButtonHovered", "value": [0.65, 0.31, 0.33, 0.85] },
+            { "name": "ButtonActive",  "value": [0.70, 0.34, 0.36, 1.0] }
+        ]
+    },
     "project_outliner": {
         "labelWidth": 190,
         "valueWidth": 150,

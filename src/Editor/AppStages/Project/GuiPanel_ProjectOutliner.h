@@ -85,4 +85,5 @@ private:
 
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 	MkGuiStyleConstPtr m_outlinerGuiStyle;
+	MkGuiStyleConstPtr m_deleteButtonGuiStyle;
 };

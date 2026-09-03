@@ -439,6 +439,7 @@
 		"outlinerAddScene": "シーンを追加",
 		"outlinerAddStage": "ステージを追加",
 		"outlinerCamerasGroup": "カメラ",
+		"outlinerDeleteComponent": "コンポーネントを削除",
 		"outlinerDeleteConfirmTitle": "削除の確認",
 		"outlinerDeleteManyFmt": "%s と子オブジェクト %d 個を削除しますか?",
 		"outlinerDeleteOneFmt": "%s を削除しますか?",

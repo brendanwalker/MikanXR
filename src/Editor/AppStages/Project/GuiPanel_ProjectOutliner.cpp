@@ -86,6 +86,7 @@ bool GuiPanel_ProjectOutliner::init(ProjectGuiPanelContext* context)
 	m_sceneSystem= m_ownerAppStage->getObjectSystemOfType<SceneObjectSystem>();
 	m_defaultGuiStyle= getGuiStyleManager()->getStyle("default_component_panel");
 	m_outlinerGuiStyle= getGuiStyleManager()->getStyle("project_outliner");
+	m_deleteButtonGuiStyle= getGuiStyleManager()->getStyle("delete_button");
 
 	if (EditorObjectSystemPtr editorSystem= m_editorSystem.lock())
 	{
@@ -406,20 +407,25 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		break;
 	}
 
-	// Environment probes are camera-owned, so everything else gets a delete button
+	ImGui::Separator();
+
+	drawComponentPanelForNode(selectedNode);
+
+	// Delete closes out the panel, below the component's own function buttons,
+	// so the destructive action is not the first thing under the cursor.
+	// Environment probes are camera-owned and are deleted with their camera.
 	const bool bCanDelete= selectedNode->componentId != INVALID_MIKAN_ID
 						   && selectedNode->componentClassName != LightEnvironmentComponent::k_componentClassName;
 	if (bCanDelete)
 	{
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerDelete", "delete_component"))
+		ImGui::Separator();
+
+		MkGuiScopedStyle deleteButtonStyle(m_deleteButtonGuiStyle);
+		if (ImGui::Button(locLabel("project.outlinerDeleteComponent")))
 		{
 			requestDeleteNode(selectedNode);
 		}
 	}
-
-	ImGui::Separator();
-
-	drawComponentPanelForNode(selectedNode);
 }
 
 void GuiPanel_ProjectOutliner::drawSceneActorAddButtons(ProjectOutlinerNodePtr selectedNode)

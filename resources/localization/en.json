@@ -439,6 +439,7 @@
 		"outlinerAddScene": "Add Scene",
 		"outlinerAddStage": "Add Stage",
 		"outlinerCamerasGroup": "Cameras",
+		"outlinerDeleteComponent": "Delete Component",
 		"outlinerDeleteConfirmTitle": "Confirm Delete",
 		"outlinerDeleteManyFmt": "Delete '%s' and %d child objects?",
 		"outlinerDeleteOneFmt": "Delete '%s'?",
