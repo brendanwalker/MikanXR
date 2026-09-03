@@ -10,6 +10,7 @@
 #include "CompositorComponent.h"
 #include "DMXFixtureComponent.h"
 #include "EditorObjectSystem.h"
+#include "IconsForkAwesome.h"
 #include "IEditorWindow.h"
 #include "LightEnvironmentComponent.h"
 #include "LocText.h"
@@ -20,6 +21,7 @@
 #include "MikanObjectSystem.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiScopedDragDropSource.h"
+#include "MkGuiScopedFont.h"
 #include "MkGuiScopedStyle.h"
 #include "MkGuiStyleManager.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
@@ -84,7 +86,6 @@ bool GuiPanel_ProjectOutliner::init(ProjectGuiPanelContext* context)
 	m_projectManager= m_ownerAppStage->getProjectManager();
 	m_editorSystem= m_ownerAppStage->getObjectSystemOfType<EditorObjectSystem>();
 	m_sceneSystem= m_ownerAppStage->getObjectSystemOfType<SceneObjectSystem>();
-	m_defaultGuiStyle= getGuiStyleManager()->getStyle("default_component_panel");
 	m_outlinerGuiStyle= getGuiStyleManager()->getStyle("project_outliner");
 	m_deleteButtonGuiStyle= getGuiStyleManager()->getStyle("delete_button");
 
@@ -308,46 +309,40 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 	switch (selectedNode->kind)
 	{
 	case eOutlinerNodeKind::folderSources:
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddUSBSource", "add_usb_source"))
+		if (drawAddButton("outlinerAddUSBSource", ICON_FK_USB, "project.outlinerAddUSBSource"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addUSBVideoSource(pm); });
-		ImGui::SameLine();
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddNetworkSource", "add_network_source"))
+		if (drawAddButton("outlinerAddNetworkSource", ICON_FK_WIFI, "project.outlinerAddNetworkSource"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addNetworkVideoSource(pm); });
-		ImGui::SameLine();
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddARKitSource", "add_arkit_source"))
+		if (drawAddButton("outlinerAddARKitSource", ICON_FK_MOBILE, "project.outlinerAddARKitSource"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addARKitVideoSource(pm); });
 
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddClientSource", "add_client_source"))
+		if (drawAddButton("outlinerAddClientSource", ICON_FK_PLUG, "project.outlinerAddClientSource"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addClientTextureSource(pm); });
-		ImGui::SameLine();
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddSpoutSource", "add_spout_source"))
+		if (drawAddButton("outlinerAddSpoutSource", ICON_FK_SHARE_ALT, "project.outlinerAddSpoutSource"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addSpoutTextureSource(pm); });
-		ImGui::SameLine();
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddCEFSource", "add_cef_source"))
+		if (drawAddButton("outlinerAddCEFSource", ICON_FK_CHROME, "project.outlinerAddCEFSource"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addCEFTextureSource(pm); });
 		break;
 	case eOutlinerNodeKind::folderMarkers:
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddMarker", "add_marker"))
+		if (drawAddButton("outlinerAddMarker", ICON_FK_QRCODE, "project.outlinerAddMarker"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addMarker(pm); });
 		break;
 	case eOutlinerNodeKind::folderTrackingVolumes:
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddMarkerTracking", "add_marker_tracking"))
+		if (drawAddButton("outlinerAddMarkerTracking", ICON_FK_BULLSEYE, "project.outlinerAddMarkerTracking"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addMarkerTrackingVolume(pm); });
-		ImGui::SameLine();
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddVRTracking", "add_vr_tracking"))
+		if (drawAddButton("outlinerAddVRTracking", ICON_FK_BULLSEYE, "project.outlinerAddVRTracking"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addVRTrackingVolume(pm); });
 		break;
 	case eOutlinerNodeKind::trackingVolume:
 	{
 		const int volumeId= selectedNode->componentId;
-		if (ImGui::Button(locLabel("project.outlinerAddStage")))
+		if (drawAddButton("outlinerAddStage", ICON_FK_MAP_O, "project.outlinerAddStage"))
 		{
 			deferAddAction([volumeId](ProjectManagerPtr pm) { return ProjectOutlinerActions::addStage(pm, volumeId); });
 		}
 		if (selectedNode->componentClassName == VRTrackingVolumeComponent::k_componentClassName)
 		{
-			ImGui::SameLine();
-			if (ImGui::Button(locLabel("project.outlinerAddMount")))
+			if (drawAddButton("outlinerAddMount", ICON_FK_CROSSHAIRS, "project.outlinerAddMount"))
 			{
 				deferAddAction([volumeId](ProjectManagerPtr pm)
 							   { return ProjectOutlinerActions::addTrackingMount(pm, volumeId); });
@@ -358,7 +353,7 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 	case eOutlinerNodeKind::folderCameras:
 	{
 		const int stageId= selectedNode->ownerId;
-		if (ImGui::Button(locLabel("project.outlinerAddCamera")))
+		if (drawAddButton("outlinerAddCamera", ICON_FK_VIDEO_CAMERA, "project.outlinerAddCamera"))
 		{
 			deferAddAction([stageId](ProjectManagerPtr pm) { return ProjectOutlinerActions::addCamera(pm, stageId); });
 		}
@@ -367,13 +362,12 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 	case eOutlinerNodeKind::folderLights:
 	{
 		const int stageId= selectedNode->ownerId;
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddSpotLight", "add_spot_light"))
+		if (drawAddButton("outlinerAddSpotLight", ICON_FK_LIGHTBULB_O, "project.outlinerAddSpotLight"))
 		{
 			deferAddAction([stageId](ProjectManagerPtr pm)
 						   { return ProjectOutlinerActions::addSpotLight(pm, stageId); });
 		}
-		ImGui::SameLine();
-		if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddPixelGrid", "add_pixel_grid"))
+		if (drawAddButton("outlinerAddPixelGrid", ICON_FK_TH, "project.outlinerAddPixelGrid"))
 		{
 			deferAddAction([stageId](ProjectManagerPtr pm)
 						   { return ProjectOutlinerActions::addPixelGrid(pm, stageId); });
@@ -383,7 +377,7 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 	case eOutlinerNodeKind::folderScenes:
 	{
 		const int stageId= selectedNode->ownerId;
-		if (ImGui::Button(locLabel("project.outlinerAddScene")))
+		if (drawAddButton("outlinerAddScene", ICON_FK_SITEMAP, "project.outlinerAddScene"))
 		{
 			deferAddAction([stageId](ProjectManagerPtr pm) { return ProjectOutlinerActions::addScene(pm, stageId); });
 		}
@@ -392,11 +386,13 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 	case eOutlinerNodeKind::scene:
 	{
 		const int sceneId= selectedNode->componentId;
-		if (ImGui::Button(locLabel("project.outlinerAddCompositor")))
+		if (drawAddButton("outlinerAddCompositor", ICON_FK_CLONE, "project.outlinerAddCompositor"))
 		{
 			deferAddAction([sceneId](ProjectManagerPtr pm)
 						   { return ProjectOutlinerActions::addCompositor(pm, sceneId); });
 		}
+		// Its own row: the compositor is a scene-level output, and its button is
+		// sized for the glyph set rather than the taller actor icons
 		drawSceneActorAddButtons(selectedNode);
 		break;
 	}
@@ -428,49 +424,68 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 	}
 }
 
+bool GuiPanel_ProjectOutliner::drawAddButton(const char* fieldName, const char* glyph, const char* labelKey)
+{
+	// Square glyph button with its name alongside, one row per button. The
+	// glyph is the same one the created object will carry in the tree.
+	static constexpr float k_buttonSize= 44.f;
+	static constexpr float k_glyphSize= 28.f;
+
+	const std::string buttonLabel= std::string(glyph) + "##" + fieldName;
+
+	bool bClicked= false;
+	{
+		MkGuiScopedFont glyphFont(ImGui::GetFont(), k_glyphSize);
+		bClicked= ImGui::Button(buttonLabel.c_str(), ImVec2(k_buttonSize, k_buttonSize));
+	}
+
+	// Outside the font scope, so the label draws at the normal text size,
+	// nudged down to sit centered against the taller button
+	ImGui::SameLine();
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (k_buttonSize - ImGui::GetTextLineHeight()) * 0.5f);
+	ImGui::TextUnformatted(locText(labelKey));
+
+	return bClicked;
+}
+
 void GuiPanel_ProjectOutliner::drawSceneActorAddButtons(ProjectOutlinerNodePtr selectedNode)
 {
 	const int parentTransformId= getAddParentTransformId(selectedNode);
 	if (parentTransformId == INVALID_MIKAN_ID)
 		return;
 
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddAnchor", "add_anchor"))
+	if (drawAddButton("outlinerAddAnchor", ICON_FK_ANCHOR, "project.outlinerAddAnchor"))
 	{
 		deferAddAction([parentTransformId](ProjectManagerPtr pm)
 					   { return ProjectOutlinerActions::addAnchor(pm, parentTransformId); });
 	}
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddQuadStencil", "add_quad_stencil"))
+	if (drawAddButton("outlinerAddQuadStencil", ICON_FK_CROP, "project.outlinerAddQuadStencil"))
 	{
 		deferAddAction([parentTransformId](ProjectManagerPtr pm)
 					   { return ProjectOutlinerActions::addStencil(pm, eStencilType::quad, parentTransformId); });
 	}
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddBoxStencil", "add_box_stencil"))
+	if (drawAddButton("outlinerAddBoxStencil", ICON_FK_CROP, "project.outlinerAddBoxStencil"))
 	{
 		deferAddAction([parentTransformId](ProjectManagerPtr pm)
 					   { return ProjectOutlinerActions::addStencil(pm, eStencilType::box, parentTransformId); });
 	}
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddModelStencil", "add_model_stencil"))
+	if (drawAddButton("outlinerAddModelStencil", ICON_FK_CROP, "project.outlinerAddModelStencil"))
 	{
 		deferAddAction([parentTransformId](ProjectManagerPtr pm)
 					   { return ProjectOutlinerActions::addStencil(pm, eStencilType::model, parentTransformId); });
 	}
 
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddQuadShape", "add_quad_shape"))
+	if (drawAddButton("outlinerAddQuadShape", ICON_FK_SQUARE, "project.outlinerAddQuadShape"))
 	{
 		deferAddAction([parentTransformId](ProjectManagerPtr pm)
 					   { return ProjectOutlinerActions::addShape(pm, eShapeType::quad, parentTransformId); });
 	}
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddBoxShape", "add_box_shape"))
+	if (drawAddButton("outlinerAddBoxShape", ICON_FK_CUBE, "project.outlinerAddBoxShape"))
 	{
 		deferAddAction([parentTransformId](ProjectManagerPtr pm)
 					   { return ProjectOutlinerActions::addShape(pm, eShapeType::box, parentTransformId); });
 	}
-	ImGui::SameLine();
-	if (MkGui::drawImageButton(m_defaultGuiStyle, "outlinerAddModelShape", "add_model_shape"))
+	if (drawAddButton("outlinerAddModelShape", ICON_FK_CUBES, "project.outlinerAddModelShape"))
 	{
 		deferAddAction([parentTransformId](ProjectManagerPtr pm)
 					   { return ProjectOutlinerActions::addShape(pm, eShapeType::model, parentTransformId); });

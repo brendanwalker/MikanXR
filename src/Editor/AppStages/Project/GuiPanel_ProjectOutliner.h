@@ -41,6 +41,9 @@ private:
 	// Selected-node action strip and bound component panel
 	void drawSelectedNodeActions(ProjectOutlinerNodePtr selectedNode);
 	void drawSceneActorAddButtons(ProjectOutlinerNodePtr selectedNode);
+	// One add button per row: the glyph of the type being created, with its
+	// name beside it
+	bool drawAddButton(const char* fieldName, const char* glyph, const char* labelKey);
 	void requestDeleteNode(ProjectOutlinerNodePtr node);
 	int getAddParentTransformId(ProjectOutlinerNodePtr selectedNode) const;
 	void deferAddAction(std::function<int(ProjectManagerPtr)> addAction);
@@ -83,7 +86,6 @@ private:
 	bool m_bScrollToSelection= false;
 	std::set<int> m_scrollOpenPathIds;
 
-	MkGuiStyleConstPtr m_defaultGuiStyle;
 	MkGuiStyleConstPtr m_outlinerGuiStyle;
 	MkGuiStyleConstPtr m_deleteButtonGuiStyle;
 };
