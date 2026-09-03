@@ -38,6 +38,7 @@
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "Project/GuiPanel_ProjectOutliner.h"
+#include "Project/GuiPanel_HttpTriggers.h"
 #include "Project/GuiPanel_ProjectSettings.h"
 #include "AnchorObjectSystem.h"
 #include "BoxShapeComponent.h"
@@ -151,6 +152,9 @@ void AppStage_Project::enter()
 		m_projectSettingsPanel= addGuiPanel<GuiPanel_ProjectSettings>();
 		m_projectSettingsPanel->init(m_projectGuiPanelContext);
 
+		m_httpTriggersPanel= addGuiPanel<GuiPanel_HttpTriggers>();
+		m_httpTriggersPanel->init(m_projectGuiPanelContext);
+
 		m_projectOutlinerPanel= addGuiPanel<GuiPanel_ProjectOutliner>();
 		m_projectOutlinerPanel->init(m_projectGuiPanelContext);
 	}
@@ -168,6 +172,7 @@ void AppStage_Project::exit()
 	m_projectGuiPanelContext= nullptr;
 	m_projectOutlinerPanel= nullptr;
 	m_projectSettingsPanel= nullptr;
+	m_httpTriggersPanel= nullptr;
 
 	// Unregister all viewports from the editor
 	m_editorSystem.lock()->clearViewports();
@@ -341,6 +346,16 @@ void AppStage_Project::onGui()
 		}
 	}
 
+	// The HTTP trigger window
+	if (m_bHttpTriggersPanelVisible && m_httpTriggersPanel != nullptr)
+	{
+		MkGuiScopedWindow httpTriggersWindow(locWindowTitle("windows.httpTriggers"), &m_bHttpTriggersPanelVisible);
+		if (httpTriggersWindow)
+		{
+			m_httpTriggersPanel->onGui();
+		}
+	}
+
 	if (m_bShowLogPanel)
 	{
 		LogPanel::getInstance().draw(&m_bShowLogPanel);
@@ -384,6 +399,7 @@ void AppStage_Project::onMenuBarGui()
 	{
 		ImGui::MenuItem(locLabel("project.panelProject"), nullptr, &m_bOutlinerVisible);
 		ImGui::MenuItem(locLabel("project.panelSettings"), nullptr, &m_bSettingsPanelVisible);
+		ImGui::MenuItem(locLabel("project.panelHttpTriggers"), nullptr, &m_bHttpTriggersPanelVisible);
 		ImGui::Separator();
 		ImGui::MenuItem(locLabel("mainWindow.logPanel"), nullptr, &m_bShowLogPanel);
 		ImGui::EndMenu();
@@ -438,6 +454,7 @@ void AppStage_Project::onBuildDefaultDockLayout(unsigned int dockspaceId)
 
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.project"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.projectSettings"), rightId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.httpTriggers"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.log"), bottomId);
 }
 

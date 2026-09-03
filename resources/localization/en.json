@@ -239,7 +239,8 @@
 		"variableHeader": "Variable"
 	},
 	"httpTriggers": {
-		"noRoutesRegistered": "No HTTP trigger routes registered"
+		"noRoutesRegistered": "No HTTP trigger routes registered",
+		"serverPort": "HTTP Trigger Server Port"
 	},
 	"lightFixtureCalibration": {
 		"calibrationCompleteFmt": "Fixture '%s' position calibrated successfully.",
@@ -477,6 +478,7 @@
 		"outlinerSourcesGroup": "Sources",
 		"outlinerTrackingGroup": "Tracking Volumes",
 		"outlinerUnparented": "Unparented",
+		"panelHttpTriggers": "HTTP Triggers",
 		"panelProject": "Project",
 		"panelSettings": "Settings",
 		"puckPoseValidFmt": "Puck pose valid: %s",
@@ -501,7 +503,6 @@
 		"gridAndMeasurement": "Grid & Measurement",
 		"gridCellSize": "Grid Cell Size (m)",
 		"gridExtent": "Grid Extent (m)",
-		"httpTriggerServerPort": "HTTP Trigger Server Port",
 		"language": "Language",
 		"modelStencilDisplay": "Model Stencil Display",
 		"renderAnchors": "Render Anchors",
@@ -516,7 +517,6 @@
 		"rulerUnitMillimeters": "Millimeters",
 		"rulerUnits": "Ruler Units",
 		"scriptEditorCommand": "Script Editor Command",
-		"showHttpTriggers": "Show HTTP Triggers",
 		"snapIncrement": "Snap Increment (m)",
 		"spoutLogging": "Relay Spout Logs",
 		"spoutLoggingTooltip": "Folds Spout's own diagnostics into the log panel and MikanXR.log.\nOff (default): Spout logging is disabled entirely, and no Spout console window opens.",

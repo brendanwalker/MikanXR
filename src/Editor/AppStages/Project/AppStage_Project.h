@@ -116,10 +116,12 @@ protected:
 	// Project-level ImGui panels
 	class GuiPanel_ProjectOutliner* m_projectOutlinerPanel= nullptr;
 	class GuiPanel_ProjectSettings* m_projectSettingsPanel= nullptr;
+	class GuiPanel_HttpTriggers* m_httpTriggersPanel= nullptr;
 	eProjectViewMode m_viewMode= eProjectViewMode::INVALID;
 	// Window visibility, driven by the View menu (session-only)
 	bool m_bOutlinerVisible= true;
 	bool m_bSettingsPanelVisible= true;
+	bool m_bHttpTriggersPanelVisible= true;
 	bool m_bShowLogPanel= true;
 	// Deferred project actions: a menu click must not swap the project out from
 	// under the panels drawing this frame

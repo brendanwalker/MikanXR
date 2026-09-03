@@ -239,7 +239,8 @@
 		"variableHeader": "変数"
 	},
 	"httpTriggers": {
-		"noRoutesRegistered": "登録されたHTTPトリガールートがありません"
+		"noRoutesRegistered": "登録されたHTTPトリガールートがありません",
+		"serverPort": "HTTPトリガーサーバーポート"
 	},
 	"lightFixtureCalibration": {
 		"calibrationCompleteFmt": "フィクスチャー「%s」の位置校正が完了しました。",
@@ -477,6 +478,7 @@
 		"outlinerSourcesGroup": "ソース",
 		"outlinerTrackingGroup": "トラッキングボリューム",
 		"outlinerUnparented": "親なし",
+		"panelHttpTriggers": "HTTPトリガー",
 		"panelProject": "プロジェクト",
 		"panelSettings": "設定",
 		"puckPoseValidFmt": "パックの姿勢が有効: %s",
@@ -501,7 +503,6 @@
 		"gridAndMeasurement": "グリッドと計測",
 		"gridCellSize": "グリッドセルサイズ (m)",
 		"gridExtent": "グリッド範囲 (m)",
-		"httpTriggerServerPort": "HTTPトリガーサーバーポート",
 		"language": "言語",
 		"modelStencilDisplay": "モデルステンシル表示",
 		"renderAnchors": "アンカーを表示",
@@ -516,7 +517,6 @@
 		"rulerUnitMillimeters": "ミリメートル",
 		"rulerUnits": "ルーラー単位",
 		"scriptEditorCommand": "スクリプトエディタコマンド",
-		"showHttpTriggers": "HTTPトリガーを表示",
 		"snapIncrement": "スナップ間隔 (m)",
 		"spoutLogging": "Spoutログを転送",
 		"spoutLoggingTooltip": "Spout自身の診断メッセージをログパネルとMikanXR.logに取り込みます。\nオフ(既定): Spoutのログは無効で、Spoutのコンソールウィンドウは開きません。",

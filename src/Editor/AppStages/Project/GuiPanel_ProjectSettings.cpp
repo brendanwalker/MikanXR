@@ -3,10 +3,8 @@
 #include "AppSettingsConfig.h"
 #include "AppStage.h"
 #include "EditorObjectSystem.h"
-#include "HttpTriggerWindow.h"
 #include "LocText.h"
 #include "LocalizationManager.h"
-#include "MikanServer.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -222,39 +220,6 @@ void GuiPanel_ProjectSettings::onGui()
 		{
 			const std::string newCmd(editorBuf);
 			addDeferredGuiEvent([appSettings, newCmd]() { appSettings->setScriptEditorCommand(newCmd); });
-		}
-	}
-
-	ImGui::Separator();
-
-	// HTTP trigger server port (e.g. for Stream Deck style integrations)
-	{
-		auto appSettings= App::getInstance()->getAppSettings();
-		int httpPort= appSettings->getHttpServerPort();
-		if (ImGui::InputInt(locLabel("projectSettings.httpTriggerServerPort"), &httpPort))
-		{
-			if (httpPort < 1)
-				httpPort= 1;
-			if (httpPort > 65535)
-				httpPort= 65535;
-
-			addDeferredGuiEvent(
-				[appSettings, httpPort]()
-				{
-					appSettings->setHttpServerPort(httpPort);
-					MikanServer::getInstance()->restartHttpMessageServer(httpPort);
-				});
-		}
-
-		if (ImGui::Button(locLabel("projectSettings.showHttpTriggers")))
-		{
-			addDeferredGuiEvent(
-				[]()
-				{
-					App* app= App::getInstance();
-					if (!app->hasWindowOfType<HttpTriggerWindow>())
-						app->createAppWindow<HttpTriggerWindow>();
-				});
 		}
 	}
 
