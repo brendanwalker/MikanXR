@@ -30,8 +30,9 @@ public:
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("MikanGStreamerModule") << "Failed to init GStreamer" << error->message;
-			gst_deinit();
+			MIKAN_LOG_ERROR("MikanGStreamerModule")
+				<< "Failed to init GStreamer: " << (error != nullptr ? error->message : "unknown error");
+			g_clear_error(&error);
 		}
 
 		return m_bIsInitialized;
@@ -39,12 +40,11 @@ public:
 
 	void shutdown() override
 	{
-		// Clean up the GStreamer library
-		if (m_bIsInitialized)
-		{
-			gst_deinit();
-			m_bIsInitialized= false;
-		}
+		// Deliberately no gst_deinit() here. GStreamer's init state is process-global
+		// and shared with every other loaded plugin that uses it, and the library
+		// hard-errors if it is deinitialized a second time. Its resources are
+		// reclaimed at process exit, so no plugin tears it down.
+		m_bIsInitialized= false;
 	}
 
 	virtual INetworkVideoDeviceManagerPtr createNetworkVideoDeviceManager() override
