@@ -6,13 +6,7 @@
         "colors": [
             { "name": "Text",              "value": [0.94, 0.94, 0.94, 1.0] }
         ],
-        "textures": [
-            { "name": "add_component", "path": "icons/add_component_icon.png", "width": 20, "height": 20 },
-            { "name": "delete_component", "path": "icons/delete_component_icon.png", "width": 20, "height": 20 },
-            { "name": "edit_component", "path": "icons/edit_component_icon.png", "width": 20, "height": 20 },
-            { "name": "reload_component", "path": "icons/reload_component_icon.png", "width": 20, "height": 20 },
-            { "name": "select_component", "path": "icons/select_component_icon.png", "width": 20, "height": 20 }
-        ]
+        "textures": []
     },
     "delete_button": {
         "colors": [
