@@ -79,9 +79,10 @@ Value syntax for `property get`/`set`:
 
 ### Lua scripting (script)
 
-- `script list` replies `<system> <componentId> <scriptFile> [triggers]` per bound script context
-- `script eval <system> <componentId> <lua-code>` runs a Lua statement in the component's script context and replies what it returns (the code is the raw untokenized rest of the line, so Lua quotes pass through verbatim: `script eval SceneObjectSystem 1052 return 1+1`)
-- `script trigger <system> <componentId> <triggerName>` invokes a script trigger, the same call the HTTP trigger routes make
+- `script list` replies `<scriptId> <path> <loaded|not_loaded> [trigger,trigger]` per project script, in pool order (`-` for a script with no path set)
+- `script eval <lua-code>` runs a statement in the project's script state and replies what it returns (the code is the raw untokenized rest of the line, so Lua quotes pass through verbatim): `script eval return SceneSystem:getSceneByName("MyScene").name`
+- `script trigger <triggerName>` invokes a script trigger, the same call the HTTP trigger routes make
+- `script reload` rebuilds the project's script state, re-running every script in pool order
 
 ### Log access (log)
 

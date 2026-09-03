@@ -128,7 +128,31 @@ function CompositorObjectSystem:getCompositorCountForStage(stageId) end
 function CompositorObjectSystem:getCompositorForStageAtIndex(stageId, index) end
 
 ------------------------------------------------------------------------
--- ModelStencilSystem — global singleton injected by ComponentScriptContext
+-- Globals injected by ProjectScriptContext
+------------------------------------------------------------------------
+
+--- The CameraObjectSystem singleton.
+---@type CameraObjectSystem
+CameraSystem = nil
+
+--- The SceneObjectSystem singleton.
+---@type SceneObjectSystem
+SceneSystem = nil
+
+--- The AnchorObjectSystem singleton.
+---@type AnchorObjectSystem
+AnchorSystem = nil
+
+--- The CompositorObjectSystem singleton.
+---@type CompositorObjectSystem
+CompositorSystem = nil
+
+--- The DMXObjectSystem singleton.
+---@type DMXObjectSystem
+DMXSystem = nil
+
+------------------------------------------------------------------------
+-- ModelStencilSystem — global singleton injected by ProjectScriptContext
 ------------------------------------------------------------------------
 
 ---@class ModelStencilSystem
@@ -150,7 +174,7 @@ function ModelStencilSystem:getModelStencilCount() end
 function ModelStencilSystem:getModelStencilAtIndex(index) end
 
 ------------------------------------------------------------------------
--- BoxStencilSystem — global singleton injected by ComponentScriptContext
+-- BoxStencilSystem — global singleton injected by ProjectScriptContext
 ------------------------------------------------------------------------
 
 ---@class BoxStencilSystem
@@ -172,7 +196,7 @@ function BoxStencilSystem:getBoxStencilCount() end
 function BoxStencilSystem:getBoxStencilAtIndex(index) end
 
 ------------------------------------------------------------------------
--- QuadStencilSystem — global singleton injected by ComponentScriptContext
+-- QuadStencilSystem — global singleton injected by ProjectScriptContext
 ------------------------------------------------------------------------
 
 ---@class QuadStencilSystem

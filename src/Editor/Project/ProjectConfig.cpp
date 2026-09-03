@@ -23,6 +23,7 @@
 #include "RGBPixelGridSystem.h"
 #include "LightEnvironmentSystem.h"
 #include "SceneObjectSystem.h"
+#include "ScriptObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
 #include "CEFTextureSourceSystem.h"
@@ -90,6 +91,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 		addTypedDefinition<RGBPixelGridSystemDefinition, RGBPixelGridSystem>(persistentIDAllocator);
 	lightEnvironmentSystemDefinition=
 		addTypedDefinition<LightEnvironmentSystemDefinition, LightEnvironmentSystem>(persistentIDAllocator);
+	scriptSystemDefinition= addTypedDefinition<ScriptObjectSystemDefinition, ScriptObjectSystem>(persistentIDAllocator);
 
 	// Create object system definitions for the runtime only components, using the transient ID allocator
 	vrObjectConfig= addTypedDefinition<VRObjectSystemDefinition, VRObjectSystem>(transientIDAllocator);

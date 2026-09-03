@@ -39,6 +39,8 @@
 #include "RGBSpotLightSystem.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
+#include "ScriptComponent.h"
+#include "ScriptObjectSystem.h"
 #include "SelectionComponent.h"
 #include "ShapeComponent.h"
 #include "StageComponent.h"
@@ -94,6 +96,10 @@ static const char* pickNodeIcon(eOutlinerNodeKind kind, const std::string& compo
 		return ICON_FK_CUBE;
 	if (componentClassName == ModelShapeComponent::k_componentClassName)
 		return ICON_FK_CUBES;
+
+	// Project scripts
+	if (componentClassName == ScriptComponent::k_componentClassName)
+		return ICON_FK_FILE_CODE_O;
 
 	switch (kind)
 	{
@@ -152,6 +158,8 @@ void ProjectOutlinerModel::rebuild(ProjectManagerPtr projectManager)
 		addFolderNode(m_root, eOutlinerNodeKind::folderMarkers, "project.outlinerMarkersGroup");
 	ProjectOutlinerNodePtr trackingVolumesFolder=
 		addFolderNode(m_root, eOutlinerNodeKind::folderTrackingVolumes, "project.outlinerTrackingGroup");
+	ProjectOutlinerNodePtr scriptsFolder=
+		addFolderNode(m_root, eOutlinerNodeKind::folderScripts, "project.outlinerScriptsGroup");
 
 	// Video sources
 	if (auto sys= projectManager->getSystemOfType<USBVideoSourceSystem>())
@@ -206,6 +214,11 @@ void ProjectOutlinerModel::rebuild(ProjectManagerPtr projectManager)
 			[&](MarkerTrackingVolumeComponentPtr volume)
 			{ addComponentNode(trackingVolumesFolder, eOutlinerNodeKind::trackingVolume, volume); });
 	}
+
+	// Project scripts
+	if (auto sys= projectManager->getSystemOfType<ScriptObjectSystem>())
+		sys->visitComponents([&](ScriptComponentPtr comp)
+							 { addComponentNode(scriptsFolder, eOutlinerNodeKind::script, comp); });
 
 	// Stages parent under their volume; one with a missing volume falls back to the root
 	if (auto stageSystem= projectManager->getSystemOfType<StageObjectSystem>())

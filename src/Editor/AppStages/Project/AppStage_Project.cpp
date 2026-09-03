@@ -214,6 +214,8 @@ void AppStage_Project::update(float deltaSeconds)
 		case eOutlinerNodeKind::textureSource:
 			setViewMode(eProjectViewMode::stage);
 			break;
+		case eOutlinerNodeKind::folderScripts:
+		case eOutlinerNodeKind::script:
 		default:
 			setViewMode(eProjectViewMode::scene);
 			break;

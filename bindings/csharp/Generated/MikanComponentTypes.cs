@@ -8,7 +8,6 @@ namespace MikanXR
 	{
 		public int component_id;
 		public string component_name;
-		public string component_script;
 	};
 
 }

@@ -5,8 +5,7 @@
 #include "AutomationProtocol.h"
 #include "AutomationSocket.h"
 #include "AutomationVariantText.h"
-#include "CommonScriptContext.h"
-#include "ComponentScriptContext.h"
+#include "ProjectScriptContext.h"
 #include "CompositorObjectSystem.h"
 #include "FunctionDatabaseEnumerator.h"
 #include "IMkTexture.h"
@@ -21,6 +20,8 @@
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "PropertyDatabaseEnumerator.h"
+#include "ScriptComponent.h"
+#include "ScriptObjectSystem.h"
 #include "ScriptRequestHandler.h"
 
 #include "Graphs/NodeGraph.h"
@@ -238,8 +239,7 @@ void AutomationServer::registerCoreNamespaces()
 							 std::bind(&AutomationServer::handleScreenshotCommand, this, _1, _2, _3));
 
 	registerCommandNamespace("script",
-							 {"script list", "script eval <system> <componentId> <lua-code>",
-							  "script trigger <system> <componentId> <triggerName>"},
+							 {"script list", "script eval <lua-code>", "script trigger <triggerName>", "script reload"},
 							 std::bind(&AutomationServer::handleScriptCommand, this, _1, _2, _3));
 
 	registerCommandNamespace("log", {"log tail <lineCount> [trace|debug|info|warning|error|fatal]"},
@@ -1082,73 +1082,63 @@ bool AutomationServer::handleScriptCommand(const std::vector<std::string>& args,
 {
 	if (args.empty())
 	{
-		outError= "usage: script list|eval|trigger ...";
+		outError= "usage: script list|eval|trigger|reload ...";
 		return false;
 	}
 
 	const std::string& verb= args[0];
 
+	ScriptObjectSystemPtr scriptSystem= m_mainWindow->getProjectManager()->getSystemOfType<ScriptObjectSystem>();
+	if (!scriptSystem)
+	{
+		outError= "no script system";
+		return false;
+	}
+
 	if (verb == "list")
 	{
-		std::vector<CommonScriptContextPtr> scriptContexts;
-		m_mainWindow->getMikanServer()->getScriptRequestHandler()->getBoundScriptContexts(scriptContexts);
-
-		for (const CommonScriptContextPtr& scriptContext : scriptContexts)
+		// One line per project script, in the order the scripts run
+		for (ScriptDefinitionPtr definition : scriptSystem->getTypedDefinitionConst()->getAllDefinitions())
 		{
-			// Component-owned contexts report their command target; other
-			// contexts have no address and list as "- -1"
-			std::string systemName= "-";
-			int componentId= -1;
-			auto componentContext= std::dynamic_pointer_cast<ComponentScriptContext>(scriptContext);
-			if (componentContext)
-			{
-				MikanComponentPtr ownerComponent= componentContext->getOwnerComponent();
-				if (ownerComponent)
-				{
-					systemName= ownerComponent->getOwnerObject()->getOwnerSystem()->getObjectSystemClassName();
-					componentId= ownerComponent->getComponentId();
-				}
-			}
+			ScriptComponentPtr script= scriptSystem->getTypedComponentById(definition->getScriptId());
+			if (!script)
+				continue;
 
+			std::vector<std::string> triggerNames;
+			script->getTriggerNames(triggerNames);
 			std::string triggers;
-			for (const std::string& trigger : scriptContext->getScriptTriggers())
+			for (const std::string& trigger : triggerNames)
 			{
 				if (!triggers.empty())
 					triggers+= ",";
 				triggers+= trigger;
 			}
 
-			outLines.push_back(systemName + " " + std::to_string(componentId) + " "
-							   + scriptContext->getScriptFilename().string()
+			const std::string path= definition->getScriptPath().generic_string();
+			outLines.push_back(std::to_string(script->getComponentId()) + " " + (path.empty() ? "-" : path) + " "
+							   + (script->isScriptLoaded() ? "loaded" : "not_loaded")
 							   + (triggers.empty() ? "" : " " + triggers));
 		}
 
 		return true;
 	}
+	else if (verb == "reload")
+	{
+		scriptSystem->reloadAllScripts();
+		return true;
+	}
 	else if (verb == "eval" || verb == "trigger")
 	{
-		if (args.size() < 4)
+		if (args.size() < 2)
 		{
-			outError= "usage: script " + verb + " <system> <componentId> "
-					  + (verb == "eval" ? "<lua-code>" : "<triggerName>");
+			outError= "usage: script " + verb + " " + (verb == "eval" ? "<lua-code>" : "<triggerName>");
 			return false;
 		}
 
-		MikanObjectSystemPtr objectSystem;
-		MikanComponentPtr component;
-		if (!resolveCommandTarget(m_mainWindow, args[1], args[2], objectSystem, component, outError))
-			return false;
-
-		if (!component)
-		{
-			outError= "script commands target a component, not a system";
-			return false;
-		}
-
-		CommonScriptContextPtr scriptContext= component->getScriptContext();
+		CommonScriptContextPtr scriptContext= scriptSystem->getScriptContext();
 		if (!scriptContext)
 		{
-			outError= "component has no script context";
+			outError= "no project script state loaded";
 			return false;
 		}
 
@@ -1156,7 +1146,7 @@ bool AutomationServer::handleScriptCommand(const std::vector<std::string>& args,
 		{
 			// Take the code as the raw untokenized tail of the command line,
 			// so Lua quotes and spacing arrive verbatim
-			const std::string code= AutomationProtocol::remainderAfterTokens(m_currentCommandLine, 4);
+			const std::string code= AutomationProtocol::remainderAfterTokens(m_currentCommandLine, 2);
 
 			std::string result;
 			if (!scriptContext->evalString(code, result))
@@ -1171,7 +1161,7 @@ bool AutomationServer::handleScriptCommand(const std::vector<std::string>& args,
 		}
 		else
 		{
-			const std::string& triggerName= args[3];
+			const std::string& triggerName= args[1];
 			if (!scriptContext->invokeScriptTrigger(triggerName))
 			{
 				outError= "trigger '" + triggerName + "' failed or does not exist";

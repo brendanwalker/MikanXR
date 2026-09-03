@@ -104,7 +104,7 @@ The editor is instrumented with easy_profiler (`EASY_FUNCTION()` / `EASY_BLOCK()
 
 - **Automation server.** A loopback TCP text command channel on port 21120 for driving and inspecting a running `Mikan.exe`: stage control, property read/write, function invokes, screenshots, Lua eval, and log tail. See [automation.md](./automation.md).
 
-- **Lua debugger.** `LuaDebugServer` listens on TCP 21110 (LRDB protocol, VSCode `vscode-lrdb` extension). Attach from VSCode and set breakpoints in component `.lua` files; `lrdb_break()` forces a programmatic break. Details in [scripting.md](./scripting.md).
+- **Lua debugger.** `LuaDebugServer` listens on TCP 21110 (LRDB protocol, VSCode `vscode-lrdb` extension). Attach from VSCode and set breakpoints in any project script file; there is no manual attach step, since the project's script context attaches itself when its Lua state is created. `lrdb_break()` forces a programmatic break. Details in [scripting.md](./scripting.md).
 
 - **Lua errors.** Script failures are logged with full Lua tracebacks (`CommonScriptContext::checkLuaResult`), and the failing script's state is disposed rather than left half-broken.
 

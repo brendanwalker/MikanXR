@@ -19,6 +19,7 @@
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "SceneObjectSystem.h"
+#include "ScriptObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
 #include "CEFTextureSourceSystem.h"
 #include "BoxShapeSystem.h"
@@ -85,6 +86,8 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<RGBSpotLightSystem>();
 	addSystem<RGBPixelGridSystem>();
 	addSystem<LightEnvironmentSystem>();
+	// Last: scripts look up the other systems' objects by name when they load
+	addSystem<ScriptObjectSystem>();
 
 	// Gather all property descriptors from all the systems and add them to the database
 	for (int i= 0; i < (int)m_systems.size(); i++)

@@ -25,6 +25,7 @@
 #include "RGBPixelGridSystem.h"
 #include "RGBSpotLightSystem.h"
 #include "SceneObjectSystem.h"
+#include "ScriptObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
 #include "StageObjectSystem.h"
 #include "TrackingMountComponent.h"
@@ -336,6 +337,12 @@ int addShape(ProjectManagerPtr projectManager, eShapeType shapeType, int parentT
 	default:
 		return INVALID_MIKAN_ID;
 	}
+}
+
+int addScript(ProjectManagerPtr projectManager)
+{
+	auto sys= projectManager->getSystemOfType<ScriptObjectSystem>();
+	return sys ? componentIdOrInvalid(sys->addNewScript()) : INVALID_MIKAN_ID;
 }
 
 int countSubtreeObjects(ProjectOutlinerNodeConstPtr node)

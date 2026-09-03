@@ -127,6 +127,9 @@ function Quatf:normalize() end
 ------------------------------------------------------------------------
 
 ---@class ScriptContext
+--- All project scripts share one Lua state. `registerTrigger`, `registerMessageHandler`,
+--- and `registerHttpTrigger` attribute the registration to whichever script file is
+--- currently being loaded.
 ScriptContext = {}
 
 --- Register a global Lua function as a trigger.

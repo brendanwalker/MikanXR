@@ -111,7 +111,7 @@ Subdirectories (each is a source group, not a separate target):
 
 - `Delegates`: header-only `SinglecastDelegate`/`MulticastDelegate`.
 
-- `ECS` holds the entity/component scene representation, one folder per object system: `Anchor`, `Camera`, `Collision`, `Compositor`, `Editor`, `Light`, `Marker`, `Scene`, `Shape`, `Stage`, `Stencil`, `TextureSource`, `TrackingMount`, `TrackingVolume`, `VideoSource`, `VRObject`. Device-backed systems here load the plugins. See [objects.md](./objects.md) and [compositor.md](./compositor.md).
+- `ECS` holds the entity/component scene representation, one folder per object system: `Anchor`, `Camera`, `Collision`, `Compositor`, `Editor`, `Light`, `Marker`, `Scene`, `Script`, `Shape`, `Stage`, `Stencil`, `TextureSource`, `TrackingMount`, `TrackingVolume`, `VideoSource`, `VRObject`. Device-backed systems here load the plugins. See [objects.md](./objects.md) and [compositor.md](./compositor.md).
 
 - `Events`: `EventBus`.
 
@@ -129,7 +129,7 @@ Subdirectories (each is a source group, not a separate target):
 
 - `Renderer` builds editor viewport rendering on top of `MikanRenderer`: `MikanCamera`, line renderer, model resource manager, shader cache.
 
-- `Scripting`: Lua script contexts (LuaBridge3 bindings, `LuaDebugServer` via lrdb).
+- `Scripting`: the project script context (LuaBridge3 bindings, `LuaDebugServer` via lrdb).
 
 - `Server` is the RPC surface: `MikanServer` plus per-domain `IServerRequestHandler` implementations (`CameraRequestHandler`, `StageRequestHandler`, `StencilRequestHandler`, `VideoSourceRequestHandler`, `MarkerRequestHandler`, `LightRequestHandler`, `PropertyRequestHandler`, `ScriptRequestHandler`, `ShapeRequestHandler`, `TextureSourceRequestHandler`, `FunctionRequestHandler`), `RemoteControlManager`/`IRemoteControllable`, and `Test/` (unit tests run by `MikanCmd -runTests`).
 

@@ -74,6 +74,7 @@ public:
 	RGBSpotLightSystemDefinitionPtr rgbSpotLightSystemDefinition;
 	RGBPixelGridSystemDefinitionPtr rgbPixelGridSystemDefinition;
 	LightEnvironmentSystemDefinitionPtr lightEnvironmentSystemDefinition;
+	ScriptObjectSystemDefinitionPtr scriptSystemDefinition;
 
 protected:
 	// Max transient component ID (used for runtime-only components that aren't saved to the project file)

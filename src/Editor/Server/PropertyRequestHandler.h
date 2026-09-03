@@ -4,7 +4,6 @@
 #include "ComponentFwd.h"
 #include "IServerRequestHandler.h"
 #include "ObjectSystemConfigFwd.h"
-#include "ScriptingFwd.h"
 
 class PropertyRequestHandler : public IServerRequestHandler
 {
@@ -44,5 +43,4 @@ protected:
 
 private:
 	ProjectConfigWeakPtr m_projectConfig;
-	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
 };

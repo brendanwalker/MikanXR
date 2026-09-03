@@ -91,6 +91,10 @@ class QuadStencilSystem;
 using QuadStencilSystemPtr= std::shared_ptr<QuadStencilSystem>;
 using QuadStencilSystemWeakPtr= std::weak_ptr<QuadStencilSystem>;
 
+class ScriptObjectSystem;
+using ScriptObjectSystemPtr= std::shared_ptr<ScriptObjectSystem>;
+using ScriptObjectSystemWeakPtr= std::weak_ptr<ScriptObjectSystem>;
+
 class TrackingMountObjectSystem;
 using TrackingMountObjectSystemPtr= std::shared_ptr<TrackingMountObjectSystem>;
 using TrackingMountObjectSystemWeakPtr= std::weak_ptr<TrackingMountObjectSystem>;

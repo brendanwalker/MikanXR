@@ -17,6 +17,7 @@
 #include "Marker/MarkerComponent.h"
 #include "Scene/SceneComponent.h"
 #include "Scene/TransformComponent.h"
+#include "Script/ScriptComponent.h"
 #include "Shape/BoxShapeComponent.h"
 #include "Shape/ModelShapeComponent.h"
 #include "Shape/QuadShapeComponent.h"
@@ -40,11 +41,10 @@ namespace
 // Properties excluded from the drive across every class, each with a reason:
 // - transform relative_*/parent and component_name: the definition write is
 //   gated on component init, and reparenting needs a live project
-// - component_script: routes through the script asset system
 // - compositor_graph_path: rebuilding the node graph needs a live renderer
 static const std::set<std::string> k_skippedPropertyNames= {
-	"relative_scale",      "relative_quaternion", "relative_rotation", "relative_position",
-	"parent_transform_id", "component_name",      "component_script",  "compositor_graph_path",
+	"relative_scale",      "relative_quaternion", "relative_rotation",     "relative_position",
+	"parent_transform_id", "component_name",      "compositor_graph_path",
 };
 
 // (class, property) pairs where a successful set is known not to notify,
@@ -170,6 +170,7 @@ static const GuardTestEntry k_guardTestEntries[]= {
 	GUARD_ENTRY(RGBSpotLightComponent, RGBSpotLightDefinition),
 	GUARD_ENTRY(MarkerComponent, MarkerDefinition),
 	GUARD_ENTRY(SceneComponent, SceneComponentDefinition),
+	GUARD_ENTRY(ScriptComponent, ScriptDefinition),
 	GUARD_ENTRY(StageComponent, StageComponentDefinition),
 	GUARD_ENTRY(BoxShapeComponent, BoxShapeDefinition),
 	GUARD_ENTRY(ModelShapeComponent, ModelShapeDefinition),

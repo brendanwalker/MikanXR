@@ -112,6 +112,11 @@ using QuadStencilSystemDefinitionPtr= std::shared_ptr<QuadStencilSystemDefinitio
 using QuadStencilSystemDefinitionConstPtr= std::shared_ptr<const QuadStencilSystemDefinition>;
 using QuadStencilSystemDefinitionWeakPtr= std::weak_ptr<QuadStencilSystemDefinition>;
 
+class ScriptObjectSystemDefinition;
+using ScriptObjectSystemDefinitionPtr= std::shared_ptr<ScriptObjectSystemDefinition>;
+using ScriptObjectSystemDefinitionConstPtr= std::shared_ptr<const ScriptObjectSystemDefinition>;
+using ScriptObjectSystemDefinitionWeakPtr= std::weak_ptr<ScriptObjectSystemDefinition>;
+
 class TrackingMountObjectSystemDefinition;
 using TrackingMountObjectSystemDefinitionPtr= std::shared_ptr<TrackingMountObjectSystemDefinition>;
 using TrackingMountObjectSystemDefinitionConstPtr= std::shared_ptr<const TrackingMountObjectSystemDefinition>;

@@ -209,6 +209,13 @@ bool MainWindow::startup()
 
 	if (success)
 	{
+		// Start the Lua remote debug server (non-blocking) before the first
+		// project loads, since the project script context attaches on load
+		LuaDebugServer::getInstance()->startListening();
+	}
+
+	if (success)
+	{
 		bool ok= false;
 		MIKAN_TIMED_STARTUP("projectManager::startup", ok= m_projectManager->startup(this));
 		if (!ok)
@@ -238,13 +245,6 @@ bool MainWindow::startup()
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
 			success= false;
 		}
-	}
-
-	if (success)
-	{
-		// Start the Lua remote debug server (non-blocking; attach a script
-		// context via LuaDebugServer::getInstance()->attach() from the UI)
-		LuaDebugServer::getInstance()->startListening();
 	}
 
 	if (success && !m_ownerApp->hasCommandLineFlag("noAutomationServer"))

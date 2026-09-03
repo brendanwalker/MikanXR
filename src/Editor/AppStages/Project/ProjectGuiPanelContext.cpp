@@ -14,6 +14,7 @@
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "Shared/GuiPanel_SceneComponent.h"
+#include "Shared/GuiPanel_ScriptComponent.h"
 #include "Shared/GuiPanel_CEFTextureSourceComponent.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
 #include "Shared/GuiPanel_RGBPixelGridComponent.h"
@@ -107,6 +108,9 @@ bool ProjectGuiPanelContext::init()
 
 	m_trackingMountPanel= m_ownerAppStage->addGuiPanel<GuiPanel_TrackingMountComponent>();
 	m_trackingMountPanel->init();
+
+	m_scriptPanel= m_ownerAppStage->addGuiPanel<GuiPanel_ScriptComponent>();
+	m_scriptPanel->init();
 
 	m_usbVideoSourcePanel= m_ownerAppStage->addGuiPanel<GuiPanel_USBVideoSourceComponent>();
 	m_usbVideoSourcePanel->init();

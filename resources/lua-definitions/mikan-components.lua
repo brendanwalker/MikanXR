@@ -275,7 +275,7 @@ function CompositorComponent:editCompositorGraph() end
 function CompositorComponent:getOwnerStage() end
 
 ------------------------------------------------------------------------
--- QuadShapeSystem — singleton injected by ComponentScriptContext
+-- QuadShapeSystem — singleton injected by ProjectScriptContext
 ------------------------------------------------------------------------
 
 ---@class QuadShapeSystem
@@ -301,7 +301,7 @@ function QuadShapeSystem:getQuadShapeCount() end
 function QuadShapeSystem:getQuadShapeAtIndex(index) end
 
 ------------------------------------------------------------------------
--- BoxShapeSystem — singleton injected by ComponentScriptContext
+-- BoxShapeSystem — singleton injected by ProjectScriptContext
 ------------------------------------------------------------------------
 
 ---@class BoxShapeSystem
@@ -327,7 +327,7 @@ function BoxShapeSystem:getBoxShapeCount() end
 function BoxShapeSystem:getBoxShapeAtIndex(index) end
 
 ------------------------------------------------------------------------
--- ModelShapeSystem — singleton injected by ComponentScriptContext
+-- ModelShapeSystem — singleton injected by ProjectScriptContext
 ------------------------------------------------------------------------
 
 ---@class ModelShapeSystem
@@ -353,12 +353,8 @@ function ModelShapeSystem:getModelShapeCount() end
 function ModelShapeSystem:getModelShapeAtIndex(index) end
 
 ------------------------------------------------------------------------
--- Global injected by ComponentScriptContext
+-- Global injected by ProjectScriptContext
 ------------------------------------------------------------------------
-
---- The component this script is attached to.
----@type MikanComponent
-ownerComponent = nil
 
 --- The QuadShapeSystem singleton.
 ---@type QuadShapeSystem
