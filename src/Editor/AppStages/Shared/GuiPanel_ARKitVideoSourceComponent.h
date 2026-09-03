@@ -5,7 +5,7 @@
 
 // basePort is a plain int, rendered by the generic IPropertyInterface renderer
 // without help - this class exists only for drawCompactGui()'s per-source-row
-// summary used by GuiPanel_ProjectSources, not for any custom property rendering.
+// summary used by the project outliner, not for any custom property rendering.
 class GuiPanel_ARKitVideoSourceComponent : public GuiPanel_MikanComponent
 {
 public:

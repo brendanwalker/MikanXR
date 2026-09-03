@@ -2,6 +2,7 @@
 #include "AssetReferencePropertyMetaData.h"
 #include "GuiPanel_MikanComponent.h"
 #include "ComponentScriptContext.h"
+#include "IconsForkAwesome.h"
 #include "LocText.h"
 #include "MikanComponent.h"
 #include "MkGuiStyleManager.h"
@@ -73,27 +74,21 @@ void GuiPanel_MikanComponent::onConstruct()
 					addDeferredGuiEvent([component]() { component->selectComponentScript(); });
 				}
 
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "", "");
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(m_defaultGuiStyle,
-										   component->makePropertyUIIdentifier(MikanComponent::k_editScriptFunctionId),
-										   "edit_component"))
+				if (MkGui::drawGlyphButtonWithLabel(
+						component->makePropertyUIIdentifier(MikanComponent::k_editScriptFunctionId), ICON_FK_PENCIL,
+						locText("componentPanel.editScript")))
 				{
 					addDeferredGuiEvent([component]() { component->editComponentScript(); });
 				}
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
-						component->makePropertyUIIdentifier(MikanComponent::k_reloadScriptFunctionId),
-						"reload_component"))
+				if (MkGui::drawGlyphButtonWithLabel(
+						component->makePropertyUIIdentifier(MikanComponent::k_reloadScriptFunctionId), ICON_FK_REFRESH,
+						locText("componentPanel.reloadScript")))
 				{
 					addDeferredGuiEvent([component]() { component->reloadComponentScript(); });
 				}
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
-						component->makePropertyUIIdentifier(MikanComponent::k_removeScriptFunctionId),
-						"delete_component"))
+				if (MkGui::drawGlyphButtonWithLabel(
+						component->makePropertyUIIdentifier(MikanComponent::k_removeScriptFunctionId), ICON_FK_TRASH_O,
+						locText("componentPanel.deleteScript")))
 				{
 					addDeferredGuiEvent([component]() { component->removeComponentScript(); });
 				}
@@ -102,18 +97,16 @@ void GuiPanel_MikanComponent::onConstruct()
 			{
 				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.script"),
 											  locText("componentPanel.noScript"));
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
-						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId), "add_component"))
+
+				if (MkGui::drawGlyphButtonWithLabel(
+						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId), ICON_FK_PLUS,
+						locText("componentPanel.addScript")))
 				{
 					addDeferredGuiEvent([component]() { component->addNewComponentScript(); });
 				}
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
+				if (MkGui::drawGlyphButtonWithLabel(
 						component->makePropertyUIIdentifier(MikanComponent::k_selectScriptFunctionId),
-						"select_component"))
+						ICON_FK_FOLDER_OPEN, locText("componentPanel.selectScript")))
 				{
 					addDeferredGuiEvent([component]() { component->selectComponentScript(); });
 				}
@@ -127,14 +120,6 @@ void GuiPanel_MikanComponent::onGui()
 {
 	MikanComponentPtr component= m_component.lock();
 	if (!component)
-		return;
-
-	// One collapsible section per component, titled with the component's own
-	// name. The id is the class name so the open/closed state follows the kind
-	// of component rather than resetting when the user renames one.
-	const std::string sectionLabel= component->getName() + "##" + component->getComponentClassName();
-	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	if (!ImGui::CollapsingHeader(sectionLabel.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth))
 		return;
 
 	// Auto-render all component properties

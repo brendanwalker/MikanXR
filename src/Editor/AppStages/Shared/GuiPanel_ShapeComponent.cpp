@@ -5,6 +5,7 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "GuiDataSource_ComboBox.h"
+#include "IconsForkAwesome.h"
 #include "LocText.h"
 #include "MikanCoreTypes.h"
 #include "QuadShapeComponent.h"
@@ -93,20 +94,15 @@ void GuiPanel_ShapeComponent::onConstruct()
 					addDeferredGuiEvent([shapeComponent]() { shapeComponent->selectShapeGraph(); });
 				}
 
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "", "");
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
+				if (MkGui::drawGlyphButtonWithLabel(
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_editShapeGraphFunctionId),
-						"edit_component"))
+						ICON_FK_PENCIL, locText("componentPanel.editGraph")))
 				{
 					addDeferredGuiEvent([shapeComponent]() { shapeComponent->editShapeGraph(); });
 				}
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
+				if (MkGui::drawGlyphButtonWithLabel(
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_removeShapeGraphFunctionId),
-						"delete_component"))
+						ICON_FK_TRASH_O, locText("componentPanel.deleteGraph")))
 				{
 					addDeferredGuiEvent([shapeComponent]() { shapeComponent->removeShapeGraph(); });
 				}
@@ -115,19 +111,16 @@ void GuiPanel_ShapeComponent::onConstruct()
 			{
 				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.graph"),
 											  locText("componentPanel.noGraph"));
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
+
+				if (MkGui::drawGlyphButtonWithLabel(
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId),
-						"add_component"))
+						ICON_FK_PLUS, locText("componentPanel.addGraph")))
 				{
 					addDeferredGuiEvent([shapeComponent]() { shapeComponent->addNewShapeGraph(); });
 				}
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
+				if (MkGui::drawGlyphButtonWithLabel(
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_selectShapeGraphFunctionId),
-						"select_component"))
+						ICON_FK_FOLDER_OPEN, locText("componentPanel.selectGraph")))
 				{
 					addDeferredGuiEvent([shapeComponent]() { shapeComponent->selectShapeGraph(); });
 				}

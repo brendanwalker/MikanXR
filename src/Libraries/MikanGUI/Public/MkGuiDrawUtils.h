@@ -40,6 +40,12 @@ MIKAN_GUI_FUNC(void) drawImageProperty(MkGuiStyleConstPtr style, const std::stri
 MIKAN_GUI_FUNC(void) drawImage(IMkTextureConstPtr image, float width, float height);
 MIKAN_GUI_FUNC(bool) drawImageButton(MkGuiStyleConstPtr style, const std::string& fieldName,
 									 const std::string& imageName);
+// A square icon-font button with its action named alongside it. A button or
+// glyph size <= 0 falls back to the current row height and font size, which is
+// what a property panel wants; callers pass explicit sizes for larger buttons.
+MIKAN_GUI_FUNC(bool)
+drawGlyphButtonWithLabel(const std::string& fieldName, const std::string& glyph, const std::string& label,
+						 float buttonSize= 0.f, float glyphSize= 0.f);
 
 class MIKAN_GUI_CLASS ComboBoxDataSource
 {

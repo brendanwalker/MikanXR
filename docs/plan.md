@@ -19,12 +19,14 @@ The living plan: what is in flight now, what comes next, and the open questions.
 
 ## Later
 
+- [ ] Project outliner: single-undo cascade delete. Deleting a subtree today records one transaction per object, child-first, which undoes correctly in reverse but takes N undo steps. Merging them needs `TransactionHistory` to append destroy ops into an open gesture instead of sealing on each (`m_pendingDestroyOp` is a single op today); verify with the `history` automation commands before keeping it.
 - [ ] Scene lighting: decide whether a single global probe suffices or region-of-interest probes near the character are needed. `LightEnvironmentComponent` already carries a world position, so this needs no wire-format change. Answerable only from the end-to-end look in Unreal.
 - [ ] Scene lighting: calibrate the exposure scalar automatically instead of by hand per shoot.
 - [ ] Depth proxy mesh: refine residual metric scale against tracked anchors or the floor plane, so a capture needs no ArUco marker in frame.
 - [ ] Depth proxy mesh: occlusion-grade silhouette edges. The current proxy is a shadow catcher; it cannot occlude a character walking behind real furniture.
 - [ ] Stereo calibration: `MikanStereoIntrinsics` and the rectification math exist but no stereo calibration AppStage does.
 - [ ] Video recording: `eSupportedCodec` in `CompositorConstants.h` is defined but nothing records the composited output to a file.
+- [ ] Refcount module users in `MikanModuleManager`. `disposeModule` unloads the DLL on the first call, so a second holder of the same cached module is left with objects allocated inside an unloaded DLL. Every module has one owner in the app, so this only bites tests today: `arkit_video_source_system_test_independent_instances` leaks both its loaders to avoid it.
 - [ ] Remove the empty `src/Libraries/ARKitReceiver` and `src/Libraries/MikanARKitReceiver` scaffolding directories.
 - [ ] Stop checking generated bindings into git (`bindings/csharp/CMakeLists.txt` carries the TODO).
 - [ ] Wire the unrecordable property notifications into descriptors so they reach undo and client events: the `EditorObjectSystem` settings names and `depth_mesh_scale_correction` (the standing gaps listed in `docs/reference/transactions.md`).

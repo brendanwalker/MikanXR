@@ -521,12 +521,38 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	// Submit the MkGui draw call
 	m_guiContext->submitDrawData();
 
-	// Always draw the FPS in the lower right
-	TextStyle style= getDefaultTextStyle();
-	style.horizontalAlignment= eHorizontalTextAlignment::Right;
-	style.verticalAlignment= eVerticalTextAlignment::Bottom;
-	drawTextAtScreenPosition(m_graphicsContext.get(), style, glm::vec2(getWidth() - 1, getHeight() - 1), L"%.1ffps",
-							 App::getInstance()->getFPS());
+	// Frame rate readout, in the corner of the stage's scene view rather than the
+	// window, so it does not sit under the docked panels. Drawn unless the editor
+	// settings turn it off; with no project loaded there are no settings to read
+	// and it stays on.
+	bool bRenderFrameRate= true;
+	if (EditorObjectSystemPtr editorSystem= m_projectManager->getSystemOfType<EditorObjectSystem>())
+	{
+		bRenderFrameRate= editorSystem->getEditorSettings().bRenderFrameRate;
+	}
+
+	if (bRenderFrameRate)
+	{
+		// Stages without a viewport (the main menu) fall back to the window corner
+		glm::vec2 frameRateAnchor((float)getWidth() - 1.f, (float)getHeight() - 1.f);
+		const MikanViewportList& viewports= appStage->getViewportList();
+		if (!viewports.empty() && viewports[0])
+		{
+			const glm::i32vec2 viewportOrigin= viewports[0]->getViewportOrigin();
+			const glm::i32vec2 viewportSize= viewports[0]->getViewportSize();
+			if (viewportSize.x > 0 && viewportSize.y > 0)
+			{
+				frameRateAnchor= glm::vec2((float)(viewportOrigin.x + viewportSize.x - 1),
+										   (float)(viewportOrigin.y + viewportSize.y - 1));
+			}
+		}
+
+		TextStyle style= getDefaultTextStyle();
+		style.horizontalAlignment= eHorizontalTextAlignment::Right;
+		style.verticalAlignment= eVerticalTextAlignment::Bottom;
+		drawTextAtScreenPosition(m_graphicsContext.get(), style, frameRateAnchor, L"%.1ffps",
+								 App::getInstance()->getFPS());
+	}
 
 	// Show "Loading..." centered on screen while background systems are initializing
 	if (m_projectManager->isAnySystemLoading())

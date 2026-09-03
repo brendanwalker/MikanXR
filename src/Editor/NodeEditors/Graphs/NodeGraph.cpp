@@ -127,17 +127,34 @@ bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 	std::vector<GraphPropertyConfigPtr> propertyConfigs;
 	bool success= true;
 
-	// Use factories to create the config of the appropriate type
-	success&= readNodeGraphConfigArray(
-		_assetRefsConfigObject, "assetReferences", assetRefConfigs, [graph](const std::string& className)
-		{ return graph->getAssetReferenceFactory(className)->allocateAssetReferenceConfig(); });
+	// Use factories to create the config of the appropriate type.
+	// A class name the graph does not register has no factory: return an empty
+	// config so the caller reports it by name, rather than dereferencing null.
+	// This is how a graph saved against a since-renamed class arrives here.
+	success&= readNodeGraphConfigArray(_assetRefsConfigObject, "assetReferences", assetRefConfigs,
+									   [graph](const std::string& className) -> CommonConfigPtr
+									   {
+										   AssetReferenceFactoryPtr factory= graph->getAssetReferenceFactory(className);
+										   return factory ? factory->allocateAssetReferenceConfig() : CommonConfigPtr();
+									   });
 	success&= readNodeGraphConfigArray(_propertiesConfigObject, "properties", propertyConfigs,
-									   [graph](const std::string& className)
-									   { return graph->getPropertyFactory(className)->allocatePropertyConfig(); });
-	success&= readNodeGraphConfigArray(_nodesConfigObject, "nodes", nodeConfigs, [graph](const std::string& className)
-									   { return graph->getNodeFactory(className)->allocateNodeConfig(); });
-	success&= readNodeGraphConfigArray(_pinsConfigObject, "pins", pinConfigs, [graph](const std::string& className)
-									   { return graph->getPinFactory(className)->allocatePinConfig(); });
+									   [graph](const std::string& className) -> CommonConfigPtr
+									   {
+										   GraphPropertyFactoryPtr factory= graph->getPropertyFactory(className);
+										   return factory ? factory->allocatePropertyConfig() : CommonConfigPtr();
+									   });
+	success&= readNodeGraphConfigArray(_nodesConfigObject, "nodes", nodeConfigs,
+									   [graph](const std::string& className) -> CommonConfigPtr
+									   {
+										   NodeFactoryPtr factory= graph->getNodeFactory(className);
+										   return factory ? factory->allocateNodeConfig() : CommonConfigPtr();
+									   });
+	success&= readNodeGraphConfigArray(_pinsConfigObject, "pins", pinConfigs,
+									   [graph](const std::string& className) -> CommonConfigPtr
+									   {
+										   NodePinFactoryPtr factory= graph->getPinFactory(className);
+										   return factory ? factory->allocatePinConfig() : CommonConfigPtr();
+									   });
 
 	// For graph properties, we actually need to use a map
 	// so that we can look up property config by id
@@ -1125,7 +1142,15 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 		return NodeGraphPtr();
 	}
 
-	return loadNodeGraphFromConfig(ownerWindow, config);
+	NodeGraphPtr nodeGraph= loadNodeGraphFromConfig(ownerWindow, config);
+	if (!nodeGraph)
+	{
+		// loadNodeGraphFromConfig names the class that failed, but only this
+		// caller knows which file it came from
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to load NodeGraph from: " << path;
+	}
+
+	return nodeGraph;
 }
 
 NodeGraphPtr NodeGraphFactory::loadNodeGraphFromConfig(IEditorWindow* ownerWindow, NodeGraphConfig& config)

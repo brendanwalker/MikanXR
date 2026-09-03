@@ -53,6 +53,7 @@ public:
 
 	// -- IFunctionInterface ----
 	static const std::string k_showCompositorOutputFunctionId;
+	static const std::string k_activateSceneFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 

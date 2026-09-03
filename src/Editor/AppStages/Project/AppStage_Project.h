@@ -15,16 +15,15 @@
 #include "CompositorConstants.h"
 
 //-- definitions -----
-enum class eProjectAppStageActivePanel : int
+// What the 3d viewport draws and which object systems are pickable, derived
+// from the outliner's selected node kind
+enum class eProjectViewMode : int
 {
 	INVALID= -1,
 
-	Scenes= 0,
-	Stages= 1,
-	Sources= 2,
-	Tracking= 3,
-	Markers= 4,
-	Settings= 5,
+	scene= 0,
+	stage= 1,
+	tracking= 2,
 
 	COUNT
 };
@@ -67,15 +66,12 @@ protected:
 	void renderMarkerTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
 									MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const;
 
-	// Panel Selection
-	void setActivePanel(eProjectAppStageActivePanel newPanel);
-	void onActivePanelChanged();
+	// Viewport view mode
+	void setViewMode(eProjectViewMode newViewMode);
+	void onViewModeChanged();
 
 	// Main Compositor UI Events
 	void onReturnEvent();
-
-	// Marker UI Events
-	void onMarkerSelected(int arucoId);
 
 	// Debug Rendering
 	void debugRenderOrigin() const;
@@ -83,8 +79,6 @@ protected:
 	// MR camera-alignment debug overlay (toggled by EditorSettings::bDebugCameraAlignment)
 	void renderCameraAlignmentDebug(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderCameraAlignmentGui();
-	static const char* getPanelWindowTitle(eProjectAppStageActivePanel panel);
-	static const char* getPanelMenuLabel(eProjectAppStageActivePanel panel);
 	void applyPendingProjectActions();
 
 	// -- IRemoteControllable Interface -- //
@@ -120,16 +114,14 @@ protected:
 	class ProjectGuiPanelContext* m_projectGuiPanelContext= nullptr;
 
 	// Project-level ImGui panels
-	class GuiPanel_ProjectScenes* m_projectScenesPanel= nullptr;
-	class GuiPanel_ProjectStages* m_projectStagesPanel= nullptr;
-	class GuiPanel_ProjectSources* m_projectSourcesPanel= nullptr;
-	class GuiPanel_ProjectTracking* m_projectTrackingPanel= nullptr;
-	class GuiPanel_ProjectMarkers* m_projectMarkersPanel= nullptr;
+	class GuiPanel_ProjectOutliner* m_projectOutlinerPanel= nullptr;
 	class GuiPanel_ProjectSettings* m_projectSettingsPanel= nullptr;
-	eProjectAppStageActivePanel m_activePanel= eProjectAppStageActivePanel::INVALID;
-	// Per-panel window visibility, driven by the View menu and persisted with
-	// the rest of the editor settings
-	bool m_panelVisible[(int)eProjectAppStageActivePanel::COUNT]= {true, true, true, true, true, true};
+	class GuiPanel_HttpTriggers* m_httpTriggersPanel= nullptr;
+	eProjectViewMode m_viewMode= eProjectViewMode::INVALID;
+	// Window visibility, driven by the View menu (session-only)
+	bool m_bOutlinerVisible= true;
+	bool m_bSettingsPanelVisible= true;
+	bool m_bHttpTriggersPanelVisible= true;
 	bool m_bShowLogPanel= true;
 	// Deferred project actions: a menu click must not swap the project out from
 	// under the panels drawing this frame

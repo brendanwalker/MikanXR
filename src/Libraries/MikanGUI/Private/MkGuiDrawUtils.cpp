@@ -1,4 +1,5 @@
 #include "MkGuiDrawUtils.h"
+#include "MkGuiScopedFont.h"
 #include "MkGuiScopedStyle.h"
 #include "MkGuiStyleManager.h"
 #include "MkGuiScopedDragDropTarget.h"
@@ -189,6 +190,32 @@ bool drawImageButton(MkGuiStyleConstPtr style, const std::string& fieldName, con
 	uint32_t glTextureId= entry->texture ? entry->texture->getGlTextureId() : 0;
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::ImageButton(imguiElementName.c_str(), (ImTextureID)(intptr_t)glTextureId, ImVec2(entry->x, entry->y));
+}
+
+bool drawGlyphButtonWithLabel(const std::string& fieldName, const std::string& glyph, const std::string& label,
+							  float buttonSize, float glyphSize)
+{
+	const float resolvedButtonSize= (buttonSize > 0.f) ? buttonSize : ImGui::GetFrameHeight();
+	const std::string buttonLabel= glyph + makeImGuiElementName(fieldName);
+
+	bool bClicked= false;
+	if (glyphSize > 0.f)
+	{
+		MkGuiScopedFont glyphFont(ImGui::GetFont(), glyphSize);
+		bClicked= ImGui::Button(buttonLabel.c_str(), ImVec2(resolvedButtonSize, resolvedButtonSize));
+	}
+	else
+	{
+		bClicked= ImGui::Button(buttonLabel.c_str(), ImVec2(resolvedButtonSize, resolvedButtonSize));
+	}
+
+	// Drawn outside any pushed glyph font, so the label keeps the normal text
+	// size, nudged down to sit centered against the button
+	ImGui::SameLine();
+	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (resolvedButtonSize - ImGui::GetTextLineHeight()) * 0.5f);
+	ImGui::TextUnformatted(label.c_str());
+
+	return bClicked;
 }
 
 const char* ComboBoxDataSource::itemGetter(void* data, int idx)
