@@ -20,6 +20,8 @@
 #include "ModelStencilComponent.h"
 #include "ModelStencilSystem.h"
 #include "PathUtils.h"
+#include "SceneComponent.h"
+#include "SceneObjectSystem.h"
 #include "StageComponent.h"
 #include "StringUtils.h"
 #include "Transform.h"
@@ -685,10 +687,21 @@ bool AppStage_DepthMeshCapture::createStencilFromMesh()
 		return false;
 	}
 
-	// Parent the stencil under the camera's stage so it shows up in the scene
-	// outliner hierarchy; an unparented component is invisible there.
-	StageComponentConstPtr stageComponent= m_currentSceneCameraComponent->getOwnerStageComponent();
-	const MikanTransformID parentTransformId= stageComponent ? stageComponent->getComponentId() : INVALID_MIKAN_ID;
+	// Parent the stencil under the active scene so it lands in that scene's
+	// subtree in the project outliner. With no active scene it falls back to
+	// the camera's stage, which files it in the outliner's unparented tray.
+	MikanTransformID parentTransformId= INVALID_MIKAN_ID;
+	auto sceneSystem= getSystemOfType<SceneObjectSystem>();
+	SceneComponentPtr currentScene= sceneSystem ? sceneSystem->getCurrentScene() : nullptr;
+	if (currentScene)
+	{
+		parentTransformId= currentScene->getSceneId();
+	}
+	else
+	{
+		StageComponentConstPtr stageComponent= m_currentSceneCameraComponent->getOwnerStageComponent();
+		parentTransformId= stageComponent ? stageComponent->getComponentId() : INVALID_MIKAN_ID;
+	}
 
 	// The stencil stores an absolute model path - the importer loads the path
 	// verbatim, so a relative one would silently fail to resolve.
