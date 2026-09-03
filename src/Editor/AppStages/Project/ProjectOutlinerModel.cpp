@@ -54,8 +54,9 @@
 
 // The row glyph for a component, by class where the class is what the reader
 // needs to tell apart (the three light kinds, the source backends) and by tree
-// role otherwise. ForkAwesome has no separate solid-vs-hollow pair for cubes,
-// so a box or model stencil shares its glyph with the matching shape.
+// role otherwise. Every stencil reads as a mask rather than as its primitive:
+// telling a stencil from a shape matters more than telling the stencil
+// primitives apart, and the name already carries the primitive.
 static const char* pickNodeIcon(eOutlinerNodeKind kind, const std::string& componentClassName)
 {
 	// Sources, by backend
@@ -80,18 +81,18 @@ static const char* pickNodeIcon(eOutlinerNodeKind kind, const std::string& compo
 	if (componentClassName == RGBPixelGridComponent::k_componentClassName)
 		return ICON_FK_TH;
 
-	// Scene actors, by primitive
+	// Scene actors: stencils as masks, shapes by primitive
 	if (componentClassName == AnchorComponent::k_componentClassName)
 		return ICON_FK_ANCHOR;
-	if (componentClassName == QuadStencilComponent::k_componentClassName)
-		return ICON_FK_SQUARE_O;
+	if (componentClassName == QuadStencilComponent::k_componentClassName
+		|| componentClassName == BoxStencilComponent::k_componentClassName
+		|| componentClassName == ModelStencilComponent::k_componentClassName)
+		return ICON_FK_CROP;
 	if (componentClassName == QuadShapeComponent::k_componentClassName)
 		return ICON_FK_SQUARE;
-	if (componentClassName == BoxStencilComponent::k_componentClassName
-		|| componentClassName == BoxShapeComponent::k_componentClassName)
+	if (componentClassName == BoxShapeComponent::k_componentClassName)
 		return ICON_FK_CUBE;
-	if (componentClassName == ModelStencilComponent::k_componentClassName
-		|| componentClassName == ModelShapeComponent::k_componentClassName)
+	if (componentClassName == ModelShapeComponent::k_componentClassName)
 		return ICON_FK_CUBES;
 
 	switch (kind)
