@@ -52,6 +52,9 @@ public:
 	std::string systemClassName;
 	std::string componentClassName;
 	std::string displayName;
+	// ForkAwesome glyph drawn ahead of the name, kept out of displayName so
+	// dialogs that quote the name do not carry it
+	std::string icon;
 	MikanComponentWeakPtr component;
 	SelectionComponentWeakPtr selection;
 	ProjectOutlinerNodeWeakPtr parent;
@@ -78,7 +81,7 @@ public:
 
 private:
 	ProjectOutlinerNodePtr addComponentNode(ProjectOutlinerNodePtr parentNode, eOutlinerNodeKind kind,
-											MikanComponentPtr component, const char* namePrefixKey= nullptr);
+											MikanComponentPtr component);
 	void buildStageSubtree(ProjectManagerPtr projectManager, StageComponentPtr stageComponent,
 						   ProjectOutlinerNodePtr parentNode);
 	void buildSceneSubtree(SceneComponentPtr sceneComponent, ProjectOutlinerNodePtr parentNode);

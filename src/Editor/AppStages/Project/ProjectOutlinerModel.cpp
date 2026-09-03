@@ -52,6 +52,71 @@
 #include "VRTrackingVolumeComponent.h"
 #include "VRTrackingVolumeSystem.h"
 
+// The row glyph for a component, by class where the class is what the reader
+// needs to tell apart (the three light kinds, the source backends) and by tree
+// role otherwise. ForkAwesome has no separate solid-vs-hollow pair for cubes,
+// so a box or model stencil shares its glyph with the matching shape.
+static const char* pickNodeIcon(eOutlinerNodeKind kind, const std::string& componentClassName)
+{
+	// Sources, by backend
+	if (componentClassName == USBVideoSourceComponent::k_componentClassName)
+		return ICON_FK_USB;
+	if (componentClassName == NetworkVideoSourceComponent::k_componentClassName)
+		return ICON_FK_WIFI;
+	if (componentClassName == ARKitVideoSourceComponent::k_componentClassName)
+		return ICON_FK_MOBILE;
+	if (componentClassName == ClientTextureSourceComponent::k_componentClassName)
+		return ICON_FK_PLUG;
+	if (componentClassName == SpoutTextureSourceComponent::k_componentClassName)
+		return ICON_FK_SHARE_ALT;
+	if (componentClassName == CEFTextureSourceComponent::k_componentClassName)
+		return ICON_FK_CHROME;
+
+	// Lights, replacing the old [Env]/[Spot]/[Grid] name prefixes
+	if (componentClassName == LightEnvironmentComponent::k_componentClassName)
+		return ICON_FK_GLOBE;
+	if (componentClassName == RGBSpotLightComponent::k_componentClassName)
+		return ICON_FK_LIGHTBULB_O;
+	if (componentClassName == RGBPixelGridComponent::k_componentClassName)
+		return ICON_FK_TH;
+
+	// Scene actors, by primitive
+	if (componentClassName == AnchorComponent::k_componentClassName)
+		return ICON_FK_ANCHOR;
+	if (componentClassName == QuadStencilComponent::k_componentClassName)
+		return ICON_FK_SQUARE_O;
+	if (componentClassName == QuadShapeComponent::k_componentClassName)
+		return ICON_FK_SQUARE;
+	if (componentClassName == BoxStencilComponent::k_componentClassName
+		|| componentClassName == BoxShapeComponent::k_componentClassName)
+		return ICON_FK_CUBE;
+	if (componentClassName == ModelStencilComponent::k_componentClassName
+		|| componentClassName == ModelShapeComponent::k_componentClassName)
+		return ICON_FK_CUBES;
+
+	switch (kind)
+	{
+	case eOutlinerNodeKind::marker:
+		return ICON_FK_QRCODE;
+	case eOutlinerNodeKind::trackingVolume:
+		return ICON_FK_BULLSEYE;
+	case eOutlinerNodeKind::trackingMount:
+		return ICON_FK_CROSSHAIRS;
+	case eOutlinerNodeKind::stage:
+		return ICON_FK_MAP_O;
+	case eOutlinerNodeKind::camera:
+		return ICON_FK_VIDEO_CAMERA;
+	case eOutlinerNodeKind::compositor:
+		return ICON_FK_CLONE;
+	case eOutlinerNodeKind::scene:
+		return ICON_FK_SITEMAP;
+	default:
+		// A type with no mapping yet reads as a neutral dot rather than
+		// silently losing its column
+		return ICON_FK_CIRCLE_O;
+	}
+}
+
 static bool isSceneActorObject(MikanObjectPtr objectPtr)
 {
 	return objectPtr->getComponentOfType<AnchorComponent>() != nullptr
@@ -74,6 +139,7 @@ void ProjectOutlinerModel::rebuild(ProjectManagerPtr projectManager)
 	m_root= std::make_shared<ProjectOutlinerNode>();
 	m_root->kind= eOutlinerNodeKind::projectRoot;
 	m_root->displayName= locText("project.outlinerRoot");
+	m_root->icon= ICON_FK_FOLDER_OPEN;
 
 	if (!projectManager)
 		return;
@@ -239,7 +305,7 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 	{
 		lightEnvironmentSystem->visitComponents(
 			[&](LightEnvironmentComponentPtr light)
-			{ addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light, "project.envPrefix"); },
+			{ addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light); },
 			[stageId](LightEnvironmentComponentPtr light)
 			{
 				StageComponentConstPtr ownerStage= light->getOwnerStageComponent();
@@ -248,19 +314,17 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 	}
 	if (auto spotLightSystem= projectManager->getSystemOfType<RGBSpotLightSystem>())
 	{
-		spotLightSystem->visitComponents(
-			[&](RGBSpotLightComponentPtr light)
-			{ addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light, "project.spotPrefix"); },
-			[stageId](RGBSpotLightComponentPtr light)
-			{ return light->getDMXFixtureDefinition()->getOwnerStageId() == stageId; });
+		spotLightSystem->visitComponents([&](RGBSpotLightComponentPtr light)
+										 { addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light); },
+										 [stageId](RGBSpotLightComponentPtr light)
+										 { return light->getDMXFixtureDefinition()->getOwnerStageId() == stageId; });
 	}
 	if (auto pixelGridSystem= projectManager->getSystemOfType<RGBPixelGridSystem>())
 	{
-		pixelGridSystem->visitComponents(
-			[&](RGBPixelGridComponentPtr light)
-			{ addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light, "project.gridPrefix"); },
-			[stageId](RGBPixelGridComponentPtr light)
-			{ return light->getDMXFixtureDefinition()->getOwnerStageId() == stageId; });
+		pixelGridSystem->visitComponents([&](RGBPixelGridComponentPtr light)
+										 { addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light); },
+										 [stageId](RGBPixelGridComponentPtr light)
+										 { return light->getDMXFixtureDefinition()->getOwnerStageId() == stageId; });
 	}
 
 	// Scenes attached to this stage
@@ -312,7 +376,7 @@ void ProjectOutlinerModel::addSceneActorSubtree(TransformComponentPtr transformC
 }
 
 ProjectOutlinerNodePtr ProjectOutlinerModel::addComponentNode(ProjectOutlinerNodePtr parentNode, eOutlinerNodeKind kind,
-															  MikanComponentPtr component, const char* namePrefixKey)
+															  MikanComponentPtr component)
 {
 	ProjectOutlinerNodePtr node= std::make_shared<ProjectOutlinerNode>();
 	node->kind= kind;
@@ -330,7 +394,8 @@ ProjectOutlinerNodePtr ProjectOutlinerModel::addComponentNode(ProjectOutlinerNod
 	std::string name= component->getName();
 	if (name.empty())
 		name= locText("project.noName");
-	node->displayName= namePrefixKey ? (std::string(locText(namePrefixKey)) + name) : name;
+	node->displayName= name;
+	node->icon= pickNodeIcon(kind, node->componentClassName);
 
 	node->parent= parentNode;
 	parentNode->children.push_back(node);
@@ -345,7 +410,8 @@ ProjectOutlinerNodePtr ProjectOutlinerModel::addFolderNode(ProjectOutlinerNodePt
 	ProjectOutlinerNodePtr folderNode= std::make_shared<ProjectOutlinerNode>();
 	folderNode->kind= kind;
 	folderNode->ownerId= ownerId;
-	folderNode->displayName= std::string(ICON_FK_FOLDER " ") + locText(labelKey);
+	folderNode->displayName= locText(labelKey);
+	folderNode->icon= ICON_FK_FOLDER;
 	folderNode->parent= parentNode;
 	parentNode->children.push_back(folderNode);
 	m_folderIndex[{(int)kind, ownerId}]= folderNode;

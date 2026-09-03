@@ -215,8 +215,8 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 		ImGui::SetNextItemOpen(true);
 	}
 
-	const std::string label=
-		node->displayName + "##node" + std::to_string((int)node->kind) + "_" + std::to_string(node->componentId);
+	const std::string label= node->icon + " " + node->displayName + "##node" + std::to_string((int)node->kind) + "_"
+							 + std::to_string(node->componentId);
 
 	bool bOpen= false;
 	if (isActiveHighlightNode(node))
