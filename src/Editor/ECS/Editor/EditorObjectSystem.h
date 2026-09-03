@@ -58,6 +58,9 @@ struct EditorSettings
 	// editor viewport - the compositor window shows what the shot looks like, so it stays clean
 	// by default.
 	bool bDebugRenderInCompositor= false;
+
+	// Frame rate readout drawn in the corner of the scene view
+	bool bRenderFrameRate= true;
 };
 
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
@@ -141,6 +144,10 @@ public:
 	static const std::string k_debugRenderInCompositorPropertyId;
 	bool getDebugRenderInCompositor() const { return m_editorSettings.bDebugRenderInCompositor; }
 	void setDebugRenderInCompositor(bool enabled);
+
+	static const std::string k_renderFrameRatePropertyId;
+	bool getRenderFrameRate() const { return m_editorSettings.bRenderFrameRate; }
+	void setRenderFrameRate(bool enabled);
 
 private:
 	EditorSettings m_editorSettings;

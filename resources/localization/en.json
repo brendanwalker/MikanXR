@@ -507,6 +507,7 @@
 		"modelStencilDisplay": "Model Stencil Display",
 		"renderAnchors": "Render Anchors",
 		"renderBoxStencils": "Render Box Stencils",
+		"renderFrameRate": "Render Frame Rate",
 		"renderModelStencils": "Render Model Stencils",
 		"renderOrigin": "Render Origin",
 		"renderQuadStencils": "Render Quad Stencils",

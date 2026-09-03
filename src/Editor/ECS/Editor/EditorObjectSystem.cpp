@@ -55,6 +55,7 @@ const std::string EditorObjectSystemDefinition::k_rulerDisplayUnitsPropertyId= "
 const std::string EditorObjectSystemDefinition::k_debugCameraAlignmentPropertyId= "debug_camera_alignment";
 const std::string EditorObjectSystemDefinition::k_modelStencilDisplayModePropertyId= "model_stencil_display_mode";
 const std::string EditorObjectSystemDefinition::k_debugRenderInCompositorPropertyId= "debug_render_in_compositor";
+const std::string EditorObjectSystemDefinition::k_renderFrameRatePropertyId= "render_frame_rate";
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
@@ -77,6 +78,7 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_debugCameraAlignmentPropertyId]= m_editorSettings.bDebugCameraAlignment;
 	pt[k_modelStencilDisplayModePropertyId]= (int)m_editorSettings.modelStencilDisplayMode;
 	pt[k_debugRenderInCompositorPropertyId]= m_editorSettings.bDebugRenderInCompositor;
+	pt[k_renderFrameRatePropertyId]= m_editorSettings.bRenderFrameRate;
 
 	return pt;
 }
@@ -113,6 +115,7 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 		k_modelStencilDisplayModePropertyId, (int)m_editorSettings.modelStencilDisplayMode);
 	m_editorSettings.bDebugRenderInCompositor=
 		pt.get_or<bool>(k_debugRenderInCompositorPropertyId, m_editorSettings.bDebugRenderInCompositor);
+	m_editorSettings.bRenderFrameRate= pt.get_or<bool>(k_renderFrameRatePropertyId, m_editorSettings.bRenderFrameRate);
 }
 
 void EditorObjectSystemDefinition::setRenderOriginFlag(bool flag)
@@ -265,6 +268,15 @@ void EditorObjectSystemDefinition::setDebugRenderInCompositor(bool enabled)
 	{
 		m_editorSettings.bDebugRenderInCompositor= enabled;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_debugRenderInCompositorPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderFrameRate(bool enabled)
+{
+	if (m_editorSettings.bRenderFrameRate != enabled)
+	{
+		m_editorSettings.bRenderFrameRate= enabled;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderFrameRatePropertyId));
 	}
 }
 

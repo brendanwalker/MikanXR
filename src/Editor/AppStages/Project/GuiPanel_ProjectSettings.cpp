@@ -145,6 +145,14 @@ void GuiPanel_ProjectSettings::onGui()
 		{
 			ImGui::SetTooltip("%s", locText("projectSettings.debugRenderInCompositorTooltip"));
 		}
+
+		bool renderFrameRate= editorConfig->getRenderFrameRate();
+		if (ImGui::Checkbox(locLabel("projectSettings.renderFrameRate"), &renderFrameRate))
+		{
+			addDeferredGuiEvent(
+				[this, renderFrameRate]()
+				{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderFrameRate(renderFrameRate); });
+		}
 	}
 
 	// -- Marker ----

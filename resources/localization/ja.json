@@ -507,6 +507,7 @@
 		"modelStencilDisplay": "モデルステンシル表示",
 		"renderAnchors": "アンカーを表示",
 		"renderBoxStencils": "ボックスステンシルを表示",
+		"renderFrameRate": "フレームレートを表示",
 		"renderModelStencils": "モデルステンシルを表示",
 		"renderOrigin": "原点を表示",
 		"renderQuadStencils": "クアッドステンシルを表示",
