@@ -129,14 +129,6 @@ void GuiPanel_MikanComponent::onGui()
 	if (!component)
 		return;
 
-	// One collapsible section per component, titled with the component's own
-	// name. The id is the class name so the open/closed state follows the kind
-	// of component rather than resetting when the user renames one.
-	const std::string sectionLabel= component->getName() + "##" + component->getComponentClassName();
-	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	if (!ImGui::CollapsingHeader(sectionLabel.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth))
-		return;
-
 	// Auto-render all component properties
 	m_entityAccessor->onGui();
 
