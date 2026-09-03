@@ -2,6 +2,7 @@
 #include "Shared/GuiPanel_CompositorComponent.h"
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
+#include "IconsForkAwesome.h"
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
 
@@ -78,20 +79,15 @@ void GuiPanel_CompositorComponent::onConstruct()
 					addDeferredGuiEvent([compositorComp]() { compositorComp->selectCompositorGraph(); });
 				}
 
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "", "");
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(
-						m_defaultGuiStyle,
+				if (MkGui::drawGlyphButtonWithLabel(
 						compositorComp->makePropertyUIIdentifier(CompositorComponent::k_editCompositorGraphFunctionId),
-						"edit_component"))
+						ICON_FK_PENCIL, locText("componentPanel.editGraph")))
 				{
 					addDeferredGuiEvent([compositorComp]() { compositorComp->editCompositorGraph(); });
 				}
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(m_defaultGuiStyle,
-										   compositorComp->makePropertyUIIdentifier(
-											   CompositorComponent::k_removeCompositorGraphFunctionId),
-										   "delete_component"))
+				if (MkGui::drawGlyphButtonWithLabel(compositorComp->makePropertyUIIdentifier(
+														CompositorComponent::k_removeCompositorGraphFunctionId),
+													ICON_FK_TRASH_O, locText("componentPanel.deleteGraph")))
 				{
 					addDeferredGuiEvent([compositorComp]() { compositorComp->removeCompositorGraph(); });
 				}
@@ -100,19 +96,16 @@ void GuiPanel_CompositorComponent::onConstruct()
 			{
 				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.graph"),
 											  locText("componentPanel.noGraph"));
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(m_defaultGuiStyle,
-										   compositorComp->makePropertyUIIdentifier(
-											   CompositorComponent::k_addNewCompositorGraphFunctionId),
-										   "add_component"))
+
+				if (MkGui::drawGlyphButtonWithLabel(compositorComp->makePropertyUIIdentifier(
+														CompositorComponent::k_addNewCompositorGraphFunctionId),
+													ICON_FK_PLUS, locText("componentPanel.addGraph")))
 				{
 					addDeferredGuiEvent([compositorComp]() { compositorComp->addNewCompositorGraph(); });
 				}
-				ImGui::SameLine();
-				if (MkGui::drawImageButton(m_defaultGuiStyle,
-										   compositorComp->makePropertyUIIdentifier(
-											   CompositorComponent::k_selectCompositorGraphFunctionId),
-										   "select_component"))
+				if (MkGui::drawGlyphButtonWithLabel(compositorComp->makePropertyUIIdentifier(
+														CompositorComponent::k_selectCompositorGraphFunctionId),
+													ICON_FK_FOLDER_OPEN, locText("componentPanel.selectGraph")))
 				{
 					addDeferredGuiEvent([compositorComp]() { compositorComp->selectCompositorGraph(); });
 				}

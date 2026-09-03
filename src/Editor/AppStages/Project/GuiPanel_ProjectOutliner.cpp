@@ -21,7 +21,6 @@
 #include "MikanObjectSystem.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiScopedDragDropSource.h"
-#include "MkGuiScopedFont.h"
 #include "MkGuiScopedStyle.h"
 #include "MkGuiStyleManager.h"
 #include "ModalConfirm/ModalDialog_Confirm.h"
@@ -426,26 +425,13 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 
 bool GuiPanel_ProjectOutliner::drawAddButton(const char* fieldName, const char* glyph, const char* labelKey)
 {
-	// Square glyph button with its name alongside, one row per button. The
-	// glyph is the same one the created object will carry in the tree.
+	// Larger than the property panels' buttons: these are the primary way to
+	// build a project out. The glyph is the one the created object will carry
+	// in the tree.
 	static constexpr float k_buttonSize= 44.f;
 	static constexpr float k_glyphSize= 28.f;
 
-	const std::string buttonLabel= std::string(glyph) + "##" + fieldName;
-
-	bool bClicked= false;
-	{
-		MkGuiScopedFont glyphFont(ImGui::GetFont(), k_glyphSize);
-		bClicked= ImGui::Button(buttonLabel.c_str(), ImVec2(k_buttonSize, k_buttonSize));
-	}
-
-	// Outside the font scope, so the label draws at the normal text size,
-	// nudged down to sit centered against the taller button
-	ImGui::SameLine();
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (k_buttonSize - ImGui::GetTextLineHeight()) * 0.5f);
-	ImGui::TextUnformatted(locText(labelKey));
-
-	return bClicked;
+	return MkGui::drawGlyphButtonWithLabel(fieldName, glyph, locText(labelKey), k_buttonSize, k_glyphSize);
 }
 
 void GuiPanel_ProjectOutliner::drawSceneActorAddButtons(ProjectOutlinerNodePtr selectedNode)
