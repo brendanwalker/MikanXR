@@ -23,7 +23,7 @@ class CommonScriptContext;
 ///
 /// Typical workflow:
 ///   1. LuaDebugServer::getInstance()->startListening();  // once at app init, before the first project loads
-///   2. In VSCode: Run → "Attach to MikanXR Lua" launch config
+///   2. Open the project folder in VSCode and run its "Attach to MikanXR Lua" launch config
 ///   3. Set breakpoints in any project .lua file and debug normally
 ///
 /// poll() must be called each frame from the app update loop so that

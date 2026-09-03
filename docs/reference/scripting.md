@@ -56,6 +56,13 @@ The outliner's project root has a top-level Scripts folder. Its add button calls
 
 `CommonScriptContext` (`Scripting/CommonScriptContext.h`) owns the `lua_State`: standard libs opened, a panic handler and detailed error reporting (`checkLuaResult` logs Lua tracebacks and disposes the state on error), and a built-in coroutine scheduler. The scheduler injects globals `start_coroutine`, `wait_frames`, `wait_next_frame`, `wait_seconds`, `get_frame_delta_seconds`. `update_scheduler()` is invoked once per frame from `updateScript()`. `runScriptFile(path, scriptId)` runs one file's chunk into the shared state. While the chunk runs, `m_loadingScriptId` holds the running script's id so any registration it makes is attributed to it.
 
+Editor support: the project folder is the VS Code workspace for its scripts. `resources/lua-definitions/` holds LuaLS stub files (`mikan-core.lua`, `mikan-systems.lua`, `mikan-components.lua`) describing every binding above, kept in sync by hand with the `bindLuaFunctions` implementations they name. Loading a project writes two files into the project folder, each only when missing, so delete one to regenerate it after moving the editor install:
+
+- `.luarc.json`: points the VS Code Lua extension's `workspace.library` at the stub directory
+- `.vscode/launch.json`: an lrdb attach configuration for the debugger, with the workspace as its source root
+
+The repo root carries its own `.luarc.json` for `resources/scripts`. The script row's Edit button runs the script editor command (an app setting, `code --reuse-window` by default) with the project folder followed by the script path, which is how VS Code opens the project workspace with that file focused. A script outside the project opens on its own.
+
 Scripts declare their entry points through the `ScriptContext` namespace. Each registration is attributed to whichever script file was executing when it was called:
 
 - `ScriptContext.registerTrigger(functionName)`: exposes a named global function as a trigger.
@@ -102,4 +109,4 @@ There is no `ownerComponent` global: a script is not bound to a single component
 
 ## Lua debugging
 
-`LuaDebugServer` (`Scripting/LuaDebugServer.h`) is a singleton LRDB debug server on TCP port 21110 (the vscode-lrdb extension default). `MainWindow` starts it listening before the first project loads, and calls `poll()` every frame. The project's `ProjectScriptContext` attaches itself when its Lua state is created (`createScriptState`) and detaches when the state is disposed (`disposeScriptState`), so breakpoints in any project script work without a manual attach step. Scripts can call `lrdb_break()` for a programmatic breakpoint. Chunk names are made workspace-relative so VSCode gutter breakpoints match. See [debugging.md](./debugging.md).
+`LuaDebugServer` (`Scripting/LuaDebugServer.h`) is a singleton LRDB debug server on TCP port 21110 (the vscode-lrdb extension default). `MainWindow` starts it listening before the first project loads, and calls `poll()` every frame. The project's `ProjectScriptContext` attaches itself when its Lua state is created (`createScriptState`) and detaches when the state is disposed (`disposeScriptState`), so breakpoints in any project script work without a manual attach step. Scripts can call `lrdb_break()` for a programmatic breakpoint. Chunk names are paths relative to the project folder (absolute for a script outside it), which is what the generated launch config's `sourceRoot` makes VS Code send for a gutter breakpoint, so the two match. To debug: open the project folder in VS Code, set breakpoints, and run the "Attach to MikanXR Lua" configuration while the editor is running. A trigger button, HTTP route, or `script trigger` automation command then hits them. See [debugging.md](./debugging.md).

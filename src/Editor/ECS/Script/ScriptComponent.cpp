@@ -160,7 +160,23 @@ void ScriptComponent::editScript()
 
 	const std::filesystem::path scriptPath= getResolvedScriptPath();
 	const std::string editorCmd= App::getInstance()->getAppSettings()->getScriptEditorCommand();
-	OSUtils::openFileWithApplication(scriptPath, editorCmd);
+
+	// A script inside the project opens with the project folder ahead of it, so
+	// the editor lands in the project workspace (where the generated .luarc.json
+	// and launch config live) with the file focused
+	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
+	const std::filesystem::path relPath=
+		projectDir.empty() ? std::filesystem::path() : scriptPath.lexically_relative(projectDir);
+	const bool isUnderProject=
+		!relPath.empty() && relPath.native().substr(0, 2) != L".." && relPath.native().front() != L'/';
+	if (isUnderProject)
+	{
+		OSUtils::openPathsWithApplication({projectDir, scriptPath}, editorCmd);
+	}
+	else
+	{
+		OSUtils::openFileWithApplication(scriptPath, editorCmd);
+	}
 }
 
 void ScriptComponent::reloadScript()

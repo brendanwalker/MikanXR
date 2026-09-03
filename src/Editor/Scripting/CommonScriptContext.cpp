@@ -4,6 +4,7 @@
 #include "MathGLM.h"
 #include "LuaMath.h"
 #include "Logger.h"
+#include "PathUtils.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -122,14 +123,17 @@ bool CommonScriptContext::runScriptFile(const std::filesystem::path& scriptPath,
 		return false;
 	}
 
-	// Build a chunk name that is relative to CWD (= the workspace / repo root when
-	// launched from VS Code).  The vscode-lrdb extension converts editor paths to
-	// paths relative to its "sourceRoot" setting (${workspaceFolder}), so both
-	// sides must agree on the same relative form for breakpoint matching to work.
-	std::filesystem::path cwd= std::filesystem::current_path();
-	std::filesystem::path relPath= scriptPath.lexically_relative(cwd);
-	bool isUnderCwd= !relPath.empty() && relPath.native().substr(0, 2) != L".." && relPath.native().front() != L'/';
-	std::string chunkName= "@" + (isUnderCwd ? relPath.generic_string() : scriptPath.generic_string());
+	// The chunk name is the path relative to the project folder. The vscode-lrdb
+	// extension sends breakpoint paths relative to its "sourceRoot", which the
+	// project's generated launch config sets to the workspace (the project
+	// folder), so both sides agree on the same relative form. A script outside
+	// the project keeps its absolute path.
+	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
+	std::filesystem::path relPath=
+		projectDir.empty() ? std::filesystem::path() : scriptPath.lexically_relative(projectDir);
+	const bool isUnderProject=
+		!relPath.empty() && relPath.native().substr(0, 2) != L".." && relPath.native().front() != L'/';
+	std::string chunkName= "@" + (isUnderProject ? relPath.generic_string() : scriptPath.generic_string());
 
 	// Read the file ourselves so we can supply the custom chunk name to lua_load.
 	std::ifstream scriptFile(scriptPath, std::ios::binary);
