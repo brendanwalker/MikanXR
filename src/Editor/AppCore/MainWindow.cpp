@@ -307,8 +307,10 @@ bool MainWindow::startup()
 		// Default to the full window viewport
 		mkStateSetViewport(mkState, 0, 0, m_mkWindowContext->getWidth(), m_mkWindowContext->getHeight());
 
-		// Create a fullscreen viewport for the UI (which creates it's own camera)
-		m_uiViewport= std::make_shared<MikanViewport>(this, glm::i32vec2(k_window_pixel_width, k_window_pixel_height));
+		// Create a fullscreen viewport for the UI (which creates it's own camera).
+		// It sizes itself from the window, so it starts correct even when the OS
+		// hands back something other than the requested dimensions.
+		m_uiViewport= std::make_shared<MikanViewport>(this);
 	}
 
 	if (success)

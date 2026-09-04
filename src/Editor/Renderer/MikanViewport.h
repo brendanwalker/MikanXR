@@ -15,7 +15,7 @@
 class MikanViewport : public std::enable_shared_from_this<MikanViewport>, public IMkViewport
 {
 public:
-	MikanViewport(const class IEditorWindow* ownerWindow, const glm::i32vec2& windowSize);
+	MikanViewport(const class IEditorWindow* ownerWindow);
 	virtual ~MikanViewport();
 
 	virtual glm::i32vec2 getViewportOrigin() const override { return m_viewportOrigin; }
@@ -101,6 +101,11 @@ protected:
 	void onRightShiftReleased() { m_isRightShiftPressed= false; }
 
 private:
+	// The owning window is the only source of the window size. Caching a copy
+	// here would go stale on resize, silently clamping the viewport and skewing
+	// the bottom-left flip in applyRenderingViewport.
+	glm::i32vec2 getWindowSize() const;
+
 	const IEditorWindow* m_ownerWindow;
 
 	bool m_bIsRenderingEnabled= true;
@@ -120,7 +125,6 @@ private:
 	bool m_isRightShiftPressed= false;
 	bool m_isMouseInViewport= false;
 
-	glm::i32vec2 m_windowSize;
 	glm::i32vec2 m_viewportOrigin;
 	glm::i32vec2 m_viewportSize;
 	glm::i32vec2 m_renderOrigin;

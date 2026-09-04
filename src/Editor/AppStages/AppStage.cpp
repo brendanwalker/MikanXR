@@ -31,8 +31,7 @@ const EditorSettings& AppStage::getEditorSettings() const
 
 MikanViewportPtr AppStage::addViewport()
 {
-	auto viewport= std::make_shared<MikanViewport>(m_ownerWindow,
-												   glm::i32vec2(m_ownerWindow->getWidth(), m_ownerWindow->getHeight()));
+	auto viewport= std::make_shared<MikanViewport>(m_ownerWindow);
 	m_viewports.push_back(viewport);
 
 	// Start listing to mouse input
