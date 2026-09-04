@@ -8,9 +8,59 @@
 
 #include "IconsForkAwesome.h"
 
+#include <algorithm>
+
 namespace MkGui
 {
 static std::string makeImGuiElementName(const std::string& name) { return StringUtils::stringify("##", name); }
+
+// Moves the cursor to the value column and returns the width the value should
+// fill: the rest of the panel, floored at the style's value width so a panel
+// narrowed past the column keeps a usable field instead of collapsing it.
+static float beginValueColumn(MkGuiStyleConstPtr style)
+{
+	ImGui::SameLine((float)style->getLabelWidth());
+	return std::max((float)style->getValueWidth(), ImGui::GetContentRegionAvail().x);
+}
+
+// Trims a path to the widest tail that fits, keeping the filename visible as
+// the field resizes. The cut snaps forward to a separator so the result breaks
+// on a path segment rather than mid-name.
+static std::string fitPathToWidth(const std::string& path, float maxWidth)
+{
+	if (maxWidth <= 0.f || ImGui::CalcTextSize(path.c_str()).x <= maxWidth)
+	{
+		return path;
+	}
+
+	static const std::string k_ellipsis= "...";
+
+	// Longest suffix that still fits once the ellipsis is prepended. Fitting is
+	// monotonic in the start index, so this is a lower bound search.
+	size_t lo= 0;
+	size_t hi= path.size();
+	while (lo < hi)
+	{
+		const size_t mid= lo + (hi - lo) / 2;
+		if (ImGui::CalcTextSize((k_ellipsis + path.substr(mid)).c_str()).x <= maxWidth)
+		{
+			hi= mid;
+		}
+		else
+		{
+			lo= mid + 1;
+		}
+	}
+
+	// Snapping forward only shortens the result, so the fit still holds
+	const size_t separator= path.find_first_of("/\\", lo);
+	if (separator != std::string::npos)
+	{
+		lo= separator;
+	}
+
+	return k_ellipsis + path.substr(lo);
+}
 
 bool drawPropertySheetHeader(MkGuiStyleConstPtr style, const std::string headerText)
 {
@@ -22,8 +72,7 @@ bool drawPropertySheetHeader(MkGuiStyleConstPtr style, const std::string headerT
 void drawStaticTextProperty(MkGuiStyleConstPtr style, const std::string label, const std::string text)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	MkGuiScopedStyle textStyle(style);
 	ImGui::TextUnformatted(text.c_str());
 }
@@ -32,8 +81,7 @@ bool drawCheckBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 						  bool& inout_value)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::Checkbox(imguiElementName.c_str(), &inout_value);
 }
@@ -41,8 +89,7 @@ bool drawCheckBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 bool drawIntProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, int& inout_value)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::InputInt(imguiElementName.c_str(), &inout_value);
 }
@@ -51,8 +98,7 @@ bool drawFloatProperty(MkGuiStyleConstPtr style, const std::string fieldName, co
 					   float& inout_value)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::InputFloat(imguiElementName.c_str(), &inout_value);
 }
@@ -65,8 +111,7 @@ bool drawFloatSliderProperty(MkGuiStyleConstPtr style, const std::string fieldNa
 		(srcRange != 0.0f) ? displayMin + (inout_value - srcMin) / srcRange * (displayMax - displayMin) : displayMin;
 
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	if (ImGui::SliderFloat(imguiElementName.c_str(), &displayValue, displayMin, displayMax))
 	{
@@ -81,8 +126,7 @@ bool drawFloatSliderProperty(MkGuiStyleConstPtr style, const std::string fieldNa
 bool drawFloat2Property(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, float* inout_v)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 
 	// The value column is split 2 ways, so the theme's generous horizontal frame
@@ -97,8 +141,7 @@ bool drawFloat2Property(MkGuiStyleConstPtr style, const std::string fieldName, c
 bool drawFloat3Property(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, float* inout_v)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 
 	// The value column is split 3 ways, so the theme's generous horizontal frame
@@ -113,8 +156,7 @@ bool drawFloat3Property(MkGuiStyleConstPtr style, const std::string fieldName, c
 bool drawFloat4Property(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label, float* inout_v)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 
 	// The value column is split 4 ways, so the theme's generous horizontal frame
@@ -130,8 +172,7 @@ bool drawStringProperty(MkGuiStyleConstPtr style, const std::string fieldName, c
 						size_t bufSize)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::InputText(imguiElementName.c_str(), buf, bufSize, ImGuiInputTextFlags_EnterReturnsTrue);
 }
@@ -140,15 +181,34 @@ bool drawFilePathProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 						  const std::string& path)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
 
+	// A path needs every pixel it can get, so this field starts just after the
+	// label text rather than at the value column. These labels are much shorter
+	// than the column offset, and the reclaimed space is often a whole filename.
+	const float labelGap= 8.f;
+	ImGui::SameLine(0.f, labelGap);
+
+	// The browse button keeps a fixed size against the right edge, so the path
+	// field absorbs the rest of the row. Floored so a narrow panel still leaves a
+	// usable field: ImGui reads a negative item width as a right-edge alignment.
 	const float browseButtonWidth= 30.f;
-	const float pathWidth= style->getValueWidth() - browseButtonWidth - ImGui::GetStyle().ItemSpacing.x;
+	const float rowRemaining= ImGui::GetContentRegionAvail().x - browseButtonWidth - ImGui::GetStyle().ItemSpacing.x;
+	const float pathWidth= std::max(rowRemaining, (float)style->getValueWidth());
 	ImGui::SetNextItemWidth(pathWidth);
+
+	// The field is read-only, so it shows a trimmed tail rather than the stored
+	// path: the filename identifies the asset and it sits at the end
+	const std::string displayPath= fitPathToWidth(path, pathWidth - ImGui::GetStyle().FramePadding.x * 2.f);
 	const std::string imguiPathName= makeImGuiElementName(fieldName + "_path");
 	char buf[512];
-	strncpy_s(buf, sizeof(buf), path.c_str(), _TRUNCATE);
+	strncpy_s(buf, sizeof(buf), displayPath.c_str(), _TRUNCATE);
 	ImGui::InputText(imguiPathName.c_str(), buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+
+	// Only worth a tooltip when the field is actually hiding something
+	if (displayPath != path && ImGui::IsItemHovered())
+	{
+		ImGui::SetTooltip("%s", path.c_str());
+	}
 
 	ImGui::SameLine();
 	const std::string imguiBrowseName= makeImGuiElementName(fieldName + "_browse");
@@ -159,8 +219,7 @@ bool drawSimpleComboBoxProperty(MkGuiStyleConstPtr style, const std::string fiel
 								const char* items, int& inout_selectedIdex)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	MkGuiScopedStyle comboStyle(style);
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items);
@@ -169,8 +228,7 @@ bool drawSimpleComboBoxProperty(MkGuiStyleConstPtr style, const std::string fiel
 void drawImageProperty(MkGuiStyleConstPtr style, const std::string label, IMkTextureConstPtr image)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 	uint32_t glTextureId= image ? image->getGlTextureId() : 0;
 	ImGui::Image((ImTextureID)(intptr_t)glTextureId, ImVec2(100, 100));
@@ -234,8 +292,7 @@ bool drawComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 						  ComboBoxDataSource* dataSource, int& inout_selectedIdex)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	MkGuiScopedStyle comboStyle(style);
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, &ComboBoxDataSource::itemGetter, dataSource,
@@ -246,8 +303,7 @@ bool drawEnumComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldN
 							  const std::vector<std::string>& entries, int& inout_selectedIndex)
 {
 	ImGui::TextUnformatted(label.c_str());
-	ImGui::SameLine(style->getLabelWidth());
-	ImGui::SetNextItemWidth(style->getValueWidth());
+	ImGui::SetNextItemWidth(beginValueColumn(style));
 	MkGuiScopedStyle comboStyle(style);
 	const std::string imguiElementName= makeImGuiElementName(fieldName);
 	return ImGui::Combo(
