@@ -16,8 +16,6 @@ void GuiPanel_ClientTextureSourceComponent::onGui()
 {
 	GuiPanel_MikanComponent::onGui();
 
-	ImGui::Separator();
-
 	// Display buffer type selector
 	int selectedIndex= (int)m_displayBufferType;
 	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "displayBufferType", locText("componentPanel.displayBuffer"),

@@ -357,7 +357,6 @@ void GuiPanel_EntityAccessor::drawFunctionsGui(const std::set<std::string>& func
 	// Render function buttons
 	if (!m_functionDescriptors.empty())
 	{
-		ImGui::Separator();
 		for (const LabeledDescriptor<FunctionDescriptorConstPtr>& entry : m_functionDescriptors)
 		{
 			const FunctionDescriptorConstPtr& funcDesc= entry.descriptor;

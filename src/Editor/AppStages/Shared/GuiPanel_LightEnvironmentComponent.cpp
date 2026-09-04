@@ -28,7 +28,6 @@ void GuiPanel_LightEnvironmentComponent::onConstruct()
 
 			const SHLightingEnvironment environment= component->getScaledLightingEnvironment();
 
-			ImGui::Separator();
 			ImGui::TextUnformatted(locText("componentPanel.sphericalHarmonics"));
 
 			// The one coefficient that is a color in its own right: the l=0
@@ -82,7 +81,6 @@ void GuiPanel_LightEnvironmentComponent::onConstruct()
 			}
 
 			ImGui::TextDisabled("%s", locText("componentPanel.exposureScaleNote"));
-			ImGui::Separator();
 
 			return true;
 		});

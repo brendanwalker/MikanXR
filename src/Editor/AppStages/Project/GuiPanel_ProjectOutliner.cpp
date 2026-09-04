@@ -162,7 +162,7 @@ void GuiPanel_ProjectOutliner::rebuildIfDirty()
 // -- Tree drawing ----
 void GuiPanel_ProjectOutliner::drawTree()
 {
-	const float treeHeight= std::max(150.f, ImGui::GetContentRegionAvail().y * 0.4f);
+	const float treeHeight= std::max(150.f, ImGui::GetContentRegionAvail().y * 0.6f);
 	if (ImGui::BeginChild("##OutlinerTree", ImVec2(0.f, treeHeight)))
 	{
 		if (ProjectOutlinerNodePtr rootNode= m_model.getRoot())
@@ -409,8 +409,6 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		break;
 	}
 
-	ImGui::Separator();
-
 	drawComponentPanelForNode(selectedNode);
 
 	// Delete closes out the panel, below the component's own function buttons,
@@ -420,8 +418,6 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 						   && selectedNode->componentClassName != LightEnvironmentComponent::k_componentClassName;
 	if (bCanDelete)
 	{
-		ImGui::Separator();
-
 		MkGuiScopedStyle deleteButtonStyle(m_deleteButtonGuiStyle);
 		if (ImGui::Button(locLabel("project.outlinerDeleteComponent")))
 		{

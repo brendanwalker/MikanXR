@@ -80,7 +80,6 @@ void GuiPanel_ScriptComponent::onGui()
 	component->getTriggerNames(triggerNames);
 	if (!triggerNames.empty())
 	{
-		ImGui::Separator();
 		ImGui::TextUnformatted(locText("componentPanel.scriptTriggers"));
 		for (const std::string& triggerName : triggerNames)
 		{
