@@ -24,6 +24,7 @@
 #include "MikanStageTypes.h"
 #include "MikanStencilTypes.h"
 #include "MikanTextureSourceTypes.h"
+#include "MikanScriptTypes.h"
 #include "MikanTrackingMountTypes.h"
 #include "MikanTrackingVolumeTypes.h"
 #include "MikanTransformTypes.h"
@@ -44,6 +45,7 @@
 #include "Marker/MarkerObjectSystem.h"
 #include "Scene/SceneComponent.h"
 #include "Scene/TransformComponent.h"
+#include "Script/ScriptComponent.h"
 #include "Shape/BoxShapeComponent.h"
 #include "Shape/BoxShapeSystem.h"
 #include "Shape/ModelShapeComponent.h"
@@ -103,6 +105,7 @@ inline const SchemaTestEntry k_schemaTestEntries[]= {
 	SCHEMA_ENTRY(LightEnvironmentComponent, MikanLightEnvironmentComponentValues),
 	SCHEMA_ENTRY(MarkerComponent, MikanMarkerComponentValues),
 	SCHEMA_ENTRY(SceneComponent, MikanSceneComponentValues),
+	SCHEMA_ENTRY(ScriptComponent, MikanScriptComponentValues),
 	SCHEMA_ENTRY(TransformComponent, MikanTransformComponentValues),
 	SCHEMA_ENTRY(BoxShapeComponent, MikanBoxShapeComponentValues),
 	SCHEMA_ENTRY(ModelShapeComponent, MikanModelShapeComponentValues),

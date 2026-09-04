@@ -1,6 +1,5 @@
 #include "App.h"
 #include "AppStage.h"
-#include "CommonScriptContext.h"
 #include "MainWindow.h"
 #include "MikanComponent.h"
 #include "MikanClientConnectionState.h"

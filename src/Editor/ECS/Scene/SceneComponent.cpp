@@ -1,7 +1,6 @@
 #include "App.h"
 #include "CompositorObjectSystem.h"
 #include "CompositorComponent.h"
-#include "ComponentScriptContext.h"
 #include "ColliderComponent.h"
 #include "Windows/CompositorOutputEditorWindow.h"
 #include "IMkSceneRenderable.h"

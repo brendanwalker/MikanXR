@@ -19,6 +19,7 @@
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "SceneObjectSystem.h"
+#include "ScriptObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
 #include "CEFTextureSourceSystem.h"
 #include "BoxShapeSystem.h"
@@ -40,6 +41,7 @@
 #include "Logger.h"
 
 #include <chrono>
+#include <fstream>
 #include <easy/profiler.h>
 
 #define PROJECT_SAVE_COOLDOWN 3.f
@@ -85,6 +87,8 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<RGBSpotLightSystem>();
 	addSystem<RGBPixelGridSystem>();
 	addSystem<LightEnvironmentSystem>();
+	// Last: scripts look up the other systems' objects by name when they load
+	addSystem<ScriptObjectSystem>();
 
 	// Gather all property descriptors from all the systems and add them to the database
 	for (int i= 0; i < (int)m_systems.size(); i++)
@@ -229,6 +233,58 @@ bool ProjectManager::newProject(const std::string& projectFilePath)
 	return loadProject(projectFilePath);
 }
 
+// Writes a file once; a project that already has its own copy keeps it
+static void writeProjectFileIfMissing(const std::filesystem::path& filePath, const std::string& content)
+{
+	if (std::filesystem::exists(filePath))
+		return;
+
+	std::filesystem::create_directories(filePath.parent_path());
+
+	std::ofstream file(filePath);
+	if (!file.is_open())
+	{
+		MIKAN_LOG_WARNING("ProjectManager::loadProject") << "Failed to write " << filePath;
+		return;
+	}
+
+	file << content;
+}
+
+// The project folder doubles as the VS Code workspace for its scripts: a
+// .luarc.json points the Lua language server at the editor's API stubs, and a
+// launch config attaches the vscode-lrdb debugger to the editor with the
+// workspace as its source root, matching the chunk names the script context
+// assigns (paths relative to the project folder).
+static void writeScriptWorkspaceFiles(const std::filesystem::path& projectDir)
+{
+	const std::filesystem::path definitionsDir=
+		std::filesystem::absolute(PathUtils::getResourceDirectory() / "lua-definitions");
+	const std::string luarcContent= "{\n"
+									"\t\"runtime.version\": \"Lua 5.4\",\n"
+									"\t\"workspace.library\": [\""
+									+ definitionsDir.generic_string()
+									+ "\"],\n"
+									  "\t\"workspace.checkThirdParty\": false\n"
+									  "}\n";
+	writeProjectFileIfMissing(projectDir / ".luarc.json", luarcContent);
+
+	writeProjectFileIfMissing(projectDir / ".vscode" / "launch.json",
+							  "{\n"
+							  "\t\"version\": \"0.2.0\",\n"
+							  "\t\"configurations\": [\n"
+							  "\t\t{\n"
+							  "\t\t\t\"type\": \"lrdb\",\n"
+							  "\t\t\t\"request\": \"attach\",\n"
+							  "\t\t\t\"name\": \"Attach to MikanXR Lua (port 21110)\",\n"
+							  "\t\t\t\"host\": \"localhost\",\n"
+							  "\t\t\t\"port\": 21110,\n"
+							  "\t\t\t\"sourceRoot\": \"${workspaceFolder}\"\n"
+							  "\t\t}\n"
+							  "\t]\n"
+							  "}\n");
+}
+
 bool ProjectManager::loadProject(const std::string& projectFilePath)
 {
 	EASY_FUNCTION();
@@ -249,7 +305,9 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 	unloadProject();
 
 	// Set the project directory so PathUtils can resolve project-relative resources
-	PathUtils::setProjectDirectory(std::filesystem::path(projectFilePath).parent_path());
+	const std::filesystem::path projectDir= std::filesystem::path(projectFilePath).parent_path();
+	PathUtils::setProjectDirectory(projectDir);
+	writeScriptWorkspaceFiles(projectDir);
 
 	// create an empty project config
 	m_projectConfig= createEmptyProjectConfig();

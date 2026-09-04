@@ -4,15 +4,13 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class InvokeComponentScriptTrigger : MikanRequest
+	public class InvokeScriptTrigger : MikanRequest
 	{
-		public string ownerSystem;
-		public int componentId;
 		public string trigger_name;
 
-		public InvokeComponentScriptTrigger()
+		public InvokeScriptTrigger()
 		{
-			requestTypeName = "InvokeComponentScriptTrigger";
+			requestTypeName = "InvokeScriptTrigger";
 		}
 	};
 

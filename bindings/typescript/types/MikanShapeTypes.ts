@@ -4,6 +4,14 @@ import { MikanSystemValues } from './MikanPropertyTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 import type { SerializationField } from './SerializationTypes.js';
 
+export class MikanShapeComponentValues extends MikanTransformComponentValues {
+  shape_graph_path: string = '';
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'shape_graph_path', type: 'string' }
+  ];
+}
+
 export class MikanQuadShapeSystemValues extends MikanSystemValues {
 
   static __serializationMetadata: SerializationField[] = [
@@ -19,14 +27,6 @@ export class MikanBoxShapeSystemValues extends MikanSystemValues {
 export class MikanModelShapeSystemValues extends MikanSystemValues {
 
   static __serializationMetadata: SerializationField[] = [
-  ];
-}
-
-export class MikanShapeComponentValues extends MikanTransformComponentValues {
-  shape_graph_path: string = '';
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'shape_graph_path', type: 'string' }
   ];
 }
 

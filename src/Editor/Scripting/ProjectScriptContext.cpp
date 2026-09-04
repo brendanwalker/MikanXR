@@ -6,7 +6,6 @@
 #include "BoxStencilSystem.h"
 #include "CameraObjectSystem.h"
 #include "CompositorObjectSystem.h"
-#include "ComponentScriptContext.h"
 #include "CameraComponent.h"
 #include "CompositorComponent.h"
 #include "DMXFixtureComponent.h"
@@ -18,6 +17,8 @@
 #include "ModelShapeSystem.h"
 #include "ModelStencilComponent.h"
 #include "ModelStencilSystem.h"
+#include "ProjectManager.h"
+#include "ProjectScriptContext.h"
 #include "QuadShapeComponent.h"
 #include "QuadShapeSystem.h"
 #include "QuadStencilComponent.h"
@@ -33,15 +34,19 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
-ComponentScriptContext::ComponentScriptContext(MikanComponentPtr ownerComponent)
+ProjectScriptContext::ProjectScriptContext(ProjectManagerPtr projectManager)
 	: CommonScriptContext()
-	, m_ownerComponent(ownerComponent)
+	, m_projectManager(projectManager)
 {
 }
 
-bool ComponentScriptContext::bindContextFunctions()
+bool ProjectScriptContext::bindContextFunctions()
 {
 	if (!CommonScriptContext::bindContextFunctions())
+		return false;
+
+	ProjectManagerPtr projectManager= m_projectManager.lock();
+	if (!projectManager)
 		return false;
 
 	// Register object system classes before component classes
@@ -78,22 +83,20 @@ bool ComponentScriptContext::bindContextFunctions()
 	AnchorComponent::bindLuaFunctions(m_luaState);
 	MarkerComponent::bindLuaFunctions(m_luaState);
 
-	MikanComponent* ownerComponent= m_ownerComponent.lock().get();
-	luabridge::setGlobal(m_luaState, ownerComponent, "ownerComponent");
-
-	// Expose stencil system singletons so scripts can look up stencils by name
-	luabridge::setGlobal(m_luaState, ownerComponent->getObjectSystemOfType<ModelStencilSystem>().get(),
-						 "ModelStencilSystem");
-	luabridge::setGlobal(m_luaState, ownerComponent->getObjectSystemOfType<BoxStencilSystem>().get(),
-						 "BoxStencilSystem");
-	luabridge::setGlobal(m_luaState, ownerComponent->getObjectSystemOfType<QuadStencilSystem>().get(),
-						 "QuadStencilSystem");
-
-	// Expose shape system singletons so scripts can look up shapes by name or ID
-	luabridge::setGlobal(m_luaState, ownerComponent->getObjectSystemOfType<ModelShapeSystem>().get(),
-						 "ModelShapeSystem");
-	luabridge::setGlobal(m_luaState, ownerComponent->getObjectSystemOfType<BoxShapeSystem>().get(), "BoxShapeSystem");
-	luabridge::setGlobal(m_luaState, ownerComponent->getObjectSystemOfType<QuadShapeSystem>().get(), "QuadShapeSystem");
+	// Expose every scriptable object system as a global so scripts can look up
+	// objects by name or id
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<CameraObjectSystem>().get(), "CameraSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<SceneObjectSystem>().get(), "SceneSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<AnchorObjectSystem>().get(), "AnchorSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<CompositorObjectSystem>().get(),
+						 "CompositorSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<DMXObjectSystem>().get(), "DMXSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<ModelStencilSystem>().get(), "ModelStencilSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<BoxStencilSystem>().get(), "BoxStencilSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<QuadStencilSystem>().get(), "QuadStencilSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<ModelShapeSystem>().get(), "ModelShapeSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<BoxShapeSystem>().get(), "BoxShapeSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<QuadShapeSystem>().get(), "QuadShapeSystem");
 
 	return true;
 }

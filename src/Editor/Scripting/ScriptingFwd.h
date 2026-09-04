@@ -9,7 +9,7 @@ class CommonScriptContext;
 using CommonScriptContextPtr= std::shared_ptr<CommonScriptContext>;
 using CommonScriptContextWeakPtr= std::weak_ptr<CommonScriptContext>;
 
-class ComponentScriptContext;
-using ComponentScriptContextPtr= std::shared_ptr<ComponentScriptContext>;
-using ComponentScriptContextConstPtr= std::shared_ptr<const ComponentScriptContext>;
-using ComponentScriptContextWeakPtr= std::weak_ptr<ComponentScriptContext>;
+class ProjectScriptContext;
+using ProjectScriptContextPtr= std::shared_ptr<ProjectScriptContext>;
+using ProjectScriptContextConstPtr= std::shared_ptr<const ProjectScriptContext>;
+using ProjectScriptContextWeakPtr= std::weak_ptr<ProjectScriptContext>;

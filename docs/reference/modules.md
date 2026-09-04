@@ -52,7 +52,7 @@ OpenGL rendering abstraction (`IMkTexture`, `MkMaterial`, `MkStateModifiers`, sh
 SDL window/context management (`IMkWindowContext`, `IMkWindowContextManager`, `IMkFontManager`, window events). Wraps SDL2, SDL2_image, SDL2_ttf; uses easy_profiler headers. Links `MikanCoreApp`, `MikanRenderer`, `MikanUtility`. Linked by `MikanGUI`, `MikanSteamVR`, `MikanEditor`.
 
 ### MikanGUI
-Immediate-mode UI DLL. Compiles Dear ImGui (docking branch) and imgui-node-editor sources directly into the DLL (re-exported via `IMGUI_API`/`IMGUI_NODE_EDITOR_API` dllexport defines) rather than linking them as libraries. Owns the whole ImGui surface the editor sees: `MkGuiContext` (one ImGui context per window, each with its own ini file), the `MkGuiScoped*` RAII wrappers, the `MkCanvas*` facade over imgui-node-editor (scoped editor/node/pin brackets, pin icon drawing, the graph-id to canvas-id offset, and the zoom-tied font density that keeps canvas text crisp), `MkGuiDrawUtils` (the `MkGui::drawXProperty` widget vocabulary, including the node-editor widgets and colors), `MkGuiStyleManager` (named scoped styles loaded from `resources/gui_styles/*.json`), `MkGuiTheme` (the base palette, metrics, and the UI font with the icon font merged in), and `MkGuiDockspace` (the dockspace host and the DockBuilder calls, which keeps ImGui's internal API out of the editor). Docking is opt-in per context and enabled only for the main window. Links SDL2 family, OpenGL/GLEW, `MikanCoreApp`, `MikanRenderer`, `MikanUtility`, `MikanWindow`. Linked by `MikanEditor` only.
+Immediate-mode UI DLL. Compiles Dear ImGui (docking branch) and imgui-node-editor sources directly into the DLL (re-exported via `IMGUI_API`/`IMGUI_NODE_EDITOR_API` dllexport defines) rather than linking them as libraries. Owns the whole ImGui surface the editor sees: `MkGuiContext` (one ImGui context per window, each with its own ini file), the `MkGuiScoped*` RAII wrappers, the `MkCanvas*` facade over imgui-node-editor (scoped editor/node/pin brackets, pin icon drawing, the graph-id to canvas-id offset, and the zoom-tied font density that keeps canvas text crisp), `MkGuiDrawUtils` (the `MkGui::drawXProperty` widget vocabulary, including the node-editor widgets and colors), `MkGuiStyleManager` (named scoped styles loaded from `resources/gui_styles/*.json`), `MkGuiTheme` (the base palette, metrics, and the UI font with the icon font merged in), and `MkGuiDockspace` (the dockspace host and the DockBuilder calls, which keeps ImGui's internal API out of the editor). Every `drawXProperty` widget lays out a fixed-width label column followed by a value column that fills the remaining panel width, so a style's `valueWidth` is that column's floor rather than a fixed size. The file path widget is the exception: its field starts just after the label text instead of at the value column, because a path needs the whole row to show a readable tail. Docking is opt-in per context and enabled only for the main window. Links SDL2 family, OpenGL/GLEW, `MikanCoreApp`, `MikanRenderer`, `MikanUtility`, `MikanWindow`. Linked by `MikanEditor` only.
 
 ### MikanDMX
 `STATIC` library: standalone E1.31 (sACN) DMX lighting sender. No editor/ECS dependencies; links only `Ws2_32` on Windows. Linked by `MikanEditor`.
@@ -111,7 +111,7 @@ Subdirectories (each is a source group, not a separate target):
 
 - `Delegates`: header-only `SinglecastDelegate`/`MulticastDelegate`.
 
-- `ECS` holds the entity/component scene representation, one folder per object system: `Anchor`, `Camera`, `Collision`, `Compositor`, `Editor`, `Light`, `Marker`, `Scene`, `Shape`, `Stage`, `Stencil`, `TextureSource`, `TrackingMount`, `TrackingVolume`, `VideoSource`, `VRObject`. Device-backed systems here load the plugins. See [objects.md](./objects.md) and [compositor.md](./compositor.md).
+- `ECS` holds the entity/component scene representation, one folder per object system: `Anchor`, `Camera`, `Collision`, `Compositor`, `Editor`, `Light`, `Marker`, `Scene`, `Script`, `Shape`, `Stage`, `Stencil`, `TextureSource`, `TrackingMount`, `TrackingVolume`, `VideoSource`, `VRObject`. Device-backed systems here load the plugins. See [objects.md](./objects.md) and [compositor.md](./compositor.md).
 
 - `Events`: `EventBus`.
 
@@ -129,7 +129,7 @@ Subdirectories (each is a source group, not a separate target):
 
 - `Renderer` builds editor viewport rendering on top of `MikanRenderer`: `MikanCamera`, line renderer, model resource manager, shader cache.
 
-- `Scripting`: Lua script contexts (LuaBridge3 bindings, `LuaDebugServer` via lrdb).
+- `Scripting`: the project script context (LuaBridge3 bindings, `LuaDebugServer` via lrdb).
 
 - `Server` is the RPC surface: `MikanServer` plus per-domain `IServerRequestHandler` implementations (`CameraRequestHandler`, `StageRequestHandler`, `StencilRequestHandler`, `VideoSourceRequestHandler`, `MarkerRequestHandler`, `LightRequestHandler`, `PropertyRequestHandler`, `ScriptRequestHandler`, `ShapeRequestHandler`, `TextureSourceRequestHandler`, `FunctionRequestHandler`), `RemoteControlManager`/`IRemoteControllable`, and `Test/` (unit tests run by `MikanCmd -runTests`).
 

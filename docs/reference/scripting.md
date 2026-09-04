@@ -1,6 +1,6 @@
 # Scripting
 
-MikanXR has two programmable layers: visual node graphs (`src/Editor/NodeEditors/`) that drive rendering pipelines, and Lua component scripts (`src/Editor/Scripting/`) that drive scene logic. The compositor graph's rendering semantics are covered in [compositor.md](./compositor.md), the ECS objects scripts manipulate in [objects.md](./objects.md), and the client-facing script RPC in [wire-protocol.md](./wire-protocol.md).
+MikanXR has two programmable layers: visual node graphs (`src/Editor/NodeEditors/`) that drive rendering pipelines, and project-level Lua scripts (`src/Editor/Scripting/`) that drive scene logic. The compositor graph's rendering semantics are covered in [compositor.md](./compositor.md), the ECS objects scripts manipulate in [objects.md](./objects.md), and the client-facing script RPC in [wire-protocol.md](./wire-protocol.md).
 
 ---
 
@@ -46,36 +46,67 @@ Graphs are standalone assets, not part of the project config. `NodeGraphFactory:
 
 ---
 
-## Lua component scripts
+## Project scripts
 
-Lua (LuaBridge3, `thirdparty/LuaBridge3`) attaches at the component level. Any `MikanComponent` definition can carry a script path (a `ScriptAssetReference`, `*.lua`). `MikanComponent::initScriptContext()` creates a `ComponentScriptContext`, loads the script, registers the context with `ScriptRequestHandler`, and subscribes to the owner object system's `onUpdate` so `CommonScriptContext::updateScript()` runs every tick.
+Lua (LuaBridge3, `thirdparty/LuaBridge3`) is project-level, not per-component. `ScriptObjectSystem` (`src/Editor/ECS/Script/ScriptObjectSystem.h`) is a `MikanTypedObjectSystem` registered last in `ProjectManager::startup`, so every other system's objects already exist when scripts run. Each `ScriptComponent` (definition `ScriptDefinition`, property `script_path`) names one script file through a `ScriptAssetReference` (`*.lua`). The system owns the project's single `ProjectScriptContext`, one `lua_State` shared by every script.
 
-`CommonScriptContext` (`Scripting/CommonScriptContext.h`) owns one `lua_State` per script: standard libs opened, a panic handler and detailed error reporting (`checkLuaResult` logs Lua tracebacks and disposes the state on error), and a built-in coroutine scheduler. The scheduler injects globals `start_coroutine`, `wait_frames`, `wait_next_frame`, `wait_seconds`, `get_frame_delta_seconds`; `update_scheduler()` is invoked once per frame from `updateScript()`.
+On `postInit`, and on the next `update` after a script is added, removed, or has its path changed (`requestReload`), the system calls `reloadAllScripts()`: dispose the current state, create a fresh one, then run every script with a non-empty path in pool order (`runScriptFile`), and bind the result to `ScriptRequestHandler`. With no scripts in the pool there is no Lua state at all. If any file fails to run, the whole state is disposed and an error names the failing script's id and path. A single bad file takes down every script, not just its own.
 
-Scripts declare their entry points through the `ScriptContext` namespace:
+The outliner's project root has a top-level Scripts folder. Its add button calls `ScriptObjectSystem::addNewScript()`, which creates `<project>/scripts/script_<timestamp>.lua` and registers it. Selecting a script row shows its path (click to pick a different `.lua` file), Edit and Reload buttons, and one button per trigger that file registered. Delete uses the outliner's Delete Component button. Reload re-runs every script in the pool, since they share one state.
+
+`CommonScriptContext` (`Scripting/CommonScriptContext.h`) owns the `lua_State`: standard libs opened, a panic handler and detailed error reporting (`checkLuaResult` logs Lua tracebacks and disposes the state on error), and a built-in coroutine scheduler. The scheduler injects globals `start_coroutine`, `wait_frames`, `wait_next_frame`, `wait_seconds`, `get_frame_delta_seconds`. `update_scheduler()` is invoked once per frame from `updateScript()`. `runScriptFile(path, scriptId)` runs one file's chunk into the shared state. While the chunk runs, `m_loadingScriptId` holds the running script's id so any registration it makes is attributed to it.
+
+Editor support: the project folder is the VS Code workspace for its scripts. `resources/lua-definitions/` holds LuaLS stub files (`mikan-core.lua`, `mikan-systems.lua`, `mikan-components.lua`) describing every binding above, kept in sync by hand with the `bindLuaFunctions` implementations they name. Loading a project writes two files into the project folder, each only when missing, so delete one to regenerate it after moving the editor install:
+
+- `.luarc.json`: points the VS Code Lua extension's `workspace.library` at the stub directory
+- `.vscode/launch.json`: an lrdb attach configuration for the debugger, with the workspace as its source root
+
+The repo root carries its own `.luarc.json` for `resources/scripts`. The script row's Edit button runs the script editor command (an app setting, `code --reuse-window` by default) with the project folder followed by the script path, which is how VS Code opens the project workspace with that file focused. A script outside the project opens on its own.
+
+Scripts declare their entry points through the `ScriptContext` namespace. Each registration is attributed to whichever script file was executing when it was called:
 
 - `ScriptContext.registerTrigger(functionName)`: exposes a named global function as a trigger.
 - `ScriptContext.registerMessageHandler(functionName)`: handler receives a string message, returns true if handled.
 - `ScriptContext.registerHttpTrigger(routeName, functionName)`: binds a trigger to the HTTP route `/trigger/<routeName>`.
 - `ScriptContext.broadcastMessage(message)`: emits a message to connected clients.
 
-What is scriptable: `ComponentScriptContext::bindContextFunctions()` binds LuaBridge classes for the object systems (`CameraObjectSystem`, `SceneObjectSystem`, `AnchorObjectSystem`, `CompositorObjectSystem`, `DMXObjectSystem`, the stencil and shape systems) and components (`MikanComponent` and subclasses: transform, scene, stage, camera, compositor, stencils, shapes, anchor, marker, DMX fixture, RGB lights). It sets the global `ownerComponent` to the script's owning component and exposes the stencil/shape system singletons as globals. Math helpers `LuaVec3f`/`LuaQuatf` come from `Scripting/LuaMath.h`. Enum constants (e.g. `eStencilCullMode`) are registered as globals.
+`ScriptComponent::getTriggerNames()` and `invokeTrigger()` filter to the triggers registered by that component's own file (`CommonScriptContext::getTriggerNamesForScript(scriptId, ...)`).
 
-Reload is live: the `reload_script` component function (also in the UI) unbinds the context from the server, reloads the file, and rebinds, refreshing HTTP trigger routes.
+What is scriptable: `ProjectScriptContext::bindContextFunctions()` binds LuaBridge classes for the object systems (`CameraObjectSystem`, `SceneObjectSystem`, `AnchorObjectSystem`, `CompositorObjectSystem`, `DMXObjectSystem`, the stencil and shape systems) and components (`MikanComponent` and subclasses: transform, scene, stage, camera, compositor, stencils, shapes, anchor, marker, DMX fixture, RGB lights). It sets these globals, one per scriptable object system:
+
+- `CameraSystem`
+- `SceneSystem`
+- `AnchorSystem`
+- `CompositorSystem`
+- `DMXSystem`
+- `ModelStencilSystem`
+- `BoxStencilSystem`
+- `QuadStencilSystem`
+- `ModelShapeSystem`
+- `BoxShapeSystem`
+- `QuadShapeSystem`
+
+There is no `ownerComponent` global: a script is not bound to a single component, so it reaches objects through the system globals above. A component handle still exposes `getCameraSystem()`, `getSceneSystem()`, `getDMXSystem()`, `getAnchorSystem()`, `getCompositorSystem()` methods for scripts that already hold a component reference. Math helpers `LuaVec3f`/`LuaQuatf` come from `Scripting/LuaMath.h`. Enum constants (e.g. `eStencilCullMode`) are registered as globals.
 
 ---
 
 ## Script RPC surface
 
-`ScriptRequestHandler` (`src/Editor/Server/ScriptRequestHandler.h`) is the server-side bridge (see [wire-protocol.md](./wire-protocol.md)):
+`ScriptRequestHandler` (`src/Editor/Server/ScriptRequestHandler.h`) is the server-side bridge (see [wire-protocol.md](./wire-protocol.md)). It holds one bound `ProjectScriptContext` at a time (`bindScriptContext`/`unbindScriptContext`/`getScriptContext`):
 
-- `InvokeComponentScriptTrigger` request: resolves owner system name + component id, invokes the named trigger on that component's script context.
-- `SendScriptMessage` request: offers the message to each bound script context until one handler returns true.
+- `InvokeScriptTrigger { trigger_name }` request: triggers are project-wide, so the request carries only the trigger name. Result codes:
+	- `MalformedParameters`: the trigger name is not registered.
+	- `RequestFailed`: no project script state is loaded, or the trigger itself failed.
+	- `Success`: otherwise.
+
+- `SendScriptMessage` request: offers the message to the bound context's handlers in registration order until one returns true. An unhandled message is still `Success`.
+
 - `MikanScriptMessagePostedEvent`: published to clients whenever a script calls `broadcastMessage`.
-- HTTP triggers: routes registered under `/trigger/<name>` on the HTTP message server (Stream Deck style integrations); responses are JSON result codes mapped from `MikanAPIResult`.
+
+- HTTP triggers: `registerHttpTriggerRoute(routeName, triggerName)` installs routes under `/trigger/<name>` on the HTTP message server (Stream Deck style integrations) for every `ScriptContext.registerHttpTrigger` binding the bound context declared. Responses are JSON result codes mapped from `MikanAPIResult`.
 
 ---
 
 ## Lua debugging
 
-`LuaDebugServer` (`Scripting/LuaDebugServer.h`) is a singleton LRDB debug server on TCP port 21110 (the vscode-lrdb extension default). `MainWindow` starts it at startup and calls `poll()` every frame. An RAII `LuaDebugContextGuard` attaches the debugger to whichever script context is currently executing, so breakpoints follow the active script without manual attach. Scripts can call `lrdb_break()` for a programmatic breakpoint. Chunk names are made workspace-relative so VSCode gutter breakpoints match. See [debugging.md](./debugging.md).
+`LuaDebugServer` (`Scripting/LuaDebugServer.h`) is a singleton LRDB debug server on TCP port 21110 (the vscode-lrdb extension default). `MainWindow` starts it listening before the first project loads, and calls `poll()` every frame. The project's `ProjectScriptContext` attaches itself when its Lua state is created (`createScriptState`) and detaches when the state is disposed (`disposeScriptState`), so breakpoints in any project script work without a manual attach step. Scripts can call `lrdb_break()` for a programmatic breakpoint. Chunk names are paths relative to the project folder (absolute for a script outside it), which is what the generated launch config's `sourceRoot` makes VS Code send for a gutter breakpoint, so the two match. To debug: open the project folder in VS Code, set breakpoints, and run the "Attach to MikanXR Lua" configuration while the editor is running. A trigger button, HTTP route, or `script trigger` automation command then hits them. See [debugging.md](./debugging.md).

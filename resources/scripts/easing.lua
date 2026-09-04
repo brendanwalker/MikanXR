@@ -29,7 +29,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 -- c = change == ending - beginning
 -- d = duration (total time)
 
-local pow = math.pow
+local function pow(x, y)
+  return x ^ y
+end
 local sin = math.sin
 local cos = math.cos
 local pi = math.pi

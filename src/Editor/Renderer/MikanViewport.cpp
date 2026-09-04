@@ -12,19 +12,25 @@
 #include "InputManager.h"
 
 // -- GlViewport --
-MikanViewport::MikanViewport(const class IEditorWindow* ownerWindow, const glm::i32vec2& windowSize)
+MikanViewport::MikanViewport(const class IEditorWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
-	, m_windowSize(windowSize)
 	, m_backgroundColor(Colors::CornflowerBlue, 1.f)
 {
-	setViewport(glm::i32vec2(0, 0), m_windowSize);
+	setViewport(glm::i32vec2(0, 0), getWindowSize());
 	addCamera();
+}
+
+glm::i32vec2 MikanViewport::getWindowSize() const
+{
+	return glm::i32vec2((int)m_ownerWindow->getWidth(), (int)m_ownerWindow->getHeight());
 }
 
 void MikanViewport::setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize)
 {
-	m_viewportOrigin= glm::max(glm::min(viewportOrigin, m_windowSize), glm::i32vec2(0, 0));
-	m_viewportSize= glm::min((m_viewportOrigin + viewportSize), m_windowSize) - m_viewportOrigin;
+	const glm::i32vec2 windowSize= getWindowSize();
+
+	m_viewportOrigin= glm::max(glm::min(viewportOrigin, windowSize), glm::i32vec2(0, 0));
+	m_viewportSize= glm::min((m_viewportOrigin + viewportSize), windowSize) - m_viewportOrigin;
 
 	// Net valid until applyViewport
 	m_renderOrigin= glm::i32vec2();
@@ -58,7 +64,9 @@ void MikanViewport::applyRenderingViewport(IMkState* glState)
 
 	// This calls onRenderingViewportApply from mkStateSetViewportImpl.
 	// onRenderingViewportRevert is called when the scoped state is popped.
-	mkStateSetViewport(glState, m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y),
+	// The window height converts the top-left origin the dockspace works in to
+	// the bottom-left one GL wants, so it has to be the live height.
+	mkStateSetViewport(glState, m_viewportOrigin.x, getWindowSize().y - (m_viewportOrigin.y + m_viewportSize.y),
 					   m_viewportSize.x, m_viewportSize.y);
 }
 

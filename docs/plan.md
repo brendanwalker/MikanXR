@@ -30,6 +30,7 @@ The living plan: what is in flight now, what comes next, and the open questions.
 - [ ] Remove the empty `src/Libraries/ARKitReceiver` and `src/Libraries/MikanARKitReceiver` scaffolding directories.
 - [ ] Stop checking generated bindings into git (`bindings/csharp/CMakeLists.txt` carries the TODO).
 - [ ] Wire the unrecordable property notifications into descriptors so they reach undo and client events: the `EditorObjectSystem` settings names and `depth_mesh_scale_correction` (the standing gaps listed in `docs/reference/transactions.md`).
+- [ ] MikanXR_CEFGUI: `src/ts/composables/useDeveloperFields.ts` still lists `component_script` in its field lists; drop it when the GUI picks up the regenerated TypeScript types (the field left `MikanComponentValues`).
 
 ## Open questions
 

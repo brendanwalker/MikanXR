@@ -1,6 +1,5 @@
 #pragma once
 
-#include "AssetFwd.h"
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "CommonConfigFwd.h"
@@ -11,9 +10,7 @@
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProjectManager.h"
-#include "ScriptingFwd.h"
 
-#include <filesystem>
 #include <memory>
 #include <typeinfo>
 
@@ -38,16 +35,10 @@ public:
 	const std::string& getComponentName() const { return m_componentName; }
 	void setComponentName(const std::string& stencilName);
 
-	static const std::string k_componentScriptPathPropertyId;
-	bool hasComponentScriptPath() const;
-	std::filesystem::path getComponentScriptPath() const;
-	void setComponentScriptPath(const std::filesystem::path& scriptPath);
-
 protected:
 	MikanComponentWeakPtr m_ownerComponent;
 	int m_componentId;
 	std::string m_componentName;
-	AssetReferenceConfigPtr m_componentScriptAssetRefConfig;
 };
 
 class MikanComponent : public std::enable_shared_from_this<MikanComponent>, public IEntityAccessor
@@ -115,17 +106,6 @@ public:
 	// Invoked manually from MikanTypedObjectSystem
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const {}
 
-	// -- Scripting ----
-	inline ComponentScriptContextPtr getScriptContext() { return m_scriptContext; }
-	inline ComponentScriptContextConstPtr getScriptContext() const { return m_scriptContext; }
-
-	bool hasValidComponentScript() const;
-	void addNewComponentScript();
-	void editComponentScript();
-	void reloadComponentScript();
-	void removeComponentScript();
-	void selectComponentScript();
-
 	// -- IEntityAccessor ----
 	virtual std::string makePropertyUIIdentifier(const std::string& propName) const override;
 	virtual CommonConfigPtr getEntityConfig() override { return m_definition; }
@@ -137,11 +117,6 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
-	static const std::string k_addNewScriptFunctionId;
-	static const std::string k_editScriptFunctionId;
-	static const std::string k_reloadScriptFunctionId;
-	static const std::string k_removeScriptFunctionId;
-	static const std::string k_selectScriptFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
@@ -149,12 +124,6 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	// -- Scripting ----
-	virtual ComponentScriptContextPtr allocateScriptContext();
-	void initScriptContext();
-	void disposeScriptContext();
-	void updateScriptContext(float deltaSeconds);
-
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
@@ -164,8 +133,6 @@ protected:
 	std::string m_name;
 	MikanObjectWeakPtr m_ownerObject;
 	MikanComponentDefinitionPtr m_definition;
-	AssetReferencePtr m_scriptAssetRef;
-	ComponentScriptContextPtr m_scriptContext;
 };
 
 template <class t_derived_type>

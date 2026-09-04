@@ -4,6 +4,7 @@
 #include "MathGLM.h"
 #include "LuaMath.h"
 #include "Logger.h"
+#include "PathUtils.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -16,10 +17,7 @@
 #include "easy/profiler.h"
 
 // -- CommonScriptContext -----
-CommonScriptContext::CommonScriptContext()
-	: m_luaState(nullptr)
-{
-}
+CommonScriptContext::CommonScriptContext() {}
 
 CommonScriptContext::~CommonScriptContext() { disposeScriptState(); }
 
@@ -85,14 +83,14 @@ bool CommonScriptContext::checkLuaResult(int ret, const char* filename, int line
 	return true;
 }
 
-bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
+bool CommonScriptContext::createScriptState()
 {
 	disposeScriptState();
 
 	m_luaState= luaL_newstate();
 	if (m_luaState == nullptr)
 	{
-		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to create new Lua state";
+		MIKAN_LOG_ERROR("CommonScriptContext::createScriptState") << "Failed to create new Lua state";
 		return false;
 	}
 
@@ -101,85 +99,75 @@ bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 
 	if (!bindContextFunctions())
 	{
-		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Find to bind script context functions";
+		MIKAN_LOG_ERROR("CommonScriptContext::createScriptState") << "Failed to bind script context functions";
 		disposeScriptState();
 		return false;
 	}
 
-	// Build a chunk name that is relative to CWD (= the workspace / repo root when
-	// launched from VS Code).  The vscode-lrdb extension converts editor paths to
-	// paths relative to its "sourceRoot" setting (${workspaceFolder}), so both
-	// sides must agree on the same relative form for breakpoint matching to work.
-	std::filesystem::path cwd= std::filesystem::current_path();
-	std::filesystem::path relPath= scriptPath.lexically_relative(cwd);
-	bool isUnderCwd= !relPath.empty() && relPath.native().substr(0, 2) != L".." && relPath.native().front() != L'/';
-	std::string chunkName= "@" + (isUnderCwd ? relPath.generic_string() : scriptPath.generic_string());
+	// One state per project: the debugger attaches here and follows every
+	// script that runs in it
+	auto* debugServer= LuaDebugServer::getInstance();
+	if (debugServer->isListening())
+	{
+		debugServer->attach(this);
+	}
+
+	return true;
+}
+
+bool CommonScriptContext::runScriptFile(const std::filesystem::path& scriptPath, MikanScriptID scriptId)
+{
+	if (m_luaState == nullptr)
+	{
+		MIKAN_LOG_ERROR("CommonScriptContext::runScriptFile") << "No script state to run " << scriptPath << " in";
+		return false;
+	}
+
+	// The chunk name is the path relative to the project folder. The vscode-lrdb
+	// extension sends breakpoint paths relative to its "sourceRoot", which the
+	// project's generated launch config sets to the workspace (the project
+	// folder), so both sides agree on the same relative form. A script outside
+	// the project keeps its absolute path.
+	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
+	std::filesystem::path relPath=
+		projectDir.empty() ? std::filesystem::path() : scriptPath.lexically_relative(projectDir);
+	const bool isUnderProject=
+		!relPath.empty() && relPath.native().substr(0, 2) != L".." && relPath.native().front() != L'/';
+	std::string chunkName= "@" + (isUnderProject ? relPath.generic_string() : scriptPath.generic_string());
 
 	// Read the file ourselves so we can supply the custom chunk name to lua_load.
 	std::ifstream scriptFile(scriptPath, std::ios::binary);
 	if (!scriptFile.is_open())
 	{
-		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to open lua script " << scriptPath;
+		MIKAN_LOG_ERROR("CommonScriptContext::runScriptFile") << "Failed to open lua script " << scriptPath;
 		return false;
 	}
 	std::string scriptContent((std::istreambuf_iterator<char>(scriptFile)), {});
 
+	// Registrations made while the chunk runs belong to this script
+	m_loadingScriptId= scriptId;
 	int ret= luaL_loadbuffer(m_luaState, scriptContent.c_str(), scriptContent.size(), chunkName.c_str());
 	if (ret == LUA_OK)
 		ret= lua_pcall(m_luaState, 0, LUA_MULTRET, 0);
+	m_loadingScriptId= INVALID_MIKAN_ID;
+
 	if (!checkLuaResult(ret, __FILE__, __LINE__))
 	{
-		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to load lua script " << scriptPath;
+		MIKAN_LOG_ERROR("CommonScriptContext::runScriptFile") << "Failed to run lua script " << scriptPath;
 		return false;
 	}
 
-	m_scriptFilename= scriptPath;
+	m_loadedScripts.push_back({scriptId, scriptPath});
 
 	return true;
 }
 
-bool CommonScriptContext::reloadScript()
+bool CommonScriptContext::isScriptLoaded(MikanScriptID scriptId) const
 {
-	if (!m_scriptFilename.empty())
-	{
-		return loadScript(m_scriptFilename);
-	}
-
-	return false;
+	return std::find_if(m_loadedScripts.begin(), m_loadedScripts.end(),
+						[scriptId](const LoadedScript& script) { return script.scriptId == scriptId; })
+		   != m_loadedScripts.end();
 }
-
-// RAII guard: temporarily redirects the Lua debug server to this context
-// for the duration of a Lua execution call, then restores the previous context.
-// This lets the debugger follow whichever script is actively executing without
-// requiring the user to manually attach to each component.
-namespace
-{
-struct LuaDebugContextGuard
-{
-	explicit LuaDebugContextGuard(CommonScriptContext* ctx)
-	{
-		auto* dbg= LuaDebugServer::getInstance();
-		if (dbg->isListening())
-		{
-			m_server= dbg;
-			m_prevContext= dbg->getAttachedContext();
-			dbg->attach(ctx);
-		}
-	}
-	~LuaDebugContextGuard()
-	{
-		if (m_server)
-		{
-			if (m_prevContext)
-				m_server->attach(m_prevContext);
-			else
-				m_server->detach();
-		}
-	}
-	LuaDebugServer* m_server= nullptr;
-	CommonScriptContext* m_prevContext= nullptr;
-};
-} // namespace
 
 void CommonScriptContext::updateScript(float deltaSeconds)
 {
@@ -187,7 +175,6 @@ void CommonScriptContext::updateScript(float deltaSeconds)
 
 	if (m_luaState != nullptr)
 	{
-		LuaDebugContextGuard debugGuard(this);
 		lua_getglobal(m_luaState, "update_scheduler");
 		int ret= lua_pcall(m_luaState, 0, 0, 0);
 		checkLuaResult(ret, __FILE__, __LINE__);
@@ -198,7 +185,8 @@ bool CommonScriptContext::bindContextFunctions()
 {
 	if (!addLuaCoroutineScheduler())
 	{
-		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to add coroutine scheduler to Lua state";
+		MIKAN_LOG_ERROR("CommonScriptContext::bindContextFunctions")
+			<< "Failed to add coroutine scheduler to Lua state";
 		return false;
 	}
 
@@ -209,14 +197,29 @@ bool CommonScriptContext::bindContextFunctions()
 	return true;
 }
 
+void CommonScriptContext::getTriggerNamesForScript(MikanScriptID scriptId, std::vector<std::string>& outNames) const
+{
+	for (const TriggerBinding& trigger : m_triggers)
+	{
+		if (trigger.scriptId == scriptId)
+			outNames.push_back(trigger.functionName);
+	}
+}
+
+bool CommonScriptContext::hasTrigger(const std::string& triggerName) const
+{
+	return std::find_if(m_triggers.begin(), m_triggers.end(),
+						[&triggerName](const TriggerBinding& trigger) { return trigger.functionName == triggerName; })
+		   != m_triggers.end();
+}
+
 bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName)
 {
-	if (std::find(m_triggers.begin(), m_triggers.end(), triggerName) != m_triggers.end())
+	if (m_luaState != nullptr && hasTrigger(triggerName))
 	{
-		LuaDebugContextGuard debugGuard(this);
 		lua_getglobal(m_luaState, triggerName.c_str());
 		int ret= lua_pcall(m_luaState, 0, 0, 0);
-		return !checkLuaResult(ret, __FILE__, __LINE__);
+		return checkLuaResult(ret, __FILE__, __LINE__);
 	}
 
 	MIKAN_LOG_ERROR("CommonScriptContext::invokeScriptTrigger") << "Failed to find triggerName " << triggerName;
@@ -233,7 +236,6 @@ bool CommonScriptContext::evalString(const std::string& code, std::string& outRe
 		return false;
 	}
 
-	LuaDebugContextGuard debugGuard(this);
 	const int stackTop= lua_gettop(m_luaState);
 
 	if (luaL_dostring(m_luaState, code.c_str()) != LUA_OK)
@@ -263,25 +265,29 @@ bool CommonScriptContext::invokeScriptMessageHandler(const std::string& message)
 {
 	if (m_luaState != nullptr)
 	{
-		for (const std::string& function_name : m_messageHandlers)
+		for (const MessageHandlerBinding& handler : m_messageHandlers)
 		{
 			// Fetch the message handler
-			lua_getglobal(m_luaState, function_name.c_str());
+			lua_getglobal(m_luaState, handler.functionName.c_str());
 
 			// Push the request onto the stack
 			lua_pushstring(m_luaState, message.c_str());
 
-			// Call the message handlers
+			// Call the message handler
 			int ret= lua_pcall(m_luaState, 1, 1, 0);
-			if (checkLuaResult(ret, __FILE__, __LINE__))
+			if (!checkLuaResult(ret, __FILE__, __LINE__))
 			{
-				// See if the message was considered handled
-				bool bHandeled= lua_toboolean(m_luaState, -1);
+				// The state was disposed on error
+				return false;
+			}
 
-				if (bHandeled)
-				{
-					return true;
-				}
+			// See if the message was considered handled
+			const bool bHandled= lua_toboolean(m_luaState, -1);
+			lua_pop(m_luaState, 1);
+
+			if (bHandled)
+			{
+				return true;
 			}
 		}
 	}
@@ -377,14 +383,15 @@ void CommonScriptContext::bindCommonScriptFunctions()
 	auto globalNamespace= luabridge::getGlobalNamespace(m_luaState);
 	auto contextNamespace= globalNamespace.beginNamespace("ScriptContext");
 
-	contextNamespace.addFunction("registerTrigger",
-								 [this](const char* functionName) { m_triggers.push_back(functionName); });
+	contextNamespace.addFunction("registerTrigger", [this](const char* functionName)
+								 { m_triggers.push_back({functionName, m_loadingScriptId}); });
 
-	contextNamespace.addFunction("registerMessageHandler",
-								 [this](const char* functionName) { m_messageHandlers.push_back(functionName); });
+	contextNamespace.addFunction("registerMessageHandler", [this](const char* functionName)
+								 { m_messageHandlers.push_back({functionName, m_loadingScriptId}); });
 
-	contextNamespace.addFunction("registerHttpTrigger", [this](const char* routeName, const char* triggerFunctionName)
-								 { m_httpTriggerBindings.push_back({routeName, triggerFunctionName}); });
+	contextNamespace.addFunction(
+		"registerHttpTrigger", [this](const char* routeName, const char* triggerFunctionName)
+		{ m_httpTriggerBindings.push_back({routeName, triggerFunctionName, m_loadingScriptId}); });
 
 	contextNamespace.addFunction("broadcastMessage",
 								 [this](const char* message)
@@ -406,7 +413,9 @@ void CommonScriptContext::bindCommonScriptFunctions()
 
 void CommonScriptContext::disposeScriptState()
 {
+	m_loadedScripts.clear();
 	m_triggers.clear();
+	m_messageHandlers.clear();
 	m_httpTriggerBindings.clear();
 
 	if (m_luaState != nullptr)

@@ -94,6 +94,17 @@ using VRTrackingVolumeComponentPtr= std::shared_ptr<VRTrackingVolumeComponent>;
 using VRTrackingVolumeComponentConstPtr= std::shared_ptr<const VRTrackingVolumeComponent>;
 using VRTrackingVolumeComponentWeakPtr= std::weak_ptr<VRTrackingVolumeComponent>;
 
+// Scripts
+class ScriptDefinition;
+using ScriptDefinitionPtr= std::shared_ptr<ScriptDefinition>;
+using ScriptDefinitionConstPtr= std::shared_ptr<const ScriptDefinition>;
+using ScriptDefinitionWeakPtr= std::weak_ptr<ScriptDefinition>;
+
+class ScriptComponent;
+using ScriptComponentPtr= std::shared_ptr<ScriptComponent>;
+using ScriptComponentConstPtr= std::shared_ptr<const ScriptComponent>;
+using ScriptComponentWeakPtr= std::weak_ptr<ScriptComponent>;
+
 class TrackingMountDefinition;
 using TrackingMountDefinitionPtr= std::shared_ptr<TrackingMountDefinition>;
 using TrackingMountDefinitionConstPtr= std::shared_ptr<const TrackingMountDefinition>;

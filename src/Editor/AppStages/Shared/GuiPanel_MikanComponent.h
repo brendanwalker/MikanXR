@@ -62,7 +62,6 @@ protected:
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 
 	static const std::string k_defaultComponentStyleName;
-	static const std::string k_scriptPathStyleName;
 };
 
 using GuiPanel_MikanComponentPtr= std::shared_ptr<GuiPanel_MikanComponent>;

@@ -17,15 +17,14 @@
 class CommonScriptContext;
 
 /// Singleton that owns one TCP port and one LRDB debugger instance.
-/// A single server can be migrated between any number of per-component
-/// script contexts — call attach() to switch, detach() to unhook.
+/// The project's script context attaches itself when its Lua state is created
+/// and detaches when the state is disposed, so breakpoints follow every script
+/// in the project without any manual attach.
 ///
 /// Typical workflow:
-///   1. LuaDebugServer::getInstance()->startListening();  // once at app init
-///   2. User selects a component → call attach(context)
-///   3. In VSCode: Run → "Attach to MikanXR Lua" launch config
-///   4. Set breakpoints in the .lua file and debug normally
-///   5. To switch context, call attach(otherContext) — the port stays open
+///   1. LuaDebugServer::getInstance()->startListening();  // once at app init, before the first project loads
+///   2. Open the project folder in VSCode and run its "Attach to MikanXR Lua" launch config
+///   3. Set breakpoints in any project .lua file and debug normally
 ///
 /// poll() must be called each frame from the app update loop so that
 /// non-blocking I/O events (connection, data) are serviced even when

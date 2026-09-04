@@ -4,6 +4,7 @@
 
 #include <filesystem>
 #include <string>
+#include <vector>
 
 //-- utility methods -----
 namespace OSUtils
@@ -18,4 +19,11 @@ MIKAN_UTILITY_FUNC(bool) openFileWithDefaultApplication(const std::filesystem::p
 /// Falls back to openFileWithDefaultApplication when editorCommand is empty.
 MIKAN_UTILITY_FUNC(bool) openFileWithApplication(const std::filesystem::path& filePath,
 												 const std::string& editorCommand);
+
+/// Open several paths with one editor command, each appended as a quoted
+/// argument in order. A folder followed by a file inside it is how VS Code and
+/// Sublime style launchers open a workspace with that file focused. With an
+/// empty editorCommand only the last path opens, with the default application.
+MIKAN_UTILITY_FUNC(bool) openPathsWithApplication(const std::vector<std::filesystem::path>& paths,
+												  const std::string& editorCommand);
 }; // namespace OSUtils

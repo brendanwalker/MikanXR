@@ -37,6 +37,7 @@
 #include "RGBSpotLightComponent.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
+#include "ScriptComponent.h"
 #include "SelectionComponent.h"
 #include "Shared/GuiPanel_AnchorComponent.h"
 #include "Shared/GuiPanel_ARKitVideoSourceComponent.h"
@@ -51,6 +52,7 @@
 #include "Shared/GuiPanel_RGBPixelGridComponent.h"
 #include "Shared/GuiPanel_RGBSpotLightComponent.h"
 #include "Shared/GuiPanel_SceneComponent.h"
+#include "Shared/GuiPanel_ScriptComponent.h"
 #include "Shared/GuiPanel_ShapeComponent.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
 #include "Shared/GuiPanel_StageComponent.h"
@@ -160,7 +162,7 @@ void GuiPanel_ProjectOutliner::rebuildIfDirty()
 // -- Tree drawing ----
 void GuiPanel_ProjectOutliner::drawTree()
 {
-	const float treeHeight= std::max(150.f, ImGui::GetContentRegionAvail().y * 0.4f);
+	const float treeHeight= std::max(150.f, ImGui::GetContentRegionAvail().y * 0.6f);
 	if (ImGui::BeginChild("##OutlinerTree", ImVec2(0.f, treeHeight)))
 	{
 		if (ProjectOutlinerNodePtr rootNode= m_model.getRoot())
@@ -187,6 +189,7 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 	case eOutlinerNodeKind::folderCameras:
 	case eOutlinerNodeKind::folderLights:
 	case eOutlinerNodeKind::folderScenes:
+	case eOutlinerNodeKind::folderScripts:
 	case eOutlinerNodeKind::trackingVolume:
 	case eOutlinerNodeKind::stage:
 	case eOutlinerNodeKind::scene:
@@ -202,7 +205,7 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 		node->kind == eOutlinerNodeKind::projectRoot || node->kind == eOutlinerNodeKind::folderSources
 		|| node->kind == eOutlinerNodeKind::folderMarkers || node->kind == eOutlinerNodeKind::folderTrackingVolumes
 		|| node->kind == eOutlinerNodeKind::folderCameras || node->kind == eOutlinerNodeKind::folderLights
-		|| node->kind == eOutlinerNodeKind::folderScenes;
+		|| node->kind == eOutlinerNodeKind::folderScenes || node->kind == eOutlinerNodeKind::folderScripts;
 	const bool bIsSelected= (node->componentId != INVALID_MIKAN_ID && node->componentId == m_selectedComponentId)
 							|| (bIsSyntheticSelectable && m_selectedComponentId == INVALID_MIKAN_ID
 								&& node->kind == m_selectedKind && node->ownerId == m_selectedOwnerId);
@@ -332,6 +335,10 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		if (drawAddButton("outlinerAddVRTracking", ICON_FK_BULLSEYE, "project.outlinerAddVRTracking"))
 			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addVRTrackingVolume(pm); });
 		break;
+	case eOutlinerNodeKind::folderScripts:
+		if (drawAddButton("outlinerAddScript", ICON_FK_FILE_CODE_O, "project.outlinerAddScript"))
+			deferAddAction([](ProjectManagerPtr pm) { return ProjectOutlinerActions::addScript(pm); });
+		break;
 	case eOutlinerNodeKind::trackingVolume:
 	{
 		const int volumeId= selectedNode->componentId;
@@ -402,8 +409,6 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		break;
 	}
 
-	ImGui::Separator();
-
 	drawComponentPanelForNode(selectedNode);
 
 	// Delete closes out the panel, below the component's own function buttons,
@@ -413,8 +418,6 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 						   && selectedNode->componentClassName != LightEnvironmentComponent::k_componentClassName;
 	if (bCanDelete)
 	{
-		ImGui::Separator();
-
 		MkGuiScopedStyle deleteButtonStyle(m_deleteButtonGuiStyle);
 		if (ImGui::Button(locLabel("project.outlinerDeleteComponent")))
 		{
@@ -618,6 +621,8 @@ GuiPanel_MikanComponent* GuiPanel_ProjectOutliner::getPanelForComponentClass(
 		return m_context->getBoxShapePanel();
 	if (componentClassName == ModelShapeComponent::k_componentClassName)
 		return m_context->getModelShapePanel();
+	if (componentClassName == ScriptComponent::k_componentClassName)
+		return m_context->getScriptPanel();
 
 	return nullptr;
 }
@@ -648,6 +653,7 @@ void GuiPanel_ProjectOutliner::clearComponentPanels()
 	m_context->getQuadShapePanel()->setComponent(nullptr);
 	m_context->getBoxShapePanel()->setComponent(nullptr);
 	m_context->getModelShapePanel()->setComponent(nullptr);
+	m_context->getScriptPanel()->setComponent(nullptr);
 }
 
 void GuiPanel_ProjectOutliner::drawComponentPanelForNode(ProjectOutlinerNodePtr node)

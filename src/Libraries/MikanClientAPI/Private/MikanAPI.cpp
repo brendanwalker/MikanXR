@@ -86,6 +86,7 @@
 #include "MikanMarkerTypes.h"
 #include "MikanSceneTypes.h"
 #include "MikanStageTypes.h"
+#include "MikanScriptTypes.h"
 #include "MikanShapeTypes.h"
 #include "MikanStencilTypes.h"
 #include "MikanTextureSourceTypes.h"
@@ -166,6 +167,9 @@ const char* MikanVRTrackingVolumeComponentValues::k_ownerSystemName= "VRTracking
 
 const char* MikanTrackingMountComponentValues::k_componentClassName= "TrackingMountComponent";
 const char* MikanTrackingMountComponentValues::k_ownerSystemName= "TrackingMountObjectSystem";
+
+const char* MikanScriptComponentValues::k_componentClassName= "ScriptComponent";
+const char* MikanScriptComponentValues::k_ownerSystemName= "ScriptObjectSystem";
 
 const char* MikanClientTextureSourceValues::k_componentClassName= "ClientTextureSourceComponent";
 const char* MikanClientTextureSourceValues::k_ownerSystemName= "ClientTextureSourceSystem";

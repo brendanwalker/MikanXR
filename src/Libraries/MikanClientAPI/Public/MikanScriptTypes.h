@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanAPIExport.h"
+#include "MikanComponentTypes.h"
 #include "SerializationProperty.h"
 #include "SerializableString.h"
 
@@ -15,6 +16,20 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptTypes")) MikanS
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanScriptMessageInfo_GENERATED
+#endif
+};
+
+// Structures
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptTypes")) MikanScriptComponentValues
+	: public MikanComponentValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() Serialization::String script_path;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanScriptComponentValues_GENERATED
 #endif
 };
 
