@@ -128,9 +128,22 @@ function Quatf:normalize() end
 
 ---@class ScriptContext
 --- All project scripts share one Lua state. `registerTrigger`, `registerMessageHandler`,
---- and `registerHttpTrigger` attribute the registration to whichever script file is
---- currently being loaded.
+--- `registerHttpTrigger`, and `registerVariable` attribute the registration to whichever
+--- script file is currently being loaded.
 ScriptContext = {}
+
+--- Register a global Lua variable as an editor-editable, persisted script parameter.
+--- The variable's type is taken from the default: boolean, integer (a Lua integer
+--- such as `4`), number (a Lua float such as `4.0`), string, or Vec3f. A value
+--- stored in the project for this script wins over the default; otherwise the
+--- default is adopted and stored. After the call the global `name` holds the
+--- effective value, and every edit in the script panel rewrites that global, so
+--- read it inside trigger bodies rather than caching it at chunk scope. A name
+--- already registered by any script is rejected.
+---@param name string Name of the global variable to register.
+---@param defaultValue boolean|integer|number|string|Vec3f
+---@return boolean registered
+function ScriptContext.registerVariable(name, defaultValue) end
 
 --- Register a global Lua function as a trigger.
 --- Triggers are called by Mikan in response to UI Button Events.

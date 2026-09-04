@@ -2,6 +2,7 @@
 
 #include "MikanCoreTypes.h"
 #include "MikanTypeFwd.h"
+#include "MikanVariantTypes.h"
 #include "MulticastDelegate.h"
 #include "ScriptingFwd.h"
 
@@ -45,14 +46,25 @@ public:
 		MikanScriptID scriptId;
 	};
 
+	// A Lua global declared via ScriptContext.registerVariable(name, default).
+	// The global's value is owned by the registering script's definition.
+	struct VariableBinding
+	{
+		std::string name;
+		MikanScriptID scriptId;
+		MikanVariantType type;
+	};
+
 	CommonScriptContext();
 	virtual ~CommonScriptContext();
 
 	// Create the Lua state, bind the context functions, and attach the debugger
 	bool createScriptState();
 	// Run one script file's chunk into the live state; registrations made while
-	// it runs are attributed to scriptId
-	bool runScriptFile(const std::filesystem::path& scriptPath, MikanScriptID scriptId);
+	// it runs are attributed to scriptId, and variable registrations resolve
+	// their values against variableStore
+	bool runScriptFile(const std::filesystem::path& scriptPath, MikanScriptID scriptId,
+					   IScriptVariableStore* variableStore= nullptr);
 	void disposeScriptState();
 	void updateScript(float deltaSeconds);
 	inline bool hasLoadedScript() const { return m_luaState != nullptr; }
@@ -76,6 +88,13 @@ public:
 
 	const std::vector<HttpTriggerBinding>& getHttpTriggerBindings() const { return m_httpTriggerBindings; }
 
+	const std::vector<VariableBinding>& getScriptVariables() const { return m_variables; }
+	void getVariableNamesForScript(MikanScriptID scriptId, std::vector<std::string>& outNames) const;
+	bool hasVariable(const std::string& name) const;
+	// Write a registered variable's Lua global. False with no state, an
+	// unregistered name, or a value of another type than the registration.
+	bool setVariableValue(const std::string& name, const MikanVariant& value);
+
 	MulticastDelegate<void(const std::string& message)> OnScriptMessage;
 
 protected:
@@ -86,11 +105,18 @@ protected:
 	void bindCommonScriptFunctions();
 	bool addLuaCoroutineScheduler();
 
+	// Resolve the effective value against the loading script's store, write it
+	// to the Lua global, and record the binding
+	bool registerVariable(const std::string& name, const MikanVariant& defaultValue);
+	bool pushVariantAsGlobal(const std::string& name, const MikanVariant& value);
+
 	std::vector<LoadedScript> m_loadedScripts;
 	std::vector<TriggerBinding> m_triggers;
 	std::vector<MessageHandlerBinding> m_messageHandlers;
 	std::vector<HttpTriggerBinding> m_httpTriggerBindings;
+	std::vector<VariableBinding> m_variables;
 	// The script whose chunk is executing, so registrations can be attributed
 	MikanScriptID m_loadingScriptId= INVALID_MIKAN_ID;
+	IScriptVariableStore* m_loadingVariableStore= nullptr;
 	lua_State* m_luaState= nullptr;
 };

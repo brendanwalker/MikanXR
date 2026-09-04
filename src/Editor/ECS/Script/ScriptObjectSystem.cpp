@@ -82,7 +82,7 @@ void ScriptObjectSystem::reloadAllScripts()
 	for (ScriptComponentPtr script : scripts)
 	{
 		const std::filesystem::path scriptPath= script->getResolvedScriptPath();
-		if (!m_scriptContext->runScriptFile(scriptPath, script->getComponentId()))
+		if (!m_scriptContext->runScriptFile(scriptPath, script->getComponentId(), script->getScriptDefinition().get()))
 		{
 			// The failing chunk disposed the whole state
 			MIKAN_LOG_ERROR("ScriptObjectSystem::reloadAllScripts")

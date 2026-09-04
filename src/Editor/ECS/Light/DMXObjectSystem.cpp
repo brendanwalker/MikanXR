@@ -6,7 +6,9 @@
 #include "MikanLightTypes.h"
 #include "ProjectConfig.h"
 #include "RGBPixelGridComponent.h"
+#include "RGBPixelGridSystem.h"
 #include "RGBSpotLightComponent.h"
+#include "RGBSpotLightSystem.h"
 
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
@@ -326,34 +328,40 @@ void DMXObjectSystem::bindLuaFunctions(struct lua_State* L)
 		.addFunction("getSpotLightCount",
 					 [](DMXObjectSystem* s) -> int
 					 {
-						 std::vector<MikanComponentPtr> v;
-						 s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
-						 return static_cast<int>(v.size());
+						 auto sys= s->getObjectSystemOfType<RGBSpotLightSystem>();
+						 return sys ? static_cast<int>(sys->getComponentMap().size()) : 0;
 					 })
 		.addFunction("getSpotLightAtIndex",
 					 [](DMXObjectSystem* s, int i) -> RGBSpotLightComponent*
 					 {
-						 std::vector<MikanComponentPtr> v;
-						 s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
-						 if (i >= 0 && i < static_cast<int>(v.size()))
-							 return std::dynamic_pointer_cast<RGBSpotLightComponent>(v[i]).get();
+						 auto sys= s->getObjectSystemOfType<RGBSpotLightSystem>();
+						 if (!sys)
+							 return nullptr;
+						 int n= 0;
+						 for (auto& [id, wp] : sys->getComponentMap())
+							 if (n++ == i)
+								 return wp.lock().get();
 						 return nullptr;
 					 })
 		.addFunction("getPixelGridCount",
 					 [](DMXObjectSystem* s) -> int
 					 {
-						 std::vector<MikanComponentPtr> v;
-						 s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
-						 return static_cast<int>(v.size());
+						 auto sys= s->getObjectSystemOfType<RGBPixelGridSystem>();
+						 return sys ? static_cast<int>(sys->getComponentMap().size()) : 0;
 					 })
 		.addFunction("getPixelGridAtIndex",
 					 [](DMXObjectSystem* s, int i) -> RGBPixelGridComponent*
 					 {
-						 std::vector<MikanComponentPtr> v;
-						 s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
-						 if (i >= 0 && i < static_cast<int>(v.size()))
-							 return std::dynamic_pointer_cast<RGBPixelGridComponent>(v[i]).get();
+						 auto sys= s->getObjectSystemOfType<RGBPixelGridSystem>();
+						 if (!sys)
+							 return nullptr;
+						 int n= 0;
+						 for (auto& [id, wp] : sys->getComponentMap())
+							 if (n++ == i)
+								 return wp.lock().get();
 						 return nullptr;
 					 })
+		.addProperty("universeChannelCount", [](DMXObjectSystem*) -> int
+					 { return static_cast<int>(DMXObjectSystem::kDMXUniverseChannelCount); })
 		.endClass();
 }

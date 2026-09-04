@@ -10,6 +10,7 @@
 ---@class MikanComponent
 ---@field name string Component name (read/write)
 ---@field className string Component class name (read-only)
+---@field componentId integer Unique component ID (read-only)
 local MikanComponent = {}
 
 --- Get the CameraObjectSystem singleton.
@@ -193,6 +194,7 @@ local ModelShapeComponent = {}
 ---@field dmxStartChannel integer DMX start channel (read/write)
 ---@field dmxChannelCount integer Number of DMX channels used (read-only)
 ---@field isDisabled boolean Whether the fixture is disabled (read/write)
+---@field ownerStageId integer ID of the owning stage (read-only)
 local DMXFixtureComponent = {}
 
 --- Triangulate the light position using camera data.

@@ -13,7 +13,9 @@
 #include "imgui.h"
 #include "tinyfiledialogs.h"
 
+#include <algorithm>
 #include <assert.h>
+#include <cstdint>
 
 static const std::string k_defaultStyleName= "default_component_panel";
 
@@ -212,6 +214,24 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 					newValue= v;
 					bValueChanged= true;
 				}
+			}
+		}
+		else if (variantType == MikanVariantType::UBYTE)
+		{
+			int v= static_cast<int>(value.getUByteValue());
+			if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, label, v))
+			{
+				newValue= static_cast<uint8_t>(std::clamp(v, 0, (int)UINT8_MAX));
+				bValueChanged= true;
+			}
+		}
+		else if (variantType == MikanVariantType::USHORT)
+		{
+			int v= static_cast<int>(value.getUShortValue());
+			if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, label, v))
+			{
+				newValue= static_cast<uint16_t>(std::clamp(v, 0, (int)UINT16_MAX));
+				bValueChanged= true;
 			}
 		}
 		else if (variantType == MikanVariantType::LONG)

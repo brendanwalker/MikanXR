@@ -332,6 +332,8 @@ void DMXFixtureComponent::bindLuaFunctions(lua_State* L)
 			[](DMXFixtureComponent* c, bool v) { c->getDMXFixtureDefinition()->setIsDisabled(v); })
 		.addProperty("dmxChannelCount", [](DMXFixtureComponent* c) -> int
 					 { return static_cast<int>(c->getDMXFixtureDefinition()->getDMXChannelCount()); })
+		.addProperty("ownerStageId",
+					 [](DMXFixtureComponent* c) -> int { return c->getDMXFixtureDefinition()->getOwnerStageId(); })
 		.addFunction("triangulateLight", [](DMXFixtureComponent* c) { c->triangulateLight(); })
 		.addFunction("getOwnerStage", [](DMXFixtureComponent* c) -> StageComponent*
 					 { return const_cast<StageComponent*>(c->getOwnerStageComponent().get()); })

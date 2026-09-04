@@ -5,6 +5,7 @@
 #include "LuaMath.h"
 #include "Logger.h"
 #include "PathUtils.h"
+#include "ScriptVariableTable.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -15,6 +16,45 @@
 #include "LuaBridge/LuaBridge.h"
 
 #include "easy/profiler.h"
+
+namespace
+{
+// Map a Lua value to the variant type a script variable can hold. Lua keeps
+// integer and float subtypes apart, so 30 registers INT and 30.0 FLOAT.
+bool luaRefToVariant(const luabridge::LuaRef& ref, MikanVariant& outValue)
+{
+	if (ref.isBool())
+	{
+		outValue.setValue(ref.unsafe_cast<bool>());
+		return true;
+	}
+	else if (ref.isNumber())
+	{
+		lua_State* L= ref.state();
+		ref.push(L);
+		const bool bIsInteger= lua_isinteger(L, -1) != 0;
+		lua_pop(L, 1);
+
+		if (bIsInteger)
+			outValue.setValue(ref.unsafe_cast<int>());
+		else
+			outValue.setValue(ref.unsafe_cast<float>());
+		return true;
+	}
+	else if (ref.isString())
+	{
+		outValue.setValue(ref.unsafe_cast<std::string>());
+		return true;
+	}
+	else if (ref.isUserdata() && ref.isInstance<LuaVec3f>())
+	{
+		outValue.setValue(ref.unsafe_cast<LuaVec3f>().toMikanVector3f());
+		return true;
+	}
+
+	return false;
+}
+} // namespace
 
 // -- CommonScriptContext -----
 CommonScriptContext::CommonScriptContext() {}
@@ -115,7 +155,8 @@ bool CommonScriptContext::createScriptState()
 	return true;
 }
 
-bool CommonScriptContext::runScriptFile(const std::filesystem::path& scriptPath, MikanScriptID scriptId)
+bool CommonScriptContext::runScriptFile(const std::filesystem::path& scriptPath, MikanScriptID scriptId,
+										IScriptVariableStore* variableStore)
 {
 	if (m_luaState == nullptr)
 	{
@@ -146,10 +187,12 @@ bool CommonScriptContext::runScriptFile(const std::filesystem::path& scriptPath,
 
 	// Registrations made while the chunk runs belong to this script
 	m_loadingScriptId= scriptId;
+	m_loadingVariableStore= variableStore;
 	int ret= luaL_loadbuffer(m_luaState, scriptContent.c_str(), scriptContent.size(), chunkName.c_str());
 	if (ret == LUA_OK)
 		ret= lua_pcall(m_luaState, 0, LUA_MULTRET, 0);
 	m_loadingScriptId= INVALID_MIKAN_ID;
+	m_loadingVariableStore= nullptr;
 
 	if (!checkLuaResult(ret, __FILE__, __LINE__))
 	{
@@ -211,6 +254,100 @@ bool CommonScriptContext::hasTrigger(const std::string& triggerName) const
 	return std::find_if(m_triggers.begin(), m_triggers.end(),
 						[&triggerName](const TriggerBinding& trigger) { return trigger.functionName == triggerName; })
 		   != m_triggers.end();
+}
+
+void CommonScriptContext::getVariableNamesForScript(MikanScriptID scriptId, std::vector<std::string>& outNames) const
+{
+	for (const VariableBinding& variable : m_variables)
+	{
+		if (variable.scriptId == scriptId)
+			outNames.push_back(variable.name);
+	}
+}
+
+bool CommonScriptContext::hasVariable(const std::string& name) const
+{
+	return std::find_if(m_variables.begin(), m_variables.end(),
+						[&name](const VariableBinding& variable) { return variable.name == name; })
+		   != m_variables.end();
+}
+
+bool CommonScriptContext::setVariableValue(const std::string& name, const MikanVariant& value)
+{
+	if (m_luaState == nullptr)
+		return false;
+
+	auto it= std::find_if(m_variables.begin(), m_variables.end(),
+						  [&name](const VariableBinding& variable) { return variable.name == name; });
+	if (it == m_variables.end() || it->type != value.value_type)
+		return false;
+
+	return pushVariantAsGlobal(name, value);
+}
+
+bool CommonScriptContext::registerVariable(const std::string& name, const MikanVariant& defaultValue)
+{
+	if (m_loadingScriptId == INVALID_MIKAN_ID)
+	{
+		MIKAN_LOG_ERROR("CommonScriptContext::registerVariable")
+			<< "Variable " << name << " registered outside a script chunk";
+		return false;
+	}
+
+	// Every script shares one global table, so a second registration would
+	// silently alias the first script's value
+	auto existing= std::find_if(m_variables.begin(), m_variables.end(),
+								[&name](const VariableBinding& variable) { return variable.name == name; });
+	if (existing != m_variables.end())
+	{
+		MIKAN_LOG_ERROR("CommonScriptContext::registerVariable")
+			<< "Variable " << name << " already registered by script " << existing->scriptId << ", ignored by script "
+			<< m_loadingScriptId;
+		return false;
+	}
+
+	// A stored value wins over the script's default; a default with no stored
+	// value is adopted into the store
+	MikanVariant effectiveValue= defaultValue;
+	if (m_loadingVariableStore != nullptr)
+	{
+		MikanVariant storedValue;
+		if (m_loadingVariableStore->getScriptVariableOfType(name, defaultValue.value_type, storedValue))
+		{
+			effectiveValue= storedValue;
+		}
+		else
+		{
+			m_loadingVariableStore->setScriptVariable(name, defaultValue);
+		}
+	}
+
+	if (!pushVariantAsGlobal(name, effectiveValue))
+		return false;
+
+	m_variables.push_back({name, m_loadingScriptId, defaultValue.value_type});
+	return true;
+}
+
+bool CommonScriptContext::pushVariantAsGlobal(const std::string& name, const MikanVariant& value)
+{
+	switch (value.value_type)
+	{
+	case MikanVariantType::BOOL:
+		return luabridge::setGlobal(m_luaState, value.getBoolValue(), name.c_str());
+	case MikanVariantType::INT:
+		return luabridge::setGlobal(m_luaState, value.getIntValue(), name.c_str());
+	case MikanVariantType::FLOAT:
+		return luabridge::setGlobal(m_luaState, value.getFloatValue(), name.c_str());
+	case MikanVariantType::STRING:
+		return luabridge::setGlobal(m_luaState, std::string(value.getUtf8Value()), name.c_str());
+	case MikanVariantType::VECTOR3F:
+		return luabridge::setGlobal(m_luaState, LuaVec3f(value.getVector3fValue()), name.c_str());
+	default:
+		MIKAN_LOG_ERROR("CommonScriptContext::pushVariantAsGlobal")
+			<< "Variable " << name << " has unsupported type " << mikanVariantTypeToString(value.value_type);
+		return false;
+	}
 }
 
 bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName)
@@ -393,6 +530,21 @@ void CommonScriptContext::bindCommonScriptFunctions()
 		"registerHttpTrigger", [this](const char* routeName, const char* triggerFunctionName)
 		{ m_httpTriggerBindings.push_back({routeName, triggerFunctionName, m_loadingScriptId}); });
 
+	contextNamespace.addFunction("registerVariable",
+								 [this](const char* name, luabridge::LuaRef defaultValue) -> bool
+								 {
+									 MikanVariant value;
+									 if (!luaRefToVariant(defaultValue, value))
+									 {
+										 MIKAN_LOG_ERROR("CommonScriptContext::registerVariable")
+											 << "Variable " << name << " has unsupported default type "
+											 << lua_typename(defaultValue.state(), defaultValue.type());
+										 return false;
+									 }
+
+									 return registerVariable(name, value);
+								 });
+
 	contextNamespace.addFunction("broadcastMessage",
 								 [this](const char* message)
 								 {
@@ -417,6 +569,7 @@ void CommonScriptContext::disposeScriptState()
 	m_triggers.clear();
 	m_messageHandlers.clear();
 	m_httpTriggerBindings.clear();
+	m_variables.clear();
 
 	if (m_luaState != nullptr)
 	{

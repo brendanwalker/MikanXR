@@ -52,10 +52,40 @@ function SceneObjectSystem:getSceneCount() end
 function SceneObjectSystem:getSceneAtIndex(index) end
 
 ------------------------------------------------------------------------
+-- StageObjectSystem
+------------------------------------------------------------------------
+
+---@class StageObjectSystem
+local StageObjectSystem = {}
+
+---@param id integer
+---@return StageComponent
+function StageObjectSystem:getStageById(id) end
+
+---@param name string
+---@return StageComponent
+function StageObjectSystem:getStageByName(name) end
+
+---@return integer
+function StageObjectSystem:getFirstStageId() end
+
+--- Get the first stage in the project.
+---@return StageComponent
+function StageObjectSystem:getFirstStage() end
+
+---@return integer
+function StageObjectSystem:getStageCount() end
+
+---@param index integer Zero-based index
+---@return StageComponent
+function StageObjectSystem:getStageAtIndex(index) end
+
+------------------------------------------------------------------------
 -- DMXObjectSystem
 ------------------------------------------------------------------------
 
 ---@class DMXObjectSystem
+---@field universeChannelCount integer Number of DMX channels per universe (read-only)
 local DMXObjectSystem = {}
 
 ---@return integer
@@ -139,6 +169,10 @@ CameraSystem = nil
 ---@type SceneObjectSystem
 SceneSystem = nil
 
+--- The StageObjectSystem singleton.
+---@type StageObjectSystem
+StageSystem = nil
+
 --- The AnchorObjectSystem singleton.
 ---@type AnchorObjectSystem
 AnchorSystem = nil
@@ -216,3 +250,36 @@ function QuadStencilSystem:getQuadStencilCount() end
 ---@param index integer Zero-based index
 ---@return QuadStencilComponent
 function QuadStencilSystem:getQuadStencilAtIndex(index) end
+
+------------------------------------------------------------------------
+-- RGBSpotLightSystem — global singleton injected by ProjectScriptContext
+------------------------------------------------------------------------
+
+---@class RGBSpotLightSystem
+RGBSpotLightSystem = {}
+
+---@param id integer
+---@return RGBSpotLightComponent
+function RGBSpotLightSystem:getLightById(id) end
+
+---@param name string
+---@return RGBSpotLightComponent
+function RGBSpotLightSystem:getLightByName(name) end
+
+---@return integer
+function RGBSpotLightSystem:getLightCount() end
+
+---@param index integer Zero-based index
+---@return RGBSpotLightComponent
+function RGBSpotLightSystem:getLightAtIndex(index) end
+
+--- Create a new RGB spot light attached to a stage.
+---@param stageId integer
+---@param name string Component name, or "" to auto-generate one
+---@return RGBSpotLightComponent
+function RGBSpotLightSystem:createLight(stageId, name) end
+
+--- Remove an RGB spot light.
+---@param lightId integer
+---@return boolean
+function RGBSpotLightSystem:removeLight(lightId) end

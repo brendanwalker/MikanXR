@@ -26,9 +26,11 @@
 #include "ShapeComponent.h"
 #include "RGBPixelGridComponent.h"
 #include "RGBSpotLightComponent.h"
+#include "RGBSpotLightSystem.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
 #include "StageComponent.h"
+#include "StageObjectSystem.h"
 #include "TransformComponent.h"
 
 #include "lua.hpp"
@@ -52,7 +54,9 @@ bool ProjectScriptContext::bindContextFunctions()
 	// Register object system classes before component classes
 	CameraObjectSystem::bindLuaFunctions(m_luaState);
 	SceneObjectSystem::bindLuaFunctions(m_luaState);
+	StageObjectSystem::bindLuaFunctions(m_luaState);
 	DMXObjectSystem::bindLuaFunctions(m_luaState);
+	RGBSpotLightSystem::bindLuaFunctions(m_luaState);
 	AnchorObjectSystem::bindLuaFunctions(m_luaState);
 	CompositorObjectSystem::bindLuaFunctions(m_luaState);
 	ModelStencilSystem::bindLuaFunctions(m_luaState);
@@ -90,7 +94,9 @@ bool ProjectScriptContext::bindContextFunctions()
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<AnchorObjectSystem>().get(), "AnchorSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<CompositorObjectSystem>().get(),
 						 "CompositorSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<StageObjectSystem>().get(), "StageSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<DMXObjectSystem>().get(), "DMXSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<RGBSpotLightSystem>().get(), "RGBSpotLightSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<ModelStencilSystem>().get(), "ModelStencilSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<BoxStencilSystem>().get(), "BoxStencilSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<QuadStencilSystem>().get(), "QuadStencilSystem");

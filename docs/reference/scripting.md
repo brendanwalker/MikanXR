@@ -68,23 +68,40 @@ Scripts declare their entry points through the `ScriptContext` namespace. Each r
 - `ScriptContext.registerTrigger(functionName)`: exposes a named global function as a trigger.
 - `ScriptContext.registerMessageHandler(functionName)`: handler receives a string message, returns true if handled.
 - `ScriptContext.registerHttpTrigger(routeName, functionName)`: binds a trigger to the HTTP route `/trigger/<routeName>`.
+- `ScriptContext.registerVariable(name, defaultValue)`: exposes a global as an editor-editable, persisted parameter (below).
 - `ScriptContext.broadcastMessage(message)`: emits a message to connected clients.
 
-`ScriptComponent::getTriggerNames()` and `invokeTrigger()` filter to the triggers registered by that component's own file (`CommonScriptContext::getTriggerNamesForScript(scriptId, ...)`).
+`ScriptComponent::getTriggerNames()` and `invokeTrigger()` filter to the triggers registered by that component's own file (`CommonScriptContext::getTriggerNamesForScript(scriptId, ...)`). A trigger run from the panel button or the `script trigger` automation command is bracketed as one transaction gesture ([transactions.md](./transactions.md)).
 
-What is scriptable: `ProjectScriptContext::bindContextFunctions()` binds LuaBridge classes for the object systems (`CameraObjectSystem`, `SceneObjectSystem`, `AnchorObjectSystem`, `CompositorObjectSystem`, `DMXObjectSystem`, the stencil and shape systems) and components (`MikanComponent` and subclasses: transform, scene, stage, camera, compositor, stencils, shapes, anchor, marker, DMX fixture, RGB lights). It sets these globals, one per scriptable object system:
+### Script variables
+
+`registerVariable` turns a Lua global into a parameter the script panel shows as a widget and the project file persists. The variable's type comes from the default value: boolean, integer, number, string, or `Vec3f` map to BOOL, INT, FLOAT, STRING, VECTOR3F. Lua keeps integer and float subtypes apart, so `30` registers INT and `30.0` registers FLOAT. Any other type, a call outside a script chunk, or a name already registered by any script (all scripts share one global table) is rejected with a logged error.
+
+Values live in the registering script's `ScriptDefinition` (`ScriptVariableTable`, `Scripting/ScriptVariableTable.h`), persisted under `script_variables` as `{"type": name, "value": ...}` entries. On every reload the chunk re-registers its variables and `CommonScriptContext::registerVariable` resolves each one against the definition: a stored value of the same name and type wins, otherwise the default is adopted and stored. The effective value is then written to the Lua global. A stored entry the script no longer registers stays in the definition and is not shown.
+
+The definition is the single source of truth. A panel edit, an undo, or an automation set writes the definition, and `ScriptComponent::onDefinitionMarkedDirty` pushes every stored value back into the Lua globals through `CommonScriptContext::setVariableValue`. A `Vec3f` global is a userdata copy replaced on each push, so scripts read variables inside trigger bodies rather than caching them at chunk scope. Script-side writes to a global are not persisted.
+
+The property surface is one descriptor, `script_variables`, a UI-hidden and client-API-hidden STRING carrying the table's single-line JSON. Every variable edit notifies that one name, which is what lets the transaction recorder capture it and undo re-apply the text verbatim. The panel draws the variables itself through `ScriptComponent::getScriptVariableNames` / `getScriptVariable` / `setScriptVariable`, labeled by their Lua names.
+
+`resources/scripts/generate_lights.lua` is the worked example: a `generate_lights` trigger that lays out `RGBSpotLightComponent` objects on a stage in a zig-zag grid with sequential DMX addressing, every parameter a script variable.
+
+What is scriptable: `ProjectScriptContext::bindContextFunctions()` binds LuaBridge classes for the object systems (`CameraObjectSystem`, `SceneObjectSystem`, `StageObjectSystem`, `AnchorObjectSystem`, `CompositorObjectSystem`, `DMXObjectSystem`, `RGBSpotLightSystem`, the stencil and shape systems) and components (`MikanComponent` and subclasses: transform, scene, stage, camera, compositor, stencils, shapes, anchor, marker, DMX fixture, RGB lights). It sets these globals, one per scriptable object system:
 
 - `CameraSystem`
 - `SceneSystem`
+- `StageSystem`
 - `AnchorSystem`
 - `CompositorSystem`
 - `DMXSystem`
+- `RGBSpotLightSystem`
 - `ModelStencilSystem`
 - `BoxStencilSystem`
 - `QuadStencilSystem`
 - `ModelShapeSystem`
 - `BoxShapeSystem`
 - `QuadShapeSystem`
+
+The system bindings are lookups by id, name, and index. `RGBSpotLightSystem` is the one system that also creates and destroys: `createLight(stageId, name)` parents a new light to the stage at its origin through `addNewObjectByTypedDefinition`, and `removeLight(lightId)` destroys one, both through the same paths the outliner uses so the transaction recorder sees them. A script removing lights collects the ids first and removes afterwards, since the component map cannot be walked while it changes. `DMXSystem.universeChannelCount` exposes the 512-slot universe size for channel arithmetic. Every component exposes `componentId`, and a DMX fixture exposes `ownerStageId`.
 
 There is no `ownerComponent` global: a script is not bound to a single component, so it reaches objects through the system globals above. A component handle still exposes `getCameraSystem()`, `getSceneSystem()`, `getDMXSystem()`, `getAnchorSystem()`, `getCompositorSystem()` methods for scripts that already hold a component reference. Math helpers `LuaVec3f`/`LuaQuatf` come from `Scripting/LuaMath.h`. Enum constants (e.g. `eStencilCullMode`) are registered as globals.
 

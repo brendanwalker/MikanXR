@@ -57,6 +57,8 @@ public:
 	inline static const std::string k_objectSystemClassName= "DMXObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
+	static constexpr size_t kDMXUniverseChannelCount= 512;
+
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 	virtual void update(float deltaSeconds) override;
@@ -99,7 +101,6 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 private:
-	static constexpr size_t kDMXUniverseChannelCount= 512;
 	struct UniverseData
 	{
 		uint16_t universeId;

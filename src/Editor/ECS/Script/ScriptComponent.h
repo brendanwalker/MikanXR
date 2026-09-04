@@ -8,6 +8,7 @@
 #include "ObjectFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
+#include "ScriptVariableTable.h"
 
 #include <filesystem>
 #include <memory>
@@ -15,8 +16,9 @@
 #include <vector>
 
 // One Lua script file registered to the project. Every script runs in the
-// project's single script context, in pool order.
-class ScriptDefinition : public MikanComponentDefinition
+// project's single script context, in pool order. The definition also owns
+// the values of the variables the script registers.
+class ScriptDefinition : public MikanComponentDefinition, public IScriptVariableStore
 {
 public:
 	ScriptDefinition();
@@ -34,8 +36,22 @@ public:
 	std::filesystem::path getScriptPath() const;
 	void setScriptPath(const std::filesystem::path& scriptPath);
 
+	// Every variable edit notifies this one name, so the whole table is the
+	// unit the transaction recorder captures and re-applies
+	static const std::string k_scriptVariablesPropertyId;
+	inline const ScriptVariableTable& getScriptVariables() const { return m_scriptVariables; }
+	bool getScriptVariable(const std::string& name, MikanVariant& outValue) const;
+	// Replace the whole table with one notification
+	void setScriptVariables(const ScriptVariableTable& table);
+
+	// -- IScriptVariableStore ----
+	virtual bool getScriptVariableOfType(const std::string& name, MikanVariantType type,
+										 MikanVariant& outValue) const override;
+	virtual void setScriptVariable(const std::string& name, const MikanVariant& value) override;
+
 private:
 	AssetReferenceConfigPtr m_scriptAssetRefConfig;
+	ScriptVariableTable m_scriptVariables;
 };
 
 class ScriptComponent : public MikanComponent
@@ -61,6 +77,13 @@ public:
 	void getTriggerNames(std::vector<std::string>& outNames) const;
 	bool invokeTrigger(const std::string& triggerName);
 
+	// The variables this script's chunk registered, in registration order;
+	// empty while the script is not loaded
+	void getScriptVariableNames(std::vector<std::string>& outNames) const;
+	bool getScriptVariable(const std::string& name, MikanVariant& outValue) const;
+	// Writes the definition; the Lua global follows through onDefinitionMarkedDirty
+	bool setScriptVariable(const std::string& name, const MikanVariant& value);
+
 	void editScript();
 	void reloadScript();
 	void selectScript();
@@ -85,5 +108,8 @@ protected:
 										 const ConfigPropertyChangeSet& changedPropertySet) override;
 
 private:
+	// Write every stored value this script registered into its Lua global
+	void pushScriptVariablesToContext();
+
 	AssetReferencePtr m_scriptAssetRef;
 };

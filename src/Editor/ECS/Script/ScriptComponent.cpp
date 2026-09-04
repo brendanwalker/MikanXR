@@ -14,6 +14,7 @@
 
 // -- ScriptDefinition -----
 const std::string ScriptDefinition::k_scriptPathPropertyId= "script_path";
+const std::string ScriptDefinition::k_scriptVariablesPropertyId= "script_variables";
 
 ScriptDefinition::ScriptDefinition()
 	: MikanComponentDefinition()
@@ -36,6 +37,11 @@ configuru::Config ScriptDefinition::writeToJSON()
 		pt[k_scriptPathPropertyId]= m_scriptAssetRefConfig->writeToJSON();
 	}
 
+	if (!m_scriptVariables.empty())
+	{
+		pt[k_scriptVariablesPropertyId]= m_scriptVariables.writeToJSON();
+	}
+
 	return pt;
 }
 
@@ -47,6 +53,12 @@ void ScriptDefinition::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(k_scriptPathPropertyId))
 	{
 		m_scriptAssetRefConfig->readFromJSON(pt[k_scriptPathPropertyId]);
+	}
+
+	m_scriptVariables.clear();
+	if (pt.has_key(k_scriptVariablesPropertyId))
+	{
+		m_scriptVariables.readFromJSON(pt[k_scriptVariablesPropertyId]);
 	}
 }
 
@@ -75,6 +87,31 @@ void ScriptDefinition::setScriptPath(const std::filesystem::path& scriptPath)
 	{
 		m_scriptAssetRefConfig->assetPath= scriptPath.string();
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_scriptPathPropertyId));
+	}
+}
+
+bool ScriptDefinition::getScriptVariable(const std::string& name, MikanVariant& outValue) const
+{
+	return m_scriptVariables.get(name, outValue);
+}
+
+void ScriptDefinition::setScriptVariables(const ScriptVariableTable& table)
+{
+	m_scriptVariables= table;
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_scriptVariablesPropertyId));
+}
+
+bool ScriptDefinition::getScriptVariableOfType(const std::string& name, MikanVariantType type,
+											   MikanVariant& outValue) const
+{
+	return m_scriptVariables.getOfType(name, type, outValue);
+}
+
+void ScriptDefinition::setScriptVariable(const std::string& name, const MikanVariant& value)
+{
+	if (m_scriptVariables.set(name, value))
+	{
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_scriptVariablesPropertyId));
 	}
 }
 
@@ -153,6 +190,45 @@ bool ScriptComponent::invokeTrigger(const std::string& triggerName)
 	return scriptContext && scriptContext->invokeScriptTrigger(triggerName);
 }
 
+void ScriptComponent::getScriptVariableNames(std::vector<std::string>& outNames) const
+{
+	ScriptObjectSystemPtr scriptSystem= getOwnerScriptSystem();
+	CommonScriptContextPtr scriptContext= scriptSystem ? scriptSystem->getScriptContext() : nullptr;
+
+	if (scriptContext)
+	{
+		scriptContext->getVariableNamesForScript(getComponentId(), outNames);
+	}
+}
+
+bool ScriptComponent::getScriptVariable(const std::string& name, MikanVariant& outValue) const
+{
+	return getScriptDefinition()->getScriptVariable(name, outValue);
+}
+
+bool ScriptComponent::setScriptVariable(const std::string& name, const MikanVariant& value)
+{
+	if (!ScriptVariableTable::isSupportedType(value.value_type))
+		return false;
+
+	getScriptDefinition()->setScriptVariable(name, value);
+	return true;
+}
+
+void ScriptComponent::pushScriptVariablesToContext()
+{
+	ScriptObjectSystemPtr scriptSystem= getOwnerScriptSystem();
+	CommonScriptContextPtr scriptContext= scriptSystem ? scriptSystem->getScriptContext() : nullptr;
+	if (!scriptContext)
+		return;
+
+	// setVariableValue ignores names this script's chunk did not register
+	for (const auto& [name, value] : getScriptDefinition()->getScriptVariables().getAll())
+	{
+		scriptContext->setVariableValue(name, value);
+	}
+}
+
 void ScriptComponent::editScript()
 {
 	if (!getScriptDefinition()->hasScriptPath())
@@ -213,6 +289,12 @@ void ScriptComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
 			scriptSystem->requestReload();
 		}
 	}
+
+	// Panel edits, undo and redo, and automation sets all reach Lua here
+	if (changedPropertySet.hasPropertyName(ScriptDefinition::k_scriptVariablesPropertyId))
+	{
+		pushScriptVariablesToContext();
+	}
 }
 
 // -- IEntityAccessor ----
@@ -230,6 +312,13 @@ void ScriptComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 		std::make_shared<PropertyDescriptor>(ScriptDefinition::k_scriptPathPropertyId, MikanVariantType::STRING)
 			->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
 				AssetReferenceFactory::createFactory<ScriptAssetReferenceFactory>())));
+
+	// The variable table as one JSON string: the panel draws the variables
+	// itself, and the string form is what undo re-applies verbatim
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(ScriptDefinition::k_scriptVariablesPropertyId, MikanVariantType::STRING)
+			->setUIHidden()
+			->setClientAPIHidden());
 }
 
 bool ScriptComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
@@ -237,6 +326,11 @@ bool ScriptComponent::getPropertyValue(const std::string& propertyName, MikanVar
 	if (propertyName == ScriptDefinition::k_scriptPathPropertyId)
 	{
 		outValue= getScriptDefinition()->getScriptPath();
+		return true;
+	}
+	else if (propertyName == ScriptDefinition::k_scriptVariablesPropertyId)
+	{
+		outValue= getScriptDefinition()->getScriptVariables().toJsonString();
 		return true;
 	}
 
@@ -259,6 +353,19 @@ bool ScriptComponent::setPropertyValue(const std::string& propertyName, const Mi
 		}
 
 		return false;
+	}
+	else if (propertyName == ScriptDefinition::k_scriptVariablesPropertyId)
+	{
+		if (inValue.value_type != MikanVariantType::STRING)
+			return false;
+
+		// Malformed text is rejected without touching the table
+		ScriptVariableTable table;
+		if (!table.fromJsonString(inValue.getUtf8Value()))
+			return false;
+
+		getScriptDefinition()->setScriptVariables(table);
+		return true;
 	}
 
 	return MikanComponent::setPropertyValue(propertyName, inValue);

@@ -134,6 +134,7 @@
 		"script": "Script",
 		"scriptNotLoaded": "<Not Loaded>",
 		"scriptTriggers": "Script Triggers",
+		"scriptVariables": "Script Variables",
 		"selectGraph": "Select Graph",
 		"selectScript": "Select Script",
 		"shCoefficientTooltipFmt": "%s\n%+.4f  %+.4f  %+.4f\n\nSwatch is |value| relative to the largest coefficient, so it shows magnitude and hue only - the sign is in the numbers. Negative coefficients are normal for the l=1 and l=2 bands.",

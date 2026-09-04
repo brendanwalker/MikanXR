@@ -168,14 +168,7 @@ int addSpotLight(ProjectManagerPtr projectManager, int stageId)
 	if (!sys)
 		return INVALID_MIKAN_ID;
 
-	return componentIdOrInvalid(sys->addNewObjectByTypedDefinition(
-		[stageId](auto def)
-		{
-			def->setOwnerStageId(stageId);
-			def->setParentTransformId(stageId);
-			def->setRelativeTransform(GlmTransform());
-			return true;
-		}));
+	return componentIdOrInvalid(sys->createLight(stageId, ""));
 }
 
 int addPixelGrid(ProjectManagerPtr projectManager, int stageId)

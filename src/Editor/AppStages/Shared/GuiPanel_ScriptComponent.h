@@ -17,6 +17,8 @@ public:
 
 protected:
 	ScriptComponentPtr getScriptComponent() const;
+	void drawScriptVariable(ScriptComponentPtr component, const std::string& variableName,
+							class TransactionHistory* transactionHistory);
 };
 
 using GuiPanel_ScriptComponentPtr= std::shared_ptr<GuiPanel_ScriptComponent>;

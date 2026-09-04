@@ -23,6 +23,7 @@
 #include "ScriptComponent.h"
 #include "ScriptObjectSystem.h"
 #include "ScriptRequestHandler.h"
+#include "TransactionHistory.h"
 
 #include "Graphs/NodeGraph.h"
 #include "Nodes/Node.h"
@@ -1161,8 +1162,17 @@ bool AutomationServer::handleScriptCommand(const std::vector<std::string>& args,
 		}
 		else
 		{
+			// Bracketed like the panel button, so a trigger's property writes
+			// coalesce into one transaction
 			const std::string& triggerName= args[1];
-			if (!scriptContext->invokeScriptTrigger(triggerName))
+			TransactionHistory* transactionHistory= m_mainWindow->getTransactionHistory();
+			if (transactionHistory != nullptr)
+				transactionHistory->beginGesture("script:" + triggerName);
+			const bool bSuccess= scriptContext->invokeScriptTrigger(triggerName);
+			if (transactionHistory != nullptr)
+				transactionHistory->endGesture();
+
+			if (!bSuccess)
 			{
 				outError= "trigger '" + triggerName + "' failed or does not exist";
 				return false;

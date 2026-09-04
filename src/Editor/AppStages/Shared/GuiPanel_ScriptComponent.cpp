@@ -1,10 +1,16 @@
 #include "Shared/GuiPanel_ScriptComponent.h"
+#include "AppStage.h"
 #include "IconsForkAwesome.h"
+#include "IEditorWindow.h"
 #include "LocText.h"
+#include "MikanVariantTypes.h"
 #include "MkGuiDrawUtils.h"
 #include "ScriptComponent.h"
+#include "TransactionHistory.h"
 
 #include "imgui.h"
+
+#include <string.h>
 
 bool GuiPanel_ScriptComponent::init() { return initTypedPropertyInterface<ScriptComponent>(); }
 
@@ -75,7 +81,11 @@ void GuiPanel_ScriptComponent::onGui()
 	if (!component)
 		return;
 
-	// Script triggers as buttons
+	TransactionHistory* transactionHistory= getOwnerAppStage()->getOwnerWindow()->getTransactionHistory();
+
+	// Script triggers as buttons. A trigger run is bracketed as one gesture so
+	// its property writes coalesce; object creates and destroys still seal on
+	// their own.
 	std::vector<std::string> triggerNames;
 	component->getTriggerNames(triggerNames);
 	if (!triggerNames.empty())
@@ -85,9 +95,121 @@ void GuiPanel_ScriptComponent::onGui()
 		{
 			if (ImGui::Button(triggerName.c_str()))
 			{
-				addDeferredGuiEvent([component, triggerName]() { component->invokeTrigger(triggerName); });
+				addDeferredGuiEvent(
+					[component, triggerName, transactionHistory]()
+					{
+						if (transactionHistory != nullptr)
+							transactionHistory->beginGesture("script:" + triggerName);
+						component->invokeTrigger(triggerName);
+						if (transactionHistory != nullptr)
+							transactionHistory->endGesture();
+					});
 			}
 		}
+	}
+
+	// Script variables as widgets, labeled by their Lua global name
+	std::vector<std::string> variableNames;
+	component->getScriptVariableNames(variableNames);
+	if (!variableNames.empty())
+	{
+		ImGui::TextUnformatted(locText("componentPanel.scriptVariables"));
+		for (const std::string& variableName : variableNames)
+		{
+			drawScriptVariable(component, variableName, transactionHistory);
+		}
+	}
+}
+
+void GuiPanel_ScriptComponent::drawScriptVariable(ScriptComponentPtr component, const std::string& variableName,
+												  TransactionHistory* transactionHistory)
+{
+	MikanVariant value;
+	if (!component->getScriptVariable(variableName, value))
+		return;
+
+	const std::string uiFieldId= component->makePropertyUIIdentifier("var_" + variableName);
+	const char* label= variableName.c_str();
+
+	bool bValueChanged= false;
+	MikanVariant newValue= value;
+
+	switch (value.value_type)
+	{
+	case MikanVariantType::BOOL:
+	{
+		bool v= value.getBoolValue();
+		if (MkGui::drawCheckBoxProperty(m_defaultGuiStyle, uiFieldId, label, v))
+		{
+			newValue= v;
+			bValueChanged= true;
+		}
+	}
+	break;
+	case MikanVariantType::INT:
+	{
+		int v= value.getIntValue();
+		if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, label, v))
+		{
+			newValue= v;
+			bValueChanged= true;
+		}
+	}
+	break;
+	case MikanVariantType::FLOAT:
+	{
+		float v= value.getFloatValue();
+		if (MkGui::drawFloatProperty(m_defaultGuiStyle, uiFieldId, label, v))
+		{
+			newValue= v;
+			bValueChanged= true;
+		}
+	}
+	break;
+	case MikanVariantType::STRING:
+	{
+		char buf[256];
+		strncpy_s(buf, sizeof(buf), value.getUtf8Value(), _TRUNCATE);
+		if (MkGui::drawStringProperty(m_defaultGuiStyle, uiFieldId, label, buf, sizeof(buf)))
+		{
+			newValue= buf;
+			bValueChanged= true;
+		}
+	}
+	break;
+	case MikanVariantType::VECTOR3F:
+	{
+		const MikanVector3f& vec= value.getVector3fValue();
+		float v[3]= {vec.x, vec.y, vec.z};
+		if (MkGui::drawFloat3Property(m_defaultGuiStyle, uiFieldId, label, v))
+		{
+			newValue= MikanVector3f{v[0], v[1], v[2]};
+			bValueChanged= true;
+		}
+	}
+	break;
+	default:
+		return;
+	}
+
+	// Bracket an in-progress widget edit as one transaction gesture, keeping
+	// the per-frame value writes flowing for live preview
+	if (transactionHistory != nullptr)
+	{
+		if (ImGui::IsItemActive())
+		{
+			transactionHistory->beginGesture("script_var:" + variableName);
+		}
+		else if (ImGui::IsItemDeactivated())
+		{
+			transactionHistory->endGesture();
+		}
+	}
+
+	if (bValueChanged)
+	{
+		addDeferredGuiEvent([component, variableName, newValue]() mutable
+							{ component->setScriptVariable(variableName, newValue); });
 	}
 }
 

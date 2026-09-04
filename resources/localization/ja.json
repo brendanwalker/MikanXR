@@ -134,6 +134,7 @@
 		"script": "スクリプト",
 		"scriptNotLoaded": "<未読み込み>",
 		"scriptTriggers": "スクリプトトリガー",
+		"scriptVariables": "スクリプト変数",
 		"selectGraph": "グラフを選択",
 		"selectScript": "スクリプトを選択",
 		"shCoefficientTooltipFmt": "%s\n%+.4f  %+.4f  %+.4f\n\nスウォッチは最大係数に対する絶対値の相対表示のため、大きさと色相のみを示します。符号は数値側で確認できます。l=1およびl=2帯域では負の係数が生じるのが通常です。",

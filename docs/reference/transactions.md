@@ -25,6 +25,7 @@ A burst of changes to one target merges into one transaction while consecutive c
 
 - `EditorObjectSystem` brackets gizmo drags on mouse button down/up
 - the ImGui property panels bracket slider drags and typing via `ImGui::IsItemActive()` / `IsItemDeactivated()`, keeping per-frame value writes flowing for live preview
+- a script trigger run (the script panel button or the `script trigger` automation command) is bracketed as `script:<name>`, so its property writes coalesce. Object creates and destroys still seal on their own, so a trigger that spawns objects lands as several transactions.
 
 A merge keeps the first old value and the latest new value. Undo/redo requests, create/destroy events, project unload, and any `history` automation command seal the open transaction immediately; a destroy composite seals at the frame boundary.
 
