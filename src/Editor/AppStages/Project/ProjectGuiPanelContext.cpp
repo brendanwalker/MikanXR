@@ -7,6 +7,7 @@
 #include "Shared/GuiPanel_CameraComponent.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_CompositorComponent.h"
+#include "Shared/GuiPanel_DMXFixtureGroupComponent.h"
 #include "Shared/GuiPanel_DMXObjectSystem.h"
 #include "Shared/GuiPanel_MarkerObjectSystem.h"
 #include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
@@ -63,6 +64,9 @@ bool ProjectGuiPanelContext::init()
 
 	m_compositorPanel= m_ownerAppStage->addGuiPanel<GuiPanel_CompositorComponent>();
 	m_compositorPanel->init();
+
+	m_fixtureGroupPanel= m_ownerAppStage->addGuiPanel<GuiPanel_DMXFixtureGroupComponent>();
+	m_fixtureGroupPanel->init();
 
 	m_markerPanel= m_ownerAppStage->addGuiPanel<GuiPanel_MarkerComponent>();
 	m_markerPanel->init();

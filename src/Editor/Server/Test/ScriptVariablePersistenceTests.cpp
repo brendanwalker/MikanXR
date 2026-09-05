@@ -17,7 +17,7 @@ namespace
 {
 // MulticastDelegate binds member functions rather than lambdas, so the listener
 // has to be an object instead of a capture.
-struct PropertyChangeListener
+struct ScriptVariableChangeListener
 {
 	int notificationCount= 0;
 	std::set<std::string> changedProperties;
@@ -231,8 +231,8 @@ bool script_variable_test_notifications()
 	ScriptComponentPtr component= makeScriptComponent();
 	ScriptDefinitionPtr definition= component->getScriptDefinition();
 
-	PropertyChangeListener listener;
-	definition->OnPropertyChanged+= MakeDelegate(&listener, &PropertyChangeListener::onPropertyChanged);
+	ScriptVariableChangeListener listener;
+	definition->OnPropertyChanged+= MakeDelegate(&listener, &ScriptVariableChangeListener::onPropertyChanged);
 
 	// A single variable write
 	success= component->setScriptVariable("num_rows", MikanVariant(4));
@@ -271,7 +271,7 @@ bool script_variable_test_notifications()
 			  && stored.getFloatValue() == 12.5f;
 	assert(success);
 
-	definition->OnPropertyChanged-= MakeDelegate(&listener, &PropertyChangeListener::onPropertyChanged);
+	definition->OnPropertyChanged-= MakeDelegate(&listener, &ScriptVariableChangeListener::onPropertyChanged);
 
 	UNIT_TEST_COMPLETE()
 }
@@ -319,8 +319,8 @@ bool script_variable_test_component_references()
 	// The definition store adopts none only when nothing of that class is stored
 	ScriptComponentPtr component= makeScriptComponent();
 	ScriptDefinitionPtr definition= component->getScriptDefinition();
-	PropertyChangeListener listener;
-	definition->OnPropertyChanged+= MakeDelegate(&listener, &PropertyChangeListener::onPropertyChanged);
+	ScriptVariableChangeListener listener;
+	definition->OnPropertyChanged+= MakeDelegate(&listener, &ScriptVariableChangeListener::onPropertyChanged);
 
 	definition->setScriptComponentVariable("parent_stage", "StageComponent", INVALID_MIKAN_ID);
 	success&= (listener.notificationCount == 1);
@@ -335,7 +335,7 @@ bool script_variable_test_component_references()
 	success&= (listener.changedProperties == std::set<std::string>{ScriptDefinition::k_scriptVariablesPropertyId});
 	assert(success);
 
-	definition->OnPropertyChanged-= MakeDelegate(&listener, &PropertyChangeListener::onPropertyChanged);
+	definition->OnPropertyChanged-= MakeDelegate(&listener, &ScriptVariableChangeListener::onPropertyChanged);
 
 	UNIT_TEST_COMPLETE()
 }

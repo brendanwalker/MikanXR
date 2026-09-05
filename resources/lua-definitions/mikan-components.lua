@@ -246,6 +246,39 @@ function RGBPixelGridComponent:setPixel(col, row, r, g, b) end
 function RGBPixelGridComponent:fillPixels(r, g, b) end
 
 ------------------------------------------------------------------------
+-- DMXFixtureGroupComponent : MikanComponent
+------------------------------------------------------------------------
+
+--- A named set of DMX fixtures on one stage. Membership is a set of fixture
+--- component ids; a fixture may belong to any number of groups.
+---@class DMXFixtureGroupComponent : MikanComponent
+---@field stageId integer Owning stage component id (read-only)
+local DMXFixtureGroupComponent = {}
+
+--- Number of member fixtures that currently resolve to a live component.
+---@return integer
+function DMXFixtureGroupComponent:getFixtureCount() end
+
+--- A member fixture by position among the resolved members.
+---@param index integer Zero-based index
+---@return DMXFixtureComponent
+function DMXFixtureGroupComponent:getFixtureAtIndex(index) end
+
+---@param fixtureId integer
+---@return boolean
+function DMXFixtureGroupComponent:containsFixture(fixtureId) end
+
+--- Add a fixture by component id. Returns false when already a member.
+---@param fixtureId integer
+---@return boolean
+function DMXFixtureGroupComponent:addFixture(fixtureId) end
+
+--- Remove a fixture by component id. Returns false when not a member.
+---@param fixtureId integer
+---@return boolean
+function DMXFixtureGroupComponent:removeFixture(fixtureId) end
+
+------------------------------------------------------------------------
 -- MarkerComponent : MikanComponent
 ------------------------------------------------------------------------
 

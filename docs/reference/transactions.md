@@ -15,6 +15,7 @@ Filters applied at capture:
 - `wantsConfigSerialization()` and `wantsSaveForPropertyChange(changeSet)` must both pass. These vetoes gate only the autosave timer upstream, so the recorder applies them itself, which drops runtime-driven state such as mount-driven camera transforms and transient VR devices.
 - Components in the transient id range are skipped (`ProjectConfig::isTransientComponentId`).
 - A notified name with no descriptor in `MikanPropertyDatabase` cannot be recorded or undone: it is skipped with a once-per-name warning. The guard test in `src/Editor/Server/Test/PropertyNotificationGuardTests.cpp` keeps this set from growing.
+- Read-only descriptors are skipped: they cannot be re-applied through `setPropertyValue`, and the typed systems' component id lists notify on every create and destroy.
 - A re-entrancy flag suppresses capture while undo/redo re-applies values.
 
 Object lifecycle capture uses two object system delegates: `OnNewObjectFinalized` records a create with the definition's JSON, and `OnObjectWillBeDestroyed` (fired at the top of `removeObjectByPrimaryComponentId`, before teardown rewrites parenting) snapshots the definition for a destroy composite. The child reparent property changes that `TransformComponent::dispose` fires fold into the composite, and the destroy op is appended last so reverse-order undo recreates the object before restoring its children.

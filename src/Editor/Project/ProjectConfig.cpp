@@ -21,6 +21,7 @@
 #include "QuadStencilSystem.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
+#include "DMXFixtureGroupSystem.h"
 #include "LightEnvironmentSystem.h"
 #include "SceneObjectSystem.h"
 #include "ScriptObjectSystem.h"
@@ -89,6 +90,8 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 		addTypedDefinition<RGBSpotLightSystemDefinition, RGBSpotLightSystem>(persistentIDAllocator);
 	rgbPixelGridSystemDefinition=
 		addTypedDefinition<RGBPixelGridSystemDefinition, RGBPixelGridSystem>(persistentIDAllocator);
+	dmxFixtureGroupSystemDefinition=
+		addTypedDefinition<DMXFixtureGroupSystemDefinition, DMXFixtureGroupSystem>(persistentIDAllocator);
 	lightEnvironmentSystemDefinition=
 		addTypedDefinition<LightEnvironmentSystemDefinition, LightEnvironmentSystem>(persistentIDAllocator);
 	scriptSystemDefinition= addTypedDefinition<ScriptObjectSystemDefinition, ScriptObjectSystem>(persistentIDAllocator);

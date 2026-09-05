@@ -109,6 +109,7 @@ const char* MikanSceneSystemValues::k_systemName= "SceneObjectSystem";
 const char* MikanDMXObjectSystemValues::k_systemName= "DMXObjectSystem";
 const char* MikanRGBSpotLightSystemValues::k_systemName= "RGBSpotLightSystem";
 const char* MikanRGBPixelGridSystemValues::k_systemName= "RGBPixelGridSystem";
+const char* MikanDMXFixtureGroupSystemValues::k_systemName= "DMXFixtureGroupSystem";
 const char* MikanLightEnvironmentSystemValues::k_systemName= "LightEnvironmentSystem";
 const char* MikanVRObjectSystemValues::k_systemName= "VRObjectSystem";
 
@@ -143,6 +144,9 @@ const char* MikanRGBSpotLightComponentValues::k_ownerSystemName= MikanRGBSpotLig
 
 const char* MikanRGBPixelGridComponentValues::k_componentClassName= "RGBPixelGridComponent";
 const char* MikanRGBPixelGridComponentValues::k_ownerSystemName= MikanRGBPixelGridSystemValues::k_systemName;
+
+const char* MikanDMXFixtureGroupComponentValues::k_componentClassName= "DMXFixtureGroupComponent";
+const char* MikanDMXFixtureGroupComponentValues::k_ownerSystemName= MikanDMXFixtureGroupSystemValues::k_systemName;
 
 const char* MikanLightEnvironmentComponentValues::k_componentClassName= "LightEnvironmentComponent";
 const char* MikanLightEnvironmentComponentValues::k_ownerSystemName= MikanLightEnvironmentSystemValues::k_systemName;

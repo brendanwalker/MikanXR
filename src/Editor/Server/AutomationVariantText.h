@@ -7,7 +7,8 @@
 
 /// Text coercion between automation command tokens and MikanVariant values,
 /// used by the automation server's property commands.
-/// Scalar and math types convert both ways. Array and map types format for
+/// Scalar and math types convert both ways. Int arrays round-trip too, one
+/// integer token per element. Other array, map, and object types format for
 /// reads only; a set replies that the type is unsupported.
 namespace AutomationVariantText
 {

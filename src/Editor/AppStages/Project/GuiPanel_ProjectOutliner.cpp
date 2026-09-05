@@ -9,6 +9,7 @@
 #include "CommonConfig.h"
 #include "CompositorComponent.h"
 #include "DMXFixtureComponent.h"
+#include "DMXFixtureGroupComponent.h"
 #include "EditorObjectSystem.h"
 #include "IconsForkAwesome.h"
 #include "IEditorWindow.h"
@@ -45,6 +46,7 @@
 #include "Shared/GuiPanel_CEFTextureSourceComponent.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_CompositorComponent.h"
+#include "Shared/GuiPanel_DMXFixtureGroupComponent.h"
 #include "Shared/GuiPanel_LightEnvironmentComponent.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
@@ -188,6 +190,7 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 	case eOutlinerNodeKind::folderTrackingVolumes:
 	case eOutlinerNodeKind::folderCameras:
 	case eOutlinerNodeKind::folderLights:
+	case eOutlinerNodeKind::folderLightGroups:
 	case eOutlinerNodeKind::folderScenes:
 	case eOutlinerNodeKind::folderScripts:
 	case eOutlinerNodeKind::trackingVolume:
@@ -205,7 +208,8 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 		node->kind == eOutlinerNodeKind::projectRoot || node->kind == eOutlinerNodeKind::folderSources
 		|| node->kind == eOutlinerNodeKind::folderMarkers || node->kind == eOutlinerNodeKind::folderTrackingVolumes
 		|| node->kind == eOutlinerNodeKind::folderCameras || node->kind == eOutlinerNodeKind::folderLights
-		|| node->kind == eOutlinerNodeKind::folderScenes || node->kind == eOutlinerNodeKind::folderScripts;
+		|| node->kind == eOutlinerNodeKind::folderLightGroups || node->kind == eOutlinerNodeKind::folderScenes
+		|| node->kind == eOutlinerNodeKind::folderScripts;
 	const bool bIsSelected= (node->componentId != INVALID_MIKAN_ID && node->componentId == m_selectedComponentId)
 							|| (bIsSyntheticSelectable && m_selectedComponentId == INVALID_MIKAN_ID
 								&& node->kind == m_selectedKind && node->ownerId == m_selectedOwnerId);
@@ -377,6 +381,16 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		{
 			deferAddAction([stageId](ProjectManagerPtr pm)
 						   { return ProjectOutlinerActions::addPixelGrid(pm, stageId); });
+		}
+		break;
+	}
+	case eOutlinerNodeKind::folderLightGroups:
+	{
+		const int stageId= selectedNode->ownerId;
+		if (drawAddButton("outlinerAddLightGroup", ICON_FK_OBJECT_GROUP, "project.outlinerAddLightGroup"))
+		{
+			deferAddAction([stageId](ProjectManagerPtr pm)
+						   { return ProjectOutlinerActions::addLightGroup(pm, stageId); });
 		}
 		break;
 	}
@@ -607,6 +621,8 @@ GuiPanel_MikanComponent* GuiPanel_ProjectOutliner::getPanelForComponentClass(
 		return m_context->getSpotLightPanel();
 	if (componentClassName == RGBPixelGridComponent::k_componentClassName)
 		return m_context->getPixelGridPanel();
+	if (componentClassName == DMXFixtureGroupComponent::k_componentClassName)
+		return m_context->getFixtureGroupPanel();
 	if (componentClassName == AnchorComponent::k_componentClassName)
 		return m_context->getAnchorPanel();
 	if (componentClassName == QuadStencilComponent::k_componentClassName)
@@ -646,6 +662,7 @@ void GuiPanel_ProjectOutliner::clearComponentPanels()
 	m_context->getLightEnvironmentPanel()->setComponent(nullptr);
 	m_context->getSpotLightPanel()->setComponent(nullptr);
 	m_context->getPixelGridPanel()->setComponent(nullptr);
+	m_context->getFixtureGroupPanel()->setComponent(nullptr);
 	m_context->getAnchorPanel()->setComponent(nullptr);
 	m_context->getQuadStencilPanel()->setComponent(nullptr);
 	m_context->getBoxStencilPanel()->setComponent(nullptr);

@@ -156,6 +156,23 @@ bool automation_variant_test_array_set_unsupported()
 	UNIT_TEST_COMPLETE()
 }
 
+bool automation_variant_test_int_array_round_trips()
+{
+	UNIT_TEST_BEGIN("int arrays round-trip through text, one token per element")
+
+	success&= textRoundTrips(MikanVariantType::INT_ARRAY, "1 4 22");
+
+	MikanVariant value;
+	std::string error;
+	success&= AutomationVariantText::textToVariant(MikanVariantType::INT_ARRAY, {}, value, error);
+	success&= (value.getIntArrayValue().size() == 0);
+
+	success&= parseFails(MikanVariantType::INT_ARRAY, {"1", "x"});
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
 bool run_automation_variant_text_tests()
 {
 	UNIT_TEST_MODULE_BEGIN("automation_variant_text")
@@ -165,5 +182,6 @@ bool run_automation_variant_text_tests()
 	UNIT_TEST_MODULE_CALL_TEST(automation_variant_test_quaternion_field_order);
 	UNIT_TEST_MODULE_CALL_TEST(automation_variant_test_parse_errors);
 	UNIT_TEST_MODULE_CALL_TEST(automation_variant_test_array_set_unsupported);
+	UNIT_TEST_MODULE_CALL_TEST(automation_variant_test_int_array_round_trips);
 	UNIT_TEST_MODULE_END()
 }

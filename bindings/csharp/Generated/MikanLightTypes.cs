@@ -25,6 +25,16 @@ namespace MikanXR
 		public bool is_disabled;
 	};
 
+	public class MikanDMXFixtureGroupComponentValues : MikanComponentValues
+	{
+		public int stage_id;
+		public List<int> fixture_ids;
+	};
+
+	public class MikanDMXFixtureGroupSystemValues : MikanSystemValues
+	{
+	};
+
 	public class MikanDMXObjectSystemValues : MikanSystemValues
 	{
 		public string network_interface_ip;

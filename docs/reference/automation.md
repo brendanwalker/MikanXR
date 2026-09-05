@@ -70,7 +70,8 @@ Value syntax for `property get`/`set`:
 - quaternions order their components w x y z
 - matrices take 16 floats in `MikanMatrix4f` field order (x0 x1 x2 x3 y0 ... w3)
 - strings with spaces are quoted (`"My Anchor"`); a bare string may span tokens, which rejoin with single spaces
-- array, map, and object typed properties read back as formatted text but refuse a set
+- int arrays take one integer token per element and accept a set (`property set ... fixture_ids 1052 1118`)
+- other array, map, and object typed properties read back as formatted text but refuse a set
 
 ### Screenshots (screenshot)
 

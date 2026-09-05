@@ -17,13 +17,13 @@ import { InvokeSystemFunctionRequest, InvokeComponentFunctionRequest, GetFunctio
 import { MikanFunctionDescriptor } from './MikanFunctionTypes.js';
 import { MikanLightDMXDataChangedEvent } from './MikanLightEvents.js';
 import { SetLightDMXDataSubcription, GetDMXData, MikanDMXDataResponse } from './MikanLightRequests.js';
-import { MikanDMXData, MikanLightEnvironmentSystemValues, MikanLightEnvironmentComponentValues, MikanDMXObjectSystemValues, MikanRGBSpotLightSystemValues, MikanUniverseDMXData, MikanRGBPixelGridSystemValues, MikanDMXFixtureComponentValues, MikanRGBSpotLightComponentValues, MikanRGBPixelGridComponentValues } from './MikanLightTypes.js';
+import { MikanDMXData, MikanLightEnvironmentSystemValues, MikanLightEnvironmentComponentValues, MikanDMXObjectSystemValues, MikanRGBSpotLightSystemValues, MikanUniverseDMXData, MikanDMXFixtureGroupComponentValues, MikanRGBPixelGridSystemValues, MikanDMXFixtureGroupSystemValues, MikanDMXFixtureComponentValues, MikanRGBSpotLightComponentValues, MikanRGBPixelGridComponentValues } from './MikanLightTypes.js';
 import { ArucoMarkerImageResponse, GetArucoMarkerImageRequest } from './MikanMarkerRequests.js';
 import { MikanMarkerComponentValues, MikanMarkerSystemValues } from './MikanMarkerTypes.js';
 import { MikanMatrix4f, MikanVector3d, MikanMatrix3d, MikanMatrix4d, MikanRotator3f, MikanQuatf, MikanVector2i, MikanVector4d, MikanVector4f, MikanVector2f, MikanVector2d, MikanTransform, MikanVector3f, MikanMatrix4x3d, MikanQuatd } from './MikanMathTypes.js';
 import { MikanPropertyUpdateEvent } from './MikanPropertyEvents.js';
 import { ComponentGetValuesResponse, PropertySetValueRequest, GetComponentListRequest, PropertyGetValueRequest, ComponentGetValuesRequest, SystemGetValuesRequest, SystemCreateObjectRequest, SystemDestroyObjectRequest, SetPropertyNotifyMode, GetPropertyDescriptors, PropertySetValueResponse, PropertyGetValueResponse, ComponentListResponse, SystemGetValuesResponse, PropertyDescriptorResponse } from './MikanPropertyRequests.js';
-import { MikanPropertyValue, MikanPropertyDescriptor, MikanSystemValues } from './MikanPropertyTypes.js';
+import { MikanPropertyDescriptor, MikanPropertyValue, MikanSystemValues } from './MikanPropertyTypes.js';
 import { MikanAppStageChangedEvent, MikanRemoteControlEvent } from './MikanRemoteControlEvents.js';
 import { GetAppStageInfo, PopAppStage, MikanRemoteControlCommandResult, PushAppStage, MikanRemoteControlCommand, MikanAppStageInfoResponse } from './MikanRemoteControlRequest.js';
 import { MikanAppStageInfo } from './MikanRemoteControlTypes.js';
@@ -86,7 +86,9 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanDMXObjectSystemValues', MikanDMXObjectSystemValues);
   TypeRegistry.register('MikanRGBSpotLightSystemValues', MikanRGBSpotLightSystemValues);
   TypeRegistry.register('MikanUniverseDMXData', MikanUniverseDMXData);
+  TypeRegistry.register('MikanDMXFixtureGroupComponentValues', MikanDMXFixtureGroupComponentValues);
   TypeRegistry.register('MikanRGBPixelGridSystemValues', MikanRGBPixelGridSystemValues);
+  TypeRegistry.register('MikanDMXFixtureGroupSystemValues', MikanDMXFixtureGroupSystemValues);
   TypeRegistry.register('MikanDMXFixtureComponentValues', MikanDMXFixtureComponentValues);
   TypeRegistry.register('MikanRGBSpotLightComponentValues', MikanRGBSpotLightComponentValues);
   TypeRegistry.register('MikanRGBPixelGridComponentValues', MikanRGBPixelGridComponentValues);
@@ -125,8 +127,8 @@ export function registerAllTypes(): void {
   TypeRegistry.register('ComponentListResponse', ComponentListResponse);
   TypeRegistry.register('SystemGetValuesResponse', SystemGetValuesResponse);
   TypeRegistry.register('PropertyDescriptorResponse', PropertyDescriptorResponse);
-  TypeRegistry.register('MikanPropertyValue', MikanPropertyValue);
   TypeRegistry.register('MikanPropertyDescriptor', MikanPropertyDescriptor);
+  TypeRegistry.register('MikanPropertyValue', MikanPropertyValue);
   TypeRegistry.register('MikanSystemValues', MikanSystemValues);
   TypeRegistry.register('MikanAppStageChangedEvent', MikanAppStageChangedEvent);
   TypeRegistry.register('MikanRemoteControlEvent', MikanRemoteControlEvent);

@@ -51,6 +51,16 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 #endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXFixtureGroupSystemValues
+	: public MikanSystemValues
+{
+	static const char* k_systemName;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXFixtureGroupSystemValues_GENERATED
+#endif
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanLightEnvironmentSystemValues
 	: public MikanSystemValues
 {
@@ -110,6 +120,23 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRGBPixelGridComponentValues_GENERATED
+#endif
+};
+
+/// A named set of DMX fixtures on one stage, the unit presets and sequences address.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXFixtureGroupComponentValues
+	: public MikanComponentValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() MikanStageID stage_id= INVALID_MIKAN_ID;
+
+	/// Component ids of the member fixtures (spot lights and pixel grids)
+	FIELD() Serialization::List<MikanLightID> fixture_ids;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXFixtureGroupComponentValues_GENERATED
 #endif
 };
 

@@ -283,3 +283,36 @@ function RGBSpotLightSystem:createLight(stageId, name) end
 ---@param lightId integer
 ---@return boolean
 function RGBSpotLightSystem:removeLight(lightId) end
+
+------------------------------------------------------------------------
+-- DMXFixtureGroupSystem — global singleton injected by ProjectScriptContext
+------------------------------------------------------------------------
+
+---@class DMXFixtureGroupSystem
+DMXFixtureGroupSystem = {}
+
+---@param id integer
+---@return DMXFixtureGroupComponent
+function DMXFixtureGroupSystem:getGroupById(id) end
+
+---@param name string
+---@return DMXFixtureGroupComponent
+function DMXFixtureGroupSystem:getGroupByName(name) end
+
+---@return integer
+function DMXFixtureGroupSystem:getGroupCount() end
+
+---@param index integer Zero-based index
+---@return DMXFixtureGroupComponent
+function DMXFixtureGroupSystem:getGroupAtIndex(index) end
+
+--- Create an empty fixture group on a stage.
+---@param stageId integer
+---@param name string Component name, or "" to auto-generate one
+---@return DMXFixtureGroupComponent
+function DMXFixtureGroupSystem:createGroup(stageId, name) end
+
+--- Remove a fixture group.
+---@param groupId integer
+---@return boolean
+function DMXFixtureGroupSystem:removeGroup(groupId) end

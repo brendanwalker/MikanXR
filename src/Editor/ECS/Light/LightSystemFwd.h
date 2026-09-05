@@ -84,3 +84,24 @@ class RGBPixelGridSystem;
 using RGBPixelGridSystemPtr= std::shared_ptr<RGBPixelGridSystem>;
 using RGBPixelGridSystemConstPtr= std::shared_ptr<const RGBPixelGridSystem>;
 using RGBPixelGridSystemWeakPtr= std::weak_ptr<RGBPixelGridSystem>;
+
+// -- DMXFixtureGroup --
+class DMXFixtureGroupDefinition;
+using DMXFixtureGroupDefinitionPtr= std::shared_ptr<DMXFixtureGroupDefinition>;
+using DMXFixtureGroupDefinitionConstPtr= std::shared_ptr<const DMXFixtureGroupDefinition>;
+using DMXFixtureGroupDefinitionWeakPtr= std::weak_ptr<DMXFixtureGroupDefinition>;
+
+class DMXFixtureGroupComponent;
+using DMXFixtureGroupComponentPtr= std::shared_ptr<DMXFixtureGroupComponent>;
+using DMXFixtureGroupComponentConstPtr= std::shared_ptr<const DMXFixtureGroupComponent>;
+using DMXFixtureGroupComponentWeakPtr= std::weak_ptr<DMXFixtureGroupComponent>;
+
+class DMXFixtureGroupSystemDefinition;
+using DMXFixtureGroupSystemDefinitionPtr= std::shared_ptr<DMXFixtureGroupSystemDefinition>;
+using DMXFixtureGroupSystemDefinitionConstPtr= std::shared_ptr<const DMXFixtureGroupSystemDefinition>;
+using DMXFixtureGroupSystemDefinitionWeakPtr= std::weak_ptr<DMXFixtureGroupSystemDefinition>;
+
+class DMXFixtureGroupSystem;
+using DMXFixtureGroupSystemPtr= std::shared_ptr<DMXFixtureGroupSystem>;
+using DMXFixtureGroupSystemConstPtr= std::shared_ptr<const DMXFixtureGroupSystem>;
+using DMXFixtureGroupSystemWeakPtr= std::weak_ptr<DMXFixtureGroupSystem>;

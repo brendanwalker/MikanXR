@@ -1,5 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
+import { MikanComponentValues } from './MikanComponentTypes.js';
 import { MikanVector3f } from './MikanMathTypes.js';
 import { MikanSystemValues } from './MikanPropertyTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
@@ -70,7 +71,23 @@ export class MikanUniverseDMXData {
   ];
 }
 
+export class MikanDMXFixtureGroupComponentValues extends MikanComponentValues {
+  stage_id: number = -1;
+  fixture_ids: number[] = [];
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'stage_id', type: 'int32' },
+    { name: 'fixture_ids', type: 'int32', isArray: true }
+  ];
+}
+
 export class MikanRGBPixelGridSystemValues extends MikanSystemValues {
+
+  static __serializationMetadata: SerializationField[] = [
+  ];
+}
+
+export class MikanDMXFixtureGroupSystemValues extends MikanSystemValues {
 
   static __serializationMetadata: SerializationField[] = [
   ];

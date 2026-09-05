@@ -146,3 +146,8 @@ class RGBPixelGridSystemDefinition;
 using RGBPixelGridSystemDefinitionPtr= std::shared_ptr<RGBPixelGridSystemDefinition>;
 using RGBPixelGridSystemDefinitionConstPtr= std::shared_ptr<const RGBPixelGridSystemDefinition>;
 using RGBPixelGridSystemDefinitionWeakPtr= std::weak_ptr<RGBPixelGridSystemDefinition>;
+
+class DMXFixtureGroupSystemDefinition;
+using DMXFixtureGroupSystemDefinitionPtr= std::shared_ptr<DMXFixtureGroupSystemDefinition>;
+using DMXFixtureGroupSystemDefinitionConstPtr= std::shared_ptr<const DMXFixtureGroupSystemDefinition>;
+using DMXFixtureGroupSystemDefinitionWeakPtr= std::weak_ptr<DMXFixtureGroupSystemDefinition>;

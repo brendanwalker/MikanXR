@@ -9,6 +9,8 @@
 #include "ClientTextureSourceSystem.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
+#include "DMXFixtureGroupComponent.h"
+#include "DMXFixtureGroupSystem.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
 #include "MarkerObjectSystem.h"
@@ -185,6 +187,15 @@ int addPixelGrid(ProjectManagerPtr projectManager, int stageId)
 			def->setRelativeTransform(GlmTransform());
 			return true;
 		}));
+}
+
+int addLightGroup(ProjectManagerPtr projectManager, int stageId)
+{
+	auto sys= projectManager->getSystemOfType<DMXFixtureGroupSystem>();
+	if (!sys)
+		return INVALID_MIKAN_ID;
+
+	return componentIdOrInvalid(sys->createGroup(stageId, ""));
 }
 
 int addCompositor(ProjectManagerPtr projectManager, int sceneId)

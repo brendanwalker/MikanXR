@@ -56,6 +56,9 @@ using MikanVRDeviceID= int32_t;
 /// The ID of a light fixture (RGB spot light or RGB pixel grid)
 using MikanLightID= int32_t;
 
+/// The ID of a DMX fixture group
+using MikanDMXFixtureGroupID= int32_t;
+
 using MikanResponsePtr= std::shared_ptr<struct MikanResponse>;
 using MikanResponsePromise= std::promise<MikanResponsePtr>;
 
