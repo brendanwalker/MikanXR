@@ -38,6 +38,7 @@ ScriptVariableTable makeTestTable()
 	table.set("cone_angle", MikanVariant(27.5f));
 	table.set("light_prefix", MikanVariant(std::string("gen_light_")));
 	table.set("origin_offset", MikanVariant(MikanVector3f{-1.5f, 0.25f, 2.125f}));
+	table.setComponentReference("parent_stage", "StageComponent", 1008);
 	return table;
 }
 
@@ -46,11 +47,14 @@ bool tablesEqual(const ScriptVariableTable& a, const ScriptVariableTable& b)
 	if (a.getAll().size() != b.getAll().size())
 		return false;
 
-	for (const auto& [name, value] : a.getAll())
+	for (const auto& [name, entry] : a.getAll())
 	{
-		MikanVariant other;
-		if (!b.get(name, other) || !ScriptVariableTable::variantsEqual(value, other))
+		ScriptVariable other;
+		if (!b.getEntry(name, other) || !ScriptVariableTable::variantsEqual(entry.value, other.value)
+			|| entry.componentClass != other.componentClass)
+		{
 			return false;
+		}
 	}
 
 	return true;
@@ -73,6 +77,7 @@ bool run_script_variable_persistence_tests()
 	UNIT_TEST_MODULE_CALL_TEST(script_variable_test_definition_round_trip);
 	UNIT_TEST_MODULE_CALL_TEST(script_variable_test_component_property_round_trip);
 	UNIT_TEST_MODULE_CALL_TEST(script_variable_test_notifications);
+	UNIT_TEST_MODULE_CALL_TEST(script_variable_test_component_references);
 	UNIT_TEST_MODULE_END()
 }
 
@@ -81,7 +86,7 @@ bool script_variable_test_table_json_round_trip()
 	UNIT_TEST_BEGIN("table round-trips every supported type through JSON")
 
 	const ScriptVariableTable source= makeTestTable();
-	success= (source.getAll().size() == 5);
+	success= (source.getAll().size() == 6);
 	assert(success);
 
 	ScriptVariableTable restored;
@@ -264,6 +269,70 @@ bool script_variable_test_notifications()
 	assert(success);
 	success&= definition->getScriptVariableOfType("cone_angle", MikanVariantType::FLOAT, stored)
 			  && stored.getFloatValue() == 12.5f;
+	assert(success);
+
+	definition->OnPropertyChanged-= MakeDelegate(&listener, &PropertyChangeListener::onPropertyChanged);
+
+	UNIT_TEST_COMPLETE()
+}
+
+bool script_variable_test_component_references()
+{
+	UNIT_TEST_BEGIN("component references keep their class through writes and JSON")
+
+	ScriptVariableTable table;
+	success= table.setComponentReference("parent_stage", "StageComponent", 1008);
+	assert(success);
+
+	// The class is exact: another class or a plain lookup does not match
+	MikanComponentID id= INVALID_MIKAN_ID;
+	success&= table.getComponentId("parent_stage", "StageComponent", id) && id == 1008;
+	assert(success);
+	success&= !table.getComponentId("parent_stage", "SceneComponent", id);
+	assert(success);
+	MikanVariant plain;
+	success&= !table.getOfType("parent_stage", MikanVariantType::INT, plain);
+	assert(success);
+
+	// An id write through the plain path keeps the class
+	success&= table.set("parent_stage", MikanVariant(1049));
+	assert(success);
+	ScriptVariable entry;
+	success&= table.getEntry("parent_stage", entry) && entry.componentClass == "StageComponent"
+			  && entry.value.getIntValue() == 1049;
+	assert(success);
+	success&= !table.set("parent_stage", MikanVariant(1049));
+	assert(success);
+	success&= !table.setComponentReference("parent_stage", "StageComponent", 1049);
+	assert(success);
+
+	// JSON carries the class; an entry without one is skipped
+	const std::string text= table.toJsonString();
+	success&= (text.find("\"class\":\"StageComponent\"") != std::string::npos);
+	assert(success);
+	ScriptVariableTable restored;
+	success&= restored.fromJsonString(text) && tablesEqual(table, restored);
+	assert(success);
+	success&= restored.fromJsonString("{\"bad\": {\"type\": \"component\", \"value\": 3}}") && restored.empty();
+	assert(success);
+
+	// The definition store adopts none only when nothing of that class is stored
+	ScriptComponentPtr component= makeScriptComponent();
+	ScriptDefinitionPtr definition= component->getScriptDefinition();
+	PropertyChangeListener listener;
+	definition->OnPropertyChanged+= MakeDelegate(&listener, &PropertyChangeListener::onPropertyChanged);
+
+	definition->setScriptComponentVariable("parent_stage", "StageComponent", INVALID_MIKAN_ID);
+	success&= (listener.notificationCount == 1);
+	assert(success);
+	definition->setScriptComponentVariable("parent_stage", "StageComponent", INVALID_MIKAN_ID);
+	success&= (listener.notificationCount == 1);
+	assert(success);
+	success&= definition->getScriptComponentVariable("parent_stage", "StageComponent", id) && id == INVALID_MIKAN_ID;
+	assert(success);
+	success&= !definition->getScriptComponentVariable("parent_stage", "CameraComponent", id);
+	assert(success);
+	success&= (listener.changedProperties == std::set<std::string>{ScriptDefinition::k_scriptVariablesPropertyId});
 	assert(success);
 
 	definition->OnPropertyChanged-= MakeDelegate(&listener, &PropertyChangeListener::onPropertyChanged);

@@ -48,6 +48,10 @@ public:
 	virtual bool getScriptVariableOfType(const std::string& name, MikanVariantType type,
 										 MikanVariant& outValue) const override;
 	virtual void setScriptVariable(const std::string& name, const MikanVariant& value) override;
+	virtual bool getScriptComponentVariable(const std::string& name, const std::string& componentClass,
+											MikanComponentID& outComponentId) const override;
+	virtual void setScriptComponentVariable(const std::string& name, const std::string& componentClass,
+											MikanComponentID componentId) override;
 
 private:
 	AssetReferenceConfigPtr m_scriptAssetRefConfig;
@@ -81,6 +85,8 @@ public:
 	// empty while the script is not loaded
 	void getScriptVariableNames(std::vector<std::string>& outNames) const;
 	bool getScriptVariable(const std::string& name, MikanVariant& outValue) const;
+	// The stored entry with its component class, for the panel's widget choice
+	bool getScriptVariableEntry(const std::string& name, ScriptVariable& outEntry) const;
 	// Writes the definition; the Lua global follows through onDefinitionMarkedDirty
 	bool setScriptVariable(const std::string& name, const MikanVariant& value);
 

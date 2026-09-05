@@ -6,7 +6,9 @@
 namespace
 {
 const char* k_typeKey= "type";
+const char* k_classKey= "class";
 const char* k_valueKey= "value";
+const char* k_componentTypeName= "component";
 
 configuru::FormatOptions makeSingleLineJsonFormat()
 {
@@ -81,6 +83,34 @@ configuru::Config writeVariantToJSON(const MikanVariant& value)
 	default:
 		return configuru::Config();
 	}
+}
+
+// Parse one {"type", "class", "value"} object; false on any malformed piece
+bool readEntryFromJSON(const configuru::Config& entryConfig, ScriptVariable& outEntry)
+{
+	if (!entryConfig.is_object() || !entryConfig.has_key(k_typeKey) || !entryConfig.has_key(k_valueKey)
+		|| !entryConfig[k_typeKey].is_string())
+	{
+		return false;
+	}
+
+	const std::string typeName= entryConfig[k_typeKey].as_string();
+	if (typeName == k_componentTypeName)
+	{
+		if (!entryConfig.has_key(k_classKey) || !entryConfig[k_classKey].is_string()
+			|| entryConfig[k_classKey].as_string().empty())
+		{
+			return false;
+		}
+
+		outEntry.componentClass= entryConfig[k_classKey].as_string();
+		return readVariantFromJSON(MikanVariantType::INT, entryConfig[k_valueKey], outEntry.value);
+	}
+
+	MikanVariantType type= MikanVariantType::INVALID;
+	outEntry.componentClass.clear();
+	return ScriptVariableTable::jsonNameToType(typeName, type)
+		   && readVariantFromJSON(type, entryConfig[k_valueKey], outEntry.value);
 }
 } // namespace
 
@@ -172,17 +202,41 @@ bool ScriptVariableTable::get(const std::string& name, MikanVariant& outValue) c
 	if (it == m_values.end())
 		return false;
 
-	outValue= it->second;
+	outValue= it->second.value;
+	return true;
+}
+
+bool ScriptVariableTable::getEntry(const std::string& name, ScriptVariable& outEntry) const
+{
+	auto it= m_values.find(name);
+	if (it == m_values.end())
+		return false;
+
+	outEntry= it->second;
 	return true;
 }
 
 bool ScriptVariableTable::getOfType(const std::string& name, MikanVariantType type, MikanVariant& outValue) const
 {
 	auto it= m_values.find(name);
-	if (it == m_values.end() || it->second.value_type != type)
+	if (it == m_values.end() || it->second.isComponentReference() || it->second.value.value_type != type)
 		return false;
 
-	outValue= it->second;
+	outValue= it->second.value;
+	return true;
+}
+
+bool ScriptVariableTable::getComponentId(const std::string& name, const std::string& componentClass,
+										 MikanComponentID& outId) const
+{
+	auto it= m_values.find(name);
+	if (it == m_values.end() || it->second.componentClass != componentClass
+		|| it->second.value.value_type != MikanVariantType::INT)
+	{
+		return false;
+	}
+
+	outId= it->second.value.getIntValue();
 	return true;
 }
 
@@ -192,10 +246,33 @@ bool ScriptVariableTable::set(const std::string& name, const MikanVariant& value
 		return false;
 
 	auto it= m_values.find(name);
-	if (it != m_values.end() && variantsEqual(it->second, value))
+	if (it != m_values.end())
+	{
+		if (variantsEqual(it->second.value, value))
+			return false;
+
+		it->second.value= value;
+		return true;
+	}
+
+	m_values[name]= ScriptVariable{value, ""};
+	return true;
+}
+
+bool ScriptVariableTable::setComponentReference(const std::string& name, const std::string& componentClass,
+												MikanComponentID id)
+{
+	if (componentClass.empty())
 		return false;
 
-	m_values[name]= value;
+	auto it= m_values.find(name);
+	if (it != m_values.end() && it->second.componentClass == componentClass
+		&& it->second.value.value_type == MikanVariantType::INT && it->second.value.getIntValue() == id)
+	{
+		return false;
+	}
+
+	m_values[name]= ScriptVariable{MikanVariant(static_cast<int>(id)), componentClass};
 	return true;
 }
 
@@ -207,12 +284,20 @@ configuru::Config ScriptVariableTable::writeToJSON() const
 {
 	configuru::Config pt= configuru::Config::object();
 
-	for (const auto& [name, value] : m_values)
+	for (const auto& [name, entry] : m_values)
 	{
-		configuru::Config entry= configuru::Config::object();
-		entry[k_typeKey]= typeToJsonName(value.value_type);
-		entry[k_valueKey]= writeVariantToJSON(value);
-		pt[name]= entry;
+		configuru::Config entryConfig= configuru::Config::object();
+		if (entry.isComponentReference())
+		{
+			entryConfig[k_typeKey]= k_componentTypeName;
+			entryConfig[k_classKey]= entry.componentClass;
+		}
+		else
+		{
+			entryConfig[k_typeKey]= typeToJsonName(entry.value.value_type);
+		}
+		entryConfig[k_valueKey]= writeVariantToJSON(entry.value);
+		pt[name]= entryConfig;
 	}
 
 	return pt;
@@ -228,21 +313,15 @@ void ScriptVariableTable::readFromJSON(const configuru::Config& pt)
 	for (const auto& entry : pt.as_object())
 	{
 		const std::string& name= entry.key();
-		const configuru::Config& entryConfig= entry.value();
 
-		MikanVariantType type= MikanVariantType::INVALID;
-		MikanVariant value;
-		const bool bValid= entryConfig.is_object() && entryConfig.has_key(k_typeKey) && entryConfig.has_key(k_valueKey)
-						   && entryConfig[k_typeKey].is_string()
-						   && jsonNameToType(entryConfig[k_typeKey].as_string(), type)
-						   && readVariantFromJSON(type, entryConfig[k_valueKey], value);
-		if (!bValid)
+		ScriptVariable variable;
+		if (!readEntryFromJSON(entry.value(), variable))
 		{
 			MIKAN_LOG_WARNING("ScriptVariableTable::readFromJSON") << "Skipping malformed script variable " << name;
 			continue;
 		}
 
-		m_values[name]= value;
+		m_values[name]= variable;
 	}
 }
 

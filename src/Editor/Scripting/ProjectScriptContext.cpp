@@ -36,10 +36,42 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
+namespace
+{
+// LuaBridge pushes a pointer by its static type, so a component reference
+// global is written through a thunk that casts to the concrete class. A null
+// pointer pushes nil.
+template <class t_component_type>
+void registerComponentPushThunk(CommonScriptContext* context)
+{
+	context->registerComponentClass(t_component_type::k_componentClassName,
+									[](lua_State* L, MikanComponentPtr component, const char* name)
+									{
+										t_component_type* typedComponent=
+											std::dynamic_pointer_cast<t_component_type>(component).get();
+										return luabridge::setGlobal(L, typedComponent, name);
+									});
+}
+} // namespace
+
 ProjectScriptContext::ProjectScriptContext(ProjectManagerPtr projectManager)
 	: CommonScriptContext()
 	, m_projectManager(projectManager)
 {
+}
+
+MikanComponentPtr ProjectScriptContext::resolveComponent(const std::string& componentClass,
+														 MikanComponentID componentId) const
+{
+	ProjectManagerPtr projectManager= m_projectManager.lock();
+	if (!projectManager)
+		return nullptr;
+
+	MikanComponentPtr component= projectManager->getComponentById(componentId);
+	if (!component || component->getComponentClassName() != componentClass)
+		return nullptr;
+
+	return component;
 }
 
 bool ProjectScriptContext::bindContextFunctions()
@@ -86,6 +118,27 @@ bool ProjectScriptContext::bindContextFunctions()
 	CameraComponent::bindLuaFunctions(m_luaState);
 	AnchorComponent::bindLuaFunctions(m_luaState);
 	MarkerComponent::bindLuaFunctions(m_luaState);
+
+	// The classes ScriptContext.registerComponent accepts
+	registerComponentPushThunk<MikanComponent>(this);
+	registerComponentPushThunk<CompositorComponent>(this);
+	registerComponentPushThunk<TransformComponent>(this);
+	registerComponentPushThunk<SceneComponent>(this);
+	registerComponentPushThunk<StageComponent>(this);
+	registerComponentPushThunk<StencilComponent>(this);
+	registerComponentPushThunk<QuadStencilComponent>(this);
+	registerComponentPushThunk<BoxStencilComponent>(this);
+	registerComponentPushThunk<ModelStencilComponent>(this);
+	registerComponentPushThunk<ShapeComponent>(this);
+	registerComponentPushThunk<QuadShapeComponent>(this);
+	registerComponentPushThunk<BoxShapeComponent>(this);
+	registerComponentPushThunk<ModelShapeComponent>(this);
+	registerComponentPushThunk<DMXFixtureComponent>(this);
+	registerComponentPushThunk<RGBSpotLightComponent>(this);
+	registerComponentPushThunk<RGBPixelGridComponent>(this);
+	registerComponentPushThunk<CameraComponent>(this);
+	registerComponentPushThunk<AnchorComponent>(this);
+	registerComponentPushThunk<MarkerComponent>(this);
 
 	// Expose every scriptable object system as a global so scripts can look up
 	// objects by name or id

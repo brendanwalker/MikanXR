@@ -25,16 +25,65 @@ void ScriptObjectSystem::postInit()
 	Super::postInit();
 
 	// Every other system has loaded by now, so scripts can resolve objects by name
+	bindObjectLifecycleEvents();
 	reloadAllScripts();
 }
 
 void ScriptObjectSystem::dispose()
 {
+	// Systems dispose in reverse registration order, so the others are still alive
+	unbindObjectLifecycleEvents();
 	disposeScriptContext();
 
 	Super::dispose();
 
 	m_bReloadPending= false;
+}
+
+void ScriptObjectSystem::bindObjectLifecycleEvents()
+{
+	ProjectManagerPtr projectManager= getOwnerProjectManager();
+	if (!projectManager || m_bLifecycleEventsBound)
+		return;
+
+	for (const MikanObjectSystemPtr& system : projectManager->getSystems())
+	{
+		system->OnNewObjectFinalized+= MakeDelegate(this, &ScriptObjectSystem::onObjectFinalized);
+		system->OnObjectWillBeDestroyed+= MakeDelegate(this, &ScriptObjectSystem::onObjectWillBeDestroyed);
+	}
+	m_bLifecycleEventsBound= true;
+}
+
+void ScriptObjectSystem::unbindObjectLifecycleEvents()
+{
+	ProjectManagerPtr projectManager= getOwnerProjectManager();
+	if (!projectManager || !m_bLifecycleEventsBound)
+		return;
+
+	for (const MikanObjectSystemPtr& system : projectManager->getSystems())
+	{
+		system->OnNewObjectFinalized-= MakeDelegate(this, &ScriptObjectSystem::onObjectFinalized);
+		system->OnObjectWillBeDestroyed-= MakeDelegate(this, &ScriptObjectSystem::onObjectWillBeDestroyed);
+	}
+	m_bLifecycleEventsBound= false;
+}
+
+void ScriptObjectSystem::onObjectFinalized(MikanObjectSystemPtr objectSystem, MikanObjectPtr object)
+{
+	// A recreated object (undo of a destroy) may be one a reference still names
+	if (m_scriptContext)
+	{
+		m_scriptContext->refreshComponentVariables();
+	}
+}
+
+void ScriptObjectSystem::onObjectWillBeDestroyed(MikanObjectSystemPtr objectSystem, MikanComponentPtr primaryComponent)
+{
+	// The object is still alive here, so its id is excluded explicitly
+	if (m_scriptContext && primaryComponent)
+	{
+		m_scriptContext->refreshComponentVariables(primaryComponent->getComponentId());
+	}
 }
 
 void ScriptObjectSystem::update(float deltaSeconds)

@@ -282,7 +282,38 @@ bool CommonScriptContext::setVariableValue(const std::string& name, const MikanV
 	if (it == m_variables.end() || it->type != value.value_type)
 		return false;
 
+	if (it->isComponentReference())
+	{
+		it->componentId= value.getIntValue();
+		return pushComponentGlobal(*it);
+	}
+
 	return pushVariantAsGlobal(name, value);
+}
+
+void CommonScriptContext::refreshComponentVariables(MikanComponentID excludedId)
+{
+	if (m_luaState == nullptr)
+		return;
+
+	for (const VariableBinding& binding : m_variables)
+	{
+		if (binding.isComponentReference())
+		{
+			pushComponentGlobal(binding, excludedId);
+		}
+	}
+}
+
+void CommonScriptContext::registerComponentClass(const std::string& className, ComponentPushFunction pushFunction)
+{
+	m_componentPushFunctions[className]= pushFunction;
+}
+
+MikanComponentPtr CommonScriptContext::resolveComponent(const std::string& componentClass,
+														MikanComponentID componentId) const
+{
+	return nullptr;
 }
 
 bool CommonScriptContext::registerVariable(const std::string& name, const MikanVariant& defaultValue)
@@ -325,8 +356,73 @@ bool CommonScriptContext::registerVariable(const std::string& name, const MikanV
 	if (!pushVariantAsGlobal(name, effectiveValue))
 		return false;
 
-	m_variables.push_back({name, m_loadingScriptId, defaultValue.value_type});
+	m_variables.push_back({name, m_loadingScriptId, defaultValue.value_type, "", INVALID_MIKAN_ID});
 	return true;
+}
+
+bool CommonScriptContext::registerComponentVariable(const std::string& name, const std::string& componentClass)
+{
+	if (m_loadingScriptId == INVALID_MIKAN_ID)
+	{
+		MIKAN_LOG_ERROR("CommonScriptContext::registerComponentVariable")
+			<< "Component variable " << name << " registered outside a script chunk";
+		return false;
+	}
+
+	if (m_componentPushFunctions.find(componentClass) == m_componentPushFunctions.end())
+	{
+		MIKAN_LOG_ERROR("CommonScriptContext::registerComponentVariable")
+			<< "Component variable " << name << " names unknown class " << componentClass;
+		return false;
+	}
+
+	auto existing= std::find_if(m_variables.begin(), m_variables.end(),
+								[&name](const VariableBinding& variable) { return variable.name == name; });
+	if (existing != m_variables.end())
+	{
+		MIKAN_LOG_ERROR("CommonScriptContext::registerComponentVariable")
+			<< "Variable " << name << " already registered by script " << existing->scriptId << ", ignored by script "
+			<< m_loadingScriptId;
+		return false;
+	}
+
+	// A stored reference of the same class wins; otherwise none is adopted
+	MikanComponentID componentId= INVALID_MIKAN_ID;
+	if (m_loadingVariableStore != nullptr)
+	{
+		MikanComponentID storedId= INVALID_MIKAN_ID;
+		if (m_loadingVariableStore->getScriptComponentVariable(name, componentClass, storedId))
+		{
+			componentId= storedId;
+		}
+		else
+		{
+			m_loadingVariableStore->setScriptComponentVariable(name, componentClass, componentId);
+		}
+	}
+
+	VariableBinding binding{name, m_loadingScriptId, MikanVariantType::INT, componentClass, componentId};
+	if (!pushComponentGlobal(binding))
+		return false;
+
+	m_variables.push_back(binding);
+	return true;
+}
+
+bool CommonScriptContext::pushComponentGlobal(const VariableBinding& binding, MikanComponentID excludedId)
+{
+	auto pushIt= m_componentPushFunctions.find(binding.componentClass);
+	if (pushIt == m_componentPushFunctions.end())
+		return false;
+
+	MikanComponentPtr component;
+	if (binding.componentId != INVALID_MIKAN_ID && binding.componentId != excludedId)
+	{
+		component= resolveComponent(binding.componentClass, binding.componentId);
+	}
+
+	// A null component pushes nil
+	return pushIt->second(m_luaState, component, binding.name.c_str());
 }
 
 bool CommonScriptContext::pushVariantAsGlobal(const std::string& name, const MikanVariant& value)
@@ -545,6 +641,9 @@ void CommonScriptContext::bindCommonScriptFunctions()
 									 return registerVariable(name, value);
 								 });
 
+	contextNamespace.addFunction("registerComponent", [this](const char* name, const char* componentClass) -> bool
+								 { return registerComponentVariable(name, componentClass); });
+
 	contextNamespace.addFunction("broadcastMessage",
 								 [this](const char* message)
 								 {
@@ -570,6 +669,7 @@ void CommonScriptContext::disposeScriptState()
 	m_messageHandlers.clear();
 	m_httpTriggerBindings.clear();
 	m_variables.clear();
+	m_componentPushFunctions.clear();
 
 	if (m_luaState != nullptr)
 	{

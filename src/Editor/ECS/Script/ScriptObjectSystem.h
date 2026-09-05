@@ -44,6 +44,14 @@ public:
 private:
 	void disposeScriptContext();
 
+	// Component reference globals follow object creation and destruction in
+	// every system, so a script never holds a handle to a dead object
+	void bindObjectLifecycleEvents();
+	void unbindObjectLifecycleEvents();
+	void onObjectFinalized(MikanObjectSystemPtr objectSystem, MikanObjectPtr object);
+	void onObjectWillBeDestroyed(MikanObjectSystemPtr objectSystem, MikanComponentPtr primaryComponent);
+
 	ProjectScriptContextPtr m_scriptContext;
 	bool m_bReloadPending= false;
+	bool m_bLifecycleEventsBound= false;
 };

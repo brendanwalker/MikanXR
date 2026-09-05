@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "MikanCoreTypes.h"
 #include "MikanTypeFwd.h"
 #include "MikanVariantTypes.h"
@@ -7,6 +8,8 @@
 #include "ScriptingFwd.h"
 
 #include <filesystem>
+#include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -46,14 +49,23 @@ public:
 		MikanScriptID scriptId;
 	};
 
-	// A Lua global declared via ScriptContext.registerVariable(name, default).
-	// The global's value is owned by the registering script's definition.
+	// A Lua global declared via ScriptContext.registerVariable(name, default) or
+	// ScriptContext.registerComponent(name, className). The global's value is
+	// owned by the registering script's definition. A component reference has
+	// a class, an INT type, and the id the global currently resolves.
 	struct VariableBinding
 	{
 		std::string name;
 		MikanScriptID scriptId;
 		MikanVariantType type;
+		std::string componentClass;
+		MikanComponentID componentId= INVALID_MIKAN_ID;
+
+		inline bool isComponentReference() const { return !componentClass.empty(); }
 	};
+
+	// Writes a component as a Lua global of its concrete class (nil for null)
+	using ComponentPushFunction= std::function<bool(lua_State*, MikanComponentPtr, const char*)>;
 
 	CommonScriptContext();
 	virtual ~CommonScriptContext();
@@ -93,7 +105,14 @@ public:
 	bool hasVariable(const std::string& name) const;
 	// Write a registered variable's Lua global. False with no state, an
 	// unregistered name, or a value of another type than the registration.
+	// A component reference takes the INT component id and pushes the
+	// resolved component.
 	bool setVariableValue(const std::string& name, const MikanVariant& value);
+	// Re-resolve and re-push every component reference global. An id equal to
+	// excludedId pushes nil, for an object that is about to be destroyed.
+	void refreshComponentVariables(MikanComponentID excludedId= INVALID_MIKAN_ID);
+	// Classes registerComponent accepts, keyed by k_componentClassName
+	void registerComponentClass(const std::string& className, ComponentPushFunction pushFunction);
 
 	MulticastDelegate<void(const std::string& message)> OnScriptMessage;
 
@@ -108,13 +127,20 @@ protected:
 	// Resolve the effective value against the loading script's store, write it
 	// to the Lua global, and record the binding
 	bool registerVariable(const std::string& name, const MikanVariant& defaultValue);
+	bool registerComponentVariable(const std::string& name, const std::string& componentClass);
 	bool pushVariantAsGlobal(const std::string& name, const MikanVariant& value);
+	// Resolve the binding's id and write the component (or nil) to its global
+	bool pushComponentGlobal(const VariableBinding& binding, MikanComponentID excludedId= INVALID_MIKAN_ID);
+	// The component a reference global should hold: subclasses with scene
+	// access resolve the id and check the class, the base resolves nothing
+	virtual MikanComponentPtr resolveComponent(const std::string& componentClass, MikanComponentID componentId) const;
 
 	std::vector<LoadedScript> m_loadedScripts;
 	std::vector<TriggerBinding> m_triggers;
 	std::vector<MessageHandlerBinding> m_messageHandlers;
 	std::vector<HttpTriggerBinding> m_httpTriggerBindings;
 	std::vector<VariableBinding> m_variables;
+	std::map<std::string, ComponentPushFunction> m_componentPushFunctions;
 	// The script whose chunk is executing, so registrations can be attributed
 	MikanScriptID m_loadingScriptId= INVALID_MIKAN_ID;
 	IScriptVariableStore* m_loadingVariableStore= nullptr;

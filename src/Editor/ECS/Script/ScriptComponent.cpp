@@ -115,6 +115,21 @@ void ScriptDefinition::setScriptVariable(const std::string& name, const MikanVar
 	}
 }
 
+bool ScriptDefinition::getScriptComponentVariable(const std::string& name, const std::string& componentClass,
+												  MikanComponentID& outComponentId) const
+{
+	return m_scriptVariables.getComponentId(name, componentClass, outComponentId);
+}
+
+void ScriptDefinition::setScriptComponentVariable(const std::string& name, const std::string& componentClass,
+												  MikanComponentID componentId)
+{
+	if (m_scriptVariables.setComponentReference(name, componentClass, componentId))
+	{
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_scriptVariablesPropertyId));
+	}
+}
+
 // -- ScriptComponent -----
 ScriptComponent::ScriptComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
@@ -206,6 +221,11 @@ bool ScriptComponent::getScriptVariable(const std::string& name, MikanVariant& o
 	return getScriptDefinition()->getScriptVariable(name, outValue);
 }
 
+bool ScriptComponent::getScriptVariableEntry(const std::string& name, ScriptVariable& outEntry) const
+{
+	return getScriptDefinition()->getScriptVariables().getEntry(name, outEntry);
+}
+
 bool ScriptComponent::setScriptVariable(const std::string& name, const MikanVariant& value)
 {
 	if (!ScriptVariableTable::isSupportedType(value.value_type))
@@ -223,9 +243,9 @@ void ScriptComponent::pushScriptVariablesToContext()
 		return;
 
 	// setVariableValue ignores names this script's chunk did not register
-	for (const auto& [name, value] : getScriptDefinition()->getScriptVariables().getAll())
+	for (const auto& [name, entry] : getScriptDefinition()->getScriptVariables().getAll())
 	{
-		scriptContext->setVariableValue(name, value);
+		scriptContext->setVariableValue(name, entry.value);
 	}
 }
 
