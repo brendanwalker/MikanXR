@@ -260,13 +260,28 @@ bool DMXSequenceComponent::callHandler(const char* field, bool bWithTime, float 
 		sequenceName, field,
 		[this, bWithTime, deltaSeconds](lua_State* L) -> int
 		{
-			luabridge::push(L, this);
-			if (!bWithTime)
-				return 1;
+			// The count has to match what actually landed on the stack, since
+			// lua_pcall takes it on faith and a failed push leaves nothing
+			// behind. A short count reaches the handler as a missing argument,
+			// which fails that sequence alone.
+			int argCount= 0;
 
-			luabridge::push(L, m_timeSinceStart);
-			luabridge::push(L, deltaSeconds);
-			return 3;
+			if (!luabridge::push(L, this))
+				return argCount;
+			argCount++;
+
+			if (!bWithTime)
+				return argCount;
+
+			if (!luabridge::push(L, m_timeSinceStart))
+				return argCount;
+			argCount++;
+
+			if (!luabridge::push(L, deltaSeconds))
+				return argCount;
+			argCount++;
+
+			return argCount;
 		},
 		error);
 
