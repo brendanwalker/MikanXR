@@ -64,8 +64,8 @@ public:
 		inline bool isComponentReference() const { return !componentClass.empty(); }
 	};
 
-	// Writes a component as a Lua global of its concrete class (nil for null)
-	using ComponentPushFunction= std::function<bool(lua_State*, MikanComponentPtr, const char*)>;
+	// Pushes a component onto the stack as its concrete class (nil for null)
+	using ComponentPushFunction= std::function<bool(lua_State*, MikanComponentPtr)>;
 
 	// The value of LUA_NOREF, so the header needs no Lua include
 	static constexpr int k_invalidLuaRef= -2;
@@ -128,6 +128,14 @@ public:
 	void refreshComponentVariables(MikanComponentID excludedId= INVALID_MIKAN_ID);
 	// Classes registerComponent accepts, keyed by k_componentClassName
 	void registerComponentClass(const std::string& className, ComponentPushFunction pushFunction);
+	// Push a component onto the stack as its concrete class, which is what a
+	// binding returning a base pointer needs: LuaBridge pushes by static type,
+	// so a subclass returned as its base loses the subclass's own bindings. A
+	// null component, or one of a class this context does not bind, pushes nil.
+	bool pushComponent(lua_State* L, MikanComponentPtr component) const;
+	// The context owning a Lua state, for bindings that reach back into it.
+	// Null for a state this class did not create.
+	static CommonScriptContext* getFromLuaState(lua_State* L);
 
 	const std::vector<SequenceBinding>& getScriptSequences() const { return m_sequences; }
 	void getSequenceNames(std::vector<std::string>& outNames) const;

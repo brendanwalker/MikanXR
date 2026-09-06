@@ -2,7 +2,15 @@
 #include "unit_test.h"
 
 #include "CommonScriptContext.h"
+#include "Light/DMXFixtureComponent.h"
+#include "Light/DMXFixtureGroupComponent.h"
+#include "Light/RGBPixelGridComponent.h"
+#include "MikanComponent.h"
 #include "PathUtils.h"
+#include "Scene/TransformComponent.h"
+
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
 
 #include <assert.h>
 #include <fstream>
@@ -64,6 +72,7 @@ bool run_script_context_tests()
 	UNIT_TEST_MODULE_CALL_TEST(script_module_test_resolves_project_scripts);
 	UNIT_TEST_MODULE_CALL_TEST(script_module_test_chunk_name_is_project_relative);
 	UNIT_TEST_MODULE_CALL_TEST(script_module_test_missing_module_names_scripts_folder);
+	UNIT_TEST_MODULE_CALL_TEST(script_context_test_pushes_concrete_component_class);
 	UNIT_TEST_MODULE_END()
 }
 
@@ -154,6 +163,80 @@ bool script_module_test_missing_module_names_scripts_folder()
 
 	const std::string scriptsDir= project.getScriptsDir().generic_string();
 	success&= context->evalString("return test_err", result) && result.find(scriptsDir) != std::string::npos;
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
+bool script_context_test_pushes_concrete_component_class()
+{
+	UNIT_TEST_BEGIN("a component pushes as its concrete class, not the static one")
+
+	auto context= std::make_shared<CommonScriptContext>();
+	success&= context->createScriptState();
+	assert(success);
+
+	lua_State* L= context->getLuaState();
+
+	// Parent classes before derived ones, as ProjectScriptContext binds them
+	MikanComponent::bindLuaFunctions(L);
+	TransformComponent::bindLuaFunctions(L);
+	DMXFixtureComponent::bindLuaFunctions(L);
+	RGBPixelGridComponent::bindLuaFunctions(L);
+
+	context->registerComponentClass(DMXFixtureComponent::k_componentClassName,
+									[](lua_State* state, MikanComponentPtr component)
+									{
+										return static_cast<bool>(luabridge::push(
+											state, std::dynamic_pointer_cast<DMXFixtureComponent>(component).get()));
+									});
+	context->registerComponentClass(RGBPixelGridComponent::k_componentClassName,
+									[](lua_State* state, MikanComponentPtr component)
+									{
+										return static_cast<bool>(luabridge::push(
+											state, std::dynamic_pointer_cast<RGBPixelGridComponent>(component).get()));
+									});
+
+	auto grid= std::make_shared<RGBPixelGridComponent>(MikanObjectWeakPtr());
+	auto gridDefinition= std::make_shared<RGBPixelGridDefinition>();
+	gridDefinition->resizeGrid(6, 4);
+	grid->setDefinition(gridDefinition);
+
+	// Held as the base type, which is how a group hands its fixtures out
+	MikanComponentPtr fixture= grid;
+	success&= context->pushComponent(L, fixture);
+	assert(success);
+	lua_setglobal(L, "test_fixture");
+
+	// columns and rows live on RGBPixelGridComponent. They read back only if
+	// the userdata carries that class's metatable rather than the base's.
+	std::string result;
+	success&= context->evalString("return test_fixture.columns", result) && result == "6";
+	assert(success);
+	success&= context->evalString("return test_fixture.rows", result) && result == "4";
+	assert(success);
+
+	// The inherited surface still resolves through the class hierarchy
+	success&= context->evalString("return test_fixture.className", result)
+			  && result == RGBPixelGridComponent::k_componentClassName;
+	assert(success);
+
+	// A null component is nil rather than a missing global
+	success&= context->pushComponent(L, MikanComponentPtr());
+	assert(success);
+	lua_setglobal(L, "test_absent_fixture");
+	success&= context->evalString("return test_absent_fixture == nil", result) && result == "true";
+	assert(success);
+
+	// getFixtureAtIndex reaches the context back through the state it is called
+	// with. This group has no owner, so nothing resolves and every index is nil,
+	// which is enough to exercise that path.
+	DMXFixtureGroupComponent::bindLuaFunctions(L);
+	auto group= std::make_shared<DMXFixtureGroupComponent>(MikanObjectWeakPtr());
+	group->setDefinition(std::make_shared<DMXFixtureGroupDefinition>());
+	success&= static_cast<bool>(luabridge::setGlobal(L, group.get(), "test_group"));
+	assert(success);
+	success&= context->evalString("return test_group:getFixtureAtIndex(0) == nil", result) && result == "true";
 	assert(success);
 
 	UNIT_TEST_COMPLETE()

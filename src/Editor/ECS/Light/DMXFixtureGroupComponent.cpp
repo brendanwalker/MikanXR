@@ -1,4 +1,5 @@
 #include "DMXFixtureGroupComponent.h"
+#include "CommonScriptContext.h"
 #include "DMXFixtureComponent.h"
 #include "MikanObjectSystem.h"
 #include "MikanVariantTypes.h"
@@ -241,14 +242,30 @@ void DMXFixtureGroupComponent::bindLuaFunctions(lua_State* L)
 						 c->getFixtures(fixtures);
 						 return static_cast<int>(fixtures.size());
 					 })
+		// A group holds fixtures of mixed kinds, so this returns each one as its
+		// concrete class rather than as a DMXFixtureComponent. Returning the
+		// base pointer would hand Lua the base class's metatable and hide the
+		// subclass's own bindings, since LuaBridge pushes by static type.
 		.addFunction("getFixtureAtIndex",
-					 [](DMXFixtureGroupComponent* c, int index) -> DMXFixtureComponent*
+					 [](DMXFixtureGroupComponent* c, int index, lua_State* L) -> luabridge::LuaRef
 					 {
 						 std::vector<DMXFixtureComponentPtr> fixtures;
 						 c->getFixtures(fixtures);
+
+						 DMXFixtureComponentPtr fixture;
 						 if (index >= 0 && index < static_cast<int>(fixtures.size()))
-							 return fixtures[index].get();
-						 return nullptr;
+							 fixture= fixtures[index];
+
+						 CommonScriptContext* scriptContext= CommonScriptContext::getFromLuaState(L);
+						 if (scriptContext != nullptr)
+							 scriptContext->pushComponent(L, fixture);
+						 else
+							 lua_pushnil(L);
+
+						 luabridge::LuaRef typedFixture= luabridge::LuaRef::fromStack(L, -1);
+						 lua_pop(L, 1);
+
+						 return typedFixture;
 					 })
 		.addFunction("containsFixture", [](DMXFixtureGroupComponent* c, int fixtureId) -> bool
 					 { return c->getDMXFixtureGroupDefinition()->containsFixture(fixtureId); })

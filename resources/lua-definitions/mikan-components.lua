@@ -268,9 +268,10 @@ local DMXFixtureGroupComponent = {}
 ---@return integer
 function DMXFixtureGroupComponent:getFixtureCount() end
 
---- A member fixture by position among the resolved members.
+--- A member fixture by position among the resolved members, as its concrete
+--- class, so a pixel grid member answers to RGBPixelGridComponent's own fields.
 ---@param index integer Zero-based index
----@return DMXFixtureComponent
+---@return DMXFixtureComponent|RGBSpotLightComponent|RGBPixelGridComponent|nil
 function DMXFixtureGroupComponent:getFixtureAtIndex(index) end
 
 ---@param fixtureId integer

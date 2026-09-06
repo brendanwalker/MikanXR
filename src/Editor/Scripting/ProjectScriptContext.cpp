@@ -44,18 +44,18 @@
 
 namespace
 {
-// LuaBridge pushes a pointer by its static type, so a component reference
-// global is written through a thunk that casts to the concrete class. A null
-// pointer pushes nil.
+// LuaBridge pushes a pointer by its static type, so a component reaches Lua
+// through a thunk that casts to the concrete class first. A null pointer, or
+// one that is not of this class, pushes nil.
 template <class t_component_type>
 void registerComponentPushThunk(CommonScriptContext* context)
 {
 	context->registerComponentClass(t_component_type::k_componentClassName,
-									[](lua_State* L, MikanComponentPtr component, const char* name)
+									[](lua_State* L, MikanComponentPtr component)
 									{
 										t_component_type* typedComponent=
 											std::dynamic_pointer_cast<t_component_type>(component).get();
-										return luabridge::setGlobal(L, typedComponent, name);
+										return static_cast<bool>(luabridge::push(L, typedComponent));
 									});
 }
 } // namespace

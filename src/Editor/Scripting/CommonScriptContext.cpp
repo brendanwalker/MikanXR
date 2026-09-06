@@ -4,6 +4,7 @@
 #include "MathGLM.h"
 #include "LuaMath.h"
 #include "Logger.h"
+#include "MikanComponent.h"
 #include "PathUtils.h"
 #include "ScriptVariableTable.h"
 
@@ -19,6 +20,10 @@
 
 namespace
 {
+// Registry slot holding the context that owns a Lua state. Its address is the
+// key, so it only has to be unique.
+const char k_scriptContextRegistryKey= 0;
+
 // Map a Lua value to the variant type a script variable can hold. Lua keeps
 // integer and float subtypes apart, so 30 registers INT and 30.0 FLOAT.
 bool luaRefToVariant(const luabridge::LuaRef& ref, MikanVariant& outValue)
@@ -206,6 +211,11 @@ bool CommonScriptContext::createScriptState()
 
 	lua_atpanic(m_luaState, panicHandler);
 	luaL_openlibs(m_luaState);
+
+	// Bindings reach the context back through the state they are called with
+	lua_pushlightuserdata(m_luaState, this);
+	lua_rawsetp(m_luaState, LUA_REGISTRYINDEX, &k_scriptContextRegistryKey);
+
 	setupModuleSearchPath();
 
 	if (!bindContextFunctions())
@@ -482,6 +492,46 @@ void CommonScriptContext::registerComponentClass(const std::string& className, C
 	m_componentPushFunctions[className]= pushFunction;
 }
 
+bool CommonScriptContext::pushComponent(lua_State* L, MikanComponentPtr component) const
+{
+	if (!component)
+	{
+		lua_pushnil(L);
+		return true;
+	}
+
+	auto pushIt= m_componentPushFunctions.find(component->getComponentClassName());
+	if (pushIt == m_componentPushFunctions.end())
+	{
+		MIKAN_LOG_ERROR("CommonScriptContext::pushComponent")
+			<< "Component class " << component->getComponentClassName() << " has no Lua push thunk";
+		lua_pushnil(L);
+		return false;
+	}
+
+	// Exactly one value lands on the stack either way, so callers can pop or
+	// assign it without checking. A failed push leaves nothing behind.
+	const int baseTop= lua_gettop(L);
+	const bool bPushed= pushIt->second(L, component);
+	if (lua_gettop(L) != baseTop + 1)
+	{
+		lua_settop(L, baseTop);
+		lua_pushnil(L);
+		return false;
+	}
+
+	return bPushed;
+}
+
+CommonScriptContext* CommonScriptContext::getFromLuaState(lua_State* L)
+{
+	lua_rawgetp(L, LUA_REGISTRYINDEX, &k_scriptContextRegistryKey);
+	auto* context= static_cast<CommonScriptContext*>(lua_touserdata(L, -1));
+	lua_pop(L, 1);
+
+	return context;
+}
+
 MikanComponentPtr CommonScriptContext::resolveComponent(const std::string& componentClass,
 														MikanComponentID componentId) const
 {
@@ -583,8 +633,7 @@ bool CommonScriptContext::registerComponentVariable(const std::string& name, con
 
 bool CommonScriptContext::pushComponentGlobal(const VariableBinding& binding, MikanComponentID excludedId)
 {
-	auto pushIt= m_componentPushFunctions.find(binding.componentClass);
-	if (pushIt == m_componentPushFunctions.end())
+	if (m_componentPushFunctions.find(binding.componentClass) == m_componentPushFunctions.end())
 		return false;
 
 	MikanComponentPtr component;
@@ -594,7 +643,10 @@ bool CommonScriptContext::pushComponentGlobal(const VariableBinding& binding, Mi
 	}
 
 	// A null component pushes nil
-	return pushIt->second(m_luaState, component, binding.name.c_str());
+	const bool bPushed= pushComponent(m_luaState, component);
+	lua_setglobal(m_luaState, binding.name.c_str());
+
+	return bPushed;
 }
 
 bool CommonScriptContext::pushVariantAsGlobal(const std::string& name, const MikanVariant& value)
