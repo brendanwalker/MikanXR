@@ -149,6 +149,9 @@ protected:
 	virtual bool bindContextFunctions();
 	void bindCommonScriptFunctions();
 	bool addLuaCoroutineScheduler();
+	// Point require() at the project's scripts folder and take over the file
+	// searcher so required modules load under the same chunk names
+	void setupModuleSearchPath();
 
 	// Resolve the effective value against the loading script's store, write it
 	// to the Lua global, and record the binding

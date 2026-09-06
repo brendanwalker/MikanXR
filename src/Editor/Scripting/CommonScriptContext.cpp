@@ -63,6 +63,67 @@ int tracebackMessageHandler(lua_State* L)
 	luaL_traceback(L, L, message, 1);
 	return 1;
 }
+
+// The chunk name a script file loads under: the path relative to the project
+// folder. The vscode-lrdb extension sends breakpoint paths relative to its
+// "sourceRoot", which the project's generated launch config sets to the
+// workspace (the project folder), so both sides agree on the same relative
+// form. A script outside the project keeps its absolute path.
+std::string makeChunkName(const std::filesystem::path& scriptPath)
+{
+	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
+	std::filesystem::path relPath=
+		projectDir.empty() ? std::filesystem::path() : scriptPath.lexically_relative(projectDir);
+	const bool isUnderProject=
+		!relPath.empty() && relPath.native().substr(0, 2) != L".." && relPath.native().front() != L'/';
+
+	return "@" + (isUnderProject ? relPath.generic_string() : scriptPath.generic_string());
+}
+
+// The package.searchers entry that replaces Lua's stock file loader. It finds
+// the module through package.path exactly as the stock loader does, but loads
+// the chunk under makeChunkName, so a breakpoint set in a required module lands
+// the same way it does in a script the editor ran itself.
+int projectModuleSearcher(lua_State* L)
+{
+	const char* moduleName= luaL_checkstring(L, 1);
+
+	// package.searchpath does the module name to file path substitution and,
+	// on failure, reports every path it tried
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "searchpath");
+	lua_pushvalue(L, 1);
+	lua_getfield(L, -3, "path");
+	lua_call(L, 2, 2);
+
+	if (lua_isnil(L, -2))
+	{
+		// Hand back the list of paths tried; Lua folds it into the error
+		return 1;
+	}
+
+	const std::string filePath= lua_tostring(L, -2);
+	lua_pop(L, 2);
+
+	std::ifstream moduleFile(filePath, std::ios::binary);
+	if (!moduleFile.is_open())
+	{
+		lua_pushfstring(L, "\n\tno file '%s'", filePath.c_str());
+		return 1;
+	}
+	std::string moduleContent((std::istreambuf_iterator<char>(moduleFile)), {});
+
+	const std::string chunkName= makeChunkName(filePath);
+	if (luaL_loadbuffer(L, moduleContent.c_str(), moduleContent.size(), chunkName.c_str()) != LUA_OK)
+	{
+		return luaL_error(L, "error loading module '%s' from file '%s':\n\t%s", moduleName, filePath.c_str(),
+						  lua_tostring(L, -1));
+	}
+
+	// The chunk, then the file path Lua passes it as its second argument
+	lua_pushstring(L, filePath.c_str());
+	return 2;
+}
 } // namespace
 
 // -- CommonScriptContext -----
@@ -145,6 +206,7 @@ bool CommonScriptContext::createScriptState()
 
 	lua_atpanic(m_luaState, panicHandler);
 	luaL_openlibs(m_luaState);
+	setupModuleSearchPath();
 
 	if (!bindContextFunctions())
 	{
@@ -164,6 +226,53 @@ bool CommonScriptContext::createScriptState()
 	return true;
 }
 
+void CommonScriptContext::setupModuleSearchPath()
+{
+	lua_State* L= m_luaState;
+
+	// require() searches the project's own scripts folder first. Lua's stock
+	// entries stay behind ours rather than being replaced, so nothing that
+	// resolved before stops resolving.
+	std::string searchPath;
+	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
+	if (!projectDir.empty())
+	{
+		// Forward slashes: Windows accepts them, and package.path treats the
+		// string literally
+		const std::string scriptsDir= (projectDir / "scripts").generic_string();
+
+		searchPath+= scriptsDir + "/?.lua;";
+		searchPath+= scriptsDir + "/?/init.lua;";
+	}
+
+	lua_getglobal(L, "package");
+	if (!lua_istable(L, -1))
+	{
+		lua_pop(L, 1);
+		MIKAN_LOG_ERROR("CommonScriptContext::setupModuleSearchPath") << "No package table in the Lua state";
+		return;
+	}
+
+	lua_getfield(L, -1, "path");
+	const char* defaultPath= lua_tostring(L, -1);
+	if (defaultPath != nullptr)
+		searchPath+= defaultPath;
+	lua_pop(L, 1);
+
+	lua_pushstring(L, searchPath.c_str());
+	lua_setfield(L, -2, "path");
+
+	// Take over the file searcher, leaving package.preload ahead of it and the
+	// C loaders behind it
+	lua_getfield(L, -1, "searchers");
+	if (lua_istable(L, -1))
+	{
+		lua_pushcfunction(L, projectModuleSearcher);
+		lua_seti(L, -2, 2);
+	}
+	lua_pop(L, 2);
+}
+
 bool CommonScriptContext::runScriptFile(const std::filesystem::path& scriptPath, MikanScriptID scriptId,
 										IScriptVariableStore* variableStore)
 {
@@ -173,17 +282,7 @@ bool CommonScriptContext::runScriptFile(const std::filesystem::path& scriptPath,
 		return false;
 	}
 
-	// The chunk name is the path relative to the project folder. The vscode-lrdb
-	// extension sends breakpoint paths relative to its "sourceRoot", which the
-	// project's generated launch config sets to the workspace (the project
-	// folder), so both sides agree on the same relative form. A script outside
-	// the project keeps its absolute path.
-	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
-	std::filesystem::path relPath=
-		projectDir.empty() ? std::filesystem::path() : scriptPath.lexically_relative(projectDir);
-	const bool isUnderProject=
-		!relPath.empty() && relPath.native().substr(0, 2) != L".." && relPath.native().front() != L'/';
-	std::string chunkName= "@" + (isUnderProject ? relPath.generic_string() : scriptPath.generic_string());
+	const std::string chunkName= makeChunkName(scriptPath);
 
 	// Read the file ourselves so we can supply the custom chunk name to lua_load.
 	std::ifstream scriptFile(scriptPath, std::ios::binary);
