@@ -67,6 +67,14 @@ build\bin\unit_test_suite_cpp.exe
 
 - Both suites must pass in CI (`.github/workflows/build-and-test.yml`).
 
+One check needs a running editor instead, so it sits outside the suites:
+
+```
+python tools/large_response_check.py
+```
+
+It fetches a model stencil's render geometry over a raw websocket and requires the connection to keep answering afterwards, guarding the large-response stall described in [debugging.md](./debugging.md). The loaded project needs a model stencil with geometry.
+
 ---
 
 ## ML models and headless capture
