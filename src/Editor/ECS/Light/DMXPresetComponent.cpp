@@ -245,6 +245,10 @@ DMXPresetComponent::DMXPresetComponent(MikanObjectWeakPtr owner)
 
 DMXFixtureGroupComponentPtr DMXPresetComponent::getGroup() const
 {
+	// A component built without an owner (the unit tests) has no systems to ask
+	if (!getOwnerObject())
+		return nullptr;
+
 	DMXFixtureGroupSystemPtr groupSystem= getObjectSystemOfType<DMXFixtureGroupSystem>();
 	if (!groupSystem)
 		return nullptr;

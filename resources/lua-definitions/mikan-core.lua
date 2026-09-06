@@ -159,6 +159,26 @@ function ScriptContext.registerVariable(name, defaultValue) end
 ---@return boolean registered
 function ScriptContext.registerComponent(name, componentClassName) end
 
+--- A DMX sequence handler. Only `update` is required. Each callback receives
+--- the DMXSequenceComponent that is playing; `update` also receives the time
+--- since play started (seconds, wrapped when the sequence loops) and the frame
+--- delta. Write into the sequence's frame buffer (setFixtureColor, setPixel,
+--- setFixtureChannels, fillGroup); Mikan pushes it to the fixtures after the
+--- callback returns.
+---@class DMXSequenceHandler
+---@field start fun(sequence: DMXSequenceComponent)|nil
+---@field update fun(sequence: DMXSequenceComponent, timeSinceStart: number, deltaSeconds: number)
+---@field stop fun(sequence: DMXSequenceComponent)|nil
+
+--- Register a sequence handler under a name a DMXSequenceComponent can pick.
+--- A Lua error inside a callback stops that sequence and logs the error; it
+--- does not unload the project scripts. A name already registered by any
+--- script, or a table without an update function, is rejected.
+---@param name string
+---@param handler DMXSequenceHandler
+---@return boolean registered
+function ScriptContext.registerSequence(name, handler) end
+
 --- Register a global Lua function as a trigger.
 --- Triggers are called by Mikan in response to UI Button Events.
 ---@param functionName string Name of the global function to register.

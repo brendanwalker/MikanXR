@@ -16,7 +16,6 @@ The living plan: what is in flight now, what comes next, and the open questions.
 
 ## Next
 
-- [ ] DMX sequences: a Lua-driven, time-varying set of DMX values for a `DMXFixtureGroupComponent`, referenced by group id.
 
 ## Later
 

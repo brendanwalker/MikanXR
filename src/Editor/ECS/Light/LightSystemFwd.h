@@ -126,3 +126,24 @@ class DMXPresetSystem;
 using DMXPresetSystemPtr= std::shared_ptr<DMXPresetSystem>;
 using DMXPresetSystemConstPtr= std::shared_ptr<const DMXPresetSystem>;
 using DMXPresetSystemWeakPtr= std::weak_ptr<DMXPresetSystem>;
+
+// -- DMXSequence --
+class DMXSequenceDefinition;
+using DMXSequenceDefinitionPtr= std::shared_ptr<DMXSequenceDefinition>;
+using DMXSequenceDefinitionConstPtr= std::shared_ptr<const DMXSequenceDefinition>;
+using DMXSequenceDefinitionWeakPtr= std::weak_ptr<DMXSequenceDefinition>;
+
+class DMXSequenceComponent;
+using DMXSequenceComponentPtr= std::shared_ptr<DMXSequenceComponent>;
+using DMXSequenceComponentConstPtr= std::shared_ptr<const DMXSequenceComponent>;
+using DMXSequenceComponentWeakPtr= std::weak_ptr<DMXSequenceComponent>;
+
+class DMXSequenceSystemDefinition;
+using DMXSequenceSystemDefinitionPtr= std::shared_ptr<DMXSequenceSystemDefinition>;
+using DMXSequenceSystemDefinitionConstPtr= std::shared_ptr<const DMXSequenceSystemDefinition>;
+using DMXSequenceSystemDefinitionWeakPtr= std::weak_ptr<DMXSequenceSystemDefinition>;
+
+class DMXSequenceSystem;
+using DMXSequenceSystemPtr= std::shared_ptr<DMXSequenceSystem>;
+using DMXSequenceSystemConstPtr= std::shared_ptr<const DMXSequenceSystem>;
+using DMXSequenceSystemWeakPtr= std::weak_ptr<DMXSequenceSystem>;

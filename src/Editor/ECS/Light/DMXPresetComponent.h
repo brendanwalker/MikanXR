@@ -2,6 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "DMXFixtureComponent.h"
 #include "LightSystemFwd.h"
 #include "MikanComponent.h"
 #include "MikanLightTypes.h"
@@ -19,7 +20,7 @@
 class DMXPresetDefinition : public MikanComponentDefinition
 {
 public:
-	using FixtureValueMap= std::map<MikanLightID, std::vector<uint8_t>>;
+	using FixtureValueMap= DMXFixtureValueMap;
 
 	DMXPresetDefinition();
 	DMXPresetDefinition(MikanDMXPresetID presetId);

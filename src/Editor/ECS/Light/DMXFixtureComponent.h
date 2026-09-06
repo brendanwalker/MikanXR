@@ -8,10 +8,15 @@
 #include "TransformComponent.h"
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
 
 class IDMXManager;
+
+// Channel bytes keyed by fixture component id, the unit presets store and
+// sequences fill each frame
+using DMXFixtureValueMap= std::map<MikanLightID, std::vector<uint8_t>>;
 
 // -- DMXFixtureComponentDefinition -----
 class DMXFixtureComponentDefinition : public TransformComponentDefinition

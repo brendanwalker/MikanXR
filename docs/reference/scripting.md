@@ -70,6 +70,7 @@ Scripts declare their entry points through the `ScriptContext` namespace. Each r
 - `ScriptContext.registerHttpTrigger(routeName, functionName)`: binds a trigger to the HTTP route `/trigger/<routeName>`.
 - `ScriptContext.registerVariable(name, defaultValue)`: exposes a global as an editor-editable, persisted parameter (below).
 - `ScriptContext.registerComponent(name, componentClassName)`: exposes a global that references one component of that class (below).
+- `ScriptContext.registerSequence(name, handlerTable)`: registers a DMX sequence handler a `DMXSequenceComponent` can pick (below).
 - `ScriptContext.broadcastMessage(message)`: emits a message to connected clients.
 
 `ScriptComponent::getTriggerNames()` and `invokeTrigger()` filter to the triggers registered by that component's own file (`CommonScriptContext::getTriggerNamesForScript(scriptId, ...)`). A trigger run from the panel button or the `script trigger` automation command is bracketed as one transaction gesture ([transactions.md](./transactions.md)).
@@ -86,6 +87,10 @@ The definition is the single source of truth. A panel edit, an undo, or an autom
 
 The property surface is one descriptor, `script_variables`, a UI-hidden and client-API-hidden STRING carrying the table's single-line JSON. Every variable edit notifies that one name, which is what lets the transaction recorder capture it and undo re-apply the text verbatim. The panel draws the variables itself through `ScriptComponent::getScriptVariableNames` / `getScriptVariable` / `setScriptVariable`, labeled by their Lua names.
 
+### Sequences
+
+`registerSequence(name, handlerTable)` registers a DMX sequence handler: a table with an `update(sequence, timeSinceStart, deltaSeconds)` function and optional `start(sequence)` and `stop(sequence)`. The table is held as a Lua registry reference (`CommonScriptContext::SequenceBinding`) released before the state closes. A `DMXSequenceComponent` (objects.md) names a handler and, while playing, `DMXSequenceSystem::update` calls `update` once per frame through `CommonScriptContext::callSequenceHandler`. The handler writes into the sequence's frame buffer (`setFixtureColor`, `setPixel`, `setFixtureChannels`, `fillGroup`) and the system pushes that buffer to the group's fixtures after the callback returns, so one frame is one send per fixture. Handlers are resolved by name every frame, so a script reload that re-registers the name keeps a playing sequence going, and one that drops it stops the sequence. A Lua error inside a handler callback logs the message and traceback naming the sequence and stops that sequence only: unlike a trigger, it does not dispose the shared state, since a frame-rate callback that took every script down would make the state unusable. `resources/scripts/sequence_chase.lua` is the worked example.
+
 `resources/scripts/generate_lights.lua` is the worked example: a `generate_lights` trigger that lays out `RGBSpotLightComponent` objects on a stage in a zig-zag grid with sequential DMX addressing, every parameter a script variable.
 
 What is scriptable: `ProjectScriptContext::bindContextFunctions()` binds LuaBridge classes for the object systems (`CameraObjectSystem`, `SceneObjectSystem`, `StageObjectSystem`, `AnchorObjectSystem`, `CompositorObjectSystem`, `DMXObjectSystem`, `RGBSpotLightSystem`, the stencil and shape systems) and components (`MikanComponent` and subclasses: transform, scene, stage, camera, compositor, stencils, shapes, anchor, marker, DMX fixture, RGB lights). It sets these globals, one per scriptable object system:
@@ -99,6 +104,7 @@ What is scriptable: `ProjectScriptContext::bindContextFunctions()` binds LuaBrid
 - `RGBSpotLightSystem`
 - `DMXFixtureGroupSystem`
 - `DMXPresetSystem`
+- `DMXSequenceSystem`
 - `ModelStencilSystem`
 - `BoxStencilSystem`
 - `QuadStencilSystem`
@@ -106,7 +112,7 @@ What is scriptable: `ProjectScriptContext::bindContextFunctions()` binds LuaBrid
 - `BoxShapeSystem`
 - `QuadShapeSystem`
 
-The system bindings are lookups by id, name, and index. `RGBSpotLightSystem` is the one system that also creates and destroys: `createLight(stageId, name)` parents a new light to the stage at its origin through `addNewObjectByTypedDefinition`, and `removeLight(lightId)` destroys one, both through the same paths the outliner uses so the transaction recorder sees them. A script removing lights collects the ids first and removes afterwards, since the component map cannot be walked while it changes. `DMXFixtureGroupSystem` follows the same shape (`createGroup(stageId, name)`, `removeGroup(groupId)`), and a group component exposes `stageId`, `getFixtureCount()`, `getFixtureAtIndex(i)`, `containsFixture(id)`, `addFixture(id)`, and `removeFixture(id)`. `DMXPresetSystem` likewise (`createPreset(groupId, name)`, `removePreset(presetId)`), and a preset exposes `groupId`, `apply()`, and `capture()`. `DMXSystem.universeChannelCount` exposes the 512-slot universe size for channel arithmetic. Every component exposes `componentId`, and a DMX fixture exposes `ownerStageId`.
+The system bindings are lookups by id, name, and index. `RGBSpotLightSystem` is the one system that also creates and destroys: `createLight(stageId, name)` parents a new light to the stage at its origin through `addNewObjectByTypedDefinition`, and `removeLight(lightId)` destroys one, both through the same paths the outliner uses so the transaction recorder sees them. A script removing lights collects the ids first and removes afterwards, since the component map cannot be walked while it changes. `DMXFixtureGroupSystem` follows the same shape (`createGroup(stageId, name)`, `removeGroup(groupId)`), and a group component exposes `stageId`, `getFixtureCount()`, `getFixtureAtIndex(i)`, `containsFixture(id)`, `addFixture(id)`, and `removeFixture(id)`. `DMXPresetSystem` likewise (`createPreset(groupId, name)`, `removePreset(presetId)`), and a preset exposes `groupId`, `apply()`, and `capture()`. `DMXSequenceSystem` likewise (`createSequence(groupId, name)`, `removeSequence(sequenceId)`), and a sequence exposes `groupId`, `sequenceName`, `timeSinceStart`, `isPlaying`, `getGroup()`, `play()`, `pause()`, `stop()`, and the frame buffer writers. `DMXSystem.universeChannelCount` exposes the 512-slot universe size for channel arithmetic. Every component exposes `componentId`, and a DMX fixture exposes `ownerStageId`.
 
 There is no `ownerComponent` global: a script is not bound to a single component, so it reaches objects through the system globals above. A component handle still exposes `getCameraSystem()`, `getSceneSystem()`, `getDMXSystem()`, `getAnchorSystem()`, `getCompositorSystem()` methods for scripts that already hold a component reference. Math helpers `LuaVec3f`/`LuaQuatf` come from `Scripting/LuaMath.h`. Enum constants (e.g. `eStencilCullMode`) are registered as globals.
 

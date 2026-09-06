@@ -13,6 +13,8 @@
 #include "DMXFixtureGroupSystem.h"
 #include "DMXPresetComponent.h"
 #include "DMXPresetSystem.h"
+#include "DMXSequenceComponent.h"
+#include "DMXSequenceSystem.h"
 #include "DMXObjectSystem.h"
 #include "LuaMath.h"
 #include "MarkerComponent.h"
@@ -95,6 +97,7 @@ bool ProjectScriptContext::bindContextFunctions()
 	RGBSpotLightSystem::bindLuaFunctions(m_luaState);
 	DMXFixtureGroupSystem::bindLuaFunctions(m_luaState);
 	DMXPresetSystem::bindLuaFunctions(m_luaState);
+	DMXSequenceSystem::bindLuaFunctions(m_luaState);
 	AnchorObjectSystem::bindLuaFunctions(m_luaState);
 	CompositorObjectSystem::bindLuaFunctions(m_luaState);
 	ModelStencilSystem::bindLuaFunctions(m_luaState);
@@ -123,6 +126,7 @@ bool ProjectScriptContext::bindContextFunctions()
 	RGBPixelGridComponent::bindLuaFunctions(m_luaState);
 	DMXFixtureGroupComponent::bindLuaFunctions(m_luaState);
 	DMXPresetComponent::bindLuaFunctions(m_luaState);
+	DMXSequenceComponent::bindLuaFunctions(m_luaState);
 	CameraComponent::bindLuaFunctions(m_luaState);
 	AnchorComponent::bindLuaFunctions(m_luaState);
 	MarkerComponent::bindLuaFunctions(m_luaState);
@@ -146,6 +150,7 @@ bool ProjectScriptContext::bindContextFunctions()
 	registerComponentPushThunk<RGBPixelGridComponent>(this);
 	registerComponentPushThunk<DMXFixtureGroupComponent>(this);
 	registerComponentPushThunk<DMXPresetComponent>(this);
+	registerComponentPushThunk<DMXSequenceComponent>(this);
 	registerComponentPushThunk<CameraComponent>(this);
 	registerComponentPushThunk<AnchorComponent>(this);
 	registerComponentPushThunk<MarkerComponent>(this);
@@ -163,6 +168,7 @@ bool ProjectScriptContext::bindContextFunctions()
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<DMXFixtureGroupSystem>().get(),
 						 "DMXFixtureGroupSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<DMXPresetSystem>().get(), "DMXPresetSystem");
+	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<DMXSequenceSystem>().get(), "DMXSequenceSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<ModelStencilSystem>().get(), "ModelStencilSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<BoxStencilSystem>().get(), "BoxStencilSystem");
 	luabridge::setGlobal(m_luaState, projectManager->getSystemOfType<QuadStencilSystem>().get(), "QuadStencilSystem");

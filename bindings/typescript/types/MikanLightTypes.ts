@@ -113,6 +113,12 @@ export class MikanDMXPresetSystemValues extends MikanSystemValues {
   ];
 }
 
+export class MikanDMXSequenceSystemValues extends MikanSystemValues {
+
+  static __serializationMetadata: SerializationField[] = [
+  ];
+}
+
 export class MikanDMXFixtureComponentValues extends MikanTransformComponentValues {
   stage_id: number = -1;
   dmx_universe: number = 1;
@@ -146,6 +152,24 @@ export class MikanRGBPixelGridComponentValues extends MikanDMXFixtureComponentVa
   static __serializationMetadata: SerializationField[] = [
     { name: 'grid_columns', type: 'int32' },
     { name: 'grid_rows', type: 'int32' }
+  ];
+}
+
+export class MikanDMXSequenceComponentValues extends MikanComponentValues {
+  group_id: number = -1;
+  sequence_name: string = '';
+  duration_seconds: number = 10;
+  loop: boolean = true;
+  playback_state: number = 0;
+  time_since_start: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'group_id', type: 'int32' },
+    { name: 'sequence_name', type: 'string' },
+    { name: 'duration_seconds', type: 'float' },
+    { name: 'loop', type: 'boolean' },
+    { name: 'playback_state', type: 'int32' },
+    { name: 'time_since_start', type: 'float' }
   ];
 }
 

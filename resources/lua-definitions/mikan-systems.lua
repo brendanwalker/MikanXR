@@ -353,3 +353,36 @@ function DMXPresetSystem:createPreset(groupId, name) end
 ---@param presetId integer
 ---@return boolean
 function DMXPresetSystem:removePreset(presetId) end
+
+------------------------------------------------------------------------
+-- DMXSequenceSystem — global singleton injected by ProjectScriptContext
+------------------------------------------------------------------------
+
+---@class DMXSequenceSystem
+DMXSequenceSystem = {}
+
+---@param id integer
+---@return DMXSequenceComponent
+function DMXSequenceSystem:getSequenceById(id) end
+
+---@param name string
+---@return DMXSequenceComponent
+function DMXSequenceSystem:getSequenceByName(name) end
+
+---@return integer
+function DMXSequenceSystem:getSequenceCount() end
+
+---@param index integer Zero-based index
+---@return DMXSequenceComponent
+function DMXSequenceSystem:getSequenceAtIndex(index) end
+
+--- Create a stopped sequence for a fixture group.
+---@param groupId integer
+---@param name string Component name, or "" to auto-generate one
+---@return DMXSequenceComponent
+function DMXSequenceSystem:createSequence(groupId, name) end
+
+--- Remove a sequence.
+---@param sequenceId integer
+---@return boolean
+function DMXSequenceSystem:removeSequence(sequenceId) end

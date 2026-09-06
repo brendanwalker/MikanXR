@@ -54,6 +54,15 @@ bool luaRefToVariant(const luabridge::LuaRef& ref, MikanVariant& outValue)
 
 	return false;
 }
+
+// lua_pcall message handler: append the traceback while the erroring frames
+// are still on the stack
+int tracebackMessageHandler(lua_State* L)
+{
+	const char* message= lua_tostring(L, 1);
+	luaL_traceback(L, L, message, 1);
+	return 1;
+}
 } // namespace
 
 // -- CommonScriptContext -----
@@ -263,6 +272,70 @@ void CommonScriptContext::getVariableNamesForScript(MikanScriptID scriptId, std:
 		if (variable.scriptId == scriptId)
 			outNames.push_back(variable.name);
 	}
+}
+
+void CommonScriptContext::getSequenceNames(std::vector<std::string>& outNames) const
+{
+	for (const SequenceBinding& sequence : m_sequences)
+	{
+		outNames.push_back(sequence.name);
+	}
+}
+
+bool CommonScriptContext::hasSequence(const std::string& name) const
+{
+	return std::find_if(m_sequences.begin(), m_sequences.end(),
+						[&name](const SequenceBinding& sequence) { return sequence.name == name; })
+		   != m_sequences.end();
+}
+
+MikanScriptID CommonScriptContext::getSequenceScriptId(const std::string& name) const
+{
+	auto it= std::find_if(m_sequences.begin(), m_sequences.end(),
+						  [&name](const SequenceBinding& sequence) { return sequence.name == name; });
+	return it != m_sequences.end() ? it->scriptId : INVALID_MIKAN_ID;
+}
+
+bool CommonScriptContext::callSequenceHandler(const std::string& name, const char* field, const LuaArgPusher& pushArgs,
+											  std::string& outError)
+{
+	outError.clear();
+	if (m_luaState == nullptr)
+		return false;
+
+	auto it= std::find_if(m_sequences.begin(), m_sequences.end(),
+						  [&name](const SequenceBinding& sequence) { return sequence.name == name; });
+	if (it == m_sequences.end())
+	{
+		outError= "sequence " + name + " is not registered";
+		return false;
+	}
+
+	lua_State* L= m_luaState;
+	const int baseTop= lua_gettop(L);
+
+	// Stack: traceback handler, handler table, field
+	lua_pushcfunction(L, tracebackMessageHandler);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, it->handlerRef);
+	lua_getfield(L, -1, field);
+	if (!lua_isfunction(L, -1))
+	{
+		lua_settop(L, baseTop);
+		return true;
+	}
+
+	// Drop the table from under the function, then push the arguments
+	lua_remove(L, -2);
+	const int argCount= pushArgs(L);
+	const int ret= lua_pcall(L, argCount, 0, baseTop + 1);
+	if (ret != LUA_OK)
+	{
+		const char* message= lua_tostring(L, -1);
+		outError= message != nullptr ? message : "unknown Lua error";
+	}
+
+	lua_settop(L, baseTop);
+	return ret == LUA_OK;
 }
 
 bool CommonScriptContext::hasVariable(const std::string& name) const
@@ -644,6 +717,40 @@ void CommonScriptContext::bindCommonScriptFunctions()
 	contextNamespace.addFunction("registerComponent", [this](const char* name, const char* componentClass) -> bool
 								 { return registerComponentVariable(name, componentClass); });
 
+	contextNamespace.addFunction("registerSequence",
+								 [this](const char* name, luabridge::LuaRef handler) -> bool
+								 {
+									 if (m_loadingScriptId == INVALID_MIKAN_ID)
+									 {
+										 MIKAN_LOG_ERROR("CommonScriptContext::registerSequence")
+											 << "Sequence " << name << " registered outside a script chunk";
+										 return false;
+									 }
+
+									 if (!handler.isTable() || !handler["update"].isFunction())
+									 {
+										 MIKAN_LOG_ERROR("CommonScriptContext::registerSequence")
+											 << "Sequence " << name << " needs a handler table with an update function";
+										 return false;
+									 }
+
+									 if (hasSequence(name))
+									 {
+										 MIKAN_LOG_ERROR("CommonScriptContext::registerSequence")
+											 << "Sequence " << name << " already registered by script "
+											 << getSequenceScriptId(name) << ", ignored by script "
+											 << m_loadingScriptId;
+										 return false;
+									 }
+
+									 // Held as a raw registry reference: the binding vector is
+									 // released before the state closes
+									 handler.push(m_luaState);
+									 const int handlerRef= luaL_ref(m_luaState, LUA_REGISTRYINDEX);
+									 m_sequences.push_back({name, m_loadingScriptId, handlerRef});
+									 return true;
+								 });
+
 	contextNamespace.addFunction("broadcastMessage",
 								 [this](const char* message)
 								 {
@@ -670,6 +777,16 @@ void CommonScriptContext::disposeScriptState()
 	m_httpTriggerBindings.clear();
 	m_variables.clear();
 	m_componentPushFunctions.clear();
+
+	// Handler tables are registry references, released while the state is alive
+	if (m_luaState != nullptr)
+	{
+		for (const SequenceBinding& sequence : m_sequences)
+		{
+			luaL_unref(m_luaState, LUA_REGISTRYINDEX, sequence.handlerRef);
+		}
+	}
+	m_sequences.clear();
 
 	if (m_luaState != nullptr)
 	{

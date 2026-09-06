@@ -54,6 +54,20 @@ namespace MikanXR
 	{
 	};
 
+	public class MikanDMXSequenceComponentValues : MikanComponentValues
+	{
+		public int group_id;
+		public string sequence_name;
+		public float duration_seconds;
+		public bool loop;
+		public int playback_state;
+		public float time_since_start;
+	};
+
+	public class MikanDMXSequenceSystemValues : MikanSystemValues
+	{
+	};
+
 	public class MikanLightEnvironmentComponentValues : MikanTransformComponentValues
 	{
 		public List<float> sh_coefficients;

@@ -14,6 +14,7 @@ class GuiPanel_ClientTextureSourceComponent;
 class GuiPanel_CompositorComponent;
 class GuiPanel_DMXFixtureGroupComponent;
 class GuiPanel_DMXPresetComponent;
+class GuiPanel_DMXSequenceComponent;
 class GuiPanel_MarkerComponent;
 class GuiPanel_LightEnvironmentComponent;
 class GuiPanel_MarkerTrackingVolumeComponent;
@@ -60,6 +61,7 @@ public:
 	inline GuiPanel_CompositorComponent* getCompositorPanel() const { return m_compositorPanel; }
 	inline GuiPanel_DMXFixtureGroupComponent* getFixtureGroupPanel() const { return m_fixtureGroupPanel; }
 	inline GuiPanel_DMXPresetComponent* getPresetPanel() const { return m_presetPanel; }
+	inline GuiPanel_DMXSequenceComponent* getSequencePanel() const { return m_sequencePanel; }
 	inline GuiPanel_LightEnvironmentComponent* getLightEnvironmentPanel() const { return m_lightEnvironmentPanel; }
 	inline GuiPanel_MarkerComponent* getMarkerPanel() const { return m_markerPanel; }
 	inline GuiPanel_MarkerTrackingVolumeComponent* getMarkerTrackingVolumePanel() const
@@ -105,6 +107,7 @@ private:
 	GuiPanel_CompositorComponent* m_compositorPanel= nullptr;
 	GuiPanel_DMXFixtureGroupComponent* m_fixtureGroupPanel= nullptr;
 	GuiPanel_DMXPresetComponent* m_presetPanel= nullptr;
+	GuiPanel_DMXSequenceComponent* m_sequencePanel= nullptr;
 	GuiPanel_LightEnvironmentComponent* m_lightEnvironmentPanel= nullptr;
 	GuiPanel_MarkerComponent* m_markerPanel= nullptr;
 	GuiPanel_MarkerTrackingVolumeComponent* m_markerTrackingVolumePanel= nullptr;

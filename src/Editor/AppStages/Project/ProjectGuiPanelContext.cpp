@@ -10,6 +10,7 @@
 #include "Shared/GuiPanel_DMXFixtureGroupComponent.h"
 #include "Shared/GuiPanel_DMXObjectSystem.h"
 #include "Shared/GuiPanel_DMXPresetComponent.h"
+#include "Shared/GuiPanel_DMXSequenceComponent.h"
 #include "Shared/GuiPanel_MarkerObjectSystem.h"
 #include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
 #include "Shared/GuiPanel_LightEnvironmentComponent.h"
@@ -71,6 +72,9 @@ bool ProjectGuiPanelContext::init()
 
 	m_presetPanel= m_ownerAppStage->addGuiPanel<GuiPanel_DMXPresetComponent>();
 	m_presetPanel->init();
+
+	m_sequencePanel= m_ownerAppStage->addGuiPanel<GuiPanel_DMXSequenceComponent>();
+	m_sequencePanel->init();
 
 	m_markerPanel= m_ownerAppStage->addGuiPanel<GuiPanel_MarkerComponent>();
 	m_markerPanel->init();

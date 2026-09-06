@@ -12,6 +12,7 @@
 #include "DMXFixtureGroupComponent.h"
 #include "DMXFixtureGroupSystem.h"
 #include "DMXPresetSystem.h"
+#include "DMXSequenceSystem.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
 #include "MarkerObjectSystem.h"
@@ -206,6 +207,15 @@ int addPreset(ProjectManagerPtr projectManager, int groupId)
 		return INVALID_MIKAN_ID;
 
 	return componentIdOrInvalid(sys->createPreset(groupId, ""));
+}
+
+int addSequence(ProjectManagerPtr projectManager, int groupId)
+{
+	auto sys= projectManager->getSystemOfType<DMXSequenceSystem>();
+	if (!sys)
+		return INVALID_MIKAN_ID;
+
+	return componentIdOrInvalid(sys->createSequence(groupId, ""));
 }
 
 int addCompositor(ProjectManagerPtr projectManager, int sceneId)

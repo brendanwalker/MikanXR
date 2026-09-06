@@ -67,6 +67,21 @@ public:
 	// Writes a component as a Lua global of its concrete class (nil for null)
 	using ComponentPushFunction= std::function<bool(lua_State*, MikanComponentPtr, const char*)>;
 
+	// The value of LUA_NOREF, so the header needs no Lua include
+	static constexpr int k_invalidLuaRef= -2;
+
+	// A handler table declared via ScriptContext.registerSequence(name, table),
+	// held as a registry reference that is released before the state closes
+	struct SequenceBinding
+	{
+		std::string name;
+		MikanScriptID scriptId;
+		int handlerRef= k_invalidLuaRef;
+	};
+
+	// Pushes a handler call's arguments and returns how many it pushed
+	using LuaArgPusher= std::function<int(lua_State*)>;
+
 	CommonScriptContext();
 	virtual ~CommonScriptContext();
 
@@ -114,6 +129,17 @@ public:
 	// Classes registerComponent accepts, keyed by k_componentClassName
 	void registerComponentClass(const std::string& className, ComponentPushFunction pushFunction);
 
+	const std::vector<SequenceBinding>& getScriptSequences() const { return m_sequences; }
+	void getSequenceNames(std::vector<std::string>& outNames) const;
+	bool hasSequence(const std::string& name) const;
+	MikanScriptID getSequenceScriptId(const std::string& name) const;
+	// Call one field of a registered handler table. A missing or non-function
+	// field is not an error. A Lua error fills outError (message and traceback)
+	// and returns false without disposing the state, so a broken handler stops
+	// only its own sequence.
+	bool callSequenceHandler(const std::string& name, const char* field, const LuaArgPusher& pushArgs,
+							 std::string& outError);
+
 	MulticastDelegate<void(const std::string& message)> OnScriptMessage;
 
 protected:
@@ -140,6 +166,7 @@ protected:
 	std::vector<MessageHandlerBinding> m_messageHandlers;
 	std::vector<HttpTriggerBinding> m_httpTriggerBindings;
 	std::vector<VariableBinding> m_variables;
+	std::vector<SequenceBinding> m_sequences;
 	std::map<std::string, ComponentPushFunction> m_componentPushFunctions;
 	// The script whose chunk is executing, so registrations can be attributed
 	MikanScriptID m_loadingScriptId= INVALID_MIKAN_ID;

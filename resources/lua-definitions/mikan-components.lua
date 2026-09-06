@@ -296,6 +296,57 @@ function DMXPresetComponent:apply() end
 function DMXPresetComponent:capture() end
 
 ------------------------------------------------------------------------
+-- DMXSequenceComponent : MikanComponent
+------------------------------------------------------------------------
+
+--- A Lua-driven animation of one fixture group, driven by a handler registered
+--- through ScriptContext.registerSequence.
+---@class DMXSequenceComponent : MikanComponent
+---@field groupId integer The DMXFixtureGroupComponent this sequence animates (read-only)
+---@field sequenceName string The registered handler name (read-only)
+---@field timeSinceStart number Seconds since play started, wrapped when looping (read-only)
+---@field isPlaying boolean
+local DMXSequenceComponent = {}
+
+---@return DMXFixtureGroupComponent
+function DMXSequenceComponent:getGroup() end
+
+--- Start from zero (calling the handler's start) or resume from a pause.
+function DMXSequenceComponent:play() end
+
+function DMXSequenceComponent:pause() end
+
+--- Stop, calling the handler's stop. The last frame stays on the fixtures.
+function DMXSequenceComponent:stop() end
+
+--- Frame buffer: the first three channels of a fixture.
+---@param fixtureId integer
+---@param r integer
+---@param g integer
+---@param b integer
+function DMXSequenceComponent:setFixtureColor(fixtureId, r, g, b) end
+
+--- Frame buffer: one pixel of a pixel grid member; ignored for other fixtures.
+---@param fixtureId integer
+---@param col integer Zero-based column
+---@param row integer Zero-based row
+---@param r integer
+---@param g integer
+---@param b integer
+function DMXSequenceComponent:setPixel(fixtureId, col, row, r, g, b) end
+
+--- Frame buffer: a fixture's raw channel bytes.
+---@param fixtureId integer
+---@param bytes integer[]
+function DMXSequenceComponent:setFixtureChannels(fixtureId, bytes) end
+
+--- Frame buffer: every member of the group to one color (every pixel of a grid).
+---@param r integer
+---@param g integer
+---@param b integer
+function DMXSequenceComponent:fillGroup(r, g, b) end
+
+------------------------------------------------------------------------
 -- MarkerComponent : MikanComponent
 ------------------------------------------------------------------------
 

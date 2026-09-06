@@ -71,6 +71,16 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 #endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXSequenceSystemValues
+	: public MikanSystemValues
+{
+	static const char* k_systemName;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXSequenceSystemValues_GENERATED
+#endif
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanLightEnvironmentSystemValues
 	: public MikanSystemValues
 {
@@ -168,6 +178,33 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDMXPresetComponentValues_GENERATED
+#endif
+};
+
+/// A Lua-driven animation of one fixture group. playback_state is 0 stopped,
+/// 1 playing, 2 paused.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXSequenceComponentValues
+	: public MikanComponentValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() MikanDMXFixtureGroupID group_id= INVALID_MIKAN_ID;
+
+	/// The handler a project script registered through ScriptContext.registerSequence
+	FIELD() Serialization::String sequence_name;
+
+	/// Zero or less runs until stopped
+	FIELD() float duration_seconds= 10.f;
+
+	FIELD() bool loop= true;
+
+	FIELD() int playback_state= 0;
+
+	FIELD() float time_since_start= 0.f;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXSequenceComponentValues_GENERATED
 #endif
 };
 

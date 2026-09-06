@@ -1,6 +1,7 @@
 #include "DMXFixtureGroupSystem.h"
 #include "DMXFixtureComponent.h"
 #include "DMXPresetSystem.h"
+#include "DMXSequenceSystem.h"
 #include "MikanObject.h"
 #include "ProjectManager.h"
 #include "RGBPixelGridSystem.h"
@@ -71,6 +72,10 @@ bool DMXFixtureGroupSystem::removeGroup(MikanDMXFixtureGroupID groupId)
 	if (DMXPresetSystemPtr presetSystem= getOwnerProjectManager()->getSystemOfType<DMXPresetSystem>())
 	{
 		presetSystem->removePresetsForGroup(groupId);
+	}
+	if (DMXSequenceSystemPtr sequenceSystem= getOwnerProjectManager()->getSystemOfType<DMXSequenceSystem>())
+	{
+		sequenceSystem->removeSequencesForGroup(groupId);
 	}
 
 	return removeObjectByPrimaryComponentId(groupId);

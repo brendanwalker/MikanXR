@@ -62,6 +62,9 @@ using MikanDMXFixtureGroupID= int32_t;
 /// The ID of a DMX preset
 using MikanDMXPresetID= int32_t;
 
+/// The ID of a DMX sequence
+using MikanDMXSequenceID= int32_t;
+
 using MikanResponsePtr= std::shared_ptr<struct MikanResponse>;
 using MikanResponsePromise= std::promise<MikanResponsePtr>;
 

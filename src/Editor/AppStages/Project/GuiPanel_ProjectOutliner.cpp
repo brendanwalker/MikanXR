@@ -11,6 +11,7 @@
 #include "DMXFixtureComponent.h"
 #include "DMXFixtureGroupComponent.h"
 #include "DMXPresetComponent.h"
+#include "DMXSequenceComponent.h"
 #include "EditorObjectSystem.h"
 #include "IconsForkAwesome.h"
 #include "IEditorWindow.h"
@@ -49,6 +50,7 @@
 #include "Shared/GuiPanel_CompositorComponent.h"
 #include "Shared/GuiPanel_DMXFixtureGroupComponent.h"
 #include "Shared/GuiPanel_DMXPresetComponent.h"
+#include "Shared/GuiPanel_DMXSequenceComponent.h"
 #include "Shared/GuiPanel_LightEnvironmentComponent.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
@@ -403,6 +405,11 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		{
 			deferAddAction([groupId](ProjectManagerPtr pm) { return ProjectOutlinerActions::addPreset(pm, groupId); });
 		}
+		if (drawAddButton("outlinerAddSequence", ICON_FK_PLAY_CIRCLE, "project.outlinerAddSequence"))
+		{
+			deferAddAction([groupId](ProjectManagerPtr pm)
+						   { return ProjectOutlinerActions::addSequence(pm, groupId); });
+		}
 		break;
 	}
 	case eOutlinerNodeKind::folderScenes:
@@ -636,6 +643,8 @@ GuiPanel_MikanComponent* GuiPanel_ProjectOutliner::getPanelForComponentClass(
 		return m_context->getFixtureGroupPanel();
 	if (componentClassName == DMXPresetComponent::k_componentClassName)
 		return m_context->getPresetPanel();
+	if (componentClassName == DMXSequenceComponent::k_componentClassName)
+		return m_context->getSequencePanel();
 	if (componentClassName == AnchorComponent::k_componentClassName)
 		return m_context->getAnchorPanel();
 	if (componentClassName == QuadStencilComponent::k_componentClassName)
@@ -677,6 +686,7 @@ void GuiPanel_ProjectOutliner::clearComponentPanels()
 	m_context->getPixelGridPanel()->setComponent(nullptr);
 	m_context->getFixtureGroupPanel()->setComponent(nullptr);
 	m_context->getPresetPanel()->setComponent(nullptr);
+	m_context->getSequencePanel()->setComponent(nullptr);
 	m_context->getAnchorPanel()->setComponent(nullptr);
 	m_context->getQuadStencilPanel()->setComponent(nullptr);
 	m_context->getBoxStencilPanel()->setComponent(nullptr);
