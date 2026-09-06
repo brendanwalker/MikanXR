@@ -22,6 +22,14 @@ public:
 		, m_websocket(std::make_shared<ix::WebSocket>())
 		, m_eventQueue(std::make_shared<LockFreeEventQueue>())
 	{
+		// Register the subprotocol once, here rather than per connect: ix::WebSocket only ever
+		// appends to its subprotocol list, so adding it on each connect attempt grows the
+		// Sec-WebSocket-Protocol header until the handshake is large enough for the server to abort
+		// the connection mid-session.
+		std::stringstream protocolName;
+		protocolName << WEBSOCKET_PROTOCOL_PREFIX << m_protocolVersion;
+		m_websocket->addSubProtocol(protocolName.str());
+
 		m_websocket->setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) { handleWebSocketMessage(msg); });
 	}
 
@@ -55,9 +63,6 @@ public:
 
 		std::string hostAddress= host.empty() ? WEBSOCKET_SERVER_ADDRESS : host;
 		std::string hostPort= port.empty() ? WEBSOCKET_SERVER_PORT : port;
-		std::stringstream ss;
-		ss << WEBSOCKET_PROTOCOL_PREFIX << m_protocolVersion;
-		m_websocket->addSubProtocol(ss.str());
 		m_websocket->setUrl(hostAddress + ":" + hostPort);
 		m_websocket->start();
 
