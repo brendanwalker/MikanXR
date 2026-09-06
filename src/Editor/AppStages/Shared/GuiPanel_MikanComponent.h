@@ -2,6 +2,7 @@
 
 #include "ComponentFwd.h"
 #include "IMkGuiStyle.h"
+#include "ObjectSystemFwd.h"
 #include "Shared/GuiPanel_EntityAccessor.h"
 
 class AppStage;

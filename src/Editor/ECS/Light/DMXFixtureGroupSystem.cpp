@@ -1,5 +1,6 @@
 #include "DMXFixtureGroupSystem.h"
 #include "DMXFixtureComponent.h"
+#include "DMXPresetSystem.h"
 #include "MikanObject.h"
 #include "ProjectManager.h"
 #include "RGBPixelGridSystem.h"
@@ -65,6 +66,13 @@ DMXFixtureGroupComponentPtr DMXFixtureGroupSystem::createGroup(MikanStageID stag
 
 bool DMXFixtureGroupSystem::removeGroup(MikanDMXFixtureGroupID groupId)
 {
+	// Dependents go first, each as its own transaction, so a reverse-order
+	// undo recreates the group before the presets that address it
+	if (DMXPresetSystemPtr presetSystem= getOwnerProjectManager()->getSystemOfType<DMXPresetSystem>())
+	{
+		presetSystem->removePresetsForGroup(groupId);
+	}
+
 	return removeObjectByPrimaryComponentId(groupId);
 }
 

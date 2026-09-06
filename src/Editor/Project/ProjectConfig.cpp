@@ -22,6 +22,7 @@
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
 #include "DMXFixtureGroupSystem.h"
+#include "DMXPresetSystem.h"
 #include "LightEnvironmentSystem.h"
 #include "SceneObjectSystem.h"
 #include "ScriptObjectSystem.h"
@@ -92,6 +93,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 		addTypedDefinition<RGBPixelGridSystemDefinition, RGBPixelGridSystem>(persistentIDAllocator);
 	dmxFixtureGroupSystemDefinition=
 		addTypedDefinition<DMXFixtureGroupSystemDefinition, DMXFixtureGroupSystem>(persistentIDAllocator);
+	dmxPresetSystemDefinition= addTypedDefinition<DMXPresetSystemDefinition, DMXPresetSystem>(persistentIDAllocator);
 	lightEnvironmentSystemDefinition=
 		addTypedDefinition<LightEnvironmentSystemDefinition, LightEnvironmentSystem>(persistentIDAllocator);
 	scriptSystemDefinition= addTypedDefinition<ScriptObjectSystemDefinition, ScriptObjectSystem>(persistentIDAllocator);

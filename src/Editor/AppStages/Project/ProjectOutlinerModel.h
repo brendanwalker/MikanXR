@@ -33,6 +33,7 @@ enum class eOutlinerNodeKind : int
 	compositor,
 	stageLight,
 	lightGroup,
+	dmxPreset,
 	scene,
 	sceneActor,
 	script,

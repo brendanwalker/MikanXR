@@ -17,10 +17,10 @@ import { InvokeSystemFunctionRequest, InvokeComponentFunctionRequest, GetFunctio
 import { MikanFunctionDescriptor } from './MikanFunctionTypes.js';
 import { MikanLightDMXDataChangedEvent } from './MikanLightEvents.js';
 import { SetLightDMXDataSubcription, GetDMXData, MikanDMXDataResponse } from './MikanLightRequests.js';
-import { MikanDMXData, MikanLightEnvironmentSystemValues, MikanLightEnvironmentComponentValues, MikanDMXObjectSystemValues, MikanRGBSpotLightSystemValues, MikanUniverseDMXData, MikanDMXFixtureGroupComponentValues, MikanRGBPixelGridSystemValues, MikanDMXFixtureGroupSystemValues, MikanDMXFixtureComponentValues, MikanRGBSpotLightComponentValues, MikanRGBPixelGridComponentValues } from './MikanLightTypes.js';
+import { MikanDMXPresetComponentValues, MikanDMXData, MikanLightEnvironmentSystemValues, MikanLightEnvironmentComponentValues, MikanDMXObjectSystemValues, MikanRGBSpotLightSystemValues, MikanUniverseDMXData, MikanDMXFixtureGroupComponentValues, MikanRGBPixelGridSystemValues, MikanDMXFixtureGroupSystemValues, MikanDMXPresetSystemValues, MikanDMXFixtureComponentValues, MikanRGBSpotLightComponentValues, MikanRGBPixelGridComponentValues } from './MikanLightTypes.js';
 import { ArucoMarkerImageResponse, GetArucoMarkerImageRequest } from './MikanMarkerRequests.js';
 import { MikanMarkerComponentValues, MikanMarkerSystemValues } from './MikanMarkerTypes.js';
-import { MikanMatrix4f, MikanVector3d, MikanMatrix3d, MikanMatrix4d, MikanRotator3f, MikanQuatf, MikanVector2i, MikanVector4d, MikanVector4f, MikanVector2f, MikanVector2d, MikanTransform, MikanVector3f, MikanMatrix4x3d, MikanQuatd } from './MikanMathTypes.js';
+import { MikanMatrix4f, MikanVector3d, MikanMatrix3d, MikanMatrix4d, MikanRotator3f, MikanQuatf, MikanVector2i, MikanVector4d, MikanVector4f, MikanVector2f, MikanVector2d, MikanVector3f, MikanMatrix4x3d, MikanQuatd, MikanTransform } from './MikanMathTypes.js';
 import { MikanPropertyUpdateEvent } from './MikanPropertyEvents.js';
 import { ComponentGetValuesResponse, PropertySetValueRequest, GetComponentListRequest, PropertyGetValueRequest, ComponentGetValuesRequest, SystemGetValuesRequest, SystemCreateObjectRequest, SystemDestroyObjectRequest, SetPropertyNotifyMode, GetPropertyDescriptors, PropertySetValueResponse, PropertyGetValueResponse, ComponentListResponse, SystemGetValuesResponse, PropertyDescriptorResponse } from './MikanPropertyRequests.js';
 import { MikanPropertyDescriptor, MikanPropertyValue, MikanSystemValues } from './MikanPropertyTypes.js';
@@ -80,6 +80,7 @@ export function registerAllTypes(): void {
   TypeRegistry.register('SetLightDMXDataSubcription', SetLightDMXDataSubcription);
   TypeRegistry.register('GetDMXData', GetDMXData);
   TypeRegistry.register('MikanDMXDataResponse', MikanDMXDataResponse);
+  TypeRegistry.register('MikanDMXPresetComponentValues', MikanDMXPresetComponentValues);
   TypeRegistry.register('MikanDMXData', MikanDMXData);
   TypeRegistry.register('MikanLightEnvironmentSystemValues', MikanLightEnvironmentSystemValues);
   TypeRegistry.register('MikanLightEnvironmentComponentValues', MikanLightEnvironmentComponentValues);
@@ -89,6 +90,7 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanDMXFixtureGroupComponentValues', MikanDMXFixtureGroupComponentValues);
   TypeRegistry.register('MikanRGBPixelGridSystemValues', MikanRGBPixelGridSystemValues);
   TypeRegistry.register('MikanDMXFixtureGroupSystemValues', MikanDMXFixtureGroupSystemValues);
+  TypeRegistry.register('MikanDMXPresetSystemValues', MikanDMXPresetSystemValues);
   TypeRegistry.register('MikanDMXFixtureComponentValues', MikanDMXFixtureComponentValues);
   TypeRegistry.register('MikanRGBSpotLightComponentValues', MikanRGBSpotLightComponentValues);
   TypeRegistry.register('MikanRGBPixelGridComponentValues', MikanRGBPixelGridComponentValues);
@@ -107,10 +109,10 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanVector4f', MikanVector4f);
   TypeRegistry.register('MikanVector2f', MikanVector2f);
   TypeRegistry.register('MikanVector2d', MikanVector2d);
-  TypeRegistry.register('MikanTransform', MikanTransform);
   TypeRegistry.register('MikanVector3f', MikanVector3f);
   TypeRegistry.register('MikanMatrix4x3d', MikanMatrix4x3d);
   TypeRegistry.register('MikanQuatd', MikanQuatd);
+  TypeRegistry.register('MikanTransform', MikanTransform);
   TypeRegistry.register('MikanPropertyUpdateEvent', MikanPropertyUpdateEvent);
   TypeRegistry.register('ComponentGetValuesResponse', ComponentGetValuesResponse);
   TypeRegistry.register('PropertySetValueRequest', PropertySetValueRequest);

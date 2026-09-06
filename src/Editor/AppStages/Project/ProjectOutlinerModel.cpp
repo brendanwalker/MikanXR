@@ -16,6 +16,8 @@
 #include "CompositorObjectSystem.h"
 #include "DMXFixtureGroupComponent.h"
 #include "DMXFixtureGroupSystem.h"
+#include "DMXPresetComponent.h"
+#include "DMXPresetSystem.h"
 #include "IconsForkAwesome.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
@@ -86,6 +88,8 @@ static const char* pickNodeIcon(eOutlinerNodeKind kind, const std::string& compo
 		return ICON_FK_TH;
 	if (componentClassName == DMXFixtureGroupComponent::k_componentClassName)
 		return ICON_FK_OBJECT_GROUP;
+	if (componentClassName == DMXPresetComponent::k_componentClassName)
+		return ICON_FK_SLIDERS;
 
 	// Scene actors: stencils as masks, shapes by primitive
 	if (componentClassName == AnchorComponent::k_componentClassName)
@@ -351,9 +355,24 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 		addFolderNode(lightsFolder, eOutlinerNodeKind::folderLightGroups, "project.outlinerLightGroupsGroup", stageId);
 	if (auto lightGroupSystem= projectManager->getSystemOfType<DMXFixtureGroupSystem>())
 	{
+		DMXPresetSystemPtr presetSystem= projectManager->getSystemOfType<DMXPresetSystem>();
+
 		lightGroupSystem->visitComponents(
 			[&](DMXFixtureGroupComponentPtr group)
-			{ addComponentNode(lightGroupsFolder, eOutlinerNodeKind::lightGroup, group); },
+			{
+				ProjectOutlinerNodePtr groupNode=
+					addComponentNode(lightGroupsFolder, eOutlinerNodeKind::lightGroup, group);
+
+				if (presetSystem)
+				{
+					const MikanDMXFixtureGroupID groupId= group->getComponentId();
+					presetSystem->visitComponents(
+						[&](DMXPresetComponentPtr preset)
+						{ addComponentNode(groupNode, eOutlinerNodeKind::dmxPreset, preset); },
+						[groupId](DMXPresetComponentPtr preset)
+						{ return preset->getDMXPresetDefinition()->getGroupId() == groupId; });
+				}
+			},
 			[stageId](DMXFixtureGroupComponentPtr group)
 			{ return group->getDMXFixtureGroupDefinition()->getOwnerStageId() == stageId; });
 	}

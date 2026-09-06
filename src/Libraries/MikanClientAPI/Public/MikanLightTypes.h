@@ -61,6 +61,16 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 #endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXPresetSystemValues
+	: public MikanSystemValues
+{
+	static const char* k_systemName;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXPresetSystemValues_GENERATED
+#endif
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanLightEnvironmentSystemValues
 	: public MikanSystemValues
 {
@@ -137,6 +147,27 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDMXFixtureGroupComponentValues_GENERATED
+#endif
+};
+
+/// A fixed set of DMX channel bytes for the fixtures of one group. The bytes
+/// are one slice per fixture id, channel_counts long, concatenated in order.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXPresetComponentValues
+	: public MikanComponentValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() MikanDMXFixtureGroupID group_id= INVALID_MIKAN_ID;
+
+	FIELD() Serialization::List<MikanLightID> fixture_ids;
+
+	FIELD() Serialization::List<int> channel_counts;
+
+	FIELD() Serialization::List<uint8_t> channel_data;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXPresetComponentValues_GENERATED
 #endif
 };
 

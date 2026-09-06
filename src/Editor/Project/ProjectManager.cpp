@@ -31,6 +31,7 @@
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
 #include "DMXFixtureGroupSystem.h"
+#include "DMXPresetSystem.h"
 #include "LightEnvironmentSystem.h"
 #include "StageObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
@@ -89,6 +90,7 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<RGBPixelGridSystem>();
 	// After the fixture systems: groups prune ids of fixtures those systems destroy
 	addSystem<DMXFixtureGroupSystem>();
+	addSystem<DMXPresetSystem>();
 	addSystem<LightEnvironmentSystem>();
 	// Last: scripts look up the other systems' objects by name when they load
 	addSystem<ScriptObjectSystem>();

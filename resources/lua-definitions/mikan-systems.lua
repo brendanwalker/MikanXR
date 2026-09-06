@@ -312,7 +312,40 @@ function DMXFixtureGroupSystem:getGroupAtIndex(index) end
 ---@return DMXFixtureGroupComponent
 function DMXFixtureGroupSystem:createGroup(stageId, name) end
 
---- Remove a fixture group.
+--- Remove a fixture group and every preset that addresses it.
 ---@param groupId integer
 ---@return boolean
 function DMXFixtureGroupSystem:removeGroup(groupId) end
+
+------------------------------------------------------------------------
+-- DMXPresetSystem — global singleton injected by ProjectScriptContext
+------------------------------------------------------------------------
+
+---@class DMXPresetSystem
+DMXPresetSystem = {}
+
+---@param id integer
+---@return DMXPresetComponent
+function DMXPresetSystem:getPresetById(id) end
+
+---@param name string
+---@return DMXPresetComponent
+function DMXPresetSystem:getPresetByName(name) end
+
+---@return integer
+function DMXPresetSystem:getPresetCount() end
+
+---@param index integer Zero-based index
+---@return DMXPresetComponent
+function DMXPresetSystem:getPresetAtIndex(index) end
+
+--- Create an empty preset for a fixture group.
+---@param groupId integer
+---@param name string Component name, or "" to auto-generate one
+---@return DMXPresetComponent
+function DMXPresetSystem:createPreset(groupId, name) end
+
+--- Remove a preset.
+---@param presetId integer
+---@return boolean
+function DMXPresetSystem:removePreset(presetId) end

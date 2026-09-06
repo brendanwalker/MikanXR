@@ -11,6 +11,7 @@
 #include "CompositorObjectSystem.h"
 #include "DMXFixtureGroupComponent.h"
 #include "DMXFixtureGroupSystem.h"
+#include "DMXPresetSystem.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
 #include "MarkerObjectSystem.h"
@@ -196,6 +197,15 @@ int addLightGroup(ProjectManagerPtr projectManager, int stageId)
 		return INVALID_MIKAN_ID;
 
 	return componentIdOrInvalid(sys->createGroup(stageId, ""));
+}
+
+int addPreset(ProjectManagerPtr projectManager, int groupId)
+{
+	auto sys= projectManager->getSystemOfType<DMXPresetSystem>();
+	if (!sys)
+		return INVALID_MIKAN_ID;
+
+	return componentIdOrInvalid(sys->createPreset(groupId, ""));
 }
 
 int addCompositor(ProjectManagerPtr projectManager, int sceneId)

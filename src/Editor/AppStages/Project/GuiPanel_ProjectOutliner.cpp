@@ -10,6 +10,7 @@
 #include "CompositorComponent.h"
 #include "DMXFixtureComponent.h"
 #include "DMXFixtureGroupComponent.h"
+#include "DMXPresetComponent.h"
 #include "EditorObjectSystem.h"
 #include "IconsForkAwesome.h"
 #include "IEditorWindow.h"
@@ -47,6 +48,7 @@
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_CompositorComponent.h"
 #include "Shared/GuiPanel_DMXFixtureGroupComponent.h"
+#include "Shared/GuiPanel_DMXPresetComponent.h"
 #include "Shared/GuiPanel_LightEnvironmentComponent.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
@@ -394,6 +396,15 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 		}
 		break;
 	}
+	case eOutlinerNodeKind::lightGroup:
+	{
+		const int groupId= selectedNode->componentId;
+		if (drawAddButton("outlinerAddPreset", ICON_FK_SLIDERS, "project.outlinerAddPreset"))
+		{
+			deferAddAction([groupId](ProjectManagerPtr pm) { return ProjectOutlinerActions::addPreset(pm, groupId); });
+		}
+		break;
+	}
 	case eOutlinerNodeKind::folderScenes:
 	{
 		const int stageId= selectedNode->ownerId;
@@ -623,6 +634,8 @@ GuiPanel_MikanComponent* GuiPanel_ProjectOutliner::getPanelForComponentClass(
 		return m_context->getPixelGridPanel();
 	if (componentClassName == DMXFixtureGroupComponent::k_componentClassName)
 		return m_context->getFixtureGroupPanel();
+	if (componentClassName == DMXPresetComponent::k_componentClassName)
+		return m_context->getPresetPanel();
 	if (componentClassName == AnchorComponent::k_componentClassName)
 		return m_context->getAnchorPanel();
 	if (componentClassName == QuadStencilComponent::k_componentClassName)
@@ -663,6 +676,7 @@ void GuiPanel_ProjectOutliner::clearComponentPanels()
 	m_context->getSpotLightPanel()->setComponent(nullptr);
 	m_context->getPixelGridPanel()->setComponent(nullptr);
 	m_context->getFixtureGroupPanel()->setComponent(nullptr);
+	m_context->getPresetPanel()->setComponent(nullptr);
 	m_context->getAnchorPanel()->setComponent(nullptr);
 	m_context->getQuadStencilPanel()->setComponent(nullptr);
 	m_context->getBoxStencilPanel()->setComponent(nullptr);
@@ -746,6 +760,7 @@ void GuiPanel_ProjectOutliner::onSystemConfigChanged(CommonConfigPtr configPtr,
 		|| changedPropertySet.hasPropertyName(CompositorDefinition::k_ownerScenePropertyId)
 		|| changedPropertySet.hasPropertyName(CompositorDefinition::k_cameraIdPropertyId)
 		|| changedPropertySet.hasPropertyName(DMXFixtureComponentDefinition::k_ownerStageIdPropertyId)
+		|| changedPropertySet.hasPropertyName(DMXPresetDefinition::k_groupIdPropertyId)
 		|| changedPropertySet.hasPropertyName(VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId))
 	{
 		markTreeDirty();

@@ -279,6 +279,23 @@ function DMXFixtureGroupComponent:addFixture(fixtureId) end
 function DMXFixtureGroupComponent:removeFixture(fixtureId) end
 
 ------------------------------------------------------------------------
+-- DMXPresetComponent : MikanComponent
+------------------------------------------------------------------------
+
+--- A fixed set of DMX channel bytes for the fixtures of one group, captured
+--- from the live fixtures or edited in the preset panel.
+---@class DMXPresetComponent : MikanComponent
+---@field groupId integer The DMXFixtureGroupComponent this preset addresses (read-only)
+local DMXPresetComponent = {}
+
+--- Write the preset to every member fixture of its group. A member the
+--- preset holds no bytes for lands on zeros.
+function DMXPresetComponent:apply() end
+
+--- Snapshot every member fixture's current channel bytes into the preset.
+function DMXPresetComponent:capture() end
+
+------------------------------------------------------------------------
 -- MarkerComponent : MikanComponent
 ------------------------------------------------------------------------
 

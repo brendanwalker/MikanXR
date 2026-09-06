@@ -393,6 +393,19 @@ void RGBSpotLightComponent::setRGB(uint8_t r, uint8_t g, uint8_t b)
 	}
 }
 
+void RGBSpotLightComponent::getChannelValues(std::vector<uint8_t>& outValues) const
+{
+	outValues= {m_red, m_green, m_blue};
+}
+
+void RGBSpotLightComponent::setChannelValues(const std::vector<uint8_t>& values)
+{
+	const uint8_t r= values.size() > 0 ? values[0] : 0;
+	const uint8_t g= values.size() > 1 ? values[1] : 0;
+	const uint8_t b= values.size() > 2 ? values[2] : 0;
+	setRGB(r, g, b);
+}
+
 void RGBSpotLightComponent::sendDMXData() const
 {
 	DMXObjectSystemPtr dmxObjectSystem= getDMXObjectSystem();

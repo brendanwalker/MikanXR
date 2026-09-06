@@ -271,6 +271,7 @@ bool DMXFixtureComponent::invokeFunction(const std::string& functionName)
 	if (functionName == DMXFixtureComponent::k_triangulateLightFunctionId)
 	{
 		triangulateLight();
+		return true;
 	}
 
 	return TransformComponent::invokeFunction(functionName);

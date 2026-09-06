@@ -151,3 +151,8 @@ class DMXFixtureGroupSystemDefinition;
 using DMXFixtureGroupSystemDefinitionPtr= std::shared_ptr<DMXFixtureGroupSystemDefinition>;
 using DMXFixtureGroupSystemDefinitionConstPtr= std::shared_ptr<const DMXFixtureGroupSystemDefinition>;
 using DMXFixtureGroupSystemDefinitionWeakPtr= std::weak_ptr<DMXFixtureGroupSystemDefinition>;
+
+class DMXPresetSystemDefinition;
+using DMXPresetSystemDefinitionPtr= std::shared_ptr<DMXPresetSystemDefinition>;
+using DMXPresetSystemDefinitionConstPtr= std::shared_ptr<const DMXPresetSystemDefinition>;
+using DMXPresetSystemDefinitionWeakPtr= std::weak_ptr<DMXPresetSystemDefinition>;

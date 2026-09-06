@@ -42,6 +42,18 @@ namespace MikanXR
 		public float transmit_rate_hz;
 	};
 
+	public class MikanDMXPresetComponentValues : MikanComponentValues
+	{
+		public int group_id;
+		public List<int> fixture_ids;
+		public List<int> channel_counts;
+		public List<byte> channel_data;
+	};
+
+	public class MikanDMXPresetSystemValues : MikanSystemValues
+	{
+	};
+
 	public class MikanLightEnvironmentComponentValues : MikanTransformComponentValues
 	{
 		public List<float> sh_coefficients;

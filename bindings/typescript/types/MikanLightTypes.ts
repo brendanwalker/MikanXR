@@ -11,6 +11,20 @@ export enum MikanDMXBufferFormat {
   DMXRLEEncoded = 1
 }
 
+export class MikanDMXPresetComponentValues extends MikanComponentValues {
+  group_id: number = -1;
+  fixture_ids: number[] = [];
+  channel_counts: number[] = [];
+  channel_data: number[] = [];
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'group_id', type: 'int32' },
+    { name: 'fixture_ids', type: 'int32', isArray: true },
+    { name: 'channel_counts', type: 'int32', isArray: true },
+    { name: 'channel_data', type: 'uint8', isArray: true }
+  ];
+}
+
 export class MikanDMXData {
   server_time_seconds: number = 0;
   universes: MikanUniverseDMXData[] = [];
@@ -88,6 +102,12 @@ export class MikanRGBPixelGridSystemValues extends MikanSystemValues {
 }
 
 export class MikanDMXFixtureGroupSystemValues extends MikanSystemValues {
+
+  static __serializationMetadata: SerializationField[] = [
+  ];
+}
+
+export class MikanDMXPresetSystemValues extends MikanSystemValues {
 
   static __serializationMetadata: SerializationField[] = [
   ];

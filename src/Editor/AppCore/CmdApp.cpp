@@ -9,6 +9,7 @@
 #include "AutomationVariantTextTests.h"
 #include "ClientApiPropertySchemaTests.h"
 #include "DepthMeshGeneratorTests.h"
+#include "DMXPresetPersistenceTests.h"
 #include "DMXUniverseRLETests.h"
 #include "LightEnvironmentPersistenceTests.h"
 #include "LocalizationTests.h"
@@ -33,6 +34,7 @@ bool run_all_editor_unit_tests()
 	success&= run_automation_variant_text_tests();
 	success&= run_client_api_property_schema_tests();
 	success&= run_depth_mesh_generator_unit_tests();
+	success&= run_dmx_preset_persistence_tests();
 	success&= run_dmx_universe_rle_tests();
 	success&= run_light_environment_persistence_tests();
 	success&= run_localization_unit_tests();

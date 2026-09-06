@@ -152,6 +152,15 @@ void RGBPixelGridComponent::fillPixels(uint8_t r, uint8_t g, uint8_t b)
 	}
 }
 
+void RGBPixelGridComponent::getChannelValues(std::vector<uint8_t>& outValues) const { outValues= m_pixelData; }
+
+void RGBPixelGridComponent::setChannelValues(const std::vector<uint8_t>& values)
+{
+	std::fill(m_pixelData.begin(), m_pixelData.end(), 0);
+	setAllPixels(values.data(), static_cast<int>(values.size()));
+	sendDMXData();
+}
+
 void RGBPixelGridComponent::sendDMXData() const
 {
 	DMXObjectSystemPtr dmxObjectSystem= getDMXObjectSystem();

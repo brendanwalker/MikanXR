@@ -73,8 +73,12 @@ public:
 	/// Set all pixels to the same color.
 	void fillPixels(uint8_t r, uint8_t g, uint8_t b);
 
+	// -- Channel data --
+	virtual void getChannelValues(std::vector<uint8_t>& outValues) const override;
+	// Replaces the pixel buffer and sends it; setPixel and fillPixels do not send
+	virtual void setChannelValues(const std::vector<uint8_t>& values) override;
 	// Broadcast pixel data to DMX Listeners
-	void sendDMXData() const;
+	virtual void sendDMXData() const override;
 
 	// -- IEntityAccessor --
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
