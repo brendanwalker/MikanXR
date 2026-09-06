@@ -250,6 +250,17 @@ bool drawImageButton(MkGuiStyleConstPtr style, const std::string& fieldName, con
 	return ImGui::ImageButton(imguiElementName.c_str(), (ImTextureID)(intptr_t)glTextureId, ImVec2(entry->x, entry->y));
 }
 
+void sameLineIfFits(float itemWidth)
+{
+	const float lastItemRight= ImGui::GetItemRectMax().x;
+	const float nextItemRight= lastItemRight + ImGui::GetStyle().ItemSpacing.x + itemWidth;
+	const float visibleRight= ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+	if (nextItemRight < visibleRight)
+	{
+		ImGui::SameLine();
+	}
+}
+
 bool drawGlyphButtonWithLabel(const std::string& fieldName, const std::string& glyph, const std::string& label,
 							  float buttonSize, float glyphSize)
 {

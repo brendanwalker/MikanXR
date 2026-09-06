@@ -90,6 +90,11 @@ void GuiPanel_DMXPresetComponent::onConstruct()
 					transactionHistory->endGesture();
 			};
 
+			// Spot light swatches flow back to back and wrap at the panel edge;
+			// a pixel grid keeps its rows and starts a new line. The fixture name
+			// is a hover tooltip rather than a label, to keep the strip dense.
+			const float swatchSize= ImGui::GetFrameHeight();
+			bool bStripOpen= false;
 			for (MikanLightID fixtureId : group->getDMXFixtureGroupDefinition()->getFixtureIds())
 			{
 				DMXFixtureComponentPtr fixture= group->resolveFixture(fixtureId);
@@ -100,8 +105,6 @@ void GuiPanel_DMXPresetComponent::onConstruct()
 				presetDef->getFixtureValues(fixtureId, values);
 				values.resize(fixture->getDMXFixtureDefinition()->getDMXChannelCount(), 0);
 
-				ImGui::TextUnformatted(fixture->getName().c_str());
-
 				const std::string componentClass= fixture->getComponentClassName();
 				if (componentClass == RGBSpotLightComponent::k_componentClassName)
 				{
@@ -109,9 +112,17 @@ void GuiPanel_DMXPresetComponent::onConstruct()
 								   values.size() > 1 ? values[1] / 255.0f : 0.0f,
 								   values.size() > 2 ? values[2] / 255.0f : 0.0f};
 
+					if (bStripOpen)
+						MkGui::sameLineIfFits(swatchSize);
+					bStripOpen= true;
+
 					const std::string id=
 						"##" + presetComp->makePropertyUIIdentifier("preset_" + std::to_string(fixtureId));
-					if (ImGui::ColorEdit3(id.c_str(), rgb, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+					const bool bChanged= ImGui::ColorEdit3(id.c_str(), rgb,
+														   ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel
+															   | ImGuiColorEditFlags_NoTooltip);
+					ImGui::SetItemTooltip("%s", fixture->getName().c_str());
+					if (bChanged)
 					{
 						const uint8_t r= (uint8_t)std::clamp((int)std::round(rgb[0] * 255.0f), 0, 255);
 						const uint8_t g= (uint8_t)std::clamp((int)std::round(rgb[1] * 255.0f), 0, 255);
@@ -126,6 +137,7 @@ void GuiPanel_DMXPresetComponent::onConstruct()
 					RGBPixelGridComponentPtr pixelGrid= std::static_pointer_cast<RGBPixelGridComponent>(fixture);
 					const int columns= pixelGrid->getRGBPixelGridDefinition()->getColumns();
 					const int rows= pixelGrid->getRGBPixelGridDefinition()->getRows();
+					bStripOpen= false;
 
 					for (int row= 0; row < rows; ++row)
 					{
@@ -147,8 +159,12 @@ void GuiPanel_DMXPresetComponent::onConstruct()
 												  + presetComp->makePropertyUIIdentifier(
 													  "preset_" + std::to_string(fixtureId) + "_" + std::to_string(row)
 													  + "_" + std::to_string(col));
-							if (ImGui::ColorEdit3(id.c_str(), rgb,
-												  ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+							const bool bChanged=
+								ImGui::ColorEdit3(id.c_str(), rgb,
+												  ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel
+													  | ImGuiColorEditFlags_NoTooltip);
+							ImGui::SetItemTooltip("%s (%d, %d)", fixture->getName().c_str(), col, row);
+							if (bChanged)
 							{
 								const uint8_t r= (uint8_t)std::clamp((int)std::round(rgb[0] * 255.0f), 0, 255);
 								const uint8_t g= (uint8_t)std::clamp((int)std::round(rgb[1] * 255.0f), 0, 255);
@@ -163,6 +179,8 @@ void GuiPanel_DMXPresetComponent::onConstruct()
 				}
 				else
 				{
+					bStripOpen= false;
+					ImGui::TextUnformatted(fixture->getName().c_str());
 					const std::string baseId=
 						presetComp->makePropertyUIIdentifier("preset_" + std::to_string(fixtureId));
 					for (int channelIndex= 0; channelIndex < (int)values.size(); ++channelIndex)
