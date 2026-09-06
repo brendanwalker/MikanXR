@@ -222,7 +222,8 @@
 		"show_texture_source_settings": "テクスチャソース設定を表示",
 		"show_video_source_settings": "映像ソース設定を表示",
 		"test_intrinsics": "内部パラメーターをテスト",
-		"triangulate_light": "ライトを三角測量"
+		"triangulate_light": "ライトを三角測量",
+		"zero_all_channels": "全チャンネルをゼロに"
 	},
 	"graphProperties": {
 		"default": "デフォルト",

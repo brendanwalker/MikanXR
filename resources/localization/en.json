@@ -222,7 +222,8 @@
 		"show_texture_source_settings": "Show Texture Source Settings",
 		"show_video_source_settings": "Show Video Source Settings",
 		"test_intrinsics": "Test Intrinsics",
-		"triangulate_light": "Triangulate Light"
+		"triangulate_light": "Triangulate Light",
+		"zero_all_channels": "Zero All Channels"
 	},
 	"graphProperties": {
 		"default": "Default",

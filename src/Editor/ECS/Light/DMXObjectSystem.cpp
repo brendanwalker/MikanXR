@@ -320,6 +320,51 @@ bool DMXObjectSystem::setPropertyValue(const std::string& propertyName, const Mi
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
 }
 
+// -- IFunctionInterface ----
+const std::string DMXObjectSystem::k_zeroAllChannelsFunctionId= "zero_all_channels";
+
+void DMXObjectSystem::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+{
+	MikanObjectSystem::getFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_zeroAllChannelsFunctionId, "Zero All Channels"));
+}
+
+bool DMXObjectSystem::invokeFunction(const std::string& functionName)
+{
+	if (functionName == k_zeroAllChannelsFunctionId)
+	{
+		zeroAllChannels();
+		return true;
+	}
+
+	return MikanObjectSystem::invokeFunction(functionName);
+}
+
+void DMXObjectSystem::zeroAllChannels()
+{
+	// Through the fixtures first, so their runtime colors and the viewport
+	// follow the blackout and a later capture records zeros
+	const std::vector<uint8_t> noChannels;
+	if (RGBSpotLightSystemPtr spotLightSystem= getOwnerProjectManager()->getSystemOfType<RGBSpotLightSystem>())
+	{
+		spotLightSystem->visitComponents([&noChannels](RGBSpotLightComponentPtr light)
+										 { light->setChannelValues(noChannels); });
+	}
+	if (RGBPixelGridSystemPtr pixelGridSystem= getOwnerProjectManager()->getSystemOfType<RGBPixelGridSystem>())
+	{
+		pixelGridSystem->visitComponents([&noChannels](RGBPixelGridComponentPtr grid)
+										 { grid->setChannelValues(noChannels); });
+	}
+
+	// Then every active universe, clearing slots no fixture covers
+	std::vector<uint8_t> zeroData(kDMXUniverseChannelCount, 0);
+	for (const auto& [universeId, universeData] : m_universeBuffers)
+	{
+		writeUniverseData(universeId, 1, zeroData.data(), static_cast<uint16_t>(zeroData.size()));
+	}
+}
+
 // -- Lua Binding ----
 void DMXObjectSystem::bindLuaFunctions(struct lua_State* L)
 {
@@ -363,5 +408,6 @@ void DMXObjectSystem::bindLuaFunctions(struct lua_State* L)
 					 })
 		.addProperty("universeChannelCount", [](DMXObjectSystem*) -> int
 					 { return static_cast<int>(DMXObjectSystem::kDMXUniverseChannelCount); })
+		.addFunction("zeroAllChannels", [](DMXObjectSystem* s) { s->zeroAllChannels(); })
 		.endClass();
 }

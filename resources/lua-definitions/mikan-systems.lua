@@ -88,6 +88,10 @@ function StageObjectSystem:getStageAtIndex(index) end
 ---@field universeChannelCount integer Number of DMX channels per universe (read-only)
 local DMXObjectSystem = {}
 
+--- Blackout: zero every fixture (spot lights and pixel grids, visuals included)
+--- and every active DMX universe.
+function DMXObjectSystem:zeroAllChannels() end
+
 ---@return integer
 function DMXObjectSystem:getSpotLightCount() end
 
