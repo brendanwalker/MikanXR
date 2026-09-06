@@ -127,6 +127,15 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 #endif
 };
 
+/// The corner a pixel grid's wiring starts at, which fixes both scan directions.
+enum ENUM(Serialization::CodeGenModule("MikanLightTypes")) MikanPixelGridOrigin
+{
+	MikanPixelGridOrigin_UPPER_LEFT ENUMVALUE_STRING("UpperLeft"),
+	MikanPixelGridOrigin_UPPER_RIGHT ENUMVALUE_STRING("UpperRight"),
+	MikanPixelGridOrigin_LOWER_LEFT ENUMVALUE_STRING("LowerLeft"),
+	MikanPixelGridOrigin_LOWER_RIGHT ENUMVALUE_STRING("LowerRight"),
+};
+
 /// Pixel grid values — pixel data is NOT included (use SetLightDMXData request for bulk writes).
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRGBPixelGridComponentValues
 	: public MikanDMXFixtureComponentValues
@@ -137,6 +146,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 	FIELD() int grid_columns= 8;
 
 	FIELD() int grid_rows= 8;
+
+	/// The size of one pixel's box in millimetres. Z is the panel's depth.
+	FIELD() MikanVector3f pixel_size_mm= {30.f, 30.f, 10.f};
+
+	/// Centre to centre spacing between neighbouring pixels in millimetres
+	FIELD() MikanVector2f pixel_separation_mm= {40.f, 40.f};
+
+	FIELD() MikanPixelGridOrigin origin_pixel= MikanPixelGridOrigin_UPPER_LEFT;
+
+	/// LED strips wire to the nearest pixel on the next row, so alternating rows run backwards
+	FIELD() bool zig_zag= false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRGBPixelGridComponentValues_GENERATED

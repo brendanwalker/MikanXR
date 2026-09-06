@@ -43,4 +43,8 @@ public:
 	{
 		return Super::getTypedComponentByName(name);
 	}
+
+protected:
+	virtual void additionalComponentFactory(MikanObjectPtr ownerComponentObject,
+											ComponentDefinitionPtr componentDefinition) override;
 };

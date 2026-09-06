@@ -603,7 +603,10 @@
 		"model_path": "Model Path",
 		"network_interface_ip": "Network Interface IP",
 		"origin_marker_id": "Origin Marker ID",
+		"origin_pixel": "Origin Pixel",
 		"path": "Path",
+		"pixel_separation_mm": "Pixel Separation (mm)",
+		"pixel_size_mm": "Pixel Size (mm)",
 		"port": "Port",
 		"protocol": "Protocol",
 		"quad_height": "Quad Height",
@@ -649,9 +652,14 @@
 		"vr_device_rotation_offset": "VR Device Rotation Offset",
 		"vr_device_type": "VR Device Type",
 		"vr_space_to_stage_space": "VR Space To Stage Space",
-		"width": "Width"
+		"width": "Width",
+		"zig_zag": "Zig-Zag"
 	},
 	"propertyValues": {
+		"pixel_origin_lower_left": "Lower Left",
+		"pixel_origin_lower_right": "Lower Right",
+		"pixel_origin_upper_left": "Upper Left",
+		"pixel_origin_upper_right": "Upper Right",
 		"sequence_paused": "Paused",
 		"sequence_playing": "Playing",
 		"sequence_stopped": "Stopped",

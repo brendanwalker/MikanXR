@@ -709,6 +709,10 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 		if (auto spotLightSystem= m_spotLightSystem.lock())
 			spotLightSystem->customRender(graphicsContext, viewportCamera);
 
+		// Pixel grid boxes are opaque and write depth, so they belong here
+		if (auto pixelGridSystem= m_pixelGridLightSystem.lock())
+			pixelGridSystem->customRender(graphicsContext, viewportCamera);
+
 		// Draw all the environment lights in the stage
 		renderEnvironmentLightComponents(graphicsContext, viewportCamera, stageComponent);
 

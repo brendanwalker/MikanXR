@@ -10,6 +10,14 @@ namespace MikanXR
 		DMXRLEEncoded= 1,
 	};
 
+	public enum MikanPixelGridOrigin
+	{
+		UpperLeft= 0,
+		UpperRight= 1,
+		LowerLeft= 2,
+		LowerRight= 3,
+	};
+
 	public class MikanDMXData
 	{
 		public double server_time_seconds;
@@ -84,6 +92,10 @@ namespace MikanXR
 	{
 		public int grid_columns;
 		public int grid_rows;
+		public MikanVector3f pixel_size_mm;
+		public MikanVector2f pixel_separation_mm;
+		public MikanPixelGridOrigin origin_pixel;
+		public bool zig_zag;
 	};
 
 	public class MikanRGBPixelGridSystemValues : MikanSystemValues

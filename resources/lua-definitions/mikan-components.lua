@@ -229,7 +229,16 @@ function RGBSpotLightComponent:setRGB(r, g, b) end
 ---@class RGBPixelGridComponent : DMXFixtureComponent
 ---@field columns integer Number of pixel columns (read/write)
 ---@field rows integer Number of pixel rows (read/write)
+---@field originPixel integer Wiring origin corner: 0 upper left, 1 upper right, 2 lower left, 3 lower right (read/write)
+---@field zigZag boolean True when alternating rows are wired backwards (read/write)
 local RGBPixelGridComponent = {}
+
+--- Where a grid cell falls in the DMX stream, given the origin and zig-zag
+--- layout. Returns -1 when the cell is out of range.
+---@param col integer Column index (0-based)
+---@param row integer Row index (0-based)
+---@return integer
+function RGBPixelGridComponent:getPixelWireIndex(col, row) end
 
 --- Set a single pixel color.
 ---@param col integer Column index (0-based)

@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
 import { MikanComponentValues } from './MikanComponentTypes.js';
-import { MikanVector3f } from './MikanMathTypes.js';
+import { MikanVector2f, MikanVector3f } from './MikanMathTypes.js';
 import { MikanSystemValues } from './MikanPropertyTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 import type { SerializationField } from './SerializationTypes.js';
@@ -9,6 +9,13 @@ import type { SerializationField } from './SerializationTypes.js';
 export enum MikanDMXBufferFormat {
   DMXUncompressed = 0,
   DMXRLEEncoded = 1
+}
+
+export enum MikanPixelGridOrigin {
+  UpperLeft = 0,
+  UpperRight = 1,
+  LowerLeft = 2,
+  LowerRight = 3
 }
 
 export class MikanDMXPresetComponentValues extends MikanComponentValues {
@@ -148,10 +155,18 @@ export class MikanRGBSpotLightComponentValues extends MikanDMXFixtureComponentVa
 export class MikanRGBPixelGridComponentValues extends MikanDMXFixtureComponentValues {
   grid_columns: number = 8;
   grid_rows: number = 8;
+  pixel_size_mm: MikanVector3f = new MikanVector3f();
+  pixel_separation_mm: MikanVector2f = new MikanVector2f();
+  origin_pixel: MikanPixelGridOrigin = MikanPixelGridOrigin.UpperLeft;
+  zig_zag: boolean = false;
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'grid_columns', type: 'int32' },
-    { name: 'grid_rows', type: 'int32' }
+    { name: 'grid_rows', type: 'int32' },
+    { name: 'pixel_size_mm', type: 'MikanVector3f' },
+    { name: 'pixel_separation_mm', type: 'MikanVector2f' },
+    { name: 'origin_pixel', type: 'enum:MikanPixelGridOrigin' },
+    { name: 'zig_zag', type: 'boolean' }
   ];
 }
 

@@ -603,7 +603,10 @@
 		"model_path": "モデルのパス",
 		"network_interface_ip": "ネットワークインターフェース IP",
 		"origin_marker_id": "原点マーカー ID",
+		"origin_pixel": "原点ピクセル",
 		"path": "パス",
+		"pixel_separation_mm": "ピクセル間隔 (mm)",
+		"pixel_size_mm": "ピクセルサイズ (mm)",
 		"port": "ポート",
 		"protocol": "プロトコル",
 		"quad_height": "クアッドの高さ",
@@ -649,9 +652,14 @@
 		"vr_device_rotation_offset": "VR デバイス回転オフセット",
 		"vr_device_type": "VR デバイスタイプ",
 		"vr_space_to_stage_space": "VR 空間からステージ空間へ",
-		"width": "幅"
+		"width": "幅",
+		"zig_zag": "ジグザグ"
 	},
 	"propertyValues": {
+		"pixel_origin_lower_left": "左下",
+		"pixel_origin_lower_right": "右下",
+		"pixel_origin_upper_left": "左上",
+		"pixel_origin_upper_right": "右上",
 		"sequence_paused": "一時停止中",
 		"sequence_playing": "再生中",
 		"sequence_stopped": "停止中",

@@ -213,7 +213,8 @@ void GuiPanel_DMXSequenceComponent::onConstruct()
 							if (col > 0)
 								ImGui::SameLine();
 
-							const size_t offset= (size_t)(row * columns + col) * 3;
+							const int wireIndex= pixelGrid->getRGBPixelGridDefinition()->getPixelWireIndex(col, row);
+							const size_t offset= wireIndex >= 0 ? (size_t)wireIndex * 3 : values.size();
 							ImVec4 rgb(0.0f, 0.0f, 0.0f, 1.0f);
 							if (offset + 3 <= values.size())
 							{
