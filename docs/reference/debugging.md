@@ -90,6 +90,10 @@ The variable wins over the editor setting. When it is set, `SpoutLogRelay` logs 
 
 ---
 
+## DMX output not reaching a controller
+
+`MikanDMX` sends E1.31 multicast (`239.255.<hi>.<lo>` per universe, port 5568) from the interface named by the DMX system's `network_interface_ip`. At the default `0.0.0.0` Windows picks the egress by the lowest-metric route for `224.0.0.0/4`, which on a multi-homed machine (a second Ethernet port, a VPN adapter) is often not the controller's network, and nothing errors: the packets simply leave elsewhere. `route print -4` shows the candidate interfaces and metrics. Set the interface to the address on the controller's subnet; `UdpMulticastSocket::open` sets `IP_MULTICAST_IF` from it, since a bind alone does not choose the multicast egress on Windows. A quick way to separate network from editor faults is a scratch Python sender that builds one E1.31 packet and sends it with `IP_MULTICAST_IF` forced to each candidate interface while watching the fixture. Note that an ESPixelStick in multicast mode binds its socket to the group address and ignores unicast to its own IP, and in unicast mode the reverse, so a unicast test only means something when the controller is configured for it.
+
 ## Profiling
 
 The editor is instrumented with easy_profiler (`EASY_FUNCTION()` / `EASY_BLOCK()` throughout the tick, compositor, and node evaluation paths). `App::startup` calls `profiler::startListen()`, so a running `Mikan.exe` accepts connections from the easy_profiler GUI at any time. Launch with `-waitForProfiler` to block startup until a profiler client connects and starts capturing, which is useful for profiling initialization.
