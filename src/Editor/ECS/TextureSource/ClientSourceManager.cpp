@@ -60,21 +60,12 @@ void ClientSourceManager::shutdown()
 		MakeDelegate(this, &ClientSourceManager::onClientRenderTargetUpdated);
 
 	// Clean up any allocated clientSources
-	for (auto iter= m_clientSources.getMap().begin(); iter != m_clientSources.getMap().end(); iter++)
+	while (!m_clientSources.getMap().empty())
 	{
-		ClientSource* clientSource= iter->second;
+		auto iter= m_clientSources.getMap().begin();
 
-		if (clientSource->textureQueue != nullptr)
-		{
-			clientSource->textureQueue->dispose();
-			delete clientSource->textureQueue;
-			clientSource->textureQueue= nullptr;
-		}
-		clientSource->readAccessor= nullptr;
-
-		delete clientSource;
+		destroyClientSource(iter->first, iter->second);
 	}
-	m_clientSources.clear();
 }
 
 bool ClientSourceManager::hasClientSource(const std::string& clientId, MikanCameraID cameraId) const
@@ -176,8 +167,25 @@ bool ClientSourceManager::addClientSource(const char* clientId, const MikanClien
 										  SharedTextureReadAccessor* readAccessor)
 {
 	MikanCameraID cameraId= readAccessor->getCameraId();
-	if (getClientSource(clientId, cameraId) != nullptr)
-		return false;
+	const std::string tableKey= makeClientSourceTableKey(clientId, cameraId);
+
+	// The previous source for this client and camera is normally gone before a new render target
+	// is allocated. One that survived belongs to an accessor that no longer exists, so replace it:
+	// refusing here would answer the client's allocation with success while leaving it publishing
+	// into a source the compositor never reads. Its accessor may already be freed, so it is not
+	// touched here.
+	ClientSource* staleClientSource= nullptr;
+	if (m_clientSources.tryGetValue(tableKey, staleClientSource))
+	{
+		MIKAN_LOG_WARNING("ClientSourceManager::addClientSource") << "Replacing stale client source " << tableKey;
+
+		destroyClientSource(tableKey, staleClientSource);
+
+		if (OnClientSourceDisconnected)
+		{
+			OnClientSourceDisconnected(clientId, cameraId);
+		}
+	}
 
 	ClientSource* clientSource= new ClientSource();
 	bool bSuccess= true;
@@ -201,7 +209,6 @@ bool ClientSourceManager::addClientSource(const char* clientId, const MikanClien
 		readAccessor->setShadowTexture(clientSource->textureQueue->getPendingWriteShadowTexture());
 
 		// Add the client source to the data source table
-		const std::string tableKey= makeClientSourceTableKey(clientId, cameraId);
 		m_clientSources.setValue(tableKey, clientSource);
 
 		// Notify listeners that a new client source has connected
@@ -234,20 +241,12 @@ bool ClientSourceManager::removeClientSource(const char* clientId, SharedTexture
 	if (clientSource == nullptr)
 		return false;
 
+	// The accessor is still alive on this path, so unbind the queue textures it points at
 	readAccessor->setColorTexture(nullptr);
 	readAccessor->setDepthTexture(nullptr);
 	readAccessor->setShadowTexture(nullptr);
 
-	clientSource->textureQueue->dispose();
-	delete clientSource->textureQueue;
-	clientSource->textureQueue= nullptr;
-	clientSource->readAccessor= nullptr;
-
-	// Remove the client source entries from the data source tables
-	const std::string tableKey= makeClientSourceTableKey(clientId, cameraId);
-	m_clientSources.removeValue(tableKey);
-
-	delete clientSource;
+	destroyClientSource(makeClientSourceTableKey(clientId, cameraId), clientSource);
 
 	// Notify listeners that a new client source has disconnected
 	if (OnClientSourceDisconnected)
@@ -256,6 +255,27 @@ bool ClientSourceManager::removeClientSource(const char* clientId, SharedTexture
 	}
 
 	return true;
+}
+
+// Release a client source's texture queue and drop it from the table. The source's read accessor
+// is only cleared here, never dereferenced, so this is safe to call for a source whose accessor
+// has already been destroyed.
+void ClientSourceManager::destroyClientSource(const std::string& tableKey, ClientSource* clientSource)
+{
+	if (clientSource == nullptr)
+		return;
+
+	if (clientSource->textureQueue != nullptr)
+	{
+		clientSource->textureQueue->dispose();
+		delete clientSource->textureQueue;
+		clientSource->textureQueue= nullptr;
+	}
+	clientSource->readAccessor= nullptr;
+
+	m_clientSources.removeValue(tableKey);
+
+	delete clientSource;
 }
 
 // MikanServer Events
