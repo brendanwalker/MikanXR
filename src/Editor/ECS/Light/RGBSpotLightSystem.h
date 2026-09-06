@@ -46,6 +46,9 @@ public:
 	RGBSpotLightComponentPtr createLight(MikanStageID stageId, const std::string& name);
 	bool removeLight(MikanLightID lightId);
 
+	// Every light's additive cone, for the translucent pass after the scene
+	void renderConeVolumes(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);
 

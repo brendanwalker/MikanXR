@@ -52,6 +52,9 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
+	// The additive cone volume, drawn after all opaque geometry: it writes no
+	// depth, so anything opaque drawn later would paint over it
+	void renderConeVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 
 	void disposeMeshComponents();
 	void rebuildMeshComponents();

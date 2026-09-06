@@ -47,6 +47,12 @@ RGBSpotLightComponentPtr RGBSpotLightSystem::createLight(MikanStageID stageId, c
 
 bool RGBSpotLightSystem::removeLight(MikanLightID lightId) { return removeObjectByPrimaryComponentId(lightId); }
 
+void RGBSpotLightSystem::renderConeVolumes(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+{
+	visitComponents([graphicsContext, viewportCamera](RGBSpotLightComponentPtr light)
+					{ light->renderConeVolume(graphicsContext, viewportCamera); });
+}
+
 // -- Lua Binding ----
 void RGBSpotLightSystem::bindLuaFunctions(struct lua_State* L)
 {

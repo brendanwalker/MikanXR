@@ -543,8 +543,14 @@ void RGBSpotLightComponent::customRender(IMkGraphicsContext* graphicsContext, Mi
 		drawTextAtWorldPosition(graphicsContext, style, position, L"Light %d [%d,%d,%d]", def->getComponentId(),
 								static_cast<int>(getRed()), static_cast<int>(getGreen()), static_cast<int>(getBlue()));
 	}
+}
 
-	// Render the volumetric cone visualization
+void RGBSpotLightComponent::renderConeVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+{
+	RGBSpotLightDefinitionPtr def= getRGBSpotLightDefinition();
+	if (!def || def->getIsDisabled())
+		return;
+
 	if (m_coneMesh)
 	{
 		const float halfAngleRad= def->getConeAngleDegrees() * 0.5f * (3.14159265f / 180.0f);
