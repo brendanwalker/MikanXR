@@ -203,7 +203,7 @@ void TestApp::onSDLEvent(SDL_Event& e)
 	}
 	else if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)
 	{
-		const bool bIsShiftDown = (SDL_GetModState() & KMOD_SHIFT) != 0;
+		const bool bIsShiftDown= (SDL_GetModState() & KMOD_SHIFT) != 0;
 
 		if (e.key.keysym.sym == SDLK_1)
 		{
