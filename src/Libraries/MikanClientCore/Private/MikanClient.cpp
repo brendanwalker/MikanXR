@@ -4,6 +4,7 @@
 #include "MikanClient.h"
 #include "MikanCoreCAPI.h"
 #include "MikanCoreTypes.h"
+#include "MikanCoreVulkanTypes.h"
 #include "JsonUtils.h"
 #include "JsonSerializer.h"
 #include "SharedTextureWriter.h"
@@ -11,6 +12,28 @@
 #include "ixwebsocket/IXNetSystem.h"
 
 #include <assert.h>
+
+namespace
+{
+// A Vulkan client's frame image crosses into the shared texture library in that library's own
+// vocabulary, converted on the stack since the write completes before the call returns. Every
+// other graphics API's texture pointer passes through untouched.
+void* resolveApiTexturePtr(const ISharedTextureWriteAccessorPtr& writer, void* apiTexturePtr,
+						   SharedVulkanTexture& outVulkanTexture)
+{
+	if (writer->getRenderTargetDescriptor()->graphicsAPI != SharedClientGraphicsApi::Vulkan || apiTexturePtr == nullptr)
+		return apiTexturePtr;
+
+	const auto* vulkanTexture= static_cast<const MikanVulkanTexture*>(apiTexturePtr);
+	outVulkanTexture.image= vulkanTexture->image;
+	outVulkanTexture.layout= (int32_t)vulkanTexture->layout;
+	outVulkanTexture.format= (int32_t)vulkanTexture->format;
+	outVulkanTexture.width= vulkanTexture->width;
+	outVulkanTexture.height= vulkanTexture->height;
+
+	return &outVulkanTexture;
+}
+} // namespace
 
 // -- methods -----
 MikanClient::MikanClient()
@@ -200,6 +223,20 @@ MikanCoreResult MikanClient::allocateCameraRenderTargetTextures(MikanCameraID ca
 	{
 		Mikan_GetGraphicsDeviceInterface(this, mkDesiredDescriptor.graphicsAPI, &apiInterface);
 		Mikan_GetGraphicsCommandQueueInterface(this, mkDesiredDescriptor.graphicsAPI, &apiCommandQueueInterface);
+	}
+
+	// A Vulkan client's device crosses in the shared texture library's own vocabulary,
+	// so the client SDK header is the only side naming a Vulkan type
+	if (mkDesiredDescriptor.graphicsAPI == MikanClientGraphicsApi_Vulkan && apiInterface != nullptr)
+	{
+		const auto* vulkanInterface= static_cast<const MikanVulkanDeviceInterface*>(apiInterface);
+
+		m_vulkanDeviceInterface.instance= vulkanInterface->instance;
+		m_vulkanDeviceInterface.physicalDevice= vulkanInterface->physicalDevice;
+		m_vulkanDeviceInterface.device= vulkanInterface->device;
+		m_vulkanDeviceInterface.queue= vulkanInterface->queue;
+		m_vulkanDeviceInterface.queueFamilyIndex= vulkanInterface->queueFamilyIndex;
+		apiInterface= &m_vulkanDeviceInterface;
 	}
 
 	SharedTextureDescriptor descriptor;
@@ -430,9 +467,15 @@ MikanCoreResult MikanClient::freeAllCameraRenderTargetTextures()
 MikanCoreResult MikanClient::writeCameraColorRenderTargetTexture(MikanCameraID cameraId, void* apiColorTexturePtr)
 {
 	ISharedTextureWriteAccessorPtr renderTargetWriter= getSharedTextureWriteAccessor(cameraId);
-	if (renderTargetWriter && renderTargetWriter->writeColorFrameTexture(apiColorTexturePtr))
+	if (renderTargetWriter)
 	{
-		return MikanCoreResult_Success;
+		SharedVulkanTexture vulkanTexture;
+		apiColorTexturePtr= resolveApiTexturePtr(renderTargetWriter, apiColorTexturePtr, vulkanTexture);
+
+		if (renderTargetWriter->writeColorFrameTexture(apiColorTexturePtr))
+		{
+			return MikanCoreResult_Success;
+		}
 	}
 
 	return MikanCoreResult_RequestFailed;
@@ -448,6 +491,9 @@ MikanCoreResult MikanClient::writeCameraDepthRenderTargetTexture(MikanCameraID c
 
 		if (depthBufferType != SharedDepthBufferType::NODEPTH)
 		{
+			SharedVulkanTexture vulkanTexture;
+			apiDepthTexturePtr= resolveApiTexturePtr(renderTargetWriter, apiDepthTexturePtr, vulkanTexture);
+
 			if (renderTargetWriter->writeDepthFrameTexture(apiDepthTexturePtr, zNear, zFar))
 			{
 				return MikanCoreResult_Success;
@@ -467,6 +513,9 @@ MikanCoreResult MikanClient::writeCameraShadowRenderTargetTexture(MikanCameraID 
 
 		if (shadowBufferType != SharedShadowBufferType::NOSHADOW)
 		{
+			SharedVulkanTexture vulkanTexture;
+			apiShadowTexturePtr= resolveApiTexturePtr(renderTargetWriter, apiShadowTexturePtr, vulkanTexture);
+
 			if (renderTargetWriter->writeShadowFrameTexture(apiShadowTexturePtr))
 			{
 				return MikanCoreResult_Success;

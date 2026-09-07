@@ -206,6 +206,15 @@ SharedTextureReadAccessor::~SharedTextureReadAccessor()
 	m_readerImpl= nullptr;
 }
 
+// Every client API whose frames arrive as Spout senders. The reader opens a sender by name, so
+// what the client rendered with only decides whether its writer could produce one.
+static bool isSpoutBackedGraphicsApi(MikanClientGraphicsApi graphicsAPI)
+{
+	return graphicsAPI == MikanClientGraphicsApi_Direct3D9 || graphicsAPI == MikanClientGraphicsApi_Direct3D11
+		   || graphicsAPI == MikanClientGraphicsApi_Direct3D12 || graphicsAPI == MikanClientGraphicsApi_OpenGL
+		   || graphicsAPI == MikanClientGraphicsApi_Vulkan;
+}
+
 bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* descriptor)
 {
 	bool bSuccess= false;
@@ -251,10 +260,7 @@ bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* de
 	}
 
 	// Allocate a reader implementation
-	if (descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D9
-		|| descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D11
-		|| descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D12
-		|| descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
+	if (isSpoutBackedGraphicsApi(descriptor->graphicsAPI))
 	{
 		m_readerImpl->readerApi.spoutTextureReader= new SpoutTextureReader(this);
 		m_readerImpl->graphicsAPI= descriptor->graphicsAPI;
@@ -268,10 +274,7 @@ bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* de
 void SharedTextureReadAccessor::dispose()
 {
 	assert(m_readerImpl != nullptr);
-	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9
-		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11
-		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12
-		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
+	if (isSpoutBackedGraphicsApi(m_readerImpl->graphicsAPI))
 	{
 		if (m_readerImpl->readerApi.spoutTextureReader != nullptr)
 		{
@@ -289,10 +292,7 @@ bool SharedTextureReadAccessor::readRenderTargetTextures(const int64_t newFrameI
 {
 	bool bSuccess= false;
 
-	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9
-		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11
-		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12
-		|| m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
+	if (isSpoutBackedGraphicsApi(m_readerImpl->graphicsAPI))
 	{
 		m_lastFrameRenderedIndex= newFrameIndex;
 

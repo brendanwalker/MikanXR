@@ -176,6 +176,12 @@ set (LOCKFREEQUEUE_INCLUDE_DIR ${ROOT_DIR}/thirdparty/readerwriterqueue)
 # stb
 set (STB_INCLUDE_DIRS ${ROOT_DIR}/thirdparty/stb)
 
+# Vulkan-Headers and volk. volk loads vulkan-1.dll at runtime, so a consumer compiles volk.c into
+# itself with VK_NO_PROTOTYPES and gains no link-time Vulkan dependency.
+set (VULKAN_HEADERS_INCLUDE_DIR ${ROOT_DIR}/thirdparty/Vulkan-Headers/include)
+set (VOLK_DIR ${ROOT_DIR}/thirdparty/volk)
+set (VOLK_SOURCE "${VOLK_DIR}/volk.c")
+
 # tinyfiledialogs
 set(TINYFILEDIALOGS_DIR ${ROOT_DIR}/thirdparty/tinyfiledialogs)
 set(TINYFILEDIALOGS_SOURCE "${TINYFILEDIALOGS_DIR}/tinyfiledialogs.c")

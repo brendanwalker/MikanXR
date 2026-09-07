@@ -36,3 +36,9 @@
 	path = thirdparty/imgui-node-editor
 	url = https://github.com/MikanXR/imgui-node-editor.git
 	branch = mikanxr-patches
+[submodule "thirdparty/Vulkan-Headers"]
+	path = thirdparty/Vulkan-Headers
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "thirdparty/volk"]
+	path = thirdparty/volk
+	url = https://github.com/zeux/volk.git
