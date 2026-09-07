@@ -14,6 +14,12 @@
 #include "ClientTextureSourceSystem.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
+#include "DMXFixtureGroupComponent.h"
+#include "DMXFixtureGroupSystem.h"
+#include "DMXPresetComponent.h"
+#include "DMXPresetSystem.h"
+#include "DMXSequenceComponent.h"
+#include "DMXSequenceSystem.h"
 #include "IconsForkAwesome.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
@@ -82,6 +88,12 @@ static const char* pickNodeIcon(eOutlinerNodeKind kind, const std::string& compo
 		return ICON_FK_LIGHTBULB_O;
 	if (componentClassName == RGBPixelGridComponent::k_componentClassName)
 		return ICON_FK_TH;
+	if (componentClassName == DMXFixtureGroupComponent::k_componentClassName)
+		return ICON_FK_OBJECT_GROUP;
+	if (componentClassName == DMXPresetComponent::k_componentClassName)
+		return ICON_FK_SLIDERS;
+	if (componentClassName == DMXSequenceComponent::k_componentClassName)
+		return ICON_FK_PLAY_CIRCLE;
 
 	// Scene actors: stencils as masks, shapes by primitive
 	if (componentClassName == AnchorComponent::k_componentClassName)
@@ -339,6 +351,45 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 										 { addComponentNode(lightsFolder, eOutlinerNodeKind::stageLight, light); },
 										 [stageId](RGBPixelGridComponentPtr light)
 										 { return light->getDMXFixtureDefinition()->getOwnerStageId() == stageId; });
+	}
+
+	// Light groups: authored fixture bundles, nested under this stage's Lights
+	// folder so the add button is reachable even with no group yet
+	ProjectOutlinerNodePtr lightGroupsFolder=
+		addFolderNode(lightsFolder, eOutlinerNodeKind::folderLightGroups, "project.outlinerLightGroupsGroup", stageId);
+	if (auto lightGroupSystem= projectManager->getSystemOfType<DMXFixtureGroupSystem>())
+	{
+		DMXPresetSystemPtr presetSystem= projectManager->getSystemOfType<DMXPresetSystem>();
+		DMXSequenceSystemPtr sequenceSystem= projectManager->getSystemOfType<DMXSequenceSystem>();
+
+		lightGroupSystem->visitComponents(
+			[&](DMXFixtureGroupComponentPtr group)
+			{
+				ProjectOutlinerNodePtr groupNode=
+					addComponentNode(lightGroupsFolder, eOutlinerNodeKind::lightGroup, group);
+
+				if (presetSystem)
+				{
+					const MikanDMXFixtureGroupID groupId= group->getComponentId();
+					presetSystem->visitComponents(
+						[&](DMXPresetComponentPtr preset)
+						{ addComponentNode(groupNode, eOutlinerNodeKind::dmxPreset, preset); },
+						[groupId](DMXPresetComponentPtr preset)
+						{ return preset->getDMXPresetDefinition()->getGroupId() == groupId; });
+				}
+
+				if (sequenceSystem)
+				{
+					const MikanDMXFixtureGroupID groupId= group->getComponentId();
+					sequenceSystem->visitComponents(
+						[&](DMXSequenceComponentPtr sequence)
+						{ addComponentNode(groupNode, eOutlinerNodeKind::dmxSequence, sequence); },
+						[groupId](DMXSequenceComponentPtr sequence)
+						{ return sequence->getDMXSequenceDefinition()->getGroupId() == groupId; });
+				}
+			},
+			[stageId](DMXFixtureGroupComponentPtr group)
+			{ return group->getDMXFixtureGroupDefinition()->getOwnerStageId() == stageId; });
 	}
 
 	// Scenes attached to this stage

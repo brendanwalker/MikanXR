@@ -3,7 +3,7 @@
 import { EnumRegistry } from '../Serialization/EnumRegistry.js';
 import { MikanAPIResult } from './MikanAPITypes.js';
 import { MikanClientGraphicsApi, MikanColorBufferType, MikanConstants, MikanCoreResult, MikanDepthBufferType, MikanDisconnectCode, MikanLogLevel, MikanShadowBufferType } from './MikanCoreConstants.js';
-import { MikanDMXBufferFormat } from './MikanLightTypes.js';
+import { MikanDMXBufferFormat, MikanDMXScrollDirection, MikanDMXSequenceContentSource, MikanPixelGridOrigin } from './MikanLightTypes.js';
 import { MikanMarkerDictionaryType } from './MikanMarkerTypes.js';
 import { MikanPropertyNotifyMode } from './MikanPropertyRequests.js';
 import { MikanStageTrackingVolume } from './MikanStageTypes.js';
@@ -24,6 +24,9 @@ export function registerAllEnums(): void {
   EnumRegistry.register('MikanLogLevel', MikanLogLevel);
   EnumRegistry.register('MikanShadowBufferType', MikanShadowBufferType);
   EnumRegistry.register('MikanDMXBufferFormat', MikanDMXBufferFormat);
+  EnumRegistry.register('MikanDMXScrollDirection', MikanDMXScrollDirection);
+  EnumRegistry.register('MikanDMXSequenceContentSource', MikanDMXSequenceContentSource);
+  EnumRegistry.register('MikanPixelGridOrigin', MikanPixelGridOrigin);
   EnumRegistry.register('MikanMarkerDictionaryType', MikanMarkerDictionaryType);
   EnumRegistry.register('MikanPropertyNotifyMode', MikanPropertyNotifyMode);
   EnumRegistry.register('MikanStageTrackingVolume', MikanStageTrackingVolume);

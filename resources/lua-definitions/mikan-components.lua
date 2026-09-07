@@ -10,6 +10,7 @@
 ---@class MikanComponent
 ---@field name string Component name (read/write)
 ---@field className string Component class name (read-only)
+---@field componentId integer Unique component ID (read-only)
 local MikanComponent = {}
 
 --- Get the CameraObjectSystem singleton.
@@ -193,6 +194,7 @@ local ModelShapeComponent = {}
 ---@field dmxStartChannel integer DMX start channel (read/write)
 ---@field dmxChannelCount integer Number of DMX channels used (read-only)
 ---@field isDisabled boolean Whether the fixture is disabled (read/write)
+---@field ownerStageId integer ID of the owning stage (read-only)
 local DMXFixtureComponent = {}
 
 --- Triangulate the light position using camera data.
@@ -227,7 +229,16 @@ function RGBSpotLightComponent:setRGB(r, g, b) end
 ---@class RGBPixelGridComponent : DMXFixtureComponent
 ---@field columns integer Number of pixel columns (read/write)
 ---@field rows integer Number of pixel rows (read/write)
+---@field originPixel integer Wiring origin corner: 0 upper left, 1 upper right, 2 lower left, 3 lower right (read/write)
+---@field zigZag boolean True when alternating rows are wired backwards (read/write)
 local RGBPixelGridComponent = {}
+
+--- Where a grid cell falls in the DMX stream, given the origin and zig-zag
+--- layout. Returns -1 when the cell is out of range.
+---@param col integer Column index (0-based)
+---@param row integer Row index (0-based)
+---@return integer
+function RGBPixelGridComponent:getPixelWireIndex(col, row) end
 
 --- Set a single pixel color.
 ---@param col integer Column index (0-based)
@@ -242,6 +253,132 @@ function RGBPixelGridComponent:setPixel(col, row, r, g, b) end
 ---@param g integer Green 0-255
 ---@param b integer Blue 0-255
 function RGBPixelGridComponent:fillPixels(r, g, b) end
+
+------------------------------------------------------------------------
+-- DMXFixtureGroupComponent : MikanComponent
+------------------------------------------------------------------------
+
+--- A named set of DMX fixtures on one stage. Membership is a set of fixture
+--- component ids; a fixture may belong to any number of groups.
+---@class DMXFixtureGroupComponent : MikanComponent
+---@field stageId integer Owning stage component id (read-only)
+local DMXFixtureGroupComponent = {}
+
+--- Number of member fixtures that currently resolve to a live component.
+---@return integer
+function DMXFixtureGroupComponent:getFixtureCount() end
+
+--- A member fixture by position among the resolved members, as its concrete
+--- class, so a pixel grid member answers to RGBPixelGridComponent's own fields.
+---@param index integer Zero-based index
+---@return DMXFixtureComponent|RGBSpotLightComponent|RGBPixelGridComponent|nil
+function DMXFixtureGroupComponent:getFixtureAtIndex(index) end
+
+---@param fixtureId integer
+---@return boolean
+function DMXFixtureGroupComponent:containsFixture(fixtureId) end
+
+--- Add a fixture by component id. Returns false when already a member.
+---@param fixtureId integer
+---@return boolean
+function DMXFixtureGroupComponent:addFixture(fixtureId) end
+
+--- Remove a fixture by component id. Returns false when not a member.
+---@param fixtureId integer
+---@return boolean
+function DMXFixtureGroupComponent:removeFixture(fixtureId) end
+
+------------------------------------------------------------------------
+-- DMXPresetComponent : MikanComponent
+------------------------------------------------------------------------
+
+--- A fixed set of DMX channel bytes for the fixtures of one group, captured
+--- from the live fixtures or edited in the preset panel.
+---@class DMXPresetComponent : MikanComponent
+---@field groupId integer The DMXFixtureGroupComponent this preset addresses (read-only)
+local DMXPresetComponent = {}
+
+--- Write the preset to every member fixture of its group. A member the
+--- preset holds no bytes for lands on zeros.
+function DMXPresetComponent:apply() end
+
+--- Snapshot every member fixture's current channel bytes into the preset.
+function DMXPresetComponent:capture() end
+
+------------------------------------------------------------------------
+-- DMXSequenceComponent : MikanComponent
+------------------------------------------------------------------------
+
+--- An animation of one fixture group. A Script sequence is driven by a handler
+--- registered through ScriptContext.registerSequence, which fills the frame
+--- buffer itself. The other content sources are rasterized by the editor; a
+--- handler is optional there and only its start and stop are called, for
+--- picking the content with setText or setContentPath.
+---@class DMXSequenceComponent : MikanComponent
+---@field groupId integer The DMXFixtureGroupComponent this sequence animates (read-only)
+---@field sequenceName string The registered handler name (read-only)
+---@field timeSinceStart number Seconds since play started, wrapped when looping (read-only)
+---@field isPlaying boolean
+---@field contentSource integer 0 script, 1 scroll bitmap, 2 scroll text, 3 play animation (read-only)
+---@field brightness number 0 to 1 dimmer applied to every channel the sequence sends (read-only)
+local DMXSequenceComponent = {}
+
+---@return DMXFixtureGroupComponent
+function DMXSequenceComponent:getGroup() end
+
+--- Start from zero (calling the handler's start) or resume from a pause.
+function DMXSequenceComponent:play() end
+
+function DMXSequenceComponent:pause() end
+
+--- Stop, calling the handler's stop. The last frame stays on the fixtures.
+function DMXSequenceComponent:stop() end
+
+--- Frame buffer: the first three channels of a fixture.
+---@param fixtureId integer
+---@param r integer
+---@param g integer
+---@param b integer
+function DMXSequenceComponent:setFixtureColor(fixtureId, r, g, b) end
+
+--- Frame buffer: one pixel of a pixel grid member; ignored for other fixtures.
+---@param fixtureId integer
+---@param col integer Zero-based column
+---@param row integer Zero-based row
+---@param r integer
+---@param g integer
+---@param b integer
+function DMXSequenceComponent:setPixel(fixtureId, col, row, r, g, b) end
+
+--- Frame buffer: a fixture's raw channel bytes.
+---@param fixtureId integer
+---@param bytes integer[]
+function DMXSequenceComponent:setFixtureChannels(fixtureId, bytes) end
+
+--- Frame buffer: every member of the group to one color (every pixel of a grid).
+---@param r integer
+---@param g integer
+---@param b integer
+function DMXSequenceComponent:fillGroup(r, g, b) end
+
+--- Override the text a ScrollText sequence rasterizes, for this run only.
+--- Call it from the handler's start; it never writes the component definition.
+---@param text string UTF-8
+function DMXSequenceComponent:setText(text) end
+
+--- Override the image a ScrollBitmap or PlayAnimation sequence reads, for this
+--- run only. Call it from the handler's start.
+---@param path string
+function DMXSequenceComponent:setContentPath(path) end
+
+--- The text in use: the override when one is set, otherwise the definition's.
+---@return string
+function DMXSequenceComponent:getText() end
+
+--- The content image in use: the override when one is set, otherwise the
+--- definition's.
+---@return string
+function DMXSequenceComponent:getContentPath() end
 
 ------------------------------------------------------------------------
 -- MarkerComponent : MikanComponent

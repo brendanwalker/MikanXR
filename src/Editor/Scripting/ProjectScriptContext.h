@@ -14,6 +14,9 @@ public:
 
 protected:
 	virtual bool bindContextFunctions() override;
+	// The project's component of that id, only when it is of the named class
+	virtual MikanComponentPtr resolveComponent(const std::string& componentClass,
+											   MikanComponentID componentId) const override;
 
 private:
 	ProjectManagerWeakPtr m_projectManager;

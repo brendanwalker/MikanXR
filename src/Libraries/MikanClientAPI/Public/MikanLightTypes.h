@@ -51,6 +51,36 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 #endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXFixtureGroupSystemValues
+	: public MikanSystemValues
+{
+	static const char* k_systemName;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXFixtureGroupSystemValues_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXPresetSystemValues
+	: public MikanSystemValues
+{
+	static const char* k_systemName;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXPresetSystemValues_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXSequenceSystemValues
+	: public MikanSystemValues
+{
+	static const char* k_systemName;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXSequenceSystemValues_GENERATED
+#endif
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanLightEnvironmentSystemValues
 	: public MikanSystemValues
 {
@@ -97,6 +127,15 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 #endif
 };
 
+/// The corner a pixel grid's wiring starts at, which fixes both scan directions.
+enum ENUM(Serialization::CodeGenModule("MikanLightTypes")) MikanPixelGridOrigin
+{
+	MikanPixelGridOrigin_UPPER_LEFT ENUMVALUE_STRING("UpperLeft"),
+	MikanPixelGridOrigin_UPPER_RIGHT ENUMVALUE_STRING("UpperRight"),
+	MikanPixelGridOrigin_LOWER_LEFT ENUMVALUE_STRING("LowerLeft"),
+	MikanPixelGridOrigin_LOWER_RIGHT ENUMVALUE_STRING("LowerRight"),
+};
+
 /// Pixel grid values — pixel data is NOT included (use SetLightDMXData request for bulk writes).
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRGBPixelGridComponentValues
 	: public MikanDMXFixtureComponentValues
@@ -108,8 +147,146 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 
 	FIELD() int grid_rows= 8;
 
+	/// The size of one pixel's box in millimetres. Z is the panel's depth.
+	FIELD() MikanVector3f pixel_size_mm= {30.f, 30.f, 10.f};
+
+	/// Centre to centre spacing between neighbouring pixels in millimetres
+	FIELD() MikanVector2f pixel_separation_mm= {40.f, 40.f};
+
+	FIELD() MikanPixelGridOrigin origin_pixel= MikanPixelGridOrigin_UPPER_LEFT;
+
+	/// LED strips wire to the nearest pixel on the next row, so alternating rows run backwards
+	FIELD() bool zig_zag= false;
+
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRGBPixelGridComponentValues_GENERATED
+#endif
+};
+
+/// A named set of DMX fixtures on one stage, the unit presets and sequences address.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXFixtureGroupComponentValues
+	: public MikanComponentValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() MikanStageID stage_id= INVALID_MIKAN_ID;
+
+	/// Component ids of the member fixtures (spot lights and pixel grids)
+	FIELD() Serialization::List<MikanLightID> fixture_ids;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXFixtureGroupComponentValues_GENERATED
+#endif
+};
+
+/// A fixed set of DMX channel bytes for the fixtures of one group. The bytes
+/// are one slice per fixture id, channel_counts long, concatenated in order.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXPresetComponentValues
+	: public MikanComponentValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() MikanDMXFixtureGroupID group_id= INVALID_MIKAN_ID;
+
+	FIELD() Serialization::List<MikanLightID> fixture_ids;
+
+	FIELD() Serialization::List<int> channel_counts;
+
+	FIELD() Serialization::List<uint8_t> channel_data;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXPresetComponentValues_GENERATED
+#endif
+};
+
+/// Where a sequence's pixels come from. Everything else about a sequence is
+/// shared across all four; only this decides who fills the frame buffer.
+enum ENUM(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXSequenceContentSource
+{
+	/// A Lua handler writes the frame buffer itself
+	MikanDMXSequenceContentSource_SCRIPT ENUMVALUE_STRING("Script"),
+	/// The editor rasterizes and scrolls a still image
+	MikanDMXSequenceContentSource_SCROLL_BITMAP ENUMVALUE_STRING("ScrollBitmap"),
+	/// The editor rasterizes and scrolls a line of UTF-8 text
+	MikanDMXSequenceContentSource_SCROLL_TEXT ENUMVALUE_STRING("ScrollText"),
+	/// The editor plays an animation's frames on their own timing
+	MikanDMXSequenceContentSource_PLAY_ANIMATION ENUMVALUE_STRING("PlayAnimation"),
+};
+
+/// Which way scrolled content travels across the grid.
+enum ENUM(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXScrollDirection
+{
+	MikanDMXScrollDirection_LEFT ENUMVALUE_STRING("Left"),
+	MikanDMXScrollDirection_RIGHT ENUMVALUE_STRING("Right"),
+	MikanDMXScrollDirection_UP ENUMVALUE_STRING("Up"),
+	MikanDMXScrollDirection_DOWN ENUMVALUE_STRING("Down"),
+};
+
+/// An animation of one fixture group, driven either by a Lua handler or by one
+/// of the editor's rasterized content sources. playback_state is 0 stopped,
+/// 1 playing, 2 paused.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXSequenceComponentValues
+	: public MikanComponentValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD() MikanDMXFixtureGroupID group_id= INVALID_MIKAN_ID;
+
+	/// The handler a project script registered through ScriptContext.registerSequence
+	FIELD() Serialization::String sequence_name;
+
+	/// Zero or less runs until stopped
+	FIELD() float duration_seconds= 10.f;
+
+	FIELD() bool loop= true;
+
+	FIELD() int playback_state= 0;
+
+	FIELD() float time_since_start= 0.f;
+
+	FIELD() MikanDMXSequenceContentSource content_source= MikanDMXSequenceContentSource_SCRIPT;
+
+	/// The still image a scrolling bitmap shows, or the GIF or sprite sheet an
+	/// animation plays. One path, since only one source is live at a time.
+	FIELD() Serialization::String content_path;
+
+	FIELD() Serialization::String scroll_text;
+
+	/// Empty falls back to the editor's bundled face
+	FIELD() Serialization::String font_path;
+
+	/// Zero means the target grid's own row count
+	FIELD() int text_pixel_height= 0;
+
+	/// Normalized RGB
+	FIELD() MikanVector3f foreground_color= {1.f, 1.f, 1.f};
+
+	/// Normalized RGB, also filling the grid wherever the content does not reach
+	FIELD() MikanVector3f background_color= {0.f, 0.f, 0.f};
+
+	FIELD() MikanDMXScrollDirection scroll_direction= MikanDMXScrollDirection_LEFT;
+
+	/// Pixels per second
+	FIELD() float scroll_speed= 8.f;
+
+	/// Zero means square frames the height of the sheet. Ignored for a GIF.
+	FIELD() int sprite_frame_width= 0;
+
+	FIELD() int sprite_frame_height= 0;
+
+	FIELD() float sprite_fps= 10.f;
+
+	/// Scales a GIF's own delays and a sprite sheet's frame rate alike
+	FIELD() float playback_speed_scale= 1.f;
+
+	/// A 0 to 1 dimmer on every channel the sequence sends
+	FIELD() float brightness= 1.f;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXSequenceComponentValues_GENERATED
 #endif
 };
 

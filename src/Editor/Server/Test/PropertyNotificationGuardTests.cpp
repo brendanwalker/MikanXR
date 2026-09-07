@@ -12,6 +12,9 @@
 #include "Camera/CameraComponent.h"
 #include "Compositor/CompositorComponent.h"
 #include "Light/LightEnvironmentComponent.h"
+#include "Light/DMXFixtureGroupComponent.h"
+#include "Light/DMXPresetComponent.h"
+#include "Light/DMXSequenceComponent.h"
 #include "Light/RGBPixelGridComponent.h"
 #include "Light/RGBSpotLightComponent.h"
 #include "Marker/MarkerComponent.h"
@@ -167,6 +170,9 @@ static const GuardTestEntry k_guardTestEntries[]= {
 	GUARD_ENTRY(CompositorComponent, CompositorDefinition),
 	GUARD_ENTRY(LightEnvironmentComponent, LightEnvironmentDefinition),
 	GUARD_ENTRY(RGBPixelGridComponent, RGBPixelGridDefinition),
+	GUARD_ENTRY(DMXFixtureGroupComponent, DMXFixtureGroupDefinition),
+	GUARD_ENTRY(DMXPresetComponent, DMXPresetDefinition),
+	GUARD_ENTRY(DMXSequenceComponent, DMXSequenceDefinition),
 	GUARD_ENTRY(RGBSpotLightComponent, RGBSpotLightDefinition),
 	GUARD_ENTRY(MarkerComponent, MarkerDefinition),
 	GUARD_ENTRY(SceneComponent, SceneComponentDefinition),

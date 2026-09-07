@@ -49,6 +49,7 @@ protected:
 	bool addClientSource(const char* clientId, const MikanClientInfo& clientInfo,
 						 class SharedTextureReadAccessor* readAccessor);
 	bool removeClientSource(const char* clientId, class SharedTextureReadAccessor* readAccessor);
+	void destroyClientSource(const std::string& tableKey, ClientSource* clientSource);
 
 	// MikanServer Events
 	void onClientRenderTargetAllocated(const char* clientId, const MikanClientInfo& clientInfo,

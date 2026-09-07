@@ -47,6 +47,10 @@ MIKAN_GUI_FUNC(bool)
 drawGlyphButtonWithLabel(const std::string& fieldName, const std::string& glyph, const std::string& label,
 						 float buttonSize= 0.f, float glyphSize= 0.f);
 
+// Keep the next item on the current row when it fits inside the window's
+// content width, otherwise let it wrap. Call between items of a flowing strip.
+MIKAN_GUI_FUNC(void) sameLineIfFits(float itemWidth);
+
 class MIKAN_GUI_CLASS ComboBoxDataSource
 {
 public:

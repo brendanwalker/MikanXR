@@ -530,6 +530,15 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 		gridSubDiv= 1;
 	drawGrid(graphicsContext, glm::mat4(1.f), gridExtent, gridExtent, gridSubDiv, gridSubDiv, Colors::GhostWhite);
 
+	// Translucent spot light cones last: they write no depth, so any opaque
+	// geometry drawn after them (the environment probe sphere encloses the
+	// whole scene in perspective) would paint over them
+	if (m_viewMode == eProjectViewMode::scene || m_viewMode == eProjectViewMode::stage)
+	{
+		if (auto spotLightSystem= m_spotLightSystem.lock())
+			spotLightSystem->renderConeVolumes(graphicsContext, viewportCamera);
+	}
+
 	// Draw the orthographic ruler overlay (no-op unless measuring in an ortho view)
 	if (auto editorSystem= m_editorSystem.lock())
 	{
@@ -696,9 +705,13 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 		addAllRenderablesToMkScene(m_pixelGridLightSystem.lock(), m_mkScene);
 		addAllRenderablesToMkScene(m_spotLightSystem.lock(), m_mkScene);
 
-		// Draw volumetric cone visualizations for spot lights
+		// Light axes and labels; the additive cones come after the opaque pass
 		if (auto spotLightSystem= m_spotLightSystem.lock())
 			spotLightSystem->customRender(graphicsContext, viewportCamera);
+
+		// Pixel grid boxes are opaque and write depth, so they belong here
+		if (auto pixelGridSystem= m_pixelGridLightSystem.lock())
+			pixelGridSystem->customRender(graphicsContext, viewportCamera);
 
 		// Draw all the environment lights in the stage
 		renderEnvironmentLightComponents(graphicsContext, viewportCamera, stageComponent);

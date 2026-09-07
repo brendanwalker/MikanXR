@@ -8,9 +8,15 @@
 #include "TransformComponent.h"
 
 #include <cstdint>
+#include <map>
 #include <string>
+#include <vector>
 
 class IDMXManager;
+
+// Channel bytes keyed by fixture component id, the unit presets store and
+// sequences fill each frame
+using DMXFixtureValueMap= std::map<MikanLightID, std::vector<uint8_t>>;
 
 // -- DMXFixtureComponentDefinition -----
 class DMXFixtureComponentDefinition : public TransformComponentDefinition
@@ -74,6 +80,15 @@ public:
 	eTrackingVolumeType getTrackingVolumeType() const;
 
 	virtual void init() override;
+
+	// -- Channel data --
+	// The fixture's current DMX channel bytes, getDMXChannelCount() long
+	virtual void getChannelValues(std::vector<uint8_t>& outValues) const {}
+	// Write the fixture's channel bytes (padded with zeros or truncated to the
+	// channel count), update its visuals, and send them over DMX
+	virtual void setChannelValues(const std::vector<uint8_t>& values) {}
+	// Push the fixture's current channel bytes to the DMX system
+	virtual void sendDMXData() const {}
 
 	// -- Lua Binding --
 	static void bindLuaFunctions(struct lua_State* L);

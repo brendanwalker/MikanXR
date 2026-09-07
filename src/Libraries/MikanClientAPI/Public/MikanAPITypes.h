@@ -58,10 +58,14 @@ enum class ENUM(Serialization::CodeGenModule("MikanAPITypes")) MikanAPIResult
 #define MIKAN_REQUEST_TYPE_INFO_INIT(className) MIKAN_TYPE_INFO_INIT(request, className)
 #define MIKAN_RESPONSE_TYPE_INFO_INIT(className) MIKAN_TYPE_INFO_INIT(response, className)
 #else
-#define MIKAN_TYPE_INFO_INIT(...)
-#define MIKAN_EVENT_TYPE_INFO_INIT(...)
-#define MIKAN_REQUEST_TYPE_INFO_INIT(...)
-#define MIKAN_RESPONSE_TYPE_INFO_INIT(...)
+// Consumers built without reflection still construct requests through these inline constructors,
+// and the server routes on the type name, so stamp the class name directly. It equals the
+// Refureku archetype name the reflection build produces.
+#define MIKAN_TYPE_INFO_INIT(classPrefix, className) classPrefix##TypeName= #className;
+
+#define MIKAN_EVENT_TYPE_INFO_INIT(className) MIKAN_TYPE_INFO_INIT(event, className)
+#define MIKAN_REQUEST_TYPE_INFO_INIT(className) MIKAN_TYPE_INFO_INIT(request, className)
+#define MIKAN_RESPONSE_TYPE_INFO_INIT(className) MIKAN_TYPE_INFO_INIT(response, className)
 #endif // MIKANAPI_REFLECTION_ENABLED
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequest

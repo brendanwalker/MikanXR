@@ -128,9 +128,56 @@ function Quatf:normalize() end
 
 ---@class ScriptContext
 --- All project scripts share one Lua state. `registerTrigger`, `registerMessageHandler`,
---- and `registerHttpTrigger` attribute the registration to whichever script file is
---- currently being loaded.
+--- `registerHttpTrigger`, and `registerVariable` attribute the registration to whichever
+--- script file is currently being loaded.
 ScriptContext = {}
+
+--- Register a global Lua variable as an editor-editable, persisted script parameter.
+--- The variable's type is taken from the default: boolean, integer (a Lua integer
+--- such as `4`), number (a Lua float such as `4.0`), string, or Vec3f. A value
+--- stored in the project for this script wins over the default; otherwise the
+--- default is adopted and stored. After the call the global `name` holds the
+--- effective value, and every edit in the script panel rewrites that global, so
+--- read it inside trigger bodies rather than caching it at chunk scope. A name
+--- already registered by any script is rejected.
+---@param name string Name of the global variable to register.
+---@param defaultValue boolean|integer|number|string|Vec3f
+---@return boolean registered
+function ScriptContext.registerVariable(name, defaultValue) end
+
+--- Register a global Lua variable that references one scene component of the
+--- given class (a `k_componentClassName` string such as "StageComponent"). The
+--- script panel shows it as a dropdown of that class's live components plus
+--- none. The global holds the component handle typed by its class, or nil when
+--- nothing is selected or the selected object no longer exists. Mikan rewrites
+--- the global on every panel edit and on object creation and destruction, so
+--- read it inside trigger bodies and nil-check it. A stored selection in the
+--- project wins; otherwise none is adopted. An unknown class name or a name
+--- already registered by any script is rejected.
+---@param name string Name of the global variable to register.
+---@param componentClassName string Component class the variable may reference.
+---@return boolean registered
+function ScriptContext.registerComponent(name, componentClassName) end
+
+--- A DMX sequence handler. Only `update` is required. Each callback receives
+--- the DMXSequenceComponent that is playing; `update` also receives the time
+--- since play started (seconds, wrapped when the sequence loops) and the frame
+--- delta. Write into the sequence's frame buffer (setFixtureColor, setPixel,
+--- setFixtureChannels, fillGroup); Mikan pushes it to the fixtures after the
+--- callback returns.
+---@class DMXSequenceHandler
+---@field start fun(sequence: DMXSequenceComponent)|nil
+---@field update fun(sequence: DMXSequenceComponent, timeSinceStart: number, deltaSeconds: number)
+---@field stop fun(sequence: DMXSequenceComponent)|nil
+
+--- Register a sequence handler under a name a DMXSequenceComponent can pick.
+--- A Lua error inside a callback stops that sequence and logs the error; it
+--- does not unload the project scripts. A name already registered by any
+--- script, or a table without an update function, is rejected.
+---@param name string
+---@param handler DMXSequenceHandler
+---@return boolean registered
+function ScriptContext.registerSequence(name, handler) end
 
 --- Register a global Lua function as a trigger.
 --- Triggers are called by Mikan in response to UI Button Events.

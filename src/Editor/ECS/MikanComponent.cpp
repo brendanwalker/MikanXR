@@ -239,6 +239,7 @@ void MikanComponent::bindLuaFunctions(struct lua_State* L)
 		.beginClass<MikanComponent>("MikanComponent")
 		.addProperty("name", &MikanComponent::getName, &MikanComponent::setName)
 		.addProperty("className", &MikanComponent::getComponentClassName)
+		.addProperty("componentId", [](MikanComponent* c) -> int { return c->getComponentId(); })
 		.addFunction("getCameraSystem", [](MikanComponent* c) -> CameraObjectSystem*
 					 { return c->getObjectSystemOfType<CameraObjectSystem>().get(); })
 		.addFunction("getSceneSystem", [](MikanComponent* c) -> SceneObjectSystem*

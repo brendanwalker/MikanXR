@@ -57,6 +57,8 @@ public:
 	inline static const std::string k_objectSystemClassName= "DMXObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
+	static constexpr size_t kDMXUniverseChannelCount= 512;
+
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 	virtual void update(float deltaSeconds) override;
@@ -95,11 +97,19 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
+	// Blackout: zero every fixture's channels through the fixtures (so their
+	// visuals follow), then every active universe buffer
+	void zeroAllChannels();
+
+	// -- IFunctionInterface ----
+	static const std::string k_zeroAllChannelsFunctionId;
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	virtual bool invokeFunction(const std::string& functionName) override;
+
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);
 
 private:
-	static constexpr size_t kDMXUniverseChannelCount= 512;
 	struct UniverseData
 	{
 		uint16_t universeId;

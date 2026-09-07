@@ -68,6 +68,15 @@ bool UdpMulticastSocket::open(const std::string& bindIP)
 		return false;
 	}
 
+	// Binding alone does not pick the multicast egress on Windows: without this
+	// the packets leave on whichever adapter has the lowest metric route for
+	// 224.0.0.0/4, which on a multi-homed machine is often the wrong network
+	if (bindAddr.sin_addr.s_addr != INADDR_ANY)
+	{
+		::setsockopt(static_cast<SOCKET>(m_socket), IPPROTO_IP, IP_MULTICAST_IF,
+					 reinterpret_cast<const char*>(&bindAddr.sin_addr), sizeof(bindAddr.sin_addr));
+	}
+
 	// Set multicast TTL to 1 (LAN only)
 	uint8_t ttl= 1;
 	::setsockopt(static_cast<SOCKET>(m_socket), IPPROTO_IP, IP_MULTICAST_TTL, reinterpret_cast<const char*>(&ttl),

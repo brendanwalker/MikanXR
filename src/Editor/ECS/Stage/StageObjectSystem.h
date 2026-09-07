@@ -43,4 +43,7 @@ public:
 		return Super::getTypedComponentByName(stageName);
 	}
 	inline MikanStageID getFirstStageId() const { return Super::getFirstComponentId(); }
+
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
 };

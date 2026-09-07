@@ -310,6 +310,12 @@ void TransactionHistory::capturePropertyChange(const std::string& systemName, co
 		return;
 	}
 
+	// A read-only property cannot be re-applied through setPropertyValue, so
+	// recording it would only produce a failing op on undo (the typed systems'
+	// component id lists notify on every create and destroy)
+	if (descriptor->isReadOnly())
+		return;
+
 	MikanVariant newValue;
 	if (!propertyInterface->getPropertyValue(propertyName, newValue))
 		return;

@@ -37,6 +37,12 @@
 #include "Compositor/CompositorComponent.h"
 #include "Editor/EditorObjectSystem.h"
 #include "Light/DMXFixtureComponent.h"
+#include "Light/DMXFixtureGroupComponent.h"
+#include "Light/DMXFixtureGroupSystem.h"
+#include "Light/DMXPresetComponent.h"
+#include "Light/DMXPresetSystem.h"
+#include "Light/DMXSequenceComponent.h"
+#include "Light/DMXSequenceSystem.h"
 #include "Light/DMXObjectSystem.h"
 #include "Light/RGBPixelGridComponent.h"
 #include "Light/LightEnvironmentComponent.h"
@@ -101,6 +107,9 @@ inline const SchemaTestEntry k_schemaTestEntries[]= {
 	// it is never serialized directly); its fields are covered by the concrete
 	// RGBSpotLightComponent / RGBPixelGridComponent entries below.
 	SCHEMA_ENTRY(RGBPixelGridComponent, MikanRGBPixelGridComponentValues),
+	SCHEMA_ENTRY(DMXFixtureGroupComponent, MikanDMXFixtureGroupComponentValues),
+	SCHEMA_ENTRY(DMXPresetComponent, MikanDMXPresetComponentValues),
+	SCHEMA_ENTRY(DMXSequenceComponent, MikanDMXSequenceComponentValues),
 	SCHEMA_ENTRY(RGBSpotLightComponent, MikanRGBSpotLightComponentValues),
 	SCHEMA_ENTRY(LightEnvironmentComponent, MikanLightEnvironmentComponentValues),
 	SCHEMA_ENTRY(MarkerComponent, MikanMarkerComponentValues),
@@ -132,6 +141,9 @@ inline const SchemaTestEntry k_schemaTestEntries[]= {
 	// -- Object systems --
 	SCHEMA_ENTRY(EditorObjectSystem, MikanEditorSystemValues),
 	SCHEMA_ENTRY(DMXObjectSystem, MikanDMXObjectSystemValues),
+	SCHEMA_ENTRY(DMXFixtureGroupSystem, MikanDMXFixtureGroupSystemValues),
+	SCHEMA_ENTRY(DMXPresetSystem, MikanDMXPresetSystemValues),
+	SCHEMA_ENTRY(DMXSequenceSystem, MikanDMXSequenceSystemValues),
 	SCHEMA_ENTRY(MarkerObjectSystem, MikanMarkerSystemValues),
 	SCHEMA_ENTRY(BoxShapeSystem, MikanBoxShapeSystemValues),
 	SCHEMA_ENTRY(ModelShapeSystem, MikanModelShapeSystemValues),

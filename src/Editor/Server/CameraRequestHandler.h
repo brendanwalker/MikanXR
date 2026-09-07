@@ -29,13 +29,13 @@ public:
 	class SharedTextureReadAccessor* getRenderTargetReadAccessor(MikanCameraID cameraId) const;
 	bool hasAllocatedRenderTarget(MikanCameraID cameraId) const;
 	bool allocateRenderTargetTextures(MikanCameraID cameraId, const MikanRenderTargetDescriptor& desc);
-	void freeRenderTargetTexturesHandler(MikanCameraID cameraId);
+	void disposeRenderTargetAccessor(MikanCameraID cameraId);
 	bool readRenderTargetTextures(MikanCameraID cameraId, const int64_t newFrameIndex);
 
 protected:
 	class SharedTextureReadAccessor* getOrAllocateRenderTargetAccessor(MikanCameraID cameraId,
 																	   const MikanRenderTargetDescriptor& desc);
-	void disposeRenderTargetAccessor(MikanCameraID cameraId);
+	void notifyRenderTargetReleased(class SharedTextureReadAccessor* readAccessor);
 
 private:
 	class MikanClientConnectionState* m_owner= nullptr;

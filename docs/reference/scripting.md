@@ -56,6 +56,8 @@ The outliner's project root has a top-level Scripts folder. Its add button calls
 
 `CommonScriptContext` (`Scripting/CommonScriptContext.h`) owns the `lua_State`: standard libs opened, a panic handler and detailed error reporting (`checkLuaResult` logs Lua tracebacks and disposes the state on error), and a built-in coroutine scheduler. The scheduler injects globals `start_coroutine`, `wait_frames`, `wait_next_frame`, `wait_seconds`, `get_frame_delta_seconds`. `update_scheduler()` is invoked once per frame from `updateScript()`. `runScriptFile(path, scriptId)` runs one file's chunk into the shared state. While the chunk runs, `m_loadingScriptId` holds the running script's id so any registration it makes is attributed to it.
 
+`require` resolves against the project's own `scripts` folder. `setupModuleSearchPath` prepends `<project>/scripts/?.lua` and `<project>/scripts/?/init.lua` to `package.path` when the state is created, so `require("color")` loads `<project>/scripts/color.lua` and a dotted name walks subfolders. Lua's stock entries stay behind those, and the search path is rebuilt on every reload, along with the `package.loaded` cache that lives in the state. A required module is not a `ScriptComponent`: it registers nothing, it is loaded on demand by whichever script requires it, and it returns a table rather than defining globals. `resources/scripts/easing.lua` and `formatting.lua` are written that way. The same context also replaces `package.searchers[2]`, the stock file loader, with one that finds the file through `package.path` but loads it under the chunk name above, so a breakpoint set in a required module resolves like one set in a project script.
+
 Editor support: the project folder is the VS Code workspace for its scripts. `resources/lua-definitions/` holds LuaLS stub files (`mikan-core.lua`, `mikan-systems.lua`, `mikan-components.lua`) describing every binding above, kept in sync by hand with the `bindLuaFunctions` implementations they name. Loading a project writes two files into the project folder, each only when missing, so delete one to regenerate it after moving the editor install:
 
 - `.luarc.json`: points the VS Code Lua extension's `workspace.library` at the stub directory
@@ -68,23 +70,53 @@ Scripts declare their entry points through the `ScriptContext` namespace. Each r
 - `ScriptContext.registerTrigger(functionName)`: exposes a named global function as a trigger.
 - `ScriptContext.registerMessageHandler(functionName)`: handler receives a string message, returns true if handled.
 - `ScriptContext.registerHttpTrigger(routeName, functionName)`: binds a trigger to the HTTP route `/trigger/<routeName>`.
+- `ScriptContext.registerVariable(name, defaultValue)`: exposes a global as an editor-editable, persisted parameter (below).
+- `ScriptContext.registerComponent(name, componentClassName)`: exposes a global that references one component of that class (below).
+- `ScriptContext.registerSequence(name, handlerTable)`: registers a DMX sequence handler a `DMXSequenceComponent` can pick (below).
 - `ScriptContext.broadcastMessage(message)`: emits a message to connected clients.
 
-`ScriptComponent::getTriggerNames()` and `invokeTrigger()` filter to the triggers registered by that component's own file (`CommonScriptContext::getTriggerNamesForScript(scriptId, ...)`).
+`ScriptComponent::getTriggerNames()` and `invokeTrigger()` filter to the triggers registered by that component's own file (`CommonScriptContext::getTriggerNamesForScript(scriptId, ...)`). A trigger run from the panel button or the `script trigger` automation command is bracketed as one transaction gesture ([transactions.md](./transactions.md)).
 
-What is scriptable: `ProjectScriptContext::bindContextFunctions()` binds LuaBridge classes for the object systems (`CameraObjectSystem`, `SceneObjectSystem`, `AnchorObjectSystem`, `CompositorObjectSystem`, `DMXObjectSystem`, the stencil and shape systems) and components (`MikanComponent` and subclasses: transform, scene, stage, camera, compositor, stencils, shapes, anchor, marker, DMX fixture, RGB lights). It sets these globals, one per scriptable object system:
+### Script variables
+
+`registerVariable` turns a Lua global into a parameter the script panel shows as a widget and the project file persists. The variable's type comes from the default value: boolean, integer, number, string, or `Vec3f` map to BOOL, INT, FLOAT, STRING, VECTOR3F. Lua keeps integer and float subtypes apart, so `30` registers INT and `30.0` registers FLOAT. Any other type, a call outside a script chunk, or a name already registered by any script (all scripts share one global table) is rejected with a logged error.
+
+Values live in the registering script's `ScriptDefinition` (`ScriptVariableTable`, `Scripting/ScriptVariableTable.h`), persisted under `script_variables` as `{"type": name, "value": ...}` entries. On every reload the chunk re-registers its variables and `CommonScriptContext::registerVariable` resolves each one against the definition: a stored value of the same name and type wins, otherwise the default is adopted and stored. The effective value is then written to the Lua global. A stored entry the script no longer registers stays in the definition and is not shown.
+
+The definition is the single source of truth. A panel edit, an undo, or an automation set writes the definition, and `ScriptComponent::onDefinitionMarkedDirty` pushes every stored value back into the Lua globals through `CommonScriptContext::setVariableValue`. A `Vec3f` global is a userdata copy replaced on each push, so scripts read variables inside trigger bodies rather than caching them at chunk scope. Script-side writes to a global are not persisted.
+
+`registerComponent(name, componentClassName)` registers a component reference: an INT component id (`INVALID_MIKAN_ID` for none) tagged with a `k_componentClassName` string, persisted as `{"type": "component", "class": name, "value": id}`. The panel draws it as a dropdown of that class's live components with a leading none entry (`GuiDataSource_OptionalComponentComboBox`), finding the owning system as the one whose `getComponentIdList` answers for the class. The Lua global holds the component handle or `nil`. LuaBridge pushes a pointer by its static type, so `ProjectScriptContext` registers one push thunk per bound component class (`CommonScriptContext::registerComponentClass`) and `registerComponent` accepts only those classes. That thunk table is how any component reaches Lua as its concrete class: `CommonScriptContext::pushComponent` looks the thunk up by `getComponentClassName` and pushes exactly one value, nil for a null component or an unbound class. A binding that returns a base pointer has to go through it, since returning the base type would hand Lua the base class's metatable and hide the subclass's own fields. `DMXFixtureGroupComponent::getFixtureAtIndex` is the case that needs it, because a group holds fixtures of mixed kinds: it reaches the context through `CommonScriptContext::getFromLuaState`, which reads the owning context out of the state's registry, and returns the fixture as `RGBSpotLightComponent` or `RGBPixelGridComponent`. The id resolves through `ProjectManager::getComponentById` with an exact class check. The global is re-pushed on registration, on every write, and on object lifecycle: `ScriptObjectSystem` subscribes to every system's `OnNewObjectFinalized` and `OnObjectWillBeDestroyed` and calls `refreshComponentVariables`, excluding the id of an object about to be destroyed, so a script never holds a handle to a dead object and an undone destroy restores the handle. Scripts nil-check a reference inside trigger bodies.
+
+The property surface is one descriptor, `script_variables`, a UI-hidden and client-API-hidden STRING carrying the table's single-line JSON. Every variable edit notifies that one name, which is what lets the transaction recorder capture it and undo re-apply the text verbatim. The panel draws the variables itself through `ScriptComponent::getScriptVariableNames` / `getScriptVariable` / `setScriptVariable`, labeled by their Lua names.
+
+### Sequences
+
+`registerSequence(name, handlerTable)` registers a DMX sequence handler: a table with an `update(sequence, timeSinceStart, deltaSeconds)` function and optional `start(sequence)` and `stop(sequence)`. The table is held as a Lua registry reference (`CommonScriptContext::SequenceBinding`) released before the state closes. A `DMXSequenceComponent` (objects.md) names a handler and, while playing, `DMXSequenceSystem::update` calls `update` once per frame through `CommonScriptContext::callSequenceHandler`. The handler writes into the sequence's frame buffer (`setFixtureColor`, `setPixel`, `setFixtureChannels`, `fillGroup`) and the system pushes that buffer to the group's fixtures after the callback returns, so one frame is one send per fixture. Handlers are resolved by name every frame, so a script reload that re-registers the name keeps a playing sequence going, and one that drops it stops the sequence. A Lua error inside a handler callback logs the message and traceback naming the sequence and stops that sequence only: unlike a trigger, it does not dispose the shared state, since a frame-rate callback that took every script down would make the state unusable. `resources/scripts/sequence_chase.lua` is the worked example.
+
+A sequence whose `content_source` is not `Script` is rasterized by the editor instead, and a handler becomes optional. Only `start` and `stop` are called there, never `update`, since C++ owns the pixels for those sources. The point of `start` is dynamic content selection: `sequence:setText(s)` and `sequence:setContentPath(p)` set the text or image the run uses. Both are runtime overrides cleared on stop, so picking content never writes the definition and never records a transaction, and `sequence:getText()` / `getContentPath()` read back whichever value is in force. A handler that is named but missing stops a `Script` sequence and is ignored by a rasterized one.
+
+`resources/scripts/generate_lights.lua` is the worked example: a `generate_lights` trigger that lays out `RGBSpotLightComponent` objects on a stage in a zig-zag grid with sequential DMX addressing, every parameter a script variable.
+
+What is scriptable: `ProjectScriptContext::bindContextFunctions()` binds LuaBridge classes for the object systems (`CameraObjectSystem`, `SceneObjectSystem`, `StageObjectSystem`, `AnchorObjectSystem`, `CompositorObjectSystem`, `DMXObjectSystem`, `RGBSpotLightSystem`, the stencil and shape systems) and components (`MikanComponent` and subclasses: transform, scene, stage, camera, compositor, stencils, shapes, anchor, marker, DMX fixture, RGB lights). It sets these globals, one per scriptable object system:
 
 - `CameraSystem`
 - `SceneSystem`
+- `StageSystem`
 - `AnchorSystem`
 - `CompositorSystem`
 - `DMXSystem`
+- `RGBSpotLightSystem`
+- `DMXFixtureGroupSystem`
+- `DMXPresetSystem`
+- `DMXSequenceSystem`
 - `ModelStencilSystem`
 - `BoxStencilSystem`
 - `QuadStencilSystem`
 - `ModelShapeSystem`
 - `BoxShapeSystem`
 - `QuadShapeSystem`
+
+The system bindings are lookups by id, name, and index. `RGBSpotLightSystem` is the one system that also creates and destroys: `createLight(stageId, name)` parents a new light to the stage at its origin through `addNewObjectByTypedDefinition`, and `removeLight(lightId)` destroys one, both through the same paths the outliner uses so the transaction recorder sees them. A script removing lights collects the ids first and removes afterwards, since the component map cannot be walked while it changes. `DMXFixtureGroupSystem` follows the same shape (`createGroup(stageId, name)`, `removeGroup(groupId)`), and a group component exposes `stageId`, `getFixtureCount()`, `getFixtureAtIndex(i)`, `containsFixture(id)`, `addFixture(id)`, and `removeFixture(id)`. `DMXPresetSystem` likewise (`createPreset(groupId, name)`, `removePreset(presetId)`), and a preset exposes `groupId`, `apply()`, and `capture()`. `DMXSequenceSystem` likewise (`createSequence(groupId, name)`, `removeSequence(sequenceId)`), and a sequence exposes `groupId`, `sequenceName`, `timeSinceStart`, `isPlaying`, `getGroup()`, `play()`, `pause()`, `stop()`, and the frame buffer writers. `DMXSystem.universeChannelCount` exposes the 512-slot universe size for channel arithmetic. Every component exposes `componentId`, and a DMX fixture exposes `ownerStageId`.
 
 There is no `ownerComponent` global: a script is not bound to a single component, so it reaches objects through the system globals above. A component handle still exposes `getCameraSystem()`, `getSceneSystem()`, `getDMXSystem()`, `getAnchorSystem()`, `getCompositorSystem()` methods for scripts that already hold a component reference. Math helpers `LuaVec3f`/`LuaQuatf` come from `Scripting/LuaMath.h`. Enum constants (e.g. `eStencilCullMode`) are registered as globals.
 

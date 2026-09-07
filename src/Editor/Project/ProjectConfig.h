@@ -73,6 +73,9 @@ public:
 	DMXObjectSystemDefinitionPtr dmxObjectSystemDefinition;
 	RGBSpotLightSystemDefinitionPtr rgbSpotLightSystemDefinition;
 	RGBPixelGridSystemDefinitionPtr rgbPixelGridSystemDefinition;
+	DMXFixtureGroupSystemDefinitionPtr dmxFixtureGroupSystemDefinition;
+	DMXPresetSystemDefinitionPtr dmxPresetSystemDefinition;
+	DMXSequenceSystemDefinitionPtr dmxSequenceSystemDefinition;
 	LightEnvironmentSystemDefinitionPtr lightEnvironmentSystemDefinition;
 	ScriptObjectSystemDefinitionPtr scriptSystemDefinition;
 

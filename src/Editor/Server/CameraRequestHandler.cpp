@@ -44,12 +44,18 @@ SharedTextureReadAccessor* RenderTargetClientState::getOrAllocateRenderTargetAcc
 	return readAccessor;
 }
 
+// The one place a render target accessor goes away. Every teardown path routes through here
+// (an explicit free request, a dropped connection, the connection state's destructor) so that
+// listeners always see the release. A listener that misses one keeps a source bound to a dead
+// accessor, and the client's next allocation has nowhere to land.
 void RenderTargetClientState::disposeRenderTargetAccessor(MikanCameraID cameraId)
 {
 	auto it= m_renderTargetReadAccessorCameraMap.find(cameraId);
 	if (it != m_renderTargetReadAccessorCameraMap.end())
 	{
 		SharedTextureReadAccessorPtr readAccessor= it->second;
+
+		notifyRenderTargetReleased(readAccessor.get());
 
 		// invokes SharedTextureReadAccessor::dispose upon removal of SharedTextureReadAccessor
 		m_renderTargetReadAccessorCameraMap.erase(it);
@@ -58,8 +64,28 @@ void RenderTargetClientState::disposeRenderTargetAccessor(MikanCameraID cameraId
 
 void RenderTargetClientState::disposeAllRenderTargetAccessors()
 {
-	// invokes SharedTextureReadAccessor destructor on each SharedTextureReadAccessor
-	m_renderTargetReadAccessorCameraMap.clear();
+	// Take the first entry each pass rather than iterating: a listener is free to reach back
+	// into this state while being notified.
+	while (!m_renderTargetReadAccessorCameraMap.empty())
+	{
+		disposeRenderTargetAccessor(m_renderTargetReadAccessorCameraMap.begin()->first);
+	}
+}
+
+void RenderTargetClientState::notifyRenderTargetReleased(SharedTextureReadAccessor* readAccessor)
+{
+	if (readAccessor == nullptr)
+		return;
+
+	// The server owns the connection states, so it outlives them on every ordinary path. The
+	// destructor can still run during teardown, after the request handler is gone.
+	MikanServer* mikanServer= MikanServer::getInstance();
+	auto* cameraRequestHandler= mikanServer != nullptr ? mikanServer->getCameraRequestHandler() : nullptr;
+
+	if (cameraRequestHandler != nullptr && cameraRequestHandler->OnClientRenderTargetReleased)
+	{
+		cameraRequestHandler->OnClientRenderTargetReleased(m_owner->getClientId(), readAccessor);
+	}
 }
 
 class SharedTextureReadAccessor* RenderTargetClientState::getRenderTargetReadAccessor(MikanCameraID cameraId) const
@@ -109,23 +135,6 @@ bool RenderTargetClientState::allocateRenderTargetTextures(MikanCameraID cameraI
 	}
 
 	return false;
-}
-
-void RenderTargetClientState::freeRenderTargetTexturesHandler(MikanCameraID cameraId)
-{
-	SharedTextureReadAccessor* readAccessor= getRenderTargetReadAccessor(cameraId);
-
-	if (readAccessor)
-	{
-		auto* cameraRequestHandler= MikanServer::getInstance()->getCameraRequestHandler();
-
-		if (cameraRequestHandler->OnClientRenderTargetReleased)
-		{
-			cameraRequestHandler->OnClientRenderTargetReleased(m_owner->getClientId(), readAccessor);
-		}
-
-		disposeRenderTargetAccessor(cameraId);
-	}
 }
 
 bool RenderTargetClientState::readRenderTargetTextures(MikanCameraID cameraId, const int64_t newFrameIndex)
@@ -197,20 +206,8 @@ void CameraRequestHandler::freeRenderTargetTexturesHandler(const ClientRequest& 
 	{
 		RenderTargetClientState* renderTargetState= clientState->getRenderTargetClientState();
 
-		// Broadcast that the client render target was disposed
-		if (OnClientRenderTargetReleased)
-		{
-			SharedTextureReadAccessor* readAccessor=
-				renderTargetState->getRenderTargetReadAccessor(freeRenderTargetTexturesRequest.camera_id);
-
-			if (readAccessor != nullptr)
-			{
-				OnClientRenderTargetReleased(clientState->getClientId(), readAccessor);
-			}
-		}
-
-		// Free the render target texture
-		renderTargetState->freeRenderTargetTexturesHandler(freeRenderTargetTexturesRequest.camera_id);
+		// Free the render target texture, which broadcasts the release to listeners
+		renderTargetState->disposeRenderTargetAccessor(freeRenderTargetTexturesRequest.camera_id);
 
 		// Send response back to the client
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);

@@ -9,6 +9,10 @@
 #include "ClientTextureSourceSystem.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
+#include "DMXFixtureGroupComponent.h"
+#include "DMXFixtureGroupSystem.h"
+#include "DMXPresetSystem.h"
+#include "DMXSequenceSystem.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
 #include "MarkerObjectSystem.h"
@@ -168,14 +172,7 @@ int addSpotLight(ProjectManagerPtr projectManager, int stageId)
 	if (!sys)
 		return INVALID_MIKAN_ID;
 
-	return componentIdOrInvalid(sys->addNewObjectByTypedDefinition(
-		[stageId](auto def)
-		{
-			def->setOwnerStageId(stageId);
-			def->setParentTransformId(stageId);
-			def->setRelativeTransform(GlmTransform());
-			return true;
-		}));
+	return componentIdOrInvalid(sys->createLight(stageId, ""));
 }
 
 int addPixelGrid(ProjectManagerPtr projectManager, int stageId)
@@ -192,6 +189,33 @@ int addPixelGrid(ProjectManagerPtr projectManager, int stageId)
 			def->setRelativeTransform(GlmTransform());
 			return true;
 		}));
+}
+
+int addLightGroup(ProjectManagerPtr projectManager, int stageId)
+{
+	auto sys= projectManager->getSystemOfType<DMXFixtureGroupSystem>();
+	if (!sys)
+		return INVALID_MIKAN_ID;
+
+	return componentIdOrInvalid(sys->createGroup(stageId, ""));
+}
+
+int addPreset(ProjectManagerPtr projectManager, int groupId)
+{
+	auto sys= projectManager->getSystemOfType<DMXPresetSystem>();
+	if (!sys)
+		return INVALID_MIKAN_ID;
+
+	return componentIdOrInvalid(sys->createPreset(groupId, ""));
+}
+
+int addSequence(ProjectManagerPtr projectManager, int groupId)
+{
+	auto sys= projectManager->getSystemOfType<DMXSequenceSystem>();
+	if (!sys)
+		return INVALID_MIKAN_ID;
+
+	return componentIdOrInvalid(sys->createSequence(groupId, ""));
 }
 
 int addCompositor(ProjectManagerPtr projectManager, int sceneId)

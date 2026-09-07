@@ -30,6 +30,9 @@
 #include "QuadStencilSystem.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
+#include "DMXFixtureGroupSystem.h"
+#include "DMXPresetSystem.h"
+#include "DMXSequenceSystem.h"
 #include "LightEnvironmentSystem.h"
 #include "StageObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
@@ -83,9 +86,14 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<TrackingMountObjectSystem>();
 	addSystem<MarkerTrackingVolumeSystem>();
 	addSystem<VRTrackingVolumeSystem>();
+	// Before the DMX system: a sequence frame's fixture writes flush the same frame
+	addSystem<DMXSequenceSystem>();
 	addSystem<DMXObjectSystem>();
 	addSystem<RGBSpotLightSystem>();
 	addSystem<RGBPixelGridSystem>();
+	// After the fixture systems: groups prune ids of fixtures those systems destroy
+	addSystem<DMXFixtureGroupSystem>();
+	addSystem<DMXPresetSystem>();
 	addSystem<LightEnvironmentSystem>();
 	// Last: scripts look up the other systems' objects by name when they load
 	addSystem<ScriptObjectSystem>();

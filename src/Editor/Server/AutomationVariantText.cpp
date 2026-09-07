@@ -197,7 +197,7 @@ std::string variantToText(const MikanVariant& value)
 		std::vector<std::string> entries;
 		for (int entry : list)
 			entries.push_back(std::to_string(entry));
-		return joinTokens(entries, ", ");
+		return joinTokens(entries, " ");
 	}
 	case MikanVariantType::FLOAT_ARRAY:
 	{
@@ -384,6 +384,23 @@ bool textToVariant(MikanVariantType dataType, const std::vector<std::string>& va
 		if (!parseComponents(valueTokens, 4, c, outError))
 			return false;
 		outValue.setValue(MikanQuatd{c[0], c[1], c[2], c[3]});
+		return true;
+	}
+	case MikanVariantType::INT_ARRAY:
+	{
+		std::vector<int> values;
+		values.reserve(valueTokens.size());
+		for (const std::string& token : valueTokens)
+		{
+			long long parsed= 0;
+			if (!parseLongLong(token, parsed) || parsed < INT32_MIN || parsed > INT32_MAX)
+			{
+				outError= "expected integer values";
+				return false;
+			}
+			values.push_back((int)parsed);
+		}
+		outValue.setValue(values);
 		return true;
 	}
 	default:

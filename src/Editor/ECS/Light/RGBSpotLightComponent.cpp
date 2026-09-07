@@ -393,6 +393,19 @@ void RGBSpotLightComponent::setRGB(uint8_t r, uint8_t g, uint8_t b)
 	}
 }
 
+void RGBSpotLightComponent::getChannelValues(std::vector<uint8_t>& outValues) const
+{
+	outValues= {m_red, m_green, m_blue};
+}
+
+void RGBSpotLightComponent::setChannelValues(const std::vector<uint8_t>& values)
+{
+	const uint8_t r= values.size() > 0 ? values[0] : 0;
+	const uint8_t g= values.size() > 1 ? values[1] : 0;
+	const uint8_t b= values.size() > 2 ? values[2] : 0;
+	setRGB(r, g, b);
+}
+
 void RGBSpotLightComponent::sendDMXData() const
 {
 	DMXObjectSystemPtr dmxObjectSystem= getDMXObjectSystem();
@@ -530,8 +543,14 @@ void RGBSpotLightComponent::customRender(IMkGraphicsContext* graphicsContext, Mi
 		drawTextAtWorldPosition(graphicsContext, style, position, L"Light %d [%d,%d,%d]", def->getComponentId(),
 								static_cast<int>(getRed()), static_cast<int>(getGreen()), static_cast<int>(getBlue()));
 	}
+}
 
-	// Render the volumetric cone visualization
+void RGBSpotLightComponent::renderConeVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+{
+	RGBSpotLightDefinitionPtr def= getRGBSpotLightDefinition();
+	if (!def || def->getIsDisabled())
+		return;
+
 	if (m_coneMesh)
 	{
 		const float halfAngleRad= def->getConeAngleDegrees() * 0.5f * (3.14159265f / 180.0f);

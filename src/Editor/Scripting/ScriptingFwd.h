@@ -13,3 +13,6 @@ class ProjectScriptContext;
 using ProjectScriptContextPtr= std::shared_ptr<ProjectScriptContext>;
 using ProjectScriptContextConstPtr= std::shared_ptr<const ProjectScriptContext>;
 using ProjectScriptContextWeakPtr= std::weak_ptr<ProjectScriptContext>;
+
+class IScriptVariableStore;
+class ScriptVariableTable;

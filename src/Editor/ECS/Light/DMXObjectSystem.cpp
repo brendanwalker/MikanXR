@@ -6,7 +6,9 @@
 #include "MikanLightTypes.h"
 #include "ProjectConfig.h"
 #include "RGBPixelGridComponent.h"
+#include "RGBPixelGridSystem.h"
 #include "RGBSpotLightComponent.h"
+#include "RGBSpotLightSystem.h"
 
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
@@ -318,6 +320,51 @@ bool DMXObjectSystem::setPropertyValue(const std::string& propertyName, const Mi
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
 }
 
+// -- IFunctionInterface ----
+const std::string DMXObjectSystem::k_zeroAllChannelsFunctionId= "zero_all_channels";
+
+void DMXObjectSystem::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+{
+	MikanObjectSystem::getFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(std::make_shared<FunctionDescriptor>(k_zeroAllChannelsFunctionId, "Zero All Channels"));
+}
+
+bool DMXObjectSystem::invokeFunction(const std::string& functionName)
+{
+	if (functionName == k_zeroAllChannelsFunctionId)
+	{
+		zeroAllChannels();
+		return true;
+	}
+
+	return MikanObjectSystem::invokeFunction(functionName);
+}
+
+void DMXObjectSystem::zeroAllChannels()
+{
+	// Through the fixtures first, so their runtime colors and the viewport
+	// follow the blackout and a later capture records zeros
+	const std::vector<uint8_t> noChannels;
+	if (RGBSpotLightSystemPtr spotLightSystem= getOwnerProjectManager()->getSystemOfType<RGBSpotLightSystem>())
+	{
+		spotLightSystem->visitComponents([&noChannels](RGBSpotLightComponentPtr light)
+										 { light->setChannelValues(noChannels); });
+	}
+	if (RGBPixelGridSystemPtr pixelGridSystem= getOwnerProjectManager()->getSystemOfType<RGBPixelGridSystem>())
+	{
+		pixelGridSystem->visitComponents([&noChannels](RGBPixelGridComponentPtr grid)
+										 { grid->setChannelValues(noChannels); });
+	}
+
+	// Then every active universe, clearing slots no fixture covers
+	std::vector<uint8_t> zeroData(kDMXUniverseChannelCount, 0);
+	for (const auto& [universeId, universeData] : m_universeBuffers)
+	{
+		writeUniverseData(universeId, 1, zeroData.data(), static_cast<uint16_t>(zeroData.size()));
+	}
+}
+
 // -- Lua Binding ----
 void DMXObjectSystem::bindLuaFunctions(struct lua_State* L)
 {
@@ -326,34 +373,41 @@ void DMXObjectSystem::bindLuaFunctions(struct lua_State* L)
 		.addFunction("getSpotLightCount",
 					 [](DMXObjectSystem* s) -> int
 					 {
-						 std::vector<MikanComponentPtr> v;
-						 s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
-						 return static_cast<int>(v.size());
+						 auto sys= s->getObjectSystemOfType<RGBSpotLightSystem>();
+						 return sys ? static_cast<int>(sys->getComponentMap().size()) : 0;
 					 })
 		.addFunction("getSpotLightAtIndex",
 					 [](DMXObjectSystem* s, int i) -> RGBSpotLightComponent*
 					 {
-						 std::vector<MikanComponentPtr> v;
-						 s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
-						 if (i >= 0 && i < static_cast<int>(v.size()))
-							 return std::dynamic_pointer_cast<RGBSpotLightComponent>(v[i]).get();
+						 auto sys= s->getObjectSystemOfType<RGBSpotLightSystem>();
+						 if (!sys)
+							 return nullptr;
+						 int n= 0;
+						 for (auto& [id, wp] : sys->getComponentMap())
+							 if (n++ == i)
+								 return wp.lock().get();
 						 return nullptr;
 					 })
 		.addFunction("getPixelGridCount",
 					 [](DMXObjectSystem* s) -> int
 					 {
-						 std::vector<MikanComponentPtr> v;
-						 s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
-						 return static_cast<int>(v.size());
+						 auto sys= s->getObjectSystemOfType<RGBPixelGridSystem>();
+						 return sys ? static_cast<int>(sys->getComponentMap().size()) : 0;
 					 })
 		.addFunction("getPixelGridAtIndex",
 					 [](DMXObjectSystem* s, int i) -> RGBPixelGridComponent*
 					 {
-						 std::vector<MikanComponentPtr> v;
-						 s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
-						 if (i >= 0 && i < static_cast<int>(v.size()))
-							 return std::dynamic_pointer_cast<RGBPixelGridComponent>(v[i]).get();
+						 auto sys= s->getObjectSystemOfType<RGBPixelGridSystem>();
+						 if (!sys)
+							 return nullptr;
+						 int n= 0;
+						 for (auto& [id, wp] : sys->getComponentMap())
+							 if (n++ == i)
+								 return wp.lock().get();
 						 return nullptr;
 					 })
+		.addProperty("universeChannelCount", [](DMXObjectSystem*) -> int
+					 { return static_cast<int>(DMXObjectSystem::kDMXUniverseChannelCount); })
+		.addFunction("zeroAllChannels", [](DMXObjectSystem* s) { s->zeroAllChannels(); })
 		.endClass();
 }

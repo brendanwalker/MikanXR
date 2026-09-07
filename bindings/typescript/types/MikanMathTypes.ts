@@ -126,20 +126,6 @@ export class MikanRotator3f {
   ];
 }
 
-export class MikanQuatf {
-  w: number = 0;
-  x: number = 0;
-  y: number = 0;
-  z: number = 0;
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'w', type: 'float' },
-    { name: 'x', type: 'float' },
-    { name: 'y', type: 'float' },
-    { name: 'z', type: 'float' }
-  ];
-}
-
 export class MikanVector2i {
   x: number = 0;
   y: number = 0;
@@ -147,6 +133,16 @@ export class MikanVector2i {
   static __serializationMetadata: SerializationField[] = [
     { name: 'x', type: 'int32' },
     { name: 'y', type: 'int32' }
+  ];
+}
+
+export class MikanVector2d {
+  x: number = 0;
+  y: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'x', type: 'double' },
+    { name: 'y', type: 'double' }
   ];
 }
 
@@ -185,28 +181,6 @@ export class MikanVector2f {
   static __serializationMetadata: SerializationField[] = [
     { name: 'x', type: 'float' },
     { name: 'y', type: 'float' }
-  ];
-}
-
-export class MikanVector2d {
-  x: number = 0;
-  y: number = 0;
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'x', type: 'double' },
-    { name: 'y', type: 'double' }
-  ];
-}
-
-export class MikanTransform {
-  scale: MikanVector3f = new MikanVector3f();
-  rotation: MikanQuatf = new MikanQuatf();
-  position: MikanVector3f = new MikanVector3f();
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'scale', type: 'MikanVector3f' },
-    { name: 'rotation', type: 'MikanQuatf' },
-    { name: 'position', type: 'MikanVector3f' }
   ];
 }
 
@@ -252,6 +226,20 @@ export class MikanMatrix4x3d {
   ];
 }
 
+export class MikanQuatf {
+  w: number = 0;
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'w', type: 'float' },
+    { name: 'x', type: 'float' },
+    { name: 'y', type: 'float' },
+    { name: 'z', type: 'float' }
+  ];
+}
+
 export class MikanQuatd {
   w: number = 0;
   x: number = 0;
@@ -263,6 +251,18 @@ export class MikanQuatd {
     { name: 'x', type: 'double' },
     { name: 'y', type: 'double' },
     { name: 'z', type: 'double' }
+  ];
+}
+
+export class MikanTransform {
+  scale: MikanVector3f = new MikanVector3f();
+  rotation: MikanQuatf = new MikanQuatf();
+  position: MikanVector3f = new MikanVector3f();
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'scale', type: 'MikanVector3f' },
+    { name: 'rotation', type: 'MikanQuatf' },
+    { name: 'position', type: 'MikanVector3f' }
   ];
 }
 

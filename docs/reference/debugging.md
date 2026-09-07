@@ -90,6 +90,10 @@ The variable wins over the editor setting. When it is set, `SpoutLogRelay` logs 
 
 ---
 
+## DMX output not reaching a controller
+
+`MikanDMX` sends E1.31 multicast (`239.255.<hi>.<lo>` per universe, port 5568) from the interface named by the DMX system's `network_interface_ip`. At the default `0.0.0.0` Windows picks the egress by the lowest-metric route for `224.0.0.0/4`, which on a multi-homed machine (a second Ethernet port, a VPN adapter) is often not the controller's network, and nothing errors: the packets simply leave elsewhere. `route print -4` shows the candidate interfaces and metrics. Set the interface to the address on the controller's subnet; `UdpMulticastSocket::open` sets `IP_MULTICAST_IF` from it, since a bind alone does not choose the multicast egress on Windows. A quick way to separate network from editor faults is a scratch Python sender that builds one E1.31 packet and sends it with `IP_MULTICAST_IF` forced to each candidate interface while watching the fixture. Note that an ESPixelStick in multicast mode binds its socket to the group address and ignores unicast to its own IP, and in unicast mode the reverse, so a unicast test only means something when the controller is configured for it.
+
 ## Profiling
 
 The editor is instrumented with easy_profiler (`EASY_FUNCTION()` / `EASY_BLOCK()` throughout the tick, compositor, and node evaluation paths). `App::startup` calls `profiler::startListen()`, so a running `Mikan.exe` accepts connections from the easy_profiler GUI at any time. Launch with `-waitForProfiler` to block startup until a profiler client connects and starts capturing, which is useful for profiling initialization.
@@ -108,7 +112,7 @@ The editor is instrumented with easy_profiler (`EASY_FUNCTION()` / `EASY_BLOCK()
 
 - **Lua errors.** Script failures are logged with full Lua tracebacks (`CommonScriptContext::checkLuaResult`), and the failing script's state is disposed rather than left half-broken.
 
-- **Websocket server.** `WebsocketInterprocessMessageServer` logs listen errors and malformed/unroutable requests at warning level; there is no full per-message wire log.
+- **Websocket server.** `WebsocketInterprocessMessageServer` logs listen errors and malformed/unroutable requests at warning level. There is no full per-message wire log. A response big enough to fragment, meaning over 32 KiB and in practice the depth proxy mesh behind `GetModelStencilRenderGeometry`, used to wedge the connection it was sent on. That client stopped being read from while events kept streaming out to it, so its requests hung forever with both ends still reporting the connection as up. The cause was IXWebSocket's server-side blocking send, which flushes on the caller's thread through the same select interrupt the connection's own poll thread waits on. The `MikanXR/IXWebSocket` fork leaves that send non-blocking. `python tools/large_response_check.py` is the regression check: it fetches the geometry over a raw websocket and requires the same connection to answer a small request afterwards. It needs a running editor with a model stencil loaded, so it is a manual check rather than part of the suites.
 
 - **GL state stack debug.** `App::tickWindows` has a static `bDebugPrintStack` flag that, when flipped in a debugger, makes `MkStateStack` print state push/pop activity for one frame.
 

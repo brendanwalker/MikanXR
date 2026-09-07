@@ -52,6 +52,9 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
+	// The additive cone volume, drawn after all opaque geometry: it writes no
+	// depth, so anything opaque drawn later would paint over it
+	void renderConeVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 
 	void disposeMeshComponents();
 	void rebuildMeshComponents();
@@ -88,6 +91,11 @@ public:
 
 	void setRGB(uint8_t r, uint8_t g, uint8_t b);
 
+	// -- Channel data --
+	virtual void getChannelValues(std::vector<uint8_t>& outValues) const override;
+	virtual void setChannelValues(const std::vector<uint8_t>& values) override;
+	virtual void sendDMXData() const override;
+
 	// -- IEntityAccessor --
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
@@ -106,7 +114,6 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
-	void sendDMXData() const;
 	void updateWireframeMeshColor();
 
 protected:
