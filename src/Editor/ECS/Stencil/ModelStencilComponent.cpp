@@ -325,6 +325,9 @@ void ModelStencilComponent::disposeMeshComponents()
 
 	// Forget about any wireframe meshes
 	m_wireframeMeshes.clear();
+
+	// Forget about the model resource the meshes came from
+	m_modelResource.reset();
 }
 
 void ModelStencilComponent::rebuildMeshComponents()
@@ -343,6 +346,10 @@ void ModelStencilComponent::rebuildMeshComponents()
 		ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 	MikanRenderModelResourcePtr modelResourcePtr=
 		modelResourceManager->fetchRenderModel(modelStencilDefinition->getModelPath(), stencilMaterial);
+
+	// Held onto so the client render geometry request can reach the resource's cached payload
+	// without re-resolving the model path and material.
+	m_modelResource= modelResourcePtr;
 
 	// If a model loaded, create meshes and colliders for it
 	if (modelResourcePtr)
@@ -414,17 +421,6 @@ void ModelStencilComponent::rebuildMeshComponents()
 	if (selectionComponentPtr)
 	{
 		selectionComponentPtr->rebindColliders();
-	}
-}
-
-void ModelStencilComponent::extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry)
-{
-	for (StaticMeshComponentPtr mesh : m_triMeshComponents)
-	{
-		MikanTriagulatedMesh mikanMesh= {};
-		mesh->extractRenderGeometry(mikanMesh);
-
-		outRenderGeometry.meshes.push_back(mikanMesh);
 	}
 }
 

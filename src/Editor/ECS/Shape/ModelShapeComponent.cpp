@@ -140,17 +140,6 @@ rfk::Struct const* ModelShapeComponent::getClientAPIValuesStructType() const
 	return &MikanModelShapeComponentValues::staticGetArchetype();
 }
 
-void ModelShapeComponent::extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry)
-{
-	for (StaticMeshComponentPtr mesh : m_triMeshComponents)
-	{
-		MikanTriagulatedMesh mikanMesh= {};
-		mesh->extractRenderGeometry(mikanMesh);
-
-		outRenderGeometry.meshes.push_back(mikanMesh);
-	}
-}
-
 void ModelShapeComponent::disposeMeshComponents()
 {
 	while (m_meshComponents.size() > 0)
@@ -162,6 +151,7 @@ void ModelShapeComponent::disposeMeshComponents()
 
 	m_colliderComponents.clear();
 	m_triMeshComponents.clear();
+	m_modelResource.reset();
 }
 
 void ModelShapeComponent::rebuildMeshComponents()
@@ -184,6 +174,10 @@ void ModelShapeComponent::rebuildMeshComponents()
 		ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 	MikanRenderModelResourcePtr modelResourcePtr=
 		modelResourceManager->fetchRenderModel(modelDef->getModelPath(), shapeMaterial);
+
+	// Held onto so the client render geometry request can reach the resource's cached payload
+	// without re-resolving the model path and material.
+	m_modelResource= modelResourcePtr;
 
 	if (!modelResourcePtr)
 		return;

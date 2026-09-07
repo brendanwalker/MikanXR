@@ -48,11 +48,11 @@ public:
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const { return m_triMeshComponents; }
+	inline MikanRenderModelResourcePtr getRenderModelResource() const { return m_modelResource; }
 
 	void setModelPath(const std::filesystem::path& path);
 	void disposeMeshComponents();
 	void rebuildMeshComponents();
-	void extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry);
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -77,6 +77,7 @@ protected:
 
 protected:
 	AssetReferencePtr m_modelAssetRef;
+	MikanRenderModelResourcePtr m_modelResource;
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<TransformComponentPtr> m_meshComponents;
 	std::vector<StaticMeshComponentPtr> m_triMeshComponents;

@@ -14,6 +14,7 @@
 #include "DMXUniverseRLETests.h"
 #include "LightEnvironmentPersistenceTests.h"
 #include "LocalizationTests.h"
+#include "ModelGeometryPayloadTests.h"
 #include "NodeGraphHistoryTests.h"
 #include "PixelGridLayoutTests.h"
 #include "PropertyNotificationGuardTests.h"
@@ -42,6 +43,7 @@ bool run_all_editor_unit_tests()
 	success&= run_dmx_universe_rle_tests();
 	success&= run_light_environment_persistence_tests();
 	success&= run_localization_unit_tests();
+	success&= run_model_geometry_payload_tests();
 	success&= run_node_graph_history_tests();
 	success&= run_pixel_grid_layout_tests();
 	success&= run_property_notification_guard_tests();

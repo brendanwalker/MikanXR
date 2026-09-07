@@ -12,6 +12,7 @@
 #include "ProjectConfig.h"
 #include "QuadStencilComponent.h"
 #include "QuadStencilSystem.h"
+#include "ServerModelGeometryPayload.h"
 #include "ServerResponseHelpers.h"
 #include "StencilComponent.h"
 
@@ -46,10 +47,12 @@ void StencilRequestHandler::getModelStencilRenderGeometryHandler(const ClientReq
 		getObjectSystemOfType<ModelStencilSystem>()->getModelStencilById(stencilRequest.stencilId);
 	if (modelStencil)
 	{
-		MikanStencilModelRenderGeometryResponse renderGeometryResponse= {};
-		modelStencil->extractRenderGeometry(renderGeometryResponse.render_geometry);
+		std::vector<uint8_t> scratchPayload;
+		const std::vector<uint8_t>& geometryPayload= fetchModelRenderGeometryPayload(
+			modelStencil->getRenderModelResource(), modelStencil->getTriangulatedMeshes(), scratchPayload);
 
-		writeTypedBinaryResponse(request.requestId, renderGeometryResponse, response);
+		writeModelRenderGeometryResponse<MikanStencilModelRenderGeometryResponse>(request.requestId, geometryPayload,
+																				  response);
 	}
 	else
 	{
