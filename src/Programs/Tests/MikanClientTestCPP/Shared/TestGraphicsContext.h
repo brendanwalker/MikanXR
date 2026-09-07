@@ -3,8 +3,10 @@
 #include "MikanCoreTypes.h"
 #include "MikanMathTypes.h"
 
+#include <cstdint>
 #include <map>
 #include <memory>
+#include <vector>
 
 using IMikanAPIPtr= std::shared_ptr<class IMikanAPI>;
 using TestCameraRenderTargetPtr= std::shared_ptr<class TestCameraRenderTarget>;
@@ -37,6 +39,16 @@ public:
 	virtual void renderMainTarget() const= 0;
 	virtual bool renderToCameraTarget(class TestCameraRenderTarget* cameraRenderTarget)= 0;
 	virtual void dispose()= 0;
+
+	// Frame dump support: the camera most recently drawn by renderToCameraTarget, and a CPU copy of a
+	// camera target's color pixels as tightly packed RGBA8, top row first. A backend that cannot read
+	// back answers false.
+	virtual MikanCameraID getLastRenderedCameraId() const { return INVALID_MIKAN_ID; }
+	virtual bool readCameraTargetPixels(class TestCameraRenderTarget* cameraRenderTarget,
+										std::vector<uint8_t>& outRgbaPixels, int& outWidth, int& outHeight)
+	{
+		return false;
+	}
 
 protected:
 	class TestApp* m_ownerApp= nullptr;

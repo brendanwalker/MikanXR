@@ -148,30 +148,33 @@ std::filesystem::path getProjectsRootDirectory()
 
 std::filesystem::path resolveProjectResource(const std::filesystem::path& path)
 {
-	if (path.is_absolute())
+	if (!path.empty())
 	{
-		if (std::filesystem::exists(path))
+		if (path.is_absolute())
 		{
-			return path;
-		}
-	}
-	else
-	{
-		// Check project folder first
-		if (!g_projectDirectory.empty())
-		{
-			std::filesystem::path projectResourcePath= g_projectDirectory / path;
-			if (std::filesystem::exists(projectResourcePath))
+			if (std::filesystem::exists(path))
 			{
-				return projectResourcePath;
+				return path;
 			}
 		}
-
-		// Fall	back to app resource folder
-		std::filesystem::path appResourcePath= getResourceDirectory() / path;
-		if (std::filesystem::exists(appResourcePath))
+		else
 		{
-			return appResourcePath;
+			// Check project folder first
+			if (!g_projectDirectory.empty())
+			{
+				std::filesystem::path projectResourcePath= g_projectDirectory / path;
+				if (std::filesystem::exists(projectResourcePath))
+				{
+					return projectResourcePath;
+				}
+			}
+
+			// Fall	back to app resource folder
+			std::filesystem::path appResourcePath= getResourceDirectory() / path;
+			if (std::filesystem::exists(appResourcePath))
+			{
+				return appResourcePath;
+			}
 		}
 	}
 

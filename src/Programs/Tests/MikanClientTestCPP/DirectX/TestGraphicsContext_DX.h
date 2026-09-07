@@ -21,6 +21,9 @@ public:
 	virtual void renderMainTarget() const override;
 	virtual bool renderToCameraTarget(class TestCameraRenderTarget* cameraRenderTarget) override;
 	virtual void dispose() override;
+	virtual MikanCameraID getLastRenderedCameraId() const override { return m_lastRenderedCameraId; }
+	virtual bool readCameraTargetPixels(class TestCameraRenderTarget* cameraRenderTarget,
+										std::vector<uint8_t>& outRgbaPixels, int& outWidth, int& outHeight) override;
 
 protected:
 	bool createDeviceD3D();

@@ -43,6 +43,13 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(IMikanAPIPtr mikanAPI,
 				<< "Update frame size "
 				<< "(camera_id: " << m_cameraId << ", new size: " << newWidth << "x" << newHeight
 				<< ", frame: " << m_lastReceivedFrameIndex << ").";
+			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
+				<< "Camera intrinsics (focal: " << newFrameEvent.focal_length.x << ", " << newFrameEvent.focal_length.y
+				<< ", principal: " << newFrameEvent.principal_point.x << ", " << newFrameEvent.principal_point.y
+				<< ", z bounds: " << m_zNear << " to " << m_zFar << ", position: " << newFrameEvent.camera_position.x
+				<< ", " << newFrameEvent.camera_position.y << ", " << newFrameEvent.camera_position.z
+				<< ", forward: " << newFrameEvent.camera_forward.x << ", " << newFrameEvent.camera_forward.y << ", "
+				<< newFrameEvent.camera_forward.z << ")";
 
 			// Remember the size of the render target once created
 			m_width= newWidth;

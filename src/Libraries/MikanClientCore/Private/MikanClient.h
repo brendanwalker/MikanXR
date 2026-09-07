@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "SharedTextureFwd.h"
+#include "SharedTextureWriter.h"
 #include "MikanCoreTypes.h"
 #include "MikanClientLogger.h"
 
@@ -54,6 +55,9 @@ protected:
 private:
 	std::array<void*, MikanClientGraphicsApi_COUNT> m_graphicsDeviceInterfaces;
 	std::array<void*, MikanClientGraphicsApi_COUNT> m_graphicsCommandQueueInterfaces;
+	// The Vulkan client's device in the shared texture library's own vocabulary, filled from the
+	// client's MikanVulkanDeviceInterface when a Vulkan render target is allocated
+	SharedVulkanDeviceInterface m_vulkanDeviceInterface;
 
 	MikanTextResponseCallback m_textResponseCallback= nullptr;
 	void* m_textResponseCallbackUserData= nullptr;

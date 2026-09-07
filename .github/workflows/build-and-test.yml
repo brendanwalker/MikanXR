@@ -69,7 +69,9 @@ jobs:
             thirdparty/fast_obj \
             thirdparty/IXWebSocket \
             thirdparty/readerwriterqueue \
-            thirdparty/nlohmann_json
+            thirdparty/nlohmann_json \
+            thirdparty/Vulkan-Headers \
+            thirdparty/volk
           # LuaBridge3 has its own sub-submodules we don't need, so skip them.
 
       # ---------------------------------------------------------------

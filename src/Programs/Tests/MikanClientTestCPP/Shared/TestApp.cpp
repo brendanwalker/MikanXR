@@ -1,8 +1,13 @@
 #include "TestApp.h"
 #include "TestGraphicsContext_DX.h"
 #include "TestGraphicsContext_GL.h"
+#include "TestGraphicsContext_VK.h"
+#include "TestCameraRenderTarget.h"
+#include "TestFrameDump.h"
 #include "TestMikanClient.h"
+#include "TestSpoutProbe.h"
 #include "MikanAPI.h"
+#include "SharedTextureUtility.h"
 #include "Logger.h"
 
 #if defined(_WIN32)
@@ -14,6 +19,8 @@
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_syswm.h>
 #endif
+
+#include <cstdlib>
 
 static const int k_window_pixel_width= 1280;
 static const int k_window_pixel_height= 720;
@@ -96,9 +103,33 @@ bool TestApp::startup(int argc, char** argv)
 		{
 			m_graphicsContext= std::make_unique<TestGraphicsContext_DX>(this);
 		}
+		else if (graphicsApiArg == "-vk")
+		{
+			m_graphicsContext= std::make_unique<TestGraphicsContext_VK>(this);
+		}
 		else
 		{
 			MIKAN_LOG_WARNING("startup") << "Invalid graphics API argument: " << graphicsApiArg << ". Using defaults.";
+		}
+	}
+
+	// Optional arguments after the graphics API:
+	//   -dump <png path>   write the connected camera's frame and its Spout senders once
+	//   -cube <x> <y> <z>  place the cube in meters from the camera (x right, y up, z forward)
+	for (int argIndex= 2; argIndex < argc; ++argIndex)
+	{
+		const std::string argument= argv[argIndex];
+
+		if (argument == "-dump" && argIndex + 1 < argc)
+		{
+			m_dumpPath= argv[argIndex + 1];
+			m_bDumpPending= true;
+		}
+		else if (argument == "-cube" && argIndex + 3 < argc)
+		{
+			m_cubeOffset.x= (float)std::atof(argv[argIndex + 1]);
+			m_cubeOffset.y= (float)std::atof(argv[argIndex + 2]);
+			m_cubeOffset.z= (float)std::atof(argv[argIndex + 3]);
 		}
 	}
 
@@ -172,6 +203,8 @@ void TestApp::onSDLEvent(SDL_Event& e)
 	}
 	else if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)
 	{
+		const bool bIsShiftDown= (SDL_GetModState() & KMOD_SHIFT) != 0;
+
 		if (e.key.keysym.sym == SDLK_1)
 		{
 			m_renderMode= TestRenderMode::Color;
@@ -186,31 +219,103 @@ void TestApp::onSDLEvent(SDL_Event& e)
 		}
 		else if (e.key.keysym.sym == SDLK_w)
 		{
-			m_cubeOffset.z+= 0.1f;
+			m_cubeOffset.z+= bIsShiftDown ? 0.1f : 0.01f;
 		}
 		else if (e.key.keysym.sym == SDLK_s)
 		{
-			m_cubeOffset.z-= 0.1f;
+			m_cubeOffset.z-= bIsShiftDown ? 0.1f : 0.01f;
 		}
 		else if (e.key.keysym.sym == SDLK_a)
 		{
-			m_cubeOffset.x+= 0.1f;
+			m_cubeOffset.x+= bIsShiftDown ? 0.1f : 0.01f;
 		}
 		else if (e.key.keysym.sym == SDLK_d)
 		{
-			m_cubeOffset.x-= 0.1f;
+			m_cubeOffset.x-= bIsShiftDown ? 0.1f : 0.01f;
 		}
 		else if (e.key.keysym.sym == SDLK_q)
 		{
-			m_cubeOffset.y+= 0.1f;
+			m_cubeOffset.y+= bIsShiftDown ? 0.1f : 0.01f;
 		}
 		else if (e.key.keysym.sym == SDLK_e)
 		{
-			m_cubeOffset.y-= 0.1f;
+			m_cubeOffset.y-= bIsShiftDown ? 0.1f : 0.01f;
 		}
 	}
 }
 
 void TestApp::update(float deltaSeconds) { m_mikanClient->update(deltaSeconds); }
 
-void TestApp::render() { m_graphicsContext->renderMainTarget(); }
+void TestApp::render()
+{
+	m_graphicsContext->renderMainTarget();
+
+	if (m_bDumpPending && m_timeSeconds >= k_dumpDelaySeconds)
+	{
+		dumpCameraFrame();
+		m_bDumpPending= false;
+	}
+}
+
+void TestApp::dumpCameraFrame()
+{
+	const MikanCameraID cameraId= m_graphicsContext->getLastRenderedCameraId();
+	TestCameraRenderTargetPtr renderTarget= m_graphicsContext->getCameraRenderTarget(cameraId);
+	if (!renderTarget)
+	{
+		MIKAN_LOG_ERROR("dumpCameraFrame") << "No camera has been rendered yet";
+		return;
+	}
+
+	std::vector<uint8_t> rgbaPixels;
+	int width= 0;
+	int height= 0;
+	if (!m_graphicsContext->readCameraTargetPixels(renderTarget.get(), rgbaPixels, width, height))
+	{
+		MIKAN_LOG_ERROR("dumpCameraFrame") << "The graphics context could not read back the camera target";
+		return;
+	}
+
+	if (writeRgbaPng(m_dumpPath, rgbaPixels, width, height))
+	{
+		MIKAN_LOG_INFO("dumpCameraFrame")
+			<< "Wrote camera " << cameraId << " (" << width << "x" << height << ") to " << m_dumpPath;
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("dumpCameraFrame") << "Failed to write " << m_dumpPath;
+	}
+
+	// For a camera Mikan knows, also read the shared textures back through Spout so the dump shows
+	// what the editor's reader would see, beside what the client rendered
+	if (cameraId == INVALID_MIKAN_ID)
+		return;
+
+	const struct
+	{
+		SharedTextureType type;
+		const char* suffix;
+	} senders[]= {{SharedTextureType::COLOR, ".spout.png"}, {SharedTextureType::DEPTH, ".depth.spout.png"}};
+
+	for (const auto& sender : senders)
+	{
+		std::string senderName;
+		if (!makeSpoutSenderName(k_window_title, cameraId, sender.type, senderName))
+			continue;
+
+		std::vector<uint8_t> senderPixels;
+		int senderWidth= 0;
+		int senderHeight= 0;
+		const std::string senderDumpPath= m_dumpPath + sender.suffix;
+		if (readSpoutSenderRgba(senderName, senderPixels, senderWidth, senderHeight)
+			&& writeRgbaPng(senderDumpPath, senderPixels, senderWidth, senderHeight))
+		{
+			MIKAN_LOG_INFO("dumpCameraFrame") << "Wrote Spout sender " << senderName << " (" << senderWidth << "x"
+											  << senderHeight << ") to " << senderDumpPath;
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("dumpCameraFrame") << "Failed to read back Spout sender " << senderName;
+		}
+	}
+}

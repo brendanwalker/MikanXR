@@ -11,6 +11,7 @@
 #endif
 
 #include <memory>
+#include <string>
 
 using TestGraphicsContextPtr= std::shared_ptr<class TestGraphicsContext>;
 using TestMikanClientPtr= std::shared_ptr<class TestMikanClient>;
@@ -44,8 +45,15 @@ protected:
 
 	void update(float deltaSeconds);
 	void render();
+	void dumpCameraFrame();
 
 private:
+	// `-dump <png>`: write the last rendered camera's color target once, a few seconds in, so a
+	// headless drive can check what the client actually rendered rather than what a compositor shows
+	std::string m_dumpPath;
+	bool m_bDumpPending= false;
+	static constexpr float k_dumpDelaySeconds= 5.0f;
+
 	TestGraphicsContextPtr m_graphicsContext;
 	TestMikanClientPtr m_mikanClient;
 
