@@ -144,8 +144,12 @@ public:
 				// Binary message always assumed to	be a response (and not an event)
 				if (m_binaryResponseHandler != nullptr)
 				{
+					// Size from the payload, never from wireSize: IXWebSocket reports wireSize as
+					// the size of the frame as it arrived, which is the compressed size when the
+					// message carried RSV1, while str holds the decompressed bytes. The two only
+					// agree because per-message deflate never negotiates on today.
 					const uint8_t* buffer= reinterpret_cast<const uint8_t*>(msg->str.c_str());
-					const size_t bufferSize= msg->wireSize;
+					const size_t bufferSize= msg->str.size();
 
 					m_binaryResponseHandler(buffer, bufferSize);
 				}
