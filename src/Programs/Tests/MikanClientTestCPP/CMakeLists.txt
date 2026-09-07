@@ -26,11 +26,21 @@ file(GLOB MIKAN_CLIENT_TEST_GL_SRC
 source_group("OpenGL" FILES ${MIKAN_CLIENT_TEST_GL_SRC})
 
 
+# The Spout receiver of the frame dump: the same in-tree spoutDX sources the shared texture DLL
+# compiles, so the harness reads its own sender back the way the editor does
+set(MIKAN_CLIENT_TEST_SPOUT_DX_SRC
+    "${MIKAN_LIBRARIES_DIR}/MikanSharedTexture/Private/SpoutDX/SpoutDX.cpp"
+    "${MIKAN_LIBRARIES_DIR}/MikanSharedTexture/Private/SpoutDX/SpoutUtils.cpp"
+)
+set_source_files_properties(${MIKAN_CLIENT_TEST_SPOUT_DX_SRC} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+source_group("ThirdParty\\SpoutDX" FILES ${MIKAN_CLIENT_TEST_SPOUT_DX_SRC})
+
 set(MIKAN_CLIENT_TEST_SRC
     ${MIKAN_CLIENT_TEST_APP_SRC}
     ${MIKAN_CLIENT_TEST_SHARED_SRC}
     ${MIKAN_CLIENT_TEST_DX_SRC}
     ${MIKAN_CLIENT_TEST_GL_SRC}
+    ${MIKAN_CLIENT_TEST_SPOUT_DX_SRC}
 )
 
 list(APPEND MIKAN_CLIENT_TEST_INCL_DIRS
@@ -43,7 +53,10 @@ list(APPEND MIKAN_CLIENT_TEST_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
   ${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanSharedTexture/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanSharedTexture/Private/SpoutDX
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
+  ${SPOUT2_INCLUDE_DIRS}
   ${ROOT_DIR}/thirdparty/glm/
   ${GLEW_INCLUDE_DIRS}
   ${NLOHMANN_JSON_INCLUDE_DIR}
@@ -63,11 +76,13 @@ list(APPEND MIKAN_CLIENT_TEST_REQ_LIBS
   ${SDL2_LIBRARY}
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
+  ${SPOUT2_LIBRARIES}
   MikanClientCore
   MikanClientAPI
   MikanCoreApp
   MikanRenderer
   MikanSerialization
+  MikanSharedTexture
   MikanUtility)
 
 add_executable(MikanClientTestCPP ${MIKAN_CLIENT_TEST_SRC})

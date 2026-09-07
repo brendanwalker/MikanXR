@@ -211,6 +211,55 @@ void TestGraphicsContext_DX::renderNormalizedDepthTexture(TestCameraRenderTarget
 	m_pd3dDeviceContext->Draw(6, 0);
 }
 
+bool TestGraphicsContext_DX::readCameraTargetPixels(TestCameraRenderTarget* cameraRenderTarget,
+													std::vector<uint8_t>& outRgbaPixels, int& outWidth, int& outHeight)
+{
+	auto* dxRenderTarget= static_cast<TestCameraRenderTarget_DX*>(cameraRenderTarget);
+	ID3D11Texture2D* colorTexture= dxRenderTarget->getColorTexture();
+	if (colorTexture == nullptr)
+		return false;
+
+	// A staging copy of the target is the only thing the CPU can map
+	D3D11_TEXTURE2D_DESC stagingDesc= {};
+	colorTexture->GetDesc(&stagingDesc);
+	stagingDesc.Usage= D3D11_USAGE_STAGING;
+	stagingDesc.BindFlags= 0;
+	stagingDesc.CPUAccessFlags= D3D11_CPU_ACCESS_READ;
+	stagingDesc.MiscFlags= 0;
+
+	ID3D11Texture2D* stagingTexture= nullptr;
+	if (FAILED(m_pd3dDevice->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture)))
+		return false;
+	m_pd3dDeviceContext->CopyResource(stagingTexture, colorTexture);
+
+	D3D11_MAPPED_SUBRESOURCE mapped= {};
+	const bool bMapped= SUCCEEDED(m_pd3dDeviceContext->Map(stagingTexture, 0, D3D11_MAP_READ, 0, &mapped));
+	if (bMapped)
+	{
+		outWidth= (int)stagingDesc.Width;
+		outHeight= (int)stagingDesc.Height;
+		outRgbaPixels.resize((size_t)outWidth * outHeight * 4);
+
+		// The target is BGRA; swizzle to RGBA row by row
+		for (int y= 0; y < outHeight; ++y)
+		{
+			const uint8_t* sourceRow= (const uint8_t*)mapped.pData + (size_t)y * mapped.RowPitch;
+			uint8_t* destinationRow= outRgbaPixels.data() + (size_t)y * outWidth * 4;
+			for (int x= 0; x < outWidth; ++x)
+			{
+				destinationRow[x * 4 + 0]= sourceRow[x * 4 + 2];
+				destinationRow[x * 4 + 1]= sourceRow[x * 4 + 1];
+				destinationRow[x * 4 + 2]= sourceRow[x * 4 + 0];
+				destinationRow[x * 4 + 3]= sourceRow[x * 4 + 3];
+			}
+		}
+		m_pd3dDeviceContext->Unmap(stagingTexture, 0);
+	}
+	stagingTexture->Release();
+
+	return bMapped;
+}
+
 void TestGraphicsContext_DX::dispose()
 {
 	cleanupDeviceD3D();
