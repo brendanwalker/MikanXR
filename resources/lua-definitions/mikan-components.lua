@@ -320,6 +320,7 @@ function DMXPresetComponent:capture() end
 ---@field timeSinceStart number Seconds since play started, wrapped when looping (read-only)
 ---@field isPlaying boolean
 ---@field contentSource integer 0 script, 1 scroll bitmap, 2 scroll text, 3 play animation (read-only)
+---@field brightness number 0 to 1 dimmer applied to every channel the sequence sends (read-only)
 local DMXSequenceComponent = {}
 
 ---@return DMXFixtureGroupComponent

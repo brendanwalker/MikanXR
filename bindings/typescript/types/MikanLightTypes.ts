@@ -204,6 +204,7 @@ export class MikanDMXSequenceComponentValues extends MikanComponentValues {
   sprite_frame_height: number = 0;
   sprite_fps: number = 10;
   playback_speed_scale: number = 1;
+  brightness: number = 1;
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'group_id', type: 'int32' },
@@ -224,7 +225,8 @@ export class MikanDMXSequenceComponentValues extends MikanComponentValues {
     { name: 'sprite_frame_width', type: 'int32' },
     { name: 'sprite_frame_height', type: 'int32' },
     { name: 'sprite_fps', type: 'float' },
-    { name: 'playback_speed_scale', type: 'float' }
+    { name: 'playback_speed_scale', type: 'float' },
+    { name: 'brightness', type: 'float' }
   ];
 }
 

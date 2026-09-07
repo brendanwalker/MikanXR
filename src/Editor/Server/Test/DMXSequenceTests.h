@@ -14,4 +14,6 @@
 //   - UTF-8 decoding handles every sequence length and never stalls on bad input
 //   - a canvas window blits into a grid at each cell's wire position, with the
 //     background wherever the content does not reach
+//   - the brightness dimmer scales and clamps channel bytes, and matches what a
+//     reference HSV round trip that scales the value component produces
 bool run_dmx_sequence_tests();

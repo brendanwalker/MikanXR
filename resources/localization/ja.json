@@ -568,6 +568,7 @@
 		"box_x_size": "ボックス X サイズ",
 		"box_y_size": "ボックス Y サイズ",
 		"box_z_size": "ボックス Z サイズ",
+		"brightness": "明るさ",
 		"camera_speed": "カメラ速度",
 		"charuco_cols": "ChArUco 列数",
 		"charuco_dictionary_type": "ChArUco 辞書タイプ",

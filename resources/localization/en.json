@@ -568,6 +568,7 @@
 		"box_x_size": "Box X Size",
 		"box_y_size": "Box Y Size",
 		"box_z_size": "Box Z Size",
+		"brightness": "Brightness",
 		"camera_speed": "Camera Speed",
 		"charuco_cols": "ChArUco Columns",
 		"charuco_dictionary_type": "ChArUco Dictionary Type",

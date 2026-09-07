@@ -159,6 +159,29 @@ void GuiPanel_DMXSequenceComponent::onConstruct()
 	hideUnlessContentSource(DMXSequenceDefinition::k_playbackSpeedScalePropertyId,
 							{eDMXSequenceContentSource::playAnimation});
 
+	// A dimmer on everything the sequence sends, stored as a fraction and shown
+	// as a percentage
+	m_entityAccessor->setPropertyRenderer(
+		DMXSequenceDefinition::k_brightnessPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			DMXSequenceComponentPtr sequenceComp= getDMXSequenceComponent();
+			if (!sequenceComp)
+				return false;
+
+			DMXSequenceDefinitionPtr sequenceDef= sequenceComp->getDMXSequenceDefinition();
+			float brightness= sequenceDef->getBrightness();
+			if (MkGui::drawFloatSliderProperty(
+					m_defaultGuiStyle,
+					sequenceComp->makePropertyUIIdentifier(DMXSequenceDefinition::k_brightnessPropertyId),
+					locText("properties.brightness"), brightness, 0.f, 1.f, 0.f, 100.f))
+			{
+				addDeferredGuiEvent([sequenceDef, brightness]() { sequenceDef->setBrightness(brightness); });
+			}
+
+			return true;
+		});
+
 	// The foreground only means anything to rasterized text; the background
 	// also fills wherever a scrolled image does not reach. Both draw as color
 	// pickers, and both hide the same way the rest do, which is why one
@@ -209,8 +232,9 @@ void GuiPanel_DMXSequenceComponent::onConstruct()
 				if (!fixture)
 					continue;
 
+				// The dimmed values, so a swatch matches what the light does
 				std::vector<uint8_t> values;
-				if (!sequenceComp->getFrameBufferValues(fixtureId, values))
+				if (!sequenceComp->getAppliedFixtureValues(fixtureId, values))
 					continue;
 
 				const std::string componentClass= fixture->getComponentClassName();

@@ -82,6 +82,7 @@ const std::string DMXSequenceDefinition::k_spriteFrameWidthPropertyId= "sprite_f
 const std::string DMXSequenceDefinition::k_spriteFrameHeightPropertyId= "sprite_frame_height";
 const std::string DMXSequenceDefinition::k_spriteFpsPropertyId= "sprite_fps";
 const std::string DMXSequenceDefinition::k_playbackSpeedScalePropertyId= "playback_speed_scale";
+const std::string DMXSequenceDefinition::k_brightnessPropertyId= "brightness";
 
 DMXSequenceDefinition::DMXSequenceDefinition()
 	: MikanComponentDefinition()
@@ -121,6 +122,7 @@ configuru::Config DMXSequenceDefinition::writeToJSON()
 	pt[k_spriteFrameHeightPropertyId]= m_spriteFrameHeight;
 	pt[k_spriteFpsPropertyId]= m_spriteFps;
 	pt[k_playbackSpeedScalePropertyId]= m_playbackSpeedScale;
+	pt[k_brightnessPropertyId]= m_brightness;
 
 	return pt;
 }
@@ -172,6 +174,7 @@ void DMXSequenceDefinition::readFromJSON(const configuru::Config& pt)
 	m_spriteFrameHeight= pt.get_or<int>(k_spriteFrameHeightPropertyId, m_spriteFrameHeight);
 	m_spriteFps= pt.get_or<float>(k_spriteFpsPropertyId, m_spriteFps);
 	m_playbackSpeedScale= pt.get_or<float>(k_playbackSpeedScalePropertyId, m_playbackSpeedScale);
+	m_brightness= pt.get_or<float>(k_brightnessPropertyId, m_brightness);
 }
 
 bool DMXSequenceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
@@ -201,6 +204,7 @@ bool DMXSequenceDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSys
 		m_spriteFrameHeight= values->sprite_frame_height;
 		m_spriteFps= values->sprite_fps;
 		m_playbackSpeedScale= values->playback_speed_scale;
+		m_brightness= values->brightness;
 	}
 
 	if (m_groupId == INVALID_MIKAN_ID)
@@ -377,6 +381,18 @@ void DMXSequenceDefinition::setPlaybackSpeedScale(float playbackSpeedScale)
 	{
 		m_playbackSpeedScale= playbackSpeedScale;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_playbackSpeedScalePropertyId));
+	}
+}
+
+void DMXSequenceDefinition::setBrightness(float brightness)
+{
+	// Stored as written and clamped where it is applied. Clamping here would
+	// let an out of range write report success while changing nothing, which
+	// breaks the contract that a successful set notifies.
+	if (brightness != m_brightness)
+	{
+		m_brightness= brightness;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_brightnessPropertyId));
 	}
 }
 
@@ -781,6 +797,15 @@ void DMXSequenceComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
 			break;
 		}
 	}
+
+	// The dimmer re-sends the frame it already has, so dragging the slider
+	// tracks on the fixtures even while the sequence is paused or stopped and
+	// nothing is calling tick. Writing channel values sends DMX without
+	// touching a config, so this cannot re-enter the change chain.
+	if (changedPropertySet.hasPropertyName(DMXSequenceDefinition::k_brightnessPropertyId))
+	{
+		applyFrameBuffer();
+	}
 }
 
 bool DMXSequenceComponent::callHandler(const char* field, bool bWithTime, float deltaSeconds)
@@ -849,8 +874,36 @@ void DMXSequenceComponent::applyFrameBuffer()
 
 		std::vector<uint8_t> values= it->second;
 		values.resize(fixture->getDMXFixtureDefinition()->getDMXChannelCount(), 0);
+
+		// Every fixture kind a group can hold is RGB triples, so the dimmer
+		// scales every channel. A fixture with non-color channels would need
+		// this to ask the fixture which of its channels carry color.
+		applyBrightness(values, getDMXSequenceDefinition()->getBrightness());
+
 		fixture->setChannelValues(values);
 	}
+}
+
+void DMXSequenceComponent::applyBrightness(std::vector<uint8_t>& inoutValues, float brightness)
+{
+	const float scale= std::clamp(brightness, 0.f, 1.f);
+	if (scale >= 1.f)
+		return;
+
+	for (uint8_t& value : inoutValues)
+	{
+		value= (uint8_t)std::clamp((int)std::lround(value * scale), 0, 255);
+	}
+}
+
+bool DMXSequenceComponent::getAppliedFixtureValues(MikanLightID fixtureId, std::vector<uint8_t>& outValues) const
+{
+	if (!getFrameBufferValues(fixtureId, outValues))
+		return false;
+
+	applyBrightness(outValues, getDMXSequenceDefinition()->getBrightness());
+
+	return true;
 }
 
 bool DMXSequenceComponent::getFrameBufferValues(MikanLightID fixtureId, std::vector<uint8_t>& outValues) const
@@ -980,6 +1033,9 @@ void DMXSequenceComponent::getPropertyDescriptors(std::vector<PropertyDescriptor
 		std::make_shared<PropertyDescriptor>(DMXSequenceDefinition::k_spriteFpsPropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(DMXSequenceDefinition::k_playbackSpeedScalePropertyId,
 																  MikanVariantType::FLOAT));
+	// Drawn by the panel as a percentage slider rather than a raw fraction
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(DMXSequenceDefinition::k_brightnessPropertyId, MikanVariantType::FLOAT));
 	// Runtime playback status, drawn by the panel as a status line
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(k_playbackStatePropertyId, MikanVariantType::INT)
 								 ->setReadOnly()
@@ -1077,6 +1133,11 @@ bool DMXSequenceComponent::getPropertyValue(const std::string& propertyName, Mik
 	else if (propertyName == DMXSequenceDefinition::k_playbackSpeedScalePropertyId)
 	{
 		outValue= definition->getPlaybackSpeedScale();
+		return true;
+	}
+	else if (propertyName == DMXSequenceDefinition::k_brightnessPropertyId)
+	{
+		outValue= definition->getBrightness();
 		return true;
 	}
 	else if (propertyName == k_playbackStatePropertyId)
@@ -1233,6 +1294,14 @@ bool DMXSequenceComponent::setPropertyValue(const std::string& propertyName, con
 		definition->setPlaybackSpeedScale(inValue.getFloatValue());
 		return true;
 	}
+	else if (propertyName == DMXSequenceDefinition::k_brightnessPropertyId)
+	{
+		if (inValue.value_type != MikanVariantType::FLOAT)
+			return false;
+
+		definition->setBrightness(inValue.getFloatValue());
+		return true;
+	}
 
 	return MikanComponent::setPropertyValue(propertyName, inValue);
 }
@@ -1307,6 +1376,8 @@ void DMXSequenceComponent::bindLuaFunctions(lua_State* L)
 		// run they were set for and never write the definition.
 		.addProperty("contentSource", [](DMXSequenceComponent* c) -> int
 					 { return (int)c->getDMXSequenceDefinition()->getContentSource(); })
+		.addProperty("brightness",
+					 [](DMXSequenceComponent* c) -> float { return c->getDMXSequenceDefinition()->getBrightness(); })
 		.addFunction("setText", [](DMXSequenceComponent* c, const std::string& text) { c->setRuntimeText(text); })
 		.addFunction("setContentPath",
 					 [](DMXSequenceComponent* c, const std::string& path) { c->setRuntimeContentPath(path); })

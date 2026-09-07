@@ -282,6 +282,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 	/// Scales a GIF's own delays and a sprite sheet's frame rate alike
 	FIELD() float playback_speed_scale= 1.f;
 
+	/// A 0 to 1 dimmer on every channel the sequence sends
+	FIELD() float brightness= 1.f;
+
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDMXSequenceComponentValues_GENERATED
 #endif

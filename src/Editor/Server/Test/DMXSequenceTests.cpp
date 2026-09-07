@@ -5,6 +5,7 @@
 #include "Light/DMXSequenceContent.h"
 #include "Light/RGBPixelGridComponent.h"
 
+#include <array>
 #include <assert.h>
 #include <math.h>
 #include <memory>
@@ -57,6 +58,7 @@ bool run_dmx_sequence_tests()
 	UNIT_TEST_MODULE_CALL_TEST(dmx_sequence_test_sprite_sheet_slicing);
 	UNIT_TEST_MODULE_CALL_TEST(dmx_sequence_test_utf8_decode);
 	UNIT_TEST_MODULE_CALL_TEST(dmx_sequence_test_canvas_blit);
+	UNIT_TEST_MODULE_CALL_TEST(dmx_sequence_test_brightness);
 	UNIT_TEST_MODULE_END()
 }
 
@@ -81,6 +83,7 @@ bool dmx_sequence_test_json_round_trip()
 	source.setSpriteFrameHeight(8);
 	source.setSpriteFps(24.f);
 	source.setPlaybackSpeedScale(0.5f);
+	source.setBrightness(0.4f);
 
 	DMXSequenceDefinition restored;
 	restored.readFromJSON(source.writeToJSON());
@@ -116,6 +119,8 @@ bool dmx_sequence_test_json_round_trip()
 	assert(success);
 	success&= fabsf(restored.getPlaybackSpeedScale() - 0.5f) < 1e-5f;
 	assert(success);
+	success&= fabsf(restored.getBrightness() - 0.4f) < 1e-5f;
+	assert(success);
 
 	// A project saved before the content sources existed keeps its behaviour:
 	// none of the new keys are present, and it loads as script-driven with the
@@ -125,6 +130,7 @@ bool dmx_sequence_test_json_round_trip()
 	legacy.erase(DMXSequenceDefinition::k_foregroundColorPropertyId);
 	legacy.erase(DMXSequenceDefinition::k_backgroundColorPropertyId);
 	legacy.erase(DMXSequenceDefinition::k_scrollDirectionPropertyId);
+	legacy.erase(DMXSequenceDefinition::k_brightnessPropertyId);
 
 	DMXSequenceDefinition migrated;
 	migrated.readFromJSON(legacy);
@@ -133,6 +139,9 @@ bool dmx_sequence_test_json_round_trip()
 	success&= (migrated.getScrollDirection() == eDMXScrollDirection::left);
 	assert(success);
 	success&= (migrated.getForegroundColor().x == 1.f && migrated.getBackgroundColor().x == 0.f);
+	assert(success);
+	// A sequence that predates the dimmer plays at full output
+	success&= (migrated.getBrightness() == 1.f);
 	assert(success);
 
 	UNIT_TEST_COMPLETE()
@@ -441,6 +450,90 @@ bool dmx_sequence_test_canvas_blit()
 	const size_t shiftedOffset= (size_t)grid->getPixelWireIndex(0, 0) * 3;
 	success&= (values[shiftedOffset] == 3);
 	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
+bool dmx_sequence_test_brightness()
+{
+	UNIT_TEST_BEGIN("the dimmer scales channels and matches an HSV value scale")
+
+	// Full brightness is the identity, and is skipped rather than rounded
+	std::vector<uint8_t> values= {255, 128, 0, 7};
+	DMXSequenceComponent::applyBrightness(values, 1.f);
+	success= (values == std::vector<uint8_t>{255, 128, 0, 7});
+	assert(success);
+
+	// Half, rounded to nearest
+	values= {255, 128, 0, 7};
+	DMXSequenceComponent::applyBrightness(values, 0.5f);
+	success&= (values == std::vector<uint8_t>{128, 64, 0, 4});
+	assert(success);
+
+	// Zero is off, and out of range values are clamped rather than wrapping
+	values= {255, 128, 3};
+	DMXSequenceComponent::applyBrightness(values, 0.f);
+	success&= (values == std::vector<uint8_t>{0, 0, 0});
+	assert(success);
+	values= {255, 128, 3};
+	DMXSequenceComponent::applyBrightness(values, 5.f);
+	success&= (values == std::vector<uint8_t>{255, 128, 3});
+	assert(success);
+	values= {255, 128, 3};
+	DMXSequenceComponent::applyBrightness(values, -1.f);
+	success&= (values == std::vector<uint8_t>{0, 0, 0});
+	assert(success);
+
+	// The byte multiply is what an HSV round trip that scales V produces: for a
+	// fixed hue and saturation every channel is linear in V. Checked against a
+	// reference conversion rather than asserted.
+	const std::vector<std::array<uint8_t, 3>> colors= {{200, 100, 50}, {255, 0, 0},     {13, 200, 255},
+													   {0, 0, 0},      {255, 255, 255}, {90, 90, 12}};
+	for (const float scale : {0.25f, 0.5f, 0.75f})
+	{
+		for (const std::array<uint8_t, 3>& color : colors)
+		{
+			const float r= color[0] / 255.f, g= color[1] / 255.f, b= color[2] / 255.f;
+			const float maxChannel= std::max({r, g, b});
+			const float minChannel= std::min({r, g, b});
+			const float chroma= maxChannel - minChannel;
+
+			// Rebuild RGB from hue, saturation, and a scaled value
+			const float scaledValue= maxChannel * scale;
+			const float saturation= maxChannel > 0.f ? chroma / maxChannel : 0.f;
+			const float scaledChroma= scaledValue * saturation;
+			float hue= 0.f;
+			if (chroma > 0.f)
+			{
+				if (maxChannel == r)
+					hue= 60.f * std::fmod((g - b) / chroma, 6.f);
+				else if (maxChannel == g)
+					hue= 60.f * (((b - r) / chroma) + 2.f);
+				else
+					hue= 60.f * (((r - g) / chroma) + 4.f);
+			}
+			if (hue < 0.f)
+				hue+= 360.f;
+
+			const float x= scaledChroma * (1.f - std::fabs(std::fmod(hue / 60.f, 2.f) - 1.f));
+			const float m= scaledValue - scaledChroma;
+			float rgb[3]= {m, m, m};
+			const int sector= (int)(hue / 60.f) % 6;
+			const int order[6][2]= {{0, 1}, {1, 0}, {1, 2}, {2, 1}, {2, 0}, {0, 2}};
+			rgb[order[sector][0]]+= scaledChroma;
+			rgb[order[sector][1]]+= x;
+
+			std::vector<uint8_t> scaled= {color[0], color[1], color[2]};
+			DMXSequenceComponent::applyBrightness(scaled, scale);
+
+			for (int channel= 0; channel < 3; ++channel)
+			{
+				const int fromHsv= std::clamp((int)std::lround(rgb[channel] * 255.f), 0, 255);
+				success&= (std::abs((int)scaled[channel] - fromHsv) <= 1);
+				assert(success);
+			}
+		}
+	}
 
 	UNIT_TEST_COMPLETE()
 }

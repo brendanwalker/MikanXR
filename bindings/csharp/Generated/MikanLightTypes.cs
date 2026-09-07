@@ -99,6 +99,7 @@ namespace MikanXR
 		public int sprite_frame_height;
 		public float sprite_fps;
 		public float playback_speed_scale;
+		public float brightness;
 	};
 
 	public class MikanDMXSequenceSystemValues : MikanSystemValues

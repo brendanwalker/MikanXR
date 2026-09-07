@@ -136,6 +136,13 @@ public:
 	inline float getPlaybackSpeedScale() const { return m_playbackSpeedScale; }
 	void setPlaybackSpeedScale(float playbackSpeedScale);
 
+	// A 0 to 1 dimmer on everything the sequence sends, since a source image
+	// authored for a screen is usually too bright on a panel. The panel draws
+	// it as a percentage, and the range is enforced where it is applied.
+	static const std::string k_brightnessPropertyId;
+	inline float getBrightness() const { return m_brightness; }
+	void setBrightness(float brightness);
+
 private:
 	MikanDMXFixtureGroupID m_groupId= INVALID_MIKAN_ID;
 	std::string m_sequenceName;
@@ -155,6 +162,7 @@ private:
 	int m_spriteFrameHeight= 0;
 	float m_spriteFps= 10.f;
 	float m_playbackSpeedScale= 1.f;
+	float m_brightness= 1.f;
 };
 
 // -- DMXSequenceComponent -----
@@ -202,6 +210,15 @@ public:
 	void setPixel(MikanLightID fixtureId, int col, int row, uint8_t r, uint8_t g, uint8_t b);
 	// Every member: spot lights get one triple, pixel grids every pixel
 	void fillGroup(uint8_t r, uint8_t g, uint8_t b);
+
+	// Scale channel bytes by the dimmer, rounding to nearest. Scaling the bytes
+	// is what converting to HSV, scaling V, and converting back would produce:
+	// for a fixed hue and saturation each of R, G, and B is linear in V, so the
+	// round trip reduces to this multiply.
+	static void applyBrightness(std::vector<uint8_t>& inoutValues, float brightness);
+	// What a fixture is actually sent: the frame buffer slice with the dimmer
+	// applied. The panel draws these, so its swatches match the light.
+	bool getAppliedFixtureValues(MikanLightID fixtureId, std::vector<uint8_t>& outValues) const;
 
 	// -- Runtime content overrides, for a script picking content on start --
 	// Both are cleared on stop, so they never touch the definition and never
