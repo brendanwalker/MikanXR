@@ -133,6 +133,20 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+:: DirectX Shader Compiler release: its dxc.exe carries the SPIR-V backend the Windows SDK's copy
+:: lacks, which the Vulkan path of MikanClientTestCPP compiles its shaders with
+echo "Downloading DirectX Shader Compiler..."
+curl -L https://github.com/microsoft/DirectXShaderCompiler/releases/download/v1.9.2607/dxc_2026_07_29.zip --output dxc_2026_07_29.zip
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading dxc_2026_07_29.zip"
+  goto failure
+)
+%UNZIP_EXE% e dxc_2026_07_29.zip -y -r -spf -odxc
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping dxc_2026_07_29.zip"
+  goto failure
+)
+
 :: Download pre-compiled Refureku libraries
 echo "Downloading Refureku..."
 curl -L https://github.com/MikanXR/Refureku/releases/download/v2.2.2/rfk_v2.2.1_windows.7z --output rfk_v2.2.1_windows.7z

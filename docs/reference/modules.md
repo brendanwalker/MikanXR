@@ -85,7 +85,7 @@ Each plugin is a `SHARED` DLL with hidden symbol visibility that links only low-
 
 - `Tests/UnitTests` (target `unit_test_suite_cpp`): C++ unit test executable. Links the client libraries plus `MikanMath` and `MikanOnnx` (the latter for the spherical harmonic fit and ONNX session modules). Has its own Refureku pre-build target. On the `iphone` branch it additionally compiles `ARKitVideoDeviceManagerLoader` from the editor tree and, when `MIKAN_WITH_GSTREAMER=ON`, the plugin's `CudaGLInterop` sources directly; that branch's CMakeLists documents why `ARKitRTPHeaderExtension` must not be dual-compiled (GObject type registration is process-global).
 
-- `Tests/MikanClientTestCPP`: interactive client test app exercising the client API end to end, with DirectX 11 and OpenGL render paths (SDL2 window, `d3d11`/`d3dcompiler`).
+- `Tests/MikanClientTestCPP`: interactive client test app exercising the client API end to end, with DirectX 11, OpenGL, and Vulkan render paths (`-dx`, `-gl`, `-vk`; SDL2 window, `d3d11`/`d3dcompiler`, and volk over a Vulkan 1.3 device whose cube shader dxc compiles to SPIR-V at build time).
 
 - `Tests/MikanClientTestCSharp`: C# client test; only added under Visual Studio generators (C# is unsupported under Ninja, so CI skips it).
 

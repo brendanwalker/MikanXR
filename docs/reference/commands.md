@@ -79,14 +79,15 @@ It fetches a model stencil's render geometry over a raw websocket and requires t
 
 ## Client test harness
 
-`MikanClientTestCPP.exe` (built beside its DLLs under `build/src/Programs/Tests/MikanClientTestCPP/Release/`) connects to a running `Mikan.exe` and renders a spinning cube into every camera the editor reports, over one of two render paths:
+`MikanClientTestCPP.exe` (built beside its DLLs under `build/src/Programs/Tests/MikanClientTestCPP/Release/`) connects to a running `Mikan.exe` and renders a spinning cube into every camera the editor reports, over one of three render paths:
 
 ```
 MikanClientTestCPP.exe -dx
 MikanClientTestCPP.exe -gl
+MikanClientTestCPP.exe -vk
 ```
 
-`-dump <png>` writes the connected camera's color target five seconds in, and beside it `<png>.spout.png` and `<png>.depth.spout.png`, the color and packed-depth frames read back from the client's own Spout senders through the editor's receiver path, so a headless drive compares what the client rendered against what the editor receives without depending on a compositor graph. `-cube <x> <y> <z>` places the cube in meters from the camera (x right, y up, z forward) instead of the default 10 m ahead, which is how a drive puts it at a stencil's distance for a depth mask check.
+`-dump <png>` writes the connected camera's color target five seconds in, and beside it `<png>.spout.png` and `<png>.depth.spout.png`, the color and packed-depth frames read back from the client's own Spout senders through the editor's receiver path, so a headless drive compares what the client rendered against what the editor receives without depending on a compositor graph. `-cube <x> <y> <z>` places the cube in meters from the camera (x right, y up, z forward) instead of the default 10 m ahead, which is how a drive puts it at a stencil's distance for a depth mask check. `MIKAN_VULKAN_VALIDATION=1` enables the Khronos validation layer on the `-vk` path when one is installed.
 
 ---
 

@@ -1,6 +1,7 @@
 #include "TestApp.h"
 #include "TestGraphicsContext_DX.h"
 #include "TestGraphicsContext_GL.h"
+#include "TestGraphicsContext_VK.h"
 #include "TestCameraRenderTarget.h"
 #include "TestFrameDump.h"
 #include "TestMikanClient.h"
@@ -101,6 +102,10 @@ bool TestApp::startup(int argc, char** argv)
 		else if (graphicsApiArg == "-dx")
 		{
 			m_graphicsContext= std::make_unique<TestGraphicsContext_DX>(this);
+		}
+		else if (graphicsApiArg == "-vk")
+		{
+			m_graphicsContext= std::make_unique<TestGraphicsContext_VK>(this);
 		}
 		else
 		{
