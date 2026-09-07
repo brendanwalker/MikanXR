@@ -351,10 +351,12 @@ void DMXSequenceComponent::setPixel(MikanLightID fixtureId, int col, int row, ui
 	if (!pixelGrid)
 		return;
 
+	// The grid's origin corner and zig-zag wiring decide where the cell lands in
+	// the DMX stream. Out of range cells are refused before the buffer is
+	// reached, so nothing is left behind for a fixture nothing was written to.
 	RGBPixelGridDefinitionPtr gridDefinition= pixelGrid->getRGBPixelGridDefinition();
-	const int columns= gridDefinition->getColumns();
-	const int rows= gridDefinition->getRows();
-	if (col < 0 || col >= columns || row < 0 || row >= rows)
+	const int wireIndex= gridDefinition->getPixelWireIndex(col, row);
+	if (wireIndex < 0)
 		return;
 
 	std::vector<uint8_t>& values= m_frameBuffer[fixtureId];
@@ -362,7 +364,10 @@ void DMXSequenceComponent::setPixel(MikanLightID fixtureId, int col, int row, ui
 	if (values.size() < channelCount)
 		values.resize(channelCount, 0);
 
-	const size_t offset= static_cast<size_t>(row * columns + col) * 3;
+	const size_t offset= static_cast<size_t>(wireIndex) * 3;
+	if (offset + 3 > values.size())
+		return;
+
 	values[offset]= r;
 	values[offset + 1]= g;
 	values[offset + 2]= b;
