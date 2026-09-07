@@ -41,9 +41,20 @@ elseif(CMAKE_SYSTEM MATCHES "Linux")
   list(APPEND GL_PLATFORM_LIBRARIES GL)
 endif()
 
+# One writer backend per graphics API. Each pulls in its own API's headers, so they are kept out
+# of the unity build that would otherwise merge OpenGL, Direct3D and Vulkan into one translation
+# unit and put their header ordering back in conflict.
+set(MIKAN_SHARED_TEXTURE_WRITER_BACKEND_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Private/SpoutOpenGLTextureWriter.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Private/SpoutDX11TextureWriter.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Private/SpoutDX12TextureWriter.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Private/SpoutVulkanTextureWriter.cpp"
+)
+
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${MIKAN_SHARED_TEXTURE_SPOUT2_DX_SRC} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${MIKAN_SHARED_TEXTURE_SPOUT2_GL_SRC} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${MIKAN_SHARED_TEXTURE_WRITER_BACKEND_SRC} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${VOLK_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 source_group("Public" FILES ${MIKAN_SHARED_TEXTURE_PUBLIC})
 source_group("Private" FILES ${MIKAN_SHARED_TEXTURE_PRIVATE_SRC})
