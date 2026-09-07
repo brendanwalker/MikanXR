@@ -206,6 +206,21 @@ ISharedTextureWriteAccessorPtr MikanClient::addSharedTextureWriteAccessor(MikanC
 {
 	ISharedTextureWriteAccessorPtr writeAccessor= createSharedTextureWriteAccessor(m_clientName, camera_id);
 
+	// Route the writer's diagnostics through the client log, so a failed shared texture
+	// allocation names its reason to the client instead of failing silently
+	writeAccessor->setLogCallback(
+		[](SharedTextureLogLevel level, const std::string& message)
+		{
+			if (level == SharedTextureLogLevel::error)
+			{
+				MIKAN_LOG_ERROR("SharedTextureWriter") << message;
+			}
+			else
+			{
+				MIKAN_LOG_INFO("SharedTextureWriter") << message;
+			}
+		});
+
 	m_renderTargetWriterCameraMap.insert({camera_id, writeAccessor});
 
 	return writeAccessor;
