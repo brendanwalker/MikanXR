@@ -11,6 +11,20 @@ export enum MikanDMXBufferFormat {
   DMXRLEEncoded = 1
 }
 
+export enum MikanDMXScrollDirection {
+  Left = 0,
+  Right = 1,
+  Up = 2,
+  Down = 3
+}
+
+export enum MikanDMXSequenceContentSource {
+  Script = 0,
+  ScrollBitmap = 1,
+  ScrollText = 2,
+  PlayAnimation = 3
+}
+
 export enum MikanPixelGridOrigin {
   UpperLeft = 0,
   UpperRight = 1,
@@ -177,6 +191,19 @@ export class MikanDMXSequenceComponentValues extends MikanComponentValues {
   loop: boolean = true;
   playback_state: number = 0;
   time_since_start: number = 0;
+  content_source: MikanDMXSequenceContentSource = MikanDMXSequenceContentSource.Script;
+  content_path: string = '';
+  scroll_text: string = '';
+  font_path: string = '';
+  text_pixel_height: number = 0;
+  foreground_color: MikanVector3f = new MikanVector3f();
+  background_color: MikanVector3f = new MikanVector3f();
+  scroll_direction: MikanDMXScrollDirection = MikanDMXScrollDirection.Left;
+  scroll_speed: number = 8;
+  sprite_frame_width: number = 0;
+  sprite_frame_height: number = 0;
+  sprite_fps: number = 10;
+  playback_speed_scale: number = 1;
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'group_id', type: 'int32' },
@@ -184,7 +211,20 @@ export class MikanDMXSequenceComponentValues extends MikanComponentValues {
     { name: 'duration_seconds', type: 'float' },
     { name: 'loop', type: 'boolean' },
     { name: 'playback_state', type: 'int32' },
-    { name: 'time_since_start', type: 'float' }
+    { name: 'time_since_start', type: 'float' },
+    { name: 'content_source', type: 'enum:MikanDMXSequenceContentSource' },
+    { name: 'content_path', type: 'string' },
+    { name: 'scroll_text', type: 'string' },
+    { name: 'font_path', type: 'string' },
+    { name: 'text_pixel_height', type: 'int32' },
+    { name: 'foreground_color', type: 'MikanVector3f' },
+    { name: 'background_color', type: 'MikanVector3f' },
+    { name: 'scroll_direction', type: 'enum:MikanDMXScrollDirection' },
+    { name: 'scroll_speed', type: 'float' },
+    { name: 'sprite_frame_width', type: 'int32' },
+    { name: 'sprite_frame_height', type: 'int32' },
+    { name: 'sprite_fps', type: 'float' },
+    { name: 'playback_speed_scale', type: 'float' }
   ];
 }
 

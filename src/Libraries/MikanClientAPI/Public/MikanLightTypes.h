@@ -201,7 +201,31 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 #endif
 };
 
-/// A Lua-driven animation of one fixture group. playback_state is 0 stopped,
+/// Where a sequence's pixels come from. Everything else about a sequence is
+/// shared across all four; only this decides who fills the frame buffer.
+enum ENUM(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXSequenceContentSource
+{
+	/// A Lua handler writes the frame buffer itself
+	MikanDMXSequenceContentSource_SCRIPT ENUMVALUE_STRING("Script"),
+	/// The editor rasterizes and scrolls a still image
+	MikanDMXSequenceContentSource_SCROLL_BITMAP ENUMVALUE_STRING("ScrollBitmap"),
+	/// The editor rasterizes and scrolls a line of UTF-8 text
+	MikanDMXSequenceContentSource_SCROLL_TEXT ENUMVALUE_STRING("ScrollText"),
+	/// The editor plays an animation's frames on their own timing
+	MikanDMXSequenceContentSource_PLAY_ANIMATION ENUMVALUE_STRING("PlayAnimation"),
+};
+
+/// Which way scrolled content travels across the grid.
+enum ENUM(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXScrollDirection
+{
+	MikanDMXScrollDirection_LEFT ENUMVALUE_STRING("Left"),
+	MikanDMXScrollDirection_RIGHT ENUMVALUE_STRING("Right"),
+	MikanDMXScrollDirection_UP ENUMVALUE_STRING("Up"),
+	MikanDMXScrollDirection_DOWN ENUMVALUE_STRING("Down"),
+};
+
+/// An animation of one fixture group, driven either by a Lua handler or by one
+/// of the editor's rasterized content sources. playback_state is 0 stopped,
 /// 1 playing, 2 paused.
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXSequenceComponentValues
 	: public MikanComponentValues
@@ -222,6 +246,41 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 	FIELD() int playback_state= 0;
 
 	FIELD() float time_since_start= 0.f;
+
+	FIELD() MikanDMXSequenceContentSource content_source= MikanDMXSequenceContentSource_SCRIPT;
+
+	/// The still image a scrolling bitmap shows, or the GIF or sprite sheet an
+	/// animation plays. One path, since only one source is live at a time.
+	FIELD() Serialization::String content_path;
+
+	FIELD() Serialization::String scroll_text;
+
+	/// Empty falls back to the editor's bundled face
+	FIELD() Serialization::String font_path;
+
+	/// Zero means the target grid's own row count
+	FIELD() int text_pixel_height= 0;
+
+	/// Normalized RGB
+	FIELD() MikanVector3f foreground_color= {1.f, 1.f, 1.f};
+
+	/// Normalized RGB, also filling the grid wherever the content does not reach
+	FIELD() MikanVector3f background_color= {0.f, 0.f, 0.f};
+
+	FIELD() MikanDMXScrollDirection scroll_direction= MikanDMXScrollDirection_LEFT;
+
+	/// Pixels per second
+	FIELD() float scroll_speed= 8.f;
+
+	/// Zero means square frames the height of the sheet. Ignored for a GIF.
+	FIELD() int sprite_frame_width= 0;
+
+	FIELD() int sprite_frame_height= 0;
+
+	FIELD() float sprite_fps= 10.f;
+
+	/// Scales a GIF's own delays and a sprite sheet's frame rate alike
+	FIELD() float playback_speed_scale= 1.f;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDMXSequenceComponentValues_GENERATED

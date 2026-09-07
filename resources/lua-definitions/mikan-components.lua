@@ -309,13 +309,17 @@ function DMXPresetComponent:capture() end
 -- DMXSequenceComponent : MikanComponent
 ------------------------------------------------------------------------
 
---- A Lua-driven animation of one fixture group, driven by a handler registered
---- through ScriptContext.registerSequence.
+--- An animation of one fixture group. A Script sequence is driven by a handler
+--- registered through ScriptContext.registerSequence, which fills the frame
+--- buffer itself. The other content sources are rasterized by the editor; a
+--- handler is optional there and only its start and stop are called, for
+--- picking the content with setText or setContentPath.
 ---@class DMXSequenceComponent : MikanComponent
 ---@field groupId integer The DMXFixtureGroupComponent this sequence animates (read-only)
 ---@field sequenceName string The registered handler name (read-only)
 ---@field timeSinceStart number Seconds since play started, wrapped when looping (read-only)
 ---@field isPlaying boolean
+---@field contentSource integer 0 script, 1 scroll bitmap, 2 scroll text, 3 play animation (read-only)
 local DMXSequenceComponent = {}
 
 ---@return DMXFixtureGroupComponent
@@ -355,6 +359,25 @@ function DMXSequenceComponent:setFixtureChannels(fixtureId, bytes) end
 ---@param g integer
 ---@param b integer
 function DMXSequenceComponent:fillGroup(r, g, b) end
+
+--- Override the text a ScrollText sequence rasterizes, for this run only.
+--- Call it from the handler's start; it never writes the component definition.
+---@param text string UTF-8
+function DMXSequenceComponent:setText(text) end
+
+--- Override the image a ScrollBitmap or PlayAnimation sequence reads, for this
+--- run only. Call it from the handler's start.
+---@param path string
+function DMXSequenceComponent:setContentPath(path) end
+
+--- The text in use: the override when one is set, otherwise the definition's.
+---@return string
+function DMXSequenceComponent:getText() end
+
+--- The content image in use: the override when one is set, otherwise the
+--- definition's.
+---@return string
+function DMXSequenceComponent:getContentPath() end
 
 ------------------------------------------------------------------------
 -- MarkerComponent : MikanComponent

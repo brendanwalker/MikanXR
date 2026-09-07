@@ -10,6 +10,22 @@ namespace MikanXR
 		DMXRLEEncoded= 1,
 	};
 
+	public enum MikanDMXScrollDirection
+	{
+		Left= 0,
+		Right= 1,
+		Up= 2,
+		Down= 3,
+	};
+
+	public enum MikanDMXSequenceContentSource
+	{
+		Script= 0,
+		ScrollBitmap= 1,
+		ScrollText= 2,
+		PlayAnimation= 3,
+	};
+
 	public enum MikanPixelGridOrigin
 	{
 		UpperLeft= 0,
@@ -70,6 +86,19 @@ namespace MikanXR
 		public bool loop;
 		public int playback_state;
 		public float time_since_start;
+		public MikanDMXSequenceContentSource content_source;
+		public string content_path;
+		public string scroll_text;
+		public string font_path;
+		public int text_pixel_height;
+		public MikanVector3f foreground_color;
+		public MikanVector3f background_color;
+		public MikanDMXScrollDirection scroll_direction;
+		public float scroll_speed;
+		public int sprite_frame_width;
+		public int sprite_frame_height;
+		public float sprite_fps;
+		public float playback_speed_scale;
 	};
 
 	public class MikanDMXSequenceSystemValues : MikanSystemValues

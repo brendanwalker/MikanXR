@@ -17,6 +17,8 @@
 
 #include "imgui.h"
 
+#include <algorithm>
+
 GuiPanel_DMXSequenceComponent::GuiPanel_DMXSequenceComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
 	, m_groupDataSource(ownerAppStage->getProjectManager(), {{DMXFixtureGroupSystem::k_objectSystemClassName,
@@ -136,6 +138,36 @@ void GuiPanel_DMXSequenceComponent::onConstruct()
 			return true;
 		});
 
+	// Only the settings the active source reads stay on the sheet. The handler
+	// picker is left visible in every mode, since a rasterized source can still
+	// name a handler to pick its content on start.
+	hideUnlessContentSource(DMXSequenceDefinition::k_contentPathPropertyId,
+							{eDMXSequenceContentSource::scrollBitmap, eDMXSequenceContentSource::playAnimation});
+	hideUnlessContentSource(DMXSequenceDefinition::k_scrollTextPropertyId, {eDMXSequenceContentSource::scrollText});
+	hideUnlessContentSource(DMXSequenceDefinition::k_fontPathPropertyId, {eDMXSequenceContentSource::scrollText});
+	hideUnlessContentSource(DMXSequenceDefinition::k_textPixelHeightPropertyId,
+							{eDMXSequenceContentSource::scrollText});
+	hideUnlessContentSource(DMXSequenceDefinition::k_scrollDirectionPropertyId,
+							{eDMXSequenceContentSource::scrollBitmap, eDMXSequenceContentSource::scrollText});
+	hideUnlessContentSource(DMXSequenceDefinition::k_scrollSpeedPropertyId,
+							{eDMXSequenceContentSource::scrollBitmap, eDMXSequenceContentSource::scrollText});
+	hideUnlessContentSource(DMXSequenceDefinition::k_spriteFrameWidthPropertyId,
+							{eDMXSequenceContentSource::playAnimation});
+	hideUnlessContentSource(DMXSequenceDefinition::k_spriteFrameHeightPropertyId,
+							{eDMXSequenceContentSource::playAnimation});
+	hideUnlessContentSource(DMXSequenceDefinition::k_spriteFpsPropertyId, {eDMXSequenceContentSource::playAnimation});
+	hideUnlessContentSource(DMXSequenceDefinition::k_playbackSpeedScalePropertyId,
+							{eDMXSequenceContentSource::playAnimation});
+
+	// The foreground only means anything to rasterized text; the background
+	// also fills wherever a scrolled image does not reach. Both draw as color
+	// pickers, and both hide the same way the rest do, which is why one
+	// renderer covers both jobs: the map holds a single renderer per property.
+	addColorPropertyRenderer(DMXSequenceDefinition::k_foregroundColorPropertyId, "properties.foreground_color",
+							 {eDMXSequenceContentSource::scrollText});
+	addColorPropertyRenderer(DMXSequenceDefinition::k_backgroundColorPropertyId, "properties.background_color",
+							 {eDMXSequenceContentSource::scrollBitmap, eDMXSequenceContentSource::scrollText});
+
 	// Playback status, then the current per-fixture frame the handler wrote,
 	// drawn read-only by fixture kind the same way the preset panel draws its
 	// editable swatches
@@ -252,6 +284,66 @@ void GuiPanel_DMXSequenceComponent::onConstruct()
 						ImGui::EndDisabled();
 					}
 				}
+			}
+
+			return true;
+		});
+}
+
+void GuiPanel_DMXSequenceComponent::hideUnlessContentSource(const std::string& propertyName,
+															const std::vector<eDMXSequenceContentSource>& sources)
+{
+	m_entityAccessor->setPropertyRenderer(
+		propertyName,
+		[this, sources](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			DMXSequenceComponentPtr sequenceComp= getDMXSequenceComponent();
+			if (!sequenceComp)
+				return false;
+
+			const eDMXSequenceContentSource activeSource= sequenceComp->getDMXSequenceDefinition()->getContentSource();
+
+			// Claimed and drawn as nothing when the active source ignores it,
+			// otherwise handed back to the default renderer
+			return std::find(sources.begin(), sources.end(), activeSource) == sources.end();
+		});
+}
+
+void GuiPanel_DMXSequenceComponent::addColorPropertyRenderer(const std::string& propertyName,
+															 const std::string& labelKey,
+															 const std::vector<eDMXSequenceContentSource>& sources)
+{
+	m_entityAccessor->setPropertyRenderer(
+		propertyName,
+		[this, propertyName, labelKey, sources](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			DMXSequenceComponentPtr sequenceComp= getDMXSequenceComponent();
+			if (!sequenceComp)
+				return false;
+
+			const eDMXSequenceContentSource activeSource= sequenceComp->getDMXSequenceDefinition()->getContentSource();
+			if (std::find(sources.begin(), sources.end(), activeSource) == sources.end())
+				return true;
+
+			MikanVariant value;
+			if (!sequenceComp->getPropertyValue(propertyName, value) || value.value_type != MikanVariantType::VECTOR3F)
+			{
+				return true;
+			}
+
+			const MikanVector3f& color= value.getVector3fValue();
+			float rgb[3]= {color.x, color.y, color.z};
+
+			ImGui::TextUnformatted(locText(labelKey.c_str()));
+			ImGui::SameLine();
+
+			const std::string id= "##" + sequenceComp->makePropertyUIIdentifier(propertyName);
+			if (ImGui::ColorEdit3(id.c_str(), rgb, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoLabel))
+			{
+				MikanVariant newColor;
+				newColor.setValue(MikanVector3f{rgb[0], rgb[1], rgb[2]});
+				addDeferredGuiEvent([sequenceComp, propertyName, newColor]()
+									{ sequenceComp->setPropertyValue(propertyName, newColor); });
 			}
 
 			return true;
