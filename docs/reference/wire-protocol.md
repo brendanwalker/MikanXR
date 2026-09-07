@@ -91,6 +91,8 @@ The generated outputs are checked into git (`bindings/csharp/CMakeLists.txt` car
 
 - Responses fill a `ClientResponse` with either `utf8String` (sent as a text frame) or `binaryData` (sent as a binary frame). Binary responses use the `BinarySerializer` path; JSON responses use `Serialization::serializeToJsonString`.
 
+- `processRequests` stops dequeuing once a tick's responses exceed a byte budget, leaving the rest for the next tick. Requests stay in arrival order per connection, and the starting connection rotates each tick. See [debugging.md](./debugging.md) for why.
+
 - Events are server-to-client JSON pushes. `MikanServer::publishMikanJsonEvent` fans a serialized `MikanEvent` subclass out to every connection. Clients poll them off a queue via `IMikanAPI::fetchNextEvent` / `Mikan_FetchNextEvent`; there is no per-event acknowledgement.
 
 ---
