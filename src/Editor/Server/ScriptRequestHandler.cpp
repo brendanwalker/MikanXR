@@ -69,10 +69,11 @@ bool ScriptRequestHandler::registerHttpTriggerRoute(const std::string& routeName
 		return false;
 	}
 
-	auto handler= [this, triggerName](const std::string& method, const std::string& path,
-									  const std::string& body) -> HttpRouteResponse
+	auto handler= [this, triggerName](const HttpRouteRequest& request) -> HttpRouteResponse
 	{
-		MikanAPIResult result= invokeScriptTriggerInternal(triggerName);
+		// The query string is the payload: "?user=bob&tier=3" reaches the Lua
+		// trigger as its argument table
+		MikanAPIResult result= invokeScriptTriggerInternal(triggerName, request.queryArgs);
 
 		HttpRouteResponse response;
 		switch (result)
@@ -129,12 +130,19 @@ void ScriptRequestHandler::invokeScriptTriggerHandler(const ClientRequest& reque
 		return;
 	}
 
-	MikanAPIResult result= invokeScriptTriggerInternal(scriptTriggerRequest.trigger_name.getUtf8Value());
+	std::map<std::string, std::string> triggerArgs;
+	for (const auto& entry : scriptTriggerRequest.trigger_args)
+	{
+		triggerArgs[entry.key.getUtf8Value()]= entry.value.getUtf8Value();
+	}
+
+	MikanAPIResult result= invokeScriptTriggerInternal(scriptTriggerRequest.trigger_name.getUtf8Value(), triggerArgs);
 
 	writeSimpleJsonResponse(request.requestId, result, response);
 }
 
-MikanAPIResult ScriptRequestHandler::invokeScriptTriggerInternal(const std::string& triggerName)
+MikanAPIResult ScriptRequestHandler::invokeScriptTriggerInternal(const std::string& triggerName,
+																 const std::map<std::string, std::string>& args)
 {
 	CommonScriptContextPtr scriptContext= m_scriptContext.lock();
 	if (!scriptContext)
@@ -147,7 +155,7 @@ MikanAPIResult ScriptRequestHandler::invokeScriptTriggerInternal(const std::stri
 		return MikanAPIResult::MalformedParameters;
 	}
 
-	if (!scriptContext->invokeScriptTrigger(triggerName))
+	if (!scriptContext->invokeScriptTrigger(triggerName, args))
 	{
 		return MikanAPIResult::RequestFailed;
 	}

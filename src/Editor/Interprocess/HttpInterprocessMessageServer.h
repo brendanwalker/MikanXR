@@ -26,10 +26,19 @@ struct HttpRouteResponse
 	std::string contentType= "application/json";
 };
 
-// method is the HTTP verb (e.g. "GET"/"POST"), path is the request URI with any "?query" stripped,
-// body is the raw request body (may be empty).
-using HttpRouteHandler=
-	std::function<HttpRouteResponse(const std::string& method, const std::string& path, const std::string& body)>;
+struct HttpRouteRequest
+{
+	// The HTTP verb (e.g. "GET"/"POST")
+	std::string method= "GET";
+	// The request URI with any "?query" stripped, which is what routes are matched on
+	std::string path;
+	// The decoded "?key=value&..." pairs, empty when the URI carried no query string
+	std::map<std::string, std::string> queryArgs;
+	// The raw request body (may be empty)
+	std::string body;
+};
+
+using HttpRouteHandler= std::function<HttpRouteResponse(const HttpRouteRequest& request)>;
 
 struct PendingHttpRequest;
 using PendingHttpRequestPtr= std::shared_ptr<PendingHttpRequest>;
@@ -65,9 +74,8 @@ public:
 
 	// Invokes a registered route's handler directly, in-process, bypassing the HTTP
 	// request queue entirely (e.g. for a UI button that fires a trigger without a real HTTP
-	// round-trip). Returns false if no handler is registered for path. Main-thread-only.
-	bool invokeRouteHandler(const std::string& path, HttpRouteResponse& outResponse, const std::string& method= "GET",
-							const std::string& body= "");
+	// round-trip). Returns false if no handler is registered for request.path. Main-thread-only.
+	bool invokeRouteHandler(const HttpRouteRequest& request, HttpRouteResponse& outResponse);
 
 protected:
 	// Runs on a per-connection background thread spawned by ix::SocketServer.

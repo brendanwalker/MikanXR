@@ -180,7 +180,11 @@ function ScriptContext.registerComponent(name, componentClassName) end
 function ScriptContext.registerSequence(name, handler) end
 
 --- Register a global Lua function as a trigger.
---- Triggers are called by Mikan in response to UI Button Events.
+--- Triggers are called by Mikan in response to UI Button Events, HTTP routes,
+--- the client API's InvokeScriptTrigger request, and the automation server.
+--- The function is always called with one table of string arguments, empty
+--- when the caller supplied none; a function declared with no parameters
+--- simply ignores it.
 ---@param functionName string Name of the global function to register.
 function ScriptContext.registerTrigger(functionName) end
 
@@ -189,8 +193,11 @@ function ScriptContext.registerTrigger(functionName) end
 ---@param functionName string Name of the global function to register.
 function ScriptContext.registerMessageHandler(functionName) end
 
---- Register a global Lua function as a http trigger.
---- HTTP triggers are called by Mikan in response to HTTP requests.
+--- Register a global Lua function as a http trigger, served at "/trigger/<routeName>".
+--- The request's query string arrives as the trigger's argument table, so
+--- "?user=bob&tier=3" reaches the function as { user = "bob", tier = "3" }.
+--- Values are always strings. The function must also be registered with
+--- registerTrigger, which is what makes it callable.
 ---@param routeName string HTTP route to register the trigger for.
 ---@param functionName string Name of the global function to register.
 function ScriptContext.registerHttpTrigger(routeName, functionName) end

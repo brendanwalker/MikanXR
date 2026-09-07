@@ -4,6 +4,7 @@
 #include "MikanAPITypes.h"
 #include "ScriptingFwd.h"
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -35,7 +36,8 @@ protected:
 	void invokeScriptTriggerHandler(const ClientRequest& request, ClientResponse& response);
 	void invokeScriptMessageHandler(const ClientRequest& request, ClientResponse& response);
 
-	MikanAPIResult invokeScriptTriggerInternal(const std::string& triggerName);
+	MikanAPIResult invokeScriptTriggerInternal(const std::string& triggerName,
+											   const std::map<std::string, std::string>& args);
 
 private:
 	CommonScriptContextWeakPtr m_scriptContext;

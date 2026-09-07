@@ -82,7 +82,7 @@ Value syntax for `property get`/`set`:
 
 - `script list` replies `<scriptId> <path> <loaded|not_loaded> [trigger,trigger]` per project script, in pool order (`-` for a script with no path set)
 - `script eval <lua-code>` runs a statement in the project's script state and replies what it returns (the code is the raw untokenized rest of the line, so Lua quotes pass through verbatim): `script eval return SceneSystem:getSceneByName("MyScene").name`
-- `script trigger <triggerName>` invokes a script trigger, the same call the HTTP trigger routes make
+- `script trigger <triggerName> [key=value ...]` invokes a script trigger, the same call the HTTP trigger routes make. The trailing tokens become the trigger's argument table, standing in for a route's query string, and a token with no `=` is an error. Quote a value holding spaces: `script trigger new_sub user=bob "message=thanks for the stream"`
 - `script reload` rebuilds the project's script state, re-running every script in pool order
 
 ### Log access (log)

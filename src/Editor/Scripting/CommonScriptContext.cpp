@@ -670,12 +670,21 @@ bool CommonScriptContext::pushVariantAsGlobal(const std::string& name, const Mik
 	}
 }
 
-bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName)
+bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName,
+											  const std::map<std::string, std::string>& args)
 {
 	if (m_luaState != nullptr && hasTrigger(triggerName))
 	{
 		lua_getglobal(m_luaState, triggerName.c_str());
-		int ret= lua_pcall(m_luaState, 0, 0, 0);
+
+		lua_createtable(m_luaState, 0, static_cast<int>(args.size()));
+		for (const auto& [key, value] : args)
+		{
+			lua_pushlstring(m_luaState, value.c_str(), value.size());
+			lua_setfield(m_luaState, -2, key.c_str());
+		}
+
+		int ret= lua_pcall(m_luaState, 1, 0, 0);
 		return checkLuaResult(ret, __FILE__, __LINE__);
 	}
 

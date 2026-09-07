@@ -69,13 +69,28 @@ Scripts declare their entry points through the `ScriptContext` namespace. Each r
 
 - `ScriptContext.registerTrigger(functionName)`: exposes a named global function as a trigger.
 - `ScriptContext.registerMessageHandler(functionName)`: handler receives a string message, returns true if handled.
-- `ScriptContext.registerHttpTrigger(routeName, functionName)`: binds a trigger to the HTTP route `/trigger/<routeName>`.
+- `ScriptContext.registerHttpTrigger(routeName, functionName)`: binds a trigger to the HTTP route `/trigger/<routeName>`. The function still needs its own `registerTrigger`, which is what makes it callable; this call only maps a route onto it.
 - `ScriptContext.registerVariable(name, defaultValue)`: exposes a global as an editor-editable, persisted parameter (below).
 - `ScriptContext.registerComponent(name, componentClassName)`: exposes a global that references one component of that class (below).
 - `ScriptContext.registerSequence(name, handlerTable)`: registers a DMX sequence handler a `DMXSequenceComponent` can pick (below).
 - `ScriptContext.broadcastMessage(message)`: emits a message to connected clients.
 
 `ScriptComponent::getTriggerNames()` and `invokeTrigger()` filter to the triggers registered by that component's own file (`CommonScriptContext::getTriggerNamesForScript(scriptId, ...)`). A trigger run from the panel button or the `script trigger` automation command is bracketed as one transaction gesture ([transactions.md](./transactions.md)).
+
+### Trigger arguments
+
+`CommonScriptContext::invokeScriptTrigger(triggerName, args)` always calls the Lua function with exactly one table argument, empty when the caller supplied nothing. A trigger declared with no parameters ignores it, so an argument-free trigger needs no change. Values are always strings, so a script converts with `tonumber` where it needs a number.
+
+Each entry point fills that table from its own carrier:
+
+- an HTTP route from the request's query string, so `/trigger/new_sub?user=bob&tier=3` arrives as `{ user = "bob", tier = "3" }`
+- the `InvokeScriptTrigger` client request from its `trigger_args` map
+- the `script trigger <name> [key=value ...]` automation command from its trailing tokens
+- the script panel button and the HTTP triggers panel button with nothing, so both pass an empty table
+
+Query string parsing lives in `HttpInterprocessMessageServer` (`parseQueryString`), which percent-decodes, treats `+` as a space, and keeps the last occurrence of a repeated key. Route handlers receive one `HttpRouteRequest` carrying the verb, the matched path, the decoded query args, and the body.
+
+`resources/scripts/stream_event.lua` is the worked example: an HTTP trigger that reads its args, caches the current scene, switches to an effect scene, broadcasts to clients, waits on a coroutine, and restores. It also carries the reentrancy guard such a flow needs, since a second event arriving mid-effect would otherwise cache the effect scene as the one to restore.
 
 ### Script variables
 
@@ -128,7 +143,7 @@ There is no `ownerComponent` global: a script is not bound to a single component
 
 `ScriptRequestHandler` (`src/Editor/Server/ScriptRequestHandler.h`) is the server-side bridge (see [wire-protocol.md](./wire-protocol.md)). It holds one bound `ProjectScriptContext` at a time (`bindScriptContext`/`unbindScriptContext`/`getScriptContext`):
 
-- `InvokeScriptTrigger { trigger_name }` request: triggers are project-wide, so the request carries only the trigger name. Result codes:
+- `InvokeScriptTrigger { trigger_name, trigger_args }` request: triggers are project-wide, so the request addresses one by name. `trigger_args` is a string-to-string map that becomes the trigger's argument table and may be empty. Result codes:
 	- `MalformedParameters`: the trigger name is not registered.
 	- `RequestFailed`: no project script state is loaded, or the trigger itself failed.
 	- `Success`: otherwise.
@@ -137,7 +152,7 @@ There is no `ownerComponent` global: a script is not bound to a single component
 
 - `MikanScriptMessagePostedEvent`: published to clients whenever a script calls `broadcastMessage`.
 
-- HTTP triggers: `registerHttpTriggerRoute(routeName, triggerName)` installs routes under `/trigger/<name>` on the HTTP message server (Stream Deck style integrations) for every `ScriptContext.registerHttpTrigger` binding the bound context declared. Responses are JSON result codes mapped from `MikanAPIResult`.
+- HTTP triggers: `registerHttpTriggerRoute(routeName, triggerName)` installs routes under `/trigger/<name>` on the HTTP message server for every `ScriptContext.registerHttpTrigger` binding the bound context declared. The route ignores the HTTP verb and passes the request's query args to the trigger, which is what lets a GET-only caller (a Stream Deck, Streamer.bot's Fetch URL sub-action) carry a payload. Responses are JSON result codes mapped from `MikanAPIResult`.
 
 ---
 

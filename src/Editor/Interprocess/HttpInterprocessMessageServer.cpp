@@ -5,6 +5,7 @@
 #include "IxWebSocket/IXConnectionState.h"
 #include "IxWebSocket/IxNetSystem.h"
 
+#include <algorithm>
 #include <chrono>
 #include <future>
 
@@ -16,6 +17,94 @@ std::string stripQueryString(const std::string& uri)
 {
 	const size_t queryPos= uri.find('?');
 	return queryPos != std::string::npos ? uri.substr(0, queryPos) : uri;
+}
+
+int hexDigitValue(char c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	if (c >= 'a' && c <= 'f')
+		return c - 'a' + 10;
+	if (c >= 'A' && c <= 'F')
+		return c - 'A' + 10;
+
+	return -1;
+}
+
+// Percent-decodes one query string token, treating '+' as a space per the
+// application/x-www-form-urlencoded convention. A malformed escape is left verbatim.
+std::string percentDecode(const std::string& text)
+{
+	std::string decoded;
+	decoded.reserve(text.size());
+
+	for (size_t i= 0; i < text.size(); ++i)
+	{
+		const char c= text[i];
+
+		if (c == '+')
+		{
+			decoded.push_back(' ');
+		}
+		else if (c == '%' && i + 2 < text.size())
+		{
+			const int high= hexDigitValue(text[i + 1]);
+			const int low= hexDigitValue(text[i + 2]);
+
+			if (high >= 0 && low >= 0)
+			{
+				decoded.push_back(static_cast<char>((high << 4) | low));
+				i+= 2;
+			}
+			else
+			{
+				decoded.push_back(c);
+			}
+		}
+		else
+		{
+			decoded.push_back(c);
+		}
+	}
+
+	return decoded;
+}
+
+// Splits a request URI's "?key=value&..." tail into decoded pairs. A key with no '=' maps to
+// an empty value, an empty key is dropped, and a repeated key keeps the last occurrence.
+std::map<std::string, std::string> parseQueryString(const std::string& uri)
+{
+	std::map<std::string, std::string> queryArgs;
+
+	const size_t queryPos= uri.find('?');
+	if (queryPos == std::string::npos)
+	{
+		return queryArgs;
+	}
+
+	size_t pairStart= queryPos + 1;
+	while (pairStart <= uri.size())
+	{
+		const size_t pairEnd= std::min(uri.find('&', pairStart), uri.size());
+		const std::string pair= uri.substr(pairStart, pairEnd - pairStart);
+		pairStart= pairEnd + 1;
+
+		if (pair.empty())
+		{
+			continue;
+		}
+
+		const size_t equalsPos= pair.find('=');
+		const std::string key= percentDecode(pair.substr(0, equalsPos));
+		if (key.empty())
+		{
+			continue;
+		}
+
+		queryArgs[key]= equalsPos != std::string::npos ? percentDecode(pair.substr(equalsPos + 1)) : std::string();
+	}
+
+	return queryArgs;
 }
 
 std::string httpStatusDescription(int statusCode)
@@ -40,9 +129,7 @@ std::string httpStatusDescription(int statusCode)
 
 struct PendingHttpRequest
 {
-	std::string method;
-	std::string path;
-	std::string body;
+	HttpRouteRequest routeRequest;
 	std::shared_ptr<std::promise<HttpRouteResponse>> responsePromise;
 };
 
@@ -131,14 +218,13 @@ std::vector<std::string> HttpInterprocessMessageServer::getRegisteredRoutePaths(
 	return paths;
 }
 
-bool HttpInterprocessMessageServer::invokeRouteHandler(const std::string& path, HttpRouteResponse& outResponse,
-													   const std::string& method, const std::string& body)
+bool HttpInterprocessMessageServer::invokeRouteHandler(const HttpRouteRequest& request, HttpRouteResponse& outResponse)
 {
 	HttpRouteHandler handler;
 	{
 		std::lock_guard<std::mutex> lock(m_routeHandlersMutex);
 
-		auto handler_it= m_routeHandlers.find(path);
+		auto handler_it= m_routeHandlers.find(request.path);
 		if (handler_it == m_routeHandlers.end())
 		{
 			return false;
@@ -147,16 +233,17 @@ bool HttpInterprocessMessageServer::invokeRouteHandler(const std::string& path, 
 		handler= handler_it->second;
 	}
 
-	outResponse= handler(method, path, body);
+	outResponse= handler(request);
 	return true;
 }
 
 ix::HttpResponsePtr HttpInterprocessMessageServer::handleIncomingRequest(ix::HttpRequestPtr request)
 {
 	auto pendingRequest= std::make_shared<PendingHttpRequest>();
-	pendingRequest->method= request->method;
-	pendingRequest->path= stripQueryString(request->uri);
-	pendingRequest->body= request->body;
+	pendingRequest->routeRequest.method= request->method;
+	pendingRequest->routeRequest.path= stripQueryString(request->uri);
+	pendingRequest->routeRequest.queryArgs= parseQueryString(request->uri);
+	pendingRequest->routeRequest.body= request->body;
 	pendingRequest->responsePromise= std::make_shared<std::promise<HttpRouteResponse>>();
 
 	std::future<HttpRouteResponse> future= pendingRequest->responsePromise->get_future();
@@ -178,7 +265,7 @@ ix::HttpResponsePtr HttpInterprocessMessageServer::handleIncomingRequest(ix::Htt
 			// The main thread may still fulfill this promise later; that's harmless since
 			// std::promise::set_value() doesn't require a waiter to still be listening.
 			MIKAN_MT_LOG_WARNING("HttpInterprocessMessageServer::handleIncomingRequest")
-				<< "Timed out waiting for main thread to process request: " << pendingRequest->path;
+				<< "Timed out waiting for main thread to process request: " << pendingRequest->routeRequest.path;
 			routeResponse.statusCode= 504;
 			routeResponse.body= R"({"error":"Timed out waiting for request to be processed"})";
 		}
@@ -187,7 +274,7 @@ ix::HttpResponsePtr HttpInterprocessMessageServer::handleIncomingRequest(ix::Htt
 	{
 		// The promise was dropped (e.g. server shutting down) without being fulfilled.
 		MIKAN_MT_LOG_WARNING("HttpInterprocessMessageServer::handleIncomingRequest")
-			<< "Request abandoned before it could be processed: " << pendingRequest->path;
+			<< "Request abandoned before it could be processed: " << pendingRequest->routeRequest.path;
 		routeResponse.statusCode= 503;
 		routeResponse.body= R"({"error":"Server shutting down"})";
 	}
@@ -213,7 +300,7 @@ void HttpInterprocessMessageServer::processRequests()
 		{
 			std::lock_guard<std::mutex> lock(m_routeHandlersMutex);
 
-			auto handler_it= m_routeHandlers.find(pendingRequest->path);
+			auto handler_it= m_routeHandlers.find(pendingRequest->routeRequest.path);
 			if (handler_it != m_routeHandlers.end())
 			{
 				handler= handler_it->second;
@@ -223,12 +310,12 @@ void HttpInterprocessMessageServer::processRequests()
 		HttpRouteResponse response;
 		if (handler)
 		{
-			response= handler(pendingRequest->method, pendingRequest->path, pendingRequest->body);
+			response= handler(pendingRequest->routeRequest);
 		}
 		else
 		{
 			MIKAN_LOG_WARNING("HttpInterprocessMessageServer::processRequests")
-				<< "No route registered for path: " << pendingRequest->path;
+				<< "No route registered for path: " << pendingRequest->routeRequest.path;
 			response.statusCode= 404;
 			response.body= R"({"error":"No route registered for path"})";
 		}

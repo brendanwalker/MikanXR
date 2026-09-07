@@ -103,7 +103,9 @@ public:
 	const std::vector<TriggerBinding>& getScriptTriggers() const { return m_triggers; }
 	void getTriggerNamesForScript(MikanScriptID scriptId, std::vector<std::string>& outNames) const;
 	bool hasTrigger(const std::string& triggerName) const;
-	bool invokeScriptTrigger(const std::string& triggerName);
+	// The trigger function is always called with one table argument, empty when args is.
+	// A trigger declared with no parameters simply ignores it, per Lua call semantics.
+	bool invokeScriptTrigger(const std::string& triggerName, const std::map<std::string, std::string>& args= {});
 
 	/// Run a Lua statement in this context's state and stringify what it
 	/// returns (or the error message on failure). Used by the automation

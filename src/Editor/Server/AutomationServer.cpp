@@ -239,9 +239,10 @@ void AutomationServer::registerCoreNamespaces()
 	registerCommandNamespace("screenshot", {"screenshot compositor [componentId] [path]", "screenshot window [path]"},
 							 std::bind(&AutomationServer::handleScreenshotCommand, this, _1, _2, _3));
 
-	registerCommandNamespace("script",
-							 {"script list", "script eval <lua-code>", "script trigger <triggerName>", "script reload"},
-							 std::bind(&AutomationServer::handleScriptCommand, this, _1, _2, _3));
+	registerCommandNamespace(
+		"script",
+		{"script list", "script eval <lua-code>", "script trigger <triggerName> [key=value ...]", "script reload"},
+		std::bind(&AutomationServer::handleScriptCommand, this, _1, _2, _3));
 
 	registerCommandNamespace("log", {"log tail <lineCount> [trace|debug|info|warning|error|fatal]"},
 							 std::bind(&AutomationServer::handleLogCommand, this, _1, _2, _3));
@@ -1132,7 +1133,7 @@ bool AutomationServer::handleScriptCommand(const std::vector<std::string>& args,
 	{
 		if (args.size() < 2)
 		{
-			outError= "usage: script " + verb + " " + (verb == "eval" ? "<lua-code>" : "<triggerName>");
+			outError= "usage: script " + verb + " " + (verb == "eval" ? "<lua-code>" : "<triggerName> [key=value ...]");
 			return false;
 		}
 
@@ -1162,13 +1163,29 @@ bool AutomationServer::handleScriptCommand(const std::vector<std::string>& args,
 		}
 		else
 		{
+			// Trailing "key=value" tokens become the trigger's argument table, the
+			// same table an HTTP route builds from its query string
+			const std::string& triggerName= args[1];
+			std::map<std::string, std::string> triggerArgs;
+			for (size_t argIndex= 2; argIndex < args.size(); ++argIndex)
+			{
+				const std::string& token= args[argIndex];
+				const size_t equalsPos= token.find('=');
+				if (equalsPos == std::string::npos || equalsPos == 0)
+				{
+					outError= "expected key=value, got '" + token + "'";
+					return false;
+				}
+
+				triggerArgs[token.substr(0, equalsPos)]= token.substr(equalsPos + 1);
+			}
+
 			// Bracketed like the panel button, so a trigger's property writes
 			// coalesce into one transaction
-			const std::string& triggerName= args[1];
 			TransactionHistory* transactionHistory= m_mainWindow->getTransactionHistory();
 			if (transactionHistory != nullptr)
 				transactionHistory->beginGesture("script:" + triggerName);
-			const bool bSuccess= scriptContext->invokeScriptTrigger(triggerName);
+			const bool bSuccess= scriptContext->invokeScriptTrigger(triggerName, triggerArgs);
 			if (transactionHistory != nullptr)
 				transactionHistory->endGesture();
 

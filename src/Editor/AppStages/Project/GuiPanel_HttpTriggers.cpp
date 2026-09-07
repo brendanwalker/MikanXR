@@ -65,8 +65,12 @@ void GuiPanel_HttpTriggers::onGui()
 			addDeferredGuiEvent(
 				[httpServer, path]()
 				{
+					// No query args: the panel button fires the trigger with an empty arg table
+					HttpRouteRequest request;
+					request.path= path;
+
 					HttpRouteResponse response;
-					httpServer->invokeRouteHandler(path, response);
+					httpServer->invokeRouteHandler(request, response);
 				});
 		}
 	}
