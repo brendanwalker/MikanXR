@@ -51,6 +51,15 @@ function SceneObjectSystem:getSceneCount() end
 ---@return SceneComponent
 function SceneObjectSystem:getSceneAtIndex(index) end
 
+--- Make a scene the active one, deactivating whichever scene is current.
+--- An unknown id is a no-op.
+---@param id integer
+function SceneObjectSystem:setCurrentSceneById(id) end
+
+--- Make a scene the active one. A nil scene is a no-op.
+---@param scene SceneComponent
+function SceneObjectSystem:setCurrentScene(scene) end
+
 ------------------------------------------------------------------------
 -- StageObjectSystem
 ------------------------------------------------------------------------

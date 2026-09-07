@@ -200,5 +200,23 @@ void SceneObjectSystem::bindLuaFunctions(struct lua_State* L)
 								 return wp.lock().get();
 						 return nullptr;
 					 })
+		// Both setters resolve the scene first. setCurrentSceneById accepts an id that
+		// names no scene, which deactivates the current scene and leaves the project
+		// with none; a script that mistyped an id should change nothing instead.
+		.addFunction("setCurrentSceneById",
+					 [](SceneObjectSystem* s, int id)
+					 {
+						 const MikanSceneID sceneId= static_cast<MikanSceneID>(id);
+						 if (s->getSceneById(sceneId))
+							 s->setCurrentSceneById(sceneId);
+					 })
+		// Routed through the id rather than SceneObjectSystem::setCurrentScene, which
+		// dereferences its argument
+		.addFunction("setCurrentScene",
+					 [](SceneObjectSystem* s, SceneComponent* scene)
+					 {
+						 if (scene != nullptr)
+							 s->setCurrentSceneById(scene->getSceneId());
+					 })
 		.endClass();
 }
