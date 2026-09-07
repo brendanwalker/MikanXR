@@ -62,9 +62,10 @@ const std::string packDeviceDepthShaderCode= R""""(
 			// Convert to linear eye-space depth using DirectX perspective projection formula
 			float eyeDepth = zNear * zFar / (zFar - deviceDepth * (zFar - zNear));
 
-			// Normalize to [0, 1) range
-			// 1.0 is not encoded properly, so we need to clamp it to 0.999999
-			float zNorm = min(eyeDepth / zFar, 0.999999);
+			// Normalize to [0, 1) range between the near and far planes, the same normalization the
+			// scene depth packer and the editor's depth mask use, so a client surface and a stencil
+			// at one distance compare equal. 1.0 is not encoded properly, so clamp to 0.999999.
+			float zNorm = min((eyeDepth - zNear) / (zFar - zNear), 0.999999);
 
 			// Encode the linear depth value to a RGBA8 texture
 			// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
