@@ -37,12 +37,19 @@ protected:
 	void getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections);
 	WebSocketClientConnectionPtr findConnection(const std::string& clientId);
 
+	// Dispatches one request and sends its response, returning the number of response bytes written.
+	size_t processRequest(const WebSocketClientConnectionPtr& connection, const std::string& requestString);
+
 private:
 	WebSocketServerPtr m_server;
 	std::vector<WebSocketClientConnectionPtr> m_connections;
 	std::mutex m_connectionsMutex;
 	std::map<std::string, SocketEventHandler> m_socketEventHandlers;
 	std::map<std::string, RequestHandler> m_requestHandlers;
+
+	// Round-robin cursor into the connection list, advanced once per processRequests() so no
+	// connection permanently owns the front of the per-tick response budget.
+	size_t m_nextRequestConnectionIndex= 0;
 };
 
 #pragma once

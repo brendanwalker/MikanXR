@@ -30,6 +30,13 @@ using LockFreeMessageQueuePtr= std::shared_ptr<LockFreeMessageQueue>;
 using WebSocketWeakPtr= std::weak_ptr<ix::WebSocket>;
 using WebSocketPtr= std::shared_ptr<ix::WebSocket>;
 
+// Response bytes one tick will produce before the rest of the queued requests are left for the
+// next one. A model stencil's render geometry runs to megabytes, and several stencils fetching on
+// connect otherwise serialize and send all of it inside a single frame. The budget is checked
+// after a request is handled, so an oversized response is never withheld, only kept from sharing
+// its frame with the next one.
+static const size_t k_maxResponseBytesPerTick= 2 * 1024 * 1024;
+
 //-- WebSocketClientConnection -----
 class WebSocketClientConnection : public ix::ConnectionState
 {
@@ -410,75 +417,99 @@ void WebsocketInterprocessMessageServer::processRequests()
 	std::vector<WebSocketClientConnectionPtr> connections;
 	getConnectionList(connections);
 
-	// Process all connections
-	for (WebSocketClientConnectionPtr connection : connections)
+	if (connections.empty())
+		return;
+
+	// Start on a different connection each tick so a chatty connection can't repeatedly consume
+	// the whole budget before the others are visited.
+	const size_t connectionCount= connections.size();
+	const size_t startIndex= m_nextRequestConnectionIndex % connectionCount;
+	m_nextRequestConnectionIndex= startIndex + 1;
+
+	size_t responseBytesThisTick= 0;
+
+	for (size_t offset= 0; offset < connectionCount; ++offset)
 	{
-		// Read all pending requests in the queue
+		WebSocketClientConnectionPtr connection= connections[(startIndex + offset) % connectionCount];
+
+		// Read pending requests in the queue until the tick runs out of budget. Anything left stays
+		// queued in arrival order and is picked up next tick.
 		std::string inRequestString;
-		while (connection->getRequestQueue()->try_dequeue(inRequestString))
+		while (responseBytesThisTick < k_maxResponseBytesPerTick
+			   && connection->getRequestQueue()->try_dequeue(inRequestString))
 		{
-			std::string requestTypeName;
-			JsonSaxStringValueSearcher typeNameSearcher;
-			if (!typeNameSearcher.fetchKeyValuePair(inRequestString, "requestTypeName", requestTypeName))
-			{
-				MIKAN_LOG_WARNING("processRequests")
-					<< "Request missing/invalid requestTypeName field: " << inRequestString;
-				continue;
-			}
+			responseBytesThisTick+= processRequest(connection, inRequestString);
+		}
 
-			// Request ID is optional if the request doesn't expect a response
-			int requestId;
-			JsonSaxIntegerValueSearcher requestIdSearcher;
-			if (!requestIdSearcher.fetchKeyValuePair(inRequestString, "requestId", requestId))
-			{
-				requestId= INVALID_MIKAN_ID;
-			}
+		if (responseBytesThisTick >= k_maxResponseBytesPerTick)
+			break;
+	}
+}
 
-			// Get the response from a registered function handler, if any
-			ClientResponse outResponse;
-			auto handler_it= m_requestHandlers.find(requestTypeName);
-			if (handler_it != m_requestHandlers.end())
-			{
-				// NOTE: Connection ID here is a unique ID for the websocket connection on the server
-				// and is not the same as the client ID that the client sends to identify itself
-				const std::string connectionId= connection->getId();
-				ClientRequest request= {connectionId, requestId, inRequestString};
+size_t WebsocketInterprocessMessageServer::processRequest(const WebSocketClientConnectionPtr& connection,
+														  const std::string& requestString)
+{
+	std::string requestTypeName;
+	JsonSaxStringValueSearcher typeNameSearcher;
+	if (!typeNameSearcher.fetchKeyValuePair(requestString, "requestTypeName", requestTypeName))
+	{
+		MIKAN_LOG_WARNING("processRequest") << "Request missing/invalid requestTypeName field: " << requestString;
+		return 0;
+	}
 
-				handler_it->second(request, outResponse);
-			}
-			else
-			{
-				MikanResponse outResult;
-				outResult.responseTypeName= MikanResponse::staticGetArchetype().getName();
-				outResult.requestId= requestId;
-				outResult.resultCode= MikanAPIResult::UnknownFunction;
+	// Request ID is optional if the request doesn't expect a response
+	int requestId;
+	JsonSaxIntegerValueSearcher requestIdSearcher;
+	if (!requestIdSearcher.fetchKeyValuePair(requestString, "requestId", requestId))
+	{
+		requestId= INVALID_MIKAN_ID;
+	}
 
-				std::string errorMsg;
-				if (!Serialization::serializeToJsonString(outResult, outResponse.utf8String, errorMsg))
-				{
-					MIKAN_LOG_WARNING("processRequests")
-						<< "Failed to serialize response for unknown request type: " << requestTypeName
-						<< ", error: " << errorMsg;
-					continue;
-				}
-			}
+	// Get the response from a registered function handler, if any
+	ClientResponse outResponse;
+	auto handler_it= m_requestHandlers.find(requestTypeName);
+	if (handler_it != m_requestHandlers.end())
+	{
+		// NOTE: Connection ID here is a unique ID for the websocket connection on the server
+		// and is not the same as the client ID that the client sends to identify itself
+		const std::string connectionId= connection->getId();
+		ClientRequest request= {connectionId, requestId, requestString};
 
-			// Send the response back to the client
-			if (!outResponse.utf8String.empty())
-			{
-				connection->sendText(outResponse.utf8String);
-			}
+		handler_it->second(request, outResponse);
+	}
+	else
+	{
+		MikanResponse outResult;
+		outResult.responseTypeName= MikanResponse::staticGetArchetype().getName();
+		outResult.requestId= requestId;
+		outResult.resultCode= MikanAPIResult::UnknownFunction;
 
-			if (!outResponse.binaryData.empty())
-			{
-				connection->sendBinaryData(outResponse.binaryData);
-			}
-
-			if (requestId != INVALID_MIKAN_ID && outResponse.utf8String.empty() && outResponse.binaryData.empty())
-			{
-				MIKAN_LOG_WARNING("processRequests")
-					<< "Request handler for " << requestTypeName << " returned empty response, but response expected!";
-			}
+		std::string errorMsg;
+		if (!Serialization::serializeToJsonString(outResult, outResponse.utf8String, errorMsg))
+		{
+			MIKAN_LOG_WARNING("processRequest")
+				<< "Failed to serialize response for unknown request type: " << requestTypeName
+				<< ", error: " << errorMsg;
+			return 0;
 		}
 	}
+
+	// Send the response back to the client
+	if (!outResponse.utf8String.empty())
+	{
+		connection->sendText(outResponse.utf8String);
+	}
+
+	if (!outResponse.binaryData.empty())
+	{
+		connection->sendBinaryData(outResponse.binaryData);
+	}
+
+	if (requestId != INVALID_MIKAN_ID && outResponse.utf8String.empty() && outResponse.binaryData.empty())
+	{
+		MIKAN_LOG_WARNING("processRequest")
+			<< "Request handler for " << requestTypeName << " returned empty response, but response expected!";
+	}
+
+	return outResponse.utf8String.size() + outResponse.binaryData.size();
 }

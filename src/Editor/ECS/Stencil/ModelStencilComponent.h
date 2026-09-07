@@ -51,6 +51,7 @@ public:
 		return std::static_pointer_cast<ModelStencilDefinition>(m_definition);
 	}
 	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const { return m_triMeshComponents; }
+	inline MikanRenderModelResourcePtr getRenderModelResource() const { return m_modelResource; }
 	inline const std::vector<IMkStaticMeshInstancePtr>& getWireframeMeshes() const { return m_wireframeMeshes; }
 	inline const std::vector<MeshColliderComponentPtr>& getColliderComponents() const { return m_colliderComponents; }
 
@@ -58,7 +59,6 @@ public:
 	void setModelPath(const std::filesystem::path& path);
 	void disposeMeshComponents();
 	void rebuildMeshComponents();
-	void extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry);
 
 	// Selection Events
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
@@ -92,6 +92,7 @@ protected:
 
 protected:
 	AssetReferencePtr m_modelAssetRef;
+	MikanRenderModelResourcePtr m_modelResource;
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<IMkStaticMeshInstancePtr> m_wireframeMeshes;
 	std::vector<TransformComponentPtr> m_meshComponents;

@@ -7,6 +7,7 @@
 #include "ModelShapeComponent.h"
 #include "ModelShapeSystem.h"
 #include "ProjectConfig.h"
+#include "ServerModelGeometryPayload.h"
 #include "ServerResponseHelpers.h"
 #include "ShapeRequestHandler.h"
 
@@ -40,10 +41,12 @@ void ShapeRequestHandler::getModelShapeRenderGeometryHandler(const ClientRequest
 		getObjectSystemOfType<ModelShapeSystem>()->getModelShapeById(shapeRequest.shapeId);
 	if (modelShape)
 	{
-		MikanShapeModelRenderGeometryResponse renderGeometryResponse= {};
-		modelShape->extractRenderGeometry(renderGeometryResponse.render_geometry);
+		std::vector<uint8_t> scratchPayload;
+		const std::vector<uint8_t>& geometryPayload= fetchModelRenderGeometryPayload(
+			modelShape->getRenderModelResource(), modelShape->getTriangulatedMeshes(), scratchPayload);
 
-		writeTypedBinaryResponse(request.requestId, renderGeometryResponse, response);
+		writeModelRenderGeometryResponse<MikanShapeModelRenderGeometryResponse>(request.requestId, geometryPayload,
+																				response);
 	}
 	else
 	{

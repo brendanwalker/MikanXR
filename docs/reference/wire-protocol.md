@@ -91,6 +91,8 @@ The generated outputs are checked into git (`bindings/csharp/CMakeLists.txt` car
 
 - Responses fill a `ClientResponse` with either `utf8String` (sent as a text frame) or `binaryData` (sent as a binary frame). Binary responses use the `BinarySerializer` path; JSON responses use `Serialization::serializeToJsonString`.
 
+- `processRequests` stops dequeuing once a tick's responses exceed a byte budget, leaving the rest for the next tick. Requests stay in arrival order per connection, and the starting connection rotates each tick. See [debugging.md](./debugging.md) for why.
+
 - Events are server-to-client JSON pushes. `MikanServer::publishMikanJsonEvent` fans a serialized `MikanEvent` subclass out to every connection. Clients poll them off a queue via `IMikanAPI::fetchNextEvent` / `Mikan_FetchNextEvent`; there is no per-event acknowledgement.
 
 ---
@@ -98,6 +100,8 @@ The generated outputs are checked into git (`bindings/csharp/CMakeLists.txt` car
 ## Serialization layer and its traps
 
 `src/Libraries/MikanSerialization` walks reflected structs generically: `JsonSerializer`/`JsonDeserializer` (nlohmann-backed) for the websocket and config files, `BinarySerializer`/`BinaryDeserializer` for binary response payloads, with `SerializationVisitor` as the shared field-visiting core and `Serialization::List`/`Map`/`PolymorphicObjectPtr`/`String` as the reflected container types. `TypeRegistry::buildFromRfkDatabase` must run at startup before deserializing polymorphic objects by type name (both `MikanServer` clients and `CmdApp::exec` do this).
+
+A struct's binary encoding is the concatenation of its fields in memory offset order, parents first, with no framing between them. `src/Editor/Server/ServerModelGeometryPayload` leans on that: model render geometry is serialized once, cached on the `MikanRenderModelResource` it came from, and each response is built by serializing only the `MikanResponse` header and appending those cached bytes, rather than walking every vertex through reflection again. `ModelGeometryPayloadTests` (in `MikanCmd.exe -runTests`) compares the spliced bytes against a whole serialization for both the stencil and shape responses, so a field added to `MikanResponse` or inserted ahead of `render_geometry` fails there.
 
 Two traps, both real and both verified in code:
 

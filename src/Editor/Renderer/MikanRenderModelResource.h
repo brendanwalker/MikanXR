@@ -2,6 +2,7 @@
 
 #include "MikanRendererFwd.h"
 
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -31,6 +32,16 @@ public:
 	size_t getWireframeMeshCount() const { return m_wireframeMeshes.size(); }
 	IMkWireframeMeshPtr getWireframeMesh(int meshIndex) const { return m_wireframeMeshes[meshIndex]; }
 
+	// Serialized render geometry for clients that ask for this model's triangle data. Built on the
+	// first request and reused after, since the payload is a pure function of the loaded meshes and
+	// those never change for the life of the resource. Held as opaque bytes so the renderer stays
+	// free of client API types; the server side owns what the bytes mean.
+	inline const std::vector<uint8_t>& getClientGeometryPayload() const { return m_clientGeometryPayload; }
+	inline void setClientGeometryPayload(std::vector<uint8_t>&& payload)
+	{
+		m_clientGeometryPayload= std::move(payload);
+	}
+
 protected:
 	void disposeMeshRenderResources();
 
@@ -41,4 +52,5 @@ protected:
 
 	std::vector<IMkTriangulatedMeshPtr> m_triangulatedMeshes;
 	std::vector<IMkWireframeMeshPtr> m_wireframeMeshes;
+	std::vector<uint8_t> m_clientGeometryPayload;
 };
