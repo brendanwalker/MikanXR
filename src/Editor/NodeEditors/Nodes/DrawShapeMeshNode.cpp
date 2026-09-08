@@ -395,8 +395,11 @@ bool DrawShapeMeshNode::evaluateNode(NodeEvaluator& evaluator)
 		break;
 	}
 
-	// Depth test
-	if (m_bDepthTest)
+	// Depth test. Drawing into the 3d scene always depth tests, whatever the node was authored
+	// with, so the shape sorts against the scene instead of being painted over by anything issued
+	// after it. The authored setting is what the compositor uses, where a shape is often meant to
+	// sit on top of every layer.
+	if (m_bDepthTest || evaluator.getIsSceneDepthPass())
 		mkState->enableFlag(eMkStateFlagType::depthTest);
 	else
 		mkState->disableFlag(eMkStateFlagType::depthTest);

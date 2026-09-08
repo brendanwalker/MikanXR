@@ -531,7 +531,7 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 
 		for (const ShapeComponentPtr& shape : deferredShapeGraphs)
 		{
-			shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
+			shape->renderShapeGraph(viewportVpMatrix, graphicsContext, true);
 		}
 	}
 

@@ -182,7 +182,8 @@ void ShapeComponent::selectShapeGraph()
 	}
 }
 
-void ShapeComponent::renderShapeGraph(const glm::mat4& vpMatrix, IMkGraphicsContext* graphicsContext)
+void ShapeComponent::renderShapeGraph(const glm::mat4& vpMatrix, IMkGraphicsContext* graphicsContext,
+									  bool bIsSceneDepthPass)
 {
 	// Editor graph takes priority over asset-based graph
 	ShapeNodeGraphPtr nodeGraph= m_editorNodeGraph.lock();
@@ -193,6 +194,7 @@ void ShapeComponent::renderShapeGraph(const glm::mat4& vpMatrix, IMkGraphicsCont
 
 	NodeEvaluator evaluator;
 	evaluator.setCurrentGraphicsContext(graphicsContext);
+	evaluator.setIsSceneDepthPass(bIsSceneDepthPass);
 
 	if (nodeGraph->renderShape(vpMatrix, evaluator))
 	{
