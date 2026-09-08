@@ -119,6 +119,8 @@ public:
 	virtual bool editorCanDelete() const { return true; }
 	virtual void editorRenderNode(const NodeEditorState& editorState);
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}
+	// A double-click on the node body in the canvas
+	virtual void editorOnDoubleClicked(const NodeEditorState& editorState) {}
 
 protected:
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) {}

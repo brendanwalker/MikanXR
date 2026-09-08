@@ -1,4 +1,5 @@
 #include "MkCanvasScopedEditor.h"
+#include "MkCanvasWidgets.h"
 #include "MkGuiDockspace.h"
 
 #include "imgui.h"
@@ -19,6 +20,13 @@ ax::NodeEditor::EditorContext* createEditorContext()
 }
 
 void destroyEditorContext(ax::NodeEditor::EditorContext* editorContext) { ed::DestroyEditor(editorContext); }
+
+int getDoubleClickedNodeId()
+{
+	const ed::NodeId nodeId= ed::GetDoubleClickedNode();
+
+	return nodeId ? fromCanvasId((int)nodeId.Get()) : -1;
+}
 
 void applyEditorStyle(ax::NodeEditor::EditorContext* editorContext)
 {

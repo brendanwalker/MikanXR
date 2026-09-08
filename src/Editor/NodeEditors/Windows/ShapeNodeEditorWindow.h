@@ -19,6 +19,7 @@ public:
 
 	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) override;
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) override;
+	virtual eMaterialDomain getAuthoredMaterialDomain() const override { return eMaterialDomain::shape; }
 
 	// -- ShapeNodeEditorWindow ----
 	bool bindShapeComponent(ShapeComponentPtr shapeComponent);

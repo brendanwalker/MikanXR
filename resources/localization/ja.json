@@ -97,6 +97,7 @@
 		"material": "マテリアル",
 		"materialAssetHeader": "マテリアルアセット",
 		"materialFilterDescription": "マテリアルファイル (*.mat)",
+		"newMaterial": "新規マテリアル",
 		"pixelContentFilterDescription": "画像ファイル (*.png, *.gif, *.bmp, *.tga, *.jpg, *.jpeg)",
 		"texture": "テクスチャ",
 		"textureAssetHeader": "テクスチャアセット"
@@ -317,8 +318,18 @@
 		"viewMenu": "表示"
 	},
 	"materialEditor": {
+		"compile": "コンパイル",
+		"compileLogHeader": "シェーダーのコンパイルエラー",
 		"domain": "ドメイン",
+		"domainCompositor": "コンポジター",
+		"domainMenu": "ドメイン",
+		"domainShape": "シェイプ",
 		"graphHeader": "マテリアルグラフ",
+		"materialMenu": "マテリアル",
+		"previewCompileFailed": "シェーダープログラムのコンパイルに失敗しました",
+		"previewInvalidAttribute": "コンパイル結果の頂点属性が無効です",
+		"previewUnknownSemanticFmt": "不明なセマンティック '%s' (ユニフォーム '%s')",
+		"unboundUniformsFmt": "未バインドのユニフォーム: %s",
 		"vertexPreset": "頂点プリセット"
 	},
 	"modals": {
@@ -354,11 +365,13 @@
 		"evalErrorWindowTitle": "評価エラー",
 		"graphFilesFilterDescription": "グラフファイル (*.graph)",
 		"noCompositor": "コンポジターなし",
+		"preview": "プレビュー",
 		"redo": "やり直す",
 		"runCompositor": "実行",
 		"save": "保存",
 		"saveAs": "名前を付けて保存...",
 		"saveCompositorGraphDialogTitle": "コンポジターグラフを保存",
+		"searchNodes": "ノードを検索...",
 		"undo": "元に戻す",
 		"variableName": "変数名",
 		"variables": "変数"
@@ -871,6 +884,8 @@
 		"cameraAlignmentDebug": "カメラ位置合わせデバッグ",
 		"httpTriggers": "HTTPトリガー",
 		"log": "ログ",
+		"materialEditor": "マテリアルエディター",
+		"materialPreviewPanel": "プレビュー",
 		"nodeAssetsPanel": "アセット",
 		"nodeDetailsPanel": "詳細",
 		"nodeEditor": "ノードエディター",

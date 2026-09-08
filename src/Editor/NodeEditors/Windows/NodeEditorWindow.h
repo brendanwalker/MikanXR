@@ -12,6 +12,8 @@
 #include "Graphs/NodeGraphHistory.h"
 #include "Graphs/NodeGraphLogWriter.h"
 
+#include "MaterialCompiler/MaterialDomain.h"
+
 #include "Properties/GraphArrayProperty.h"
 
 #include <chrono>
@@ -76,6 +78,10 @@ public:
 	// Ask the app to tear this window down at the end of the frame
 	void requestClose() { m_bCloseRequested= true; }
 
+	// The domain a material authored from this window's assets panel is
+	// compiled for. INVALID for graphs that consume no materials.
+	virtual eMaterialDomain getAuthoredMaterialDomain() const { return eMaterialDomain::INVALID; }
+
 	// -- IEditorWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
@@ -97,15 +103,29 @@ protected:
 	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderMainFrameContextMenu(const class NodeEditorState& editorState);
+	// The create-node list of the background context menu: a filter box over
+	// the valid factories, grouped by category when the filter is empty
+	void renderCreateNodeMenu(const class NodeEditorState& editorState);
 	void renderMenuBar();
 	// Extra menus appended after File/Edit/View (the compositor window's Compositor menu)
 	virtual void renderMenuBarExtras() {}
+	// Extra items appended to the View menu's panel toggles
+	virtual void renderViewMenuExtras() {}
 	void buildDefaultDockLayout(unsigned int dockspaceId);
+	// Dock subclass panels before the base panels claim their nodes. The right
+	// column id is passed by reference so a split can leave its remainder to Details.
+	virtual void dockExtraPanels(unsigned int& rightId) {}
 	virtual void renderGraphVariablesPanel();
 	virtual void renderNewGraphVariablesContextMenu(const NodeEditorState& editorState);
 	virtual void renderAssetsPanel();
 	virtual void renderSelectedObjectPanel();
 	void renderVariableNameField(GraphPropertyPtr property);
+
+	// The assets panel's New Material button: open or focus the material editor
+	// on a fresh graph for this window's authored domain, and add the written
+	// .mat to this graph once it is saved
+	void openNewMaterialEditor(eMaterialDomain domain);
+	void addMaterialAssetReference(const std::filesystem::path& materialPath);
 
 	virtual void deleteSelectedItem();
 
@@ -127,6 +147,21 @@ protected:
 	// Rebind the restored graph to its owning component after an undo/redo
 	// rebuilds the graph instance
 	virtual void onGraphRestored() {}
+
+	// Called once an edit has settled into a committed history checkpoint
+	virtual void onGraphEdited() {}
+
+	// Directory the save dialog opens in when the graph has no path yet
+	virtual std::filesystem::path getDefaultGraphDirectory() const;
+
+	// The window title's localization key, and the ini the window's dock
+	// layout persists to (one per editor kind, so each keeps its own layout)
+	virtual const char* getWindowTitleKey() const { return "windows.nodeEditor"; }
+	virtual std::string getGuiIniName() const { return "node_editor"; }
+
+	// Install a freshly created graph (the creator runs with this window's GL
+	// context current), then reset the history baseline
+	void createNewGraph(const std::function<NodeGraphPtr()>& createGraph);
 
 	// -- Undo history ----
 	void markHistoryCheckpoint() { m_bCheckpointPending= true; }
@@ -170,6 +205,9 @@ protected:
 	// Rename field state for the selected graph variable
 	char m_variableNameBuffer[256]= {};
 	t_graph_property_id m_variableNameBufferId= -1;
+
+	// Filter text of the create-node context menu, cleared each time it opens
+	char m_nodeSearchBuffer[64]= {};
 
 	// Dockable panel visibility, toggled from the View menu (not persisted;
 	// the dock geometry itself persists via the window's imgui ini)

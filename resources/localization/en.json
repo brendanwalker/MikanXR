@@ -97,6 +97,7 @@
 		"material": "Material",
 		"materialAssetHeader": "Material Asset",
 		"materialFilterDescription": "Material Files (*.mat)",
+		"newMaterial": "New Material",
 		"pixelContentFilterDescription": "Image Files (*.png, *.gif, *.bmp, *.tga, *.jpg, *.jpeg)",
 		"texture": "Texture",
 		"textureAssetHeader": "Texture Asset"
@@ -317,8 +318,18 @@
 		"viewMenu": "View"
 	},
 	"materialEditor": {
+		"compile": "Compile",
+		"compileLogHeader": "Shader compile errors",
 		"domain": "Domain",
+		"domainCompositor": "Compositor",
+		"domainMenu": "Domain",
+		"domainShape": "Shape",
 		"graphHeader": "Material Graph",
+		"materialMenu": "Material",
+		"previewCompileFailed": "Shader program failed to compile",
+		"previewInvalidAttribute": "Invalid vertex attribute in compile result",
+		"previewUnknownSemanticFmt": "Unknown uniform semantic '%s' on uniform '%s'",
+		"unboundUniformsFmt": "Unbound uniforms: %s",
 		"vertexPreset": "Vertex Preset"
 	},
 	"modals": {
@@ -354,11 +365,13 @@
 		"evalErrorWindowTitle": "Eval Error",
 		"graphFilesFilterDescription": "Graph Files (*.graph)",
 		"noCompositor": "No Compositor",
+		"preview": "Preview",
 		"redo": "Redo",
 		"runCompositor": "Run",
 		"save": "Save",
 		"saveAs": "Save As...",
 		"saveCompositorGraphDialogTitle": "Save Compositor Graph",
+		"searchNodes": "Search nodes...",
 		"undo": "Undo",
 		"variableName": "Variable Name",
 		"variables": "Variables"
@@ -871,6 +884,8 @@
 		"cameraAlignmentDebug": "Camera Alignment Debug",
 		"httpTriggers": "HTTP Triggers",
 		"log": "Log",
+		"materialEditor": "Material Editor",
+		"materialPreviewPanel": "Preview",
 		"nodeAssetsPanel": "Assets",
 		"nodeDetailsPanel": "Details",
 		"nodeEditor": "Node Editor",
