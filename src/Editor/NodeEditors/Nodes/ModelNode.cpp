@@ -145,7 +145,10 @@ void ModelNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	IMkTexturePtr textureResource= m_sourceProperty->getModelAssetReference()->getPreviewTexture();
+	// A node with no model assigned still draws, titled "Empty Model"
+	ModelAssetReferencePtr modelAssetRef=
+		m_sourceProperty ? m_sourceProperty->getModelAssetReference() : ModelAssetReferencePtr();
+	IMkTexturePtr textureResource= modelAssetRef ? modelAssetRef->getPreviewTexture() : IMkTexturePtr();
 	uint32_t glTextureId= textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();

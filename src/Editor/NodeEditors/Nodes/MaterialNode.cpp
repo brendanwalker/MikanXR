@@ -153,7 +153,9 @@ void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	auto materialAssetRef= m_sourceProperty->getMaterialAssetReference();
+	// A node with no material assigned still draws, titled "Empty Material"
+	MaterialAssetReferencePtr materialAssetRef=
+		m_sourceProperty ? m_sourceProperty->getMaterialAssetReference() : MaterialAssetReferencePtr();
 	if (materialAssetRef)
 	{
 		auto previewTexture= materialAssetRef->getPreviewTexture();
