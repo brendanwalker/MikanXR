@@ -74,6 +74,10 @@
 //-- statics ----
 const char* AppStage_Project::APP_STAGE_NAME= "Compositor";
 
+// How long the editor camera has to sit still before its pose is written back to
+// the editor settings, matching the transaction system's coalescing window
+static const float k_cameraStateIdleDelay= 0.75f;
+
 //-- public methods -----
 AppStage_Project::AppStage_Project(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_Project::APP_STAGE_NAME)
@@ -140,6 +144,9 @@ void AppStage_Project::enter()
 		sceneCamera->setCameraMovementMode(eCameraMovementMode::fly);
 		sceneCamera->setName("scene camera");
 
+		// Put the camera back where the project was left
+		restoreCameraState();
+
 		// Register the scene with the primary viewport
 		m_editorSystem.lock()->bindViewport(m_viewport);
 	}
@@ -164,6 +171,9 @@ void AppStage_Project::enter()
 
 void AppStage_Project::exit()
 {
+	// Save where the camera was left before the project goes away
+	flushCameraState();
+
 	// Clean up the 3d scene
 	m_mkScene= nullptr;
 
@@ -222,6 +232,8 @@ void AppStage_Project::update(float deltaSeconds)
 		}
 	}
 
+	updateCameraStateCapture(deltaSeconds);
+
 	applyPendingProjectActions();
 }
 
@@ -252,60 +264,12 @@ void AppStage_Project::onGui()
 											 locText("project.viewBack"),        locText("project.viewLeft"),
 											 locText("project.viewRight")};
 
-				int currentIndex= 0;
-				if (camera->getProjectionMode() == eCameraProjectionMode::orthographic)
-				{
-					switch (camera->getOrthoViewpoint())
-					{
-					case eCameraViewpoint::top:
-						currentIndex= 1;
-						break;
-					case eCameraViewpoint::bottom:
-						currentIndex= 2;
-						break;
-					case eCameraViewpoint::front:
-						currentIndex= 3;
-						break;
-					case eCameraViewpoint::back:
-						currentIndex= 4;
-						break;
-					case eCameraViewpoint::left:
-						currentIndex= 5;
-						break;
-					case eCameraViewpoint::right:
-						currentIndex= 6;
-						break;
-					}
-				}
+				int currentIndex= getCurrentCameraViewIndex();
 
 				ImGui::SetNextItemWidth(110.f);
 				if (ImGui::Combo("##ViewMode", &currentIndex, k_viewLabels, IM_ARRAYSIZE(k_viewLabels)))
 				{
-					switch (currentIndex)
-					{
-					case 0:
-						camera->setProjectionMode(eCameraProjectionMode::perspective);
-						camera->setCameraMovementMode(eCameraMovementMode::fly);
-						break;
-					case 1:
-						camera->setOrthographicViewpoint(eCameraViewpoint::top);
-						break;
-					case 2:
-						camera->setOrthographicViewpoint(eCameraViewpoint::bottom);
-						break;
-					case 3:
-						camera->setOrthographicViewpoint(eCameraViewpoint::front);
-						break;
-					case 4:
-						camera->setOrthographicViewpoint(eCameraViewpoint::back);
-						break;
-					case 5:
-						camera->setOrthographicViewpoint(eCameraViewpoint::left);
-						break;
-					case 6:
-						camera->setOrthographicViewpoint(eCameraViewpoint::right);
-						break;
-					}
+					applyCameraView(currentIndex);
 				}
 			}
 		}
@@ -483,6 +447,127 @@ void AppStage_Project::onViewModeChanged()
 		break;
 	default:
 		m_editorSystem.lock()->setObjectSystemSelectionFilter(m_emptyObjectSystemFilter);
+	}
+}
+
+// Editor camera views
+void AppStage_Project::applyCameraView(int viewIndex)
+{
+	MikanCameraPtr camera= (m_viewport != nullptr) ? m_viewport->getMikanCameraByIndex(0) : MikanCameraPtr();
+	if (!camera)
+		return;
+
+	if (viewIndex >= 1 && viewIndex <= k_orthoViewpointCount)
+	{
+		camera->setOrthographicViewpoint((eCameraViewpoint)(viewIndex - 1));
+	}
+	else
+	{
+		camera->setProjectionMode(eCameraProjectionMode::perspective);
+		camera->setCameraMovementMode(eCameraMovementMode::fly);
+	}
+}
+
+int AppStage_Project::getCurrentCameraViewIndex() const
+{
+	MikanCameraPtr camera= (m_viewport != nullptr) ? m_viewport->getMikanCameraByIndex(0) : MikanCameraPtr();
+	if (!camera || camera->getProjectionMode() != eCameraProjectionMode::orthographic)
+		return 0;
+
+	return (int)camera->getOrthoViewpoint() + 1;
+}
+
+bool AppStage_Project::captureCameraState(EditorCameraState& outCameraState) const
+{
+	MikanCameraPtr camera= (m_viewport != nullptr) ? m_viewport->getMikanCameraByIndex(0) : MikanCameraPtr();
+	if (!camera)
+		return false;
+
+	outCameraState.perspectivePosition= camera->getFlyPosition();
+	outCameraState.perspectiveYawDegrees= camera->getFlyYawDegrees();
+	outCameraState.perspectivePitchDegrees= camera->getFlyPitchDegrees();
+
+	for (int viewIndex= 0; viewIndex < EditorCameraState::k_orthoViewCount; ++viewIndex)
+	{
+		const MikanOrthoViewState& orthoViewState= camera->getOrthoViewState((eCameraViewpoint)viewIndex);
+
+		outCameraState.orthoTargets[viewIndex]= orthoViewState.target;
+		outCameraState.orthoExtents[viewIndex]= orthoViewState.extent;
+	}
+
+	// The saved active view is an eCameraViewpoint index, or -1 for the perspective view
+	outCameraState.activeView= getCurrentCameraViewIndex() - 1;
+
+	return true;
+}
+
+void AppStage_Project::restoreCameraState()
+{
+	MikanCameraPtr camera= (m_viewport != nullptr) ? m_viewport->getMikanCameraByIndex(0) : MikanCameraPtr();
+	EditorObjectSystemPtr editorSystem= m_editorSystem.lock();
+	if (!camera || !editorSystem)
+		return;
+
+	const EditorCameraState& cameraState= editorSystem->getEditorSystemConfig()->getEditorCameraState();
+
+	camera->setFlyPose(cameraState.perspectivePosition, cameraState.perspectiveYawDegrees,
+					   cameraState.perspectivePitchDegrees);
+
+	for (int viewIndex= 0; viewIndex < EditorCameraState::k_orthoViewCount; ++viewIndex)
+	{
+		camera->setOrthoViewState((eCameraViewpoint)viewIndex, cameraState.orthoTargets[viewIndex],
+								  cameraState.orthoExtents[viewIndex]);
+	}
+
+	applyCameraView(cameraState.activeView + 1);
+
+	m_pendingCameraState= cameraState;
+	m_cameraStateIdleTimer= -1.f;
+}
+
+void AppStage_Project::updateCameraStateCapture(float deltaSeconds)
+{
+	EditorObjectSystemPtr editorSystem= m_editorSystem.lock();
+	EditorCameraState liveCameraState;
+	if (!editorSystem || !captureCameraState(liveCameraState))
+		return;
+
+	// Still moving: restart the idle window rather than write a pose per frame
+	if (liveCameraState != m_pendingCameraState)
+	{
+		m_pendingCameraState= liveCameraState;
+		m_cameraStateIdleTimer= k_cameraStateIdleDelay;
+		return;
+	}
+
+	if (m_cameraStateIdleTimer >= 0.f)
+	{
+		m_cameraStateIdleTimer-= deltaSeconds;
+		if (m_cameraStateIdleTimer < 0.f)
+		{
+			editorSystem->getEditorSystemConfig()->setEditorCameraState(liveCameraState);
+		}
+	}
+}
+
+void AppStage_Project::flushCameraState()
+{
+	EditorObjectSystemPtr editorSystem= m_editorSystem.lock();
+	EditorCameraState liveCameraState;
+	if (!editorSystem || !captureCameraState(liveCameraState))
+		return;
+
+	EditorObjectSystemDefinitionPtr editorConfig= editorSystem->getEditorSystemConfig();
+	if (liveCameraState == editorConfig->getEditorCameraState())
+		return;
+
+	editorConfig->setEditorCameraState(liveCameraState);
+
+	// Unloading a project doesn't save it and the autosave cooldown may not have
+	// fired yet, so write the pose out rather than lose it on close
+	if (m_project)
+	{
+		m_project->save();
 	}
 }
 

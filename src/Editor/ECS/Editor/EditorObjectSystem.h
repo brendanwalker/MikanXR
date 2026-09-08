@@ -11,6 +11,7 @@
 #include "MikanRendererFwd.h"
 #include "SceneFwd.h"
 
+#include <array>
 #include <vector>
 
 #include "glm/ext/vector_float3.hpp"
@@ -30,6 +31,28 @@ enum class eStencilDisplayMode : int
 	solid,     // opaque textured mesh only
 	wireframe, // wireframe edges only (lets the background video show through)
 	both,      // solid mesh with wireframe overlaid
+};
+
+// Saved editor viewport camera poses: the perspective fly pose plus a pan and zoom
+// for each axis-aligned orthographic viewpoint, indexed in eCameraViewpoint order.
+// The defaults mirror the ones MikanCamera starts at, so a project with no saved
+// state opens exactly as it did before the poses were persisted.
+struct EditorCameraState
+{
+	static constexpr int k_orthoViewCount= 6;
+
+	glm::vec3 perspectivePosition= glm::vec3(0.f);
+	float perspectiveYawDegrees= 0.f;
+	float perspectivePitchDegrees= 0.f;
+
+	std::array<glm::vec3, k_orthoViewCount> orthoTargets= {};
+	std::array<float, k_orthoViewCount> orthoExtents= {5.f, 5.f, 5.f, 5.f, 5.f, 5.f};
+
+	// -1 for the perspective view, otherwise an eCameraViewpoint index
+	int activeView= -1;
+
+	bool operator==(const EditorCameraState& other) const;
+	bool operator!=(const EditorCameraState& other) const { return !(*this == other); }
 };
 
 struct EditorSettings
@@ -61,6 +84,9 @@ struct EditorSettings
 
 	// Frame rate readout drawn in the corner of the scene view
 	bool bRenderFrameRate= true;
+
+	// Where the editor viewport camera was left in each view
+	EditorCameraState cameraState;
 };
 
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
@@ -148,6 +174,12 @@ public:
 	static const std::string k_renderFrameRatePropertyId;
 	bool getRenderFrameRate() const { return m_editorSettings.bRenderFrameRate; }
 	void setRenderFrameRate(bool enabled);
+
+	// The camera state notifies under one name: the viewport writes it as a block
+	// once the camera comes to rest, rather than property by property while it moves
+	static const std::string k_editorCameraStatePropertyId;
+	const EditorCameraState& getEditorCameraState() const { return m_editorSettings.cameraState; }
+	void setEditorCameraState(const EditorCameraState& cameraState);
 
 private:
 	EditorSettings m_editorSettings;

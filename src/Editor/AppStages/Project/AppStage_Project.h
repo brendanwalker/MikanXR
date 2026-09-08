@@ -4,6 +4,7 @@
 #include "AppStage.h"
 #include "CommonConfigFwd.h"
 #include "ComponentFwd.h"
+#include "EditorObjectSystem.h"
 #include "LightSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
@@ -76,6 +77,17 @@ protected:
 	void setViewMode(eProjectViewMode newViewMode);
 	void onViewModeChanged();
 
+	// Editor camera views, indexed as the view-mode combo lists them:
+	// 0 is the perspective view, 1..6 are the eCameraViewpoint orthographic views
+	void applyCameraView(int viewIndex);
+	int getCurrentCameraViewIndex() const;
+	bool captureCameraState(EditorCameraState& outCameraState) const;
+	void restoreCameraState();
+	// The camera pose is written back to the editor settings once it comes to rest,
+	// so a flight lands as one config change rather than one per frame
+	void updateCameraStateCapture(float deltaSeconds);
+	void flushCameraState();
+
 	// Main Compositor UI Events
 	void onReturnEvent();
 
@@ -135,6 +147,10 @@ protected:
 	bool m_bPendingExit= false;
 	std::filesystem::path m_pendingLoadProjectPath;
 	std::filesystem::path m_pendingNewProjectPath;
+
+	// Camera pose seen on the previous tick, and how long it has been unchanged
+	EditorCameraState m_pendingCameraState;
+	float m_cameraStateIdleTimer= -1.f;
 
 	MikanViewportPtr m_viewport;
 	IMkScenePtr m_mkScene;

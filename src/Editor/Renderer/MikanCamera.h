@@ -6,6 +6,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/vector_float3.hpp"
 
+#include <array>
 #include <string>
 
 enum eCameraMovementMode : int
@@ -31,6 +32,15 @@ enum class eCameraViewpoint : int
 	back,
 	left,
 	right,
+};
+constexpr int k_orthoViewpointCount= 6;
+
+// Pan and zoom for one axis-aligned viewpoint. Each viewpoint keeps its own,
+// so switching Top -> Front -> Top returns to the framing Top was left at.
+struct MikanOrthoViewState
+{
+	glm::vec3 target= glm::vec3(0.f);
+	float extent= 5.f; // half-height of the view in world meters
 };
 
 class MikanCamera : public IMkCamera
@@ -66,14 +76,18 @@ public:
 	bool isOrthographic() const { return m_projectionMode == eCameraProjectionMode::orthographic; }
 	void setProjectionMode(eCameraProjectionMode mode);
 
-	// Orthographic viewpoint controls
+	// Orthographic viewpoint controls (these act on the current viewpoint)
 	eCameraViewpoint getOrthoViewpoint() const { return m_orthoViewpoint; }
 	void setOrthographicViewpoint(eCameraViewpoint viewpoint);
-	float getOrthoExtent() const { return m_orthoExtent; }
+	float getOrthoExtent() const { return getOrthoViewState(m_orthoViewpoint).extent; }
 	void setOrthoExtent(float extent);
-	const glm::vec3& getOrthoTargetPosition() const { return m_orthoTargetPosition; }
+	const glm::vec3& getOrthoTargetPosition() const { return getOrthoViewState(m_orthoViewpoint).target; }
 	void setOrthoTargetPosition(const glm::vec3& target);
 	void adjustOrthoTargetPosition(const glm::vec3& deltaTarget);
+
+	// Pan and zoom of any viewpoint, for seeding all of them from saved state
+	const MikanOrthoViewState& getOrthoViewState(eCameraViewpoint viewpoint) const;
+	void setOrthoViewState(eCameraViewpoint viewpoint, const glm::vec3& target, float extent);
 
 	// Update the projection to match the actual viewport aspect ratio
 	void setViewportAspect(float aspectRatio);
@@ -83,6 +97,11 @@ public:
 	void setCameraTransform(const glm::mat4& poseXform);
 	void setPosition(const glm::vec3& location);
 	void lookAt(const glm::vec3& target);
+
+	glm::vec3 getFlyPosition() const { return glm::vec3(m_flyTransform[3]); }
+	float getFlyYawDegrees() const { return m_flyYawDegrees; }
+	float getFlyPitchDegrees() const { return m_flyPitchDegrees; }
+	void setFlyPose(const glm::vec3& position, float yawDegrees, float pitchDegrees);
 
 	void adjustFlyForward(float distance);
 	void adjustFlyRight(float distance);
@@ -108,6 +127,9 @@ protected:
 	void applyOrbitParamsToViewMatrix();
 	void applyOrthoParamsToViewMatrix();
 	void rebuildProjectionMatrix();
+	// Rebuild the fly transform rotation from the current yaw and pitch, keeping the position
+	void rebuildFlyTransform();
+	MikanOrthoViewState& getMutableOrthoViewState(eCameraViewpoint viewpoint);
 
 	const float k_default_aspect_ratio= 16.f / 9.f;
 	const float k_default_camera_vfov= 35.f;
@@ -129,10 +151,9 @@ protected:
 	eCameraProjectionMode m_projectionMode= eCameraProjectionMode::perspective;
 	float m_viewportAspectRatio= 16.f / 9.f;
 
-	// Orthographic camera parameters
+	// Orthographic camera parameters, one pan/zoom per viewpoint (indexed by eCameraViewpoint)
 	eCameraViewpoint m_orthoViewpoint= eCameraViewpoint::top;
-	glm::vec3 m_orthoTargetPosition= glm::vec3(0.f);
-	float m_orthoExtent= 5.f; // half-height of the view in world meters
+	std::array<MikanOrthoViewState, k_orthoViewpointCount> m_orthoViewStates;
 
 	// Stationary camera parameters
 	glm::mat4 m_stationaryTransform;

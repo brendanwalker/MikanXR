@@ -90,15 +90,41 @@ void MikanCamera::setOrthographicViewpoint(eCameraViewpoint viewpoint)
 	rebuildProjectionMatrix();
 }
 
+const MikanOrthoViewState& MikanCamera::getOrthoViewState(eCameraViewpoint viewpoint) const
+{
+	return m_orthoViewStates[(int)viewpoint];
+}
+
+MikanOrthoViewState& MikanCamera::getMutableOrthoViewState(eCameraViewpoint viewpoint)
+{
+	return m_orthoViewStates[(int)viewpoint];
+}
+
+void MikanCamera::setOrthoViewState(eCameraViewpoint viewpoint, const glm::vec3& target, float extent)
+{
+	MikanOrthoViewState& viewState= getMutableOrthoViewState(viewpoint);
+	viewState.target= target;
+	viewState.extent= fmaxf(extent, k_camera_min_zoom);
+
+	// Only the current viewpoint feeds the live matrices, and only while the camera
+	// is actually looking through an orthographic view. Seeding the saved views of a
+	// perspective camera must not overwrite the matrices its fly pose just built.
+	if (viewpoint == m_orthoViewpoint && m_projectionMode == eCameraProjectionMode::orthographic)
+	{
+		applyOrthoParamsToViewMatrix();
+		rebuildProjectionMatrix();
+	}
+}
+
 void MikanCamera::setOrthoExtent(float extent)
 {
-	m_orthoExtent= fmaxf(extent, k_camera_min_zoom);
+	getMutableOrthoViewState(m_orthoViewpoint).extent= fmaxf(extent, k_camera_min_zoom);
 	rebuildProjectionMatrix();
 }
 
 void MikanCamera::setOrthoTargetPosition(const glm::vec3& target)
 {
-	m_orthoTargetPosition= target;
+	getMutableOrthoViewState(m_orthoViewpoint).target= target;
 	applyOrthoParamsToViewMatrix();
 }
 
@@ -106,7 +132,7 @@ void MikanCamera::adjustOrthoTargetPosition(const glm::vec3& deltaTarget)
 {
 	if (m_movementMode == eCameraMovementMode::ortho)
 	{
-		m_orthoTargetPosition+= deltaTarget;
+		getMutableOrthoViewState(m_orthoViewpoint).target+= deltaTarget;
 		applyOrthoParamsToViewMatrix();
 	}
 }
@@ -224,17 +250,8 @@ void MikanCamera::adjustFlyYaw(float deltaDegrees)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
-		const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
-
 		m_flyYawDegrees= wrap_degrees(m_flyYawDegrees + deltaDegrees);
-		const float yawRadians= degrees_to_radians(m_flyYawDegrees);
-		const float pitchRadians= degrees_to_radians(m_flyPitchDegrees);
-		glm::mat3 yawRot= glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
-		glm::mat3 pitchRot= glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
-		const glm::mat4 orientation= glm_composite_xform(yawRot, pitchRot);
-
-		glm_mat4_set_rotation(m_flyTransform, orientation);
-		glm_mat4_set_position(m_flyTransform, position);
+		rebuildFlyTransform();
 
 		applyFlyParamsToViewMatrix();
 	}
@@ -244,20 +261,39 @@ void MikanCamera::adjustFlyPitch(float deltaDegrees)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
-		const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
-
 		m_flyPitchDegrees= clampf(m_flyPitchDegrees - deltaDegrees, -90.f, 90.f);
-		const float yawRadians= degrees_to_radians(m_flyYawDegrees);
-		const float pitchRadians= degrees_to_radians(m_flyPitchDegrees);
-		glm::mat3 yawRot= glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
-		glm::mat3 pitchRot= glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
-		const glm::mat4 orientation= glm_composite_xform(yawRot, pitchRot);
-
-		glm_mat4_set_rotation(m_flyTransform, orientation);
-		glm_mat4_set_position(m_flyTransform, position);
+		rebuildFlyTransform();
 
 		applyFlyParamsToViewMatrix();
 	}
+}
+
+void MikanCamera::setFlyPose(const glm::vec3& position, float yawDegrees, float pitchDegrees)
+{
+	m_flyYawDegrees= wrap_degrees(yawDegrees);
+	m_flyPitchDegrees= clampf(pitchDegrees, -90.f, 90.f);
+
+	glm_mat4_set_position(m_flyTransform, position);
+	rebuildFlyTransform();
+
+	if (m_movementMode == eCameraMovementMode::fly)
+	{
+		applyFlyParamsToViewMatrix();
+	}
+}
+
+void MikanCamera::rebuildFlyTransform()
+{
+	const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
+
+	const float yawRadians= degrees_to_radians(m_flyYawDegrees);
+	const float pitchRadians= degrees_to_radians(m_flyPitchDegrees);
+	glm::mat3 pitchRot= glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
+	glm::mat3 yawRot= glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
+	const glm::mat4 orientation= glm_composite_xform(pitchRot, yawRot);
+
+	glm_mat4_set_rotation(m_flyTransform, orientation);
+	glm_mat4_set_position(m_flyTransform, position);
 }
 
 void MikanCamera::setOrbitYaw(float yawDegrees)
@@ -392,17 +428,18 @@ void MikanCamera::applyOrthoParamsToViewMatrix()
 
 	// Pull the eye far back along the view axis so scene geometry at any reasonable
 	// stage depth stays between the near and far clip planes.
+	const glm::vec3 target= getOrthoTargetPosition();
 	const float eyeDistance= m_zFar * 0.5f;
-	const glm::vec3 eye= m_orthoTargetPosition - forward * eyeDistance;
+	const glm::vec3 eye= target - forward * eyeDistance;
 
-	m_viewMatrix= glm::lookAt(eye, m_orthoTargetPosition, up);
+	m_viewMatrix= glm::lookAt(eye, target, up);
 }
 
 void MikanCamera::rebuildProjectionMatrix()
 {
 	if (m_projectionMode == eCameraProjectionMode::orthographic)
 	{
-		const float halfHeight= fmaxf(m_orthoExtent, k_camera_min_zoom);
+		const float halfHeight= fmaxf(getOrthoExtent(), k_camera_min_zoom);
 		const float halfWidth= halfHeight * m_viewportAspectRatio;
 		m_projectionMatrix= glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, m_zNear, m_zFar);
 	}

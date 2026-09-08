@@ -96,6 +96,8 @@ Mouse position is warped rather than fabricated, which moves the real cursor. Im
 - `input key <windowIndex> <keyName> [modifiers...]` presses and releases a key. Names are `return`/`enter`, `tab`, `escape`, `backspace`, `delete`, `space`, the arrows, `home`, `end`, `pageup`, `pagedown`, `insert`, `f1` to `f12`, or a single printable character. Modifiers are `shift`, `ctrl`, `alt`, `gui`.
 - `input text <windowIndex> <text...>` commits text the way typing does, taking the raw untokenized rest of the line
 
+Two things a warp cannot fake. A warped move often reports a zero relative delta, so anything driven by relative motion rather than by cursor position is unreliable under synthetic input: the viewport camera's right-drag rotate and pan usually see delta 0 and leave the camera where it was. A `input key` press and release land in the same frame, so held-key behavior such as the WASD fly never accumulates. Verify camera manipulation by hand, or seed the state and check that the editor applies it.
+
 One caveat worth knowing when a click seems to vanish: an ImGui window's capture flags are computed at `NewFrame` and so describe the previous frame's cursor position. A click injected in the same command that moved the cursor is judged against where the cursor used to be. Code that owns a non-ImGui region of a window should route the mouse by geometry rather than by asking ImGui, which is what `CEFBrowserEditorWindow` does for its page area.
 
 ### Lua scripting (script)

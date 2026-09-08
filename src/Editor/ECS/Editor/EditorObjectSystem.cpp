@@ -19,6 +19,7 @@
 #include "InputManager.h"
 #include "IEditorWindow.h"
 #include "ProjectManager.h"
+#include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
 #include "MikanEditorTypes.h"
@@ -56,6 +57,113 @@ const std::string EditorObjectSystemDefinition::k_debugCameraAlignmentPropertyId
 const std::string EditorObjectSystemDefinition::k_modelStencilDisplayModePropertyId= "model_stencil_display_mode";
 const std::string EditorObjectSystemDefinition::k_debugRenderInCompositorPropertyId= "debug_render_in_compositor";
 const std::string EditorObjectSystemDefinition::k_renderFrameRatePropertyId= "render_frame_rate";
+const std::string EditorObjectSystemDefinition::k_editorCameraStatePropertyId= "editor_camera_state";
+
+// Viewpoint names used as the keys of the saved ortho views, in eCameraViewpoint order
+static const char* k_orthoViewpointStrings[EditorCameraState::k_orthoViewCount]= {"top",  "bottom", "front",
+																				  "back", "left",   "right"};
+
+// Keys within the saved camera state block
+static const char* k_cameraStatePerspectiveKey= "perspective";
+static const char* k_cameraStateOrthoViewsKey= "ortho_views";
+static const char* k_cameraStateActiveViewKey= "active_view";
+static const char* k_cameraStatePositionKey= "position";
+static const char* k_cameraStateYawKey= "yaw_degrees";
+static const char* k_cameraStatePitchKey= "pitch_degrees";
+static const char* k_cameraStateTargetKey= "target";
+static const char* k_cameraStateExtentKey= "extent";
+static const char* k_cameraStatePerspectiveViewName= "perspective";
+
+// The index of a saved view name, or -1 for the perspective view
+static int findCameraViewIndex(const std::string& viewName)
+{
+	for (int viewIndex= 0; viewIndex < EditorCameraState::k_orthoViewCount; ++viewIndex)
+	{
+		if (viewName == k_orthoViewpointStrings[viewIndex])
+			return viewIndex;
+	}
+
+	return -1;
+}
+
+static configuru::Config writeCameraStateToJSON(const EditorCameraState& cameraState)
+{
+	configuru::Config cameraPt= configuru::Config::object();
+
+	configuru::Config perspectivePt= configuru::Config::object();
+	CommonConfig::writeVector3f(perspectivePt, k_cameraStatePositionKey,
+								glm_vec3_to_MikanVector3f(cameraState.perspectivePosition));
+	perspectivePt[k_cameraStateYawKey]= cameraState.perspectiveYawDegrees;
+	perspectivePt[k_cameraStatePitchKey]= cameraState.perspectivePitchDegrees;
+	cameraPt[k_cameraStatePerspectiveKey]= perspectivePt;
+
+	configuru::Config orthoViewsPt= configuru::Config::object();
+	for (int viewIndex= 0; viewIndex < EditorCameraState::k_orthoViewCount; ++viewIndex)
+	{
+		configuru::Config viewPt= configuru::Config::object();
+		CommonConfig::writeVector3f(viewPt, k_cameraStateTargetKey,
+									glm_vec3_to_MikanVector3f(cameraState.orthoTargets[viewIndex]));
+		viewPt[k_cameraStateExtentKey]= cameraState.orthoExtents[viewIndex];
+		orthoViewsPt[k_orthoViewpointStrings[viewIndex]]= viewPt;
+	}
+	cameraPt[k_cameraStateOrthoViewsKey]= orthoViewsPt;
+
+	const bool bIsOrthoView=
+		cameraState.activeView >= 0 && cameraState.activeView < EditorCameraState::k_orthoViewCount;
+	cameraPt[k_cameraStateActiveViewKey]=
+		bIsOrthoView ? k_orthoViewpointStrings[cameraState.activeView] : k_cameraStatePerspectiveViewName;
+
+	return cameraPt;
+}
+
+static void readCameraStateFromJSON(const configuru::Config& cameraPt, EditorCameraState& outCameraState)
+{
+	if (cameraPt.has_key(k_cameraStatePerspectiveKey))
+	{
+		const configuru::Config& perspectivePt= cameraPt[k_cameraStatePerspectiveKey];
+
+		MikanVector3f position= glm_vec3_to_MikanVector3f(outCameraState.perspectivePosition);
+		CommonConfig::readVector3f(perspectivePt, k_cameraStatePositionKey, position);
+		outCameraState.perspectivePosition= MikanVector3f_to_glm_vec3(position);
+
+		outCameraState.perspectiveYawDegrees=
+			perspectivePt.get_or<float>(k_cameraStateYawKey, outCameraState.perspectiveYawDegrees);
+		outCameraState.perspectivePitchDegrees=
+			perspectivePt.get_or<float>(k_cameraStatePitchKey, outCameraState.perspectivePitchDegrees);
+	}
+
+	if (cameraPt.has_key(k_cameraStateOrthoViewsKey))
+	{
+		const configuru::Config& orthoViewsPt= cameraPt[k_cameraStateOrthoViewsKey];
+
+		for (int viewIndex= 0; viewIndex < EditorCameraState::k_orthoViewCount; ++viewIndex)
+		{
+			const char* viewName= k_orthoViewpointStrings[viewIndex];
+			if (!orthoViewsPt.has_key(viewName))
+				continue;
+
+			const configuru::Config& viewPt= orthoViewsPt[viewName];
+
+			MikanVector3f target= glm_vec3_to_MikanVector3f(outCameraState.orthoTargets[viewIndex]);
+			CommonConfig::readVector3f(viewPt, k_cameraStateTargetKey, target);
+			outCameraState.orthoTargets[viewIndex]= MikanVector3f_to_glm_vec3(target);
+
+			outCameraState.orthoExtents[viewIndex]=
+				viewPt.get_or<float>(k_cameraStateExtentKey, outCameraState.orthoExtents[viewIndex]);
+		}
+	}
+
+	const std::string activeViewName=
+		cameraPt.get_or<std::string>(k_cameraStateActiveViewKey, k_cameraStatePerspectiveViewName);
+	outCameraState.activeView= findCameraViewIndex(activeViewName);
+}
+
+bool EditorCameraState::operator==(const EditorCameraState& other) const
+{
+	return perspectivePosition == other.perspectivePosition && perspectiveYawDegrees == other.perspectiveYawDegrees
+		   && perspectivePitchDegrees == other.perspectivePitchDegrees && orthoTargets == other.orthoTargets
+		   && orthoExtents == other.orthoExtents && activeView == other.activeView;
+}
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
@@ -79,6 +187,7 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_modelStencilDisplayModePropertyId]= (int)m_editorSettings.modelStencilDisplayMode;
 	pt[k_debugRenderInCompositorPropertyId]= m_editorSettings.bDebugRenderInCompositor;
 	pt[k_renderFrameRatePropertyId]= m_editorSettings.bRenderFrameRate;
+	pt[k_editorCameraStatePropertyId]= writeCameraStateToJSON(m_editorSettings.cameraState);
 
 	return pt;
 }
@@ -116,6 +225,12 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	m_editorSettings.bDebugRenderInCompositor=
 		pt.get_or<bool>(k_debugRenderInCompositorPropertyId, m_editorSettings.bDebugRenderInCompositor);
 	m_editorSettings.bRenderFrameRate= pt.get_or<bool>(k_renderFrameRatePropertyId, m_editorSettings.bRenderFrameRate);
+
+	// Projects saved before the camera poses were persisted keep the defaults
+	if (pt.has_key(k_editorCameraStatePropertyId))
+	{
+		readCameraStateFromJSON(pt[k_editorCameraStatePropertyId], m_editorSettings.cameraState);
+	}
 }
 
 void EditorObjectSystemDefinition::setRenderOriginFlag(bool flag)
@@ -277,6 +392,15 @@ void EditorObjectSystemDefinition::setRenderFrameRate(bool enabled)
 	{
 		m_editorSettings.bRenderFrameRate= enabled;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderFrameRatePropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setEditorCameraState(const EditorCameraState& cameraState)
+{
+	if (m_editorSettings.cameraState != cameraState)
+	{
+		m_editorSettings.cameraState= cameraState;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_editorCameraStatePropertyId));
 	}
 }
 
