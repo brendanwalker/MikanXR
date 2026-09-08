@@ -152,8 +152,13 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 	if (!cameraComponent)
 		return false;
 
+	// Flipped projection, because this draws into the compositor's working framebuffer rather than
+	// to the screen. The video layers reach that buffer through a v-flipped quad, so its rows run
+	// opposite to GL's default and geometry projected the usual way lands mirrored top to bottom.
+	// This is the render-to-texture case conventions.md describes, and the same flip DepthMaskNode
+	// already asks for.
 	glm::mat4 vpMatrix;
-	if (!cameraComponent->getApertureViewProjectionMatrix(vpMatrix))
+	if (!cameraComponent->getApertureViewProjectionMatrix(vpMatrix, true))
 		return false;
 
 	// Gather shape properties from the array pin

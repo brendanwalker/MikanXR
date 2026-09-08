@@ -98,6 +98,8 @@ A recovered lighting environment is a spherical function stored as 27 coefficien
 
 - Render-to-texture paths can instead flip in projection: `CameraComponent::getApertureProjectionMatrix(outProj, bVerticalFlip)` pre-multiplies `glm::scale(vec3(1, -1, 1))` "to account for OpenGL's inverted Y-axis"; the compositor's `ColorTextureSourceNode` exposes a `vertical_flip` option.
 
+- Geometry drawn into the compositor's working framebuffer takes that flip. The video layers reach that buffer through a v-flipped fullscreen quad, so its rows run opposite to GL's default, and 3d geometry projected the usual way lands mirrored top to bottom against the video. `DrawShapesNode` and `DepthMaskNode` therefore ask for the flipped aperture projection. `DrawLayerNode`'s stencil mask rendering still asks for the unflipped one and is believed to have the same mirroring, unverified because no graph in the project connects a stencil.
+
 - Horizontal mirroring for mirrored sources is separate: `VideoFrameDistortionView::writeVideoFrame` applies `cv::flip(mat, +1)` when the source definition's mirrored flag is set.
 
 - Pixel-to-ray conversion flips image Y once: `computeCameraRayAtPixel` (`CameraMath.cpp`) computes `local_y = (principal_point_y - imagePoint.y) / fy` because image +Y is down while camera-space +Y is up.
