@@ -76,7 +76,27 @@ Value syntax for `property get`/`set`:
 ### Screenshots (screenshot)
 
 - `screenshot compositor [componentId] [path]` writes the composited frame to a PNG and replies the absolute path. The component id may be omitted when the project has exactly one compositor. Without a path it writes `mikan_compositor.png` in the working directory, overwritten each capture.
-- `screenshot window [path]` writes the main window's back buffer (the editor UI included) at the end of the current frame's render, replying the absolute path once the capture lands. Default `mikan_window.png`.
+- `screenshot window [windowIndex] [path]` writes a window's back buffer (the editor UI included) at the end of that window's frame render, replying the absolute path once the capture lands. The index comes from `window list`; omitting it means the main window. Default `mikan_window.png`.
+
+### Windows (window)
+
+- `window list` replies `<index> <width>x<height> <title>` per open window, main window first. The index is the handle the `screenshot` and `input` commands take, and it shifts as windows open and close, so list before driving rather than hard-coding one.
+- `window focus <windowIndex>` raises the window and gives it OS focus
+
+### Synthetic input (input)
+
+Injected input is posted to the real event queue, so it travels the path a user's input does: the same window routing, the same ImGui capture arbitration, the same listener. A driven session is therefore evidence about the shipping input path rather than about a test-only shortcut. Every verb raises the target window first, since input only lands where the OS is delivering it.
+
+Mouse position is warped rather than fabricated, which moves the real cursor. ImGui's backend re-reads the OS cursor every frame whenever the pointer is not over one of our windows, and would overwrite a fabricated position before the widget under it saw the click.
+
+- `input move <windowIndex> <x> <y>` moves the cursor to a window client position
+- `input click <windowIndex> <x> <y> [left|middle|right] [clickCount]` moves, then presses and releases. Pass `2` as the click count for a double click.
+- `input press|release <windowIndex> <x> <y> [left|middle|right]` are the halves of a click, for drags and for widgets whose popup only survives while the button is held
+- `input wheel <windowIndex> <x> <y> <scrollY> [scrollX]` scrolls in notches
+- `input key <windowIndex> <keyName> [modifiers...]` presses and releases a key. Names are `return`/`enter`, `tab`, `escape`, `backspace`, `delete`, `space`, the arrows, `home`, `end`, `pageup`, `pagedown`, `insert`, `f1` to `f12`, or a single printable character. Modifiers are `shift`, `ctrl`, `alt`, `gui`.
+- `input text <windowIndex> <text...>` commits text the way typing does, taking the raw untokenized rest of the line
+
+One caveat worth knowing when a click seems to vanish: an ImGui window's capture flags are computed at `NewFrame` and so describe the previous frame's cursor position. A click injected in the same command that moved the cursor is judged against where the cursor used to be. Code that owns a non-ImGui region of a window should route the mouse by geometry rather than by asking ImGui, which is what `CEFBrowserEditorWindow` does for its page area.
 
 ### Lua scripting (script)
 

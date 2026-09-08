@@ -45,10 +45,16 @@ public:
 	virtual bool hasMouseFocus() const override { return m_hasMouseFocus; }
 	virtual bool hasKeyboardFocus() const override { return m_hasKeyboardFocus; }
 
+	virtual int getWindowId() const override { return m_windowId; }
+	virtual void raiseWindow() override;
+	virtual void warpMouseToWindowPosition(int windowX, int windowY) override;
+	virtual void injectMouseButton(int mkMouseButton, bool bPressed, int windowX, int windowY, int clickCount) override;
+	virtual void injectMouseWheel(int windowX, int windowY, int scrollX, int scrollY) override;
+	virtual void injectKey(MkKeySym keySym, uint16_t keyMod, bool bPressed) override;
+	virtual void injectText(const std::string& utf8Text) override;
+
 	// -- SdlWindowContext specific --
 	void focus();
-
-	int getWindowId() const { return m_windowId; }
 
 	virtual void enableGLDataSharing() override;
 	bool isGlDataSharingEnabled() const { return m_bGLDataSharingEnabled; }

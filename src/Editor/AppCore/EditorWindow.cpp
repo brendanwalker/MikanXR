@@ -3,6 +3,7 @@
 #include "Logger.h"
 
 #include "App.h"
+#include "AutomationServer.h"
 #include "IMkWindowContext.h"
 #include "IMkGraphicsContext.h"
 #include "MainWindow.h"
@@ -90,6 +91,20 @@ void EditorWindow::makeContextCurrent() { m_mkWindowContext->makeContextCurrent(
 bool EditorWindow::wantsDestroy() const { return m_mkWindowContext->wantsDestroy(); }
 
 void EditorWindow::present() { m_mkWindowContext->present(); }
+
+void EditorWindow::presentFrame()
+{
+	// The back buffer is only readable between the last draw and the swap, so an automation capture
+	// of this window has to land here rather than anywhere in the window's own render body.
+	MainWindow* mainWindow= getMainWindow();
+	if (mainWindow && mainWindow->getAutomationServer())
+	{
+		mainWindow->getAutomationServer()->servicePendingWindowCapture(this, (int)m_mkWindowContext->getWidth(),
+																	   (int)m_mkWindowContext->getHeight());
+	}
+
+	m_mkWindowContext->present();
+}
 
 void EditorWindow::setTitle(const std::string& title) { m_mkWindowContext->setTitle(title); }
 

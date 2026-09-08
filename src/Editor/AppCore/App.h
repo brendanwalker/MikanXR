@@ -68,6 +68,10 @@ public:
 
 	void destroyAppWindow(EditorWindow* appWindow);
 
+	// Open windows in creation order, the main window first. The automation channel indexes into
+	// this to name a window for a screenshot or an injected input event.
+	const std::vector<EditorWindow*>& getAppWindows() const { return m_appWindows; }
+
 	template <typename t_app_window>
 	bool hasWindowOfType() const
 	{

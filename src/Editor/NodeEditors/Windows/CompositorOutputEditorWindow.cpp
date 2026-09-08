@@ -435,7 +435,7 @@ void CompositorOutputEditorWindow::render()
 	gfx->renderEnd();
 
 	// Present the rendered frame
-	m_mkWindowContext->present();
+	presentFrame();
 }
 
 void CompositorOutputEditorWindow::shutdown()
