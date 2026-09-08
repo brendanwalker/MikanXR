@@ -3,6 +3,9 @@
 		"code": "en",
 		"nativeName": "English"
 	},
+	"CEFTextureSourceComponent": {
+		"show_texture_source_settings": "Show Browser Window"
+	},
 	"alignCameraByOriginMarker": {
 		"alignmentComplete": "Camera aligned successfully!",
 		"alreadyHasTrackingMountError": "Target camera already has a tracking mount. Use the standard alignment calibration instead.",
@@ -97,6 +100,14 @@
 		"pixelContentFilterDescription": "Image Files (*.png, *.gif, *.bmp, *.tga, *.jpg, *.jpeg)",
 		"texture": "Texture",
 		"textureAssetHeader": "Texture Asset"
+	},
+	"cefBrowser": {
+		"back": "Back",
+		"devTools": "DevTools",
+		"forward": "Forward",
+		"reload": "Reload",
+		"windowTitle": "Browser",
+		"windowTitleFmt": "%s - Browser"
 	},
 	"common": {
 		"cancel": "Cancel",
@@ -226,6 +237,7 @@
 		"pause_sequence": "Pause",
 		"play_sequence": "Play",
 		"print_checkerboard": "Print Checkerboard",
+		"match_resolution_to_browser_window": "Match Resolution to Window",
 		"print_marker": "Print Marker",
 		"reset_settings": "Reset to Defaults",
 		"show_compositor_output": "Show Compositor Output",
@@ -656,6 +668,7 @@
 		"tracking_volume_id": "Tracking Volume ID",
 		"transmit_rate_hz": "Transmit Rate (Hz)",
 		"url": "URL",
+		"url_writeback": "Save Browsed URL",
 		"usb_device_map": "USB Device Map",
 		"utility_marker_id": "Utility Marker ID",
 		"video_format": "Video Format",

@@ -191,6 +191,7 @@ bool MkGuiContext::onWindowEvent(const MkWindowEvent& event)
 		return io.WantCaptureMouse;
 	case eMkWindowEventType::KeyDown:
 	case eMkWindowEventType::KeyUp:
+	case eMkWindowEventType::TextInput:
 		return io.WantCaptureKeyboard;
 	default:
 		return false;

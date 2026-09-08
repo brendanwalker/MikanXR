@@ -3,6 +3,9 @@
 		"code": "ja",
 		"nativeName": "日本語"
 	},
+	"CEFTextureSourceComponent": {
+		"show_texture_source_settings": "ブラウザーウィンドウを表示"
+	},
 	"alignCameraByOriginMarker": {
 		"alignmentComplete": "カメラの位置合わせが完了しました！",
 		"alreadyHasTrackingMountError": "ターゲットカメラには既にトラッキングマウントが設定されています。標準の位置合わせ校正を使用してください。",
@@ -97,6 +100,14 @@
 		"pixelContentFilterDescription": "画像ファイル (*.png, *.gif, *.bmp, *.tga, *.jpg, *.jpeg)",
 		"texture": "テクスチャ",
 		"textureAssetHeader": "テクスチャアセット"
+	},
+	"cefBrowser": {
+		"back": "戻る",
+		"devTools": "開発者ツール",
+		"forward": "進む",
+		"reload": "再読み込み",
+		"windowTitle": "ブラウザー",
+		"windowTitleFmt": "%s - ブラウザー"
 	},
 	"common": {
 		"cancel": "キャンセル",
@@ -226,6 +237,7 @@
 		"pause_sequence": "一時停止",
 		"play_sequence": "再生",
 		"print_checkerboard": "チェッカーボードを印刷",
+		"match_resolution_to_browser_window": "解像度をウィンドウに合わせる",
 		"print_marker": "マーカーを印刷",
 		"reset_settings": "既定値に戻す",
 		"show_compositor_output": "コンポジター出力を表示",
@@ -656,6 +668,7 @@
 		"tracking_volume_id": "トラッキングボリューム ID",
 		"transmit_rate_hz": "送信レート (Hz)",
 		"url": "URL",
+		"url_writeback": "閲覧した URL を保存",
 		"usb_device_map": "USB デバイスマップ",
 		"utility_marker_id": "ユーティリティマーカー ID",
 		"video_format": "映像フォーマット",
