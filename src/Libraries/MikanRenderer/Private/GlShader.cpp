@@ -244,6 +244,7 @@ public:
 
 		// Nuke any existing program
 		deleteProgram();
+		m_compileLog.clear();
 
 		if (m_code->hasCode())
 		{
@@ -298,6 +299,7 @@ public:
 				GLchar strInfoLog[1024]= {0};
 				glGetShaderInfoLog(nSceneVertexShader, sizeof(strInfoLog) - 1, nullptr, strInfoLog);
 				MIKAN_LOG_ERROR("IMkShader::createProgram") << strInfoLog;
+				m_compileLog+= strInfoLog;
 
 				glDeleteProgram(m_programID);
 				glDeleteShader(nSceneVertexShader);
@@ -333,6 +335,7 @@ public:
 					GLchar strInfoLog[1024]= {0};
 					glGetShaderInfoLog(nSceneGeometryShader, sizeof(strInfoLog) - 1, nullptr, strInfoLog);
 					MIKAN_LOG_ERROR("IMkShader::createProgram") << strInfoLog;
+					m_compileLog+= strInfoLog;
 
 					glDeleteProgram(m_programID);
 					glDeleteShader(nSceneGeometryShader);
@@ -367,6 +370,7 @@ public:
 				GLchar strInfoLog[1024]= {0};
 				glGetShaderInfoLog(nSceneFragmentShader, sizeof(strInfoLog) - 1, nullptr, strInfoLog);
 				MIKAN_LOG_ERROR("IMkShader::createProgram") << strInfoLog;
+				m_compileLog+= strInfoLog;
 
 				glDeleteProgram(m_programID);
 				glDeleteShader(nSceneFragmentShader);
@@ -392,6 +396,7 @@ public:
 				GLchar strInfoLog[1024]= {0};
 				glGetProgramInfoLog(m_programID, sizeof(strInfoLog) - 1, nullptr, strInfoLog);
 				MIKAN_LOG_ERROR("IMkShader::createProgram") << strInfoLog;
+				m_compileLog+= strInfoLog;
 
 				glDeleteProgram(m_programID);
 				m_programID= 0;
@@ -441,6 +446,7 @@ public:
 		return false;
 	}
 
+	virtual const std::string& getCompileLog() const override { return m_compileLog; }
 	virtual bool isProgramCompiled() const override { return m_programID != 0; }
 
 	virtual uint32_t getIMkShaderId() const override { return m_programID; }
@@ -481,6 +487,7 @@ protected:
 	MkShaderUniformMap m_uniformLocationMap;
 	MkUniformNameTextureUnitMap m_textureUnitMap;
 	IMkVertexDefinitionPtr m_vertexDefinition;
+	std::string m_compileLog;
 };
 
 IMkShaderPtr createIMkShader() { return std::make_shared<GlShader>(); }

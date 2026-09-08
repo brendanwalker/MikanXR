@@ -3,7 +3,7 @@
 // -- GlVertexAttributeConfig ------
 configuru::Config MikanVertexAttributeConfig::writeToJSON()
 {
-	configuru::Config pt;
+	configuru::Config pt= configuru::Config::object();
 
 	pt["name"]= name;
 	pt["dataType"]= VertexConstantUtils::vertexDataTypeToString(dataType);
@@ -34,6 +34,19 @@ configuru::Config MikanShaderConfig::writeToJSON()
 	CommonConfig::writeStdConfigVector(pt, "vertexAttributes", vertexAttributes);
 	CommonConfig::writeStdMap(pt, "uniformSemanticMap", uniformSemanticMap);
 
+	if (!domain.empty())
+	{
+		pt["domain"]= domain;
+	}
+	if (!vertexPreset.empty())
+	{
+		pt["vertexPreset"]= vertexPreset;
+	}
+	if (!sourceGraphPath.empty())
+	{
+		pt["sourceGraphPath"]= sourceGraphPath.generic_string();
+	}
+
 	return pt;
 }
 
@@ -46,4 +59,8 @@ void MikanShaderConfig::readFromJSON(const configuru::Config& pt)
 	fragmentShaderPath= pt.get_or<std::string>("fragmentShaderPath", fragmentShaderPath.string());
 	CommonConfig::readStdConfigVector(pt, "vertexAttributes", vertexAttributes);
 	CommonConfig::readStdMap(pt, "uniformSemanticMap", uniformSemanticMap);
+
+	domain= pt.get_or<std::string>("domain", "");
+	vertexPreset= pt.get_or<std::string>("vertexPreset", "");
+	sourceGraphPath= pt.get_or<std::string>("sourceGraphPath", "");
 }
