@@ -82,6 +82,8 @@ Layer materials are `MkMaterial` objects from the `MikanRenderer` OpenGL abstrac
 
 - User materials loaded from `*.mat` files via `MaterialAssetReference` and `MikanShaderConfig`: a Configuru config naming the material, vertex/fragment shader file paths, a uniform-to-semantic map, and vertex attributes. These are what `MaterialNode`/`GraphMaterialProperty` feed into `DrawLayerNode`, and their uniforms become the node's dynamic pins.
 
+A `.mat` is either hand-written or compiled from a material node graph, which also writes the GLSL beside it; the format, the domains and vertex presets a material is checked against, and the graph editor are in [materials.md](./materials.md). `DrawLayerNode` and `ApplyMaterialNode` accept only compositor-domain materials, and rebuild their dynamic pins when the material editor saves a material they hold.
+
 Draw state (blend, stencil, masks, viewport) is managed through the scoped `MkStateStack`/`MkScopedState` system rather than raw GL calls.
 
 ---

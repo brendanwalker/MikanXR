@@ -1,0 +1,94 @@
+# Materials
+
+How a compositor layer or shape material is described, authored, compiled, and consumed. The compositing pipeline that draws with these materials is in [compositor.md](./compositor.md), the shape graph in [scripting.md](./scripting.md), the node graph machinery both editors share in the same document, and the renderer interfaces in [modules.md](./modules.md).
+
+---
+
+## The .mat file
+
+A material is a Configuru JSON file with the `.mat` extension, loaded by `MikanShaderCache::loadMaterialAssetReference` (`src/Editor/Renderer/MikanShaderCache.cpp`) through `MikanShaderConfig` (`src/Editor/Renderer/MikanShaderConfig.h`). One folder per material, folder name equal to the file stem, is the convention under `resources/shaders/compositor/` and `resources/shaders/shape/`. User projects put theirs under `<project>/shaders/`, and `PathUtils::resolveProjectResource` looks in the project before the bundled resources, so a project can shadow a bundled material by path.
+
+Keys:
+
+- `materialName`: informational. The cache keys the program by the file stem.
+- `vertexShaderPath`, `fragmentShaderPath`: relative to the `.mat` folder, so `../shared/compositorFrame.vert` is how the hand-written compositor materials share one vertex shader.
+- `vertexAttributes`: an ordered list of `{name, dataType, semantic}`. The order is the `layout(location = N)` order the shader must declare, and the vertex definition built from it is what `IMkVertexDefinition::isCompatibleProgram` checks after linking.
+- `uniformSemanticMap`: uniform name to semantic name, the strings of `getUniformSemanticName` in `MkShaderConstants.cpp` (note `normalMatrix` spells as `inverseModelMatrix`). The semantic decides the data type, and therefore the pin type a consuming node creates for the uniform. Consumers bind by uniform name, so two uniforms may share a semantic.
+- `domain`, `vertexPreset`, `sourceGraphPath`: optional, written by the material graph compiler. A hand-authored `.mat` omits them. `sourceGraphPath` is relative to the `.mat` folder like the shader paths, and is what lets the editors reopen the material in the graph editor.
+
+The uniform semantics a hand-written shader can use are the `eUniformSemantic` values. Five generic ones exist for material parameters, `floatParam`, `float2Param`, `float3Param`, `float4Param`, and `textureParam`; they carry no meaning beyond their type, so a parameter of any name can use them.
+
+---
+
+## Domains and vertex presets
+
+A material belongs to one domain (`eMaterialDomain`, `src/Editor/NodeEditors/MaterialCompiler/MaterialDomain.h`):
+
+- `compositor`: shades the fullscreen layer quad drawn by `DrawLayerNode` and `ApplyMaterialNode`
+- `shape`: shades shape renderables drawn by `DrawShapeMeshNode`, under a model-view-projection the node feeds through the `modelViewProjectionMatrix` semantic
+
+Within a domain the material is compiled against one vertex preset (`eMaterialVertexPreset`), a named attribute list that matches exactly one family of meshes:
+
+- `P2T`: `aPos vec2`, `aTexCoords vec2`, the compositor layer quad. The only compositor preset.
+- `PT`: `aPos vec3`, `aTexCoords vec2`, quad and box shapes
+- `PNT`: `aPos vec3`, `aNormal vec3`, `aTexCoords vec2`, model shapes
+
+The preset decides which vertex input nodes a graph may use and which mesh the preview draws. A `.mat` without a `domain` is inferred from its position attribute: a `vec2` position is compositor, a `vec3` is shape (`MaterialDomainUtils::inferDomain`). `GraphMaterialProperty::getDomain` exposes the result, and the consuming nodes refuse a link from a material of the wrong domain (`Node::editorCanAcceptProperty`, consulted by `PropertyPin::canPinsBeConnected`). A shape material whose preset does not match a renderable's mesh is reported as an evaluation error by `DrawShapeMeshNode` rather than drawn.
+
+---
+
+## Material graphs
+
+`MaterialNodeGraph` (`src/Editor/NodeEditors/Graphs/MaterialNodeGraph.h`) is the third `NodeGraph` type, registered in `App::startup` beside the compositor and shape graphs and saved as a `.graph` file like them. It persists its domain and preset in the graph config's `settings` object. It is a pure data graph with no flow pins and exactly one `MaterialOutputNode`, created by `MaterialNodeGraphFactory::initialCreateMaterialGraph` and undeletable. The output node's input pins are the material's outputs: `color` (float4) in every domain, plus `positionOffset` (float3, object space) in the shape domain. Changing the domain rebuilds those pins and resets the preset to the domain's default.
+
+The graph is never evaluated at render time. Every node derives from `ShaderNode` (`Nodes/Material/ShaderNode.h`) and implements `compileNode(MaterialCompileContext&)` instead of `evaluateNode`. Links carry `ShaderValuePin` values (`Pins/ShaderValuePin.h`), the one pin class of the graph: a declared type (`eShaderValueType`: `float`, `float2`, `float3`, `float4`, `texture2D`, or `wildcard`), a resolved type the last compile inferred and which only colors the pin, and a four-float default an unconnected input compiles to. A link is accepted when the types are equal, either side is a wildcard, or the source is a `float` feeding a vector (broadcast). Math nodes declare wildcard pins, so a type error surfaces at compile time on the node rather than at link time.
+
+The node set, in `Nodes/Material/`, with the create menu category each files under:
+
+- Constants: `ShaderConstantNode` (float, float2, float3, float4, color)
+- Parameters: `ShaderParameterNode` (float, float2, float3, float4, color, and the `time` float), `ShaderTextureParameterNode`. A parameter compiles to a uniform named after it with the generic parameter semantic of its type, and its default travels out of the compile for the preview. A parameter name must be a C identifier, and one name cannot carry two types.
+- Inputs: `ShaderVertexInputNode` (position, normal, texCoord, color, gated by the preset), `ShaderSemanticInputNode` (screenSize, screenPosition, cameraPosition, zNear, zFar, each a uniform of the existing semantic)
+- Texture: `ShaderTextureSampleNode`. An unconnected `uv` samples at the preset's texture coordinate.
+- Math: `ShaderMathNode`, table driven by `MaterialCompiler/ShaderMathOpTable.cpp`. Adding an op is one table row plus a `nodes.math<Op>Title` localization key.
+- Vector: `ShaderSwizzleNode`, `ShaderAppendNode`
+- Custom: `ShaderCustomExpressionNode`, a raw GLSL function body with declared typed inputs. It is the escape hatch for anything the node set lacks, and the one node that ties the graph to GLSL: it marks the compile result `glslOnly` and draws a warning glyph on the node.
+
+Several node classes serve many create menu entries through variant factories: one node class, several `NodeFactory` instances registered under `<ClassName>:<variant>` keys (`NodeFactory::getFactoryKey`), each allocating the node with its variant set so the factory's default object carries the right title. The graph keeps a second map by class name so loading and saving, which know only the class, resolve to the first factory of that class, and the node config persists the variant. `nodegraph createnode` accepts either spelling.
+
+---
+
+## Compilation
+
+`MaterialCompiler::compile(graph, writer)` (`MaterialCompiler/MaterialCompiler.h`) walks the graph from the output node's pins and returns a `MaterialCompileResult`: vertex and fragment source, the `MikanShaderConfig` for the `.mat`, the errors as `NodeEvaluationError` values so the editor's existing error overlay draws them, the `glslOnly` flag, and the parameter defaults. It touches no GL resource and no window, which is what lets it run in `MikanCmd`.
+
+The walk is a pull: `MaterialCompileContext::input(pin)` follows the link to the upstream node, compiles that node once per stage (memoized by node id and stage, with a visiting set that reports a cycle), and hands back a `ShaderValue`, an expression string plus its type. Nodes coerce inputs (`coerce` broadcasts a `float` into a vector and rejects anything else), emit temporaries (`emitTemp`), declare uniforms (`uniform`, deduplicated by name across both stages and rejected when a name recurs with another type), and set their outputs. The color subtree compiles in the fragment stage and the position offset subtree in the vertex stage. A vertex attribute requested from the fragment stage becomes a varying, `v` plus the attribute name without its `a` prefix, declared in both stages and assigned in the vertex main. Every preset attribute is declared in the vertex stage up front, in location order, regardless of use. The shape domain always declares `mvpMatrix` with the `modelViewProjectionMatrix` semantic. After the compile the resolved types are written back onto the pins.
+
+Nodes never spell shader text. Every expression and declaration goes through `IShaderWriter` (`MaterialCompiler/IShaderWriter.h`), the language seam: type names, literals, vector construction, swizzles, operators, builtin calls named by an enum (`mix`, `saturate`, `atan2` and so on, spelled per language), texture sampling, and the stage declarations and statements. `GlslShaderWriter` is the one writer today and targets `#version 330 core`, the version every hand-written shader in the tree uses. A second shader language is a second writer plus nothing else, except that custom expression nodes are GLSL by construction.
+
+`MaterialCompiler::writeOutputs` writes `<stem>.vert`, `<stem>.frag`, and `<stem>.mat` beside the `.graph` file, so a compiled material has the same folder layout as a hand-written one. The `.graph` is the source of truth and the three generated files are checked in with it, the way the client bindings are: `MikanCmd -runTests` recompiles every `resources/shaders/**/*.graph` and fails when the checked-in outputs differ (the `material_compiler` module, `src/Editor/NodeEditors/Test/MaterialCompilerTests.cpp`). Regenerate with:
+
+```
+MikanCmd.exe -compileMaterial=resources/shaders/compositor/rgbaFrame/rgbaFrame.graph
+```
+
+`rgbaFrame` and `shapePT` are the two bundled materials authored this way; the rest are still hand-written.
+
+---
+
+## The material editor
+
+`MaterialNodeEditorWindow` (`src/Editor/NodeEditors/Windows/`) is a `NodeEditorWindow` bound to no component. It compiles the graph after every committed edit (the history checkpoint hook, so the error overlay follows undo and redo too) and writes the outputs on save or on the Material menu's Compile (Ctrl+B). A first save opens the file dialog in `<project>/shaders/<domain>/`. With nothing selected, the Details panel shows the graph's domain and vertex preset.
+
+The Preview panel (`MaterialPreviewPanel`) renders the last good compile into an owned framebuffer and shows it with `ImGui::Image`: the layer quad for `P2T`, a unit quad for `PT`, and `resources/models/shapes/sphere.obj` for `PNT`, under a slowly orbiting camera. Uniforms are fed through a `BindUniformCallback`: the matrices and screen size from the preview itself, parameters from their node defaults (a float parameter named `time` from elapsed seconds), texture parameters from their default texture asset or the missing-texture checker. The preview compiles its program directly rather than through the shader cache, so a driver compile failure surfaces its info log (`IMkShader::getCompileLog`) in the panel instead of only in the log file.
+
+The create menu of every node editor groups factories by `NodeFactory::editorGetCategory` into submenus and has a filter box at the top; graphs whose factories declare no category keep the flat list.
+
+---
+
+## Reaching a material from the other editors
+
+- Double-clicking a material asset tile in the compositor or shape editor's Assets panel, or a `MaterialNode` on its canvas, opens the material's source graph in the material editor when the `.mat` names one (`MaterialAssetReference::editorOpen`). A hand-authored `.mat` has no source graph and the double-click does nothing.
+- The Assets panel's New Material button opens the material editor on a fresh graph in the outer editor's domain. On its first save the outer graph gains a `MaterialAssetReference` to the written `.mat`.
+- Saving a material graph reloads the material in every window's `MikanShaderCache` (`reloadMaterialByPath`): the cache recompiles the program under the same name and swaps it into the `MkMaterial` it already handed out, then fires `OnMaterialReloaded`. `GraphMaterialProperty` listens and raises the graph's property-modified delegate, and `DrawLayerNode`, `ApplyMaterialNode`, and `DrawShapeMeshNode` rebuild their dynamic uniform pins from the new program, keeping links whose pin names survive. A compositor graph therefore follows a material edit without being reopened.
+
+Automation covers the same surface headlessly: `nodegraph open material`, `nodegraph compile`, and the `material` namespace ([automation.md](./automation.md)).
