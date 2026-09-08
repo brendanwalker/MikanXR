@@ -445,6 +445,14 @@ void TransformComponent::onAttachedToNewParent(TransformComponentPtr newParent)
 	}
 }
 
+void TransformComponent::refreshSceneRenderableModelMatrix()
+{
+	if (m_sceneRenderable != nullptr)
+	{
+		m_sceneRenderable->setModelMatrix(computeSceneRenderableModelMatrix());
+	}
+}
+
 void TransformComponent::propogateWorldTransformChange(eTransformChangeType reason)
 {
 	// Recompute our world transform, if requested
@@ -462,11 +470,8 @@ void TransformComponent::propogateWorldTransformChange(eTransformChangeType reas
 		}
 	}
 
-	// Update the world transform on the attached IGlSceneRenderable
-	if (m_sceneRenderable != nullptr)
-	{
-		m_sceneRenderable->setModelMatrix(m_worldTransform);
-	}
+	// Update the model matrix on the attached IGlSceneRenderable
+	refreshSceneRenderableModelMatrix();
 
 	// Propagate our updated world transform to our children
 	for (TransformComponentWeakPtr childComponentWeakPtr : m_childComponents)
