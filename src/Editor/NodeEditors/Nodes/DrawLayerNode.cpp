@@ -83,7 +83,7 @@ void DrawLayerNodeConfig::readFromJSON(const configuru::Config& pt)
 	{
 		blendModeString= k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal];
 	}
-	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
+	blendMode= resolveCompositorBlendMode(blendModeString, eCompositorBlendMode::blendOff);
 
 	const std::string stencilModeString=
 		pt.get_or<std::string>("stencil_mode", k_stencilTypeStrings[(int)eCompositorStencilMode::insideStencil]);

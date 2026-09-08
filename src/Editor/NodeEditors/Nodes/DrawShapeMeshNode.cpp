@@ -61,7 +61,7 @@ void DrawShapeMeshNodeConfig::readFromJSON(const configuru::Config& pt)
 
 	std::string blendModeString=
 		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal]);
-	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
+	blendMode= resolveCompositorBlendMode(blendModeString, eCompositorBlendMode::blendNormal);
 
 	bDepthTest= pt.get_or<bool>("depth_test", false);
 
@@ -482,8 +482,8 @@ void DrawShapeMeshNode::editorRenderPropertySheet(const NodeEditorState& editorS
 		MkGui::drawStaticTextProperty(propertyStyle, locText("nodes.material"), materialName);
 
 		// Blend Mode
-		const std::string blendModeItems=
-			std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendOn") + '\0';
+		const std::string blendModeItems= std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendNormal")
+										  + '\0' + locText("nodes.blendMultiply") + '\0';
 		int iBlendMode= (int)m_blendMode;
 		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "drawShapeMeshNodeBlendMode", locText("nodes.blendMode"),
 											  blendModeItems.c_str(), iBlendMode))

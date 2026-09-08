@@ -1,4 +1,6 @@
 #include "CompositorConstants.h"
+#include "Logger.h"
+#include "StringUtils.h"
 #include "opencv2/opencv.hpp"
 
 const std::string g_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::COUNT]= {"NoAlpha", "ColorKey",
@@ -33,6 +35,24 @@ const std::string* k_compositorStencilModeStrings= g_compositorStencilModeString
 const std::string g_compositorBlendModeStrings[(int)eCompositorBlendMode::COUNT]= {"blendOff", "blendNormal",
 																				   "blendMultiply"};
 const std::string* k_compositorBlendModeStrings= g_compositorBlendModeStrings;
+
+eCompositorBlendMode resolveCompositorBlendMode(const std::string& blendModeString,
+												eCompositorBlendMode defaultBlendMode)
+{
+	const eCompositorBlendMode blendMode=
+		StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
+
+	if (blendMode == eCompositorBlendMode::INVALID)
+	{
+		MIKAN_LOG_WARNING("resolveCompositorBlendMode")
+			<< "Unknown blend mode '" << blendModeString << "', falling back to '"
+			<< k_compositorBlendModeStrings[(int)defaultBlendMode] << "'";
+
+		return defaultBlendMode;
+	}
+
+	return blendMode;
+}
 
 const std::string g_stencilCullModeStrings[(int)eStencilCullMode::COUNT]= {
 	"none",

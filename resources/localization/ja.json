@@ -366,7 +366,6 @@
 		"blendMultiply": "乗算ブレンド",
 		"blendNormal": "通常ブレンド",
 		"blendOff": "ブレンドなし",
-		"blendOn": "ブレンドあり",
 		"camInsideInvert": "カメラ内側で反転",
 		"clientTextureHeader": "クライアントテクスチャノード",
 		"depthMaskHeader": "デプスマスクノード",

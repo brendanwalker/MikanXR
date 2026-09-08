@@ -366,7 +366,6 @@
 		"blendMultiply": "Blend Multiply",
 		"blendNormal": "Blend Normal",
 		"blendOff": "Blend Off",
-		"blendOn": "Blend On",
 		"camInsideInvert": "Cam Inside Invert",
 		"clientTextureHeader": "Client Texture Node",
 		"depthMaskHeader": "Depth Mask Node",

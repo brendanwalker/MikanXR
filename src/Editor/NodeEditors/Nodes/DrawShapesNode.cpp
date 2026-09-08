@@ -61,7 +61,7 @@ void DrawShapesNodeConfig::readFromJSON(const configuru::Config& pt)
 
 	const std::string blendModeString=
 		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal]);
-	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
+	blendMode= resolveCompositorBlendMode(blendModeString, eCompositorBlendMode::blendNormal);
 
 	bDepthTest= pt.get_or<bool>("depth_test", false);
 }
@@ -212,7 +212,7 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 		if (shape->hasValidShapeGraph())
 		{
 			// Delegate rendering to the shape's node graph
-			shape->renderShapeGraph(vpMatrix, graphicsContext);
+			shape->renderShapeGraph(vpMatrix, graphicsContext, false);
 			continue;
 		}
 
@@ -306,8 +306,8 @@ void DrawShapesNode::editorRenderPropertySheet(const NodeEditorState& editorStat
 		MkGuiStyleConstPtr propertyStyle= editorState.styleManager->getStyle("node_editor_property_value");
 
 		// Blend Mode
-		const std::string blendModeItems=
-			std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendOn") + '\0';
+		const std::string blendModeItems= std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendNormal")
+										  + '\0' + locText("nodes.blendMultiply") + '\0';
 		int iBlendMode= (int)m_blendMode;
 		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "drawShapesNodeBlendMode", locText("nodes.blendMode"),
 											  blendModeItems.c_str(), iBlendMode))
