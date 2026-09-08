@@ -20,6 +20,8 @@
 #include "MikanObjectSystem.h"
 #include "MikanPropertyDatabase.h"
 #include "MikanServer.h"
+#include "MikanShaderConfig.h"
+#include "PathUtils.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "PropertyDatabaseEnumerator.h"
@@ -28,12 +30,17 @@
 #include "ScriptRequestHandler.h"
 #include "TransactionHistory.h"
 
+#include "Graphs/MaterialNodeGraph.h"
 #include "Graphs/NodeGraph.h"
+#include "MaterialCompiler/GlslShaderWriter.h"
+#include "MaterialCompiler/MaterialCompiler.h"
+#include "MaterialCompiler/MaterialDomain.h"
 #include "Nodes/Node.h"
 #include "Pins/NodeLink.h"
 #include "Pins/NodePin.h"
 #include "Properties/GraphProperty.h"
 #include "Windows/CompositorNodeEditorWindow.h"
+#include "Windows/MaterialNodeEditorWindow.h"
 #include "Windows/NodeEditorWindow.h"
 
 #include <algorithm>
@@ -171,6 +178,93 @@ bool resolveCommandTarget(MainWindow* mainWindow, const std::string& systemName,
 			outError= "no component with id " + std::to_string(componentId) + " in system '" + systemName + "'";
 			return false;
 		}
+	}
+
+	return true;
+}
+
+// Resolve a path argument the way the other path-taking commands do: a relative
+// path against the project (then the app resources), otherwise against the
+// working directory. A path that exists nowhere still resolves, so the caller's
+// loader reports the miss.
+std::filesystem::path resolvePathArgument(const std::string& pathText)
+{
+	const std::filesystem::path path(pathText);
+
+	std::filesystem::path resolved= PathUtils::resolveProjectResource(path);
+	if (resolved.empty())
+	{
+		resolved= std::filesystem::absolute(path);
+	}
+
+	return resolved;
+}
+
+// One `error <nodeId> <message>` line per material compile error
+void appendCompileErrorLines(const std::vector<NodeEvaluationError>& errors, std::vector<std::string>& outLines)
+{
+	for (const NodeEvaluationError& error : errors)
+	{
+		outLines.push_back("error " + std::to_string(error.errorNodeId) + " " + error.errorMessage);
+	}
+}
+
+// nodegraph open material <graphPath> | new [compositor|shape]
+bool openMaterialGraphEditor(const std::vector<std::string>& args, std::string& outError)
+{
+	if (args.size() < 3)
+	{
+		outError= "usage: nodegraph open material <graphPath>|new [compositor|shape]";
+		return false;
+	}
+
+	const bool bNewGraph= args[2] == "new";
+	eMaterialDomain domain= eMaterialDomain::compositor;
+	std::filesystem::path graphPath;
+	if (bNewGraph)
+	{
+		if (args.size() >= 4)
+		{
+			domain= MaterialDomainUtils::domainFromString(args[3]);
+			if (domain == eMaterialDomain::INVALID)
+			{
+				outError= "unknown material domain '" + args[3] + "' (compositor|shape)";
+				return false;
+			}
+		}
+	}
+	else
+	{
+		graphPath= resolvePathArgument(args[2]);
+	}
+
+	// One material editor at a time: an open window is reused and raised, a new
+	// one gets its graph installed right after creation the way the compositor
+	// window's bind does (the window's startup creates no graph of its own)
+	App* app= App::getInstance();
+	MaterialNodeEditorWindow* window= app->getWindowOfType<MaterialNodeEditorWindow>();
+	if (window == nullptr)
+	{
+		window= app->createAppWindow<MaterialNodeEditorWindow>();
+		if (window == nullptr)
+		{
+			outError= "failed to create the material editor window";
+			return false;
+		}
+	}
+	else
+	{
+		window->getMkWindowContext()->raiseWindow();
+	}
+
+	if (bNewGraph)
+	{
+		window->newMaterialGraph(domain);
+	}
+	else if (!window->openMaterialGraph(graphPath))
+	{
+		outError= "failed to open material graph '" + graphPath.string() + "'";
+		return false;
 	}
 
 	return true;
@@ -350,14 +444,19 @@ void AutomationServer::registerCoreNamespaces()
 	registerCommandNamespace("log", {"log tail <lineCount> [trace|debug|info|warning|error|fatal]"},
 							 std::bind(&AutomationServer::handleLogCommand, this, _1, _2, _3));
 
-	registerCommandNamespace(
-		"nodegraph",
-		{"nodegraph open [compositorComponentId]", "nodegraph close", "nodegraph info",
-		 "nodegraph list nodes|pins|links|properties", "nodegraph createnode <nodeClassName> [x y]",
-		 "nodegraph deletenode <nodeId>", "nodegraph createlink <startPinId> <endPinId>",
-		 "nodegraph deletelink <linkId>", "nodegraph undo [n]", "nodegraph redo [n]", "nodegraph run on|off",
-		 "nodegraph renamevar <propertyId> <name...>", "nodegraph reordervar <movedPropertyId> <targetPropertyId>"},
-		std::bind(&AutomationServer::handleNodeGraphCommand, this, _1, _2, _3));
+	registerCommandNamespace("nodegraph",
+							 {"nodegraph open [compositorComponentId]", "nodegraph open material <graphPath>",
+							  "nodegraph open material new [compositor|shape]", "nodegraph close", "nodegraph info",
+							  "nodegraph list nodes|pins|links|properties",
+							  "nodegraph createnode <nodeClassName> [x y]", "nodegraph deletenode <nodeId>",
+							  "nodegraph createlink <startPinId> <endPinId>", "nodegraph deletelink <linkId>",
+							  "nodegraph undo [n]", "nodegraph redo [n]", "nodegraph run on|off", "nodegraph compile",
+							  "nodegraph renamevar <propertyId> <name...>",
+							  "nodegraph reordervar <movedPropertyId> <targetPropertyId>"},
+							 std::bind(&AutomationServer::handleNodeGraphCommand, this, _1, _2, _3));
+
+	registerCommandNamespace("material", {"material info <matPath>", "material compile <graphPath>"},
+							 std::bind(&AutomationServer::handleMaterialCommand, this, _1, _2, _3));
 
 	// The history namespace is registered by TransactionHistory after startup
 }
@@ -829,7 +928,8 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 {
 	if (args.empty())
 	{
-		outError= "usage: nodegraph open|close|info|list|createnode|deletenode|createlink|deletelink|undo|redo";
+		outError=
+			"usage: nodegraph open|close|info|list|createnode|deletenode|createlink|deletelink|undo|redo|run|compile";
 		return false;
 	}
 
@@ -837,6 +937,12 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 
 	if (verb == "open")
 	{
+		// `open material ...` targets the material editor, which binds to no component
+		if (args.size() >= 2 && args[1] == "material")
+		{
+			return openMaterialGraphEditor(args, outError);
+		}
+
 		// Optional compositor component id; default to the project's single compositor
 		int compositorId= -1;
 		if (args.size() >= 2 && !parseComponentId(args[1], compositorId))
@@ -921,6 +1027,19 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 		if (compositorWindow != nullptr)
 		{
 			outLines.push_back(std::string("running ") + (compositorWindow->isCompositorRunning() ? "true" : "false"));
+		}
+
+		auto* materialWindow= dynamic_cast<MaterialNodeEditorWindow*>(window);
+		if (materialWindow != nullptr)
+		{
+			MaterialNodeGraphPtr materialGraph= materialWindow->getMaterialNodeGraph();
+			if (materialGraph)
+			{
+				outLines.push_back("domain " + MaterialDomainUtils::domainToString(materialGraph->getDomain()));
+				outLines.push_back("vertex_preset "
+								   + MaterialDomainUtils::presetToString(materialGraph->getVertexPreset()));
+				outLines.push_back("compile_errors " + std::to_string(materialGraph->getLastCompileErrors().size()));
+			}
 		}
 		return true;
 	}
@@ -1176,6 +1295,122 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 		}
 
 		outLines.push_back(std::string("running ") + (compositorWindow->isCompositorRunning() ? "true" : "false"));
+		return true;
+	}
+	else if (verb == "compile")
+	{
+		auto* materialWindow= dynamic_cast<MaterialNodeEditorWindow*>(window);
+		if (materialWindow == nullptr)
+		{
+			outError= "the open node editor is not a material graph editor";
+			return false;
+		}
+
+		// The compile refreshes the window's error overlay and writes beside the
+		// graph file, so it runs inside the window's update like the other
+		// mutations; the reply is sent from the task
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, materialWindow]()
+			{
+				if (materialWindow->compileAndWriteOutputs())
+				{
+					sendReply({"compiled"});
+					return;
+				}
+
+				std::vector<std::string> errorLines;
+				MaterialNodeGraphPtr materialGraph= materialWindow->getMaterialNodeGraph();
+				if (materialGraph)
+				{
+					appendCompileErrorLines(materialGraph->getLastCompileErrors(), errorLines);
+				}
+
+				if (!errorLines.empty())
+				{
+					sendReply(errorLines);
+				}
+				else if (PathUtils::resolveProjectResource(materialWindow->getNodeGraphPath()).empty())
+				{
+					sendErrorReply("nodegraph compile: the graph has no file to write beside (save it first)");
+				}
+				else
+				{
+					sendErrorReply("nodegraph compile: failed to write the material outputs (see log tail)");
+				}
+			});
+		return true;
+	}
+
+	outError= "unknown verb '" + verb + "'";
+	return false;
+}
+
+bool AutomationServer::handleMaterialCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+											 std::string& outError)
+{
+	if (args.size() < 2)
+	{
+		outError= "usage: material info <matPath> | material compile <graphPath>";
+		return false;
+	}
+
+	const std::string& verb= args[0];
+	const std::filesystem::path path= resolvePathArgument(args[1]);
+
+	if (verb == "info")
+	{
+		MikanShaderConfig config;
+		if (!config.load(path))
+		{
+			outError= "failed to load material '" + path.string() + "'";
+			return false;
+		}
+
+		// A hand-authored .mat carries no domain, preset, or source graph
+		outLines.push_back("name " + config.materialName);
+		outLines.push_back("domain " + (config.domain.empty() ? std::string("none") : config.domain));
+		outLines.push_back("vertex_preset "
+						   + (config.vertexPreset.empty() ? std::string("none") : config.vertexPreset));
+		outLines.push_back(
+			"source_graph "
+			+ (config.sourceGraphPath.empty() ? std::string("none") : config.sourceGraphPath.generic_string()));
+		for (const auto& [name, semantic] : config.uniformSemanticMap)
+		{
+			outLines.push_back("uniform " + name + " " + semantic);
+		}
+
+		return true;
+	}
+	else if (verb == "compile")
+	{
+		// Headless: with no owner window the graph allocates no GL resources, and
+		// the compile touches nothing an editor window owns
+		NodeGraphPtr nodeGraph= NodeGraphFactory::loadNodeGraph(nullptr, path);
+		MaterialNodeGraphPtr materialGraph= std::dynamic_pointer_cast<MaterialNodeGraph>(nodeGraph);
+		if (!materialGraph)
+		{
+			outError= nodeGraph ? "'" + path.string() + "' is not a material graph"
+								: "failed to load graph '" + path.string() + "'";
+			return false;
+		}
+
+		GlslShaderWriter writer;
+		MaterialCompileResult result= materialGraph->compile(writer);
+		if (result.hasErrors())
+		{
+			appendCompileErrorLines(result.errors, outLines);
+			return true;
+		}
+
+		if (!MaterialCompiler::writeOutputs(result, path, outError))
+		{
+			return false;
+		}
+
+		outLines.push_back(MaterialCompiler::getVertexShaderPathForGraph(path).string());
+		outLines.push_back(MaterialCompiler::getFragmentShaderPathForGraph(path).string());
+		outLines.push_back(MaterialCompiler::getMaterialPathForGraph(path).string());
 		return true;
 	}
 
