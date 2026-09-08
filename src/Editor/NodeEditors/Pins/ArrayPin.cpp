@@ -54,9 +54,12 @@ bool ArrayPin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 	if (this->getDirection() == otherPinPtr->getDirection())
 		return false;
 
-	// Only connect variable list of the same element type
+	// Only connect arrays of the same element type. A pin with no element class is untyped:
+	// it takes its class from the first link it makes (see ArrayNode::onLinkConnected),
+	// so it accepts any element class until then.
 	auto otherVarListPin= std::static_pointer_cast<ArrayPin>(otherPinPtr);
-	if (this->m_elementClassName != otherVarListPin->getElementClassName())
+	const std::string& otherElementClassName= otherVarListPin->getElementClassName();
+	if (!m_elementClassName.empty() && !otherElementClassName.empty() && m_elementClassName != otherElementClassName)
 	{
 		return false;
 	}

@@ -43,9 +43,13 @@ bool PropertyPin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 	if (!NodePin::canPinsBeConnected(otherPinPtr))
 		return false;
 
-	// Only connect variable list of the same property type
+	// Only connect properties of the same type. A pin with no property class is untyped:
+	// it takes its class from the first link it makes (see ArrayNode::onLinkConnected),
+	// so it accepts any property class until then.
 	auto otherPropertyPin= std::static_pointer_cast<PropertyPin>(otherPinPtr);
-	if (this->getPropertyClassName() != otherPropertyPin->getPropertyClassName())
+	const std::string& otherPropertyClassName= otherPropertyPin->getPropertyClassName();
+	if (!m_propertyClassName.empty() && !otherPropertyClassName.empty()
+		&& m_propertyClassName != otherPropertyClassName)
 		return false;
 
 	return true;

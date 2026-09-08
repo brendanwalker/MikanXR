@@ -126,8 +126,12 @@ void ArrayNode::onLinkConnected(NodeLinkPtr link, NodePinPtr pin)
 		// This will make it so that all future connections have to use the same property class
 		// For example, if we just connected our first StencilProperty, all future connections
 		// have to also be StencilProperties.
-		assert(!elementClassName.empty());
-		setElementClassName(elementClassName);
+		// The other pin can be untyped too (another array node), in which case there is nothing
+		// to learn yet and this node stays untyped until a typed pin connects.
+		if (!elementClassName.empty())
+		{
+			setElementClassName(elementClassName);
+		}
 	}
 }
 
