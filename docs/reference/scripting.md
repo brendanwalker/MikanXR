@@ -26,7 +26,7 @@ All types live under `src/Editor/NodeEditors/`:
 
 - `NodePin` (`Pins/NodePin.h`) has a direction, connected `NodeLink` list, an optional default value (`setHasDefaultValue`, lets a node evaluate with the pin unconnected), and a dynamic flag (`setIsDynamicPin`, for pins generated from another pin's value, as when `DrawLayerNode` creates one pin per shader uniform of its bound material). Concrete pins: `FlowPin`, `FloatPin`/`Float2Pin`/`Float3Pin`/`Float4Pin`, `IntPin`, `BoolPin`, `TexturePin`, `PropertyPin`, `ArrayPin` (typed by element property class).
 
-- `NodeLink` (`Pins/NodeLink.h`) connects one output pin to one input pin.
+- `NodeLink` (`Pins/NodeLink.h`) connects one output pin to one input pin. A link is always stored output first: connecting is allowed in either drag direction, so `NodeGraph::createLink` swaps the ends when the drag started at the input pin. Code reading a link resolves the far end by comparing against the link's own ends (`NodePin::getConnectedSourcePin`, `getConnectedTargetPin`) rather than trusting which end is stored first, so a graph saved before that normalization still walks correctly.
 
 - Graph properties (`Properties/`) wrap referenced resources as graph-level values: `GraphMaterialProperty`, `GraphTextureProperty`, `GraphStencilProperty`, `GraphShapeProperty`, `GraphModelProperty`, `GraphBoolProperty`, array/value variants. Each carries a display name (editable in the editor's Details panel, and defaulted to the dropped asset's name when one is dragged in) plus a sort order setting its place in the Variables list, both persisted in the graph file. Names are display-only: nodes and pins reference properties by id, so renaming never breaks a link.
 
