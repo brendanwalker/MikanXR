@@ -216,8 +216,8 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 
 		if (shape->hasValidShapeGraph())
 		{
-			// Delegate rendering to the shape's node graph
-			shape->renderShapeGraph(vpMatrix, graphicsContext, false);
+			// Delegate rendering to the shape's node graph, under this node's blend and depth state
+			shape->renderShapeGraph(vpMatrix, graphicsContext);
 			continue;
 		}
 

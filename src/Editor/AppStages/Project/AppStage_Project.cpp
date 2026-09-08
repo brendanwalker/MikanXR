@@ -32,6 +32,7 @@
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MkScene.h"
+#include "MkStateModifiers.h"
 #include "MkStateStack.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
@@ -608,15 +609,22 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	m_mkScene->render(viewportCamera, graphicsContext->getMkStateStack());
 
 	// Shapes that draw through a shape node graph go last, since the pass above is what actually
-	// issues the scene geometry they have to sort against. Whether a shape then ends up in front of
-	// or behind that geometry is down to the depth state its own graph sets.
+	// issues the scene geometry they have to sort against. A shape graph draws with the caller's
+	// state: the scene's depth test from above, plus normal alpha blending so a textured quad with
+	// transparency reads the same here as under the compositor's default Draw Shapes blend.
 	if (!deferredShapeGraphs.empty())
 	{
+		MkScopedState shapeGraphScope= stageStack.createScopedState("AppStage_Project::shapeGraphs");
+		IMkState* shapeGraphState= shapeGraphScope.getStackState();
+		shapeGraphState->enableFlag(eMkStateFlagType::blend);
+		mkStateSetBlendFunc(shapeGraphState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
+		mkStateSetBlendEquation(shapeGraphState, eMkBlendEquation::ADD);
+
 		const glm::mat4 viewportVpMatrix= viewportCamera->getViewProjectionMatrix();
 
 		for (const ShapeComponentPtr& shape : deferredShapeGraphs)
 		{
-			shape->renderShapeGraph(viewportVpMatrix, graphicsContext, true);
+			shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
 		}
 	}
 

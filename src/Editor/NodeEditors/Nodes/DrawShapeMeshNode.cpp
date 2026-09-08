@@ -1,7 +1,6 @@
 #include "DrawShapeMeshNode.h"
 #include "IconsForkAwesome.h"
 #include "BoxShapeComponent.h"
-#include "CompositorConstants.h"
 #include "IMkGraphicsContext.h"
 #include "IMkSceneRenderable.h"
 #include "IMkStaticMeshInstance.h"
@@ -12,9 +11,6 @@
 #include "Logger.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
-#include "MkStateStack.h"
-#include "MkStateModifiers.h"
-#include "IMkState.h"
 #include "ModelShapeComponent.h"
 #include "NodeEditorState.h"
 #include "MkGuiDrawUtils.h"
@@ -44,9 +40,6 @@ configuru::Config DrawShapeMeshNodeConfig::writeToJSON()
 {
 	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["blend_mode"]= k_compositorBlendModeStrings[(int)blendMode];
-	pt["depth_test"]= bDepthTest;
-
 	CommonConfig::writeStdMap(pt, "float_defaults", m_floatDefaults);
 	CommonConfig::writeStdArrayMap<float, 2>(pt, "float2_defaults", m_float2Defaults);
 	CommonConfig::writeStdArrayMap<float, 3>(pt, "float3_defaults", m_float3Defaults);
@@ -58,12 +51,6 @@ configuru::Config DrawShapeMeshNodeConfig::writeToJSON()
 void DrawShapeMeshNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
-
-	std::string blendModeString=
-		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal]);
-	blendMode= resolveCompositorBlendMode(blendModeString, eCompositorBlendMode::blendNormal);
-
-	bDepthTest= pt.get_or<bool>("depth_test", false);
 
 	CommonConfig::readStdMap(pt, "float_defaults", m_floatDefaults);
 	CommonConfig::readStdArrayMap(pt, "float2_defaults", m_float2Defaults);
@@ -78,8 +65,6 @@ bool DrawShapeMeshNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	{
 		auto config= std::static_pointer_cast<const DrawShapeMeshNodeConfig>(nodeConfig);
 
-		m_blendMode= config->blendMode;
-		m_bDepthTest= config->bDepthTest;
 		m_floatDefaults= config->m_floatDefaults;
 		m_float2Defaults= config->m_float2Defaults;
 		m_float3Defaults= config->m_float3Defaults;
@@ -117,9 +102,6 @@ void DrawShapeMeshNode::saveToConfig(NodeConfigPtr nodeConfig) const
 			}
 		}
 	}
-
-	config->blendMode= m_blendMode;
-	config->bDepthTest= m_bDepthTest;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -373,36 +355,8 @@ bool DrawShapeMeshNode::evaluateNode(NodeEvaluator& evaluator)
 		}
 	}
 
-	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
-	MkScopedState mkStateScope= graphicsContext->getMkStateStack().createScopedState("Draw Shape Mesh Node");
-	IMkState* mkState= mkStateScope.getStackState();
-
-	// Set blend mode
-	switch (m_blendMode)
-	{
-	case eCompositorBlendMode::blendOff:
-		mkState->disableFlag(eMkStateFlagType::blend);
-		break;
-	case eCompositorBlendMode::blendNormal:
-		mkState->enableFlag(eMkStateFlagType::blend);
-		mkStateSetBlendFunc(mkState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
-		mkStateSetBlendEquation(mkState, eMkBlendEquation::ADD);
-		break;
-	case eCompositorBlendMode::blendMultiply:
-		mkState->enableFlag(eMkStateFlagType::blend);
-		mkStateSetBlendFunc(mkState, eMkBlendFunction::DST_COLOR, eMkBlendFunction::ZERO);
-		mkStateSetBlendEquation(mkState, eMkBlendEquation::ADD);
-		break;
-	}
-
-	// Depth test. Drawing into the 3d scene always depth tests, whatever the node was authored
-	// with, so the shape sorts against the scene instead of being painted over by anything issued
-	// after it. The authored setting is what the compositor uses, where a shape is often meant to
-	// sit on top of every layer.
-	if (m_bDepthTest || evaluator.getIsSceneDepthPass())
-		mkState->enableFlag(eMkStateFlagType::depthTest);
-	else
-		mkState->disableFlag(eMkStateFlagType::depthTest);
+	// Blend and depth state come from the caller: DrawShapesNode's blend mode and depth test in the
+	// compositor, the depth tested scene pass in the project view. The graph only picks the material.
 
 	// Render all renderables from the bound shape component
 	if (auto quadShape= std::dynamic_pointer_cast<QuadShapeComponent>(shape))
@@ -480,20 +434,6 @@ void DrawShapeMeshNode::editorRenderPropertySheet(const NodeEditorState& editorS
 		// Material
 		const std::string materialName= m_material ? m_material->getName() : "<INVALID>";
 		MkGui::drawStaticTextProperty(propertyStyle, locText("nodes.material"), materialName);
-
-		// Blend Mode
-		const std::string blendModeItems= std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendNormal")
-										  + '\0' + locText("nodes.blendMultiply") + '\0';
-		int iBlendMode= (int)m_blendMode;
-		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "drawShapeMeshNodeBlendMode", locText("nodes.blendMode"),
-											  blendModeItems.c_str(), iBlendMode))
-		{
-			m_blendMode= (eCompositorBlendMode)iBlendMode;
-		}
-
-		// Depth Test
-		MkGui::drawCheckBoxProperty(propertyStyle, "drawShapeMeshNodeDepthTest", locText("nodes.depthTest"),
-									m_bDepthTest);
 	}
 }
 

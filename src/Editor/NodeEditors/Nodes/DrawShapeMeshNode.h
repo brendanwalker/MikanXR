@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ComponentFwd.h"
-#include "CompositorConstants.h"
 #include "LocText.h"
 #include "Node.h"
 #include "MkRendererFwd.h"
@@ -25,11 +24,6 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eCompositorBlendMode blendMode= eCompositorBlendMode::blendNormal;
-	// Governs the compositor only: the project scene view always depth tests a shape draw so it
-	// sorts against the scene (NodeEvaluator::setIsSceneDepthPass). Off by default because a shape
-	// in a composite is usually an overlay meant to sit on top of every layer.
-	bool bDepthTest= false;
 	std::map<std::string, float> m_floatDefaults;
 	std::map<std::string, std::array<float, 2>> m_float2Defaults;
 	std::map<std::string, std::array<float, 3>> m_float3Defaults;
@@ -78,9 +72,6 @@ protected:
 	std::map<std::string, std::array<float, 2>> m_float2Defaults;
 	std::map<std::string, std::array<float, 3>> m_float3Defaults;
 	std::map<std::string, std::array<float, 4>> m_float4Defaults;
-
-	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendNormal;
-	bool m_bDepthTest= false;
 
 	friend class DrawShapeMeshNodeFactory;
 };
