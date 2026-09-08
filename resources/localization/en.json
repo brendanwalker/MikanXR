@@ -420,7 +420,8 @@
 		"videoSourceDistortion": "Distortion",
 		"videoSourceVideo": "Video",
 		"videoTextureHeader": "Video Texture Node",
-		"videoTextureTitle": "Video Texture"
+		"videoTextureTitle": "Video Texture",
+		"writeDepthTitle": "Write Depth"
 	},
 	"objectSystemPanel": {
 		"arucoDictionary": "Aruco Dictionary",

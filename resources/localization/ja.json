@@ -420,7 +420,8 @@
 		"videoSourceDistortion": "ディストーション",
 		"videoSourceVideo": "ビデオ",
 		"videoTextureHeader": "ビデオテクスチャノード",
-		"videoTextureTitle": "ビデオテクスチャ"
+		"videoTextureTitle": "ビデオテクスチャ",
+		"writeDepthTitle": "デプス書き込み"
 	},
 	"objectSystemPanel": {
 		"arucoDictionary": "Aruco 辞書",

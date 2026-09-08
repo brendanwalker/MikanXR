@@ -54,12 +54,14 @@
 #include "Nodes/TextureNode.h"
 #include "Nodes/TimeNode.h"
 #include "Nodes/VideoTextureNode.h"
+#include "Nodes/WriteDepthNode.h"
 
 // Graph
 #include "NodeEditorState.h"
 #include "Graphs/NodeEvaluator.h"
 
 #include <easy/profiler.h>
+#include <GL/glew.h>
 
 // -- CompositorNodeGraph -----
 const std::string CompositorNodeGraph::k_compositeFrameEventName= "OnCompositeFrame";
@@ -96,6 +98,7 @@ CompositorNodeGraph::CompositorNodeGraph()
 	addNodeFactory<TextureNodeFactory>();
 	addNodeFactory<TimeNodeFactory>();
 	addNodeFactory<VideoTextureNodeFactory>();
+	addNodeFactory<WriteDepthNodeFactory>();
 }
 
 bool CompositorNodeGraph::createResources()
@@ -210,7 +213,11 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 														   "Compositor Framebuffer Scope", m_compositingFrameBuffer);
 		if (compositorFramebufferBinding)
 		{
-			// Turn off depth testing for compositing
+			// Binding a COLOR framebuffer clears color only. Reset depth to far so a depth-tested draw
+			// with no depth source draws everything and nothing leaks across frames. The chain runs
+			// with depth off; a node that wants depth (WriteDepthNode, DrawShapesNode) enables it
+			// inside its own scoped state.
+			glClear(GL_DEPTH_BUFFER_BIT);
 			compositorFramebufferBinding.getMkState()->disableFlag(eMkStateFlagType::depthTest);
 
 			// Evaluate the composite frame nodes (composites into the 16-bit linear working buffer)

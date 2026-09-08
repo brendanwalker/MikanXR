@@ -839,6 +839,72 @@ IMkShaderCodeConstPtr getPTVisualizeGLDepthShaderCode()
 	return x_shaderCode;
 }
 
+IMkShaderCodeConstPtr getPTLinearToHardwareDepthShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		// The inverse of Internal_P_LinearDepth: takes the linear [0, 1] depth that shader wrote
+		// (measured between the zNear and zFar recovered from the same projection matrix) and writes
+		// the hardware depth the fixed-function pipeline would have produced for that eye depth, so
+		// geometry rasterized afterwards through the same projection depth tests against it.
+		// Color output is a placeholder; callers mask color writes.
+		x_shaderCode= createIMkShaderCode(INTERNAL_MATERIAL_PT_LINEAR_TO_HARDWARE_DEPTH,
+										  // vertex shader
+										  R""""(
+				#version 330 core
+				layout (location = 0) in vec2 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+				}
+				)"""",
+										  // fragment shader
+										  R""""(
+				#version 330 core
+				out vec4 FragColor;
+				out float gl_FragDepth;
+
+				in vec2 TexCoords;
+
+				uniform sampler2D depthTexture;
+				uniform mat4 projMatrix;
+
+				void main()
+				{
+					// Compute the zNear and zFar from projection matrix (same as Internal_P_LinearDepth)
+					float A = projMatrix[2].z;
+					float B = projMatrix[3].z;
+					float zNear = - B / (1.0 - A);
+					float zFar  =   B / (1.0 + A);
+
+					// Linear depth [0, 1] back to eye-space depth
+					float linearDepth = texture(depthTexture, TexCoords).r;
+					float eyeDepth = zNear + linearDepth * (zFar - zNear);
+
+					// Eye-space depth to hardware depth through the OpenGL perspective mapping
+					float z_ndc = (zFar + zNear - 2.0 * zNear * zFar / eyeDepth) / (zFar - zNear);
+					float hardwareDepth = (linearDepth >= 1.0) ? 1.0 : clamp(z_ndc * 0.5 + 0.5, 0.0, 1.0);
+
+					FragColor = vec4(hardwareDepth, hardwareDepth, hardwareDepth, 1.0);
+					gl_FragDepth = hardwareDepth;
+				}
+				)"""");
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("depthTexture", eUniformSemantic::depthTexture);
+		x_shaderCode->addUniform("projMatrix", eUniformSemantic::projectionMatrix);
+	}
+
+	return x_shaderCode;
+}
+
 IMkShaderCodeConstPtr getPM5544TestCardShaderCode()
 {
 	static IMkShaderCodePtr x_shaderCode= nullptr;
@@ -1310,6 +1376,7 @@ bool registerInternalShaders(IMkShaderCache* shaderCache)
 		getPNTTexturedColoredShaderCode(),
 		getPLinearDepthShaderCode(),
 		getPTVisualizeGLDepthShaderCode(),
+		getPTLinearToHardwareDepthShaderCode(),
 		getPM5544TestCardShaderCode(),
 		getPConeVolumeShaderCode(),
 		getPSHEnvironmentShaderCode(),
