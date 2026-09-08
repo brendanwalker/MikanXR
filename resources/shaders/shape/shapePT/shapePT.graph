@@ -1,0 +1,169 @@
+{
+	"class_name":      "MaterialNodeGraph",
+	"next_id":         15,
+	"settings":        {
+		"domain":        "shape",
+		"vertex_preset": "PT"
+	},
+	"properties":      [ ],
+	"assetReferences": [ ],
+	"nodes":           [
+		{
+			"class_name": "MaterialOutputNode",
+			"id":         0,
+			"pins_in":    [ 1, 2 ],
+			"pins_out":   [ ],
+			"pos":        [ 520.0, 120.0 ]
+		},
+		{
+			"class_name":           "ShaderTextureParameterNode",
+			"id":                   3,
+			"pins_in":              [ ],
+			"pins_out":             [ 4 ],
+			"pos":                  [ 40.0, 120.0 ],
+			"parameter_name":       "rgbaTexture",
+			"default_texture_path": ""
+		},
+		{
+			"class_name": "ShaderTextureSampleNode",
+			"id":         5,
+			"pins_in":    [ 6, 7 ],
+			"pins_out":   [ 8, 9, 10, 11, 12 ],
+			"pos":        [ 280.0, 120.0 ]
+		}
+	],
+	"pins":            [
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "color",
+			"id":                1,
+			"direction":         "input",
+			"owner_node_id":     0,
+			"connected_links":   [ 14 ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float4",
+			"default_value":     [ 0.0, 0.0, 0.0, 1.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "positionOffset",
+			"id":                2,
+			"direction":         "input",
+			"owner_node_id":     0,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float3",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "texture",
+			"id":                4,
+			"direction":         "output",
+			"owner_node_id":     3,
+			"connected_links":   [ 13 ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "texture2D",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "texture",
+			"id":                6,
+			"direction":         "input",
+			"owner_node_id":     5,
+			"connected_links":   [ 13 ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "texture2D",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "uv",
+			"id":                7,
+			"direction":         "input",
+			"owner_node_id":     5,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float2",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "rgba",
+			"id":                8,
+			"direction":         "output",
+			"owner_node_id":     5,
+			"connected_links":   [ 14 ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float4",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "r",
+			"id":                9,
+			"direction":         "output",
+			"owner_node_id":     5,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "g",
+			"id":                10,
+			"direction":         "output",
+			"owner_node_id":     5,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "b",
+			"id":                11,
+			"direction":         "output",
+			"owner_node_id":     5,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "a",
+			"id":                12,
+			"direction":         "output",
+			"owner_node_id":     5,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		}
+	],
+	"links":           [
+		{
+			"id":           13,
+			"start_pin_id": 4,
+			"end_pin_id":   6
+		},
+		{
+			"id":           14,
+			"start_pin_id": 8,
+			"end_pin_id":   1
+		}
+	]
+}

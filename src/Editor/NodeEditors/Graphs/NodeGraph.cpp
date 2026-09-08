@@ -46,6 +46,10 @@ configuru::Config NodeGraphConfig::writeToJSON()
 
 	pt["class_name"]= className;
 	pt["next_id"]= nextId;
+	if (settings.is_object() && settings.object_size() > 0)
+	{
+		pt["settings"]= settings;
+	}
 
 	// Write out propertyConfigMap as an array
 	{
@@ -71,6 +75,7 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 
 	className= pt.get_or<std::string>("class_name", "NodeGraph");
 	nextId= pt.get_or<int>("next_id", -1);
+	settings= (pt.has_key("settings") && pt["settings"].is_object()) ? pt["settings"] : configuru::Config::object();
 
 	// These get evaluated in postReadFromJSON after we use className above
 	// to allocate a node graph that has the factories to process these config objects

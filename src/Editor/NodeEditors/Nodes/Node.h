@@ -153,17 +153,24 @@ public:
 	inline NodeConstPtr getNodeDefaultObject() const { return m_nodeDefaultObject; }
 	inline std::string getNodeClassName() const { return m_nodeDefaultObject->getClassName(); }
 
+	// The key a graph registers this factory under. A class with one factory
+	// keys by class name; a variant factory (one node class, several create
+	// menu entries) appends its variant as <ClassName>:<variant>.
+	virtual std::string getFactoryKey() const { return getNodeClassName(); }
+	// Submenu the create menu files this factory under, empty for the top level
+	virtual std::string editorGetCategory() const { return ""; }
+
 	virtual NodeConfigPtr allocateNodeConfig() const;
 	virtual NodePtr allocateNode() const;
 	virtual NodePtr createNode(const NodeEditorState& editorState) const;
 
 	virtual bool editorCanCreate() const { return getNodeClassName() != Node::k_nodeClassName; }
 
-	template <class t_node_factory_class>
-	static NodeFactoryPtr createFactory()
+	template <class t_node_factory_class, class... t_args>
+	static NodeFactoryPtr createFactory(t_args&&... args)
 	{
 		// Create a node factory instance
-		auto nodeFactory= std::make_shared<t_node_factory_class>();
+		auto nodeFactory= std::make_shared<t_node_factory_class>(std::forward<t_args>(args)...);
 
 		// Create a single "node default object" for the factory.
 		// This is used to ask questions about node without having to create one first.

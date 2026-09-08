@@ -29,6 +29,10 @@ public:
 	std::string className;
 	int nextId= -1;
 
+	// Graph-level settings a subclass persists (a material graph's domain and
+	// vertex preset). Read and written by the subclass's loadFromConfig/saveToConfig.
+	configuru::Config settings= configuru::Config::object();
+
 	std::vector<AssetReferenceConfigPtr> assetRefConfigs;
 	std::map<t_graph_property_id, GraphPropertyConfigPtr> propertyConfigMap;
 	std::vector<NodeConfigPtr> nodeConfigs;
@@ -67,6 +71,8 @@ public:
 	int allocateId();
 
 	virtual void editorRender(const class NodeEditorState& editorState);
+	// The Details panel content when nothing in the graph is selected
+	virtual void editorRenderGraphPropertySheet(const class NodeEditorState& editorState) {}
 
 	// -- Loading -----
 
@@ -222,20 +228,30 @@ public:
 
 	virtual std::vector<NodeFactoryPtr> editorGetValidNodeFactories(const class NodeEditorState& editorState) const;
 
-	template <class t_node_factory>
-	void addNodeFactory()
+	template <class t_node_factory, class... t_args>
+	void addNodeFactory(t_args&&... args)
 	{
-		auto factory= NodeFactory::createFactory<t_node_factory>();
-		std::string className= factory->getNodeClassName();
-
-		m_nodeFactories.insert({className, factory});
+		addNodeFactory(NodeFactory::createFactory<t_node_factory>(std::forward<t_args>(args)...));
 	}
 
+	// Factories are keyed by NodeFactory::getFactoryKey, so several variant
+	// factories can share one node class. Loading and saving resolve by class
+	// name to the first factory registered for that class.
+	void addNodeFactory(NodeFactoryPtr factory)
+	{
+		m_nodeFactories.insert({factory->getFactoryKey(), factory});
+		m_nodeFactoriesByClassName.insert({factory->getNodeClassName(), factory});
+	}
+
+	// Accepts a factory key or a node class name
 	NodeFactoryPtr getNodeFactory(const std::string nodeClassName) const
 	{
 		auto it= m_nodeFactories.find(nodeClassName);
+		if (it != m_nodeFactories.end())
+			return it->second;
 
-		return (it != m_nodeFactories.end()) ? it->second : NodeFactoryPtr();
+		auto classIt= m_nodeFactoriesByClassName.find(nodeClassName);
+		return (classIt != m_nodeFactoriesByClassName.end()) ? classIt->second : NodeFactoryPtr();
 	}
 
 	template <class _Pr>
@@ -329,6 +345,7 @@ protected:
 
 	// Defines all of the node types that this node graph can use
 	std::map<std::string, NodeFactoryPtr> m_nodeFactories;
+	std::map<std::string, NodeFactoryPtr> m_nodeFactoriesByClassName;
 
 	// Defines all of the pin types that this node graph can use
 	std::map<std::string, NodePinFactoryPtr> m_pinFactories;

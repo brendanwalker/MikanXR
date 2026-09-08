@@ -43,6 +43,12 @@ using ShapeNodeGraphPtr= std::shared_ptr<ShapeNodeGraph>;
 using ShapeNodeGraphWeakPtr= std::weak_ptr<ShapeNodeGraph>;
 using ShapeNodeGraphConstPtr= std::shared_ptr<const ShapeNodeGraph>;
 
+// Material Node Graph
+class MaterialNodeGraph;
+using MaterialNodeGraphPtr= std::shared_ptr<MaterialNodeGraph>;
+using MaterialNodeGraphWeakPtr= std::weak_ptr<MaterialNodeGraph>;
+using MaterialNodeGraphConstPtr= std::shared_ptr<const MaterialNodeGraph>;
+
 // Node Types
 class NodeFactory;
 using NodeFactoryPtr= std::shared_ptr<NodeFactory>;
