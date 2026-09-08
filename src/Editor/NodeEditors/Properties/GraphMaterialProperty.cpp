@@ -10,11 +10,36 @@
 #include "MkGuiStyleManager.h"
 #include "NodeEditorState.h"
 #include "Nodes/MaterialNode.h"
+#include "Pins/FloatPin.h"
+#include "Pins/TexturePin.h"
 #include "IEditorWindow.h"
 #include "MikanShaderCache.h"
+#include "MikanShaderConfig.h"
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
+
+namespace
+{
+// The domain a .mat serves: the one it names, else the one its vertex layout implies
+eMaterialDomain resolveMaterialDomain(const MikanShaderConfig& config)
+{
+	if (!config.domain.empty())
+	{
+		return MaterialDomainUtils::domainFromString(config.domain);
+	}
+
+	std::vector<MaterialVertexAttribute> attributes;
+	for (const GlVertexAttributeConfigPtr& attribConfig : config.vertexAttributes)
+	{
+		// Inference only reads the semantic and data type
+		attributes.push_back(
+			{attribConfig->name, attribConfig->dataType, attribConfig->semantic, eShaderValueType::INVALID});
+	}
+
+	return MaterialDomainUtils::inferDomain(attributes);
+}
+} // namespace
 
 // -- MaterialAssetComboDataSource ---
 class MaterialAssetComboDataSource : public MkGui::ComboBoxDataSource
@@ -89,6 +114,8 @@ void GraphMaterialPropertyConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- GraphMaterialProperty -----
+GraphMaterialProperty::~GraphMaterialProperty() { unbindMaterialReloadListener(); }
+
 bool GraphMaterialProperty::loadFromConfig(GraphPropertyConfigConstPtr propConfig, const NodeGraphConfig& graphConfig)
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
@@ -149,20 +176,87 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 	{
 		m_materialAssetRef= inAssetRef;
 
-		// re-create a material from the asset reference
-		if (!m_materialAssetRef->isEmpty())
-		{
-			MikanShaderCache* shaderCache=
-				getOwnerGraph()->getOwnerWindow()->getModelResourceManager()->getShaderCache();
-			assert(shaderCache);
+		// Drop the old resource before loading the new one
+		unbindMaterialReloadListener();
+		m_materialResource= MkMaterialPtr();
+		m_domain= eMaterialDomain::INVALID;
 
-			m_materialResource= shaderCache->loadMaterialAssetReference(m_materialAssetRef);
-		}
-		else
+		// re-create a material from the asset reference
+		MikanShaderCache* shaderCache= getShaderCache();
+		if (m_materialAssetRef && !m_materialAssetRef->isEmpty() && shaderCache != nullptr)
 		{
-			m_materialResource= MkMaterialPtr();
+			MikanShaderConfig materialConfig;
+			m_materialResource= shaderCache->loadMaterialAssetReference(m_materialAssetRef, &materialConfig);
+
+			if (m_materialResource)
+			{
+				m_domain= resolveMaterialDomain(materialConfig);
+
+				// Follow the cache's reloads so consumers rebuild against the recompiled program
+				m_listenedShaderCache= shaderCache;
+				m_listenedShaderCache->OnMaterialReloaded+=
+					MakeDelegate(this, &GraphMaterialProperty::onMaterialReloaded);
+			}
 		}
 	}
+}
+
+bool GraphMaterialProperty::isCompatibleWithDomain(eMaterialDomain domain) const
+{
+	return m_domain == domain || m_domain == eMaterialDomain::INVALID;
+}
+
+const std::string& GraphMaterialProperty::getUniformPinClassName(eUniformDataType dataType)
+{
+	static const std::string k_unsupported;
+
+	switch (dataType)
+	{
+	case eUniformDataType::datatype_float:
+		return FloatPin::k_pinClassName;
+	case eUniformDataType::datatype_float2:
+		return Float2Pin::k_pinClassName;
+	case eUniformDataType::datatype_float3:
+		return Float3Pin::k_pinClassName;
+	case eUniformDataType::datatype_float4:
+		return Float4Pin::k_pinClassName;
+	case eUniformDataType::datatype_texture:
+		return TexturePin::k_pinClassName;
+	default:
+		return k_unsupported;
+	}
+}
+
+MikanShaderCache* GraphMaterialProperty::getShaderCache() const
+{
+	IEditorWindow* ownerWindow= m_ownerGraph ? m_ownerGraph->getOwnerWindow() : nullptr;
+	MikanModelResourceManager* resourceManager= ownerWindow ? ownerWindow->getModelResourceManager() : nullptr;
+
+	return resourceManager ? resourceManager->getShaderCache() : nullptr;
+}
+
+void GraphMaterialProperty::unbindMaterialReloadListener()
+{
+	if (m_listenedShaderCache != nullptr)
+	{
+		m_listenedShaderCache->OnMaterialReloaded-= MakeDelegate(this, &GraphMaterialProperty::onMaterialReloaded);
+		m_listenedShaderCache= nullptr;
+	}
+}
+
+void GraphMaterialProperty::onMaterialReloaded(MkMaterialPtr material)
+{
+	if (!material || material != m_materialResource)
+		return;
+
+	// The recompile may have moved the material to another domain
+	MikanShaderConfig materialConfig;
+	if (materialConfig.load(m_materialAssetRef->getInternalAssetPath()))
+	{
+		m_domain= resolveMaterialDomain(materialConfig);
+	}
+
+	notifyPropertyModified();
 }
 
 void GraphMaterialProperty::editorHandleMainFrameDragDrop(const NodeEditorState& editorState)

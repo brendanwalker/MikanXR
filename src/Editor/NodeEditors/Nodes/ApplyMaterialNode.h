@@ -52,15 +52,22 @@ public:
 
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
+	// The material pin only takes a compositor material
+	virtual bool editorCanAcceptProperty(NodePinPtr pin, GraphPropertyPtr property) const override;
 
 protected:
 	virtual std::string editorGetTitle() const override { return locText("nodes.applyMaterialTitle"); }
 	virtual const char* editorGetHeaderIcon() const override;
 
 	void onGraphLoaded(bool success);
+	// A reload of the connected material recompiled its program
+	void onGraphPropertyModified(t_graph_property_id id);
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;
 	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
+	// Re-derives the dynamic pins from the material's uniforms, keeping any
+	// existing pin whose name and type still match so its links survive
 	void rebuildInputPins();
+	void captureDynamicPinDefaultValues();
 	void applyDynamicPinDefaultValues();
 
 	void setMaterialPin(PropertyPinPtr inPin);

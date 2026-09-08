@@ -13,12 +13,26 @@ public:
 	virtual std::string getAssetTypeName() const override { return "Material"; }
 	virtual const char* editorGetIcon() const override { return ICON_FK_PAINT_BRUSH; }
 
+	virtual void setAssetPath(const std::filesystem::path& inPath) override;
+
 	virtual void editorHandleGraphVariablesDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
+	// True when the .mat records the material graph it was compiled from
+	virtual bool editorCanOpen() const override;
+	// Opens that graph in the material editor window, creating the window when none is open
+	virtual void editorOpen() override;
 
 protected:
 	virtual void rebuildPreview() override;
+
+	// The .mat's source graph resolved against the .mat folder, empty when it has
+	// none. Read once per asset path, since editorCanOpen is asked every frame.
+	const std::filesystem::path& getSourceGraphPath() const;
+
+protected:
+	mutable std::filesystem::path m_sourceGraphPath;
+	mutable bool m_bSourceGraphPathResolved= false;
 };
 
 class MaterialAssetReferenceFactory : public TypedAssetReferenceFactory<MaterialAssetReference, AssetReferenceConfig>

@@ -1,4 +1,5 @@
 #include "PropertyPin.h"
+#include "Nodes/Node.h"
 #include "Properties/GraphProperty.h"
 
 // -- PropertyPinConfig -----
@@ -50,6 +51,18 @@ bool PropertyPin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 	const std::string& otherPropertyClassName= otherPropertyPin->getPropertyClassName();
 	if (!m_propertyClassName.empty() && !otherPropertyClassName.empty()
 		&& m_propertyClassName != otherPropertyClassName)
+		return false;
+
+	// The receiving node gets the final say on the property the output pin carries
+	// (a material compiled for the wrong domain shares a class with a valid one)
+	auto self= std::static_pointer_cast<PropertyPin>(std::const_pointer_cast<NodePin>(shared_from_this()));
+	const bool bSelfIsInput= getDirection() == eNodePinDirection::INPUT;
+	PropertyPinPtr inputPin= bSelfIsInput ? self : otherPropertyPin;
+	PropertyPinPtr outputPin= bSelfIsInput ? otherPropertyPin : self;
+
+	NodePtr inputNode= inputPin->getOwnerNode();
+	GraphPropertyPtr property= outputPin->getValue();
+	if (inputNode && property && !inputNode->editorCanAcceptProperty(inputPin, property))
 		return false;
 
 	return true;

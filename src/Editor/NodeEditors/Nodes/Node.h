@@ -117,6 +117,9 @@ public:
 	// math and rendering can never disagree
 	std::string editorGetComposedTitle() const;
 	virtual bool editorCanDelete() const { return true; }
+	// Whether a property may be linked into one of this node's input pins, asked
+	// once the pin class check has passed. A null property is always accepted.
+	virtual bool editorCanAcceptProperty(NodePinPtr pin, GraphPropertyPtr property) const { return true; }
 	virtual void editorRenderNode(const NodeEditorState& editorState);
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}
 	// A double-click on the node body in the canvas

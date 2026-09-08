@@ -177,6 +177,17 @@ void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 }
 
+void MaterialNode::editorOnDoubleClicked(const NodeEditorState& editorState)
+{
+	MaterialAssetReferencePtr materialAssetRef=
+		m_sourceProperty ? m_sourceProperty->getMaterialAssetReference() : MaterialAssetReferencePtr();
+
+	if (materialAssetRef && materialAssetRef->editorCanOpen())
+	{
+		materialAssetRef->editorOpen();
+	}
+}
+
 void MaterialNode::onGraphPropertyDeleted(t_graph_property_id id)
 {
 	if (m_sourceProperty && m_sourceProperty->getId() == id)
