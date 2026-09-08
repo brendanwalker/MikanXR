@@ -156,6 +156,23 @@ NodePinPtr NodePin::getConnectedSourcePin() const
 	return this == startPin.get() ? endPin : startPin;
 }
 
+NodePinPtr NodePin::getConnectedTargetPin() const
+{
+	if (m_direction != eNodePinDirection::OUTPUT)
+		return NodePinPtr();
+
+	if (m_connectedLinks.size() == 0)
+		return NodePinPtr();
+
+	NodeLinkPtr link= m_connectedLinks[0];
+	if (!link)
+		return NodePinPtr();
+
+	NodePinPtr startPin= link->getStartPin();
+	NodePinPtr endPin= link->getEndPin();
+	return this == startPin.get() ? endPin : startPin;
+}
+
 bool NodePin::connectLink(NodeLinkPtr linkPtr)
 {
 	// If this is an input pin, only allow one connection

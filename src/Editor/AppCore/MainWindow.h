@@ -43,6 +43,7 @@ public:
 	virtual ProjectManagerPtr getProjectManager() const override { return m_projectManager; }
 	virtual class OpenCVManager* getOpenCVManager() const override { return m_openCVManager; }
 	virtual class IMkFontManager* getFontManager() const override { return m_fontManager.get(); }
+	class AutomationServer* getAutomationServer() const { return m_automationServer; }
 
 	virtual AppStage* getCurrentAppStage() const override;
 	virtual AppStage* getParentAppStage() const override;

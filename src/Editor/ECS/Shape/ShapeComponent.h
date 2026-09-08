@@ -61,7 +61,9 @@ public:
 	void editShapeGraph();
 	void removeShapeGraph();
 	void selectShapeGraph();
-	void renderShapeGraph(const glm::mat4& vpMatrix, class IMkGraphicsContext* graphicsContext);
+	// bIsSceneDepthPass marks a draw into the depth buffered 3d scene, where the graph's own depth
+	// test setting does not get a say (see NodeEvaluator::setIsSceneDepthPass)
+	void renderShapeGraph(const glm::mat4& vpMatrix, class IMkGraphicsContext* graphicsContext, bool bIsSceneDepthPass);
 	const std::vector<NodeEvaluationError>& getLastNodeEvalErrors() const { return m_lastNodeEvalErrors; }
 
 	std::filesystem::path getShapeGraphAssetResolvedPath() const;

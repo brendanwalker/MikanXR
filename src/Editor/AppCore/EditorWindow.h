@@ -63,6 +63,9 @@ public:
 	void makeContextCurrent();
 	virtual bool wantsDestroy() const;
 	void present();
+	// Captures this window for a pending automation screenshot, then presents. Windows call this at
+	// the end of render() instead of present() so any of them can be captured, not just the main one.
+	void presentFrame();
 	void setTitle(const std::string& title);
 	void setSize(int width, int height);
 	void handleEvents(class IMkWindowEventListener* eventListener);

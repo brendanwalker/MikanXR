@@ -10,7 +10,9 @@ Two `NodeGraph` subclasses exist, registered in `App::startup` via `NodeGraphFac
 
 - `CompositorNodeGraph` (`Graphs/CompositorNodeGraph.h`): composites a video frame. Entry point is the `EventNode` named `OnCompositeFrame` (`k_compositeFrameEventName`); evaluated once per composited frame by `CompositorComponent`.
 
-- `ShapeNodeGraph` (`Graphs/ShapeNodeGraph.h`): renders a shape component. Entry point is the `OnRenderShape` event (`k_renderShapeEventName`); `renderShape()` sets a transient view-projection matrix, evaluates the chain, then clears it. Bound to a `ShapeComponent`.
+- `ShapeNodeGraph` (`Graphs/ShapeNodeGraph.h`): renders a shape component. Entry point is the `OnRenderShape` event (`k_renderShapeEventName`); `renderShape()` sets a transient view-projection matrix, evaluates the chain, then clears it. Bound to a `ShapeComponent`. A shape graph draws itself rather than queueing into `MkScene`, so in the project scene view `AppStage_Project` collects these shapes while gathering and issues them after the `MkScene` pass. Drawn during the gather instead, every shape graph would land before any queued scene geometry and no stencil could ever occlude one.
+
+Depth testing for a shape draw is decided by the pass, not by the graph. `renderShapeGraph` takes a scene-depth-pass flag that reaches the nodes as `NodeEvaluator::setIsSceneDepthPass`, and `DrawShapeMeshNode` depth tests whenever it is set. The scene view sets it, because a shape there has to sort against the rest of the scene or the stencils and debug grid issued after it paint straight over. The compositor does not, leaving the node's own `depth_test` in charge, because a shape in a composite is often deliberately an overlay sitting on top of every layer. That setting has no effect in the compositor today regardless: the working framebuffer is color only, so the depth test there always passes.
 
 There is no general-purpose logic graph; non-rendering logic is done in Lua.
 
@@ -26,7 +28,7 @@ All types live under `src/Editor/NodeEditors/`:
 
 - `NodePin` (`Pins/NodePin.h`) has a direction, connected `NodeLink` list, an optional default value (`setHasDefaultValue`, lets a node evaluate with the pin unconnected), and a dynamic flag (`setIsDynamicPin`, for pins generated from another pin's value, as when `DrawLayerNode` creates one pin per shader uniform of its bound material). Concrete pins: `FlowPin`, `FloatPin`/`Float2Pin`/`Float3Pin`/`Float4Pin`, `IntPin`, `BoolPin`, `TexturePin`, `PropertyPin`, `ArrayPin` (typed by element property class).
 
-- `NodeLink` (`Pins/NodeLink.h`) connects one output pin to one input pin.
+- `NodeLink` (`Pins/NodeLink.h`) connects one output pin to one input pin. A link is always stored output first: connecting is allowed in either drag direction, so `NodeGraph::createLink` swaps the ends when the drag started at the input pin. Code reading a link resolves the far end by comparing against the link's own ends (`NodePin::getConnectedSourcePin`, `getConnectedTargetPin`) rather than trusting which end is stored first, so a graph saved before that normalization still walks correctly.
 
 - Graph properties (`Properties/`) wrap referenced resources as graph-level values: `GraphMaterialProperty`, `GraphTextureProperty`, `GraphStencilProperty`, `GraphShapeProperty`, `GraphModelProperty`, `GraphBoolProperty`, array/value variants. Each carries a display name (editable in the editor's Details panel, and defaulted to the dropped asset's name when one is dragged in) plus a sort order setting its place in the Variables list, both persisted in the graph file. Names are display-only: nodes and pins reference properties by id, so renaming never breaks a link.
 

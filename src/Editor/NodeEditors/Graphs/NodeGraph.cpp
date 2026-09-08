@@ -27,6 +27,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <utility>
 
 // -- NodeGraphConfig -----
 NodeGraphConfig::NodeGraphConfig()
@@ -964,6 +965,14 @@ NodeLinkPtr NodeGraph::createLink(t_node_pin_id startPinId, t_node_pin_id endPin
 	assert(startPin);
 	NodePinPtr endPin= getPinById(endPinId);
 	assert(endPin);
+
+	// Store the link as output to input, whichever way round it was dragged. Connecting is allowed
+	// in either direction, so the drag order alone would leave some links reversed on disk, and
+	// anything that reads the ends positionally would then follow them backwards.
+	if (startPin->getDirection() == eNodePinDirection::INPUT)
+	{
+		std::swap(startPin, endPin);
+	}
 
 	// Create a new link and assign the pins to each end
 	NodeGraphPtr ownerGraph= shared_from_this();

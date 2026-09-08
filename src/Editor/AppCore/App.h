@@ -68,6 +68,10 @@ public:
 
 	void destroyAppWindow(EditorWindow* appWindow);
 
+	// Open windows in creation order, the main window first. The automation channel indexes into
+	// this to name a window for a screenshot or an injected input event.
+	const std::vector<EditorWindow*>& getAppWindows() const { return m_appWindows; }
+
 	template <typename t_app_window>
 	bool hasWindowOfType() const
 	{
@@ -93,6 +97,23 @@ public:
 		}
 
 		return nullptr;
+	}
+
+	// For window types that can have more than one instance open at a time, each bound to a
+	// different subject (e.g. one browser window per CEF texture source).
+	template <typename t_app_window>
+	std::vector<t_app_window*> getWindowsOfType() const
+	{
+		std::vector<t_app_window*> typedWindows;
+
+		for (EditorWindow* window : m_appWindows)
+		{
+			t_app_window* typedWindow= dynamic_cast<t_app_window*>(window);
+			if (typedWindow != nullptr)
+				typedWindows.push_back(typedWindow);
+		}
+
+		return typedWindows;
 	}
 
 protected:

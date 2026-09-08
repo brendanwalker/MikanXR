@@ -109,12 +109,9 @@ void QuadShapeComponent::update(float deltaSeconds)
 	if (!meshInstance)
 		return;
 
-	// Update model matrix with width/height scale baked on top of world transform
-	const auto def= getQuadShapeDefinition();
-	const float w= def ? def->getQuadWidth() : 1.f;
-	const float h= def ? def->getQuadHeight() : 1.f;
-	const glm::mat4 scaledWorld= getWorldTransform() * glm::scale(glm::mat4(1.f), {w, h, 1.f});
-	meshInstance->setModelMatrix(scaledWorld);
+	// Size lives in the model matrix, so refresh it here too: a width or height edit changes
+	// no transform and would otherwise not reach the renderable until something moved.
+	refreshSceneRenderableModelMatrix();
 
 	// Bind texture to material instance
 	MkMaterialInstancePtr matInst= meshInstance->getMaterialInstance();
@@ -293,4 +290,13 @@ void QuadShapeComponent::bindLuaFunctions(lua_State* L)
 			[](QuadShapeComponent* component, bool value)
 			{ component->getQuadShapeDefinition()->setIsDoubleSided(value); })
 		.endClass();
+}
+
+glm::mat4 QuadShapeComponent::computeSceneRenderableModelMatrix() const
+{
+	const auto def= getQuadShapeDefinition();
+	if (!def)
+		return getWorldTransform();
+
+	return getWorldTransform() * glm::scale(glm::mat4(1.f), {def->getQuadWidth(), def->getQuadHeight(), 1.f});
 }

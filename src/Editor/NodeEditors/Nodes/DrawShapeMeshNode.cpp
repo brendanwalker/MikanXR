@@ -61,7 +61,7 @@ void DrawShapeMeshNodeConfig::readFromJSON(const configuru::Config& pt)
 
 	std::string blendModeString=
 		pt.get_or<std::string>("blend_mode", k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendNormal]);
-	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
+	blendMode= resolveCompositorBlendMode(blendModeString, eCompositorBlendMode::blendNormal);
 
 	bDepthTest= pt.get_or<bool>("depth_test", false);
 
@@ -395,8 +395,11 @@ bool DrawShapeMeshNode::evaluateNode(NodeEvaluator& evaluator)
 		break;
 	}
 
-	// Depth test
-	if (m_bDepthTest)
+	// Depth test. Drawing into the 3d scene always depth tests, whatever the node was authored
+	// with, so the shape sorts against the scene instead of being painted over by anything issued
+	// after it. The authored setting is what the compositor uses, where a shape is often meant to
+	// sit on top of every layer.
+	if (m_bDepthTest || evaluator.getIsSceneDepthPass())
 		mkState->enableFlag(eMkStateFlagType::depthTest);
 	else
 		mkState->disableFlag(eMkStateFlagType::depthTest);
@@ -479,8 +482,8 @@ void DrawShapeMeshNode::editorRenderPropertySheet(const NodeEditorState& editorS
 		MkGui::drawStaticTextProperty(propertyStyle, locText("nodes.material"), materialName);
 
 		// Blend Mode
-		const std::string blendModeItems=
-			std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendOn") + '\0';
+		const std::string blendModeItems= std::string(locText("nodes.blendOff")) + '\0' + locText("nodes.blendNormal")
+										  + '\0' + locText("nodes.blendMultiply") + '\0';
 		int iBlendMode= (int)m_blendMode;
 		if (MkGui::drawSimpleComboBoxProperty(propertyStyle, "drawShapeMeshNodeBlendMode", locText("nodes.blendMode"),
 											  blendModeItems.c_str(), iBlendMode))

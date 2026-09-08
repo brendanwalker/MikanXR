@@ -69,6 +69,8 @@ public:
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);
 
+	virtual glm::mat4 computeSceneRenderableModelMatrix() const override;
+
 	void openShape();
 	void closeShape();
 

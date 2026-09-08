@@ -123,6 +123,14 @@ public:
 	inline IMkSceneRenderablePtr getGlSceneRenderable() const { return m_sceneRenderable; }
 	inline IMkSceneRenderableConstPtr getGlSceneRenderableConst() const { return m_sceneRenderable; }
 
+	// The model matrix the attached renderable should draw with. The world transform on its own for
+	// most components, but a shape bakes its authored size into the scale, so it overrides this.
+	// Every write of the renderable's model matrix goes through here: a component that baked
+	// something extra in one place and let the base class write the plain world transform in
+	// another would flip between the two depending on which ran last that frame.
+	virtual glm::mat4 computeSceneRenderableModelMatrix() const { return m_worldTransform; }
+	void refreshSceneRenderableModelMatrix();
+
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 

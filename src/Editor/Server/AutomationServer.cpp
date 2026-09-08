@@ -7,8 +7,11 @@
 #include "AutomationVariantText.h"
 #include "ProjectScriptContext.h"
 #include "CompositorObjectSystem.h"
+#include "EditorWindow.h"
 #include "FunctionDatabaseEnumerator.h"
 #include "IMkTexture.h"
+#include "IMkWindowContext.h"
+#include "MkWindowEvent.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MikanComponent.h"
@@ -34,8 +37,10 @@
 #include "Windows/NodeEditorWindow.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cstdlib>
 #include <filesystem>
+#include <map>
 
 namespace
 {
@@ -50,6 +55,92 @@ bool parseComponentId(const std::string& token, int& outComponentId)
 		return false;
 
 	outComponentId= (int)parsed;
+	return true;
+}
+
+// Named keys the automation channel can press. A single printable character is its own key, so
+// this covers only the keys that have no character form and the ones a drive actually reaches for.
+bool parseKeyName(const std::string& name, MkKeySym& outKeySym)
+{
+	static const std::map<std::string, MkKeySym> k_namedKeys= {
+		{"return", MkKey::RETURN},
+		{"enter", MkKey::RETURN},
+		{"tab", MkKey::TAB},
+		{"escape", MkKey::ESCAPE},
+		{"backspace", MkKey::BACKSPACE},
+		{"delete", MkKey::DELETE_KEYCODE},
+		{"space", MkKey::SPACE},
+		{"up", MkKey::UP},
+		{"down", MkKey::DOWN},
+		{"left", MkKey::LEFT},
+		{"right", MkKey::RIGHT},
+		{"home", MkKey::HOME},
+		{"end", MkKey::END},
+		{"pageup", MkKey::PAGEUP},
+		{"pagedown", MkKey::PAGEDOWN},
+		{"insert", MkKey::INSERT},
+		{"f1", MkKey::F1},
+		{"f2", MkKey::F2},
+		{"f3", MkKey::F3},
+		{"f4", MkKey::F4},
+		{"f5", MkKey::F5},
+		{"f6", MkKey::F6},
+		{"f7", MkKey::F7},
+		{"f8", MkKey::F8},
+		{"f9", MkKey::F9},
+		{"f10", MkKey::F10},
+		{"f11", MkKey::F11},
+		{"f12", MkKey::F12},
+	};
+
+	std::string lowered= name;
+	std::transform(lowered.begin(), lowered.end(), lowered.begin(),
+				   [](unsigned char c) { return (char)std::tolower(c); });
+
+	const auto it= k_namedKeys.find(lowered);
+	if (it != k_namedKeys.end())
+	{
+		outKeySym= it->second;
+		return true;
+	}
+
+	// A single printable character presses the key that produces it unshifted
+	if (lowered.size() == 1 && lowered[0] > 0x20 && lowered[0] < 0x7F)
+	{
+		outKeySym= (MkKeySym)lowered[0];
+		return true;
+	}
+
+	return false;
+}
+
+bool parseKeyModifier(const std::string& name, uint16_t& outKeyMod)
+{
+	if (name == "shift")
+		outKeyMod= MkKeyMod::SHIFT;
+	else if (name == "ctrl")
+		outKeyMod= MkKeyMod::CTRL;
+	else if (name == "alt")
+		outKeyMod= MkKeyMod::ALT;
+	else if (name == "gui")
+		outKeyMod= MkKeyMod::GUI;
+	else
+		return false;
+
+	return true;
+}
+
+bool parseMouseButtonName(const std::string& name, int& outMkMouseButton)
+{
+	if (name == "left")
+		outMkMouseButton= MkMouseButton::LEFT;
+	else if (name == "middle")
+		outMkMouseButton= MkMouseButton::MIDDLE;
+	else if (name == "right")
+		outMkMouseButton= MkMouseButton::RIGHT;
+	else
+		return false;
+
 	return true;
 }
 
@@ -236,8 +327,20 @@ void AutomationServer::registerCoreNamespaces()
 		"function", {"function list [system] [componentClass]", "function invoke <system> <componentId> <name>"},
 		std::bind(&AutomationServer::handleFunctionCommand, this, _1, _2, _3));
 
-	registerCommandNamespace("screenshot", {"screenshot compositor [componentId] [path]", "screenshot window [path]"},
+	registerCommandNamespace("screenshot",
+							 {"screenshot compositor [componentId] [path]", "screenshot window [windowIndex] [path]"},
 							 std::bind(&AutomationServer::handleScreenshotCommand, this, _1, _2, _3));
+
+	registerCommandNamespace("window", {"window list", "window focus <windowIndex>"},
+							 std::bind(&AutomationServer::handleWindowCommand, this, _1, _2, _3));
+
+	registerCommandNamespace("input",
+							 {"input move <windowIndex> <x> <y>",
+							  "input click <windowIndex> <x> <y> [left|middle|right] [clickCount]",
+							  "input press|release <windowIndex> <x> <y> [left|middle|right]",
+							  "input wheel <windowIndex> <x> <y> <scrollY> [scrollX]",
+							  "input key <windowIndex> <keyName> [modifiers...]", "input text <windowIndex> <text...>"},
+							 std::bind(&AutomationServer::handleInputCommand, this, _1, _2, _3));
 
 	registerCommandNamespace(
 		"script",
@@ -691,9 +794,27 @@ bool AutomationServer::handleScreenshotCommand(const std::vector<std::string>& a
 			return false;
 		}
 
-		// Park the capture until this frame's render completes; the reply is
+		// Optional window index, then optional output path. Bare `screenshot window` keeps meaning
+		// the main window, so drives written before other windows were capturable still work.
+		size_t nextArg= 1;
+		EditorWindow* targetWindow= nullptr;
+		int windowIndex= -1;
+		if (args.size() > nextArg && parseComponentId(args[nextArg], windowIndex))
+		{
+			targetWindow= resolveWindowIndex(args[nextArg], outError);
+			if (!targetWindow)
+				return false;
+			++nextArg;
+		}
+		else
+		{
+			targetWindow= m_mainWindow;
+		}
+
+		// Park the capture until the target window's render completes; the reply is
 		// sent from servicePendingWindowCapture
-		m_windowCapturePath= args.size() >= 2 ? args[1] : "mikan_window.png";
+		m_windowCapturePath= args.size() > nextArg ? args[nextArg] : "mikan_window.png";
+		m_windowCaptureTarget= targetWindow;
 		m_bWindowCapturePending= true;
 		m_bReplyDeferred= true;
 		return true;
@@ -1062,12 +1183,212 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 	return false;
 }
 
-void AutomationServer::servicePendingWindowCapture(int windowWidth, int windowHeight)
+EditorWindow* AutomationServer::resolveWindowIndex(const std::string& indexText, std::string& outError) const
 {
-	if (!m_bWindowCapturePending)
+	int windowIndex= -1;
+	if (!parseComponentId(indexText, windowIndex))
+	{
+		outError= "invalid window index '" + indexText + "'";
+		return nullptr;
+	}
+
+	const std::vector<EditorWindow*>& appWindows= m_mainWindow->getOwnerApp()->getAppWindows();
+	if (windowIndex < 0 || windowIndex >= (int)appWindows.size())
+	{
+		outError= "no window at index " + std::to_string(windowIndex)
+				  + " (open windows: " + std::to_string(appWindows.size()) + ")";
+		return nullptr;
+	}
+
+	return appWindows[windowIndex];
+}
+
+bool AutomationServer::handleWindowCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+										   std::string& outError)
+{
+	if (args.empty())
+	{
+		outError= "usage: window list|focus ...";
+		return false;
+	}
+
+	const std::string& verb= args[0];
+
+	if (verb == "list")
+	{
+		const std::vector<EditorWindow*>& appWindows= m_mainWindow->getOwnerApp()->getAppWindows();
+
+		for (size_t windowIndex= 0; windowIndex < appWindows.size(); ++windowIndex)
+		{
+			EditorWindow* window= appWindows[windowIndex];
+
+			outLines.push_back(std::to_string(windowIndex) + " " + std::to_string((int)window->getWidth()) + "x"
+							   + std::to_string((int)window->getHeight()) + " " + window->getTitle());
+		}
+
+		return true;
+	}
+	else if (verb == "focus")
+	{
+		if (args.size() < 2)
+		{
+			outError= "usage: window focus <windowIndex>";
+			return false;
+		}
+
+		EditorWindow* window= resolveWindowIndex(args[1], outError);
+		if (!window)
+			return false;
+
+		window->getMkWindowContext()->raiseWindow();
+		return true;
+	}
+
+	outError= "unknown verb '" + verb + "'";
+	return false;
+}
+
+bool AutomationServer::handleInputCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+										  std::string& outError)
+{
+	if (args.size() < 2)
+	{
+		outError= "usage: input move|click|wheel|key|text <windowIndex> ...";
+		return false;
+	}
+
+	const std::string& verb= args[0];
+
+	EditorWindow* window= resolveWindowIndex(args[1], outError);
+	if (!window)
+		return false;
+
+	IMkWindowContextPtr windowContext= window->getMkWindowContext();
+
+	// Injected input only reaches ImGui and the window's listener if the window is actually the one
+	// receiving OS input, so every verb raises it first.
+	windowContext->raiseWindow();
+
+	if (verb == "move" || verb == "click" || verb == "press" || verb == "release" || verb == "wheel")
+	{
+		if (args.size() < 4)
+		{
+			outError= "usage: input " + verb + " <windowIndex> <x> <y> ...";
+			return false;
+		}
+
+		int windowX= 0;
+		int windowY= 0;
+		if (!parseComponentId(args[2], windowX) || !parseComponentId(args[3], windowY))
+		{
+			outError= "invalid position '" + args[2] + " " + args[3] + "'";
+			return false;
+		}
+
+		windowContext->warpMouseToWindowPosition(windowX, windowY);
+
+		if (verb == "move")
+			return true;
+
+		if (verb == "wheel")
+		{
+			int scrollY= 0;
+			int scrollX= 0;
+			if (args.size() < 5 || !parseComponentId(args[4], scrollY))
+			{
+				outError= "usage: input wheel <windowIndex> <x> <y> <scrollY> [scrollX]";
+				return false;
+			}
+			if (args.size() >= 6 && !parseComponentId(args[5], scrollX))
+			{
+				outError= "invalid scrollX '" + args[5] + "'";
+				return false;
+			}
+
+			windowContext->injectMouseWheel(windowX, windowY, scrollX, scrollY);
+			return true;
+		}
+
+		int mkMouseButton= MkMouseButton::LEFT;
+		if (args.size() >= 5 && !parseMouseButtonName(args[4], mkMouseButton))
+		{
+			outError= "unknown mouse button '" + args[4] + "' (left|middle|right)";
+			return false;
+		}
+
+		int clickCount= 1;
+		if (args.size() >= 6 && !parseComponentId(args[5], clickCount))
+		{
+			outError= "invalid click count '" + args[5] + "'";
+			return false;
+		}
+
+		// press and release are the halves of click, for drags and for widgets whose popup only
+		// survives while the button is held
+		if (verb != "release")
+			windowContext->injectMouseButton(mkMouseButton, true, windowX, windowY, clickCount);
+		if (verb != "press")
+			windowContext->injectMouseButton(mkMouseButton, false, windowX, windowY, clickCount);
+
+		return true;
+	}
+	else if (verb == "key")
+	{
+		if (args.size() < 3)
+		{
+			outError= "usage: input key <windowIndex> <keyName> [modifiers...]";
+			return false;
+		}
+
+		MkKeySym keySym= MkKey::UNKNOWN;
+		if (!parseKeyName(args[2], keySym))
+		{
+			outError= "unknown key '" + args[2] + "'";
+			return false;
+		}
+
+		uint16_t keyMod= MkKeyMod::NONE;
+		for (size_t argIndex= 3; argIndex < args.size(); ++argIndex)
+		{
+			uint16_t parsedMod= MkKeyMod::NONE;
+			if (!parseKeyModifier(args[argIndex], parsedMod))
+			{
+				outError= "unknown modifier '" + args[argIndex] + "' (shift|ctrl|alt|gui)";
+				return false;
+			}
+			keyMod|= parsedMod;
+		}
+
+		windowContext->injectKey(keySym, keyMod, true);
+		windowContext->injectKey(keySym, keyMod, false);
+		return true;
+	}
+	else if (verb == "text")
+	{
+		// Free text: take the remainder of the raw line so spacing and quoting survive tokenization
+		const std::string text=
+			AutomationProtocol::remainderAfterTokens(getCurrentCommandLine(), 3); // input text <windowIndex>
+		if (text.empty())
+		{
+			outError= "usage: input text <windowIndex> <text...>";
+			return false;
+		}
+
+		windowContext->injectText(text);
+		return true;
+	}
+
+	outError= "unknown verb '" + verb + "'";
+	return false;
+}
+
+void AutomationServer::servicePendingWindowCapture(EditorWindow* window, int windowWidth, int windowHeight)
+{
+	if (!m_bWindowCapturePending || window != m_windowCaptureTarget)
 		return;
 
 	m_bWindowCapturePending= false;
+	m_windowCaptureTarget= nullptr;
 
 	if (saveDefaultFramebufferToPNG(windowWidth, windowHeight, m_windowCapturePath.c_str()))
 	{

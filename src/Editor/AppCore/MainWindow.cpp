@@ -468,12 +468,9 @@ void MainWindow::render()
 		// Finalize rendering
 		m_graphicsContext->renderEnd();
 
-		// Capture the finished frame for any pending automation screenshot
-		m_automationServer->servicePendingWindowCapture((int)m_mkWindowContext->getWidth(),
-														(int)m_mkWindowContext->getHeight());
-
-		// Present the rendered frame to the window (may block on vsync or SteamVR overlay DWM handshake)
-		m_mkWindowContext->present();
+		// Capture the finished frame for any pending automation screenshot, then present the
+		// rendered frame (may block on vsync or SteamVR overlay DWM handshake)
+		presentFrame();
 	}
 }
 

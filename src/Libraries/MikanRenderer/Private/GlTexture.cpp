@@ -1013,7 +1013,15 @@ bool saveMkTextureToPNG(IMkTexturePtr texture, const char* filename)
 	const size_t bufferSize= (size_t)width * height * channels * bytesPerChannel;
 	uint8_t* buffer= new uint8_t[bufferSize];
 
-	texture->copyTextureIntoBuffer(buffer, bufferSize);
+	// Synchronous read rather than copyTextureIntoBuffer. That path streams through pixel buffer
+	// objects, and for a texture in a read PBO mode it maps the buffer it just orphaned, so a
+	// one-shot caller gets an empty image. Framebuffer color textures are created in
+	// DoublePBORead, which is every texture this function is pointed at from the compositor.
+	if (!texture->readTextureIntoBuffer(buffer, bufferSize))
+	{
+		delete[] buffer;
+		return false;
+	}
 
 	// Convert 16-bit HDR to 8-bit sRGB and optionally swap R/B
 	uint8_t* pngBuffer= nullptr;

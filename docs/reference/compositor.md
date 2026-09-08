@@ -36,6 +36,20 @@ In the scene, a `ClientTextureSourceComponent` (a `TextureSourceComponent` subcl
 
 ---
 
+## The interactive browser window
+
+`CEFTextureSourceComponent` runs a windowless CEF browser and uploads each `OnPaint` into a scene texture. Off-screen rendering is fixed at `CefBrowserHost::CreateBrowser` and a windowed browser never calls `OnPaint`, so making the page interactive cannot mean giving the browser a real window. Instead `CEFBrowserEditorWindow` (`src/Editor/ECS/TextureSource/`) opens as a satellite editor window, draws that same texture, and forwards input back into the browser through `CefBrowserHost::SendMouseClickEvent` and friends. The page stays live in the scene the whole time, and the main window keeps running whatever app stage it was on. The window is created by the component's `show_texture_source_settings` function, one per component, matched by component id through `App::getWindowsOfType`.
+
+The definition's width and height are the scene texture resolution, so the window letterboxes the page rather than driving `WasResized`: dragging a preview window must not change what the compositor outputs. The `match_resolution_to_browser_window` function copies the window's page area, toolbar excluded, into the definition when that is what the author wants. Two rectangles come out of one letterbox calculation, because SDL reports the cursor top-down from the window's upper left while the GL viewport is bottom-up.
+
+Two details of the texture path only surface once the page is more than a static poster. The color texture uploads without a PBO, because PBO streaming uploads the previous call's buffer while staging the current one: free for a video source that pushes a frame every tick, but a browser only paints on damage, so the last paint of a settled page would sit in the PBO unshown and the texture would hold the page before it. And a navigation can swap in a new render widget that did not inherit the old one's visibility and size, so `OnLoadingStateChange` re-asserts both and calls `Invalidate` once the load settles. Without that the address bar moves to the new page while the scene keeps showing the old one.
+
+Two things about the browser only matter once the page is clickable. Widget popups (`<select>` dropdowns, autofill) paint into a separate `PET_POPUP` surface, so the component keeps the view buffer pristine and composites the popup over a scratch copy at upload time, which lets a popup disappear without waiting for the browser to repaint underneath it. And `OnBeforePopup` navigates the existing browser instead of allowing a new one, since a popup browser would be windowed and could never reach the scene texture.
+
+`url_writeback` is an editor-only property, off by default: when set, `OnAddressChange` records where browsing ended up back into the definition's `url`. It is `setClientAPIHidden` because it governs editor interaction and has no meaning to a client application, so it stays out of `MikanCEFTextureSourceValues` and off the wire.
+
+---
+
 ## The compositor node graph
 
 `CompositorNodeGraph::compositeFrame(NodeEvaluator&)` is the per-frame entry point, called from `CompositorComponent::evaluateCompositorNodeGraph()`. It:

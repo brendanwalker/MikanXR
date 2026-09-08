@@ -23,6 +23,8 @@ eMkWindowEventType SdlWindowEvent::getEventType() const
 		return eMkWindowEventType::KeyDown;
 	case SDL_KEYUP:
 		return eMkWindowEventType::KeyUp;
+	case SDL_TEXTINPUT:
+		return eMkWindowEventType::TextInput;
 	case SDL_MOUSEWHEEL:
 		return eMkWindowEventType::MouseWheel;
 	case SDL_MOUSEBUTTONDOWN:
@@ -79,6 +81,14 @@ int SdlWindowEvent::getKeyRepeat() const
 	return 0;
 }
 
+const char* SdlWindowEvent::getText() const
+{
+	if (m_event->type == SDL_TEXTINPUT)
+		return m_event->text.text;
+
+	return "";
+}
+
 eMkWindowEventID SdlWindowEvent::getWindowEventID() const
 {
 	if (m_event->type == SDL_WINDOWEVENT)
@@ -121,10 +131,46 @@ int SdlWindowEvent::getMouseWheelScrollAmount() const
 	return 0;
 }
 
+int SdlWindowEvent::getMouseWheelScrollAmountX() const
+{
+	if (m_event->type == SDL_MOUSEWHEEL)
+		return m_event->wheel.x;
+	return 0;
+}
+
 int SdlWindowEvent::getMouseButton() const
 {
 	if (m_event->type == SDL_MOUSEBUTTONDOWN || m_event->type == SDL_MOUSEBUTTONUP)
 		return m_event->button.button;
+	return 0;
+}
+
+int SdlWindowEvent::getMouseClickCount() const
+{
+	if (m_event->type == SDL_MOUSEBUTTONDOWN || m_event->type == SDL_MOUSEBUTTONUP)
+		return m_event->button.clicks;
+	return 0;
+}
+
+int SdlWindowEvent::getMouseX() const
+{
+	if (m_event->type == SDL_MOUSEMOTION)
+		return m_event->motion.x;
+	if (m_event->type == SDL_MOUSEBUTTONDOWN || m_event->type == SDL_MOUSEBUTTONUP)
+		return m_event->button.x;
+	if (m_event->type == SDL_MOUSEWHEEL)
+		return m_event->wheel.mouseX;
+	return 0;
+}
+
+int SdlWindowEvent::getMouseY() const
+{
+	if (m_event->type == SDL_MOUSEMOTION)
+		return m_event->motion.y;
+	if (m_event->type == SDL_MOUSEBUTTONDOWN || m_event->type == SDL_MOUSEBUTTONUP)
+		return m_event->button.y;
+	if (m_event->type == SDL_MOUSEWHEEL)
+		return m_event->wheel.mouseY;
 	return 0;
 }
 

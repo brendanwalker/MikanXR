@@ -147,6 +147,7 @@ enum class eMkWindowEventType
 	Quit,
 	KeyDown,
 	KeyUp,
+	TextInput,
 	MouseWheel,
 	MouseButtonDown,
 	MouseButtonUp,
@@ -181,8 +182,14 @@ public:
 	virtual MkKeySym getKeySym() const= 0;
 	virtual uint16_t getKeyMod() const= 0; // MkKeyMod flags held during a key event
 	virtual int getKeyRepeat() const= 0;
+	virtual const char* getText() const= 0; // UTF-8 text committed by a TextInput event
 	virtual int getMouseWheelScrollAmount() const= 0;
+	virtual int getMouseWheelScrollAmountX() const= 0;
 	virtual int getMouseButton() const= 0;
+	virtual int getMouseClickCount() const= 0; // 1 for a single click, 2 for a double click, ...
+	// Mouse position in window client pixels, top-down from the upper left corner
+	virtual int getMouseX() const= 0;
+	virtual int getMouseY() const= 0;
 	virtual int getMouseMotionXRel() const= 0;
 	virtual int getMouseMotionYRel() const= 0;
 	virtual int getWindowData1() const= 0;

@@ -57,6 +57,14 @@ enum class eCompositorBlendMode : int
 };
 extern const std::string* k_compositorBlendModeStrings;
 
+// Resolves a persisted blend mode string, falling back to defaultBlendMode when it names none of
+// k_compositorBlendModeStrings. Worth going through rather than calling FindEnumValue directly:
+// that returns INVALID for an unrecognized string, and an INVALID blend mode matches no case in the
+// draw nodes' switch, so the draw silently inherits whatever blend state was already set. Saved
+// graphs carrying a stencil mode string in this field have been seen in the wild.
+eCompositorBlendMode resolveCompositorBlendMode(const std::string& blendModeString,
+												eCompositorBlendMode defaultBlendMode);
+
 enum class eStencilCullMode : int
 {
 	INVALID= -1,

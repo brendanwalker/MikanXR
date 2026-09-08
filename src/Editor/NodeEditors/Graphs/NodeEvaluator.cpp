@@ -30,9 +30,11 @@ bool NodeEvaluator::evaluateFlowPinChain(NodePtr startNode)
 
 			if (outputFlowPin)
 			{
-				auto connections= outputFlowPin->getConnectedLinks();
-				NodeLinkPtr outputLink= (connections.size() > 0) ? connections[0] : NodeLinkPtr();
-				NodePinPtr inputFlowPin= (outputLink) ? outputLink->getEndPin() : NodePinPtr();
+				// Ask the pin for the far end of its link rather than reading the link's stored end
+				// pin. A link dragged from an input pin onto an output pin is saved with its ends
+				// swapped, and the stored end pin is then this node's own output pin, which walks
+				// the chain straight back into the node it just evaluated.
+				NodePinPtr inputFlowPin= outputFlowPin->getConnectedTargetPin();
 
 				m_currentNode= inputFlowPin ? inputFlowPin->getOwnerNode() : NodePtr();
 			}

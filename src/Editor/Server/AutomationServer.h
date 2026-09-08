@@ -45,9 +45,10 @@ public:
 	void shutdown();
 
 	/// Capture the window back buffer for a pending screenshot window command
-	/// and send its deferred reply. Called from the main window's render,
-	/// after rendering completes and before the frame presents.
-	void servicePendingWindowCapture(int windowWidth, int windowHeight);
+	/// and send its deferred reply. Called from every editor window's render,
+	/// after rendering completes and before the frame presents; the capture
+	/// runs only for the window the command named.
+	void servicePendingWindowCapture(class EditorWindow* window, int windowWidth, int windowHeight);
 
 	/// Register a command namespace. Future features (transaction history,
 	/// metrics, ...) add their surface here.
@@ -100,6 +101,13 @@ private:
 						  std::string& outError);
 	bool handleNodeGraphCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
 								std::string& outError);
+	bool handleWindowCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+							 std::string& outError);
+	bool handleInputCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+							std::string& outError);
+
+	/// Resolve a window index from the `window list` ordering.
+	class EditorWindow* resolveWindowIndex(const std::string& indexText, std::string& outError) const;
 
 	struct CommandProvider
 	{
@@ -119,7 +127,8 @@ private:
 	// the immediate reply; the parked work sends the reply when it completes
 	bool m_bReplyDeferred= false;
 
-	// Pending screenshot window capture, serviced at end of frame render
+	// Pending screenshot window capture, serviced at end of the target window's frame render
 	bool m_bWindowCapturePending= false;
+	class EditorWindow* m_windowCaptureTarget= nullptr;
 	std::string m_windowCapturePath;
 };

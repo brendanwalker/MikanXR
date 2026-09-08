@@ -198,7 +198,7 @@ void NodeEditorWindow::render()
 	m_graphicsContext->renderEnd();
 
 	// Present the rendered frame
-	m_mkWindowContext->present();
+	presentFrame();
 }
 
 void NodeEditorWindow::updateUI()

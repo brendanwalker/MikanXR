@@ -83,6 +83,10 @@ public:
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
 
 	NodePinPtr getConnectedSourcePin() const;
+	// The input pin this output pin feeds. Resolved by comparing against the link's own ends rather
+	// than trusting which end is stored first, so a link saved with its ends swapped still reads
+	// correctly (see NodeGraph::createLink).
+	NodePinPtr getConnectedTargetPin() const;
 	virtual void copyValueFromSourcePin() {}
 
 	virtual float editorComputeInputWidth() const;

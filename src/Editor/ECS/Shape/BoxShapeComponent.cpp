@@ -109,13 +109,9 @@ void BoxShapeComponent::update(float deltaSeconds)
 	if (!meshInstance)
 		return;
 
-	// Update model matrix: world transform * scale(xSize, ySize, zSize)
-	const auto def= getBoxShapeDefinition();
-	const float sx= def ? def->getBoxXSize() : 1.f;
-	const float sy= def ? def->getBoxYSize() : 1.f;
-	const float sz= def ? def->getBoxZSize() : 1.f;
-	const glm::mat4 scaledWorld= getWorldTransform() * glm::scale(glm::mat4(1.f), {sx, sy, sz});
-	meshInstance->setModelMatrix(scaledWorld);
+	// Size lives in the model matrix, so refresh it here too: a size edit changes no transform
+	// and would otherwise not reach the renderable until something moved.
+	refreshSceneRenderableModelMatrix();
 
 	MkMaterialInstancePtr matInst= meshInstance->getMaterialInstance();
 	IMkTexturePtr colorTexture= getColorTexture();
@@ -327,4 +323,14 @@ void BoxShapeComponent::bindLuaFunctions(lua_State* L)
 			[](BoxShapeComponent* component) -> float { return component->getBoxShapeDefinition()->getBoxZSize(); },
 			[](BoxShapeComponent* component, float value) { component->getBoxShapeDefinition()->setBoxZSize(value); })
 		.endClass();
+}
+
+glm::mat4 BoxShapeComponent::computeSceneRenderableModelMatrix() const
+{
+	const auto def= getBoxShapeDefinition();
+	if (!def)
+		return getWorldTransform();
+
+	return getWorldTransform()
+		   * glm::scale(glm::mat4(1.f), {def->getBoxXSize(), def->getBoxYSize(), def->getBoxZSize()});
 }

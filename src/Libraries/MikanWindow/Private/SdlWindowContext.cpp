@@ -6,7 +6,9 @@
 #include "SdlWindowEventListener.h"
 #include "Logger.h"
 
+#include <algorithm>
 #include <assert.h>
+#include <cstring>
 
 #if defined(_WIN32)
 #include <SDL.h>
@@ -327,6 +329,134 @@ void SdlWindowContext::focus()
 	}
 
 	SDL_RaiseWindow(m_sdlWindow);
+}
+
+// -- Synthetic input ----
+namespace
+{
+uint16_t mkKeyModToSdlKeyMod(uint16_t keyMod)
+{
+	uint16_t sdlMod= KMOD_NONE;
+
+	if (keyMod & MkKeyMod::SHIFT)
+		sdlMod|= KMOD_LSHIFT;
+	if (keyMod & MkKeyMod::CTRL)
+		sdlMod|= KMOD_LCTRL;
+	if (keyMod & MkKeyMod::ALT)
+		sdlMod|= KMOD_LALT;
+	if (keyMod & MkKeyMod::GUI)
+		sdlMod|= KMOD_LGUI;
+
+	return sdlMod;
+}
+
+uint8_t mkMouseButtonToSdlButton(int mkMouseButton)
+{
+	switch (mkMouseButton)
+	{
+	case MkMouseButton::LEFT:
+		return SDL_BUTTON_LEFT;
+	case MkMouseButton::MIDDLE:
+		return SDL_BUTTON_MIDDLE;
+	case MkMouseButton::RIGHT:
+		return SDL_BUTTON_RIGHT;
+	default:
+		return 0;
+	}
+}
+} // namespace
+
+void SdlWindowContext::raiseWindow() { focus(); }
+
+void SdlWindowContext::warpMouseToWindowPosition(int windowX, int windowY)
+{
+	// Moves the real cursor, which is deliberate: see the note on IMkWindowContext
+	SDL_WarpMouseInWindow(m_sdlWindow, windowX, windowY);
+}
+
+void SdlWindowContext::injectMouseButton(int mkMouseButton, bool bPressed, int windowX, int windowY, int clickCount)
+{
+	const uint8_t sdlButton= mkMouseButtonToSdlButton(mkMouseButton);
+	if (sdlButton == 0)
+		return;
+
+	SDL_Event sdlEvent{};
+	sdlEvent.type= bPressed ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP;
+	sdlEvent.button.timestamp= SDL_GetTicks();
+	sdlEvent.button.windowID= (uint32_t)m_windowId;
+	sdlEvent.button.which= 0;
+	sdlEvent.button.button= sdlButton;
+	sdlEvent.button.state= bPressed ? SDL_PRESSED : SDL_RELEASED;
+	sdlEvent.button.clicks= (uint8_t)(clickCount > 0 ? clickCount : 1);
+	sdlEvent.button.x= windowX;
+	sdlEvent.button.y= windowY;
+
+	SDL_PushEvent(&sdlEvent);
+}
+
+void SdlWindowContext::injectMouseWheel(int windowX, int windowY, int scrollX, int scrollY)
+{
+	SDL_Event sdlEvent{};
+	sdlEvent.type= SDL_MOUSEWHEEL;
+	sdlEvent.wheel.timestamp= SDL_GetTicks();
+	sdlEvent.wheel.windowID= (uint32_t)m_windowId;
+	sdlEvent.wheel.which= 0;
+	sdlEvent.wheel.x= scrollX;
+	sdlEvent.wheel.y= scrollY;
+	sdlEvent.wheel.direction= SDL_MOUSEWHEEL_NORMAL;
+	sdlEvent.wheel.preciseX= (float)scrollX;
+	sdlEvent.wheel.preciseY= (float)scrollY;
+	sdlEvent.wheel.mouseX= windowX;
+	sdlEvent.wheel.mouseY= windowY;
+
+	SDL_PushEvent(&sdlEvent);
+}
+
+void SdlWindowContext::injectKey(MkKeySym keySym, uint16_t keyMod, bool bPressed)
+{
+	SDL_Event sdlEvent{};
+	sdlEvent.type= bPressed ? SDL_KEYDOWN : SDL_KEYUP;
+	sdlEvent.key.timestamp= SDL_GetTicks();
+	sdlEvent.key.windowID= (uint32_t)m_windowId;
+	sdlEvent.key.state= bPressed ? SDL_PRESSED : SDL_RELEASED;
+	sdlEvent.key.repeat= 0;
+	sdlEvent.key.keysym.sym= (SDL_Keycode)keySym;
+	sdlEvent.key.keysym.scancode= SDL_GetScancodeFromKey((SDL_Keycode)keySym);
+	sdlEvent.key.keysym.mod= mkKeyModToSdlKeyMod(keyMod);
+
+	SDL_PushEvent(&sdlEvent);
+}
+
+void SdlWindowContext::injectText(const std::string& utf8Text)
+{
+	// SDL_TextInputEvent carries a fixed 32 byte buffer, so longer text goes out as several events.
+	// Splitting only on a UTF-8 lead byte keeps multi-byte characters intact across the boundary.
+	constexpr size_t k_maxTextBytes= SDL_TEXTINPUTEVENT_TEXT_SIZE - 1;
+
+	size_t offset= 0;
+	while (offset < utf8Text.size())
+	{
+		size_t chunkBytes= std::min(k_maxTextBytes, utf8Text.size() - offset);
+
+		while (chunkBytes > 0 && (utf8Text[offset + chunkBytes] & 0xC0) == 0x80)
+		{
+			--chunkBytes;
+		}
+
+		if (chunkBytes == 0)
+			break;
+
+		SDL_Event sdlEvent{};
+		sdlEvent.type= SDL_TEXTINPUT;
+		sdlEvent.text.timestamp= SDL_GetTicks();
+		sdlEvent.text.windowID= (uint32_t)m_windowId;
+		memcpy(sdlEvent.text.text, utf8Text.data() + offset, chunkBytes);
+		sdlEvent.text.text[chunkBytes]= '\0';
+
+		SDL_PushEvent(&sdlEvent);
+
+		offset+= chunkBytes;
+	}
 }
 
 void SdlWindowContext::requestClose()

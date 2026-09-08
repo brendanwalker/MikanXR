@@ -13,9 +13,14 @@ public:
 	virtual MkKeySym getKeySym() const override;
 	virtual uint16_t getKeyMod() const override;
 	virtual int getKeyRepeat() const override;
+	virtual const char* getText() const override;
 	virtual eMkWindowEventID getWindowEventID() const override;
 	virtual int getMouseWheelScrollAmount() const override;
+	virtual int getMouseWheelScrollAmountX() const override;
 	virtual int getMouseButton() const override;
+	virtual int getMouseClickCount() const override;
+	virtual int getMouseX() const override;
+	virtual int getMouseY() const override;
 	virtual int getMouseMotionXRel() const override;
 	virtual int getMouseMotionYRel() const override;
 	virtual int getWindowData1() const override;
