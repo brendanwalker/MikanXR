@@ -505,10 +505,11 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	m_mkScene->removeAllInstances();
 
 	// View-mode specific rendering
+	std::vector<ShapeComponentPtr> deferredShapeGraphs;
 	switch (m_viewMode)
 	{
 	case eProjectViewMode::scene:
-		renderProjectScene(graphicsContext, viewportCamera);
+		renderProjectScene(graphicsContext, viewportCamera, deferredShapeGraphs);
 		break;
 	case eProjectViewMode::stage:
 		renderProjectStage(graphicsContext, viewportCamera);
@@ -520,6 +521,19 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 
 	// Render the 3d scene
 	m_mkScene->render(viewportCamera, graphicsContext->getMkStateStack());
+
+	// Shapes that draw through a shape node graph go last, since the pass above is what actually
+	// issues the scene geometry they have to sort against. Whether a shape then ends up in front of
+	// or behind that geometry is down to the depth state its own graph sets.
+	if (!deferredShapeGraphs.empty())
+	{
+		const glm::mat4 viewportVpMatrix= viewportCamera->getViewProjectionMatrix();
+
+		for (const ShapeComponentPtr& shape : deferredShapeGraphs)
+		{
+			shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
+		}
+	}
 
 	// Draw the floor grid using the configured extent / cell size
 	const EditorSettings& editorSettings= getEditorSettings();
@@ -581,7 +595,8 @@ TrackingVolumeComponentConstPtr AppStage_Project::getCurrentTrackingVolumeConst(
 	return nullptr;
 }
 
-void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+										  std::vector<ShapeComponentPtr>& outDeferredShapeGraphs) const
 {
 	SceneComponentConstPtr currentScene= getCurrentSceneConst();
 	if (currentScene)
@@ -628,7 +643,6 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		}
 
 		// Render the shapes if enabled
-		const glm::mat4 viewportVpMatrix= viewportCamera->getViewProjectionMatrix();
 		if (editorSettings.bDebugRenderQuadShapes)
 		{
 			QuadShapeSystemPtr quadShapeSystem= m_quadShapeSystem.lock();
@@ -640,7 +654,7 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 			for (auto& shape : quadShapes)
 			{
 				if (shape->hasValidShapeGraph())
-					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
+					outDeferredShapeGraphs.push_back(shape);
 				else
 					bAnyLegacyShapes= true;
 			}
@@ -661,7 +675,7 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 			for (auto& shape : boxShapes)
 			{
 				if (shape->hasValidShapeGraph())
-					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
+					outDeferredShapeGraphs.push_back(shape);
 				else
 					bAnyLegacyShapes= true;
 			}
@@ -682,7 +696,7 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 			for (auto& shape : modelShapes)
 			{
 				if (shape->hasValidShapeGraph())
-					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
+					outDeferredShapeGraphs.push_back(shape);
 				else
 					bAnyLegacyShapes= true;
 			}

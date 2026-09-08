@@ -10,7 +10,7 @@ Two `NodeGraph` subclasses exist, registered in `App::startup` via `NodeGraphFac
 
 - `CompositorNodeGraph` (`Graphs/CompositorNodeGraph.h`): composites a video frame. Entry point is the `EventNode` named `OnCompositeFrame` (`k_compositeFrameEventName`); evaluated once per composited frame by `CompositorComponent`.
 
-- `ShapeNodeGraph` (`Graphs/ShapeNodeGraph.h`): renders a shape component. Entry point is the `OnRenderShape` event (`k_renderShapeEventName`); `renderShape()` sets a transient view-projection matrix, evaluates the chain, then clears it. Bound to a `ShapeComponent`.
+- `ShapeNodeGraph` (`Graphs/ShapeNodeGraph.h`): renders a shape component. Entry point is the `OnRenderShape` event (`k_renderShapeEventName`); `renderShape()` sets a transient view-projection matrix, evaluates the chain, then clears it. Bound to a `ShapeComponent`. A shape graph draws itself rather than queueing into `MkScene`, so in the project scene view `AppStage_Project` collects these shapes while gathering and issues them after the `MkScene` pass. Drawn during the gather instead, every shape graph would land before any queued scene geometry and no stencil could ever occlude one.
 
 There is no general-purpose logic graph; non-rendering logic is done in Lua.
 

@@ -12,6 +12,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <vector>
 #include "CompositorConstants.h"
 
 //-- definitions -----
@@ -54,7 +55,12 @@ protected:
 	TrackingVolumeComponentConstPtr getCurrentTrackingVolumeConst() const;
 
 	// Project Rendering
-	void renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+	// Shapes that draw through a shape node graph are collected rather than drawn here, and issued
+	// after the MkScene pass in render(). Drawing them inline would put every shape graph on screen
+	// before any queued scene geometry, so a shape could never be occluded by a stencil in front of
+	// it however the depth buffer came out.
+	void renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+							std::vector<ShapeComponentPtr>& outDeferredShapeGraphs) const;
 	void renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderEnvironmentLightComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
