@@ -38,4 +38,11 @@ public:
 	std::string domain;
 	std::string vertexPreset;
 	std::filesystem::path sourceGraphPath;
+
+	// Optional. Default values the loader applies to the MkMaterial, so a
+	// consumer that never sets a uniform still binds something. One JSON
+	// object, uniformDefaults, holds both: a number or float array for the
+	// float uniforms, a texture path (stored project form) for the samplers.
+	std::map<std::string, std::vector<float>> uniformFloatDefaults;
+	std::map<std::string, std::string> uniformTextureDefaults;
 };

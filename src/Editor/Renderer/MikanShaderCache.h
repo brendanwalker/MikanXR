@@ -16,6 +16,10 @@ public:
 
 	virtual bool startup() override;
 	virtual void shutdown() override;
+
+	// The texture cache that resolves a material's default texture paths. Set by
+	// the owning window once both caches exist; without it texture defaults are skipped.
+	void setTextureCache(class MikanTextureCache* textureCache) { m_textureCache= textureCache; }
 	virtual MkMaterialPtr registerMaterial(IMkShaderCodeConstPtr code) override;
 	virtual MkMaterialConstPtr getMaterialByName(const std::string& name) override;
 	virtual IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code) override;
@@ -39,7 +43,10 @@ public:
 
 protected:
 	IMkShaderCodeConstPtr loadShaderCodeFromConfigData(const MikanShaderConfig& config);
+	// Write the config's uniformDefaults into the material's default value tables
+	void applyMaterialDefaults(MkMaterialPtr material, const MikanShaderConfig& config);
 
 private:
 	IMkShaderCachePtr m_shaderCache;
+	class MikanTextureCache* m_textureCache= nullptr;
 };

@@ -656,6 +656,27 @@ MaterialCompileResult MaterialCompiler::compile(MaterialNodeGraphPtr graph, cons
 		result.config->uniformSemanticMap[uniformName]= getUniformSemanticName(context.getUniformSemantic(uniformName));
 	}
 
+	// Parameter defaults travel into the .mat so a consumer that never sets the uniform still binds something
+	for (const MaterialParameterDefault& parameterDefault : result.parameterDefaults)
+	{
+		if (parameterDefault.type == eShaderValueType::texture2D)
+		{
+			if (!parameterDefault.textureAssetPath.empty())
+			{
+				result.config->uniformTextureDefaults[parameterDefault.name]= parameterDefault.textureAssetPath;
+			}
+		}
+		else
+		{
+			const int componentCount= ShaderValueTypeUtils::getComponentCount(parameterDefault.type);
+			if (componentCount > 0)
+			{
+				result.config->uniformFloatDefaults[parameterDefault.name]=
+					std::vector<float>(parameterDefault.value.begin(), parameterDefault.value.begin() + componentCount);
+			}
+		}
+	}
+
 	context.applyResolvedTypes();
 
 	return result;

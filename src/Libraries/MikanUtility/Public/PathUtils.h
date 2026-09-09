@@ -29,6 +29,10 @@ MIKAN_UTILITY_FUNC(std::filesystem::path) getHomeDirectory();
 /// Get the directory of the currently loaded project (empty if no project is loaded)
 MIKAN_UTILITY_FUNC(std::filesystem::path) getProjectDirectory();
 
+/// The stored form of a project asset path: forward slashes, and relative to the
+/// project directory when the file sits under it, so resolveProjectResource finds it again
+MIKAN_UTILITY_FUNC(std::string) makeStoredProjectPath(const std::filesystem::path& assetPath);
+
 /// Set the project directory (called by ProjectManager when loading/creating a project)
 MIKAN_UTILITY_FUNC(void) setProjectDirectory(const std::filesystem::path& projectDir);
 

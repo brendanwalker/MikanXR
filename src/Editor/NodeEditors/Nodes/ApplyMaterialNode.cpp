@@ -117,6 +117,9 @@ void ApplyMaterialNode::onGraphLoaded(bool success)
 			if (materialProperty)
 			{
 				setMaterial(materialProperty->getMaterialResource());
+				// Loaded pins carry the flags of the material as it was saved, so refresh them against
+				// the material as loaded now (a default texture makes its pin optional)
+				rebuildInputPins();
 			}
 		}
 
@@ -480,6 +483,15 @@ void ApplyMaterialNode::rebuildInputPins()
 			{
 				pin= addPinByClassName(pinClassName, uniformName, eNodePinDirection::INPUT);
 				pin->setIsDynamicPin(true);
+				GraphMaterialProperty::initDynamicPinFromMaterialDefault(pin, m_material);
+			}
+
+			// A texture the material carries a default for need not be connected
+			if (uniformDataType == eUniformDataType::datatype_texture)
+			{
+				IMkTextureConstPtr defaultTexture;
+				pin->setHasDefaultValue(m_material->getTextureByUniformName(uniformName, defaultTexture)
+										&& defaultTexture != nullptr);
 			}
 
 			dynamicPins.push_back(pin);

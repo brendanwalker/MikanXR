@@ -227,6 +227,38 @@ const std::string& GraphMaterialProperty::getUniformPinClassName(eUniformDataTyp
 	}
 }
 
+void GraphMaterialProperty::initDynamicPinFromMaterialDefault(NodePinPtr pin, MkMaterialConstPtr material)
+{
+	if (!pin || !material)
+		return;
+
+	const std::string& uniformName= pin->getName();
+	if (auto floatPin= std::dynamic_pointer_cast<FloatPin>(pin))
+	{
+		float value;
+		if (material->getFloatByUniformName(uniformName, value))
+			floatPin->setValue(value);
+	}
+	else if (auto float2Pin= std::dynamic_pointer_cast<Float2Pin>(pin))
+	{
+		glm::vec2 value;
+		if (material->getVec2ByUniformName(uniformName, value))
+			float2Pin->setValue({value.x, value.y});
+	}
+	else if (auto float3Pin= std::dynamic_pointer_cast<Float3Pin>(pin))
+	{
+		glm::vec3 value;
+		if (material->getVec3ByUniformName(uniformName, value))
+			float3Pin->setValue({value.x, value.y, value.z});
+	}
+	else if (auto float4Pin= std::dynamic_pointer_cast<Float4Pin>(pin))
+	{
+		glm::vec4 value;
+		if (material->getVec4ByUniformName(uniformName, value))
+			float4Pin->setValue({value.x, value.y, value.z, value.w});
+	}
+}
+
 MikanShaderCache* GraphMaterialProperty::getShaderCache() const
 {
 	IEditorWindow* ownerWindow= m_ownerGraph ? m_ownerGraph->getOwnerWindow() : nullptr;

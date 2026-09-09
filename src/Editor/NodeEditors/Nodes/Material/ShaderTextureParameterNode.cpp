@@ -2,6 +2,7 @@
 #include "ShaderNodeUtils.h"
 #include "IconsForkAwesome.h"
 #include "LocText.h"
+#include "PathUtils.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "NodeEditorState.h"
@@ -122,9 +123,7 @@ void ShaderTextureParameterNode::editorRenderPropertySheet(const NodeEditorState
 
 			if (picked != nullptr && picked[0] != '\0')
 			{
-				std::string universalPath(picked);
-				std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
-				m_defaultTexturePath= universalPath;
+				m_defaultTexturePath= PathUtils::makeStoredProjectPath(picked);
 			}
 		}
 	}

@@ -118,28 +118,6 @@ static std::string truncateTextWithEllipsis(const std::string& text, float maxWi
 	return truncated + "...";
 }
 
-// The stored form of an asset path: forward slashes, and project-relative when
-// the file sits under the project directory
-static std::string nodeEditorMakeStoredAssetPath(const std::filesystem::path& assetPath)
-{
-	std::filesystem::path storedPath= assetPath.lexically_normal();
-
-	const std::filesystem::path projectDirectory= PathUtils::getProjectDirectory().lexically_normal();
-	if (!projectDirectory.empty())
-	{
-		const std::filesystem::path relativePath= storedPath.lexically_relative(projectDirectory);
-		if (!relativePath.empty() && relativePath.begin()->string() != "..")
-		{
-			storedPath= relativePath;
-		}
-	}
-
-	std::string universalPath= storedPath.string();
-	std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
-
-	return universalPath;
-}
-
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
@@ -1191,7 +1169,7 @@ void NodeEditorWindow::addMaterialAssetReference(const std::filesystem::path& ma
 		return;
 	}
 
-	const std::string storedPath= nodeEditorMakeStoredAssetPath(materialPath);
+	const std::string storedPath= PathUtils::makeStoredProjectPath(materialPath);
 
 	// Saving the same material again refreshes the existing reference rather than duplicating it
 	for (AssetReferencePtr existingAssetRef : nodeGraph->getAssetReferences())

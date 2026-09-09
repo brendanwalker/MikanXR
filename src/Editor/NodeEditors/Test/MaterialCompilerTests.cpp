@@ -132,6 +132,7 @@ MaterialNodeGraphPtr makeCompositorPassthroughGraph(ShaderNodePtr& outSampleNode
 	if (textureNode)
 	{
 		textureNode->setParameterName("rgbaTexture");
+		textureNode->setDefaultTexturePath("textures/checker.png");
 	}
 	outSampleNode= makeNode(graph, "ShaderTextureSampleNode");
 
@@ -177,8 +178,10 @@ bool material_compiler_test_compositor_passthrough()
 	success&= result.config->uniformSemanticMap.size() == 1;
 	success&= result.config->uniformSemanticMap["rgbaTexture"] == "textureParam";
 
-	// A texture parameter default reaches the preview
+	// A texture parameter default reaches the preview and the .mat
 	success&= result.parameterDefaults.size() == 1 && result.parameterDefaults[0].name == "rgbaTexture";
+	success&= result.config->uniformTextureDefaults["rgbaTexture"] == "textures/checker.png";
+	success&= result.config->uniformFloatDefaults.empty();
 
 	// The compile wrote resolved types back onto the pins it walked
 	ShaderValuePinPtr rgbaPin= sampleNode ? sampleNode->getShaderOutputPin("rgba") : ShaderValuePinPtr();
@@ -246,6 +249,8 @@ bool material_compiler_test_shape_vertex_stage()
 	success&= result.config->vertexAttributes.size() == 3;
 	success&= result.config->uniformSemanticMap["mvpMatrix"] == "modelViewProjectionMatrix";
 	success&= result.config->uniformSemanticMap["extrude"] == "floatParam";
+	success&= result.config->uniformFloatDefaults["extrude"] == std::vector<float>{0.25f};
+	success&= result.config->uniformTextureDefaults.empty();
 
 	UNIT_TEST_COMPLETE()
 }
@@ -492,6 +497,8 @@ bool material_compiler_test_shipped_graphs_match_outputs()
 			success&= materialOnDisk.domain == result.config->domain;
 			success&= materialOnDisk.vertexPreset == result.config->vertexPreset;
 			success&= materialOnDisk.uniformSemanticMap == result.config->uniformSemanticMap;
+			success&= materialOnDisk.uniformFloatDefaults == result.config->uniformFloatDefaults;
+			success&= materialOnDisk.uniformTextureDefaults == result.config->uniformTextureDefaults;
 			success&= materialOnDisk.sourceGraphPath == graphPath.filename();
 			success&= materialOnDisk.vertexAttributes.size() == result.config->vertexAttributes.size();
 		}

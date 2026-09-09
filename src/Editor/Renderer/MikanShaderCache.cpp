@@ -3,6 +3,7 @@
 #include "IMkShader.h"
 #include "IMkShaderCode.h"
 #include "MikanShaderConfig.h"
+#include "MikanTextureCache.h"
 #include "MaterialAssetReference.h"
 #include "Logger.h"
 
@@ -40,6 +41,10 @@ MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferenc
 			if (programCode)
 			{
 				material= m_shaderCache->registerMaterial(programCode);
+				if (material)
+				{
+					applyMaterialDefaults(material, programConfig);
+				}
 			}
 			else
 			{
@@ -59,6 +64,59 @@ MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferenc
 	}
 
 	return material;
+}
+
+void MikanShaderCache::applyMaterialDefaults(MkMaterialPtr material, const MikanShaderConfig& config)
+{
+	IMkShaderPtr program= material ? material->getProgram() : IMkShaderPtr();
+	if (!program)
+		return;
+
+	// The setters type-check against the program, so a default for a uniform the
+	// shader no longer declares (or declares with another type) is dropped
+	for (const auto& [uniformName, values] : config.uniformFloatDefaults)
+	{
+		eUniformDataType dataType;
+		if (!program->getUniformDataType(uniformName, dataType))
+			continue;
+
+		auto component= [&values](size_t index) { return index < values.size() ? values[index] : 0.f; };
+		switch (dataType)
+		{
+		case eUniformDataType::datatype_float:
+			material->setFloatByUniformName(uniformName, component(0));
+			break;
+		case eUniformDataType::datatype_float2:
+			material->setVec2ByUniformName(uniformName, glm::vec2(component(0), component(1)));
+			break;
+		case eUniformDataType::datatype_float3:
+			material->setVec3ByUniformName(uniformName, glm::vec3(component(0), component(1), component(2)));
+			break;
+		case eUniformDataType::datatype_float4:
+			material->setVec4ByUniformName(uniformName,
+										   glm::vec4(component(0), component(1), component(2), component(3)));
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (m_textureCache == nullptr)
+		return;
+
+	for (const auto& [uniformName, texturePath] : config.uniformTextureDefaults)
+	{
+		IMkTexturePtr texture= m_textureCache->loadTexturePath(texturePath);
+		if (texture)
+		{
+			material->setTextureByUniformName(uniformName, texture);
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("MikanShaderCache::applyMaterialDefaults")
+				<< "Default texture for " << uniformName << " failed to load: " << texturePath;
+		}
+	}
 }
 
 bool MikanShaderCache::reloadMaterialByPath(const std::filesystem::path& materialPath)
@@ -107,6 +165,7 @@ bool MikanShaderCache::reloadMaterialByPath(const std::filesystem::path& materia
 	}
 
 	material->setProgram(program);
+	applyMaterialDefaults(material, programConfig);
 
 	if (OnMaterialReloaded)
 	{

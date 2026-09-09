@@ -26,7 +26,8 @@ The living plan: what is in flight now, what comes next, and the open questions.
 
 - [ ] Material graph: per-node preview thumbnails, compiling a variant of the graph with the node's output as the color.
 - [ ] Material graph: draw nodes auto-feeding well-known semantics such as time and screen size, so those parameters need no outer-graph pins. Today a `time` parameter is fed from the outer graph's `TimeNode` like the hand-written materials.
-- [ ] Material graph: a `uniformDefaults` block in the `.mat` applied to the `MkMaterial` default tables, so a parameter default survives into a consumer that never sets the pin.
+- [ ] Material graph: a parameter the author never wants exposed as a consumer pin. Every parameter is a pin today; a `bExposed` flag on the parameter nodes that keeps the uniform out of the consumer's pin list (bound only from its default) is the cheap follow-up.
+- [ ] Shapes without a graph: a shape carrying only a material reference could draw through the material's defaults, the one-click path for materials whose inputs are all baked. `DrawShapesNode` already has a no-graph fallback with an internal material to grow from.
 - [ ] Material graph: further shader writers (Vulkan GLSL dialect, HLSL, MSL) behind `IShaderWriter`.
 - [ ] Material graph: convert the remaining hand-written `resources/shaders` materials to graphs. Only `rgbaFrame` and `shapePT` are graph-authored.
 - [ ] Material graph: more than one material editor window at a time. One instance today, matching the compositor and shape editors.

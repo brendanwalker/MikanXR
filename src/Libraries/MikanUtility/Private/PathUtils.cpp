@@ -1,5 +1,7 @@
 // -- includes -----
 #include "PathUtils.h"
+
+#include <algorithm>
 #include "StringUtils.h"
 
 #include <assert.h>
@@ -144,6 +146,26 @@ std::filesystem::path getProjectsRootDirectory()
 	}
 
 	return projectsRoot;
+}
+
+std::string makeStoredProjectPath(const std::filesystem::path& assetPath)
+{
+	std::filesystem::path storedPath= assetPath.lexically_normal();
+
+	const std::filesystem::path projectDirectory= getProjectDirectory().lexically_normal();
+	if (!projectDirectory.empty())
+	{
+		const std::filesystem::path relativePath= storedPath.lexically_relative(projectDirectory);
+		if (!relativePath.empty() && relativePath.begin()->string() != "..")
+		{
+			storedPath= relativePath;
+		}
+	}
+
+	std::string universalPath= storedPath.string();
+	std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
+
+	return universalPath;
 }
 
 std::filesystem::path resolveProjectResource(const std::filesystem::path& path)

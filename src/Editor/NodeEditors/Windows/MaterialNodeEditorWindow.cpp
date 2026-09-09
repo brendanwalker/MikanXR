@@ -15,6 +15,9 @@
 
 #include "MaterialCompiler/GlslShaderWriter.h"
 #include "MaterialCompiler/MaterialCompiler.h"
+#include "Nodes/Material/ShaderNodeUtils.h"
+#include "Nodes/Material/ShaderTextureParameterNode.h"
+#include "TextureAssetReference.h"
 
 #include "imgui.h"
 
@@ -69,39 +72,26 @@ bool MaterialNodeEditorWindow::saveGraph(bool bShowFileDialog)
 
 void MaterialNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& editorState)
 {
-	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories=
-		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
-	for (auto factory : validAssetRefFactories)
-	{
-		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
-		{
-			assetRef->editorHandleGraphVariablesDragDrop(editorState);
-			return;
-		}
-	}
+	// A material graph has no graph variables: its inputs are parameter nodes on the canvas
 }
 
 void MaterialNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& editorState)
 {
-	std::vector<GraphPropertyFactoryPtr> validPropertyFactories=
-		getNodeGraph()->editorGetValidPropertyFactories(editorState);
-	for (auto factory : validPropertyFactories)
+	// A texture asset dropped on the canvas becomes a texture parameter with that asset as its
+	// default. The asset's own drop handler builds the shape graph's texture property and node,
+	// neither of which exists here.
+	if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(TextureAssetReference::k_assetClassName))
 	{
-		if (auto property= MkGui::receiveTypedDragDropPayload<GraphProperty>(factory->getGraphPropertyClassName()))
+		auto parameterNode= editorState.nodeGraph->createTypedNode<ShaderTextureParameterNode>(editorState);
+		if (parameterNode)
 		{
-			property->editorHandleMainFrameDragDrop(editorState);
-			return;
-		}
-	}
+			parameterNode->setDefaultTexturePath(PathUtils::makeStoredProjectPath(assetRef->getInternalAssetPath()));
 
-	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories=
-		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
-	for (auto factory : validAssetRefFactories)
-	{
-		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
-		{
-			assetRef->editorHandleMainFrameDragDrop(editorState);
-			return;
+			const std::string stem= assetRef->getInternalAssetPath().stem().string();
+			if (ShaderNodeUtils::isValidIdentifier(stem))
+			{
+				parameterNode->setParameterName(stem);
+			}
 		}
 	}
 }

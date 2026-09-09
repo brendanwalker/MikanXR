@@ -44,6 +44,8 @@ public:
 	// The input pin class a consumer node exposes a material uniform of the
 	// given data type through, empty when no pin carries that type
 	static const std::string& getUniformPinClassName(eUniformDataType dataType);
+	// Seed a freshly created dynamic float pin with the material's default for its uniform
+	static void initDynamicPinFromMaterialDefault(NodePinPtr pin, MkMaterialConstPtr material);
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
