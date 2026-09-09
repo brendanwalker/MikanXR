@@ -24,6 +24,10 @@ public:
 	virtual std::string sampleTexture(const std::string& samplerName, const std::string& uvExpr) const override;
 	virtual std::string callFunction(const std::string& name, const std::vector<std::string>& args) const override;
 	virtual std::string fragmentCoord() const override;
+	virtual std::string textureSize(const std::string& samplerName) const override;
+	virtual std::string compare(eShaderCompareOp op, const std::string& a, const std::string& b) const override;
+	virtual std::string select(const std::string& condition, const std::string& whenTrue,
+							   const std::string& whenFalse) const override;
 
 	// -- Declarations -----
 	virtual std::string header(eShaderStage stage) const override;

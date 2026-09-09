@@ -192,6 +192,45 @@ std::string GlslShaderWriter::callFunction(const std::string& name, const std::v
 
 std::string GlslShaderWriter::fragmentCoord() const { return "gl_FragCoord.xy"; }
 
+std::string GlslShaderWriter::textureSize(const std::string& samplerName) const
+{
+	return "vec2(textureSize(" + samplerName + ", 0))";
+}
+
+std::string GlslShaderWriter::compare(eShaderCompareOp op, const std::string& a, const std::string& b) const
+{
+	const char* opText= "<";
+	switch (op)
+	{
+	case eShaderCompareOp::lessEqual:
+		opText= "<=";
+		break;
+	case eShaderCompareOp::greater:
+		opText= ">";
+		break;
+	case eShaderCompareOp::greaterEqual:
+		opText= ">=";
+		break;
+	case eShaderCompareOp::equal:
+		opText= "==";
+		break;
+	case eShaderCompareOp::notEqual:
+		opText= "!=";
+		break;
+	case eShaderCompareOp::less:
+	default:
+		break;
+	}
+
+	return "(" + a + " " + opText + " " + b + ")";
+}
+
+std::string GlslShaderWriter::select(const std::string& condition, const std::string& whenTrue,
+									 const std::string& whenFalse) const
+{
+	return "(" + condition + " ? " + whenTrue + " : " + whenFalse + ")";
+}
+
 // -- Declarations -----
 std::string GlslShaderWriter::header(eShaderStage stage) const { return "#version 330 core"; }
 

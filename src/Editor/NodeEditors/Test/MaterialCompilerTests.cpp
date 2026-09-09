@@ -10,6 +10,7 @@
 #include "Nodes/Material/ShaderConstantNode.h"
 #include "Nodes/Material/ShaderNode.h"
 #include "Nodes/Material/ShaderParameterNode.h"
+#include "Nodes/Material/ShaderSwizzleNode.h"
 #include "Nodes/Material/ShaderTextureParameterNode.h"
 #include "Pins/ShaderValuePin.h"
 #include "MikanShaderConfig.h"
@@ -382,6 +383,69 @@ bool material_compiler_test_parameter_name_conflicts()
 	UNIT_TEST_COMPLETE()
 }
 
+bool material_compiler_test_if_and_texture_size()
+{
+	UNIT_TEST_BEGIN("an If node selects by a scalar comparison and Texture Size reads the sampler")
+
+	MaterialNodeGraphPtr graph= makeMaterialGraph(eMaterialDomain::compositor);
+
+	auto textureNode= std::dynamic_pointer_cast<ShaderTextureParameterNode>(
+		makeNode(graph, ShaderTextureParameterNode::k_nodeClassName));
+	if (textureNode)
+	{
+		textureNode->setParameterName("depth");
+	}
+	ShaderNodePtr sizeNode= makeNode(graph, "ShaderTextureSizeNode");
+	ShaderNodePtr sampleNode= makeNode(graph, "ShaderTextureSampleNode");
+	ShaderNodePtr thresholdNode= makeNode(graph, "ShaderConstantNode:float");
+	if (auto constantNode= std::dynamic_pointer_cast<ShaderConstantNode>(thresholdNode))
+	{
+		constantNode->setValue({0.5f, 0.f, 0.f, 0.f});
+	}
+	ShaderNodePtr ifNode= makeNode(graph, "ShaderIfNode:less");
+	ShaderNodePtr appendNode= makeNode(graph, "ShaderAppendNode");
+
+	// color= (depth.r < 0.5) ? rgba : 0, with the texture size appended in to prove it compiles
+	success&= link(graph, textureNode, "texture", sampleNode, "texture");
+	success&= link(graph, textureNode, "texture", sizeNode, "texture");
+	success&= link(graph, sampleNode, "r", ifNode, "a");
+	success&= link(graph, thresholdNode, "value", ifNode, "b");
+	success&= link(graph, sampleNode, "rgba", ifNode, "whenTrue");
+	success&= link(graph, ifNode, "result", graph->getOutputNode(), MaterialOutputNode::k_colorPinName);
+	success&= link(graph, sizeNode, "size", appendNode, "a");
+
+	GlslShaderWriter writer;
+	MaterialCompileResult result= graph->compile(writer);
+	success&= expectNoErrors(result);
+	success&= expectContains(result.fragmentSource, " < 0.5)", "fragment source");
+	success&= expectContains(result.fragmentSource, " ? ", "fragment source");
+	success&= expectContains(result.fragmentSource, ": vec4(0.0))", "fragment source");
+
+	// The unconnected append is never reached from the output, so the size temp only appears when linked
+	ShaderNodePtr swizzleNode= makeNode(graph, "ShaderSwizzleNode");
+	if (auto swizzle= std::dynamic_pointer_cast<ShaderSwizzleNode>(swizzleNode))
+	{
+		swizzle->setMask("x");
+	}
+	success&= link(graph, sizeNode, "size", swizzleNode, "value");
+	success&= link(graph, swizzleNode, "result", ifNode, "whenFalse");
+	MaterialCompileResult withSize= graph->compile(writer);
+	success&= expectNoErrors(withSize);
+	success&= expectContains(withSize.fragmentSource, "vec2(textureSize(depth, 0))", "fragment source");
+
+	// Ordering a vector is an error, equality is not
+	MaterialNodeGraphPtr vectorGraph= makeMaterialGraph(eMaterialDomain::compositor);
+	ShaderNodePtr colorA= makeNode(vectorGraph, "ShaderConstantNode:float3");
+	ShaderNodePtr colorB= makeNode(vectorGraph, "ShaderConstantNode:float3");
+	ShaderNodePtr lessNode= makeNode(vectorGraph, "ShaderIfNode:less");
+	success&= link(vectorGraph, colorA, "value", lessNode, "a");
+	success&= link(vectorGraph, colorB, "value", lessNode, "b");
+	success&= link(vectorGraph, lessNode, "result", vectorGraph->getOutputNode(), MaterialOutputNode::k_colorPinName);
+	success&= lessNode && expectErrorMentioning(vectorGraph->compile(writer), "scalar operands", lessNode->getId());
+
+	UNIT_TEST_COMPLETE()
+}
+
 bool material_compiler_test_custom_expression_flags_glsl_only()
 {
 	UNIT_TEST_BEGIN("a custom expression compiles to a function and marks the material GLSL only")
@@ -521,6 +585,7 @@ bool run_material_compiler_tests()
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_type_mismatch_names_node);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_cycle_is_an_error);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_parameter_name_conflicts);
+	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_if_and_texture_size);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_custom_expression_flags_glsl_only);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_snapshot_round_trip);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_shipped_graphs_match_outputs);

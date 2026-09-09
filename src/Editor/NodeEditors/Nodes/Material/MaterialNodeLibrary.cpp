@@ -5,12 +5,14 @@
 #include "ShaderAppendNode.h"
 #include "ShaderConstantNode.h"
 #include "ShaderCustomExpressionNode.h"
+#include "ShaderIfNode.h"
 #include "ShaderMathNode.h"
 #include "ShaderParameterNode.h"
 #include "ShaderSemanticInputNode.h"
 #include "ShaderSwizzleNode.h"
 #include "ShaderTextureParameterNode.h"
 #include "ShaderTextureSampleNode.h"
+#include "ShaderTextureSizeNode.h"
 #include "ShaderVertexInputNode.h"
 
 namespace MaterialNodeLibrary
@@ -35,6 +37,7 @@ void registerNodeFactories(NodeGraph& graph)
 
 	// Texture
 	graph.addNodeFactory<ShaderTextureSampleNodeFactory>();
+	graph.addNodeFactory<ShaderTextureSizeNodeFactory>();
 
 	// Vertex inputs
 	graph.addNodeFactory<ShaderVertexInputNodeFactory>(eVertexSemantic::position);
@@ -54,6 +57,14 @@ void registerNodeFactories(NodeGraph& graph)
 	{
 		graph.addNodeFactory<ShaderMathNodeFactory>(op);
 	}
+
+	// Selection: one create menu entry per comparison
+	graph.addNodeFactory<ShaderIfNodeFactory>(eShaderCompareOp::less);
+	graph.addNodeFactory<ShaderIfNodeFactory>(eShaderCompareOp::lessEqual);
+	graph.addNodeFactory<ShaderIfNodeFactory>(eShaderCompareOp::greater);
+	graph.addNodeFactory<ShaderIfNodeFactory>(eShaderCompareOp::greaterEqual);
+	graph.addNodeFactory<ShaderIfNodeFactory>(eShaderCompareOp::equal);
+	graph.addNodeFactory<ShaderIfNodeFactory>(eShaderCompareOp::notEqual);
 
 	// Vector
 	graph.addNodeFactory<ShaderSwizzleNodeFactory>();

@@ -20,6 +20,16 @@ enum class eShaderBinaryOp : int
 	divide
 };
 
+enum class eShaderCompareOp : int
+{
+	less,
+	lessEqual,
+	greater,
+	greaterEqual,
+	equal,
+	notEqual
+};
+
 // Builtin functions a writer spells in its own language. Nodes name the
 // builtin, never the function text, so a second language is one new writer.
 enum class eShaderBuiltin : int
@@ -81,6 +91,13 @@ public:
 	virtual std::string builtinCall(eShaderBuiltin builtin, const std::vector<std::string>& args,
 									eShaderValueType argType) const= 0;
 	virtual std::string sampleTexture(const std::string& samplerName, const std::string& uvExpr) const= 0;
+	// Pixel size of a texture as a float2
+	virtual std::string textureSize(const std::string& samplerName) const= 0;
+	// A boolean expression comparing two operands of one type
+	virtual std::string compare(eShaderCompareOp op, const std::string& a, const std::string& b) const= 0;
+	// One of two values of one type, chosen by a boolean expression
+	virtual std::string select(const std::string& condition, const std::string& whenTrue,
+							   const std::string& whenFalse) const= 0;
 	virtual std::string callFunction(const std::string& name, const std::vector<std::string>& args) const= 0;
 	// Window-space fragment position, float2
 	virtual std::string fragmentCoord() const= 0;
