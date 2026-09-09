@@ -8,6 +8,7 @@
 #include "ShaderIfNode.h"
 #include "ShaderMathNode.h"
 #include "ShaderParameterNode.h"
+#include "ShaderRerouteNodes.h"
 #include "ShaderSemanticInputNode.h"
 #include "ShaderSwizzleNode.h"
 #include "ShaderTextureParameterNode.h"
@@ -69,6 +70,10 @@ void registerNodeFactories(NodeGraph& graph)
 	// Vector
 	graph.addNodeFactory<ShaderSwizzleNodeFactory>();
 	graph.addNodeFactory<ShaderAppendNodeFactory>();
+
+	// Utility
+	graph.addNodeFactory<ShaderRerouteDeclarationNodeFactory>();
+	graph.addNodeFactory<ShaderRerouteUsageNodeFactory>();
 
 	// Custom
 	graph.addNodeFactory<ShaderCustomExpressionNodeFactory>();

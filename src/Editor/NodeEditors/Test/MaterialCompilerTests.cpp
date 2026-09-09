@@ -12,8 +12,10 @@
 #include "Nodes/Material/ShaderFunctionNodes.h"
 #include "Nodes/Material/ShaderNode.h"
 #include "Nodes/Material/ShaderParameterNode.h"
+#include "Nodes/Material/ShaderRerouteNodes.h"
 #include "Nodes/Material/ShaderSwizzleNode.h"
 #include "Nodes/Material/ShaderTextureParameterNode.h"
+#include "Pins/NodeLink.h"
 #include "Pins/ShaderValuePin.h"
 #include "MikanShaderConfig.h"
 
@@ -449,6 +451,60 @@ bool material_compiler_test_same_name_parameters_share_a_default()
 	UNIT_TEST_COMPLETE()
 }
 
+bool material_compiler_test_named_reroutes()
+{
+	UNIT_TEST_BEGIN("a named reroute reads its declaration's input from anywhere on the page")
+
+	MaterialNodeGraphPtr graph= makeMaterialGraph(eMaterialDomain::compositor);
+
+	// time -> declaration "t"; two usages feed an add; the declaration's own output feeds nothing
+	auto timeNode= std::dynamic_pointer_cast<ShaderParameterNode>(makeNode(graph, "ShaderParameterNode:time"));
+	auto declaration=
+		std::dynamic_pointer_cast<ShaderRerouteDeclarationNode>(makeNode(graph, "ShaderRerouteDeclarationNode"));
+	auto firstUsage= std::dynamic_pointer_cast<ShaderRerouteUsageNode>(makeNode(graph, "ShaderRerouteUsageNode"));
+	auto secondUsage= std::dynamic_pointer_cast<ShaderRerouteUsageNode>(makeNode(graph, "ShaderRerouteUsageNode"));
+	ShaderNodePtr addNode= makeNode(graph, "ShaderMathNode:add");
+	success&= expect(timeNode && declaration && firstUsage && secondUsage && addNode, "nodes created");
+	if (!timeNode || !declaration || !firstUsage || !secondUsage || !addNode)
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	declaration->setRerouteName("t");
+	// The page's only declaration is bound automatically on creation
+	success&= expect(firstUsage->getDeclarationId() == declaration->getId(), "usage bound to the only declaration");
+	success&= expect(firstUsage->editorGetTitle() == "t", "usage titled after the declaration");
+
+	success&= link(graph, timeNode, "value", declaration, "value");
+	success&= link(graph, firstUsage, "value", addNode, "a");
+	success&= link(graph, secondUsage, "value", addNode, "b");
+	success&= link(graph, addNode, "result", graph->getOutputNode(), MaterialOutputNode::k_colorPinName);
+
+	GlslShaderWriter writer;
+	MaterialCompileResult result= graph->compile(writer);
+	success&= expectNoErrors(result);
+	success&= expectContains(result.fragmentSource, "(time + time)", "fragment source");
+
+	// A usage without a declaration, and a usage on another page, are errors
+	secondUsage->setDeclarationId(-1);
+	success&= expectErrorMentioning(graph->compile(writer), "no declaration", secondUsage->getId());
+	secondUsage->setDeclarationId(declaration->getId());
+	secondUsage->setPageId(99);
+	success&= expectErrorMentioning(graph->compile(writer), "different pages", secondUsage->getId());
+	secondUsage->setPageId(NodeGraph::k_rootPageId);
+
+	// A reroute feeding its own declaration is a cycle
+	ShaderNodePtr loopAdd= makeNode(graph, "ShaderMathNode:add");
+	NodeGraphPtr baseGraph= graph;
+	ShaderValuePinPtr declarationInput= declaration->getShaderInputPin(ShaderRerouteDeclarationNode::k_valuePinName);
+	baseGraph->deleteLinkById(declarationInput->getConnectedLinks().front()->getId());
+	success&= link(graph, firstUsage, "value", loopAdd, "a");
+	success&= link(graph, loopAdd, "result", declaration, "value");
+	success&= expectErrorMentioning(graph->compile(writer), "Cycle");
+
+	UNIT_TEST_COMPLETE()
+}
+
 bool material_compiler_test_if_and_texture_size()
 {
 	UNIT_TEST_BEGIN("an If node selects by a scalar comparison and Texture Size reads the sampler")
@@ -804,6 +860,7 @@ bool run_material_compiler_tests()
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_cycle_is_an_error);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_parameter_name_conflicts);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_same_name_parameters_share_a_default);
+	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_named_reroutes);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_if_and_texture_size);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_function_pages);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_function_recursion_is_an_error);
