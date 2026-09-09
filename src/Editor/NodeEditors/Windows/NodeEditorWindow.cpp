@@ -274,6 +274,16 @@ void NodeEditorWindow::updateUI()
 		}
 	}
 
+	// A graph with no page factories only ever has the root page, so it gets no panel
+	if (m_bShowPagesPanel && getNodeGraph() && getNodeGraph()->hasPageFactories())
+	{
+		MkGuiScopedWindow pagesWindow(locWindowTitle(getPagesPanelTitleKey()), &m_bShowPagesPanel);
+		if (pagesWindow)
+		{
+			renderPagesPanel();
+		}
+	}
+
 	if (m_bShowAssetsPanel)
 	{
 		MkGuiScopedWindow assetsWindow(locWindowTitle("windows.nodeAssetsPanel"), &m_bShowAssetsPanel);
@@ -346,6 +356,10 @@ void NodeEditorWindow::renderMenuBar()
 	if (ImGui::BeginMenu(locLabel("mainWindow.viewMenu")))
 	{
 		ImGui::MenuItem(locLabel("nodeEditor.variables"), nullptr, &m_bShowVariablesPanel);
+		if (getNodeGraph() && getNodeGraph()->hasPageFactories())
+		{
+			ImGui::MenuItem(locLabel("nodeEditor.pages"), nullptr, &m_bShowPagesPanel);
+		}
 		ImGui::MenuItem(locLabel("nodeEditor.assetsTab"), nullptr, &m_bShowAssetsPanel);
 		ImGui::MenuItem(locLabel("nodeEditor.details"), nullptr, &m_bShowDetailsPanel);
 		renderViewMenuExtras();
@@ -367,7 +381,13 @@ void NodeEditorWindow::buildDefaultDockLayout(unsigned int dockspaceId)
 	dockExtraPanels(rightRemaining);
 	rightId= (ImGuiID)rightRemaining;
 
-	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeVariablesPanel"), leftId);
+	// Pages sit under Variables in the left column. A graph that never submits
+	// the Pages window leaves its node empty, and ImGui folds it back into Variables.
+	ImGuiID leftRemaining= leftId;
+	const ImGuiID pagesId= MkGui::dockBuilderSplit(leftRemaining, ImGuiDir_Down, 0.4f, leftRemaining);
+
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeVariablesPanel"), leftRemaining);
+	MkGui::dockBuilderDockWindow(locWindowTitle(getPagesPanelTitleKey()), pagesId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeDetailsPanel"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeAssetsPanel"), bottomId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeGraphPanel"), remaining);
@@ -392,12 +412,41 @@ void NodeEditorWindow::renderMainFrame()
 	std::vector<t_node_id> pendingNodeDeletes;
 	std::vector<ImVec2> evalErrorScreenPositions;
 
+	// Breadcrumb: one line naming the page the canvas shows, with the root
+	// segment clickable from any other page
+	if (nodeGraph && nodeGraph->hasPageFactories())
+	{
+		GraphPagePtr currentPage= nodeGraph->getPageById(m_editorState.currentPageId);
+		if (currentPage)
+		{
+			if (ImGui::SmallButton(locLabel("nodeEditor.rootPage")))
+			{
+				setCurrentPage(NodeGraph::k_rootPageId);
+			}
+			ImGui::SameLine();
+			ImGui::Text("%s %s %s", ICON_FK_ANGLE_RIGHT, currentPage->editorGetIcon(),
+						currentPage->editorGetTitle().c_str());
+		}
+		else
+		{
+			ImGui::TextUnformatted(locText("nodeEditor.rootPage"));
+		}
+	}
+
 	{
 		MkCanvasScopedEditor scopedEditor(m_canvasContext, "GraphCanvas");
 
 		if (nodeGraph)
 		{
 			nodeGraph->editorRender(m_editorState);
+
+			// The content bounds only cover nodes submitted this frame, so a
+			// page switch frames its nodes once they have been drawn
+			if (m_bNavigateToContentPending)
+			{
+				ed::NavigateToContent();
+				m_bNavigateToContentPending= false;
+			}
 
 			// A double-click on a node body opens whatever the node edits (a material graph, a script)
 			const int doubleClickedNodeId= MkCanvas::getDoubleClickedNodeId();
@@ -937,6 +986,93 @@ void NodeEditorWindow::renderNewGraphVariablesContextMenu(const NodeEditorState&
 	}
 }
 
+void NodeEditorWindow::renderPagesPanel()
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		return;
+	}
+
+	// A delete mutates the page map, so it is applied after the list has rendered
+	t_graph_page_id pendingDeletePageId= -1;
+
+	{
+		MkGuiScopedStyle selectionStyle(m_styleManager->getStyle("node_editor_variable_list"));
+
+		const auto renderPageRow= [&](t_graph_page_id pageId, const char* icon, const std::string& title)
+		{
+			const bool bIsRootPage= (pageId == NodeGraph::k_rootPageId);
+
+			ImGui::TextUnformatted(icon);
+			ImGui::SameLine();
+
+			// The current page draws selected; the row click also selects the
+			// page object so the Details panel shows its sheet
+			const std::string rowLabel= StringUtils::stringify(title, "##page", std::to_string(pageId));
+			if (ImGui::Selectable(rowLabel.c_str(), m_editorState.currentPageId == pageId))
+			{
+				setCurrentPage(pageId);
+				clearCanvasSelection();
+				if (bIsRootPage)
+				{
+					m_objectSelection.clear();
+				}
+				else
+				{
+					m_objectSelection= GraphObjectSelection(GraphObjectIdType::PAGE, 1);
+					m_objectSelection.setObjectId(0, pageId);
+				}
+			}
+
+			if (!bIsRootPage)
+			{
+				MkGuiScopedStyle pageContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
+				MkGuiScopedPopupContextItem pageContextMenu;
+				if (pageContextMenu)
+				{
+					clearCanvasSelection();
+					m_objectSelection= GraphObjectSelection(GraphObjectIdType::PAGE, 1);
+					m_objectSelection.setObjectId(0, pageId);
+
+					if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
+					{
+						pendingDeletePageId= pageId;
+					}
+				}
+			}
+		};
+
+		renderPageRow(NodeGraph::k_rootPageId, ICON_FK_HOME, locText("nodeEditor.rootPage"));
+		for (const auto& pageEntry : nodeGraph->getPages())
+		{
+			GraphPagePtr page= pageEntry.second;
+			renderPageRow(page->getId(), page->editorGetIcon(), page->editorGetTitle());
+		}
+	}
+
+	if (pendingDeletePageId != -1)
+	{
+		nodeGraph->deletePage(pendingDeletePageId);
+	}
+
+	ImGui::Separator();
+
+	// One add button per page kind the graph can hold
+	for (const auto& factoryEntry : nodeGraph->getPageFactories())
+	{
+		GraphPageFactoryPtr pageFactory= factoryEntry.second;
+		const std::string buttonLabel= StringUtils::stringify(
+			ICON_FK_PLUS_CIRCLE "  ", pageFactory->editorGetCreateLabel(), "##", pageFactory->getPageClassName());
+
+		if (ImGui::SmallButton(buttonLabel.c_str()))
+		{
+			// The created delegate switches the canvas to the new page
+			nodeGraph->createPage(pageFactory, m_editorState);
+		}
+	}
+}
+
 void NodeEditorWindow::renderAssetsPanel()
 {
 	NodeGraphPtr nodeGraph= getNodeGraph();
@@ -1223,6 +1359,15 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 			property->editorRenderPropertySheet(m_editorState);
 		}
 	}
+	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::PAGE)
+	{
+		GraphPagePtr page= getNodeGraph()->getPageById(m_objectSelection.getObjectId(0));
+
+		if (page)
+		{
+			page->editorRenderPropertySheet(m_editorState);
+		}
+	}
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NONE)
 	{
 		// Nothing selected: the graph's own settings take the panel
@@ -1309,6 +1454,17 @@ void NodeEditorWindow::deleteSelectedItem()
 
 		m_objectSelection.clear();
 	}
+	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::PAGE)
+	{
+		for (int i= 0; i < m_objectSelection.getObjectCount(); i++)
+		{
+			const t_graph_page_id pageId= m_objectSelection.getObjectId(i);
+
+			getNodeGraph()->deletePage(pageId);
+		}
+
+		m_objectSelection.clear();
+	}
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET && m_objectSelection.getObjectCount() > 0)
 	{
 		const std::vector<AssetReferencePtr>& assetList= getNodeGraph()->getAssetReferences();
@@ -1343,6 +1499,7 @@ void NodeEditorWindow::createNewGraph(const std::function<NodeGraphPtr()>& creat
 
 	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
 
+	syncCurrentPageToGraph();
 	onNodeGraphCreated();
 
 	if (m_editorState.nodeGraph)
@@ -1350,6 +1507,46 @@ void NodeEditorWindow::createNewGraph(const std::function<NodeGraphPtr()>& creat
 		m_history.reset(m_editorState.nodeGraph->saveToSnapshotString());
 		logGraphBaseline();
 	}
+}
+
+void NodeEditorWindow::syncCurrentPageToGraph()
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph || !nodeGraph->hasPage(m_editorState.currentPageId))
+	{
+		m_editorState.currentPageId= NodeGraph::k_rootPageId;
+	}
+}
+
+void NodeEditorWindow::setCurrentPage(t_graph_page_id pageId)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (pageId == m_editorState.currentPageId || !nodeGraph || !nodeGraph->hasPage(pageId))
+	{
+		return;
+	}
+
+	// Selections belong to the page that made them
+	clearCanvasSelection();
+	m_objectSelection.clear();
+
+	m_editorState.currentPageId= pageId;
+
+	// A hidden page's nodes keep their graph positions (the canvas only reads
+	// back positions of nodes it draws), so push them to the canvas before it shows them
+	if (m_canvasContext != nullptr)
+	{
+		ax::NodeEditor::EditorContext* prevContext= ed::GetCurrentEditor();
+		ed::SetCurrentEditor(m_canvasContext);
+		for (NodePtr pageNode : nodeGraph->getNodesOnPage(pageId))
+		{
+			const glm::vec2& nodePos= pageNode->getNodePos();
+			ed::SetNodePosition(MkCanvas::toCanvasId(pageNode->getId()), ImVec2(nodePos.x, nodePos.y));
+		}
+		ed::SetCurrentEditor(prevContext);
+	}
+
+	m_bNavigateToContentPending= true;
 }
 
 bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
@@ -1369,6 +1566,7 @@ bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 	{
 		m_editorState.nodeGraph= loadedGraph;
 		m_editorState.nodeGraphPath= path;
+		syncCurrentPageToGraph();
 		onNodeGraphCreated();
 		m_history.reset(m_editorState.nodeGraph->saveToSnapshotString());
 		logGraphBaseline();
@@ -1488,6 +1686,7 @@ bool NodeEditorWindow::restoreGraphSnapshot(const std::string& snapshot)
 	m_editorState.nodeGraph= restoredGraph;
 	m_editorState.startedLinkPinId= -1;
 	m_editorState.bLinkHanged= false;
+	syncCurrentPageToGraph();
 	onNodeGraphCreated();
 
 	// Stale selections may reference objects the snapshot does not contain
@@ -1759,6 +1958,108 @@ bool NodeEditorWindow::automationDeleteLink(t_node_link_id linkId, std::string& 
 	return true;
 }
 
+bool NodeEditorWindow::automationSetCurrentPage(t_graph_page_id pageId, std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	if (!nodeGraph->hasPage(pageId))
+	{
+		outError= "no page with id " + std::to_string(pageId);
+		return false;
+	}
+
+	// The switch clears the canvas selection, which needs the canvas's gui context
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		setCurrentPage(pageId);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	return true;
+}
+
+bool NodeEditorWindow::automationCreatePage(const std::string& pageClassName, t_graph_page_id& outPageId,
+											std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	GraphPageFactoryPtr pageFactory= nodeGraph->getPageFactory(pageClassName);
+	if (!pageFactory)
+	{
+		outError= "unknown page class '" + pageClassName + "'";
+		return false;
+	}
+
+	// The page seeds nodes, which touch GL resources and canvas editor state
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	GraphPagePtr newPage;
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		newPage= nodeGraph->createPage(pageFactory, m_editorState);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	if (!newPage)
+	{
+		outError= "page creation failed";
+		return false;
+	}
+
+	outPageId= newPage->getId();
+	return true;
+}
+
+bool NodeEditorWindow::automationDeletePage(t_graph_page_id pageId, std::string& outError)
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph)
+	{
+		outError= "no graph loaded";
+		return false;
+	}
+
+	if (pageId == NodeGraph::k_rootPageId)
+	{
+		outError= "the root page cannot be deleted";
+		return false;
+	}
+
+	if (!nodeGraph->getPageById(pageId))
+	{
+		outError= "no page with id " + std::to_string(pageId);
+		return false;
+	}
+
+	auto* ownerApp= getOwnerApp();
+	auto* windowContext= m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+	{
+		MkGuiScopedContext scopedContext(*m_guiContext.get());
+
+		nodeGraph->deletePage(pageId);
+	}
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
+	return true;
+}
+
 void NodeEditorWindow::onNodeGraphCreated()
 {
 	MkGuiScopedContext scopedContext(*m_guiContext.get());
@@ -1774,6 +2075,9 @@ void NodeEditorWindow::onNodeGraphCreated()
 	graph->OnPropertyModifed+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 	graph->OnPropertyDeleted+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
 	graph->OnAssetReferenceDeleted+= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceDeleted);
+	graph->OnPageCreated+= MakeDelegate(this, &NodeEditorWindow::onPageCreated);
+	graph->OnPageModified+= MakeDelegate(this, &NodeEditorWindow::onPageModified);
+	graph->OnPageDeleted+= MakeDelegate(this, &NodeEditorWindow::onPageDeleted);
 
 	// Register the node positions with the canvas (called outside the canvas
 	// frame scope, so bracket the editor context explicitly)
@@ -1809,34 +2113,41 @@ void NodeEditorWindow::onNodeGraphDeleted()
 		graph->OnPropertyModifed-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 		graph->OnPropertyDeleted-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
 		graph->OnAssetReferenceDeleted-= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceDeleted);
+		graph->OnPageCreated-= MakeDelegate(this, &NodeEditorWindow::onPageCreated);
+		graph->OnPageModified-= MakeDelegate(this, &NodeEditorWindow::onPageModified);
+		graph->OnPageDeleted-= MakeDelegate(this, &NodeEditorWindow::onPageDeleted);
 	}
 }
 
 void NodeEditorWindow::onNodeCreated(t_node_id id)
 {
-	// Place the new node at the captured cursor position and select it.
-	// Every creation path (context menu, drag drop, automation) fires this
-	// outside the canvas frame scope, so bracket the editor context.
-	const ImVec2& hangPosGridSpace= m_editorState.hangPosGridSpace;
+	// The node carries its creation point (the factory took it from the editor
+	// state it was created with, which is the cursor for user creation and a
+	// chosen spot for page-seeded nodes). Push it to the canvas and select the
+	// node when it lands on the page being shown. Every creation path fires
+	// this outside the canvas frame scope, so bracket the editor context.
 	NodePtr node= getNodeGraph()->getNodeById(id);
-	if (node)
+	const bool bOnCurrentPage= node && node->getPageId() == m_editorState.currentPageId;
+	if (node && m_canvasContext != nullptr)
 	{
-		node->setNodePos(glm::vec2(hangPosGridSpace.x, hangPosGridSpace.y));
-	}
+		const glm::vec2& nodePos= node->getNodePos();
 
-	if (m_canvasContext != nullptr)
-	{
 		ax::NodeEditor::EditorContext* prevContext= ed::GetCurrentEditor();
 		ed::SetCurrentEditor(m_canvasContext);
-		ed::SetNodePosition(MkCanvas::toCanvasId(id), hangPosGridSpace);
-		ed::ClearSelection();
-		ed::SelectNode(MkCanvas::toCanvasId(id));
+		ed::SetNodePosition(MkCanvas::toCanvasId(id), ImVec2(nodePos.x, nodePos.y));
+		if (bOnCurrentPage)
+		{
+			ed::ClearSelection();
+			ed::SelectNode(MkCanvas::toCanvasId(id));
+		}
 		ed::SetCurrentEditor(prevContext);
 	}
 
-	// Make the newly created node selected
-	m_objectSelection= GraphObjectSelection(GraphObjectIdType::NODE, 1);
-	m_objectSelection.setObjectId(0, id);
+	if (bOnCurrentPage)
+	{
+		m_objectSelection= GraphObjectSelection(GraphObjectIdType::NODE, 1);
+		m_objectSelection.setObjectId(0, id);
+	}
 
 	markHistoryCheckpoint();
 }
@@ -1878,6 +2189,31 @@ void NodeEditorWindow::onGraphPropertyDeleted(t_graph_property_id id) { markHist
 void NodeEditorWindow::onAssetReferenceCreated(AssetReferencePtr assetRef) { markHistoryCheckpoint(); }
 
 void NodeEditorWindow::onAssetReferenceDeleted(AssetReferencePtr assetRef) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onPageCreated(t_graph_page_id id)
+{
+	markHistoryCheckpoint();
+
+	// The page seeds its nodes right after this, onto the page the canvas now shows
+	setCurrentPage(id);
+}
+
+void NodeEditorWindow::onPageModified(t_graph_page_id id) { markHistoryCheckpoint(); }
+
+void NodeEditorWindow::onPageDeleted(t_graph_page_id id)
+{
+	// Raised before the page's nodes go, so the canvas leaves the page first
+	if (m_objectSelection.hasSelectionOfType(GraphObjectIdType::PAGE) && m_objectSelection.getObjectId(0) == id)
+	{
+		m_objectSelection.clear();
+	}
+	if (m_editorState.currentPageId == id)
+	{
+		setCurrentPage(NodeGraph::k_rootPageId);
+	}
+
+	markHistoryCheckpoint();
+}
 
 void NodeEditorWindow::shutdown()
 {

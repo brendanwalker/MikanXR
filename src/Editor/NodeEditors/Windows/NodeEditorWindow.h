@@ -62,6 +62,12 @@ public:
 	/// undo()/redo() instead. @returns true if the graph was restored
 	bool stepHistory(int steps);
 
+	// -- Pages ----
+	// Show the given page on the canvas, dropping the selection and framing the
+	// page's nodes. Ignored for the current page and for ids the graph lacks.
+	void setCurrentPage(t_graph_page_id pageId);
+	inline t_graph_page_id getCurrentPageId() const { return m_editorState.currentPageId; }
+
 	// -- Automation ----
 	// Parked work from the automation server, run at the top of the next
 	// update where this window's GL and gui contexts can be made current
@@ -74,6 +80,9 @@ public:
 	bool automationCreateLink(t_node_pin_id startPinId, t_node_pin_id endPinId, t_node_link_id& outLinkId,
 							  std::string& outError);
 	bool automationDeleteLink(t_node_link_id linkId, std::string& outError);
+	bool automationSetCurrentPage(t_graph_page_id pageId, std::string& outError);
+	bool automationCreatePage(const std::string& pageClassName, t_graph_page_id& outPageId, std::string& outError);
+	bool automationDeletePage(t_graph_page_id pageId, std::string& outError);
 
 	// Ask the app to tear this window down at the end of the frame
 	void requestClose() { m_bCloseRequested= true; }
@@ -117,6 +126,8 @@ protected:
 	virtual void dockExtraPanels(unsigned int& rightId) {}
 	virtual void renderGraphVariablesPanel();
 	virtual void renderNewGraphVariablesContextMenu(const NodeEditorState& editorState);
+	// The page list (root first) with the page factories' add buttons below it
+	virtual void renderPagesPanel();
 	virtual void renderAssetsPanel();
 	virtual void renderSelectedObjectPanel();
 	void renderVariableNameField(GraphPropertyPtr property);
@@ -143,6 +154,9 @@ protected:
 
 	virtual void onAssetReferenceCreated(AssetReferencePtr assetRef);
 	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef);
+	virtual void onPageCreated(t_graph_page_id id);
+	virtual void onPageModified(t_graph_page_id id);
+	virtual void onPageDeleted(t_graph_page_id id);
 
 	// Rebind the restored graph to its owning component after an undo/redo
 	// rebuilds the graph instance
@@ -158,10 +172,16 @@ protected:
 	// layout persists to (one per editor kind, so each keeps its own layout)
 	virtual const char* getWindowTitleKey() const { return "windows.nodeEditor"; }
 	virtual std::string getGuiIniName() const { return "node_editor"; }
+	// The Pages panel's title key (a subclass names its pages for what they hold)
+	virtual const char* getPagesPanelTitleKey() const { return "windows.nodePagesPanel"; }
 
 	// Install a freshly created graph (the creator runs with this window's GL
 	// context current), then reset the history baseline
 	void createNewGraph(const std::function<NodeGraphPtr()>& createGraph);
+
+	// Fall back to the root page when the installed graph lacks the current one
+	// (an undo inside a page that survives the step stays on that page)
+	void syncCurrentPageToGraph();
 
 	// -- Undo history ----
 	void markHistoryCheckpoint() { m_bCheckpointPending= true; }
@@ -180,6 +200,9 @@ protected:
 
 	// The canvas view state (pan/zoom/selection) for this window's graph
 	ax::NodeEditor::EditorContext* m_canvasContext= nullptr;
+	// Frame the current page's nodes on the next canvas frame (navigation needs
+	// the editor current and the page's nodes submitted)
+	bool m_bNavigateToContentPending= false;
 
 	GraphObjectSelection m_objectSelection;
 
@@ -212,6 +235,7 @@ protected:
 	// Dockable panel visibility, toggled from the View menu (not persisted;
 	// the dock geometry itself persists via the window's imgui ini)
 	bool m_bShowVariablesPanel= true;
+	bool m_bShowPagesPanel= true;
 	bool m_bShowAssetsPanel= true;
 	bool m_bShowDetailsPanel= true;
 };

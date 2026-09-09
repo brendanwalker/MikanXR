@@ -22,6 +22,10 @@ configuru::Config NodeConfig::writeToJSON()
 	writeStdValueVector<t_node_pin_id>(pt, "pins_in", pinIDsIn);
 	writeStdValueVector<t_node_pin_id>(pt, "pins_out", pinIDsOut);
 	writeStdArray<float, 2>(pt, "pos", pos);
+	if (pageId != 0)
+	{
+		pt["page"]= pageId;
+	}
 
 	return pt;
 }
@@ -35,6 +39,7 @@ void NodeConfig::readFromJSON(const configuru::Config& pt)
 	readStdValueVector<t_node_pin_id>(pt, "pins_in", pinIDsIn);
 	readStdValueVector<t_node_pin_id>(pt, "pins_out", pinIDsOut);
 	readStdArray<float, 2>(pt, "pos", pos);
+	pageId= pt.get_or<t_graph_page_id>("page", 0);
 }
 
 // -- Node -----
@@ -53,6 +58,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 	m_id= nodeConfig->id;
 	m_nodePos= {nodeConfig->pos[0], nodeConfig->pos[1]};
+	m_pageId= nodeConfig->pageId;
 
 	for (t_node_pin_id pinId : nodeConfig->pinIDsIn)
 	{
@@ -92,6 +98,7 @@ void Node::saveToConfig(NodeConfigPtr nodeConfig) const
 	nodeConfig->className= getClassName();
 	nodeConfig->id= m_id;
 	nodeConfig->pos= {m_nodePos.x, m_nodePos.y};
+	nodeConfig->pageId= m_pageId;
 
 	for (NodePinPtr pin : m_pinsIn)
 	{
@@ -397,6 +404,9 @@ NodePtr NodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	NodePtr newNode= allocateNode();
 	newNode->setId(editorState.nodeGraph->allocateId());
+	newNode->setPageId(editorState.currentPageId);
+	// The creation point is the node's first position; the editor window reads it from the node
+	newNode->setNodePos(glm::vec2(editorState.hangPosGridSpace.x, editorState.hangPosGridSpace.y));
 
 	// Assign graph to the node, which may in turn setup listener delegates to graph events
 	newNode->setOwnerGraph(editorState.nodeGraph);

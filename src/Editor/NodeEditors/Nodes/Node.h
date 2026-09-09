@@ -42,6 +42,8 @@ public:
 	std::vector<t_node_pin_id> pinIDsIn;
 	std::vector<t_node_pin_id> pinIDsOut;
 	std::array<float, 2> pos;
+	// The page the node sits on; 0 (the root page) for every graph saved before pages existed
+	t_graph_page_id pageId= 0;
 };
 
 class Node : public std::enable_shared_from_this<Node>
@@ -76,6 +78,9 @@ public:
 
 	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }
+
+	inline void setPageId(t_graph_page_id pageId) { m_pageId= pageId; }
+	inline t_graph_page_id getPageId() const { return m_pageId; }
 
 	inline const std::vector<NodePinPtr>& getInputPins() const { return m_pinsIn; }
 	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }
@@ -144,6 +149,7 @@ protected:
 	std::vector<NodePinPtr> m_pinsIn;
 	std::vector<NodePinPtr> m_pinsOut;
 	glm::vec2 m_nodePos;
+	t_graph_page_id m_pageId= 0;
 	bool m_bIsPendingDeletion;
 
 	// NodePin calls onLinkConnected/ onLinkDisconnected

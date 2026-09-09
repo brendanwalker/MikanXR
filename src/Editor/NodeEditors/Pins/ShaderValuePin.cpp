@@ -80,6 +80,9 @@ bool ShaderValuePin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 	if (getDirection() == otherPinPtr->getDirection())
 		return false;
 
+	if (!isOnSamePage(otherPinPtr))
+		return false;
+
 	auto otherPin= std::static_pointer_cast<ShaderValuePin>(otherPinPtr);
 	const ShaderValuePin* sourcePin= (getDirection() == eNodePinDirection::OUTPUT) ? this : otherPin.get();
 	const ShaderValuePin* targetPin= (getDirection() == eNodePinDirection::INPUT) ? this : otherPin.get();

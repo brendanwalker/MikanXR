@@ -447,7 +447,8 @@ void AutomationServer::registerCoreNamespaces()
 	registerCommandNamespace("nodegraph",
 							 {"nodegraph open [compositorComponentId]", "nodegraph open material <graphPath>",
 							  "nodegraph open material new [compositor|shape]", "nodegraph close", "nodegraph info",
-							  "nodegraph list nodes|pins|links|properties",
+							  "nodegraph list nodes|pins|links|properties|pages", "nodegraph page [pageId]",
+							  "nodegraph createpage <pageClassName>", "nodegraph deletepage <pageId>",
 							  "nodegraph createnode <nodeClassName> [x y]", "nodegraph deletenode <nodeId>",
 							  "nodegraph createlink <startPinId> <endPinId>", "nodegraph deletelink <linkId>",
 							  "nodegraph undo [n]", "nodegraph redo [n]", "nodegraph run on|off", "nodegraph compile",
@@ -928,8 +929,8 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 {
 	if (args.empty())
 	{
-		outError=
-			"usage: nodegraph open|close|info|list|createnode|deletenode|createlink|deletelink|undo|redo|run|compile";
+		outError= "usage: nodegraph open|close|info|list|page|createpage|deletepage|createnode|deletenode|"
+				  "createlink|deletelink|undo|redo|run|compile|renamevar|reordervar";
 		return false;
 	}
 
@@ -1015,6 +1016,9 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 		outLines.push_back("pins " + std::to_string(nodeGraph->getPinsMap().size()));
 		outLines.push_back("links " + std::to_string(nodeGraph->getLinksMap().size()));
 		outLines.push_back("properties " + std::to_string(nodeGraph->getPropertyMap().size()));
+		outLines.push_back("page " + std::to_string(window->getCurrentPageId()));
+		// The implicit root page is not counted
+		outLines.push_back("pages " + std::to_string(nodeGraph->getPages().size()));
 		outLines.push_back(std::string("can_undo ") + (window->canUndo() ? "true" : "false"));
 		outLines.push_back(std::string("can_redo ") + (window->canRedo() ? "true" : "false"));
 		outLines.push_back("history_depth " + std::to_string(window->getHistory().getDepth()));
@@ -1051,7 +1055,18 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 		{
 			for (const auto& [nodeId, node] : nodeGraph->getNodesMap())
 			{
-				outLines.push_back(std::to_string(nodeId) + " " + node->getClassName() + " " + node->editorGetTitle());
+				// The title may hold spaces, so the page id goes last
+				outLines.push_back(std::to_string(nodeId) + " " + node->getClassName() + " " + node->editorGetTitle()
+								   + " " + std::to_string(node->getPageId()));
+			}
+		}
+		else if (kind == "pages")
+		{
+			// The implicit root first, then the created pages in id order
+			outLines.push_back(std::to_string(NodeGraph::k_rootPageId) + " root Main");
+			for (const auto& [pageId, page] : nodeGraph->getPages())
+			{
+				outLines.push_back(std::to_string(pageId) + " " + page->getClassName() + " " + page->getName());
 			}
 		}
 		else if (kind == "pins")
@@ -1088,7 +1103,7 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 		}
 		else
 		{
-			outError= "usage: nodegraph list nodes|pins|links|properties";
+			outError= "usage: nodegraph list nodes|pins|links|properties|pages";
 			return false;
 		}
 
@@ -1202,6 +1217,91 @@ bool AutomationServer::handleNodeGraphCommand(const std::vector<std::string>& ar
 				else
 				{
 					sendErrorReply("nodegraph deletelink: " + error);
+				}
+			});
+		return true;
+	}
+	else if (verb == "page")
+	{
+		if (args.size() < 2)
+		{
+			outLines.push_back(std::to_string(window->getCurrentPageId()));
+			return true;
+		}
+
+		int pageId= -1;
+		if (!parseComponentId(args[1], pageId))
+		{
+			outError= "usage: nodegraph page [pageId]";
+			return false;
+		}
+
+		// The canvas rebinds inside the window's update; replies the resulting page id
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, window, pageId]()
+			{
+				std::string error;
+				if (window->automationSetCurrentPage(pageId, error))
+				{
+					sendReply({std::to_string(window->getCurrentPageId())});
+				}
+				else
+				{
+					sendErrorReply("nodegraph page: " + error);
+				}
+			});
+		return true;
+	}
+	else if (verb == "createpage")
+	{
+		if (args.size() < 2)
+		{
+			outError= "usage: nodegraph createpage <pageClassName>";
+			return false;
+		}
+
+		const std::string pageClassName= args[1];
+
+		// A new page may seed nodes, which needs the window's GL and gui contexts current
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, window, pageClassName]()
+			{
+				t_graph_page_id newPageId= -1;
+				std::string error;
+				if (window->automationCreatePage(pageClassName, newPageId, error))
+				{
+					sendReply({std::to_string(newPageId)});
+				}
+				else
+				{
+					sendErrorReply("nodegraph createpage: " + error);
+				}
+			});
+		return true;
+	}
+	else if (verb == "deletepage")
+	{
+		int pageId= -1;
+		if (args.size() < 2 || !parseComponentId(args[1], pageId))
+		{
+			outError= "usage: nodegraph deletepage <pageId>";
+			return false;
+		}
+
+		m_bReplyDeferred= true;
+		window->enqueueAutomationTask(
+			[this, window, pageId]()
+			{
+				std::string error;
+				if (window->automationDeletePage(pageId, error))
+				{
+					sendReply({});
+				}
+				else
+				{
+					sendErrorReply("nodegraph deletepage: " + error);
 				}
 			});
 		return true;
