@@ -1,22 +1,23 @@
 {
-    "materialName": "rgbInvAlphaFrame",
-    "vertexShaderPath": "../shared/compositorFrame.vert",
-    "fragmentShaderPath": "rgbInvAlphaFrame.frag",
-	"vertexAttributes":
-	[
+	"materialName":       "rgbInvAlphaFrame",
+	"vertexShaderPath":   "rgbInvAlphaFrame.vert",
+	"fragmentShaderPath": "rgbInvAlphaFrame.frag",
+	"vertexAttributes":   [
 		{
-			"name": "aPos",
+			"name":     "aPos",
 			"dataType": "vec2",
 			"semantic": "position"
 		},
 		{
-			"name": "aTexCoords",
+			"name":     "aTexCoords",
 			"dataType": "vec2",
 			"semantic": "texCoord"
-		}		
-	],	
-    "uniformSemanticMap":
-    {
-        "rgbaTexture": "rgbaTexture"
-    }
+		}
+	],
+	"uniformSemanticMap": {
+		"rgbaTexture": "textureParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "rgbInvAlphaFrame.graph"
 }

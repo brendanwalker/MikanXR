@@ -1,22 +1,23 @@
 {
-    "materialName": "rgbBlendedFrame",
-    "vertexShaderPath": "../shared/compositorFrame.vert",
-    "fragmentShaderPath": "rgbBlendedFrame.frag",
-	"vertexAttributes":
-	[
+	"materialName":       "rgbBlendedFrame",
+	"vertexShaderPath":   "rgbBlendedFrame.vert",
+	"fragmentShaderPath": "rgbBlendedFrame.frag",
+	"vertexAttributes":   [
 		{
-			"name": "aPos",
+			"name":     "aPos",
 			"dataType": "vec2",
 			"semantic": "position"
 		},
 		{
-			"name": "aTexCoords",
+			"name":     "aTexCoords",
 			"dataType": "vec2",
 			"semantic": "texCoord"
-		}		
-	],	
-    "uniformSemanticMap":
-    {
-        "rgbTexture": "rgbTexture"
-    }
+		}
+	],
+	"uniformSemanticMap": {
+		"rgbTexture": "textureParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "rgbBlendedFrame.graph"
 }

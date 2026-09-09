@@ -49,8 +49,8 @@ The node set, in `Nodes/Material/`, with the create menu category each files und
 - Constants: `ShaderConstantNode` (float, float2, float3, float4, color)
 - Parameters: `ShaderParameterNode` (float, float2, float3, float4, color, and the `time` float), `ShaderTextureParameterNode`. A parameter compiles to a uniform named after it with the generic parameter semantic of its type, and its default is baked into the `.mat` as a `uniformDefaults` entry as well as feeding the preview. A parameter name must be a C identifier, and one name cannot carry two types. Dropping a texture asset from the Assets panel onto the canvas creates a texture parameter with that asset as its default; the material graph has no graph variables and no texture node, since a material never knows where its inputs come from at runtime.
 - Inputs: `ShaderVertexInputNode` (position, normal, texCoord, color, gated by the preset), `ShaderSemanticInputNode` (screenSize, screenPosition, cameraPosition, zNear, zFar, each a uniform of the existing semantic)
-- Texture: `ShaderTextureSampleNode`. An unconnected `uv` samples at the preset's texture coordinate.
-- Math: `ShaderMathNode`, table driven by `MaterialCompiler/ShaderMathOpTable.cpp`. Adding an op is one table row plus a `nodes.math<Op>Title` localization key.
+- Texture: `ShaderTextureSampleNode`, `ShaderTextureSizeNode`. An unconnected `uv` samples at the preset's texture coordinate.
+- Math: `ShaderMathNode`, table driven by `MaterialCompiler/ShaderMathOpTable.cpp`. Adding an op is one table row plus a `nodes.math<Op>Title` localization key. `ShaderIfNode` (one create menu entry per comparison) selects between two values by comparing two others; ordering comparisons take scalars, equality also takes vectors of one type.
 - Vector: `ShaderSwizzleNode`, `ShaderAppendNode`
 - Custom: `ShaderCustomExpressionNode`, a raw GLSL function body with declared typed inputs. It is the escape hatch for anything the node set lacks, and the one node that ties the graph to GLSL: it marks the compile result `glslOnly` and draws a warning glyph on the node.
 
@@ -72,7 +72,7 @@ Nodes never spell shader text. Every expression and declaration goes through `IS
 MikanCmd.exe -compileMaterial=resources/shaders/compositor/rgbaFrame/rgbaFrame.graph
 ```
 
-`rgbaFrame` and `shapePT` are the two bundled materials authored this way; the rest are still hand-written.
+Every bundled material under `resources/shaders` is authored this way. The shared `compositor/shared/compositorFrame.vert` stays for hand-written compositor materials, which are still supported; a graph-authored material carries its own vertex shader.
 
 ---
 

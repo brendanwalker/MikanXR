@@ -1,23 +1,26 @@
 {
-    "materialName": "rgbaDepthCompare",
-    "vertexShaderPath": "../shared/compositorFrame.vert",
-    "fragmentShaderPath": "rgbaDepthCompare.frag",
-    "vertexAttributes": [
-        {
-            "name": "aPos",
-            "dataType": "vec2",
-            "semantic": "position"
-        },
-        {
-            "name": "aTexCoords",
-            "dataType": "vec2",
-            "semantic": "texCoord"
-        }
-    ],
-    "uniformSemanticMap": {
-        "rgbaTextureA": "rgbaTexture",
-        "depthTextureA": "depthTexture",
-        "rgbaTextureB": "rgbaTexture",
-        "depthTextureB": "depthTexture"
-    }
+	"materialName":       "rgbaDepthCompare",
+	"vertexShaderPath":   "rgbaDepthCompare.vert",
+	"fragmentShaderPath": "rgbaDepthCompare.frag",
+	"vertexAttributes":   [
+		{
+			"name":     "aPos",
+			"dataType": "vec2",
+			"semantic": "position"
+		},
+		{
+			"name":     "aTexCoords",
+			"dataType": "vec2",
+			"semantic": "texCoord"
+		}
+	],
+	"uniformSemanticMap": {
+		"depthTextureA": "textureParam",
+		"depthTextureB": "textureParam",
+		"rgbaTextureA":  "textureParam",
+		"rgbaTextureB":  "textureParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "rgbaDepthCompare.graph"
 }

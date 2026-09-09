@@ -1,0 +1,1040 @@
+{
+	"class_name": "MaterialNodeGraph",
+	"next_id": 67,
+	"settings": {
+		"domain": "compositor",
+		"vertex_preset": "P2T"
+	},
+	"properties": [],
+	"assetReferences": [],
+	"nodes": [
+		{
+			"class_name": "ShaderTextureParameterNode",
+			"id": 0,
+			"pins_in": [],
+			"pins_out": [
+				1
+			],
+			"pos": [
+				40.0,
+				60.0
+			],
+			"parameter_name": "videoDepth",
+			"default_texture_path": ""
+		},
+		{
+			"class_name": "ShaderTextureParameterNode",
+			"id": 2,
+			"pins_in": [],
+			"pins_out": [
+				3
+			],
+			"pos": [
+				40.0,
+				230.0
+			],
+			"parameter_name": "clientRGBA",
+			"default_texture_path": ""
+		},
+		{
+			"class_name": "ShaderTextureParameterNode",
+			"id": 4,
+			"pins_in": [],
+			"pins_out": [
+				5
+			],
+			"pos": [
+				40.0,
+				400.0
+			],
+			"parameter_name": "clientDepth",
+			"default_texture_path": ""
+		},
+		{
+			"class_name": "ShaderTextureSampleNode",
+			"id": 6,
+			"pins_in": [
+				7,
+				8
+			],
+			"pins_out": [
+				9,
+				10,
+				11,
+				12,
+				13
+			],
+			"pos": [
+				340.0,
+				60.0
+			]
+		},
+		{
+			"class_name": "ShaderTextureSampleNode",
+			"id": 14,
+			"pins_in": [
+				15,
+				16
+			],
+			"pins_out": [
+				17,
+				18,
+				19,
+				20,
+				21
+			],
+			"pos": [
+				340.0,
+				230.0
+			]
+		},
+		{
+			"class_name": "ShaderTextureSampleNode",
+			"id": 22,
+			"pins_in": [
+				23,
+				24
+			],
+			"pins_out": [
+				25,
+				26,
+				27,
+				28,
+				29
+			],
+			"pos": [
+				340.0,
+				400.0
+			]
+		},
+		{
+			"class_name": "ShaderMathNode",
+			"id": 30,
+			"pins_in": [
+				31,
+				32
+			],
+			"pins_out": [
+				33
+			],
+			"pos": [
+				640.0,
+				60.0
+			],
+			"op": "min"
+		},
+		{
+			"class_name": "ShaderConstantNode",
+			"id": 34,
+			"pins_in": [],
+			"pins_out": [
+				35
+			],
+			"pos": [
+				40.0,
+				570.0
+			],
+			"value_type": "float4",
+			"value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			],
+			"is_color": false
+		},
+		{
+			"class_name": "ShaderIfNode",
+			"id": 36,
+			"pins_in": [
+				37,
+				38,
+				39,
+				40
+			],
+			"pins_out": [
+				41
+			],
+			"pos": [
+				1240.0,
+				60.0
+			],
+			"comparison": "less"
+		},
+		{
+			"class_name": "MaterialOutputNode",
+			"id": 42,
+			"pins_in": [
+				43
+			],
+			"pins_out": [],
+			"pos": [
+				1540.0,
+				60.0
+			]
+		},
+		{
+			"class_name": "ShaderSwizzleNode",
+			"id": 44,
+			"pins_in": [
+				45
+			],
+			"pins_out": [
+				46
+			],
+			"pos": [
+				640.0,
+				230.0
+			],
+			"mask": "xyz"
+		},
+		{
+			"class_name": "ShaderMathNode",
+			"id": 47,
+			"pins_in": [
+				48
+			],
+			"pins_out": [
+				49
+			],
+			"pos": [
+				640.0,
+				400.0
+			],
+			"op": "oneMinus"
+		},
+		{
+			"class_name": "ShaderAppendNode",
+			"id": 50,
+			"pins_in": [
+				51,
+				52
+			],
+			"pins_out": [
+				53
+			],
+			"pos": [
+				940.0,
+				60.0
+			]
+		}
+	],
+	"pins": [
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "texture",
+			"id": 1,
+			"direction": "output",
+			"owner_node_id": 0,
+			"connected_links": [
+				54
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "texture2D",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "texture",
+			"id": 3,
+			"direction": "output",
+			"owner_node_id": 2,
+			"connected_links": [
+				55
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "texture2D",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "texture",
+			"id": 5,
+			"direction": "output",
+			"owner_node_id": 4,
+			"connected_links": [
+				56
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "texture2D",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "texture",
+			"id": 7,
+			"direction": "input",
+			"owner_node_id": 6,
+			"connected_links": [
+				54
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "texture2D",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "uv",
+			"id": 8,
+			"direction": "input",
+			"owner_node_id": 6,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float2",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "rgba",
+			"id": 9,
+			"direction": "output",
+			"owner_node_id": 6,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float4",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "r",
+			"id": 10,
+			"direction": "output",
+			"owner_node_id": 6,
+			"connected_links": [
+				57
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "g",
+			"id": 11,
+			"direction": "output",
+			"owner_node_id": 6,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "b",
+			"id": 12,
+			"direction": "output",
+			"owner_node_id": 6,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "a",
+			"id": 13,
+			"direction": "output",
+			"owner_node_id": 6,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "texture",
+			"id": 15,
+			"direction": "input",
+			"owner_node_id": 14,
+			"connected_links": [
+				55
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "texture2D",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "uv",
+			"id": 16,
+			"direction": "input",
+			"owner_node_id": 14,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float2",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "rgba",
+			"id": 17,
+			"direction": "output",
+			"owner_node_id": 14,
+			"connected_links": [
+				62
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float4",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "r",
+			"id": 18,
+			"direction": "output",
+			"owner_node_id": 14,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "g",
+			"id": 19,
+			"direction": "output",
+			"owner_node_id": 14,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "b",
+			"id": 20,
+			"direction": "output",
+			"owner_node_id": 14,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "a",
+			"id": 21,
+			"direction": "output",
+			"owner_node_id": 14,
+			"connected_links": [
+				63
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "texture",
+			"id": 23,
+			"direction": "input",
+			"owner_node_id": 22,
+			"connected_links": [
+				56
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "texture2D",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "uv",
+			"id": 24,
+			"direction": "input",
+			"owner_node_id": 22,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float2",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "rgba",
+			"id": 25,
+			"direction": "output",
+			"owner_node_id": 22,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float4",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "r",
+			"id": 26,
+			"direction": "output",
+			"owner_node_id": 22,
+			"connected_links": [
+				58
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "g",
+			"id": 27,
+			"direction": "output",
+			"owner_node_id": 22,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "b",
+			"id": 28,
+			"direction": "output",
+			"owner_node_id": 22,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "a",
+			"id": 29,
+			"direction": "output",
+			"owner_node_id": 22,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "a",
+			"id": 31,
+			"direction": "input",
+			"owner_node_id": 30,
+			"connected_links": [
+				57
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "b",
+			"id": 32,
+			"direction": "input",
+			"owner_node_id": 30,
+			"connected_links": [],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.9998,
+				0.9998,
+				0.9998,
+				0.9998
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "result",
+			"id": 33,
+			"direction": "output",
+			"owner_node_id": 30,
+			"connected_links": [
+				59
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "value",
+			"id": 35,
+			"direction": "output",
+			"owner_node_id": 34,
+			"connected_links": [
+				60
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float4",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "a",
+			"id": 37,
+			"direction": "input",
+			"owner_node_id": 36,
+			"connected_links": [
+				58
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "b",
+			"id": 38,
+			"direction": "input",
+			"owner_node_id": 36,
+			"connected_links": [
+				59
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "whenTrue",
+			"id": 39,
+			"direction": "input",
+			"owner_node_id": 36,
+			"connected_links": [
+				66
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				1.0,
+				1.0,
+				1.0,
+				1.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "whenFalse",
+			"id": 40,
+			"direction": "input",
+			"owner_node_id": 36,
+			"connected_links": [
+				60
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "result",
+			"id": 41,
+			"direction": "output",
+			"owner_node_id": 36,
+			"connected_links": [
+				61
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "color",
+			"id": 43,
+			"direction": "input",
+			"owner_node_id": 42,
+			"connected_links": [
+				61
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "float4",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				1.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "value",
+			"id": 45,
+			"direction": "input",
+			"owner_node_id": 44,
+			"connected_links": [
+				62
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "result",
+			"id": 46,
+			"direction": "output",
+			"owner_node_id": 44,
+			"connected_links": [
+				64
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "value",
+			"id": 48,
+			"direction": "input",
+			"owner_node_id": 47,
+			"connected_links": [
+				63
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "result",
+			"id": 49,
+			"direction": "output",
+			"owner_node_id": 47,
+			"connected_links": [
+				65
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "a",
+			"id": 51,
+			"direction": "input",
+			"owner_node_id": 50,
+			"connected_links": [
+				64
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "b",
+			"id": 52,
+			"direction": "input",
+			"owner_node_id": 50,
+			"connected_links": [
+				65
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		},
+		{
+			"class_name": "ShaderValuePin",
+			"pin_name": "result",
+			"id": 53,
+			"direction": "output",
+			"owner_node_id": 50,
+			"connected_links": [
+				66
+			],
+			"has_default_value": true,
+			"is_dynamic": false,
+			"value_type": "wildcard",
+			"default_value": [
+				0.0,
+				0.0,
+				0.0,
+				0.0
+			]
+		}
+	],
+	"links": [
+		{
+			"id": 54,
+			"start_pin_id": 1,
+			"end_pin_id": 7
+		},
+		{
+			"id": 55,
+			"start_pin_id": 3,
+			"end_pin_id": 15
+		},
+		{
+			"id": 56,
+			"start_pin_id": 5,
+			"end_pin_id": 23
+		},
+		{
+			"id": 57,
+			"start_pin_id": 10,
+			"end_pin_id": 31
+		},
+		{
+			"id": 58,
+			"start_pin_id": 26,
+			"end_pin_id": 37
+		},
+		{
+			"id": 59,
+			"start_pin_id": 33,
+			"end_pin_id": 38
+		},
+		{
+			"id": 60,
+			"start_pin_id": 35,
+			"end_pin_id": 40
+		},
+		{
+			"id": 61,
+			"start_pin_id": 41,
+			"end_pin_id": 43
+		},
+		{
+			"id": 62,
+			"start_pin_id": 17,
+			"end_pin_id": 45
+		},
+		{
+			"id": 63,
+			"start_pin_id": 21,
+			"end_pin_id": 48
+		},
+		{
+			"id": 64,
+			"start_pin_id": 46,
+			"end_pin_id": 51
+		},
+		{
+			"id": 65,
+			"start_pin_id": 49,
+			"end_pin_id": 52
+		},
+		{
+			"id": 66,
+			"start_pin_id": 53,
+			"end_pin_id": 39
+		}
+	]
+}

@@ -1,24 +1,28 @@
 {
-    "materialName": "rgbaDepthKeyFrame",
-    "vertexShaderPath": "../shared/compositorFrame.vert",
-    "fragmentShaderPath": "rgbaDepthKeyFrame.frag",
-	"vertexAttributes":
-	[
+	"materialName":       "rgbaDepthKeyFrame",
+	"vertexShaderPath":   "rgbaDepthKeyFrame.vert",
+	"fragmentShaderPath": "rgbaDepthKeyFrame.frag",
+	"vertexAttributes":   [
 		{
-			"name": "aPos",
+			"name":     "aPos",
 			"dataType": "vec2",
 			"semantic": "position"
 		},
 		{
-			"name": "aTexCoords",
+			"name":     "aTexCoords",
 			"dataType": "vec2",
 			"semantic": "texCoord"
-		}		
-	],	
-    "uniformSemanticMap":
-    {
-		"zThreshold": "floatConstant0",
-        "rgbaTexture": "rgbaTexture",
-		"depthTexture": "depthTexture"
-    }
+		}
+	],
+	"uniformSemanticMap": {
+		"depthTexture": "textureParam",
+		"rgbaTexture":  "textureParam",
+		"zThreshold":   "floatParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "rgbaDepthKeyFrame.graph",
+	"uniformDefaults":    {
+		"zThreshold": 1.0
+	}
 }

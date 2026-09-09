@@ -1,15 +1,17 @@
 #version 330 core
-out vec4 FragColor;
-
-in vec2 TexCoords;
-
 uniform sampler2D rgbTexture;
 uniform sampler2D distortion;
 
+in vec2 vTexCoords;
+
+out vec4 FragColor;
+
 void main()
 {
-    vec2 offset = texture(distortion, TexCoords.xy).rg;
-    vec3 col = texture(rgbTexture, offset).rgb;
-
-    FragColor = vec4(col, 1.0);
-} 
+	vec4 t0 = texture(distortion, vTexCoords);
+	vec2 t1 = t0.xy;
+	vec4 t2 = texture(rgbTexture, t1);
+	vec3 t3 = t2.xyz;
+	vec4 t4 = vec4(t3, 1.0);
+	FragColor = t4;
+}
