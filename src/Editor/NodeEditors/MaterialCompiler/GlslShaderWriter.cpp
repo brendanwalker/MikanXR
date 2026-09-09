@@ -325,6 +325,11 @@ std::string GlslShaderWriter::assignFragmentColor(const std::string& expr) const
 	return k_tab + std::string("FragColor = ") + expr + ";";
 }
 
+std::string GlslShaderWriter::returnStatement(const std::string& expr) const
+{
+	return k_tab + std::string("return ") + expr + ";";
+}
+
 // -- Helpers -----
 std::string GlslShaderWriter::floatLiteral(float value)
 {

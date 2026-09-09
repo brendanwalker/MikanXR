@@ -56,8 +56,11 @@ protected:
 	virtual std::filesystem::path getDefaultGraphDirectory() const override;
 	virtual const char* getWindowTitleKey() const override { return "windows.materialEditor"; }
 	virtual std::string getGuiIniName() const override { return "material_editor"; }
+	virtual const char* getPagesPanelTitleKey() const override { return "windows.materialFunctionsPanel"; }
 
 	void onDomainChanged();
+	// A function page came, went, or changed its signature under the compiled program
+	void onPageEdited(t_graph_page_id id);
 
 protected:
 	MaterialPreviewPanel m_previewPanel;

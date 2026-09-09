@@ -11,6 +11,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <tuple>
 #include <vector>
 
 class ShaderValuePin;
@@ -19,6 +20,8 @@ class ShaderNode;
 using ShaderNodePtr= std::shared_ptr<ShaderNode>;
 class MaterialNodeGraph;
 using MaterialNodeGraphPtr= std::shared_ptr<MaterialNodeGraph>;
+class MaterialFunctionPage;
+using MaterialFunctionPagePtr= std::shared_ptr<MaterialFunctionPage>;
 
 // A symbolic value flowing along a link: an expression in the writer's language plus its type
 struct ShaderValue
@@ -66,6 +69,13 @@ public:
 	ShaderValue callFunction(eShaderValueType returnType, const std::string& name,
 							 const std::vector<ShaderFunctionParam>& params, const std::string& body,
 							 const std::vector<ShaderValue>& args);
+	// Inside a function scope, the parameter of that name; an error anywhere else
+	ShaderValue functionParameter(const std::string& name);
+	// Compile a function page into a shader function once per stage (its body is
+	// compiled in its own scope) and return a call to it with the given arguments,
+	// which the caller has already coerced to the declared input types. A page
+	// that is already being compiled is a recursion error.
+	ShaderValue callMaterialFunction(MaterialFunctionPagePtr page, const std::vector<ShaderValue>& args);
 
 	// -- Outputs -----
 	void setOutput(ShaderValuePinPtr pin, const ShaderValue& value);
@@ -112,13 +122,27 @@ private:
 		eUniformSemantic semantic;
 	};
 
-	using NodeStageKey= std::pair<t_node_id, eShaderStage>;
+	// The body of a function page while it compiles: its own statements and
+	// temporaries, and the parameters its input nodes resolve to
+	struct FunctionScope
+	{
+		t_graph_page_id pageId= -1;
+		std::vector<std::string> statements;
+		int nextTempIndex= 0;
+		std::map<std::string, ShaderValue> parameters;
+	};
+
+	// Memo and cycle keys: the scope (root page or the function page being
+	// compiled), the node, and the stage
+	using NodeStageKey= std::tuple<t_graph_page_id, t_node_id, eShaderStage>;
 
 	// Compile a node in the current stage (memoized), returning false on error
 	bool compileNode(ShaderNodePtr node);
 	ShaderValue lookupOutput(ShaderValuePinPtr pin);
 	StageBuilder& stage() { return m_stages[(int)m_stage]; }
 	const StageBuilder& stage(eShaderStage inStage) const { return m_stages[(int)inStage]; }
+	t_graph_page_id currentScopeId() const;
+	NodeStageKey makeNodeKey(t_node_id nodeId) const;
 	void ensureVertexInputDeclared(eShaderStage inStage, const MaterialVertexAttribute& attribute);
 
 	MaterialNodeGraphPtr m_graph;
@@ -134,6 +158,7 @@ private:
 	std::map<NodeStageKey, std::map<t_node_pin_id, ShaderValue>> m_nodeOutputs;
 	std::set<NodeStageKey> m_visiting;
 	std::vector<ShaderNodePtr> m_nodeStack;
+	std::vector<FunctionScope> m_functionScopes;
 	std::map<t_node_pin_id, eShaderValueType> m_resolvedPinTypes;
 };
 

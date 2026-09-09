@@ -51,6 +51,7 @@ public:
 	virtual std::string assignProjectedPosition(const std::string& matrixName,
 												const std::string& positionExpr) const override;
 	virtual std::string assignFragmentColor(const std::string& expr) const override;
+	virtual std::string returnStatement(const std::string& expr) const override;
 
 private:
 	// A float literal that always carries a decimal point, as GLSL requires

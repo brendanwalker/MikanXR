@@ -1,7 +1,10 @@
 #include "MaterialCompiler.h"
 #include "Logger.h"
 #include "MkVertexConstants.h"
+#include "Graphs/MaterialFunctionPage.h"
 #include "Graphs/MaterialNodeGraph.h"
+#include "Nodes/Material/ShaderFunctionNodes.h"
+#include "Nodes/Material/ShaderNodeUtils.h"
 #include "Graphs/NodeGraph.h"
 #include "Nodes/Material/MaterialOutputNode.h"
 #include "Nodes/Material/ShaderNode.h"
@@ -179,10 +182,13 @@ ShaderValue MaterialCompileContext::coerce(const ShaderValue& value, eShaderValu
 // -- Emission -----
 ShaderValue MaterialCompileContext::emitTemp(eShaderValueType type, const std::string& expr)
 {
-	StageBuilder& builder= stage();
-	const std::string name= "t" + std::to_string(builder.nextTempIndex++);
+	// A function body keeps its own statements and temp numbering
+	std::vector<std::string>& statements=
+		m_functionScopes.empty() ? stage().statements : m_functionScopes.back().statements;
+	int& nextTempIndex= m_functionScopes.empty() ? stage().nextTempIndex : m_functionScopes.back().nextTempIndex;
+	const std::string name= "t" + std::to_string(nextTempIndex++);
 
-	builder.statements.push_back(m_writer.declareTemp(type, name, expr));
+	statements.push_back(m_writer.declareTemp(type, name, expr));
 
 	return {name, type};
 }
@@ -284,6 +290,116 @@ ShaderValue MaterialCompileContext::callFunction(eShaderValueType returnType, co
 	return {m_writer.callFunction(name, argExprs), returnType};
 }
 
+ShaderValue MaterialCompileContext::functionParameter(const std::string& name)
+{
+	if (m_functionScopes.empty())
+	{
+		error("Function input " + name + " used outside a function");
+		return ShaderValue();
+	}
+
+	const std::map<std::string, ShaderValue>& parameters= m_functionScopes.back().parameters;
+	auto it= parameters.find(name);
+	if (it == parameters.end())
+	{
+		error("Function has no input named " + name);
+		return ShaderValue();
+	}
+
+	return it->second;
+}
+
+ShaderValue MaterialCompileContext::callMaterialFunction(MaterialFunctionPagePtr page,
+														 const std::vector<ShaderValue>& args)
+{
+	if (!page)
+	{
+		error("Function call has no function page");
+		return ShaderValue();
+	}
+
+	const std::string& name= page->getName();
+	if (!ShaderNodeUtils::isValidIdentifier(name))
+	{
+		error("Function name " + name + " is not a valid identifier");
+		return ShaderValue();
+	}
+
+	const std::vector<MaterialFunctionInput>& inputs= page->getInputs();
+	if (args.size() != inputs.size())
+	{
+		error("Function " + name + " takes " + std::to_string(inputs.size()) + " arguments");
+		return ShaderValue();
+	}
+
+	for (const FunctionScope& scope : m_functionScopes)
+	{
+		if (scope.pageId == page->getId())
+		{
+			error("Function " + name + " calls itself");
+			return ShaderValue();
+		}
+	}
+
+	// Compile the body once per stage, in its own scope, so every call shares one declaration
+	StageBuilder& builder= stage();
+	if (builder.declaredFunctions.find(name) == builder.declaredFunctions.end())
+	{
+		ShaderFunctionOutputNodePtr outputNode= page->getOutputNode();
+		if (!outputNode)
+		{
+			error("Function " + name + " has no output node");
+			return ShaderValue();
+		}
+
+		FunctionScope scope;
+		scope.pageId= page->getId();
+		std::vector<ShaderFunctionParam> params;
+		for (const MaterialFunctionInput& input : inputs)
+		{
+			scope.parameters[input.name]= ShaderValue{input.name, input.type};
+			params.push_back({input.type, input.name});
+		}
+		m_functionScopes.push_back(scope);
+
+		ShaderValue result= coerce(input(outputNode->getValuePin()), page->getOutputType());
+
+		FunctionScope compiledScope= m_functionScopes.back();
+		m_functionScopes.pop_back();
+
+		if (!result.isValid())
+		{
+			error("Function " + name + " failed to compile");
+			return ShaderValue();
+		}
+
+		// Statements come out at main's indentation; the writer re-indents the
+		// body it is given, so the leading level is stripped here
+		std::string body;
+		for (const std::string& statement : compiledScope.statements)
+		{
+			body+= (!statement.empty() && statement[0] == '\t') ? statement.substr(1) : statement;
+			body+= "\n";
+		}
+		const std::string returnLine= m_writer.returnStatement(result.expr);
+		body+= (!returnLine.empty() && returnLine[0] == '\t') ? returnLine.substr(1) : returnLine;
+
+		builder.functionDeclarations.push_back(m_writer.declareFunction(page->getOutputType(), name, params, body));
+		builder.declaredFunctions.insert(name);
+	}
+
+	std::vector<std::string> argExprs;
+	argExprs.reserve(args.size());
+	for (const ShaderValue& arg : args)
+	{
+		if (!arg.isValid())
+			return ShaderValue();
+		argExprs.push_back(arg.expr);
+	}
+
+	return {m_writer.callFunction(name, argExprs), page->getOutputType()};
+}
+
 // -- Outputs -----
 void MaterialCompileContext::setOutput(ShaderValuePinPtr pin, const ShaderValue& value)
 {
@@ -300,7 +416,7 @@ void MaterialCompileContext::setOutput(ShaderValuePinPtr pin, const ShaderValue&
 		return;
 	}
 
-	m_nodeOutputs[NodeStageKey(node->getId(), m_stage)][pin->getId()]= value;
+	m_nodeOutputs[makeNodeKey(node->getId())][pin->getId()]= value;
 	if (value.isValid())
 	{
 		m_resolvedPinTypes[pin->getId()]= value.type;
@@ -494,9 +610,19 @@ eUniformSemantic MaterialCompileContext::getUniformSemantic(const std::string& n
 }
 
 // -- Private -----
+t_graph_page_id MaterialCompileContext::currentScopeId() const
+{
+	return m_functionScopes.empty() ? NodeGraph::k_rootPageId : m_functionScopes.back().pageId;
+}
+
+MaterialCompileContext::NodeStageKey MaterialCompileContext::makeNodeKey(t_node_id nodeId) const
+{
+	return NodeStageKey(currentScopeId(), nodeId, m_stage);
+}
+
 bool MaterialCompileContext::compileNode(ShaderNodePtr node)
 {
-	const NodeStageKey key(node->getId(), m_stage);
+	const NodeStageKey key= makeNodeKey(node->getId());
 
 	// A node still on the stack already has its (empty) outputs entry, so the
 	// cycle check has to run before the memo check
@@ -530,7 +656,7 @@ ShaderValue MaterialCompileContext::lookupOutput(ShaderValuePinPtr pin)
 	if (!ownerNode)
 		return ShaderValue();
 
-	auto nodeIt= m_nodeOutputs.find(NodeStageKey(ownerNode->getId(), m_stage));
+	auto nodeIt= m_nodeOutputs.find(makeNodeKey(ownerNode->getId()));
 	if (nodeIt == m_nodeOutputs.end())
 		return ShaderValue();
 

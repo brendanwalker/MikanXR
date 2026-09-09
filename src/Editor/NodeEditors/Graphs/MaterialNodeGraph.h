@@ -24,6 +24,7 @@ public:
 
 	virtual bool loadFromConfig(const NodeGraphConfig& config) override;
 	virtual void saveToConfig(NodeGraphConfig& config) const override;
+	virtual bool loadPageFromConfig(GraphPageConfigPtr pageConfig) override;
 
 	// -- Domain -----
 	eMaterialDomain getDomain() const { return m_domain; }
@@ -46,6 +47,12 @@ public:
 	virtual void editorRenderGraphPropertySheet(const class NodeEditorState& editorState) override;
 
 protected:
+	// Every function page owns one create menu entry for its call node
+	void registerFunctionCallFactory(t_graph_page_id pageId);
+	void onFunctionPageCreated(t_graph_page_id pageId);
+	void onFunctionPageModified(t_graph_page_id pageId);
+	void onFunctionPageDeleted(t_graph_page_id pageId);
+
 	eMaterialDomain m_domain= eMaterialDomain::compositor;
 	eMaterialVertexPreset m_vertexPreset= eMaterialVertexPreset::P2T;
 	std::vector<NodeEvaluationError> m_lastCompileErrors;

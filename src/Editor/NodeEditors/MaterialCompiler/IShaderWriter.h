@@ -124,4 +124,6 @@ public:
 	virtual std::string assignProjectedPosition(const std::string& matrixName,
 												const std::string& positionExpr) const= 0;
 	virtual std::string assignFragmentColor(const std::string& expr) const= 0;
+	// The return of a function body, at the same indentation as a main statement
+	virtual std::string returnStatement(const std::string& expr) const= 0;
 };

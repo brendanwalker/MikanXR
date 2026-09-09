@@ -10,9 +10,13 @@
 // Pins
 #include "Pins/ShaderValuePin.h"
 
+// Pages
+#include "Graphs/MaterialFunctionPage.h"
+
 // Nodes
 #include "Nodes/Material/MaterialNodeLibrary.h"
 #include "Nodes/Material/MaterialOutputNode.h"
+#include "Nodes/Material/ShaderFunctionNodes.h"
 
 // Compiler
 #include "MaterialCompiler/MaterialCompiler.h"
@@ -34,6 +38,46 @@ MaterialNodeGraph::MaterialNodeGraph()
 
 	addNodeFactory<MaterialOutputNodeFactory>();
 	MaterialNodeLibrary::registerNodeFactories(*this);
+
+	// Material functions: a page per function, its input and output nodes, and one
+	// call factory per page registered as pages come and go
+	addPageFactory<MaterialFunctionPageFactory>();
+	addNodeFactory<ShaderFunctionInputNodeFactory>();
+	addNodeFactory<ShaderFunctionOutputNodeFactory>();
+	addNodeFactory<ShaderFunctionCallNodeFactory>(-1, std::string());
+	OnPageCreated+= MakeDelegate(this, &MaterialNodeGraph::onFunctionPageCreated);
+	OnPageModified+= MakeDelegate(this, &MaterialNodeGraph::onFunctionPageModified);
+	OnPageDeleted+= MakeDelegate(this, &MaterialNodeGraph::onFunctionPageDeleted);
+}
+
+bool MaterialNodeGraph::loadPageFromConfig(GraphPageConfigPtr pageConfig)
+{
+	if (!NodeGraph::loadPageFromConfig(pageConfig))
+		return false;
+
+	registerFunctionCallFactory(pageConfig->id);
+
+	return true;
+}
+
+void MaterialNodeGraph::registerFunctionCallFactory(t_graph_page_id pageId)
+{
+	auto page= std::dynamic_pointer_cast<MaterialFunctionPage>(getPageById(pageId));
+	if (!page)
+		return;
+
+	// Re-registering replaces the entry, which is how a rename reaches the create menu
+	removeNodeFactory(ShaderFunctionCallNodeFactory::makeFactoryKey(pageId));
+	addNodeFactory<ShaderFunctionCallNodeFactory>(pageId, page->getName());
+}
+
+void MaterialNodeGraph::onFunctionPageCreated(t_graph_page_id pageId) { registerFunctionCallFactory(pageId); }
+
+void MaterialNodeGraph::onFunctionPageModified(t_graph_page_id pageId) { registerFunctionCallFactory(pageId); }
+
+void MaterialNodeGraph::onFunctionPageDeleted(t_graph_page_id pageId)
+{
+	removeNodeFactory(ShaderFunctionCallNodeFactory::makeFactoryKey(pageId));
 }
 
 bool MaterialNodeGraph::loadFromConfig(const NodeGraphConfig& config)

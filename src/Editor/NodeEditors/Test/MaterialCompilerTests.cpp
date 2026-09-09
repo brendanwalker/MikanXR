@@ -2,12 +2,14 @@
 #include "unit_test.h"
 
 #include "NodeEditorState.h"
+#include "Graphs/MaterialFunctionPage.h"
 #include "Graphs/MaterialNodeGraph.h"
 #include "Graphs/NodeGraph.h"
 #include "MaterialCompiler/GlslShaderWriter.h"
 #include "MaterialCompiler/MaterialCompiler.h"
 #include "Nodes/Material/MaterialOutputNode.h"
 #include "Nodes/Material/ShaderConstantNode.h"
+#include "Nodes/Material/ShaderFunctionNodes.h"
 #include "Nodes/Material/ShaderNode.h"
 #include "Nodes/Material/ShaderParameterNode.h"
 #include "Nodes/Material/ShaderSwizzleNode.h"
@@ -75,6 +77,16 @@ bool expectContains(const std::string& text, const std::string& needle, const ch
 	}
 
 	return true;
+}
+
+bool expect(bool bCondition, const char* what)
+{
+	if (!bCondition)
+	{
+		fprintf(stdout, "    FAILED: %s\n", what);
+	}
+
+	return bCondition;
 }
 
 bool expectNoErrors(const MaterialCompileResult& result)
@@ -446,6 +458,158 @@ bool material_compiler_test_if_and_texture_size()
 	UNIT_TEST_COMPLETE()
 }
 
+// A scale(value, factor) function page: value * factor, returning a float
+MaterialFunctionPagePtr makeScaleFunction(MaterialNodeGraphPtr graph, ShaderNodePtr& outMultiply)
+{
+	NodeEditorState editorState;
+	editorState.nodeGraph= graph;
+
+	MaterialFunctionPagePtr page= graph->createTypedPage<MaterialFunctionPage>(editorState);
+	if (!page)
+		return page;
+
+	page->setFunctionName("scale");
+	page->addInput();
+	page->renameInput(0, "value");
+	page->addInput();
+	page->renameInput(1, "factor");
+	page->setInputDefault(1, {2.f, 0.f, 0.f, 0.f});
+
+	// The multiply lives on the function page
+	NodeEditorState pageState= editorState;
+	pageState.currentPageId= page->getId();
+	NodeFactoryPtr multiplyFactory= graph->getNodeFactory("ShaderMathNode:multiply");
+	outMultiply= std::dynamic_pointer_cast<ShaderNode>(graph->createNode(multiplyFactory, pageState));
+
+	link(graph, page->getInputNode("value"), "value", outMultiply, "a");
+	link(graph, page->getInputNode("factor"), "value", outMultiply, "b");
+	link(graph, outMultiply, "result", page->getOutputNode(), ShaderFunctionOutputNode::k_valuePinName);
+
+	return page;
+}
+
+bool material_compiler_test_function_pages()
+{
+	UNIT_TEST_BEGIN("a function page compiles once per stage and is called from the root page")
+
+	MaterialNodeGraphPtr graph= makeMaterialGraph(eMaterialDomain::compositor);
+	ShaderNodePtr multiplyNode;
+	MaterialFunctionPagePtr page= makeScaleFunction(graph, multiplyNode);
+	success&= expect(page != nullptr && multiplyNode != nullptr, "page != nullptr && multiplyNode != nullptr");
+	success&= expect(page && multiplyNode && multiplyNode->getPageId() == page->getId(),
+					 "page && multiplyNode && multiplyNode->getPageId() == page->getId()");
+	success&= expect(page && page->getOutputNode() && page->getInputNode("value") && page->getInputNode("factor"),
+					 "page && page->getOutputNode() && page->getInputNode('value') && page->getInputNode('factor')");
+
+	// Two calls from the root page, one with the factor left at its default, both into an append
+	ShaderNodePtr halfNode= makeNode(graph, "ShaderConstantNode:float");
+	if (auto constantNode= std::dynamic_pointer_cast<ShaderConstantNode>(halfNode))
+	{
+		constantNode->setValue({0.5f, 0.f, 0.f, 0.f});
+	}
+	ShaderNodePtr firstCall=
+		page ? makeNode(graph, ShaderFunctionCallNodeFactory::makeFactoryKey(page->getId())) : ShaderNodePtr();
+	ShaderNodePtr secondCall=
+		page ? makeNode(graph, ShaderFunctionCallNodeFactory::makeFactoryKey(page->getId())) : ShaderNodePtr();
+	ShaderNodePtr appendNode= makeNode(graph, "ShaderAppendNode");
+	ShaderNodePtr colorNode= makeNode(graph, "ShaderAppendNode");
+	success&= expect(firstCall && firstCall->getPageId() == NodeGraph::k_rootPageId,
+					 "firstCall && firstCall->getPageId() == NodeGraph::k_rootPageId");
+	success&= expect(firstCall && firstCall->getShaderInputPin("value") && firstCall->getShaderInputPin("factor"),
+					 "firstCall && firstCall->getShaderInputPin('value') && firstCall->getShaderInputPin('factor')");
+
+	success&= link(graph, halfNode, "value", firstCall, "value");
+	success&= link(graph, halfNode, "value", secondCall, "value");
+	success&= link(graph, halfNode, "value", secondCall, "factor");
+	success&= link(graph, firstCall, "result", appendNode, "a");
+	success&= link(graph, secondCall, "result", appendNode, "b");
+	success&= link(graph, appendNode, "result", colorNode, "a");
+	success&= link(graph, appendNode, "result", colorNode, "b");
+	success&= link(graph, colorNode, "result", graph->getOutputNode(), MaterialOutputNode::k_colorPinName);
+
+	GlslShaderWriter writer;
+	MaterialCompileResult result= graph->compile(writer);
+	success&= expectNoErrors(result);
+
+	// One declaration, two calls, the default factor baked into the second call
+	success&= expectContains(result.fragmentSource, "float scale(float value, float factor)", "fragment source");
+	success&= expectContains(result.fragmentSource, "return t0;", "fragment source");
+	success&= expectContains(result.fragmentSource, "(value * factor)", "fragment source");
+	success&= expectContains(result.fragmentSource, "scale(0.5, 2.0)", "fragment source");
+	success&= expectContains(result.fragmentSource, "scale(0.5, 0.5)", "fragment source");
+	const size_t firstDeclaration= result.fragmentSource.find("float scale(");
+	success&= firstDeclaration != std::string::npos
+			  && result.fragmentSource.find("float scale(", firstDeclaration + 1) == std::string::npos;
+
+	// A link across pages is refused at the pin level
+	ShaderValuePinPtr rootPin= halfNode ? halfNode->getShaderOutputPin("value") : ShaderValuePinPtr();
+	ShaderValuePinPtr pagePin= multiplyNode ? multiplyNode->getShaderInputPin("a") : ShaderValuePinPtr();
+	success&= expect(rootPin && pagePin && !rootPin->canPinsBeConnected(pagePin),
+					 "rootPin && pagePin && !rootPin->canPinsBeConnected(pagePin)");
+
+	// The page, its nodes, and the call nodes survive a snapshot round trip and recompile identically
+	NodeGraphFactory::registerFactory<MaterialNodeGraphFactory>();
+	NodeGraphPtr reloaded= NodeGraphFactory::loadNodeGraphFromSnapshotString(nullptr, graph->saveToSnapshotString());
+	auto reloadedGraph= std::dynamic_pointer_cast<MaterialNodeGraph>(reloaded);
+	success&= expect(reloadedGraph != nullptr, "reloadedGraph != nullptr");
+	if (reloadedGraph)
+	{
+		success&= expect(reloadedGraph->getPages().size() == 1, "reloadedGraph->getPages().size() == 1");
+		auto reloadedPage= std::dynamic_pointer_cast<MaterialFunctionPage>(reloadedGraph->getPageById(page->getId()));
+		success&= expect(reloadedPage && reloadedPage->getName() == "scale" && reloadedPage->getInputs().size() == 2,
+						 "reloadedPage && reloadedPage->getName() == 'scale' && reloadedPage->getInputs().size() == 2");
+		success&= expect(
+			reloadedGraph->getNodeFactory(ShaderFunctionCallNodeFactory::makeFactoryKey(page->getId())) != nullptr,
+			"reloadedGraph->getNodeFactory(ShaderFunctionCallNodeFactory::makeFactoryKey(page->getId())) != nullptr");
+		MaterialCompileResult after= reloadedGraph->compile(writer);
+		success&= expectNoErrors(after);
+		success&=
+			expect(after.fragmentSource == result.fragmentSource, "after.fragmentSource == result.fragmentSource");
+	}
+
+	// Deleting the page takes its nodes and every call node with it
+	const size_t nodeCountBefore= graph->getNodesMap().size();
+	success&= expect(graph->deletePage(page->getId()), "graph->deletePage(page->getId())");
+	success&= expect(graph->getPages().empty(), "graph->getPages().empty()");
+	success&= expect(graph->getNodesMap().size() == nodeCountBefore - 6,
+					 "graph->getNodesMap().size() == nodeCountBefore - 6");
+	success&= expect(graph->getNodeFactory(ShaderFunctionCallNodeFactory::makeFactoryKey(page->getId())) == nullptr,
+					 "graph->getNodeFactory(ShaderFunctionCallNodeFactory::makeFactoryKey(page->getId())) == nullptr");
+
+	UNIT_TEST_COMPLETE()
+}
+
+bool material_compiler_test_function_recursion_is_an_error()
+{
+	UNIT_TEST_BEGIN("a function calling itself is reported rather than compiled forever")
+
+	MaterialNodeGraphPtr graph= makeMaterialGraph(eMaterialDomain::compositor);
+	ShaderNodePtr multiplyNode;
+	MaterialFunctionPagePtr page= makeScaleFunction(graph, multiplyNode);
+	success&= expect(page != nullptr, "page != nullptr");
+
+	// A call to the function placed on its own page, feeding its multiply
+	NodeEditorState pageState;
+	pageState.nodeGraph= graph;
+	pageState.currentPageId= page ? page->getId() : 0;
+	NodeFactoryPtr callFactory=
+		page ? graph->getNodeFactory(ShaderFunctionCallNodeFactory::makeFactoryKey(page->getId())) : NodeFactoryPtr();
+	ShaderNodePtr innerCall= callFactory
+								 ? std::dynamic_pointer_cast<ShaderNode>(graph->createNode(callFactory, pageState))
+								 : ShaderNodePtr();
+	success&= link(graph, innerCall, "result", multiplyNode, "a");
+
+	ShaderNodePtr outerCall=
+		page ? makeNode(graph, ShaderFunctionCallNodeFactory::makeFactoryKey(page->getId())) : ShaderNodePtr();
+	success&= link(graph, outerCall, "result", graph->getOutputNode(), MaterialOutputNode::k_colorPinName);
+
+	GlslShaderWriter writer;
+	MaterialCompileResult result= graph->compile(writer);
+	success&= expectErrorMentioning(result, "calls itself");
+
+	UNIT_TEST_COMPLETE()
+}
+
 bool material_compiler_test_custom_expression_flags_glsl_only()
 {
 	UNIT_TEST_BEGIN("a custom expression compiles to a function and marks the material GLSL only")
@@ -586,6 +750,8 @@ bool run_material_compiler_tests()
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_cycle_is_an_error);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_parameter_name_conflicts);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_if_and_texture_size);
+	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_function_pages);
+	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_function_recursion_is_an_error);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_custom_expression_flags_glsl_only);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_snapshot_round_trip);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_shipped_graphs_match_outputs);

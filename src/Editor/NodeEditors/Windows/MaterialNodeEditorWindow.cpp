@@ -284,6 +284,9 @@ void MaterialNodeEditorWindow::onNodeGraphCreated()
 	if (materialGraph)
 	{
 		materialGraph->OnDomainChanged+= MakeDelegate(this, &MaterialNodeEditorWindow::onDomainChanged);
+		materialGraph->OnPageCreated+= MakeDelegate(this, &MaterialNodeEditorWindow::onPageEdited);
+		materialGraph->OnPageModified+= MakeDelegate(this, &MaterialNodeEditorWindow::onPageEdited);
+		materialGraph->OnPageDeleted+= MakeDelegate(this, &MaterialNodeEditorWindow::onPageEdited);
 	}
 }
 
@@ -293,6 +296,9 @@ void MaterialNodeEditorWindow::onNodeGraphDeleted()
 	if (materialGraph)
 	{
 		materialGraph->OnDomainChanged-= MakeDelegate(this, &MaterialNodeEditorWindow::onDomainChanged);
+		materialGraph->OnPageCreated-= MakeDelegate(this, &MaterialNodeEditorWindow::onPageEdited);
+		materialGraph->OnPageModified-= MakeDelegate(this, &MaterialNodeEditorWindow::onPageEdited);
+		materialGraph->OnPageDeleted-= MakeDelegate(this, &MaterialNodeEditorWindow::onPageEdited);
 	}
 
 	NodeEditorWindow::onNodeGraphDeleted();
@@ -301,6 +307,12 @@ void MaterialNodeEditorWindow::onNodeGraphDeleted()
 void MaterialNodeEditorWindow::onDomainChanged()
 {
 	// The output node and preset changed under the compiled program
+	compileGraph();
+}
+
+void MaterialNodeEditorWindow::onPageEdited(t_graph_page_id id)
+{
+	// The error overlay follows function edits without waiting for the checkpoint
 	compileGraph();
 }
 
