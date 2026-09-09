@@ -8,6 +8,7 @@
 #include "Graphs/NodeEvaluator.h"
 
 #include "Nodes/Node.h"
+#include "Nodes/CommentNode.h"
 #include "Nodes/EventNode.h"
 #include "Nodes/VariableNode.h"
 
@@ -207,6 +208,7 @@ NodeGraph::NodeGraph()
 	addPropertyFactory<GraphArrayPropertyFactory>();
 
 	// Add node types that this graph can use
+	addNodeFactory<CommentNodeFactory>();
 	addNodeFactory<VariableNodeFactory>();
 }
 

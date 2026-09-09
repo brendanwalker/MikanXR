@@ -7,6 +7,7 @@
 #include "Graphs/NodeGraph.h"
 #include "MaterialCompiler/GlslShaderWriter.h"
 #include "MaterialCompiler/MaterialCompiler.h"
+#include "Nodes/CommentNode.h"
 #include "Nodes/Material/MaterialOutputNode.h"
 #include "Nodes/Material/ShaderConstantNode.h"
 #include "Nodes/Material/ShaderFunctionNodes.h"
@@ -505,6 +506,49 @@ bool material_compiler_test_named_reroutes()
 	UNIT_TEST_COMPLETE()
 }
 
+bool material_compiler_test_comment_node_round_trip()
+{
+	UNIT_TEST_BEGIN("a comment box keeps its text, color and size through a snapshot and stays out of the shader")
+
+	ShaderNodePtr sampleNode;
+	MaterialNodeGraphPtr graph= makeCompositorPassthroughGraph(sampleNode);
+
+	NodeEditorState editorState;
+	editorState.nodeGraph= graph;
+	editorState.hangPosGridSpace= ImVec2(10.f, 20.f);
+	auto comment= graph->createTypedNode<CommentNode>(editorState);
+	success&= expect(comment != nullptr, "comment created");
+	if (!comment)
+	{
+		UNIT_TEST_COMPLETE()
+	}
+	comment->setText("Sampling\nsecond line");
+	comment->setColor({0.1f, 0.2f, 0.3f, 1.f});
+	comment->setSize({400.f, 250.f});
+	success&= expect(comment->editorGetTitle() == "Sampling", "title is the first line");
+	success&= expect(comment->getInputPins().empty() && comment->getOutputPins().empty(), "comment has no pins");
+
+	GlslShaderWriter writer;
+	MaterialCompileResult result= graph->compile(writer);
+	success&= expectNoErrors(result);
+
+	NodeGraphFactory::registerFactory<MaterialNodeGraphFactory>();
+	NodeGraphPtr reloaded= NodeGraphFactory::loadNodeGraphFromSnapshotString(nullptr, graph->saveToSnapshotString());
+	auto reloadedComment=
+		reloaded ? std::dynamic_pointer_cast<CommentNode>(reloaded->getNodeById(comment->getId())) : CommentNodePtr();
+	success&= expect(reloadedComment != nullptr, "comment reloaded");
+	if (reloadedComment)
+	{
+		success&= expect(reloadedComment->getText() == "Sampling\nsecond line", "text survived");
+		success&= expect(reloadedComment->getColor()[2] == 0.3f, "color survived");
+		success&=
+			expect(reloadedComment->getSize()[0] == 400.f && reloadedComment->getSize()[1] == 250.f, "size survived");
+		success&= expect(reloadedComment->getNodePos().x == 10.f, "position survived");
+	}
+
+	UNIT_TEST_COMPLETE()
+}
+
 bool material_compiler_test_if_and_texture_size()
 {
 	UNIT_TEST_BEGIN("an If node selects by a scalar comparison and Texture Size reads the sampler")
@@ -861,6 +905,7 @@ bool run_material_compiler_tests()
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_parameter_name_conflicts);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_same_name_parameters_share_a_default);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_named_reroutes);
+	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_comment_node_round_trip);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_if_and_texture_size);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_function_pages);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_function_recursion_is_an_error);

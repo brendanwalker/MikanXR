@@ -1,4 +1,5 @@
 #include "MkCanvasWidgets.h"
+#include "MkCanvasScopedNode.h"
 
 // IMGUI_DEFINE_MATH_OPERATORS comes from the MikanGUI target definitions
 #include "imgui.h"
@@ -260,5 +261,46 @@ void drawPinIcon(const ImVec2& size, PinIcon icon, bool bFilled, MkCanvasPinDire
 	const float pivotX= (direction == MkCanvasPinDirection::Output) ? cursorPos.x + size.x : cursorPos.x;
 	const ImVec2 pivotPoint(pivotX, cursorPos.y + size.y * 0.5f);
 	ax::NodeEditor::PinPivotRect(pivotPoint, pivotPoint);
+}
+
+void drawCommentNode(int nodeId, const char* title, const ImVec4& color, ImVec2& inoutGroupSize, bool bApplyGroupSize)
+{
+	const int canvasId= toCanvasId(nodeId);
+	if (bApplyGroupSize)
+	{
+		ed::SetGroupSize(canvasId, inoutGroupSize);
+	}
+
+	// The region stays see-through so the nodes inside keep their contrast
+	ed::PushStyleColor(ed::StyleColor_NodeBg, ImVec4(color.x, color.y, color.z, 0.18f));
+	ed::PushStyleColor(ed::StyleColor_NodeBorder, ImVec4(color.x, color.y, color.z, 0.6f));
+	{
+		MkCanvasScopedNode node(nodeId, ImVec4(color.x, color.y, color.z, 0.85f));
+		node.beginHeader();
+		ImGui::TextUnformatted(title);
+		node.endHeader();
+
+		// Once the node is a group the canvas ignores the seed and reports its own size
+		ed::Group(inoutGroupSize);
+		inoutGroupSize= ImGui::GetItemRectSize();
+	}
+	ed::PopStyleColor(2);
+
+	// Zoomed out, the title band shrinks past legibility; the hint floats above the box at screen size
+	if (ed::BeginGroupHint(canvasId))
+	{
+		const ImVec2 groupMin= ed::GetGroupMin();
+		ImGui::SetCursorScreenPos(ImVec2(groupMin.x + 8.f, groupMin.y - ImGui::GetTextLineHeightWithSpacing() - 4.f));
+		ImGui::BeginGroup();
+		ImGui::TextUnformatted(title);
+		ImGui::EndGroup();
+
+		const ImVec2 hintMin(ImGui::GetItemRectMin().x - 8.f, ImGui::GetItemRectMin().y - 4.f);
+		const ImVec2 hintMax(ImGui::GetItemRectMax().x + 8.f, ImGui::GetItemRectMax().y + 4.f);
+		ImDrawList* drawList= ed::GetHintBackgroundDrawList();
+		drawList->AddRectFilled(hintMin, hintMax, ImColor(color.x, color.y, color.z, 0.5f), 4.f);
+		drawList->AddRect(hintMin, hintMax, ImColor(color.x, color.y, color.z, 0.9f), 4.f);
+	}
+	ed::EndGroupHint();
 }
 } // namespace MkCanvas
