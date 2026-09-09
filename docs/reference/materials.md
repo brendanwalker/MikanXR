@@ -11,7 +11,7 @@ A material is a Configuru JSON file with the `.mat` extension, loaded by `MikanS
 Keys:
 
 - `materialName`: informational. The cache keys the program by the file stem.
-- `vertexShaderPath`, `fragmentShaderPath`: relative to the `.mat` folder, so `../shared/compositorFrame.vert` is how the hand-written compositor materials share one vertex shader.
+- `vertexShaderPath`, `fragmentShaderPath`: relative to the `.mat` folder. A path may leave the folder (`../shared/quad.vert`) when several hand-written materials want one vertex shader.
 - `vertexAttributes`: an ordered list of `{name, dataType, semantic}`. The order is the `layout(location = N)` order the shader must declare, and the vertex definition built from it is what `IMkVertexDefinition::isCompatibleProgram` checks after linking.
 - `uniformSemanticMap`: uniform name to semantic name, the strings of `getUniformSemanticName` in `MkShaderConstants.cpp` (note `normalMatrix` spells as `inverseModelMatrix`). The semantic decides the data type, and therefore the pin type a consuming node creates for the uniform. Consumers bind by uniform name, so two uniforms may share a semantic.
 - `domain`, `vertexPreset`, `sourceGraphPath`: optional, written by the material graph compiler. A hand-authored `.mat` omits them. `sourceGraphPath` is relative to the `.mat` folder like the shader paths, and is what lets the editors reopen the material in the graph editor.
@@ -72,7 +72,7 @@ Nodes never spell shader text. Every expression and declaration goes through `IS
 MikanCmd.exe -compileMaterial=resources/shaders/compositor/rgbaFrame/rgbaFrame.graph
 ```
 
-Every bundled material under `resources/shaders` is authored this way. The shared `compositor/shared/compositorFrame.vert` stays for hand-written compositor materials, which are still supported; a graph-authored material carries its own vertex shader.
+Every bundled material under `resources/shaders` is authored this way, and each carries its own generated vertex shader. Hand-written materials are still supported; the loader does not care which way a `.mat` came to be.
 
 ---
 
