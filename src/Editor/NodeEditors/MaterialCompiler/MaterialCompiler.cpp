@@ -451,8 +451,15 @@ void MaterialCompileContext::addParameterDefault(const MaterialParameterDefault&
 {
 	for (const MaterialParameterDefault& existing : m_result.parameterDefaults)
 	{
-		if (existing.name == parameterDefault.name)
-			return;
+		if (existing.name != parameterDefault.name)
+			continue;
+
+		// Same-named parameter nodes are one parameter, so their defaults must agree
+		if (existing.value != parameterDefault.value || existing.textureAssetPath != parameterDefault.textureAssetPath)
+		{
+			error("Parameter " + parameterDefault.name + " declared with two defaults");
+		}
+		return;
 	}
 
 	m_result.parameterDefaults.push_back(parameterDefault);

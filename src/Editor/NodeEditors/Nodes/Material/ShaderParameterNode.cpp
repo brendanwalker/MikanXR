@@ -1,5 +1,6 @@
 #include "ShaderParameterNode.h"
 #include "ShaderNodeUtils.h"
+#include "ShaderTextureParameterNode.h"
 #include "IconsForkAwesome.h"
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
@@ -111,6 +112,60 @@ void ShaderParameterNode::setVariant(eShaderParameterVariant variant)
 	}
 }
 
+bool ShaderParameterNode::setParameterName(const std::string& name)
+{
+	if (name == m_parameterName)
+		return true;
+
+	if (NodeGraphPtr graph= getOwnerGraph())
+	{
+		for (const auto& [nodeId, node] : graph->getNodesMap())
+		{
+			if (node.get() == this)
+				continue;
+
+			if (auto sibling= std::dynamic_pointer_cast<ShaderParameterNode>(node))
+			{
+				if (sibling->getParameterName() != name)
+					continue;
+				if (sibling->getValueType() != m_valueType)
+					return false;
+
+				m_defaultValue= sibling->getDefaultValue();
+				m_bIsColor= sibling->isColor();
+				break;
+			}
+			else if (auto textureSibling= std::dynamic_pointer_cast<ShaderTextureParameterNode>(node))
+			{
+				if (textureSibling->getParameterName() == name)
+					return false;
+			}
+		}
+	}
+
+	m_parameterName= name;
+
+	return true;
+}
+
+void ShaderParameterNode::setDefaultValue(const ShaderValueDefault& value)
+{
+	m_defaultValue= value;
+
+	if (NodeGraphPtr graph= getOwnerGraph())
+	{
+		for (const auto& [nodeId, node] : graph->getNodesMap())
+		{
+			auto sibling= std::dynamic_pointer_cast<ShaderParameterNode>(node);
+			if (sibling && sibling.get() != this && sibling->getParameterName() == m_parameterName
+				&& sibling->getValueType() == m_valueType)
+			{
+				sibling->m_defaultValue= value;
+			}
+		}
+	}
+}
+
 bool ShaderParameterNode::compileNode(MaterialCompileContext& context)
 {
 	if (!ShaderNodeUtils::isValidIdentifier(m_parameterName))
@@ -179,11 +234,15 @@ void ShaderParameterNode::editorRenderPropertySheet(const NodeEditorState& edito
 		if (MkGui::drawStringProperty(propertyStyle, "shaderParameterName", locText("nodes.parameterName"), nameBuffer,
 									  sizeof(nameBuffer)))
 		{
-			m_parameterName= nameBuffer;
+			setParameterName(nameBuffer);
 		}
 
-		ShaderNodeUtils::drawValueProperty(propertyStyle, "shaderParameterDefault", locText("nodes.defaultValue"),
-										   m_valueType, m_bIsColor, m_defaultValue);
+		// The edit lands on every node of this name
+		if (ShaderNodeUtils::drawValueProperty(propertyStyle, "shaderParameterDefault", locText("nodes.defaultValue"),
+											   m_valueType, m_bIsColor, m_defaultValue))
+		{
+			setDefaultValue(m_defaultValue);
+		}
 	}
 }
 

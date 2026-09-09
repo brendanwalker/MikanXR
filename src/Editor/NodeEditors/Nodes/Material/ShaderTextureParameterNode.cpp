@@ -1,5 +1,6 @@
 #include "ShaderTextureParameterNode.h"
 #include "ShaderNodeUtils.h"
+#include "ShaderParameterNode.h"
 #include "IconsForkAwesome.h"
 #include "LocText.h"
 #include "PathUtils.h"
@@ -66,6 +67,56 @@ void ShaderTextureParameterNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
+bool ShaderTextureParameterNode::setParameterName(const std::string& name)
+{
+	if (name == m_parameterName)
+		return true;
+
+	if (NodeGraphPtr graph= getOwnerGraph())
+	{
+		for (const auto& [nodeId, node] : graph->getNodesMap())
+		{
+			if (node.get() == this)
+				continue;
+
+			if (auto sibling= std::dynamic_pointer_cast<ShaderTextureParameterNode>(node))
+			{
+				if (sibling->getParameterName() == name)
+				{
+					m_defaultTexturePath= sibling->getDefaultTexturePath();
+					break;
+				}
+			}
+			else if (auto floatSibling= std::dynamic_pointer_cast<ShaderParameterNode>(node))
+			{
+				if (floatSibling->getParameterName() == name)
+					return false;
+			}
+		}
+	}
+
+	m_parameterName= name;
+
+	return true;
+}
+
+void ShaderTextureParameterNode::setDefaultTexturePath(const std::string& path)
+{
+	m_defaultTexturePath= path;
+
+	if (NodeGraphPtr graph= getOwnerGraph())
+	{
+		for (const auto& [nodeId, node] : graph->getNodesMap())
+		{
+			auto sibling= std::dynamic_pointer_cast<ShaderTextureParameterNode>(node);
+			if (sibling && sibling.get() != this && sibling->getParameterName() == m_parameterName)
+			{
+				sibling->m_defaultTexturePath= path;
+			}
+		}
+	}
+}
+
 bool ShaderTextureParameterNode::compileNode(MaterialCompileContext& context)
 {
 	if (!ShaderNodeUtils::isValidIdentifier(m_parameterName))
@@ -109,7 +160,7 @@ void ShaderTextureParameterNode::editorRenderPropertySheet(const NodeEditorState
 		if (MkGui::drawStringProperty(propertyStyle, "shaderTextureParameterName", locText("nodes.parameterName"),
 									  nameBuffer, sizeof(nameBuffer)))
 		{
-			m_parameterName= nameBuffer;
+			setParameterName(nameBuffer);
 		}
 
 		// The path field carries its own browse button
@@ -123,7 +174,7 @@ void ShaderTextureParameterNode::editorRenderPropertySheet(const NodeEditorState
 
 			if (picked != nullptr && picked[0] != '\0')
 			{
-				m_defaultTexturePath= PathUtils::makeStoredProjectPath(picked);
+				setDefaultTexturePath(PathUtils::makeStoredProjectPath(picked));
 			}
 		}
 	}

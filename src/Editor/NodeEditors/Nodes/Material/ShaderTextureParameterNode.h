@@ -29,9 +29,13 @@ public:
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
 	inline const std::string& getParameterName() const { return m_parameterName; }
-	inline void setParameterName(const std::string& name) { m_parameterName= name; }
+	// Texture parameter nodes sharing a name are one parameter. Taking a name
+	// another texture parameter carries adopts its default texture; a name a
+	// float parameter carries is refused and the name stays.
+	bool setParameterName(const std::string& name);
 	inline const std::string& getDefaultTexturePath() const { return m_defaultTexturePath; }
-	inline void setDefaultTexturePath(const std::string& path) { m_defaultTexturePath= path; }
+	// Writes the default texture to every texture parameter node of this name in the graph
+	void setDefaultTexturePath(const std::string& path);
 
 	virtual bool compileNode(MaterialCompileContext& context) override;
 

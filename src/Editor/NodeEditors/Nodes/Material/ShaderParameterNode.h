@@ -49,9 +49,13 @@ public:
 	inline bool isColor() const { return m_bIsColor; }
 	inline bool isTime() const { return m_bIsTime; }
 	inline const std::string& getParameterName() const { return m_parameterName; }
-	inline void setParameterName(const std::string& name) { m_parameterName= name; }
+	// Parameter nodes sharing a name are one parameter. Taking a name another
+	// node already carries adopts that node's default; a name carried by a node
+	// of another type is refused and the name stays.
+	bool setParameterName(const std::string& name);
 	inline const ShaderValueDefault& getDefaultValue() const { return m_defaultValue; }
-	inline void setDefaultValue(const ShaderValueDefault& value) { m_defaultValue= value; }
+	// Writes the default to every parameter node of this name in the graph
+	void setDefaultValue(const ShaderValueDefault& value);
 
 	virtual bool compileNode(MaterialCompileContext& context) override;
 

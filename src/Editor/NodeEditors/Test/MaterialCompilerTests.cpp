@@ -364,12 +364,15 @@ bool material_compiler_test_parameter_name_conflicts()
 
 	MaterialNodeGraphPtr graph= makeMaterialGraph(eMaterialDomain::compositor);
 
+	// A rename onto a differently typed parameter is refused in the editor, so the
+	// conflict is built the way a hand-edited file would carry it
 	auto floatParam= std::dynamic_pointer_cast<ShaderParameterNode>(makeNode(graph, "ShaderParameterNode:float"));
-	auto float3Param= std::dynamic_pointer_cast<ShaderParameterNode>(makeNode(graph, "ShaderParameterNode:float3"));
+	auto float3Param= std::dynamic_pointer_cast<ShaderParameterNode>(makeNode(graph, "ShaderParameterNode:float"));
 	if (floatParam && float3Param)
 	{
-		floatParam->setParameterName("tint");
-		float3Param->setParameterName("tint");
+		success&= expect(floatParam->setParameterName("tint"), "first tint rename");
+		success&= expect(float3Param->setParameterName("tint"), "second tint rename");
+		float3Param->setVariant(eShaderParameterVariant::float3);
 	}
 	ShaderNodePtr appendNode= makeNode(graph, "ShaderAppendNode");
 
@@ -391,6 +394,57 @@ bool material_compiler_test_parameter_name_conflicts()
 	success&= link(badNameGraph, badParam, "value", badNameGraph->getOutputNode(), MaterialOutputNode::k_colorPinName);
 	MaterialCompileResult badNameResult= badNameGraph->compile(writer);
 	success&= expectErrorMentioning(badNameResult, "identifier");
+
+	UNIT_TEST_COMPLETE()
+}
+
+bool material_compiler_test_same_name_parameters_share_a_default()
+{
+	UNIT_TEST_BEGIN("parameter nodes sharing a name share one default and one uniform")
+
+	MaterialNodeGraphPtr graph= makeMaterialGraph(eMaterialDomain::compositor);
+
+	auto first= std::dynamic_pointer_cast<ShaderParameterNode>(makeNode(graph, "ShaderParameterNode:float"));
+	auto second= std::dynamic_pointer_cast<ShaderParameterNode>(makeNode(graph, "ShaderParameterNode:float"));
+	auto float3Param= std::dynamic_pointer_cast<ShaderParameterNode>(makeNode(graph, "ShaderParameterNode:float3"));
+	success&= expect(first && second && float3Param, "parameter nodes created");
+	if (!first || !second || !float3Param)
+	{
+		UNIT_TEST_COMPLETE()
+	}
+
+	// Taking an existing name adopts its default; a differently typed name is refused
+	first->setParameterName("gain");
+	first->setDefaultValue({0.25f, 0.f, 0.f, 0.f});
+	second->setDefaultValue({0.75f, 0.f, 0.f, 0.f});
+	success&= expect(second->setParameterName("gain"), "rename onto a same-typed parameter");
+	success&= expect(second->getDefaultValue()[0] == 0.25f, "renamed node adopted the default");
+	success&= expect(!float3Param->setParameterName("gain"), "rename onto a differently typed parameter is refused");
+	success&= expect(float3Param->getParameterName() != "gain", "refused rename leaves the name");
+
+	// Editing either node's default reaches the other
+	second->setDefaultValue({0.5f, 0.f, 0.f, 0.f});
+	success&= expect(first->getDefaultValue()[0] == 0.5f, "default propagated to the sibling");
+
+	// Both compile to one uniform with one default
+	ShaderNodePtr addNode= makeNode(graph, "ShaderMathNode:add");
+	success&= link(graph, first, "value", addNode, "a");
+	success&= link(graph, second, "value", addNode, "b");
+	success&= link(graph, addNode, "result", graph->getOutputNode(), MaterialOutputNode::k_colorPinName);
+
+	GlslShaderWriter writer;
+	MaterialCompileResult result= graph->compile(writer);
+	success&= expectNoErrors(result);
+	success&= expect(result.parameterDefaults.size() == 1, "one parameter default");
+	success&= expect(result.config->uniformSemanticMap.size() == 1, "one uniform");
+	success&= expectContains(result.fragmentSource, "(gain + gain)", "fragment source");
+
+	// A file whose copies disagree is reported rather than resolved by walk order (the
+	// disagreement is built with propagation switched off by detaching the node's graph)
+	second->setOwnerGraph(NodeGraphPtr());
+	second->setDefaultValue({0.9f, 0.f, 0.f, 0.f});
+	second->setOwnerGraph(graph);
+	success&= expectErrorMentioning(graph->compile(writer), "two defaults");
 
 	UNIT_TEST_COMPLETE()
 }
@@ -749,6 +803,7 @@ bool run_material_compiler_tests()
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_type_mismatch_names_node);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_cycle_is_an_error);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_parameter_name_conflicts);
+	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_same_name_parameters_share_a_default);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_if_and_texture_size);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_function_pages);
 	UNIT_TEST_MODULE_CALL_TEST(material_compiler_test_function_recursion_is_an_error);
