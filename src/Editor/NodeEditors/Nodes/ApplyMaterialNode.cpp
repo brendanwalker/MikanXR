@@ -398,6 +398,16 @@ void ApplyMaterialNode::editorRenderNode(const NodeEditorState& editorState)
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 }
 
+void ApplyMaterialNode::editorOnDoubleClicked(const NodeEditorState& editorState)
+{
+	auto materialProperty= m_materialPin ? std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue())
+										 : GraphMaterialPropertyPtr();
+	if (materialProperty)
+	{
+		materialProperty->editorOpenSourceGraph();
+	}
+}
+
 void ApplyMaterialNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),

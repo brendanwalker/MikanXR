@@ -52,6 +52,8 @@ public:
 
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
+	// Opens the source graph of the material wired into the material pin
+	virtual void editorOnDoubleClicked(const NodeEditorState& editorState) override;
 	// The material pin only takes a compositor material
 	virtual bool editorCanAcceptProperty(NodePinPtr pin, GraphPropertyPtr property) const override;
 

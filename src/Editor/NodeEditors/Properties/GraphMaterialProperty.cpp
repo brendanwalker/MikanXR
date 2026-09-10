@@ -291,6 +291,20 @@ void GraphMaterialProperty::onMaterialReloaded(MkMaterialPtr material)
 	notifyPropertyModified();
 }
 
+bool GraphMaterialProperty::editorOpenSourceGraph() const
+{
+	if (!m_materialAssetRef || !m_materialAssetRef->editorCanOpen())
+	{
+		MIKAN_LOG_INFO("GraphMaterialProperty::editorOpenSourceGraph")
+			<< "Material has no source graph to open: "
+			<< (m_materialAssetRef ? m_materialAssetRef->getInternalAssetPath().string() : std::string("<none>"));
+		return false;
+	}
+
+	m_materialAssetRef->editorOpen();
+	return true;
+}
+
 void GraphMaterialProperty::editorHandleMainFrameDragDrop(const NodeEditorState& editorState)
 {
 	auto materialNode= m_ownerGraph->createTypedNode<MaterialNode>(editorState);

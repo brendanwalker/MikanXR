@@ -432,6 +432,16 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 
 FlowPinPtr DrawLayerNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
 
+void DrawLayerNode::editorOnDoubleClicked(const NodeEditorState& editorState)
+{
+	auto materialProperty= m_materialPin ? std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue())
+										 : GraphMaterialPropertyPtr();
+	if (materialProperty)
+	{
+		materialProperty->editorOpenSourceGraph();
+	}
+}
+
 void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar

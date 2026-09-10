@@ -47,6 +47,10 @@ public:
 	// Seed a freshly created dynamic float pin with the material's default for its uniform
 	static void initDynamicPinFromMaterialDefault(NodePinPtr pin, MkMaterialConstPtr material);
 
+	// Opens the material's source graph in the material editor. Returns false,
+	// after logging why, when the .mat names no source graph.
+	bool editorOpenSourceGraph() const;
+
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) override;
 	virtual std::string editorGetTitle() const override { return "Material"; }

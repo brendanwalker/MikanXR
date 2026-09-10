@@ -179,12 +179,9 @@ void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 
 void MaterialNode::editorOnDoubleClicked(const NodeEditorState& editorState)
 {
-	MaterialAssetReferencePtr materialAssetRef=
-		m_sourceProperty ? m_sourceProperty->getMaterialAssetReference() : MaterialAssetReferencePtr();
-
-	if (materialAssetRef && materialAssetRef->editorCanOpen())
+	if (m_sourceProperty)
 	{
-		materialAssetRef->editorOpen();
+		m_sourceProperty->editorOpenSourceGraph();
 	}
 }
 

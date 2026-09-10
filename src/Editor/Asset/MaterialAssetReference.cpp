@@ -64,12 +64,17 @@ void MaterialAssetReference::editorOpen()
 		return;
 	}
 
-	// One material editor window serves every material, so reuse the open one
+	// One material editor window serves every material, so reuse the open one,
+	// raised so the open is visible from behind the editor that asked for it
 	App* app= App::getInstance();
 	MaterialNodeEditorWindow* materialWindow= app->getWindowOfType<MaterialNodeEditorWindow>();
 	if (materialWindow == nullptr)
 	{
 		materialWindow= app->createAppWindow<MaterialNodeEditorWindow>();
+	}
+	else
+	{
+		materialWindow->getMkWindowContext()->raiseWindow();
 	}
 
 	if (materialWindow == nullptr)

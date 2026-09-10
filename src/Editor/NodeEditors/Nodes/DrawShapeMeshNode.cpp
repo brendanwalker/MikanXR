@@ -548,6 +548,16 @@ void DrawShapeMeshNode::drawMesh(IMkMeshConstPtr mesh, const glm::mat4& mvpMatri
 
 FlowPinPtr DrawShapeMeshNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
 
+void DrawShapeMeshNode::editorOnDoubleClicked(const NodeEditorState& editorState)
+{
+	auto materialProperty= m_materialPin ? std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue())
+										 : GraphMaterialPropertyPtr();
+	if (materialProperty)
+	{
+		materialProperty->editorOpenSourceGraph();
+	}
+}
+
 void DrawShapeMeshNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
