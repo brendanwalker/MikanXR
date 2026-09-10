@@ -812,6 +812,8 @@ void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class Ap
 		InputManager* inputManager= getOwnerWindow()->getInputManager();
 		inputManager->fetchOrAddKeyBindings(MkKey::DELETE_KEYCODE)->OnKeyPressed+=
 			MakeDelegate(this, &EditorObjectSystem::onDeletePressed);
+		inputManager->fetchOrAddKeyBindings(MkKey::BACKSPACE)->OnKeyPressed+=
+			MakeDelegate(this, &EditorObjectSystem::onDeletePressed);
 
 		auto gizmoComponent= m_gizmoComponentWeakPtr.lock();
 		if (gizmoComponent)
@@ -824,14 +826,8 @@ void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class Ap
 // Keyboard Events
 void EditorObjectSystem::onDeletePressed()
 {
-	SelectionComponentPtr selectedComponent= m_selectedComponentWeakPtr.lock();
-	SelectionComponentPtr hoverComponentPtr= m_hoverComponentWeakPtr.lock();
-
-	if (selectedComponent != nullptr)
-	{
-		// Clean up the config associated with owning object
-		selectedComponent->destroyOwnerObject();
-	}
+	if (OnDeleteSelectionRequested)
+		OnDeleteSelectionRequested();
 }
 
 // Object System Events

@@ -99,6 +99,8 @@ bool GuiPanel_ProjectOutliner::init(ProjectGuiPanelContext* context)
 	if (EditorObjectSystemPtr editorSystem= m_editorSystem.lock())
 	{
 		editorSystem->OnSelectionChanged+= MakeDelegate(this, &GuiPanel_ProjectOutliner::onSelectionChanged);
+		editorSystem->OnDeleteSelectionRequested+=
+			MakeDelegate(this, &GuiPanel_ProjectOutliner::onDeleteSelectionRequested);
 	}
 
 	subscribeToSystems();
@@ -112,6 +114,8 @@ void GuiPanel_ProjectOutliner::dispose()
 	if (EditorObjectSystemPtr editorSystem= m_editorSystem.lock())
 	{
 		editorSystem->OnSelectionChanged-= MakeDelegate(this, &GuiPanel_ProjectOutliner::onSelectionChanged);
+		editorSystem->OnDeleteSelectionRequested-=
+			MakeDelegate(this, &GuiPanel_ProjectOutliner::onDeleteSelectionRequested);
 	}
 
 	unsubscribeFromSystems();
@@ -129,6 +133,8 @@ void GuiPanel_ProjectOutliner::onGui()
 	ImGui::Separator();
 
 	drawSelectedNodeActions(getSelectedNode());
+
+	handleDeleteShortcut();
 }
 
 void GuiPanel_ProjectOutliner::rebuildIfDirty()
@@ -436,11 +442,8 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 	drawComponentPanelForNode(selectedNode);
 
 	// Delete closes out the panel, below the component's own function buttons,
-	// so the destructive action is not the first thing under the cursor.
-	// Environment probes are camera-owned and are deleted with their camera.
-	const bool bCanDelete= selectedNode->componentId != INVALID_MIKAN_ID
-						   && selectedNode->componentClassName != LightEnvironmentComponent::k_componentClassName;
-	if (bCanDelete)
+	// so the destructive action is not the first thing under the cursor
+	if (canDeleteNode(selectedNode))
 	{
 		MkGuiScopedStyle deleteButtonStyle(m_deleteButtonGuiStyle);
 		if (ImGui::Button(locLabel("project.outlinerDeleteComponent")))
@@ -448,6 +451,40 @@ void GuiPanel_ProjectOutliner::drawSelectedNodeActions(ProjectOutlinerNodePtr se
 			requestDeleteNode(selectedNode);
 		}
 	}
+}
+
+bool GuiPanel_ProjectOutliner::canDeleteNode(ProjectOutlinerNodePtr node) const
+{
+	// Environment probes are camera-owned and are deleted with their camera
+	return node && node->componentId != INVALID_MIKAN_ID
+		   && node->componentClassName != LightEnvironmentComponent::k_componentClassName;
+}
+
+void GuiPanel_ProjectOutliner::handleDeleteShortcut()
+{
+	// Only while ImGui holds the keyboard: otherwise the key reaches the editor
+	// system's binding instead. A widget being edited keeps its own Delete and
+	// Backspace, and an open modal (the confirm itself) must not stack another.
+	const ImGuiIO& io= ImGui::GetIO();
+	if (!io.WantCaptureKeyboard || ImGui::IsAnyItemActive() || m_ownerAppStage->getCurrentModalDialog() != nullptr)
+		return;
+
+	if (ImGui::IsKeyPressed(ImGuiKey_Delete, false) || ImGui::IsKeyPressed(ImGuiKey_Backspace, false))
+	{
+		ProjectOutlinerNodePtr selectedNode= getSelectedNode();
+		if (canDeleteNode(selectedNode))
+			requestDeleteNode(selectedNode);
+	}
+}
+
+void GuiPanel_ProjectOutliner::onDeleteSelectionRequested()
+{
+	if (m_ownerAppStage->getCurrentModalDialog() != nullptr)
+		return;
+
+	ProjectOutlinerNodePtr selectedNode= getSelectedNode();
+	if (canDeleteNode(selectedNode))
+		requestDeleteNode(selectedNode);
 }
 
 bool GuiPanel_ProjectOutliner::drawAddButton(const char* fieldName, const char* glyph, const char* labelKey)

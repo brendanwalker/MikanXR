@@ -48,7 +48,13 @@ private:
 	// One add button per row: the glyph of the type being created, with its
 	// name beside it
 	bool drawAddButton(const char* fieldName, const char* glyph, const char* labelKey);
+	// Whether the row deletes: a real component that is not a camera-owned probe
+	bool canDeleteNode(ProjectOutlinerNodePtr node) const;
 	void requestDeleteNode(ProjectOutlinerNodePtr node);
+	// Delete and Backspace: polled from ImGui while it holds the keyboard, and
+	// raised by the editor system when it does not, so exactly one path fires
+	void handleDeleteShortcut();
+	void onDeleteSelectionRequested();
 	int getAddParentTransformId(ProjectOutlinerNodePtr selectedNode) const;
 	void deferAddAction(std::function<int(ProjectManagerPtr)> addAction);
 

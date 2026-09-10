@@ -236,6 +236,10 @@ public:
 	SelectionComponentPtr getSelectedSceneActor() const;
 	void setSelection(SelectionComponentPtr newComponentPtr);
 	MulticastDelegate<void()> OnSelectionChanged;
+	// Delete or Backspace pressed while no ImGui window holds the keyboard. The
+	// outliner owns the delete itself (confirmation and cascade rules), since its
+	// selected row covers objects that have no selection component.
+	MulticastDelegate<void()> OnDeleteSelectionRequested;
 
 	inline MikanObjectPtr getGizmoObject() const { return m_gizmoObjectWeakPtr.lock(); }
 	MikanViewportPtr getPrimaryViewport() const;
