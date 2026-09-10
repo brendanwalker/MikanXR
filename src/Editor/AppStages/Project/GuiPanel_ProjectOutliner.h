@@ -4,11 +4,11 @@
 #include "ComponentFwd.h"
 #include "IMkGuiStyle.h"
 #include "ObjectFwd.h"
+#include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "ProjectOutlinerModel.h"
 #include "Shared/GuiPanel.h"
 
-#include <set>
 #include <string>
 #include <vector>
 
@@ -60,6 +60,8 @@ private:
 	void drawComponentPanelForNode(ProjectOutlinerNodePtr node);
 	// Open the path above the node and scroll it into view on the next draw
 	void scrollToNode(ProjectOutlinerNodePtr node);
+	// The project's editor settings, which hold the tree's open state
+	EditorObjectSystemDefinitionPtr getEditorConfig() const;
 
 	// Active scene and active display compositor highlighting
 	bool isActiveHighlightNode(ProjectOutlinerNodePtr node) const;
@@ -88,9 +90,8 @@ private:
 	int m_selectedOwnerId= -1;
 	int m_pendingSelectComponentId= -1;
 
-	// Viewport pick to tree sync: scroll to the row and open the path above it
+	// Viewport pick to tree sync: scroll to the row on the next draw
 	bool m_bScrollToSelection= false;
-	std::set<int> m_scrollOpenPathIds;
 
 	MkGuiStyleConstPtr m_outlinerGuiStyle;
 	MkGuiStyleConstPtr m_deleteButtonGuiStyle;

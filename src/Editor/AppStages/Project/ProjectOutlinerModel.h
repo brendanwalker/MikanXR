@@ -85,6 +85,13 @@ public:
 	// any scene subtree
 	ProjectOutlinerNodePtr findOwningSceneNode(ProjectOutlinerNodePtr node) const;
 
+	// The key a row's open state persists under in the project. Component rows
+	// key on their component id; synthetic rows on a stable name plus the owner
+	// id for per-stage folders, so an enum reorder cannot remap saved state.
+	static std::string getNodeStateKey(const ProjectOutlinerNode& node);
+	// Whether a row of this kind starts open when the project holds no state for it
+	static bool getNodeDefaultOpen(eOutlinerNodeKind kind);
+
 private:
 	ProjectOutlinerNodePtr addComponentNode(ProjectOutlinerNodePtr parentNode, eOutlinerNodeKind kind,
 											MikanComponentPtr component);

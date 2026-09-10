@@ -137,6 +137,15 @@ void CommonConfig::updateAutoSave(float deltaSeconds)
 	}
 }
 
+void CommonConfig::flushPendingAutoSave()
+{
+	if (m_autoSaveCooldownTimer >= 0.f)
+	{
+		save();
+		m_autoSaveCooldownTimer= -1.f;
+	}
+}
+
 void CommonConfig::save()
 {
 	if (!m_configFullFilePath.empty())

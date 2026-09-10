@@ -184,27 +184,20 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 {
 	ImGuiTreeNodeFlags flags=
 		ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-	if (node->children.empty())
+	const bool bIsLeaf= node->children.empty();
+	if (bIsLeaf)
 		flags|= ImGuiTreeNodeFlags_Leaf;
 
-	switch (node->kind)
+	// The project holds the open state, so a rebuild cannot reset it and it
+	// comes back on the next load. ImGui is told the state every frame; a click
+	// on the arrow shows up as a toggle below and writes the new state back.
+	const std::string stateKey= ProjectOutlinerModel::getNodeStateKey(*node);
+	const bool bDefaultOpen= ProjectOutlinerModel::getNodeDefaultOpen(node->kind);
+	EditorObjectSystemDefinitionPtr editorConfig= getEditorConfig();
+	if (!bIsLeaf)
 	{
-	case eOutlinerNodeKind::projectRoot:
-	case eOutlinerNodeKind::folderSources:
-	case eOutlinerNodeKind::folderMarkers:
-	case eOutlinerNodeKind::folderTrackingVolumes:
-	case eOutlinerNodeKind::folderCameras:
-	case eOutlinerNodeKind::folderLights:
-	case eOutlinerNodeKind::folderLightGroups:
-	case eOutlinerNodeKind::folderScenes:
-	case eOutlinerNodeKind::folderScripts:
-	case eOutlinerNodeKind::trackingVolume:
-	case eOutlinerNodeKind::stage:
-	case eOutlinerNodeKind::scene:
-		flags|= ImGuiTreeNodeFlags_DefaultOpen;
-		break;
-	default:
-		break;
+		const bool bStoredOpen= editorConfig ? editorConfig->getOutlinerNodeOpen(stateKey, bDefaultOpen) : bDefaultOpen;
+		ImGui::SetNextItemOpen(bStoredOpen, ImGuiCond_Always);
 	}
 
 	// Synthetic rows (root and folders) carry no component id, so they select
@@ -221,13 +214,6 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 	if (bIsSelected)
 		flags|= ImGuiTreeNodeFlags_Selected;
 
-	// A pending scroll-to-selection opens the collapsed path above the target row
-	if (m_bScrollToSelection && node->componentId != INVALID_MIKAN_ID
-		&& m_scrollOpenPathIds.find(node->componentId) != m_scrollOpenPathIds.end())
-	{
-		ImGui::SetNextItemOpen(true);
-	}
-
 	const std::string label= node->icon + " " + node->displayName + "##node" + std::to_string((int)node->kind) + "_"
 							 + std::to_string(node->componentId);
 
@@ -242,11 +228,16 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 		bOpen= ImGui::TreeNodeEx(label.c_str(), flags);
 	}
 
+	if (!bIsLeaf && ImGui::IsItemToggledOpen() && editorConfig)
+	{
+		addDeferredGuiEvent([editorConfig, stateKey, bOpen, bDefaultOpen]()
+							{ editorConfig->setOutlinerNodeOpen(stateKey, bOpen, bDefaultOpen); });
+	}
+
 	if (bIsSelected && m_bScrollToSelection)
 	{
 		ImGui::SetScrollHereY(0.5f);
 		m_bScrollToSelection= false;
-		m_scrollOpenPathIds.clear();
 	}
 
 	// The unparented tray is the one row that is not selectable
@@ -811,13 +802,23 @@ void GuiPanel_ProjectOutliner::selectComponent(int componentId)
 
 void GuiPanel_ProjectOutliner::scrollToNode(ProjectOutlinerNodePtr node)
 {
-	m_scrollOpenPathIds.clear();
-	for (ProjectOutlinerNodePtr pathNode= node->parent.lock(); pathNode; pathNode= pathNode->parent.lock())
+	// Open the path above the row through the project state, since that is
+	// what the tree draws from
+	if (EditorObjectSystemDefinitionPtr editorConfig= getEditorConfig())
 	{
-		if (pathNode->componentId != INVALID_MIKAN_ID)
-			m_scrollOpenPathIds.insert(pathNode->componentId);
+		for (ProjectOutlinerNodePtr pathNode= node->parent.lock(); pathNode; pathNode= pathNode->parent.lock())
+		{
+			editorConfig->setOutlinerNodeOpen(ProjectOutlinerModel::getNodeStateKey(*pathNode), true,
+											  ProjectOutlinerModel::getNodeDefaultOpen(pathNode->kind));
+		}
 	}
 	m_bScrollToSelection= true;
+}
+
+EditorObjectSystemDefinitionPtr GuiPanel_ProjectOutliner::getEditorConfig() const
+{
+	EditorObjectSystemPtr editorSystem= m_editorSystem.lock();
+	return editorSystem ? editorSystem->getEditorSystemConfig() : nullptr;
 }
 
 void GuiPanel_ProjectOutliner::subscribeToSystems()

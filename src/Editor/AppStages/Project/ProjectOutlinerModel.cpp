@@ -136,6 +136,73 @@ static const char* pickNodeIcon(eOutlinerNodeKind kind, const std::string& compo
 	}
 }
 
+std::string ProjectOutlinerModel::getNodeStateKey(const ProjectOutlinerNode& node)
+{
+	if (node.componentId != INVALID_MIKAN_ID)
+		return "component:" + std::to_string(node.componentId);
+
+	const char* folderName= nullptr;
+	switch (node.kind)
+	{
+	case eOutlinerNodeKind::projectRoot:
+		return "root";
+	case eOutlinerNodeKind::unparentedGroup:
+		return "unparented";
+	case eOutlinerNodeKind::folderSources:
+		folderName= "sources";
+		break;
+	case eOutlinerNodeKind::folderMarkers:
+		folderName= "markers";
+		break;
+	case eOutlinerNodeKind::folderTrackingVolumes:
+		folderName= "tracking_volumes";
+		break;
+	case eOutlinerNodeKind::folderScripts:
+		folderName= "scripts";
+		break;
+	case eOutlinerNodeKind::folderCameras:
+		folderName= "cameras";
+		break;
+	case eOutlinerNodeKind::folderLights:
+		folderName= "lights";
+		break;
+	case eOutlinerNodeKind::folderLightGroups:
+		folderName= "light_groups";
+		break;
+	case eOutlinerNodeKind::folderScenes:
+		folderName= "scenes";
+		break;
+	default:
+		return "";
+	}
+
+	return node.ownerId != INVALID_MIKAN_ID ? std::string(folderName) + ":" + std::to_string(node.ownerId)
+											: std::string(folderName);
+}
+
+bool ProjectOutlinerModel::getNodeDefaultOpen(eOutlinerNodeKind kind)
+{
+	// Folders and the containers above a scene open so the project reads at a
+	// glance. Lights folders stay closed: fixture lists are long and rarely edited.
+	switch (kind)
+	{
+	case eOutlinerNodeKind::projectRoot:
+	case eOutlinerNodeKind::folderSources:
+	case eOutlinerNodeKind::folderMarkers:
+	case eOutlinerNodeKind::folderTrackingVolumes:
+	case eOutlinerNodeKind::folderCameras:
+	case eOutlinerNodeKind::folderLightGroups:
+	case eOutlinerNodeKind::folderScenes:
+	case eOutlinerNodeKind::folderScripts:
+	case eOutlinerNodeKind::trackingVolume:
+	case eOutlinerNodeKind::stage:
+	case eOutlinerNodeKind::scene:
+		return true;
+	default:
+		return false;
+	}
+}
+
 static bool isSceneActorObject(MikanObjectPtr objectPtr)
 {
 	return objectPtr->getComponentOfType<AnchorComponent>() != nullptr

@@ -58,6 +58,7 @@ const std::string EditorObjectSystemDefinition::k_modelStencilDisplayModePropert
 const std::string EditorObjectSystemDefinition::k_debugRenderInCompositorPropertyId= "debug_render_in_compositor";
 const std::string EditorObjectSystemDefinition::k_renderFrameRatePropertyId= "render_frame_rate";
 const std::string EditorObjectSystemDefinition::k_editorCameraStatePropertyId= "editor_camera_state";
+const std::string EditorObjectSystemDefinition::k_outlinerOpenStatePropertyId= "outliner_open_state";
 
 // Viewpoint names used as the keys of the saved ortho views, in eCameraViewpoint order
 static const char* k_orthoViewpointStrings[EditorCameraState::k_orthoViewCount]= {"top",  "bottom", "front",
@@ -189,6 +190,13 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_renderFrameRatePropertyId]= m_editorSettings.bRenderFrameRate;
 	pt[k_editorCameraStatePropertyId]= writeCameraStateToJSON(m_editorSettings.cameraState);
 
+	configuru::Config outlinerPt= configuru::Config::object();
+	for (const auto& [nodeKey, bOpen] : m_editorSettings.outlinerOpenState)
+	{
+		outlinerPt[nodeKey]= bOpen;
+	}
+	pt[k_outlinerOpenStatePropertyId]= outlinerPt;
+
 	return pt;
 }
 
@@ -230,6 +238,16 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(k_editorCameraStatePropertyId))
 	{
 		readCameraStateFromJSON(pt[k_editorCameraStatePropertyId], m_editorSettings.cameraState);
+	}
+
+	m_editorSettings.outlinerOpenState.clear();
+	if (pt.has_key(k_outlinerOpenStatePropertyId))
+	{
+		for (const auto& entry : pt[k_outlinerOpenStatePropertyId].as_object())
+		{
+			if (entry.value().is_bool())
+				m_editorSettings.outlinerOpenState[entry.key()]= (bool)entry.value();
+		}
 	}
 }
 
@@ -401,6 +419,41 @@ void EditorObjectSystemDefinition::setEditorCameraState(const EditorCameraState&
 	{
 		m_editorSettings.cameraState= cameraState;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_editorCameraStatePropertyId));
+	}
+}
+
+bool EditorObjectSystemDefinition::getOutlinerNodeOpen(const std::string& nodeKey, bool bDefaultOpen) const
+{
+	const auto it= m_editorSettings.outlinerOpenState.find(nodeKey);
+	return it != m_editorSettings.outlinerOpenState.end() ? it->second : bDefaultOpen;
+}
+
+void EditorObjectSystemDefinition::setOutlinerNodeOpen(const std::string& nodeKey, bool bOpen, bool bDefaultOpen)
+{
+	if (nodeKey.empty())
+		return;
+
+	std::map<std::string, bool>& openState= m_editorSettings.outlinerOpenState;
+	const auto it= openState.find(nodeKey);
+	bool bChanged= false;
+
+	if (bOpen == bDefaultOpen)
+	{
+		if (it != openState.end())
+		{
+			openState.erase(it);
+			bChanged= true;
+		}
+	}
+	else if (it == openState.end() || it->second != bOpen)
+	{
+		openState[nodeKey]= bOpen;
+		bChanged= true;
+	}
+
+	if (bChanged)
+	{
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_outlinerOpenStatePropertyId));
 	}
 }
 

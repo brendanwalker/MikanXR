@@ -12,6 +12,8 @@
 #include "SceneFwd.h"
 
 #include <array>
+#include <map>
+#include <string>
 #include <vector>
 
 #include "glm/ext/vector_float3.hpp"
@@ -87,6 +89,10 @@ struct EditorSettings
 
 	// Where the editor viewport camera was left in each view
 	EditorCameraState cameraState;
+
+	// Outliner rows whose open state differs from their default, keyed by
+	// ProjectOutlinerModel::getNodeStateKey. An absent row is at its default.
+	std::map<std::string, bool> outlinerOpenState;
 };
 
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
@@ -180,6 +186,12 @@ public:
 	static const std::string k_editorCameraStatePropertyId;
 	const EditorCameraState& getEditorCameraState() const { return m_editorSettings.cameraState; }
 	void setEditorCameraState(const EditorCameraState& cameraState);
+
+	static const std::string k_outlinerOpenStatePropertyId;
+	bool getOutlinerNodeOpen(const std::string& nodeKey, bool bDefaultOpen) const;
+	// Stores only a departure from the default, and notifies only when the
+	// stored state actually changed
+	void setOutlinerNodeOpen(const std::string& nodeKey, bool bOpen, bool bDefaultOpen);
 
 private:
 	EditorSettings m_editorSettings;

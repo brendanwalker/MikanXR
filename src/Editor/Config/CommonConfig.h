@@ -66,6 +66,9 @@ public:
 	void setAutoSaveCooldownDuration(float cooldownDuration);
 	float getAutoSaveCooldownDuration() const { return m_autoSaveCooldownDuration; }
 	void updateAutoSave(float deltaSeconds);
+	// Save now if a change is waiting out the cooldown, so unloading the config
+	// does not drop it
+	void flushPendingAutoSave();
 
 	const std::string& getConfigName() const { return m_configName; }
 	const std::filesystem::path getDefaultConfigPath() const;

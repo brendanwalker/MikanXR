@@ -181,8 +181,13 @@ void AppStage_Project::enter()
 
 void AppStage_Project::exit()
 {
-	// Save where the camera was left before the project goes away
+	// Save where the camera was left before the project goes away, along with
+	// any other editor setting still waiting out the autosave cooldown
 	flushCameraState();
+	if (m_project)
+	{
+		m_project->flushPendingAutoSave();
+	}
 
 	// Clean up the 3d scene
 	m_mkScene= nullptr;
