@@ -14,6 +14,7 @@
 #include "DMXUniverseRLETests.h"
 #include "LightEnvironmentPersistenceTests.h"
 #include "LocalizationTests.h"
+#include "MaterialCompilerTests.h"
 #include "ModelGeometryPayloadTests.h"
 #include "NodeGraphHistoryTests.h"
 #include "NodeLinkDirectionTests.h"
@@ -21,6 +22,10 @@
 #include "PropertyNotificationGuardTests.h"
 #include "ScriptContextTests.h"
 #include "ScriptVariablePersistenceTests.h"
+
+#include "Graphs/MaterialNodeGraph.h"
+#include "MaterialCompiler/GlslShaderWriter.h"
+#include "MaterialCompiler/MaterialCompiler.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -44,6 +49,7 @@ bool run_all_editor_unit_tests()
 	success&= run_dmx_universe_rle_tests();
 	success&= run_light_environment_persistence_tests();
 	success&= run_localization_unit_tests();
+	success&= run_material_compiler_tests();
 	success&= run_model_geometry_payload_tests();
 	success&= run_node_graph_history_tests();
 	success&= run_node_link_direction_tests();
@@ -87,6 +93,10 @@ int CmdApp::exec(int argc, char** argv)
 	else if (hasCommandLineFlag("depthMesh"))
 	{
 		result= generateDepthMesh();
+	}
+	else if (!getCommandLineStringArg("compileMaterial").empty())
+	{
+		result= compileMaterial();
 	}
 	else if (hasCommandLineFlag("estimateLighting") || !getCommandLineStringArg("image").empty())
 	{
@@ -143,7 +153,51 @@ void CmdApp::printUsage() const
 					"  -depthMesh -image=<path> -fov=<degrees> [-obj=<path>] [-mogeModels=<dir>]\n"
 					"               [-stride=<n>] [-maxDepth=<metres>] [-cpu]\n"
 					"               Generate a camera-space depth proxy mesh from a single frame\n"
-					"               and write it as an OBJ.\n");
+					"               and write it as an OBJ.\n"
+					"  -compileMaterial=<graph>\n"
+					"               Compile a material graph and write its .vert, .frag and .mat\n"
+					"               beside the graph file.\n");
+}
+
+int CmdApp::compileMaterial() const
+{
+	// Config loading resolves relative paths against the project and resource roots, so
+	// hand the loader an absolute path
+	const std::filesystem::path graphPath= std::filesystem::absolute(getCommandLineStringArg("compileMaterial"));
+
+	NodeGraphFactory::registerFactory<MaterialNodeGraphFactory>();
+
+	auto materialGraph=
+		std::dynamic_pointer_cast<MaterialNodeGraph>(NodeGraphFactory::loadNodeGraph(nullptr, graphPath));
+	if (!materialGraph)
+	{
+		fprintf(stdout, "error: '%s' is not a loadable material graph\n", graphPath.string().c_str());
+		return EXIT_FAILURE;
+	}
+
+	GlslShaderWriter writer;
+	MaterialCompileResult result= materialGraph->compile(writer);
+	for (const NodeEvaluationError& error : result.errors)
+	{
+		fprintf(stdout, "error: node %d: %s\n", error.errorNodeId, error.errorMessage.c_str());
+	}
+	if (result.hasErrors())
+	{
+		return EXIT_FAILURE;
+	}
+
+	std::string writeError;
+	if (!MaterialCompiler::writeOutputs(result, graphPath, writeError))
+	{
+		fprintf(stdout, "error: %s\n", writeError.c_str());
+		return EXIT_FAILURE;
+	}
+
+	fprintf(stdout, "wrote %s\n", MaterialCompiler::getVertexShaderPathForGraph(graphPath).string().c_str());
+	fprintf(stdout, "wrote %s\n", MaterialCompiler::getFragmentShaderPathForGraph(graphPath).string().c_str());
+	fprintf(stdout, "wrote %s\n", MaterialCompiler::getMaterialPathForGraph(graphPath).string().c_str());
+
+	return EXIT_SUCCESS;
 }
 
 int CmdApp::estimateLighting() const

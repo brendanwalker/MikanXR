@@ -117,6 +117,18 @@ MikanCmd.exe -depthMesh -image=<path> -fov=<degrees> [-obj=<path>] [-stride=<n>]
 
 ---
 
+## Material graphs
+
+Compile a material graph headlessly, writing its `.vert`, `.frag`, and `.mat` beside the `.graph` (the same code the material editor runs on save; see [materials.md](./materials.md)):
+
+```
+MikanCmd.exe -compileMaterial=resources/shaders/compositor/rgbaFrame/rgbaFrame.graph
+```
+
+Run it after editing a bundled material graph outside the editor, since `MikanCmd.exe -runTests` fails when a checked-in graph and its generated files disagree.
+
+---
+
 ## Formatting
 
 Only `src/` is formatted; `thirdparty/` is never touched. Use clang-format 19.1.x to match CI (VS2022 bundles a compatible copy under `VC\Tools\Llvm\bin\clang-format.exe`, which the CMake scripts find automatically; otherwise `pip install clang-format==19.1.5`).

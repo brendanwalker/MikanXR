@@ -1,24 +1,29 @@
 {
-    "materialName": "rgbaDepthKeyFrame",
-    "vertexShaderPath": "../shared/compositorFrame.vert",
-    "fragmentShaderPath": "depthNormalizeFrame.frag",
-	"vertexAttributes":
-	[
+	"materialName":       "depthNormalizeFrame",
+	"vertexShaderPath":   "depthNormalizeFrame.vert",
+	"fragmentShaderPath": "depthNormalizeFrame.frag",
+	"vertexAttributes":   [
 		{
-			"name": "aPos",
+			"name":     "aPos",
 			"dataType": "vec2",
 			"semantic": "position"
 		},
 		{
-			"name": "aTexCoords",
+			"name":     "aTexCoords",
 			"dataType": "vec2",
 			"semantic": "texCoord"
-		}		
-	],	
-    "uniformSemanticMap":
-    {
-		"zNear": "floatConstant0",
-		"zFar": "floatConstant1",
-		"depthTexture": "depthTexture"
-    }
+		}
+	],
+	"uniformSemanticMap": {
+		"depthTexture": "textureParam",
+		"zFar":         "floatParam",
+		"zNear":        "floatParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "depthNormalizeFrame.graph",
+	"uniformDefaults":    {
+		"zFar":  100.0,
+		"zNear": 0.1
+	}
 }

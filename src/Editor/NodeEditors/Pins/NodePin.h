@@ -81,6 +81,8 @@ public:
 
 	virtual size_t getDataSize() const { return 0; }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const;
+	// A link never crosses graph pages; every canPinsBeConnected override keeps this rule
+	bool isOnSamePage(NodePinPtr otherPinPtr) const;
 
 	NodePinPtr getConnectedSourcePin() const;
 	// The input pin this output pin feeds. Resolved by comparing against the link's own ends rather

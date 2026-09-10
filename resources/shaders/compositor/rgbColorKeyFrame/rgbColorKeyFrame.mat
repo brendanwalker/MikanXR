@@ -1,23 +1,27 @@
 {
-    "materialName": "rgbColorKeyFrame",
-    "vertexShaderPath": "../shared/compositorFrame.vert",
-    "fragmentShaderPath": "rgbColorKeyFrame.frag",
-	"vertexAttributes":
-	[
+	"materialName":       "rgbColorKeyFrame",
+	"vertexShaderPath":   "rgbColorKeyFrame.vert",
+	"fragmentShaderPath": "rgbColorKeyFrame.frag",
+	"vertexAttributes":   [
 		{
-			"name": "aPos",
+			"name":     "aPos",
 			"dataType": "vec2",
 			"semantic": "position"
 		},
 		{
-			"name": "aTexCoords",
+			"name":     "aTexCoords",
 			"dataType": "vec2",
 			"semantic": "texCoord"
-		}		
-	],	
-    "uniformSemanticMap":
-    {
-        "colorKey": "diffuseColorRGB",
-        "colorKeyTexture": "rgbTexture"
-    }
+		}
+	],
+	"uniformSemanticMap": {
+		"colorKey":        "float3Param",
+		"colorKeyTexture": "textureParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "rgbColorKeyFrame.graph",
+	"uniformDefaults":    {
+		"colorKey": [ 0.0, 1.0, 0.0 ]
+	}
 }

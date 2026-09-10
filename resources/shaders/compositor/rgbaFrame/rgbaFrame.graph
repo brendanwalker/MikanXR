@@ -1,0 +1,157 @@
+{
+	"class_name":      "MaterialNodeGraph",
+	"next_id":         14,
+	"settings":        {
+		"domain":        "compositor",
+		"vertex_preset": "P2T"
+	},
+	"properties":      [ ],
+	"assetReferences": [ ],
+	"nodes":           [
+		{
+			"class_name": "MaterialOutputNode",
+			"id":         0,
+			"pins_in":    [ 1 ],
+			"pins_out":   [ ],
+			"pos":        [ 520.0, 120.0 ]
+		},
+		{
+			"class_name":           "ShaderTextureParameterNode",
+			"id":                   2,
+			"pins_in":              [ ],
+			"pins_out":             [ 3 ],
+			"pos":                  [ 40.0, 120.0 ],
+			"parameter_name":       "rgbaTexture",
+			"default_texture_path": ""
+		},
+		{
+			"class_name": "ShaderTextureSampleNode",
+			"id":         4,
+			"pins_in":    [ 5, 6 ],
+			"pins_out":   [ 7, 8, 9, 10, 11 ],
+			"pos":        [ 280.0, 120.0 ]
+		}
+	],
+	"pins":            [
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "color",
+			"id":                1,
+			"direction":         "input",
+			"owner_node_id":     0,
+			"connected_links":   [ 13 ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float4",
+			"default_value":     [ 0.0, 0.0, 0.0, 1.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "texture",
+			"id":                3,
+			"direction":         "output",
+			"owner_node_id":     2,
+			"connected_links":   [ 12 ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "texture2D",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "texture",
+			"id":                5,
+			"direction":         "input",
+			"owner_node_id":     4,
+			"connected_links":   [ 12 ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "texture2D",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "uv",
+			"id":                6,
+			"direction":         "input",
+			"owner_node_id":     4,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float2",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "rgba",
+			"id":                7,
+			"direction":         "output",
+			"owner_node_id":     4,
+			"connected_links":   [ 13 ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float4",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "r",
+			"id":                8,
+			"direction":         "output",
+			"owner_node_id":     4,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "g",
+			"id":                9,
+			"direction":         "output",
+			"owner_node_id":     4,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "b",
+			"id":                10,
+			"direction":         "output",
+			"owner_node_id":     4,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		},
+		{
+			"class_name":        "ShaderValuePin",
+			"pin_name":          "a",
+			"id":                11,
+			"direction":         "output",
+			"owner_node_id":     4,
+			"connected_links":   [ ],
+			"has_default_value": true,
+			"is_dynamic":        false,
+			"value_type":        "float",
+			"default_value":     [ 0.0, 0.0, 0.0, 0.0 ]
+		}
+	],
+	"links":           [
+		{
+			"id":           12,
+			"start_pin_id": 3,
+			"end_pin_id":   5
+		},
+		{
+			"id":           13,
+			"start_pin_id": 7,
+			"end_pin_id":   1
+		}
+	]
+}

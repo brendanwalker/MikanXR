@@ -4,6 +4,7 @@
 #include "AssetReference.h"
 #include "CommonConfig.h"
 #include "NodeFwd.h"
+#include "Graphs/GraphPage.h"
 #include "Nodes/Node.h"
 #include "ObjectSystemFwd.h"
 #include "Pins/NodePin.h"
@@ -29,7 +30,12 @@ public:
 	std::string className;
 	int nextId= -1;
 
+	// Graph-level settings a subclass persists (a material graph's domain and
+	// vertex preset). Read and written by the subclass's loadFromConfig/saveToConfig.
+	configuru::Config settings= configuru::Config::object();
+
 	std::vector<AssetReferenceConfigPtr> assetRefConfigs;
+	std::vector<GraphPageConfigPtr> pageConfigs;
 	std::map<t_graph_property_id, GraphPropertyConfigPtr> propertyConfigMap;
 	std::vector<NodeConfigPtr> nodeConfigs;
 	std::vector<NodePinConfigPtr> pinConfigs;
@@ -37,6 +43,7 @@ public:
 
 protected:
 	configuru::Config _assetRefsConfigObject;
+	configuru::Config _pagesConfigObject;
 	configuru::Config _propertiesConfigObject;
 	configuru::Config _nodesConfigObject;
 	configuru::Config _pinsConfigObject;
@@ -67,6 +74,8 @@ public:
 	int allocateId();
 
 	virtual void editorRender(const class NodeEditorState& editorState);
+	// The Details panel content when nothing in the graph is selected
+	virtual void editorRenderGraphPropertySheet(const class NodeEditorState& editorState) {}
 
 	// -- Loading -----
 
@@ -74,6 +83,7 @@ public:
 	virtual GraphPropertyPtr loadGraphPropertyFromConfig(GraphPropertyConfigPtr propConfig,
 														 const NodeGraphConfig& graphConfig);
 	virtual bool loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig);
+	virtual bool loadPageFromConfig(GraphPageConfigPtr pageConfig);
 	virtual bool allocateNodeFromConfig(NodeConfigPtr nodeConfig);
 	virtual bool loadNodeFromConfig(NodeConfigPtr nodeConfig);
 	virtual bool allocatePinFromConfig(NodePinConfigPtr pinConfig);
@@ -92,6 +102,7 @@ public:
 	virtual void saveToConfig(NodeGraphConfig& config) const;
 	virtual void saveGraphPropertyToConfig(GraphPropertyConstPtr prop, NodeGraphConfig& graphConfig) const;
 	virtual void saveAssetRefToConfig(AssetReferenceConstPtr assetRef, NodeGraphConfig& graphConfig) const;
+	virtual void savePageToConfig(GraphPageConstPtr page, NodeGraphConfig& graphConfig) const;
 	virtual void saveNodeToConfig(NodeConstPtr node, NodeGraphConfig& graphConfig) const;
 	virtual void savePinToConfig(NodePinConstPtr pin, NodeGraphConfig& graphConfig) const;
 	virtual void saveLinkToConfig(NodeLinkConstPtr link, NodeGraphConfig& graphConfig) const;
@@ -150,6 +161,58 @@ public:
 
 	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceCreated;
 	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceDeleted;
+
+	// -- Pages -----
+
+	// The implicit page every graph has; nodes of a graph without pages all sit on it
+	inline static const t_graph_page_id k_rootPageId= 0;
+
+	template <class t_page_factory>
+	void addPageFactory()
+	{
+		auto factory= GraphPageFactory::createFactory<t_page_factory>();
+
+		m_pageFactories.insert({factory->getPageClassName(), factory});
+	}
+
+	GraphPageFactoryPtr getPageFactory(const std::string& pageClassName) const
+	{
+		auto it= m_pageFactories.find(pageClassName);
+
+		return (it != m_pageFactories.end()) ? it->second : GraphPageFactoryPtr();
+	}
+
+	inline const std::map<std::string, GraphPageFactoryPtr>& getPageFactories() const { return m_pageFactories; }
+	inline bool hasPageFactories() const { return !m_pageFactories.empty(); }
+
+	// Creates a page and lets it seed its nodes with the editor state pointed at the new page
+	GraphPagePtr createPage(GraphPageFactoryPtr pageFactory, const class NodeEditorState& editorState);
+
+	template <class t_page_class>
+	std::shared_ptr<t_page_class> createTypedPage(const class NodeEditorState& editorState)
+	{
+		auto pageFactory= getPageFactory(t_page_class::k_pageClassName);
+		if (pageFactory)
+		{
+			return std::static_pointer_cast<t_page_class>(createPage(pageFactory, editorState));
+		}
+
+		return std::shared_ptr<t_page_class>();
+	}
+
+	// Deletes the page and every node on it (the root page cannot be deleted)
+	bool deletePage(t_graph_page_id id);
+	GraphPagePtr getPageById(t_graph_page_id id) const;
+	// True for the root page and every created page
+	bool hasPage(t_graph_page_id id) const;
+	inline const std::map<t_graph_page_id, GraphPagePtr>& getPages() const { return m_pages; }
+	std::vector<NodePtr> getNodesOnPage(t_graph_page_id id) const;
+	// Raised by a page's property sheet after an edit that its dependents need to see
+	void notifyPageModified(t_graph_page_id id);
+
+	MulticastDelegate<void(t_graph_page_id id)> OnPageCreated;
+	MulticastDelegate<void(t_graph_page_id id)> OnPageModified;
+	MulticastDelegate<void(t_graph_page_id id)> OnPageDeleted;
 
 	// -- Properties -----
 
@@ -222,20 +285,33 @@ public:
 
 	virtual std::vector<NodeFactoryPtr> editorGetValidNodeFactories(const class NodeEditorState& editorState) const;
 
-	template <class t_node_factory>
-	void addNodeFactory()
+	template <class t_node_factory, class... t_args>
+	void addNodeFactory(t_args&&... args)
 	{
-		auto factory= NodeFactory::createFactory<t_node_factory>();
-		std::string className= factory->getNodeClassName();
-
-		m_nodeFactories.insert({className, factory});
+		addNodeFactory(NodeFactory::createFactory<t_node_factory>(std::forward<t_args>(args)...));
 	}
 
+	// Factories are keyed by NodeFactory::getFactoryKey, so several variant
+	// factories can share one node class. Loading and saving resolve by class
+	// name to the first factory registered for that class.
+	void addNodeFactory(NodeFactoryPtr factory)
+	{
+		m_nodeFactories.insert({factory->getFactoryKey(), factory});
+		m_nodeFactoriesByClassName.insert({factory->getNodeClassName(), factory});
+	}
+
+	// Removes one factory by key; the class stays loadable while another factory of it remains
+	void removeNodeFactory(const std::string& factoryKey);
+
+	// Accepts a factory key or a node class name
 	NodeFactoryPtr getNodeFactory(const std::string nodeClassName) const
 	{
 		auto it= m_nodeFactories.find(nodeClassName);
+		if (it != m_nodeFactories.end())
+			return it->second;
 
-		return (it != m_nodeFactories.end()) ? it->second : NodeFactoryPtr();
+		auto classIt= m_nodeFactoriesByClassName.find(nodeClassName);
+		return (classIt != m_nodeFactoriesByClassName.end()) ? classIt->second : NodeFactoryPtr();
 	}
 
 	template <class _Pr>
@@ -327,8 +403,12 @@ protected:
 	// Defines all of the property types that this graph can have
 	std::map<std::string, GraphPropertyFactoryPtr> m_propertyFactories;
 
+	// Defines the page types this graph can hold (none means a single root page)
+	std::map<std::string, GraphPageFactoryPtr> m_pageFactories;
+
 	// Defines all of the node types that this node graph can use
 	std::map<std::string, NodeFactoryPtr> m_nodeFactories;
+	std::map<std::string, NodeFactoryPtr> m_nodeFactoriesByClassName;
 
 	// Defines all of the pin types that this node graph can use
 	std::map<std::string, NodePinFactoryPtr> m_pinFactories;
@@ -338,6 +418,9 @@ protected:
 
 	// Properties assigned to this node graph
 	std::map<t_graph_property_id, GraphPropertyPtr> m_properties;
+
+	// Pages other than the implicit root
+	std::map<t_graph_page_id, GraphPagePtr> m_pages;
 
 	// Nodes, pins and links that make up the graph
 	std::map<t_node_id, NodePtr> m_Nodes;

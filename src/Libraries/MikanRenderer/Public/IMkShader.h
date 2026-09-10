@@ -61,6 +61,8 @@ public:
 
 	virtual bool compileProgram()= 0;
 	virtual bool isProgramCompiled() const= 0;
+	// The driver info log of the last failed compileProgram, empty after a success
+	virtual const std::string& getCompileLog() const= 0;
 	virtual uint32_t getIMkShaderId() const= 0;
 	virtual void deleteProgram()= 0;
 

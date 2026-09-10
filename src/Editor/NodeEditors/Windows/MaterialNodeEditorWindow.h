@@ -1,0 +1,72 @@
+#pragma once
+
+#include "Windows/NodeEditorWindow.h"
+#include "Windows/MaterialPreviewPanel.h"
+#include "Graphs/MaterialNodeGraph.h"
+
+#include <filesystem>
+#include <functional>
+
+// Editor window for a material graph. Unlike the compositor and shape windows
+// it binds to no component: the graph compiles to shader source and a material
+// file beside the graph file, and those files load through the ordinary .mat path.
+class MaterialNodeEditorWindow : public NodeEditorWindow
+{
+public:
+	MaterialNodeEditorWindow(class App* ownerApp);
+
+	// -- IEditorWindow ----
+	virtual void update(float deltaSeconds) override;
+	virtual void render() override;
+	virtual void shutdown() override;
+
+	// -- NodeEditorWindow ----
+	virtual NodeGraphFactoryPtr getNodeGraphFactory() const override;
+	virtual void newGraph() override;
+	virtual bool saveGraph(bool bShowFileDialog) override;
+
+	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) override;
+	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) override;
+
+	// -- MaterialNodeEditorWindow ----
+	MaterialNodeGraphPtr getMaterialNodeGraph() const;
+
+	void newMaterialGraph(eMaterialDomain domain);
+	bool openMaterialGraph(const std::filesystem::path& graphPath);
+
+	// Compile the graph and refresh the error overlay and preview, writing nothing
+	MaterialCompileResult compileGraph();
+	// Compile, then write the shader and material files beside the graph file
+	// when the graph has a path and compiled without errors
+	bool compileAndWriteOutputs();
+
+	// Invoked with the written .mat path after each successful compileAndWriteOutputs
+	using MaterialSavedCallback= std::function<void(const std::filesystem::path&)>;
+	void setOnMaterialSaved(MaterialSavedCallback callback) { m_onMaterialSaved= std::move(callback); }
+
+protected:
+	virtual void updateUI() override;
+	virtual void renderMenuBarExtras() override;
+	virtual void renderViewMenuExtras() override;
+	virtual void dockExtraPanels(unsigned int& rightId) override;
+	virtual void onNodeGraphCreated() override;
+	virtual void onNodeGraphDeleted() override;
+	virtual void onGraphRestored() override;
+	virtual void onGraphEdited() override;
+	virtual std::filesystem::path getDefaultGraphDirectory() const override;
+	virtual const char* getWindowTitleKey() const override { return "windows.materialEditor"; }
+	virtual std::string getGuiIniName() const override { return "material_editor"; }
+	virtual bool hasPagesPanel() const override { return true; }
+	virtual const char* getPagesPanelTitleKey() const override { return "windows.materialFunctionsPanel"; }
+
+	void onDomainChanged();
+	// A function page came, went, or changed its signature under the compiled program
+	void onPageEdited(t_graph_page_id id);
+
+protected:
+	MaterialPreviewPanel m_previewPanel;
+	bool m_bShowPreviewPanel= true;
+	// The update delta, carried into render() where the preview animates
+	float m_lastDeltaSeconds= 0.f;
+	MaterialSavedCallback m_onMaterialSaved;
+};

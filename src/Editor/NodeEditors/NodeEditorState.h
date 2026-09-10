@@ -12,6 +12,8 @@ public:
 
 	NodeGraphPtr nodeGraph;
 	std::filesystem::path nodeGraphPath;
+	// The page the canvas shows and new nodes land on (0 is the root page)
+	t_graph_page_id currentPageId= 0;
 	int startedLinkPinId= -1;
 	bool bLinkHanged= false;
 	ImVec2 hangPosGridSpace= {};

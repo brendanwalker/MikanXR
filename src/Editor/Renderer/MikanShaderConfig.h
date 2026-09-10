@@ -31,4 +31,18 @@ public:
 	std::filesystem::path fragmentShaderPath;
 	std::map<std::string, std::string> uniformSemanticMap;
 	std::vector<GlVertexAttributeConfigPtr> vertexAttributes;
+
+	// Optional. Written by the material graph compiler; a hand-authored .mat
+	// leaves them empty. The domain and preset names are the MaterialDomainUtils
+	// strings, and the graph path is relative to the .mat folder like the shaders.
+	std::string domain;
+	std::string vertexPreset;
+	std::filesystem::path sourceGraphPath;
+
+	// Optional. Default values the loader applies to the MkMaterial, so a
+	// consumer that never sets a uniform still binds something. One JSON
+	// object, uniformDefaults, holds both: a number or float array for the
+	// float uniforms, a texture path (stored project form) for the samplers.
+	std::map<std::string, std::vector<float>> uniformFloatDefaults;
+	std::map<std::string, std::string> uniformTextureDefaults;
 };

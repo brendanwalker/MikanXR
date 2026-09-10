@@ -32,6 +32,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include <algorithm>
+
 // -- ApplyMaterialNodeConfig -----
 configuru::Config ApplyMaterialNodeConfig::writeToJSON()
 {
@@ -115,6 +117,9 @@ void ApplyMaterialNode::onGraphLoaded(bool success)
 			if (materialProperty)
 			{
 				setMaterial(materialProperty->getMaterialResource());
+				// Loaded pins carry the flags of the material as it was saved, so refresh them against
+				// the material as loaded now (a default texture makes its pin optional)
+				rebuildInputPins();
 			}
 		}
 
@@ -162,15 +167,40 @@ void ApplyMaterialNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 		if (m_ownerGraph)
 		{
 			m_ownerGraph->OnGraphLoaded-= MakeDelegate(this, &ApplyMaterialNode::onGraphLoaded);
+			m_ownerGraph->OnPropertyModifed-= MakeDelegate(this, &ApplyMaterialNode::onGraphPropertyModified);
 			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
 			newOwnerGraph->OnGraphLoaded+= MakeDelegate(this, &ApplyMaterialNode::onGraphLoaded);
+			newOwnerGraph->OnPropertyModifed+= MakeDelegate(this, &ApplyMaterialNode::onGraphPropertyModified);
 			m_ownerGraph= newOwnerGraph;
 		}
 	}
+}
+
+void ApplyMaterialNode::onGraphPropertyModified(t_graph_property_id id)
+{
+	if (!m_materialPin || isPendingDeletion())
+		return;
+
+	auto materialProperty= std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue());
+	if (materialProperty && materialProperty->getId() == id)
+	{
+		// Recreate the instance against the recompiled program and track its uniforms
+		setMaterial(materialProperty->getMaterialResource());
+		rebuildInputPins();
+	}
+}
+
+bool ApplyMaterialNode::editorCanAcceptProperty(NodePinPtr pin, GraphPropertyPtr property) const
+{
+	if (pin != m_materialPin)
+		return true;
+
+	auto materialProperty= std::dynamic_pointer_cast<GraphMaterialProperty>(property);
+	return !materialProperty || materialProperty->isCompatibleWithDomain(eMaterialDomain::compositor);
 }
 
 void ApplyMaterialNode::setMaterialPin(PropertyPinPtr inPin) { m_materialPin= inPin; }
@@ -368,6 +398,16 @@ void ApplyMaterialNode::editorRenderNode(const NodeEditorState& editorState)
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 }
 
+void ApplyMaterialNode::editorOnDoubleClicked(const NodeEditorState& editorState)
+{
+	auto materialProperty= m_materialPin ? std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue())
+										 : GraphMaterialPropertyPtr();
+	if (materialProperty)
+	{
+		materialProperty->editorOpenSourceGraph();
+	}
+}
+
 void ApplyMaterialNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
@@ -414,69 +454,99 @@ void ApplyMaterialNode::rebuildInputPins()
 {
 	assert(!isPendingDeletion());
 
-	// Delete all dynamic material pins
-	for (int pinIndex= (int)m_pinsIn.size() - 1; pinIndex >= 0; pinIndex--)
+	// Index the dynamic pins by name. A pin whose uniform survives with the same
+	// data type is kept, so its links and value carry across a material reload.
+	captureDynamicPinDefaultValues();
+	std::map<std::string, NodePinPtr> unclaimedPins;
+	for (NodePinPtr pin : m_pinsIn)
 	{
-		NodePinPtr pin= m_pinsIn[pinIndex];
-
 		if (pin->getIsDynamicPin())
 		{
-			getOwnerGraph()->deletePinById(pin->getId());
+			unclaimedPins.insert({pin->getName(), pin});
 		}
 	}
 
-	// Create an input pin for each shader uniform
-	if (m_material)
+	// Claim or create an input pin for each shader uniform, in uniform order
+	std::vector<NodePinPtr> dynamicPins;
+	IMkShaderPtr program= m_material ? m_material->getProgram() : IMkShaderPtr();
+	if (program)
 	{
-		auto program= m_material->getProgram();
-
 		for (auto it= program->getUniformBegin(); it != program->getUniformEnd(); ++it)
 		{
 			const std::string& uniformName= it->first;
-			eUniformSemantic uniformSemantic= it->second.semantic;
-			eUniformDataType uniformDataType= getUniformSemanticDataType(uniformSemantic);
-			NodePinPtr newPin;
-
-			switch (uniformDataType)
+			const eUniformDataType uniformDataType= getUniformSemanticDataType(it->second.semantic);
+			const std::string& pinClassName= GraphMaterialProperty::getUniformPinClassName(uniformDataType);
+			if (pinClassName.empty())
 			{
-			case eUniformDataType::datatype_float:
-			{
-				newPin= addPin<FloatPin>(uniformName, eNodePinDirection::INPUT);
-			}
-			break;
-			case eUniformDataType::datatype_float2:
-			{
-				newPin= addPin<Float2Pin>(uniformName, eNodePinDirection::INPUT);
-			}
-			break;
-			case eUniformDataType::datatype_float3:
-			{
-				newPin= addPin<Float3Pin>(uniformName, eNodePinDirection::INPUT);
-			}
-			break;
-			case eUniformDataType::datatype_float4:
-			{
-				newPin= addPin<Float4Pin>(uniformName, eNodePinDirection::INPUT);
-			}
-			break;
-			case eUniformDataType::datatype_texture:
-			{
-				newPin= addPin<TexturePin>(uniformName, eNodePinDirection::INPUT);
-			}
-			break;
-			default:
 				assert(false);
+				continue;
 			}
 
-			// Flag all new pins as dynamic
-			if (newPin)
+			NodePinPtr pin;
+			auto unclaimedIt= unclaimedPins.find(uniformName);
+			if (unclaimedIt != unclaimedPins.end() && unclaimedIt->second->getClassName() == pinClassName)
 			{
-				newPin->setIsDynamicPin(true);
+				pin= unclaimedIt->second;
+				unclaimedPins.erase(unclaimedIt);
 			}
-		}
+			else
+			{
+				pin= addPinByClassName(pinClassName, uniformName, eNodePinDirection::INPUT);
+				pin->setIsDynamicPin(true);
+				GraphMaterialProperty::initDynamicPinFromMaterialDefault(pin, m_material);
+			}
 
-		// Update dynamic pin default values
-		applyDynamicPinDefaultValues();
+			// A texture the material carries a default for need not be connected
+			if (uniformDataType == eUniformDataType::datatype_texture)
+			{
+				IMkTextureConstPtr defaultTexture;
+				pin->setHasDefaultValue(m_material->getTextureByUniformName(uniformName, defaultTexture)
+										&& defaultTexture != nullptr);
+			}
+
+			dynamicPins.push_back(pin);
+		}
+	}
+
+	// Delete the dynamic pins no uniform claimed
+	for (const auto& [pinName, unclaimedPin] : unclaimedPins)
+	{
+		getOwnerGraph()->deletePinById(unclaimedPin->getId());
+	}
+
+	// Keep the dynamic pins after the fixed ones, in uniform order
+	m_pinsIn.erase(
+		std::remove_if(m_pinsIn.begin(), m_pinsIn.end(), [](const NodePinPtr& pin) { return pin->getIsDynamicPin(); }),
+		m_pinsIn.end());
+	m_pinsIn.insert(m_pinsIn.end(), dynamicPins.begin(), dynamicPins.end());
+
+	// Update dynamic pin default values
+	applyDynamicPinDefaultValues();
+}
+
+void ApplyMaterialNode::captureDynamicPinDefaultValues()
+{
+	for (auto& pin : m_pinsIn)
+	{
+		if (!pin->getIsDynamicPin())
+			continue;
+
+		if (FloatPinPtr floatPin= std::dynamic_pointer_cast<FloatPin>(pin))
+		{
+			m_floatDefaults[floatPin->getName()]= floatPin->getValue();
+		}
+		else if (Float2PinPtr float2Pin= std::dynamic_pointer_cast<Float2Pin>(pin))
+		{
+			m_float2Defaults[float2Pin->getName()]= float2Pin->getValue();
+		}
+		else if (Float3PinPtr float3Pin= std::dynamic_pointer_cast<Float3Pin>(pin))
+		{
+			m_float3Defaults[float3Pin->getName()]= float3Pin->getValue();
+		}
+		else if (Float4PinPtr float4Pin= std::dynamic_pointer_cast<Float4Pin>(pin))
+		{
+			m_float4Defaults[float4Pin->getName()]= float4Pin->getValue();
+		}
 	}
 }
 

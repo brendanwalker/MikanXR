@@ -8,6 +8,7 @@
 #include "IMkGraphicsContext.h"
 #include "MainWindow.h"
 #include "MikanModelResourceManager.h"
+#include "MikanShaderCache.h"
 #include "MikanTextureCache.h"
 #include "MkGuiContext.h"
 #include "MkGuiStyleManager.h"
@@ -195,6 +196,12 @@ bool EditorWindow::startupTextureCache()
 bool EditorWindow::startupModelResourceManager()
 {
 	EASY_FUNCTION();
+
+	// Material default textures resolve through this window's texture cache
+	if (m_textureCache)
+	{
+		m_modelResourceManager->getShaderCache()->setTextureCache(m_textureCache.get());
+	}
 
 	if (!m_modelResourceManager->startup())
 	{

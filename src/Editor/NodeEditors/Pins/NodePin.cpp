@@ -136,7 +136,18 @@ bool NodePin::canPinsBeConnected(NodePinPtr otherPinPtr) const
 	if (this->getDirection() == otherPinPtr->getDirection())
 		return false;
 
+	if (!isOnSamePage(otherPinPtr))
+		return false;
+
 	return true;
+}
+
+bool NodePin::isOnSamePage(NodePinPtr otherPinPtr) const
+{
+	NodePtr otherNode= otherPinPtr ? otherPinPtr->getOwnerNode() : NodePtr();
+
+	// Pins without an owner (factory default objects) sit on no page and pass
+	return !m_ownerNode || !otherNode || m_ownerNode->getPageId() == otherNode->getPageId();
 }
 
 NodePinPtr NodePin::getConnectedSourcePin() const

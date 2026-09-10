@@ -56,6 +56,9 @@ public:
 	virtual void editorHandleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void editorRenderPropertySheet(const class NodeEditorState& editorState) {}
+	// Whether double-clicking the asset opens it in a dedicated editor window
+	virtual bool editorCanOpen() const { return false; }
+	virtual void editorOpen() {}
 
 protected:
 	virtual void rebuildPreview() {}

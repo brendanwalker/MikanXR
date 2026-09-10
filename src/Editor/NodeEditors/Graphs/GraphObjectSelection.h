@@ -15,6 +15,9 @@ const t_graph_object_id_type LINK= 1;
 // Assets
 const t_graph_object_id_type ASSET= 2;
 const t_graph_object_id_type VARIABLE= 3;
+
+// Pages
+const t_graph_object_id_type PAGE= 4;
 }; // namespace GraphObjectIdType
 
 class GraphObjectSelection

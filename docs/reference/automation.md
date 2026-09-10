@@ -134,19 +134,32 @@ A drive that mutates state can restore it exactly with `history undo` instead of
 Drives the node editor window and its snapshot undo history ([transactions.md](./transactions.md)). One node editor window is targeted at a time; the commands answer an error when none is open.
 
 - `nodegraph open [compositorComponentId]` opens the compositor graph editor window (the id may be omitted when the project has exactly one compositor)
+- `nodegraph open material <graphPath>` opens the material graph editor window on a `.graph` file, reusing and raising the window when one is already open. A relative path resolves against the project (then the app resources) and otherwise against the working directory. The command answers an error when the file does not load or is not a material graph.
+- `nodegraph open material new [compositor|shape]` opens the material editor with a fresh graph of that domain (default `compositor`)
 - `nodegraph close` asks the app to tear the window down at the end of the frame
-- `nodegraph info` replies the graph class and path, node/pin/link/property counts, `can_undo`/`can_redo`, the history depth and cursor, the session log path ([transactions.md](./transactions.md)), and for the compositor editor a `running` line
-- `nodegraph list nodes|pins|links|properties` replies one object per line: nodes as `<id> <class> <editorTitle>`, pins adding owner node id, direction, and name, links as `<id> <startPinId> <endPinId>`
-- `nodegraph createnode <nodeClassName> [x y]` creates a node at the grid position, replying the new node id
+- `nodegraph info` replies the graph class and path, node/pin/link/property counts, a `page` line with the current page id, a `pages` line with the page count (the implicit root is not counted), `can_undo`/`can_redo`, the history depth and cursor, the session log path ([transactions.md](./transactions.md)), for the compositor editor a `running` line, and for the material editor `domain`, `vertex_preset`, and `compile_errors` (the error count of the last compile) lines
+- `nodegraph list nodes|pins|links|properties|pages` replies one object per line: nodes as `<id> <class> <editorTitle> <pageId>` (the title may hold spaces, so the page id is the last token), pins adding owner node id, direction, and name, links as `<id> <startPinId> <endPinId>`, pages as the root first (`0 root Main`) then `<id> <className> <name>` in id order
+- `nodegraph page` replies the current page id. `nodegraph page <pageId>` switches the canvas to that page, replying the resulting page id, or an error when the page does not exist.
+- `nodegraph createpage <pageClassName>` creates a page of one of the graph's page classes (the Pages panel's add buttons), replying the new page id, or an error naming an unknown class
+- `nodegraph deletepage <pageId>` deletes a page with every node on it. The root page cannot be deleted, and a missing page answers an error.
+- `nodegraph createnode <nodeClassName> [x y]` creates a node at the grid position on the current page, replying the new node id
 - `nodegraph deletenode <nodeId>` deletes a node with its pins and links
 - `nodegraph createlink <startPinId> <endPinId>` connects two compatible pins, replying the new link id
 - `nodegraph deletelink <linkId>` deletes a link
 - `nodegraph undo [n]` / `nodegraph redo [n]` step the window's snapshot history, replying the resulting cursor
 - `nodegraph run on|off` pauses or resumes compositor evaluation of the editor graph (the Compositor menu's Run item), replying the resulting state
+- `nodegraph compile` compiles the material editor's graph and writes its shaders and `.mat` beside the graph file (the Material menu's Compile item), replying `compiled`, or one `error <nodeId> <message>` line per compile error. An unsaved graph has nowhere to write and answers an error. On any other editor window the command answers an error.
 - `nodegraph renamevar <propertyId> <name...>` renames a graph variable (the name is the rest of the line, so spaces survive)
 - `nodegraph reordervar <movedPropertyId> <targetPropertyId>` moves a variable to the target's slot in the list, the headless equivalent of dragging one variable row onto another
 
 `nodegraph list properties` replies in variable-list order, so a reorder is observable there.
+
+### Materials (material)
+
+Loads and compiles material files headlessly, with no editor window involved, so a drive can check a `.mat` or rebuild a graph's outputs without opening the editor. Paths resolve the way `nodegraph open material` resolves them.
+
+- `material info <matPath>` loads the `.mat` config and replies `name`, `domain`, `vertex_preset`, and `source_graph` lines (`none` where a hand-authored material leaves them unset), then one `uniform <name> <semantic>` line per uniform semantic map entry
+- `material compile <graphPath>` loads the graph without an owner window, compiles it with the GLSL writer, and writes the `.vert`, `.frag`, and `.mat` beside the graph file, replying those three paths. Compile errors reply as `error <nodeId> <message>` lines and write nothing.
 
 ### ARKit debug channel (arkit)
 

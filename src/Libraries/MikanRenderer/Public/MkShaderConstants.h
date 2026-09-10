@@ -78,6 +78,15 @@ enum class eUniformSemantic : int
 	shCoefficient7,
 	shCoefficient8,
 
+	// Generic material parameters. A graph-authored material exposes each of its
+	// parameters as one of these, typed by the semantic; consumers bind them by
+	// uniform name, so the semantic only decides the pin type.
+	floatParam,
+	float2Param,
+	float3Param,
+	float4Param,
+	textureParam,
+
 	COUNT
 };
 

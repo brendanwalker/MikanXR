@@ -8,6 +8,7 @@
 #include "Graphs/NodeEvaluator.h"
 
 #include "Nodes/Node.h"
+#include "Nodes/CommentNode.h"
 #include "Nodes/EventNode.h"
 #include "Nodes/VariableNode.h"
 
@@ -46,6 +47,10 @@ configuru::Config NodeGraphConfig::writeToJSON()
 
 	pt["class_name"]= className;
 	pt["next_id"]= nextId;
+	if (settings.is_object() && settings.object_size() > 0)
+	{
+		pt["settings"]= settings;
+	}
 
 	// Write out propertyConfigMap as an array
 	{
@@ -58,6 +63,10 @@ configuru::Config NodeGraphConfig::writeToJSON()
 	}
 
 	writeStdConfigVector(pt, "assetReferences", assetRefConfigs);
+	if (!pageConfigs.empty())
+	{
+		writeStdConfigVector(pt, "pages", pageConfigs);
+	}
 	writeStdConfigVector(pt, "nodes", nodeConfigs);
 	writeStdConfigVector(pt, "pins", pinConfigs);
 	writeStdConfigVector(pt, "links", linkConfigs);
@@ -71,10 +80,13 @@ void NodeGraphConfig::readFromJSON(const configuru::Config& pt)
 
 	className= pt.get_or<std::string>("class_name", "NodeGraph");
 	nextId= pt.get_or<int>("next_id", -1);
+	settings= (pt.has_key("settings") && pt["settings"].is_object()) ? pt["settings"] : configuru::Config::object();
 
 	// These get evaluated in postReadFromJSON after we use className above
 	// to allocate a node graph that has the factories to process these config objects
 	_assetRefsConfigObject= pt["assetReferences"];
+	// Pages arrived after the other arrays, so a file without them is normal
+	_pagesConfigObject= (pt.has_key("pages") && pt["pages"].is_array()) ? pt["pages"] : configuru::Config::array();
 	_propertiesConfigObject= pt["properties"];
 	_nodesConfigObject= pt["nodes"];
 	_pinsConfigObject= pt["pins"];
@@ -138,6 +150,12 @@ bool NodeGraphConfig::postReadFromJSON(NodeGraphPtr graph)
 										   AssetReferenceFactoryPtr factory= graph->getAssetReferenceFactory(className);
 										   return factory ? factory->allocateAssetReferenceConfig() : CommonConfigPtr();
 									   });
+	success&= readNodeGraphConfigArray(_pagesConfigObject, "pages", pageConfigs,
+									   [graph](const std::string& className) -> CommonConfigPtr
+									   {
+										   GraphPageFactoryPtr factory= graph->getPageFactory(className);
+										   return factory ? factory->allocatePageConfig() : CommonConfigPtr();
+									   });
 	success&= readNodeGraphConfigArray(_propertiesConfigObject, "properties", propertyConfigs,
 									   [graph](const std::string& className) -> CommonConfigPtr
 									   {
@@ -190,6 +208,7 @@ NodeGraph::NodeGraph()
 	addPropertyFactory<GraphArrayPropertyFactory>();
 
 	// Add node types that this graph can use
+	addNodeFactory<CommentNodeFactory>();
 	addNodeFactory<VariableNodeFactory>();
 }
 
@@ -205,6 +224,12 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 	for (auto assetRefConfig : config.assetRefConfigs)
 	{
 		bSuccess&= loadAssetRefFromConfig(assetRefConfig);
+	}
+
+	// Load all pages (nodes record the page they sit on)
+	for (auto pageConfig : config.pageConfigs)
+	{
+		bSuccess&= loadPageFromConfig(pageConfig);
 	}
 
 	// Load all properties (depends on asset references)
@@ -246,12 +271,46 @@ bool NodeGraph::loadFromConfig(const NodeGraphConfig& config)
 		bSuccess&= createResources();
 	}
 
+	// Pages find their nodes before any node hears the graph loaded
+	for (auto it= m_pages.begin(); it != m_pages.end(); ++it)
+	{
+		it->second->onGraphLoaded();
+	}
+
 	if (OnGraphLoaded)
 	{
 		OnGraphLoaded(bSuccess);
 	}
 
 	return bSuccess;
+}
+
+bool NodeGraph::loadPageFromConfig(GraphPageConfigPtr pageConfig)
+{
+	GraphPageFactoryPtr factory= getPageFactory(pageConfig->className);
+	if (!factory)
+	{
+		MIKAN_LOG_ERROR("NodeGraph::loadPageFromConfig") << "Unknown page class: " << pageConfig->className;
+		return false;
+	}
+
+	if (pageConfig->id == k_rootPageId)
+	{
+		MIKAN_LOG_ERROR("NodeGraph::loadPageFromConfig") << "Page id 0 belongs to the root page";
+		return false;
+	}
+
+	GraphPagePtr page= factory->allocatePage();
+	page->setOwnerGraph(shared_from_this());
+	if (!page->loadFromConfig(pageConfig))
+	{
+		MIKAN_LOG_ERROR("NodeGraph::loadPageFromConfig") << "Failed to load page id: " << pageConfig->id;
+		return false;
+	}
+
+	m_pages.insert({page->getId(), page});
+
+	return true;
 }
 
 bool NodeGraph::loadAssetRefFromConfig(AssetReferenceConfigPtr assetRefConfig)
@@ -499,6 +558,12 @@ void NodeGraph::saveToConfig(NodeGraphConfig& config) const
 		saveAssetRefToConfig(assetRef, config);
 	}
 
+	// Save all pages
+	for (auto it= m_pages.begin(); it != m_pages.end(); it++)
+	{
+		savePageToConfig(it->second, config);
+	}
+
 	// Load all properties (depends on asset references)
 	for (auto it= m_properties.begin(); it != m_properties.end(); it++)
 	{
@@ -522,6 +587,117 @@ void NodeGraph::saveToConfig(NodeGraphConfig& config) const
 	{
 		saveLinkToConfig(it->second, config);
 	}
+}
+
+void NodeGraph::savePageToConfig(GraphPageConstPtr page, NodeGraphConfig& graphConfig) const
+{
+	auto factory= getPageFactory(page->getClassName());
+	if (factory)
+	{
+		auto config= factory->allocatePageConfig();
+		if (config)
+		{
+			page->saveToConfig(config);
+			graphConfig.pageConfigs.push_back(config);
+		}
+	}
+}
+
+// -- Pages -----
+GraphPagePtr NodeGraph::createPage(GraphPageFactoryPtr pageFactory, const NodeEditorState& editorState)
+{
+	GraphPagePtr page= pageFactory->allocatePage();
+	page->setOwnerGraph(shared_from_this());
+	page->setId(allocateId());
+	page->setName(StringUtils::stringify(page->editorGetTitle(), page->getId()));
+
+	m_pages.insert({page->getId(), page});
+
+	if (OnPageCreated)
+	{
+		OnPageCreated(page->getId());
+	}
+
+	// The page seeds its nodes onto itself
+	NodeEditorState pageEditorState= editorState;
+	pageEditorState.currentPageId= page->getId();
+	page->onPageCreated(pageEditorState);
+
+	return page;
+}
+
+bool NodeGraph::deletePage(t_graph_page_id id)
+{
+	auto it= m_pages.find(id);
+	if (it == m_pages.end())
+		return false;
+
+	// Dependents (call nodes, the editor's current page) react before the nodes go
+	if (OnPageDeleted)
+	{
+		OnPageDeleted(id);
+	}
+
+	for (NodePtr node : getNodesOnPage(id))
+	{
+		deleteNodeById(node->getId());
+	}
+
+	m_pages.erase(it);
+
+	return true;
+}
+
+GraphPagePtr NodeGraph::getPageById(t_graph_page_id id) const
+{
+	auto it= m_pages.find(id);
+
+	return (it != m_pages.end()) ? it->second : GraphPagePtr();
+}
+
+bool NodeGraph::hasPage(t_graph_page_id id) const { return id == k_rootPageId || m_pages.find(id) != m_pages.end(); }
+
+std::vector<NodePtr> NodeGraph::getNodesOnPage(t_graph_page_id id) const
+{
+	std::vector<NodePtr> nodes;
+	for (auto it= m_Nodes.begin(); it != m_Nodes.end(); ++it)
+	{
+		if (it->second->getPageId() == id)
+		{
+			nodes.push_back(it->second);
+		}
+	}
+
+	return nodes;
+}
+
+void NodeGraph::notifyPageModified(t_graph_page_id id)
+{
+	if (OnPageModified)
+	{
+		OnPageModified(id);
+	}
+}
+
+void NodeGraph::removeNodeFactory(const std::string& factoryKey)
+{
+	auto it= m_nodeFactories.find(factoryKey);
+	if (it == m_nodeFactories.end())
+		return;
+
+	const std::string className= it->second->getNodeClassName();
+	m_nodeFactories.erase(it);
+
+	// The class stays loadable through any other factory that still serves it
+	for (auto& [key, factory] : m_nodeFactories)
+	{
+		if (factory->getNodeClassName() == className)
+		{
+			m_nodeFactoriesByClassName[className]= factory;
+			return;
+		}
+	}
+	m_nodeFactoriesByClassName.erase(className);
 }
 
 void NodeGraph::saveGraphPropertyToConfig(GraphPropertyConstPtr prop, NodeGraphConfig& graphConfig) const
@@ -1098,10 +1274,14 @@ std::vector<NodeFactoryPtr> NodeGraph::editorGetValidNodeFactories(const NodeEdi
 
 void NodeGraph::editorRender(const NodeEditorState& editorState)
 {
-	// Nodes rendering (hover and selection borders come from the canvas style)
+	// Nodes rendering (hover and selection borders come from the canvas style).
+	// Only the current page's nodes are submitted; the rest keep their canvas
+	// positions and links untouched.
 	for (auto it= m_Nodes.begin(); it != m_Nodes.end(); ++it)
 	{
 		NodePtr node= it->second;
+		if (node->getPageId() != editorState.currentPageId)
+			continue;
 
 		node->editorRenderNode(editorState);
 
@@ -1111,10 +1291,14 @@ void NodeGraph::editorRender(const NodeEditorState& editorState)
 		node->setNodePos({nodePos.x, nodePos.y});
 	}
 
-	// Links Rendering
+	// Links Rendering (a link never crosses pages, so its start pin decides)
 	for (auto it= m_Links.begin(); it != m_Links.end(); ++it)
 	{
 		NodeLinkPtr link= it->second;
+		NodePinPtr startPin= link->getStartPin();
+		NodePtr startNode= startPin ? startPin->getOwnerNode() : NodePtr();
+		if (startNode && startNode->getPageId() != editorState.currentPageId)
+			continue;
 
 		link->editorRender(editorState);
 	}

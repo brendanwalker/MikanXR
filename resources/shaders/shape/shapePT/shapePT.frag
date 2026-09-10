@@ -1,11 +1,12 @@
 #version 330 core
-out vec4 FragColor;
-
-in vec2 TexCoords;
-
 uniform sampler2D rgbaTexture;
+
+in vec2 vTexCoords;
+
+out vec4 FragColor;
 
 void main()
 {
-	FragColor = texture(rgbaTexture, TexCoords);
+	vec4 t0 = texture(rgbaTexture, vTexCoords);
+	FragColor = t0;
 }

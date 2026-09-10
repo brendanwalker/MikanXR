@@ -101,6 +101,8 @@ private:
 						  std::string& outError);
 	bool handleNodeGraphCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
 								std::string& outError);
+	bool handleMaterialCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+							   std::string& outError);
 	bool handleWindowCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
 							 std::string& outError);
 	bool handleInputCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,

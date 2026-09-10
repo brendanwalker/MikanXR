@@ -8,6 +8,7 @@
 #include <array>
 #include <map>
 #include <string>
+#include <vector>
 
 class DrawShapeMeshNodeConfig : public NodeConfig
 {
@@ -34,7 +35,7 @@ class DrawShapeMeshNode : public Node
 {
 public:
 	DrawShapeMeshNode()= default;
-	virtual ~DrawShapeMeshNode()= default;
+	virtual ~DrawShapeMeshNode();
 
 	inline static const std::string k_nodeClassName= "DrawShapeMeshNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
@@ -48,21 +49,35 @@ public:
 	virtual bool hasAnyFlowPins() const override { return true; }
 
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
+	// Opens the source graph of the material wired into the material pin
+	virtual void editorOnDoubleClicked(const NodeEditorState& editorState) override;
+	// The material pin only takes a shape material
+	virtual bool editorCanAcceptProperty(NodePinPtr pin, GraphPropertyPtr property) const override;
 
 protected:
 	virtual std::string editorGetTitle() const override { return locText("nodes.drawShapeMeshTitle"); }
 	virtual const char* editorGetHeaderIcon() const override;
 
 	void onGraphLoaded(bool success);
+	// A reload of the connected material recompiled its program
+	void onGraphPropertyModified(t_graph_property_id id);
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;
 	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
+	// Re-derives the dynamic pins from the material's uniforms, keeping any
+	// existing pin whose name and type still match so its links survive
 	void rebuildInputPins();
+	void captureDynamicPinDefaultValues();
 	void applyDynamicPinDefaultValues();
 
 	void setMaterialPin(PropertyPinPtr inPin);
 	void setMaterial(MkMaterialConstPtr inMaterial);
 
-	void drawShapeRenderable(IMkSceneRenderableConstPtr renderable, const glm::mat4& vpMatrix);
+	// Draws the shape's meshes with the material. A mesh whose vertex layout the
+	// material's program cannot read is skipped and reported once per evaluation,
+	// which fails the evaluation.
+	bool drawShapeRenderables(NodeEvaluator& evaluator, const std::vector<IMkSceneRenderableConstPtr>& renderables,
+							  const glm::mat4& vpMatrix);
+	void drawMesh(IMkMeshConstPtr mesh, const glm::mat4& mvpMatrix);
 
 protected:
 	PropertyPinPtr m_materialPin;

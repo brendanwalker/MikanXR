@@ -1,19 +1,21 @@
 #version 330 core
-out vec4 FragColor;
-
-in vec2 TexCoords;
-
+uniform sampler2D clientDepth;
 uniform sampler2D videoDepth;
 uniform sampler2D clientRGBA;
-uniform sampler2D clientDepth;
+
+in vec2 vTexCoords;
+
+out vec4 FragColor;
 
 void main()
 {
-	// Clip videoZ infinity slightly above client Z infinity so that video background wins
-	float videoZ = min(texture(videoDepth, TexCoords).r, 0.9998);
-	float clientZ = texture(clientDepth, TexCoords).r;
-	vec3 clientColor = texture(clientRGBA, TexCoords).rgb;
-	float clientInvAlpha = 1.0 - texture(clientRGBA, TexCoords).a;
-
-	FragColor = (clientZ < videoZ) ? vec4(clientColor, clientInvAlpha) : vec4(0.0);
+	vec4 t0 = texture(clientDepth, vTexCoords);
+	vec4 t1 = texture(videoDepth, vTexCoords);
+	float t2 = min(t1.x, 0.9998);
+	vec4 t3 = texture(clientRGBA, vTexCoords);
+	vec3 t4 = t3.xyz;
+	float t5 = (1.0 - t3.w);
+	vec4 t6 = vec4(t4, t5);
+	vec4 t7 = ((t0.x < t2) ? t6 : vec4(0.0, 0.0, 0.0, 0.0));
+	FragColor = t7;
 }

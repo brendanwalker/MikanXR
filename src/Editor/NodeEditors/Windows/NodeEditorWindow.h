@@ -12,6 +12,8 @@
 #include "Graphs/NodeGraphHistory.h"
 #include "Graphs/NodeGraphLogWriter.h"
 
+#include "MaterialCompiler/MaterialDomain.h"
+
 #include "Properties/GraphArrayProperty.h"
 
 #include <chrono>
@@ -60,6 +62,12 @@ public:
 	/// undo()/redo() instead. @returns true if the graph was restored
 	bool stepHistory(int steps);
 
+	// -- Pages ----
+	// Show the given page on the canvas, dropping the selection and framing the
+	// page's nodes. Ignored for the current page and for ids the graph lacks.
+	void setCurrentPage(t_graph_page_id pageId);
+	inline t_graph_page_id getCurrentPageId() const { return m_editorState.currentPageId; }
+
 	// -- Automation ----
 	// Parked work from the automation server, run at the top of the next
 	// update where this window's GL and gui contexts can be made current
@@ -72,9 +80,16 @@ public:
 	bool automationCreateLink(t_node_pin_id startPinId, t_node_pin_id endPinId, t_node_link_id& outLinkId,
 							  std::string& outError);
 	bool automationDeleteLink(t_node_link_id linkId, std::string& outError);
+	bool automationSetCurrentPage(t_graph_page_id pageId, std::string& outError);
+	bool automationCreatePage(const std::string& pageClassName, t_graph_page_id& outPageId, std::string& outError);
+	bool automationDeletePage(t_graph_page_id pageId, std::string& outError);
 
 	// Ask the app to tear this window down at the end of the frame
 	void requestClose() { m_bCloseRequested= true; }
+
+	// The domain a material authored from this window's assets panel is
+	// compiled for. INVALID for graphs that consume no materials.
+	virtual eMaterialDomain getAuthoredMaterialDomain() const { return eMaterialDomain::INVALID; }
 
 	// -- IEditorWindow ----
 	virtual bool startup() override;
@@ -97,15 +112,31 @@ protected:
 	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) {}
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) {}
 	virtual void renderMainFrameContextMenu(const class NodeEditorState& editorState);
+	// The create-node list of the background context menu: a filter box over
+	// the valid factories, grouped by category when the filter is empty
+	void renderCreateNodeMenu(const class NodeEditorState& editorState);
 	void renderMenuBar();
 	// Extra menus appended after File/Edit/View (the compositor window's Compositor menu)
 	virtual void renderMenuBarExtras() {}
+	// Extra items appended to the View menu's panel toggles
+	virtual void renderViewMenuExtras() {}
 	void buildDefaultDockLayout(unsigned int dockspaceId);
+	// Dock subclass panels before the base panels claim their nodes. The right
+	// column id is passed by reference so a split can leave its remainder to Details.
+	virtual void dockExtraPanels(unsigned int& rightId) {}
 	virtual void renderGraphVariablesPanel();
 	virtual void renderNewGraphVariablesContextMenu(const NodeEditorState& editorState);
+	// The page list (root first) with the page factories' add buttons below it
+	virtual void renderPagesPanel();
 	virtual void renderAssetsPanel();
 	virtual void renderSelectedObjectPanel();
 	void renderVariableNameField(GraphPropertyPtr property);
+
+	// The assets panel's New Material button: open or focus the material editor
+	// on a fresh graph for this window's authored domain, and add the written
+	// .mat to this graph once it is saved
+	void openNewMaterialEditor(eMaterialDomain domain);
+	void addMaterialAssetReference(const std::filesystem::path& materialPath);
 
 	virtual void deleteSelectedItem();
 
@@ -123,10 +154,38 @@ protected:
 
 	virtual void onAssetReferenceCreated(AssetReferencePtr assetRef);
 	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef);
+	virtual void onPageCreated(t_graph_page_id id);
+	virtual void onPageModified(t_graph_page_id id);
+	virtual void onPageDeleted(t_graph_page_id id);
 
 	// Rebind the restored graph to its owning component after an undo/redo
 	// rebuilds the graph instance
 	virtual void onGraphRestored() {}
+
+	// Called once an edit has settled into a committed history checkpoint
+	virtual void onGraphEdited() {}
+
+	// Directory the save dialog opens in when the graph has no path yet
+	virtual std::filesystem::path getDefaultGraphDirectory() const;
+
+	// The window title's localization key, and the ini the window's dock
+	// layout persists to (one per editor kind, so each keeps its own layout)
+	virtual const char* getWindowTitleKey() const { return "windows.nodeEditor"; }
+	virtual std::string getGuiIniName() const { return "node_editor"; }
+	// Whether this editor kind shows a Pages panel. Decided per window rather
+	// than per loaded graph so the panel is submitted from the first frame: a
+	// dock node left empty while a graph loads would be dropped by ImGui.
+	virtual bool hasPagesPanel() const { return false; }
+	// The Pages panel's title key (a subclass names its pages for what they hold)
+	virtual const char* getPagesPanelTitleKey() const { return "windows.nodePagesPanel"; }
+
+	// Install a freshly created graph (the creator runs with this window's GL
+	// context current), then reset the history baseline
+	void createNewGraph(const std::function<NodeGraphPtr()>& createGraph);
+
+	// Fall back to the root page when the installed graph lacks the current one
+	// (an undo inside a page that survives the step stays on that page)
+	void syncCurrentPageToGraph();
 
 	// -- Undo history ----
 	void markHistoryCheckpoint() { m_bCheckpointPending= true; }
@@ -145,6 +204,9 @@ protected:
 
 	// The canvas view state (pan/zoom/selection) for this window's graph
 	ax::NodeEditor::EditorContext* m_canvasContext= nullptr;
+	// Frame the current page's nodes on the next canvas frame (navigation needs
+	// the editor current and the page's nodes submitted)
+	bool m_bNavigateToContentPending= false;
 
 	GraphObjectSelection m_objectSelection;
 
@@ -171,9 +233,15 @@ protected:
 	char m_variableNameBuffer[256]= {};
 	t_graph_property_id m_variableNameBufferId= -1;
 
+	// Filter text of the create-node context menu, cleared each time it opens
+	char m_nodeSearchBuffer[64]= {};
+
 	// Dockable panel visibility, toggled from the View menu (not persisted;
 	// the dock geometry itself persists via the window's imgui ini)
 	bool m_bShowVariablesPanel= true;
+	bool m_bShowPagesPanel= true;
 	bool m_bShowAssetsPanel= true;
 	bool m_bShowDetailsPanel= true;
+	// View > Reset Layout: rebuild the default dock layout on the next frame
+	bool m_bResetLayoutRequested= false;
 };

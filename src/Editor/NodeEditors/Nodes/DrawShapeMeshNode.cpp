@@ -7,6 +7,7 @@
 #include "IMkTexture.h"
 #include "IMkMesh.h"
 #include "IMkShader.h"
+#include "IMkVertexDefinition.h"
 #include "LocText.h"
 #include "Logger.h"
 #include "MkMaterial.h"
@@ -35,6 +36,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include <algorithm>
+
 // -- DrawShapeMeshNodeConfig -----
 configuru::Config DrawShapeMeshNodeConfig::writeToJSON()
 {
@@ -59,6 +62,19 @@ void DrawShapeMeshNodeConfig::readFromJSON(const configuru::Config& pt)
 }
 
 // -- DrawShapeMeshNode -----
+DrawShapeMeshNode::~DrawShapeMeshNode()
+{
+	// Free pin references
+	m_materialPin= nullptr;
+
+	// Clean up render resources
+	m_materialInstance= nullptr;
+	m_material= nullptr;
+
+	// Stop listening to events from owner graph
+	setOwnerGraph(NodeGraphPtr());
+}
+
 bool DrawShapeMeshNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
@@ -113,15 +129,40 @@ void DrawShapeMeshNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 		if (m_ownerGraph)
 		{
 			m_ownerGraph->OnGraphLoaded-= MakeDelegate(this, &DrawShapeMeshNode::onGraphLoaded);
+			m_ownerGraph->OnPropertyModifed-= MakeDelegate(this, &DrawShapeMeshNode::onGraphPropertyModified);
 			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
 			newOwnerGraph->OnGraphLoaded+= MakeDelegate(this, &DrawShapeMeshNode::onGraphLoaded);
+			newOwnerGraph->OnPropertyModifed+= MakeDelegate(this, &DrawShapeMeshNode::onGraphPropertyModified);
 			m_ownerGraph= newOwnerGraph;
 		}
 	}
+}
+
+void DrawShapeMeshNode::onGraphPropertyModified(t_graph_property_id id)
+{
+	if (!m_materialPin || isPendingDeletion())
+		return;
+
+	auto materialProperty= std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue());
+	if (materialProperty && materialProperty->getId() == id)
+	{
+		// Recreate the instance against the recompiled program and track its uniforms
+		setMaterial(materialProperty->getMaterialResource());
+		rebuildInputPins();
+	}
+}
+
+bool DrawShapeMeshNode::editorCanAcceptProperty(NodePinPtr pin, GraphPropertyPtr property) const
+{
+	if (pin != m_materialPin)
+		return true;
+
+	auto materialProperty= std::dynamic_pointer_cast<GraphMaterialProperty>(property);
+	return !materialProperty || materialProperty->isCompatibleWithDomain(eMaterialDomain::shape);
 }
 
 void DrawShapeMeshNode::setMaterialPin(PropertyPinPtr inPin) { m_materialPin= inPin; }
@@ -147,6 +188,9 @@ void DrawShapeMeshNode::onGraphLoaded(bool success)
 			if (materialProperty)
 			{
 				setMaterial(materialProperty->getMaterialResource());
+				// Loaded pins carry the flags of the material as it was saved, so refresh them against
+				// the material as loaded now (a default texture makes its pin optional)
+				rebuildInputPins();
 			}
 		}
 	}
@@ -189,72 +233,113 @@ void DrawShapeMeshNode::rebuildInputPins()
 {
 	assert(!isPendingDeletion());
 
-	// Delete all dynamic material pins
-	for (int pinIndex= (int)m_pinsIn.size() - 1; pinIndex >= 0; pinIndex--)
+	// Index the dynamic pins by name. A pin whose uniform survives with the same
+	// data type is kept, so its links and value carry across a material reload.
+	captureDynamicPinDefaultValues();
+	std::map<std::string, NodePinPtr> unclaimedPins;
+	for (NodePinPtr pin : m_pinsIn)
 	{
-		NodePinPtr pin= m_pinsIn[pinIndex];
-
 		if (pin->getIsDynamicPin())
 		{
-			getOwnerGraph()->deletePinById(pin->getId());
+			unclaimedPins.insert({pin->getName(), pin});
 		}
 	}
 
-	// Create an input pin for each shader uniform
-	if (m_material)
+	// Claim or create an input pin for each shader uniform, in uniform order
+	std::vector<NodePinPtr> dynamicPins;
+	IMkShaderPtr program= m_material ? m_material->getProgram() : IMkShaderPtr();
+	if (program)
 	{
-		auto program= m_material->getProgram();
-
 		for (auto it= program->getUniformBegin(); it != program->getUniformEnd(); ++it)
 		{
 			const std::string& uniformName= it->first;
-			eUniformSemantic uniformSemantic= it->second.semantic;
-			eUniformDataType uniformDataType= getUniformSemanticDataType(uniformSemantic);
-			NodePinPtr newPin;
+			const eUniformSemantic uniformSemantic= it->second.semantic;
+			const eUniformDataType uniformDataType= getUniformSemanticDataType(uniformSemantic);
 
-			switch (uniformDataType)
+			if (uniformDataType == eUniformDataType::datatype_mat4)
 			{
-			case eUniformDataType::datatype_float:
-				newPin= addPin<FloatPin>(uniformName, eNodePinDirection::INPUT);
-				break;
-			case eUniformDataType::datatype_float2:
-				newPin= addPin<Float2Pin>(uniformName, eNodePinDirection::INPUT);
-				break;
-			case eUniformDataType::datatype_float3:
-				newPin= addPin<Float3Pin>(uniformName, eNodePinDirection::INPUT);
-				break;
-			case eUniformDataType::datatype_float4:
-				newPin= addPin<Float4Pin>(uniformName, eNodePinDirection::INPUT);
-				break;
-			case eUniformDataType::datatype_texture:
-				newPin= addPin<TexturePin>(uniformName, eNodePinDirection::INPUT);
-				break;
-			case eUniformDataType::datatype_mat4:
-				if (uniformSemantic == eUniformSemantic::modelViewProjectionMatrix)
-				{
-					// The node graph will automatically feed in the correct value for this semantic, so we don't need
-					// an input pin for it
-					break;
-				}
-				else
+				// The node feeds the model-view-projection itself, so it gets no pin
+				if (uniformSemantic != eUniformSemantic::modelViewProjectionMatrix)
 				{
 					MIKAN_LOG_WARNING("DrawShapeMeshNode::rebuildInputPins")
 						<< "DrawShapeMeshNode does not support mat4 uniform" << uniformName;
 					assert(false);
 				}
-			default:
-				assert(false);
+				continue;
 			}
 
-			// Flag all new pins as dynamic
-			if (newPin)
+			const std::string& pinClassName= GraphMaterialProperty::getUniformPinClassName(uniformDataType);
+			if (pinClassName.empty())
 			{
-				newPin->setIsDynamicPin(true);
+				assert(false);
+				continue;
 			}
-		}
 
-		// Update dynamic pin default values
-		applyDynamicPinDefaultValues();
+			NodePinPtr pin;
+			auto unclaimedIt= unclaimedPins.find(uniformName);
+			if (unclaimedIt != unclaimedPins.end() && unclaimedIt->second->getClassName() == pinClassName)
+			{
+				pin= unclaimedIt->second;
+				unclaimedPins.erase(unclaimedIt);
+			}
+			else
+			{
+				pin= addPinByClassName(pinClassName, uniformName, eNodePinDirection::INPUT);
+				pin->setIsDynamicPin(true);
+				GraphMaterialProperty::initDynamicPinFromMaterialDefault(pin, m_material);
+			}
+
+			// A texture the material carries a default for need not be connected
+			if (uniformDataType == eUniformDataType::datatype_texture)
+			{
+				IMkTextureConstPtr defaultTexture;
+				pin->setHasDefaultValue(m_material->getTextureByUniformName(uniformName, defaultTexture)
+										&& defaultTexture != nullptr);
+			}
+
+			dynamicPins.push_back(pin);
+		}
+	}
+
+	// Delete the dynamic pins no uniform claimed
+	for (const auto& [pinName, unclaimedPin] : unclaimedPins)
+	{
+		getOwnerGraph()->deletePinById(unclaimedPin->getId());
+	}
+
+	// Keep the dynamic pins after the fixed ones, in uniform order
+	m_pinsIn.erase(
+		std::remove_if(m_pinsIn.begin(), m_pinsIn.end(), [](const NodePinPtr& pin) { return pin->getIsDynamicPin(); }),
+		m_pinsIn.end());
+	m_pinsIn.insert(m_pinsIn.end(), dynamicPins.begin(), dynamicPins.end());
+
+	// Update dynamic pin default values
+	applyDynamicPinDefaultValues();
+}
+
+void DrawShapeMeshNode::captureDynamicPinDefaultValues()
+{
+	for (auto& pin : m_pinsIn)
+	{
+		if (!pin->getIsDynamicPin())
+			continue;
+
+		if (FloatPinPtr floatPin= std::dynamic_pointer_cast<FloatPin>(pin))
+		{
+			m_floatDefaults[floatPin->getName()]= floatPin->getValue();
+		}
+		else if (Float2PinPtr float2Pin= std::dynamic_pointer_cast<Float2Pin>(pin))
+		{
+			m_float2Defaults[float2Pin->getName()]= float2Pin->getValue();
+		}
+		else if (Float3PinPtr float3Pin= std::dynamic_pointer_cast<Float3Pin>(pin))
+		{
+			m_float3Defaults[float3Pin->getName()]= float3Pin->getValue();
+		}
+		else if (Float4PinPtr float4Pin= std::dynamic_pointer_cast<Float4Pin>(pin))
+		{
+			m_float4Defaults[float4Pin->getName()]= float4Pin->getValue();
+		}
 	}
 }
 
@@ -358,18 +443,19 @@ bool DrawShapeMeshNode::evaluateNode(NodeEvaluator& evaluator)
 	// Blend and depth state come from the caller: DrawShapesNode's blend mode and depth test in the
 	// compositor, the depth tested scene pass in the project view. The graph only picks the material.
 
-	// Render all renderables from the bound shape component
+	// Collect the renderables of the bound shape component
+	std::vector<IMkSceneRenderableConstPtr> renderables;
 	if (auto quadShape= std::dynamic_pointer_cast<QuadShapeComponent>(shape))
 	{
 		IMkSceneRenderableConstPtr renderable= quadShape->getGlSceneRenderableConst();
 		if (renderable)
-			drawShapeRenderable(renderable, vpMatrix);
+			renderables.push_back(renderable);
 	}
 	else if (auto boxShape= std::dynamic_pointer_cast<BoxShapeComponent>(shape))
 	{
 		IMkSceneRenderableConstPtr renderable= boxShape->getGlSceneRenderableConst();
 		if (renderable)
-			drawShapeRenderable(renderable, vpMatrix);
+			renderables.push_back(renderable);
 	}
 	else if (auto modelShape= std::dynamic_pointer_cast<ModelShapeComponent>(shape))
 	{
@@ -377,18 +463,66 @@ bool DrawShapeMeshNode::evaluateNode(NodeEvaluator& evaluator)
 		{
 			IMkSceneRenderableConstPtr renderable= meshComp->getGlSceneRenderableConst();
 			if (renderable)
-				drawShapeRenderable(renderable, vpMatrix);
+				renderables.push_back(renderable);
 		}
 	}
 
-	return true;
+	return drawShapeRenderables(evaluator, renderables, vpMatrix);
 }
 
-void DrawShapeMeshNode::drawShapeRenderable(IMkSceneRenderableConstPtr renderable, const glm::mat4& vpMatrix)
+bool DrawShapeMeshNode::drawShapeRenderables(NodeEvaluator& evaluator,
+											 const std::vector<IMkSceneRenderableConstPtr>& renderables,
+											 const glm::mat4& vpMatrix)
 {
-	// Compute MVP without storing it on the material instance
-	const glm::mat4 mvpMatrix= vpMatrix * renderable->getModelMatrix();
+	IMkShaderPtr materialProgram= m_material->getProgram();
+	if (!materialProgram)
+	{
+		evaluator.addError(NodeEvaluationError(eNodeEvaluationErrorCode::materialError,
+											   StringUtils::stringify("No program on ", m_material->getName()), this));
+		return false;
+	}
 
+	IMkVertexDefinitionConstPtr materialLayout= materialProgram->getVertexDefinition();
+	bool bLayoutMismatchReported= false;
+
+	for (IMkSceneRenderableConstPtr renderable : renderables)
+	{
+		auto staticMeshInst= std::dynamic_pointer_cast<const IMkStaticMeshInstance>(renderable);
+		IMkMeshConstPtr mesh= staticMeshInst ? staticMeshInst->getMesh() : IMkMeshConstPtr();
+		if (!mesh)
+			continue;
+
+		// A mesh's vertex buffer is laid out by the material it was built with. A
+		// program expecting another layout would read the attributes as garbage.
+		MkMaterialInstancePtr meshMaterialInstance= mesh->getMaterialInstance();
+		MkMaterialConstPtr meshMaterial=
+			meshMaterialInstance ? meshMaterialInstance->getMaterial() : MkMaterialConstPtr();
+		IMkShaderPtr meshProgram= meshMaterial ? meshMaterial->getProgram() : IMkShaderPtr();
+		IMkVertexDefinitionConstPtr meshLayout=
+			meshProgram ? meshProgram->getVertexDefinition() : IMkVertexDefinitionConstPtr();
+		if (meshLayout && !materialLayout->isCompatibleDefinition(meshLayout))
+		{
+			if (!bLayoutMismatchReported)
+			{
+				evaluator.addError(NodeEvaluationError(
+					eNodeEvaluationErrorCode::materialError,
+					StringUtils::stringify("Material vertex layout ", materialLayout->getVertexDefinitionDesc(),
+										   " does not match mesh ", meshLayout->getVertexDefinitionDesc()),
+					this));
+				bLayoutMismatchReported= true;
+			}
+			continue;
+		}
+
+		// Compute MVP without storing it on the material instance
+		drawMesh(mesh, vpMatrix * renderable->getModelMatrix());
+	}
+
+	return !bLayoutMismatchReported;
+}
+
+void DrawShapeMeshNode::drawMesh(IMkMeshConstPtr mesh, const glm::mat4& mvpMatrix)
+{
 	// Bind material and draw, injecting MVP transiently via callback so it is
 	// never written into mat4Sources on the shared material instance
 	if (auto materialBinding= m_material->bindMaterial())
@@ -407,22 +541,22 @@ void DrawShapeMeshNode::drawShapeRenderable(IMkSceneRenderableConstPtr renderabl
 
 		if (auto matInstBinding= m_materialInstance->bindMaterialInstance(materialBinding, mvpCallback))
 		{
-			auto staticMeshInst= std::dynamic_pointer_cast<const IMkStaticMeshInstance>(renderable);
-			if (staticMeshInst)
-			{
-				IMkMeshConstPtr mesh= staticMeshInst->getMesh();
-				if (mesh)
-					mesh->drawElements();
-			}
-		}
-		else
-		{
-			// Material binding failed — log unbound uniforms
+			mesh->drawElements();
 		}
 	}
 }
 
 FlowPinPtr DrawShapeMeshNode::getOutputFlowPin() const { return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT); }
+
+void DrawShapeMeshNode::editorOnDoubleClicked(const NodeEditorState& editorState)
+{
+	auto materialProperty= m_materialPin ? std::dynamic_pointer_cast<GraphMaterialProperty>(m_materialPin->getValue())
+										 : GraphMaterialPropertyPtr();
+	if (materialProperty)
+	{
+		materialProperty->editorOpenSourceGraph();
+	}
+}
 
 void DrawShapeMeshNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {

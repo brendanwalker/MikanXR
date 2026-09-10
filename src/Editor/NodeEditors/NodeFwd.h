@@ -8,6 +8,7 @@ typedef int t_node_id;
 typedef int t_node_pin_id;
 typedef int t_node_link_id;
 typedef int t_graph_property_id;
+typedef int t_graph_page_id;
 
 // Node Editor
 class NodeEditorState;
@@ -21,6 +22,18 @@ using NodeLinkConstPtr= std::shared_ptr<const NodeLink>;
 class NodeLinkConfig;
 using NodeLinkConfigPtr= std::shared_ptr<NodeLinkConfig>;
 using NodeLinkConfigConstPtr= std::shared_ptr<const NodeLinkConfig>;
+
+// Graph Page
+class GraphPage;
+using GraphPagePtr= std::shared_ptr<GraphPage>;
+using GraphPageConstPtr= std::shared_ptr<const GraphPage>;
+
+class GraphPageConfig;
+using GraphPageConfigPtr= std::shared_ptr<GraphPageConfig>;
+using GraphPageConfigConstPtr= std::shared_ptr<const GraphPageConfig>;
+
+class GraphPageFactory;
+using GraphPageFactoryPtr= std::shared_ptr<GraphPageFactory>;
 
 // Node Graph
 class NodeGraph;
@@ -42,6 +55,12 @@ class ShapeNodeGraph;
 using ShapeNodeGraphPtr= std::shared_ptr<ShapeNodeGraph>;
 using ShapeNodeGraphWeakPtr= std::weak_ptr<ShapeNodeGraph>;
 using ShapeNodeGraphConstPtr= std::shared_ptr<const ShapeNodeGraph>;
+
+// Material Node Graph
+class MaterialNodeGraph;
+using MaterialNodeGraphPtr= std::shared_ptr<MaterialNodeGraph>;
+using MaterialNodeGraphWeakPtr= std::weak_ptr<MaterialNodeGraph>;
+using MaterialNodeGraphConstPtr= std::shared_ptr<const MaterialNodeGraph>;
 
 // Node Types
 class NodeFactory;

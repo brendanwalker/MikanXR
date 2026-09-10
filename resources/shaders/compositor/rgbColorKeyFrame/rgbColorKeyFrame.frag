@@ -1,15 +1,16 @@
 #version 330 core
-out vec4 FragColor;
-
-in vec2 TexCoords;
-
-uniform vec3 colorKey;
 uniform sampler2D colorKeyTexture;
+uniform vec3 colorKey;
+
+in vec2 vTexCoords;
+
+out vec4 FragColor;
 
 void main()
 {
-    vec3 col = texture(colorKeyTexture, TexCoords).rgb;
-    float alpha= (col == colorKey) ? 0.0 : 1.0;
-
-    FragColor = vec4(col, alpha);
-} 
+	vec4 t0 = texture(colorKeyTexture, vTexCoords);
+	vec3 t1 = t0.xyz;
+	float t2 = ((t1 == colorKey) ? 0.0 : 1.0);
+	vec4 t3 = vec4(t1, t2);
+	FragColor = t3;
+}

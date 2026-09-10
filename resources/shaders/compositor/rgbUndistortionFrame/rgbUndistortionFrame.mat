@@ -1,23 +1,24 @@
 {
-    "materialName": "rgbUndistortionFrame",
-    "vertexShaderPath": "../shared/compositorFrame.vert",
-    "fragmentShaderPath": "rgbUndistortionFrame.frag",
-	"vertexAttributes":
-	[
+	"materialName":       "rgbUndistortionFrame",
+	"vertexShaderPath":   "rgbUndistortionFrame.vert",
+	"fragmentShaderPath": "rgbUndistortionFrame.frag",
+	"vertexAttributes":   [
 		{
-			"name": "aPos",
+			"name":     "aPos",
 			"dataType": "vec2",
 			"semantic": "position"
 		},
 		{
-			"name": "aTexCoords",
+			"name":     "aTexCoords",
 			"dataType": "vec2",
 			"semantic": "texCoord"
-		}		
+		}
 	],
-    "uniformSemanticMap":
-    {
-        "rgbTexture": "rgbaTexture",
-        "distortion": "distortionTexture"
-    }
+	"uniformSemanticMap": {
+		"distortion": "textureParam",
+		"rgbTexture": "textureParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "rgbUndistortionFrame.graph"
 }

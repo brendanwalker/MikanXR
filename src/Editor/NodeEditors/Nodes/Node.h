@@ -42,6 +42,8 @@ public:
 	std::vector<t_node_pin_id> pinIDsIn;
 	std::vector<t_node_pin_id> pinIDsOut;
 	std::array<float, 2> pos;
+	// The page the node sits on; 0 (the root page) for every graph saved before pages existed
+	t_graph_page_id pageId= 0;
 };
 
 class Node : public std::enable_shared_from_this<Node>
@@ -76,6 +78,9 @@ public:
 
 	inline void setNodePos(const glm::vec2& nodePos) { m_nodePos= nodePos; }
 	inline const glm::vec2& getNodePos() const { return m_nodePos; }
+
+	inline void setPageId(t_graph_page_id pageId) { m_pageId= pageId; }
+	inline t_graph_page_id getPageId() const { return m_pageId; }
 
 	inline const std::vector<NodePinPtr>& getInputPins() const { return m_pinsIn; }
 	inline const std::vector<NodePinPtr>& getOutputPins() const { return m_pinsOut; }
@@ -117,8 +122,13 @@ public:
 	// math and rendering can never disagree
 	std::string editorGetComposedTitle() const;
 	virtual bool editorCanDelete() const { return true; }
+	// Whether a property may be linked into one of this node's input pins, asked
+	// once the pin class check has passed. A null property is always accepted.
+	virtual bool editorCanAcceptProperty(NodePinPtr pin, GraphPropertyPtr property) const { return true; }
 	virtual void editorRenderNode(const NodeEditorState& editorState);
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) {}
+	// A double-click on the node body in the canvas
+	virtual void editorOnDoubleClicked(const NodeEditorState& editorState) {}
 
 protected:
 	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) {}
@@ -139,6 +149,7 @@ protected:
 	std::vector<NodePinPtr> m_pinsIn;
 	std::vector<NodePinPtr> m_pinsOut;
 	glm::vec2 m_nodePos;
+	t_graph_page_id m_pageId= 0;
 	bool m_bIsPendingDeletion;
 
 	// NodePin calls onLinkConnected/ onLinkDisconnected
@@ -153,17 +164,24 @@ public:
 	inline NodeConstPtr getNodeDefaultObject() const { return m_nodeDefaultObject; }
 	inline std::string getNodeClassName() const { return m_nodeDefaultObject->getClassName(); }
 
+	// The key a graph registers this factory under. A class with one factory
+	// keys by class name; a variant factory (one node class, several create
+	// menu entries) appends its variant as <ClassName>:<variant>.
+	virtual std::string getFactoryKey() const { return getNodeClassName(); }
+	// Submenu the create menu files this factory under, empty for the top level
+	virtual std::string editorGetCategory() const { return ""; }
+
 	virtual NodeConfigPtr allocateNodeConfig() const;
 	virtual NodePtr allocateNode() const;
 	virtual NodePtr createNode(const NodeEditorState& editorState) const;
 
 	virtual bool editorCanCreate() const { return getNodeClassName() != Node::k_nodeClassName; }
 
-	template <class t_node_factory_class>
-	static NodeFactoryPtr createFactory()
+	template <class t_node_factory_class, class... t_args>
+	static NodeFactoryPtr createFactory(t_args&&... args)
 	{
 		// Create a node factory instance
-		auto nodeFactory= std::make_shared<t_node_factory_class>();
+		auto nodeFactory= std::make_shared<t_node_factory_class>(std::forward<t_args>(args)...);
 
 		// Create a single "node default object" for the factory.
 		// This is used to ask questions about node without having to create one first.

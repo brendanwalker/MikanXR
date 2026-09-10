@@ -6,13 +6,15 @@ MikanXR has two programmable layers: visual node graphs (`src/Editor/NodeEditors
 
 ## Graph types
 
-Two `NodeGraph` subclasses exist, registered in `App::startup` via `NodeGraphFactory::registerFactory<>`:
+Three `NodeGraph` subclasses exist, registered in `App::startup` via `NodeGraphFactory::registerFactory<>`:
 
 - `CompositorNodeGraph` (`Graphs/CompositorNodeGraph.h`): composites a video frame. Entry point is the `EventNode` named `OnCompositeFrame` (`k_compositeFrameEventName`); evaluated once per composited frame by `CompositorComponent`.
 
 - `ShapeNodeGraph` (`Graphs/ShapeNodeGraph.h`): renders a shape component. Entry point is the `OnRenderShape` event (`k_renderShapeEventName`); `renderShape()` sets a transient view-projection matrix, evaluates the chain, then clears it. Bound to a `ShapeComponent`. A shape graph draws itself rather than queueing into `MkScene`, so in the project scene view `AppStage_Project` collects these shapes while gathering and issues them after the `MkScene` pass. Drawn during the gather instead, every shape graph would land before any queued scene geometry and no stencil could ever occlude one.
 
 Blend and depth state for a shape draw belong to the caller, not the graph. `DrawShapeMeshNode` sets neither: each node's scoped state starts as a copy of its parent, so the graph draws under whatever the pass that called `renderShapeGraph` established. The project scene view draws shape graphs after the scene geometry with the depth test on and normal alpha blending, so a shape sorts against the scene and a textured quad keeps its transparency. The compositor's `DrawShapesNode` supplies its own blend mode and `depth_test`, which apply the same way to shapes with a graph and shapes without one, and its depth test runs against the working buffer's depth ([compositor.md](./compositor.md)). Two groups of shapes that need different blending are two `DrawShapesNode`s.
+
+- `MaterialNodeGraph` (`Graphs/MaterialNodeGraph.h`): authors a material. It has no event node and is never evaluated: `MaterialCompiler` turns it into shader source and a `.mat` beside the graph file, and the compositor and shape graphs consume the result like any hand-written material. Its node set, pin type, and compiler are in [materials.md](./materials.md).
 
 There is no general-purpose logic graph; non-rendering logic is done in Lua.
 
@@ -24,9 +26,13 @@ All types live under `src/Editor/NodeEditors/`:
 
 - `NodeGraph` owns maps of `Node`, `NodePin`, and `NodeLink` by integer id (`allocateId()`), plus graph-level `GraphProperty` objects and `AssetReference` entries. Each graph subclass declares which node, pin, property, and asset-reference factories it supports (`addNodeFactory<>`, `addPinFactory<>`, ...).
 
-- `Node` (`Nodes/Node.h`) has input/output pin lists, `evaluateNode(NodeEvaluator&)`, and editor hooks (`editorRenderNode`, `editorRenderPropertySheet`). Factories (`TypedNodeFactory<Node, NodeConfig>`) create nodes with their default pins.
+- `Node` (`Nodes/Node.h`) has input/output pin lists, `evaluateNode(NodeEvaluator&)`, and editor hooks (`editorRenderNode`, `editorRenderPropertySheet`). Factories (`TypedNodeFactory<Node, NodeConfig>`) create nodes with their default pins. A graph registers factories under `NodeFactory::getFactoryKey`, the class name by default, so one node class may register several variant factories (`<ClassName>:<variant>`) that each show as their own create menu entry; loading resolves by class name to the first factory of that class. Factories name a create menu category through `editorGetCategory`, and the menu groups them into submenus and offers a text filter.
 
 - `NodePin` (`Pins/NodePin.h`) has a direction, connected `NodeLink` list, an optional default value (`setHasDefaultValue`, lets a node evaluate with the pin unconnected), and a dynamic flag (`setIsDynamicPin`, for pins generated from another pin's value, as when `DrawLayerNode` creates one pin per shader uniform of its bound material). Concrete pins: `FlowPin`, `FloatPin`/`Float2Pin`/`Float3Pin`/`Float4Pin`, `IntPin`, `BoolPin`, `TexturePin`, `PropertyPin`, `ArrayPin` (typed by element property class).
+
+- Pages (`Graphs/GraphPage.h`): a graph can hold several canvases. Page 0 is the implicit root every graph has; a graph subclass that registers a page factory (`addPageFactory<>`) can create more, each a `GraphPage` object with an id and a name persisted in the graph file's `pages` array. Every node records the page it sits on (`Node::getPageId`, config key `page`, absent for the root), the editor draws only the current page's nodes and links, and `NodePin::canPinsBeConnected` refuses a link across pages. Deleting a page deletes its nodes. The material graph uses pages for material functions ([materials.md](./materials.md)); the compositor and shape graphs register no page factory today and behave as single-canvas graphs.
+
+- `CommentNode` (`Nodes/CommentNode.h`) is a comment box every graph type registers: a colored title band over a translucent, resizable region drawn as a canvas group, so dragging it carries the nodes inside along, with a floating title hint once the canvas is zoomed out. It has no pins, so no evaluation or compile walk reaches it. Text, color, and size persist in its node config, and the Details panel edits the text and color.
 
 - `NodeLink` (`Pins/NodeLink.h`) connects one output pin to one input pin. A link is always stored output first: connecting is allowed in either drag direction, so `NodeGraph::createLink` swaps the ends when the drag started at the input pin. Code reading a link resolves the far end by comparing against the link's own ends (`NodePin::getConnectedSourcePin`, `getConnectedTargetPin`) rather than trusting which end is stored first, so a graph saved before that normalization still walks correctly.
 

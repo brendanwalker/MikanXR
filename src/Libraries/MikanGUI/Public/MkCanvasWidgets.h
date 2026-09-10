@@ -34,4 +34,13 @@ enum class PinIcon : int
 MIKAN_GUI_FUNC(void)
 drawPinIcon(const ImVec2& size, PinIcon icon, bool bFilled, MkCanvasPinDirection direction, const ImVec4& color,
 			const ImVec4& innerColor= ImVec4(0.f, 0.f, 0.f, 0.f));
+
+// Draws a comment box as a canvas group node: a title band in the color over
+// a translucent, resizable region that drags the nodes inside it along, plus a
+// floating title hint once the canvas is zoomed out too far to read the band.
+// inoutGroupSize seeds the region on the first draw and comes back holding the
+// size the user has resized it to; bApplyGroupSize pushes it to the canvas
+// again (after a load or an edit), since the canvas otherwise owns the size.
+MIKAN_GUI_FUNC(void)
+drawCommentNode(int nodeId, const char* title, const ImVec4& color, ImVec2& inoutGroupSize, bool bApplyGroupSize);
 } // namespace MkCanvas

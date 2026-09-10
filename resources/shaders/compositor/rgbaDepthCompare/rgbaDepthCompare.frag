@@ -1,19 +1,19 @@
 #version 330 core
-out vec4 FragColor;
-
-in vec2 TexCoords;
-
-uniform sampler2D rgbaTextureA;
-uniform sampler2D rgbaTextureB;
 uniform sampler2D depthTextureA;
 uniform sampler2D depthTextureB;
+uniform sampler2D rgbaTextureA;
+uniform sampler2D rgbaTextureB;
+
+in vec2 vTexCoords;
+
+out vec4 FragColor;
 
 void main()
 {
-    vec4 colorA = texture(rgbaTextureA, TexCoords).rgba;
-	vec4 colorB = texture(rgbaTextureB, TexCoords).rgba;
-	float depthA = float( texture(depthTextureA, TexCoords).r );
-	float depthB = float( texture(depthTextureB, TexCoords).r );
-
-    FragColor = (depthA < depthB) ? colorA : colorB;
-} 
+	vec4 t0 = texture(depthTextureA, vTexCoords);
+	vec4 t1 = texture(depthTextureB, vTexCoords);
+	vec4 t2 = texture(rgbaTextureA, vTexCoords);
+	vec4 t3 = texture(rgbaTextureB, vTexCoords);
+	vec4 t4 = ((t0.x < t1.x) ? t2 : t3);
+	FragColor = t4;
+}

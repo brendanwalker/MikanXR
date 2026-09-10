@@ -43,6 +43,8 @@ public:
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState);
+	// Opens the material's source graph in the material editor when the .mat has one
+	virtual void editorOnDoubleClicked(const NodeEditorState& editorState) override;
 
 protected:
 	virtual ImVec4 editorGetHeaderColor() const override;
