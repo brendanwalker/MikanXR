@@ -4,7 +4,8 @@
 
 namespace MkGui
 {
-ImGuiID beginDockspaceHost(const char* hostWindowId, const char* dockspaceId, bool& outNeedsDefaultLayout)
+ImGuiID beginDockspaceHost(const char* hostWindowId, const char* dockspaceId, bool& outNeedsDefaultLayout,
+						   bool bResetLayout)
 {
 	const ImGuiViewport* viewport= ImGui::GetMainViewport();
 	ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -24,9 +25,10 @@ ImGuiID beginDockspaceHost(const char* hostWindowId, const char* dockspaceId, bo
 
 	const ImGuiID dockspace= ImGui::GetID(dockspaceId);
 
-	outNeedsDefaultLayout= ImGui::DockBuilderGetNode(dockspace) == nullptr;
+	outNeedsDefaultLayout= bResetLayout || ImGui::DockBuilderGetNode(dockspace) == nullptr;
 	if (outNeedsDefaultLayout)
 	{
+		// Removing the node also undocks its windows, so a reset re-docks every one
 		ImGui::DockBuilderRemoveNode(dockspace);
 		ImGui::DockBuilderAddNode(dockspace, ImGuiDockNodeFlags_DockSpace);
 		ImGui::DockBuilderSetNodeSize(dockspace, viewport->WorkSize);

@@ -56,6 +56,7 @@ protected:
 	virtual std::filesystem::path getDefaultGraphDirectory() const override;
 	virtual const char* getWindowTitleKey() const override { return "windows.materialEditor"; }
 	virtual std::string getGuiIniName() const override { return "material_editor"; }
+	virtual bool hasPagesPanel() const override { return true; }
 	virtual const char* getPagesPanelTitleKey() const override { return "windows.materialFunctionsPanel"; }
 
 	void onDomainChanged();

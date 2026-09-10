@@ -12,11 +12,13 @@ namespace MkGui
 // dockspace whose central node is left transparent, so whatever the app drew
 // into the back buffer (the 3d scene) shows through it.
 //
-// Returns the dockspace id. outNeedsDefaultLayout is true only on a run with no
-// saved layout, which is when the caller should build one and call
-// dockBuilderFinish. Always pair with endDockspaceHost.
+// Returns the dockspace id. outNeedsDefaultLayout is true on a run with no
+// saved layout, or when bResetLayout asks for the saved one to be discarded,
+// which is when the caller should build one and call dockBuilderFinish. Always
+// pair with endDockspaceHost.
 MIKAN_GUI_FUNC(ImGuiID)
-beginDockspaceHost(const char* hostWindowId, const char* dockspaceId, bool& outNeedsDefaultLayout);
+beginDockspaceHost(const char* hostWindowId, const char* dockspaceId, bool& outNeedsDefaultLayout,
+				   bool bResetLayout= false);
 MIKAN_GUI_FUNC(void) endDockspaceHost();
 
 // Splits a node, returning the new child on the given side. The remainder of

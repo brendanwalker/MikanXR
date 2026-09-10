@@ -242,8 +242,9 @@ void NodeEditorWindow::updateUI()
 	MkGuiScopedStyle baseStyle(m_styleManager->getStyle("node_editor_base"));
 
 	bool bNeedsDefaultLayout= false;
-	const ImGuiID dockspaceId=
-		MkGui::beginDockspaceHost("##NodeEditorDockHost", "NodeEditorDockspace", bNeedsDefaultLayout);
+	const ImGuiID dockspaceId= MkGui::beginDockspaceHost("##NodeEditorDockHost", "NodeEditorDockspace",
+														 bNeedsDefaultLayout, m_bResetLayoutRequested);
+	m_bResetLayoutRequested= false;
 	if (bNeedsDefaultLayout)
 	{
 		buildDefaultDockLayout((unsigned int)dockspaceId);
@@ -274,8 +275,7 @@ void NodeEditorWindow::updateUI()
 		}
 	}
 
-	// A graph with no page factories only ever has the root page, so it gets no panel
-	if (m_bShowPagesPanel && getNodeGraph() && getNodeGraph()->hasPageFactories())
+	if (m_bShowPagesPanel && hasPagesPanel())
 	{
 		MkGuiScopedWindow pagesWindow(locWindowTitle(getPagesPanelTitleKey()), &m_bShowPagesPanel);
 		if (pagesWindow)
@@ -356,13 +356,22 @@ void NodeEditorWindow::renderMenuBar()
 	if (ImGui::BeginMenu(locLabel("mainWindow.viewMenu")))
 	{
 		ImGui::MenuItem(locLabel("nodeEditor.variables"), nullptr, &m_bShowVariablesPanel);
-		if (getNodeGraph() && getNodeGraph()->hasPageFactories())
+		if (hasPagesPanel())
 		{
 			ImGui::MenuItem(locLabel("nodeEditor.pages"), nullptr, &m_bShowPagesPanel);
 		}
 		ImGui::MenuItem(locLabel("nodeEditor.assetsTab"), nullptr, &m_bShowAssetsPanel);
 		ImGui::MenuItem(locLabel("nodeEditor.details"), nullptr, &m_bShowDetailsPanel);
 		renderViewMenuExtras();
+		ImGui::Separator();
+		if (ImGui::MenuItem(locLabel("nodeEditor.resetLayout")))
+		{
+			m_bShowVariablesPanel= true;
+			m_bShowPagesPanel= true;
+			m_bShowAssetsPanel= true;
+			m_bShowDetailsPanel= true;
+			m_bResetLayoutRequested= true;
+		}
 		ImGui::EndMenu();
 	}
 
@@ -381,13 +390,15 @@ void NodeEditorWindow::buildDefaultDockLayout(unsigned int dockspaceId)
 	dockExtraPanels(rightRemaining);
 	rightId= (ImGuiID)rightRemaining;
 
-	// Pages sit under Variables in the left column. A graph that never submits
-	// the Pages window leaves its node empty, and ImGui folds it back into Variables.
+	// Pages sit above Variables in the left column
 	ImGuiID leftRemaining= leftId;
-	const ImGuiID pagesId= MkGui::dockBuilderSplit(leftRemaining, ImGuiDir_Down, 0.4f, leftRemaining);
+	if (hasPagesPanel())
+	{
+		const ImGuiID pagesId= MkGui::dockBuilderSplit(leftRemaining, ImGuiDir_Up, 0.4f, leftRemaining);
+		MkGui::dockBuilderDockWindow(locWindowTitle(getPagesPanelTitleKey()), pagesId);
+	}
 
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeVariablesPanel"), leftRemaining);
-	MkGui::dockBuilderDockWindow(locWindowTitle(getPagesPanelTitleKey()), pagesId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeDetailsPanel"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeAssetsPanel"), bottomId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.nodeGraphPanel"), remaining);

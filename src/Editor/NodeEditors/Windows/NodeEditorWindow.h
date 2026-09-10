@@ -172,6 +172,10 @@ protected:
 	// layout persists to (one per editor kind, so each keeps its own layout)
 	virtual const char* getWindowTitleKey() const { return "windows.nodeEditor"; }
 	virtual std::string getGuiIniName() const { return "node_editor"; }
+	// Whether this editor kind shows a Pages panel. Decided per window rather
+	// than per loaded graph so the panel is submitted from the first frame: a
+	// dock node left empty while a graph loads would be dropped by ImGui.
+	virtual bool hasPagesPanel() const { return false; }
 	// The Pages panel's title key (a subclass names its pages for what they hold)
 	virtual const char* getPagesPanelTitleKey() const { return "windows.nodePagesPanel"; }
 
@@ -238,4 +242,6 @@ protected:
 	bool m_bShowPagesPanel= true;
 	bool m_bShowAssetsPanel= true;
 	bool m_bShowDetailsPanel= true;
+	// View > Reset Layout: rebuild the default dock layout on the next frame
+	bool m_bResetLayoutRequested= false;
 };
