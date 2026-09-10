@@ -58,6 +58,14 @@ public:
 	virtual void onMenuBarGui() {}
 	// Called only when there is no saved layout, to place the stage's panels
 	virtual void onBuildDefaultDockLayout(unsigned int dockspaceId) {}
+	// A View > Reset Layout request: the host discards the saved layout and
+	// rebuilds the default one on the frame it consumes this
+	bool consumeDockLayoutResetRequest()
+	{
+		const bool bRequested= m_bDockLayoutResetRequested;
+		m_bDockLayoutResetRequested= false;
+		return bRequested;
+	}
 
 	virtual void onWindowEvent(const class MkWindowEvent& event);
 
@@ -110,6 +118,7 @@ protected:
 	IEditorWindow* m_ownerWindow;
 	bool m_bIsEntered= false;
 	bool m_bIsPaused= false;
+	bool m_bDockLayoutResetRequested= false;
 	std::string m_appStageName;
 	MikanViewportList m_viewports;
 	std::vector<IGuiPanel*> m_guiPanels;

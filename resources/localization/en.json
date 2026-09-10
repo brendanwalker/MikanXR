@@ -314,6 +314,7 @@
 		"loadProject": "Load Project",
 		"logPanel": "Log Panel",
 		"newProject": "New Project",
+		"resetLayout": "Reset Layout",
 		"saveProject": "Save Project",
 		"viewMenu": "View"
 	},
@@ -583,6 +584,8 @@
 		"aperturePosFmt": "  pos (mm): %.1f, %.1f, %.1f",
 		"apertureQuatFmt": "  quat: w%.4f x%.4f y%.4f z%.4f",
 		"calibResolutionFmt": "Calib resolution: %d x %d",
+		"compositorListEmpty": "No compositors in the active scene",
+		"compositorListNoScene": "No active scene",
 		"cameraFallbackNameFmt": "Camera %d",
 		"compositorFallbackNameFmt": "Compositor %d",
 		"cxCyFmt": "cx=%.1f  cy=%.1f",
@@ -634,11 +637,14 @@
 		"outlinerSourcesGroup": "Sources",
 		"outlinerTrackingGroup": "Tracking Volumes",
 		"outlinerUnparented": "Unparented",
+		"panelCompositors": "Compositors",
 		"panelHttpTriggers": "HTTP Triggers",
 		"panelProject": "Project",
+		"panelScenes": "Scenes",
 		"panelSettings": "Settings",
 		"puckPoseValidFmt": "Puck pose valid: %s",
 		"resolutionMismatch": "RESOLUTION MISMATCH",
+		"sceneListEmpty": "No scenes in the project",
 		"selectCalibrationCamera": "Select Calibration Camera",
 		"trackingFrameDelayFmt": "Tracking frame delay: %d",
 		"viewBack": "Back",
@@ -911,6 +917,7 @@
 	"windows": {
 		"addCompositor": "Add Compositor",
 		"cameraAlignmentDebug": "Camera Alignment Debug",
+		"compositors": "Compositors",
 		"httpTriggers": "HTTP Triggers",
 		"log": "Log",
 		"materialEditor": "Material Editor",
@@ -924,6 +931,7 @@
 		"nodeVariablesPanel": "Variables",
 		"project": "Project",
 		"projectSettings": "Settings",
+		"scenes": "Scenes",
 		"selectCamera": "Select Camera"
 	}
 }

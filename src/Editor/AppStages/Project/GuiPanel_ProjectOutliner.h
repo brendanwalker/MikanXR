@@ -29,6 +29,10 @@ public:
 	// Drives the viewport render mode and selection filter in the app stage
 	eOutlinerNodeKind getSelectedNodeKind() const { return m_selectedKind; }
 
+	// Select a component's row from another panel, scrolling the tree to it.
+	// Call outside the ImGui frame (from a deferred gui event).
+	void selectComponent(int componentId);
+
 private:
 	void rebuildIfDirty();
 	void markTreeDirty() { m_bTreeDirty= true; }
@@ -54,6 +58,8 @@ private:
 	class GuiPanel_MikanComponent* getPanelForComponentClass(const std::string& componentClassName) const;
 	void clearComponentPanels();
 	void drawComponentPanelForNode(ProjectOutlinerNodePtr node);
+	// Open the path above the node and scroll it into view on the next draw
+	void scrollToNode(ProjectOutlinerNodePtr node);
 
 	// Active scene and active display compositor highlighting
 	bool isActiveHighlightNode(ProjectOutlinerNodePtr node) const;

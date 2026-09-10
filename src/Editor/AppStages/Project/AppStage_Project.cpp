@@ -39,8 +39,10 @@
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "Project/GuiPanel_ProjectOutliner.h"
+#include "Project/GuiPanel_CompositorList.h"
 #include "Project/GuiPanel_HttpTriggers.h"
 #include "Project/GuiPanel_ProjectSettings.h"
+#include "Project/GuiPanel_SceneList.h"
 #include "AnchorObjectSystem.h"
 #include "BoxShapeComponent.h"
 #include "BoxShapeSystem.h"
@@ -165,6 +167,13 @@ void AppStage_Project::enter()
 
 		m_projectOutlinerPanel= addGuiPanel<GuiPanel_ProjectOutliner>();
 		m_projectOutlinerPanel->init(m_projectGuiPanelContext);
+
+		// The list panels push their picks into the outliner, so it exists first
+		m_sceneListPanel= addGuiPanel<GuiPanel_SceneList>();
+		m_sceneListPanel->init(m_projectGuiPanelContext, m_projectOutlinerPanel);
+
+		m_compositorListPanel= addGuiPanel<GuiPanel_CompositorList>();
+		m_compositorListPanel->init(m_projectGuiPanelContext, m_projectOutlinerPanel);
 	}
 
 	setViewMode(eProjectViewMode::scene);
@@ -184,6 +193,8 @@ void AppStage_Project::exit()
 	m_projectOutlinerPanel= nullptr;
 	m_projectSettingsPanel= nullptr;
 	m_httpTriggersPanel= nullptr;
+	m_sceneListPanel= nullptr;
+	m_compositorListPanel= nullptr;
 
 	// Unregister all viewports from the editor
 	m_editorSystem.lock()->clearViewports();
@@ -323,6 +334,24 @@ void AppStage_Project::onGui()
 		}
 	}
 
+	// The scene and compositor list windows
+	if (m_bSceneListVisible && m_sceneListPanel != nullptr)
+	{
+		MkGuiScopedWindow sceneListWindow(locWindowTitle("windows.scenes"), &m_bSceneListVisible);
+		if (sceneListWindow)
+		{
+			m_sceneListPanel->onGui();
+		}
+	}
+	if (m_bCompositorListVisible && m_compositorListPanel != nullptr)
+	{
+		MkGuiScopedWindow compositorListWindow(locWindowTitle("windows.compositors"), &m_bCompositorListVisible);
+		if (compositorListWindow)
+		{
+			m_compositorListPanel->onGui();
+		}
+	}
+
 	if (m_bShowLogPanel)
 	{
 		LogPanel::getInstance().draw(&m_bShowLogPanel);
@@ -367,8 +396,21 @@ void AppStage_Project::onMenuBarGui()
 		ImGui::MenuItem(locLabel("project.panelProject"), nullptr, &m_bOutlinerVisible);
 		ImGui::MenuItem(locLabel("project.panelSettings"), nullptr, &m_bSettingsPanelVisible);
 		ImGui::MenuItem(locLabel("project.panelHttpTriggers"), nullptr, &m_bHttpTriggersPanelVisible);
+		ImGui::MenuItem(locLabel("project.panelScenes"), nullptr, &m_bSceneListVisible);
+		ImGui::MenuItem(locLabel("project.panelCompositors"), nullptr, &m_bCompositorListVisible);
 		ImGui::Separator();
 		ImGui::MenuItem(locLabel("mainWindow.logPanel"), nullptr, &m_bShowLogPanel);
+		ImGui::Separator();
+		if (ImGui::MenuItem(locLabel("mainWindow.resetLayout")))
+		{
+			m_bOutlinerVisible= true;
+			m_bSettingsPanelVisible= true;
+			m_bHttpTriggersPanelVisible= true;
+			m_bSceneListVisible= true;
+			m_bCompositorListVisible= true;
+			m_bShowLogPanel= true;
+			m_bDockLayoutResetRequested= true;
+		}
 		ImGui::EndMenu();
 	}
 }
@@ -413,15 +455,20 @@ void AppStage_Project::applyPendingProjectActions()
 
 void AppStage_Project::onBuildDefaultDockLayout(unsigned int dockspaceId)
 {
-	// Project and Settings tabbed on the right, log along the bottom, central
-	// node left empty for the scene
+	// Project and Settings tabbed on the right. Along the bottom, left to right:
+	// the scene list, the compositor list, and the log. The central node is left
+	// empty for the scene.
 	ImGuiID remaining= (ImGuiID)dockspaceId;
 	const ImGuiID rightId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Right, 0.28f, remaining);
-	const ImGuiID bottomId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Down, 0.25f, remaining);
+	ImGuiID bottomId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Down, 0.25f, remaining);
+	const ImGuiID scenesId= MkGui::dockBuilderSplit(bottomId, ImGuiDir_Left, 0.2f, bottomId);
+	const ImGuiID compositorsId= MkGui::dockBuilderSplit(bottomId, ImGuiDir_Left, 0.25f, bottomId);
 
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.project"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.projectSettings"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.httpTriggers"), rightId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.scenes"), scenesId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.compositors"), compositorsId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.log"), bottomId);
 }
 

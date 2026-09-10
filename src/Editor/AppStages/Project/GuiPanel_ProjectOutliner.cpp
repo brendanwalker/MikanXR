@@ -146,6 +146,7 @@ void GuiPanel_ProjectOutliner::rebuildIfDirty()
 		if (newNode)
 		{
 			setSelectedNode(newNode, true);
+			scrollToNode(newNode);
 			return;
 		}
 	}
@@ -768,7 +769,6 @@ void GuiPanel_ProjectOutliner::onSystemConfigChanged(CommonConfigPtr configPtr,
 		|| changedPropertySet.hasPropertyName(CameraDefinition::k_ownerStageIdPropertyId)
 		|| changedPropertySet.hasPropertyName(CameraDefinition::k_lightEnvironmentIdPropertyId)
 		|| changedPropertySet.hasPropertyName(CompositorDefinition::k_ownerScenePropertyId)
-		|| changedPropertySet.hasPropertyName(CompositorDefinition::k_cameraIdPropertyId)
 		|| changedPropertySet.hasPropertyName(DMXFixtureComponentDefinition::k_ownerStageIdPropertyId)
 		|| changedPropertySet.hasPropertyName(DMXPresetDefinition::k_groupIdPropertyId)
 		|| changedPropertySet.hasPropertyName(VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId))
@@ -791,7 +791,26 @@ void GuiPanel_ProjectOutliner::onSelectionChanged()
 		return;
 
 	setSelectedNode(node, false);
+	scrollToNode(node);
+}
 
+void GuiPanel_ProjectOutliner::selectComponent(int componentId)
+{
+	ProjectOutlinerNodePtr node= m_bTreeDirty ? nullptr : m_model.findNodeByComponentId(componentId);
+	if (!node)
+	{
+		// Not in the tree yet: the next rebuild resolves and selects it
+		m_pendingSelectComponentId= componentId;
+		markTreeDirty();
+		return;
+	}
+
+	setSelectedNode(node, true);
+	scrollToNode(node);
+}
+
+void GuiPanel_ProjectOutliner::scrollToNode(ProjectOutlinerNodePtr node)
+{
 	m_scrollOpenPathIds.clear();
 	for (ProjectOutlinerNodePtr pathNode= node->parent.lock(); pathNode; pathNode= pathNode->parent.lock())
 	{

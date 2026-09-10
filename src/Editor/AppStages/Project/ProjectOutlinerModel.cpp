@@ -255,19 +255,15 @@ void ProjectOutlinerModel::rebuild(ProjectManagerPtr projectManager)
 			});
 	}
 
-	// Compositors place after every camera and scene row exists: under the
-	// camera they view through, else under their owner scene, else at the root
+	// A compositor whose owner scene has no row (missing or unresolvable) still
+	// needs one to be repairable from, so it falls back to the root
 	if (auto compositorSystem= projectManager->getSystemOfType<CompositorObjectSystem>())
 	{
 		compositorSystem->visitComponents(
 			[&](CompositorComponentPtr compositor)
 			{
-				CompositorDefinitionPtr def= compositor->getCompositorDefinition();
-				ProjectOutlinerNodePtr cameraNode= findNodeByComponentId(def->getCameraId());
-				ProjectOutlinerNodePtr sceneNode= findNodeByComponentId(def->getOwnerSceneId());
-				ProjectOutlinerNodePtr parentNode= cameraNode ? cameraNode : (sceneNode ? sceneNode : m_root);
-
-				addComponentNode(parentNode, eOutlinerNodeKind::compositor, compositor);
+				if (!findNodeByComponentId(compositor->getComponentId()))
+					addComponentNode(m_root, eOutlinerNodeKind::compositor, compositor);
 			});
 	}
 
@@ -316,8 +312,7 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 	ProjectOutlinerNodePtr scenesFolder=
 		addFolderNode(stageNode, eOutlinerNodeKind::folderScenes, "project.outlinerScenesGroup", stageId);
 
-	// Cameras. Their compositors attach in a later pass, once every camera and
-	// scene row exists to hang them from.
+	// Cameras
 	if (auto cameraSystem= projectManager->getSystemOfType<CameraObjectSystem>())
 	{
 		cameraSystem->visitComponents([&](CameraComponentPtr camera)
@@ -404,6 +399,12 @@ void ProjectOutlinerModel::buildStageSubtree(ProjectManagerPtr projectManager, S
 void ProjectOutlinerModel::buildSceneSubtree(SceneComponentPtr sceneComponent, ProjectOutlinerNodePtr parentNode)
 {
 	ProjectOutlinerNodePtr sceneNode= addComponentNode(parentNode, eOutlinerNodeKind::scene, sceneComponent);
+
+	// The scene's compositors sit ahead of its actors: they are scene-level outputs
+	for (CompositorComponentPtr compositor : sceneComponent->getOutputCompositors())
+	{
+		addComponentNode(sceneNode, eOutlinerNodeKind::compositor, compositor);
+	}
 
 	// Scene actors via the transform hierarchy
 	for (TransformComponentWeakPtr childWeakPtr : sceneComponent->getChildTransformComponents())

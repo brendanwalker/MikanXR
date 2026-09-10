@@ -419,7 +419,8 @@ void MainWindow::beginDockspaceHost(AppStage* appStage)
 		return;
 
 	bool bNeedsDefaultLayout= false;
-	const ImGuiID dockspaceId= MkGui::beginDockspaceHost("##MikanDockHost", "MikanDockspace", bNeedsDefaultLayout);
+	const ImGuiID dockspaceId= MkGui::beginDockspaceHost("##MikanDockHost", "MikanDockspace", bNeedsDefaultLayout,
+														 appStage->consumeDockLayoutResetRequest());
 	m_bDockspaceHostOpen= true;
 
 	if (bNeedsDefaultLayout)

@@ -314,6 +314,7 @@
 		"loadProject": "プロジェクトを開く",
 		"logPanel": "ログパネル",
 		"newProject": "新規プロジェクト",
+		"resetLayout": "レイアウトをリセット",
 		"saveProject": "プロジェクトを保存",
 		"viewMenu": "表示"
 	},
@@ -583,6 +584,8 @@
 		"aperturePosFmt": "  位置 (mm): %.1f, %.1f, %.1f",
 		"apertureQuatFmt": "  クォータニオン: w%.4f x%.4f y%.4f z%.4f",
 		"calibResolutionFmt": "校正解像度: %d x %d",
+		"compositorListEmpty": "アクティブなシーンにコンポジターがありません",
+		"compositorListNoScene": "アクティブなシーンがありません",
 		"cameraFallbackNameFmt": "カメラ %d",
 		"compositorFallbackNameFmt": "コンポジター %d",
 		"cxCyFmt": "cx=%.1f  cy=%.1f",
@@ -634,11 +637,14 @@
 		"outlinerSourcesGroup": "ソース",
 		"outlinerTrackingGroup": "トラッキングボリューム",
 		"outlinerUnparented": "親なし",
+		"panelCompositors": "コンポジター",
 		"panelHttpTriggers": "HTTPトリガー",
 		"panelProject": "プロジェクト",
+		"panelScenes": "シーン",
 		"panelSettings": "設定",
 		"puckPoseValidFmt": "パックの姿勢が有効: %s",
 		"resolutionMismatch": "解像度が一致しません",
+		"sceneListEmpty": "プロジェクトにシーンがありません",
 		"selectCalibrationCamera": "校正用カメラを選択",
 		"trackingFrameDelayFmt": "トラッキングフレーム遅延: %d",
 		"viewBack": "背面",
@@ -911,6 +917,7 @@
 	"windows": {
 		"addCompositor": "コンポジターを追加",
 		"cameraAlignmentDebug": "カメラ位置合わせデバッグ",
+		"compositors": "コンポジター",
 		"httpTriggers": "HTTPトリガー",
 		"log": "ログ",
 		"materialEditor": "マテリアルエディター",
@@ -924,6 +931,7 @@
 		"nodeVariablesPanel": "変数",
 		"project": "プロジェクト",
 		"projectSettings": "設定",
+		"scenes": "シーン",
 		"selectCamera": "カメラを選択"
 	}
 }
