@@ -57,6 +57,7 @@ const std::string EditorObjectSystemDefinition::k_debugCameraAlignmentPropertyId
 const std::string EditorObjectSystemDefinition::k_modelStencilDisplayModePropertyId= "model_stencil_display_mode";
 const std::string EditorObjectSystemDefinition::k_debugRenderInCompositorPropertyId= "debug_render_in_compositor";
 const std::string EditorObjectSystemDefinition::k_renderFrameRatePropertyId= "render_frame_rate";
+const std::string EditorObjectSystemDefinition::k_renderComponentNamesPropertyId= "render_component_names";
 const std::string EditorObjectSystemDefinition::k_editorCameraStatePropertyId= "editor_camera_state";
 const std::string EditorObjectSystemDefinition::k_outlinerOpenStatePropertyId= "outliner_open_state";
 
@@ -188,6 +189,7 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_modelStencilDisplayModePropertyId]= (int)m_editorSettings.modelStencilDisplayMode;
 	pt[k_debugRenderInCompositorPropertyId]= m_editorSettings.bDebugRenderInCompositor;
 	pt[k_renderFrameRatePropertyId]= m_editorSettings.bRenderFrameRate;
+	pt[k_renderComponentNamesPropertyId]= m_editorSettings.bRenderComponentNames;
 	pt[k_editorCameraStatePropertyId]= writeCameraStateToJSON(m_editorSettings.cameraState);
 
 	configuru::Config outlinerPt= configuru::Config::object();
@@ -233,6 +235,8 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	m_editorSettings.bDebugRenderInCompositor=
 		pt.get_or<bool>(k_debugRenderInCompositorPropertyId, m_editorSettings.bDebugRenderInCompositor);
 	m_editorSettings.bRenderFrameRate= pt.get_or<bool>(k_renderFrameRatePropertyId, m_editorSettings.bRenderFrameRate);
+	m_editorSettings.bRenderComponentNames=
+		pt.get_or<bool>(k_renderComponentNamesPropertyId, m_editorSettings.bRenderComponentNames);
 
 	// Projects saved before the camera poses were persisted keep the defaults
 	if (pt.has_key(k_editorCameraStatePropertyId))
@@ -410,6 +414,15 @@ void EditorObjectSystemDefinition::setRenderFrameRate(bool enabled)
 	{
 		m_editorSettings.bRenderFrameRate= enabled;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderFrameRatePropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderComponentNames(bool enabled)
+{
+	if (m_editorSettings.bRenderComponentNames != enabled)
+	{
+		m_editorSettings.bRenderComponentNames= enabled;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderComponentNamesPropertyId));
 	}
 }
 

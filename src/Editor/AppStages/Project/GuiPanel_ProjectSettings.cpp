@@ -153,6 +153,14 @@ void GuiPanel_ProjectSettings::onGui()
 				[this, renderFrameRate]()
 				{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderFrameRate(renderFrameRate); });
 		}
+
+		bool renderComponentNames= editorConfig->getRenderComponentNames();
+		if (ImGui::Checkbox(locLabel("projectSettings.renderComponentNames"), &renderComponentNames))
+		{
+			addDeferredGuiEvent(
+				[this, renderComponentNames]()
+				{ m_editorSystem.lock()->getEditorSystemConfig()->setRenderComponentNames(renderComponentNames); });
+		}
 	}
 
 	// -- Marker ----

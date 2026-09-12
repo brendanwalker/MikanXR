@@ -1,4 +1,5 @@
 #include "RGBSpotLightComponent.h"
+#include "EditorObjectSystem.h"
 #include "Colors.h"
 #include "DMXFixtureComponent.h"
 #include "DMXObjectSystem.h"
@@ -539,9 +540,13 @@ void RGBSpotLightComponent::customRender(IMkGraphicsContext* graphicsContext, Mi
 
 		drawTransformedAxes(graphicsContext, xform, 0.05f, 0.05f, 0.05f);
 
-		TextStyle style= getDefaultTextStyle();
-		drawTextAtWorldPosition(graphicsContext, style, position, L"Light %d [%d,%d,%d]", def->getComponentId(),
-								static_cast<int>(getRed()), static_cast<int>(getGreen()), static_cast<int>(getBlue()));
+		if (getObjectSystemOfType<EditorObjectSystem>()->getEditorSettings().bRenderComponentNames)
+		{
+			TextStyle style= getDefaultTextStyle();
+			drawTextAtWorldPosition(graphicsContext, style, position, L"Light %d [%d,%d,%d]", def->getComponentId(),
+									static_cast<int>(getRed()), static_cast<int>(getGreen()),
+									static_cast<int>(getBlue()));
+		}
 	}
 }
 

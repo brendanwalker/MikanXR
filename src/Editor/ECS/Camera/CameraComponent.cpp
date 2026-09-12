@@ -1,4 +1,5 @@
 #include "CameraComponent.h"
+#include "EditorObjectSystem.h"
 #include "CameraObjectSystem.h"
 #include "CameraMath.h"
 
@@ -365,10 +366,14 @@ void CameraComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCam
 	glm::vec3 cameraPos(glmCameraXform[3]);
 
 	// Draw the camera name at the camera position
-	TextStyle style= getDefaultTextStyle();
-	wchar_t wszCameraName[256];
-	StringUtils::convertMbsToWcs(cameraDefinition->getComponentName().c_str(), wszCameraName, sizeof(wszCameraName));
-	drawTextAtWorldPosition(graphicsContext, style, cameraPos, L"%s", wszCameraName);
+	if (getObjectSystemOfType<EditorObjectSystem>()->getEditorSettings().bRenderComponentNames)
+	{
+		TextStyle style= getDefaultTextStyle();
+		wchar_t wszCameraName[256];
+		StringUtils::convertMbsToWcs(cameraDefinition->getComponentName().c_str(), wszCameraName,
+									 sizeof(wszCameraName));
+		drawTextAtWorldPosition(graphicsContext, style, cameraPos, L"%s", wszCameraName);
+	}
 
 	// Render the camera frustum if the camera has calibrated intrinsics
 	MikanVideoSourceIntrinsics intrinsics;

@@ -1,4 +1,5 @@
 #include "AnchorComponent.h"
+#include "EditorObjectSystem.h"
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
 #include "CameraObjectSystem.h"
@@ -96,7 +97,10 @@ void AnchorComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCam
 	}
 
 	drawTransformedAxes(graphicsContext, anchorXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
-	drawTextAtWorldPosition(graphicsContext, style, anchorPos, L"%s", wszAnchorName);
+	if (getObjectSystemOfType<EditorObjectSystem>()->getEditorSettings().bRenderComponentNames)
+	{
+		drawTextAtWorldPosition(graphicsContext, style, anchorPos, L"%s", wszAnchorName);
+	}
 }
 
 // -- IFunctionInterface ----

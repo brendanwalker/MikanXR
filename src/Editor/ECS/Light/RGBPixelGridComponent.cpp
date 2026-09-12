@@ -1,4 +1,5 @@
 #include "RGBPixelGridComponent.h"
+#include "EditorObjectSystem.h"
 #include "BoxColliderComponent.h"
 #include "Colors.h"
 #include "IDMXManager.h"
@@ -669,9 +670,12 @@ void RGBPixelGridComponent::customRender(IMkGraphicsContext* graphicsContext, Mi
 
 	drawTransformedAxes(graphicsContext, xform, 0.05f, 0.05f, 0.05f);
 
-	TextStyle style= getDefaultTextStyle();
-	drawTextAtWorldPosition(graphicsContext, style, position, L"PixelGrid %d [%dx%d]", def->getComponentId(), columns,
-							rows);
+	if (getObjectSystemOfType<EditorObjectSystem>()->getEditorSettings().bRenderComponentNames)
+	{
+		TextStyle style= getDefaultTextStyle();
+		drawTextAtWorldPosition(graphicsContext, style, position, L"PixelGrid %d [%dx%d]", def->getComponentId(),
+								columns, rows);
+	}
 }
 
 // -- Lua Binding --

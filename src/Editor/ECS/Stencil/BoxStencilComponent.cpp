@@ -150,7 +150,8 @@ void BoxStencilComponent::customRender(IMkGraphicsContext* graphicsContext, Mika
 		drawTransformedBox(graphicsContext, xform, half_extents, color);
 		if (!selectionComponent || !selectionComponent->getIsSelected())
 			drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(graphicsContext, style, position, L"Stencil %d", boxDefinition->getComponentId());
+		if (getObjectSystemOfType<EditorObjectSystem>()->getEditorSettings().bRenderComponentNames)
+			drawTextAtWorldPosition(graphicsContext, style, position, L"Stencil %d", boxDefinition->getComponentId());
 	}
 }
 

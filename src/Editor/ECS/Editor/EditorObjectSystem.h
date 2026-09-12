@@ -87,6 +87,9 @@ struct EditorSettings
 	// Frame rate readout drawn in the corner of the scene view
 	bool bRenderFrameRate= true;
 
+	// Name labels drawn at each component's position in the scene view
+	bool bRenderComponentNames= true;
+
 	// Where the editor viewport camera was left in each view
 	EditorCameraState cameraState;
 
@@ -180,6 +183,10 @@ public:
 	static const std::string k_renderFrameRatePropertyId;
 	bool getRenderFrameRate() const { return m_editorSettings.bRenderFrameRate; }
 	void setRenderFrameRate(bool enabled);
+
+	static const std::string k_renderComponentNamesPropertyId;
+	bool getRenderComponentNames() const { return m_editorSettings.bRenderComponentNames; }
+	void setRenderComponentNames(bool enabled);
 
 	// The camera state notifies under one name: the viewport writes it as a block
 	// once the camera comes to rest, rather than property by property while it moves

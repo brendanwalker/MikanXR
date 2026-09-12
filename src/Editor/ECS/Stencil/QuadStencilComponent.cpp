@@ -158,7 +158,8 @@ void QuadStencilComponent::customRender(IMkGraphicsContext* graphicsContext, Mik
 							color);
 		if (!selectionComponent || !selectionComponent->getIsSelected())
 			drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(graphicsContext, style, position, L"Stencil %d", quadDefinition->getComponentId());
+		if (getObjectSystemOfType<EditorObjectSystem>()->getEditorSettings().bRenderComponentNames)
+			drawTextAtWorldPosition(graphicsContext, style, position, L"Stencil %d", quadDefinition->getComponentId());
 	}
 }
 

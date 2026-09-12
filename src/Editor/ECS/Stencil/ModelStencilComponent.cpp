@@ -204,8 +204,11 @@ void ModelStencilComponent::customRender(IMkGraphicsContext* graphicsContext, Mi
 		if (!m_bIsTransformGizmoBound)
 		{
 			drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
-			drawTextAtWorldPosition(graphicsContext, style, position, L"Stencil %d",
-									modelStencilDefinition->getComponentId());
+			if (getObjectSystemOfType<EditorObjectSystem>()->getEditorSettings().bRenderComponentNames)
+			{
+				drawTextAtWorldPosition(graphicsContext, style, position, L"Stencil %d",
+										modelStencilDefinition->getComponentId());
+			}
 		}
 	}
 }

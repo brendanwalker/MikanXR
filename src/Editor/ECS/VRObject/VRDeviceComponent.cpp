@@ -22,6 +22,7 @@
 #include "StringUtils.h"
 #include "TransformComponent.h"
 #include "VRDeviceComponent.h"
+#include "EditorObjectSystem.h"
 #include "VRObjectSystem.h"
 
 // -- VRDeviceConfig -----
@@ -384,7 +385,10 @@ void VRDeviceComponent::renderVRDeviceInfo(IMkGraphicsContext* graphicsContext, 
 	glm::vec3 vrDevicePos(vrDeviceXform[3]);
 
 	drawTransformedAxes(graphicsContext, vrDeviceXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
-	drawTextAtWorldPosition(graphicsContext, style, vrDevicePos, L"%s", wszVRDeviceName);
+	if (getObjectSystemOfType<EditorObjectSystem>()->getEditorSettings().bRenderComponentNames)
+	{
+		drawTextAtWorldPosition(graphicsContext, style, vrDevicePos, L"%s", wszVRDeviceName);
+	}
 }
 
 void VRDeviceComponent::updateWireframeMeshDisplay()
