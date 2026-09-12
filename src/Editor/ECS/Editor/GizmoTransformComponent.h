@@ -29,14 +29,23 @@ public:
 	inline static const std::string k_componentClassName= "GizmoTransformComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	// Handle dimensions, all as fractions of the per-frame display scale
 	static constexpr float k_gizmoBaseRadius= 0.5f;
 	static constexpr float k_gizmoBaseWidth= 0.05f;
-	static constexpr float k_gizmoScreenSizeFactor= 0.15f;
+	// Translate arrows: solid shaft and cone head. The axis colliders take the
+	// head radius as their half thickness so the hit zone matches the widest
+	// visible part of the arrow.
+	static constexpr float k_gizmoArrowShaftRadius= 0.03f;
+	static constexpr float k_gizmoArrowHeadRadius= 0.07f;
+	static constexpr float k_gizmoArrowHeadLengthFraction= 0.25f;
+	static constexpr float k_gizmoPlanarHandleFraction= 0.2f;
+	static constexpr int k_gizmoArrowSegments= 16;
+	static constexpr float k_gizmoScreenSizeFactor= 0.2f;
 	// Sized so the gizmo covers the same screen fraction the perspective factor
 	// yields at the default camera vfov
-	static constexpr float k_gizmoOrthoScreenSizeFactor= 0.5f;
+	static constexpr float k_gizmoOrthoScreenSizeFactor= 0.65f;
 	static constexpr int k_gizmoCircleSegments= 64;
-	static constexpr float k_gizmoLineWidth= 3.f;
+	static constexpr float k_gizmoLineWidth= 4.f;
 	static constexpr float k_gizmoOccludedColorScale= 0.35f;
 
 	virtual void init() override;

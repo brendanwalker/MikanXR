@@ -102,13 +102,15 @@ void GizmoTransformComponent::customRender(IMkGraphicsContext* graphicsContext, 
 
 	MkStateStack& stateStack= graphicsContext->getMkStateStack();
 
-	// Occluded pass: queued without the depth test, so the line renderer routes
-	// it to the overlay batch that draws first. The depth tested pass then
-	// overwrites it wherever the gizmo is visible, leaving only the occluded
-	// portion dimmed.
+	// Occluded pass: drawn without the depth test (the line renderer routes its
+	// share to the overlay batch that draws first, the solid arrow meshes draw
+	// immediately). The depth tested pass then overwrites it wherever the gizmo
+	// is visible, leaving only the occluded portion dimmed. Culling is off so
+	// the arrow caps read from behind as well.
 	{
 		MkScopedState scopedState= stateStack.createScopedState("gizmoOccludedPass");
 		scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
+		scopedState.getStackState()->disableFlag(eMkStateFlagType::cullFace);
 
 		GizmoDrawStyle drawStyle;
 		drawStyle.lineWidth= k_gizmoLineWidth;
@@ -122,6 +124,7 @@ void GizmoTransformComponent::customRender(IMkGraphicsContext* graphicsContext, 
 	{
 		MkScopedState scopedState= stateStack.createScopedState("gizmoVisiblePass");
 		scopedState.getStackState()->enableFlag(eMkStateFlagType::depthTest);
+		scopedState.getStackState()->disableFlag(eMkStateFlagType::cullFace);
 
 		GizmoDrawStyle drawStyle;
 		drawStyle.lineWidth= k_gizmoLineWidth;

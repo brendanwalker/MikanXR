@@ -211,7 +211,9 @@ public:
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 
-	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera);
+	// Draws the transform gizmo. Call after the scene geometry: the gizmo's
+	// occluded pass has to read through a finished depth buffer.
+	void renderGizmo(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera);
 
 	// Draws the orthographic ruler/measurement overlay (no-op unless a measurement
 	// exists and the supplied camera is orthographic).

@@ -20,8 +20,11 @@ bool BoxColliderComponent::computeRayIntersection(const ColliderRaycastHitReques
 	if (!m_bEnabled)
 		return false;
 
-	outResult.hitValid= glm_intersect_obb_with_ray(request.rayOrigin, request.rayDirection, m_halfExtents,
-												   m_halfExtents * -1.f, getWorldTransform(), outResult.hitDistance,
+	// Min then max. The slab test's parallel-ray branch reads the bounds by
+	// name, so swapping them rejects every ray that runs along a face, which is
+	// every ray in an axis-aligned orthographic view.
+	outResult.hitValid= glm_intersect_obb_with_ray(request.rayOrigin, request.rayDirection, m_halfExtents * -1.f,
+												   m_halfExtents, getWorldTransform(), outResult.hitDistance,
 												   outResult.hitLocation, outResult.hitNormal);
 
 	if (outResult.hitValid)

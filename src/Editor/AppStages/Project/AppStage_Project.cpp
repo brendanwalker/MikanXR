@@ -698,9 +698,18 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 			spotLightSystem->renderConeVolumes(graphicsContext, viewportCamera);
 	}
 
-	// Draw the orthographic ruler overlay (no-op unless measuring in an ortho view)
+	// The transform gizmo goes after every piece of scene geometry, so its
+	// occluded pass can read the finished depth buffer. Both the scene and the
+	// stage view can hold a selection (stage lights and cameras are pickable
+	// in either).
 	if (auto editorSystem= m_editorSystem.lock())
 	{
+		if (m_viewMode == eProjectViewMode::scene || m_viewMode == eProjectViewMode::stage)
+		{
+			editorSystem->renderGizmo(graphicsContext, viewportCamera);
+		}
+
+		// Draw the orthographic ruler overlay (no-op unless measuring in an ortho view)
 		editorSystem->renderRuler(graphicsContext, m_viewport);
 	}
 
@@ -751,9 +760,6 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 
 		// Render the stage
 		renderProjectStage(graphicsContext, viewportCamera);
-
-		// Render the editor gizmo if an actor is selected
-		editorObjectSystem->customRender(graphicsContext, viewportCamera);
 
 		// Render anchors if enabled
 		if (editorSettings.bDebugRenderAnchors)

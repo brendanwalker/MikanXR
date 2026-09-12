@@ -610,7 +610,7 @@ void EditorObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
-void EditorObjectSystem::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera)
+void EditorObjectSystem::renderGizmo(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera)
 {
 	GizmoTransformComponentPtr gizmoComponent= m_gizmoComponentWeakPtr.lock();
 	if (gizmoComponent)
@@ -924,6 +924,15 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 		m_measureEnd= projectAndSnapMeasurePoint(rayOrigin);
 	}
 
+	// While a grab is held the drag owns the cursor: nothing else takes hover,
+	// so the handle keeps its highlight and other objects do not flash theirs
+	SelectionComponentPtr grabbedComponentPtr= m_selectedComponentWeakPtr.lock();
+	if (grabbedComponentPtr && grabbedComponentPtr->getIsGrabbed())
+	{
+		grabbedComponentPtr->notifyMove(rayOrigin, rayDir);
+		return;
+	}
+
 	ColliderRaycastHitResult prevRaycastResult= m_lastestRaycastResult;
 	m_lastestRaycastResult= ColliderRaycastHitResult();
 
@@ -1029,9 +1038,18 @@ void EditorObjectSystem::setObjectSystemSelectionFilter(const std::set<const Mik
 {
 	if (m_objectSystemSelectionFilter != objectSystemFilter)
 	{
-		// Flush any previous selection/hover since the filter is changing
+		// Hover is recomputed on the next mouse move. The selection only goes if
+		// its system left the filter: picking a stage object from the scene view
+		// flips the view mode, and the object is still pickable in the new one.
 		clearHoveredComponent();
-		clearSelectedComponent();
+
+		SelectionComponentPtr selectedActor= getSelectedSceneActor();
+		MikanObjectPtr selectedObject= selectedActor ? selectedActor->getOwnerObject() : nullptr;
+		MikanObjectSystemPtr selectedSystem= selectedObject ? selectedObject->getOwnerSystem() : nullptr;
+		if (!selectedSystem || objectSystemFilter.find(selectedSystem.get()) == objectSystemFilter.end())
+		{
+			clearSelectedComponent();
+		}
 
 		m_objectSystemSelectionFilter= objectSystemFilter;
 	}

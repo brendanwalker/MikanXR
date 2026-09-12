@@ -3,9 +3,11 @@
 #include "ColliderQuery.h"
 #include "ObjectSystemFwd.h"
 #include "MikanComponent.h"
+#include "MkRendererFwd.h"
 #include "SinglecastDelegate.h"
 
 #include <glm/ext/vector_float3.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
 
 class GizmoTranslateComponent : public MikanComponent
 {
@@ -30,6 +32,12 @@ protected:
 	glm::vec3 getColliderColor(BoxColliderComponentWeakPtr colliderPtr, const glm::vec3& defaultColor,
 							   const glm::vec3& hilightColor) const;
 
+	// Solid arrow geometry: a unit cylinder and a unit cone along +Z, scaled
+	// and rotated onto each axis at draw time
+	void createArrowMeshes();
+	void drawArrowHandle(MikanCameraPtr viewportCamera, const glm::mat4& axisXform, const glm::vec3& color,
+						 const struct GizmoDrawStyle& drawStyle) const;
+
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
 	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
 	void onInteractionGrab(const ColliderRaycastHitResult& hitResult);
@@ -53,4 +61,8 @@ protected:
 	glm::vec3 m_dragOrigin;
 	glm::vec3 m_viewPlaneDragNormal;
 	bool m_bValidDragOrigin= false;
+
+	IMkTriangulatedMeshPtr m_arrowShaftMesh;
+	IMkTriangulatedMeshPtr m_arrowHeadMesh;
+	float m_displayScale= 1.f;
 };
