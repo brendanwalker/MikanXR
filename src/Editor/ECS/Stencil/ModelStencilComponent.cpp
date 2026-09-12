@@ -105,9 +105,11 @@ const std::filesystem::path ModelStencilDefinition::getModelPath() const { retur
 
 void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, bool bForceDirty)
 {
-	if (bForceDirty || path.string() != m_modelAssetRefConfig->assetPath)
+	const std::string stored= path.empty() ? std::string() : PathUtils::makeStoredProjectPath(path);
+
+	if (bForceDirty || stored != m_modelAssetRefConfig->assetPath)
 	{
-		m_modelAssetRefConfig->assetPath= path.string();
+		m_modelAssetRefConfig->assetPath= stored;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
 	}
 }
@@ -347,8 +349,8 @@ void ModelStencilComponent::rebuildMeshComponents()
 	MikanModelResourceManager* modelResourceManager= ownerWindow->getModelResourceManager();
 	MkMaterialConstPtr stencilMaterial=
 		ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
-	MikanRenderModelResourcePtr modelResourcePtr=
-		modelResourceManager->fetchRenderModel(modelStencilDefinition->getModelPath(), stencilMaterial);
+	MikanRenderModelResourcePtr modelResourcePtr= modelResourceManager->fetchRenderModel(
+		PathUtils::resolveProjectResource(modelStencilDefinition->getModelPath()), stencilMaterial);
 
 	// Held onto so the client render geometry request can reach the resource's cached payload
 	// without re-resolving the model path and material.

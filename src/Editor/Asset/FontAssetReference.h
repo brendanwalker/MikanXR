@@ -32,6 +32,7 @@ public:
 	virtual char const* getFilterDescription() const { return locText("assets.fontFilterDescription"); }
 
 	// The bundled face the text sources default to, chosen because it carries
-	// kana and kanji as well as Latin
+	// kana and kanji as well as Latin. In stored form: resolve it through
+	// PathUtils::resolveProjectResource before opening it.
 	static std::filesystem::path getDefaultFontPath();
 };

@@ -5,6 +5,7 @@
 #include "AutomationProtocol.h"
 #include "AutomationSocket.h"
 #include "AutomationVariantText.h"
+#include "ProjectAssetCatalog.h"
 #include "ProjectScriptContext.h"
 #include "CompositorObjectSystem.h"
 #include "EditorWindow.h"
@@ -149,6 +150,21 @@ bool parseMouseButtonName(const std::string& name, int& outMkMouseButton)
 		return false;
 
 	return true;
+}
+
+const char* referrerKindName(ProjectAssetReferrer::Kind kind)
+{
+	switch (kind)
+	{
+	case ProjectAssetReferrer::Kind::graph:
+		return "graph";
+	case ProjectAssetReferrer::Kind::material:
+		return "material";
+	case ProjectAssetReferrer::Kind::component:
+		return "component";
+	default:
+		return "unknown";
+	}
 }
 
 // Resolve a (system name, component id) command target.
@@ -458,6 +474,13 @@ void AutomationServer::registerCoreNamespaces()
 
 	registerCommandNamespace("material", {"material info <matPath>", "material compile <graphPath>"},
 							 std::bind(&AutomationServer::handleMaterialCommand, this, _1, _2, _3));
+
+	registerCommandNamespace("assets",
+							 {"assets folders", "assets list [folderId]", "assets refresh",
+							  "assets import <folderId> <sourcePath>", "assets refs <storedPath>",
+							  "assets delete <folderId> <storedPath>", "assets select <folderId> <storedPath>",
+							  "assets selected", "assets folder"},
+							 std::bind(&AutomationServer::handleAssetsCommand, this, _1, _2, _3));
 
 	// The history namespace is registered by TransactionHistory after startup
 }
@@ -1946,6 +1969,208 @@ bool AutomationServer::handleFunctionCommand(const std::vector<std::string>& arg
 			return false;
 		}
 
+		return true;
+	}
+
+	outError= "unknown verb '" + verb + "'";
+	return false;
+}
+
+bool AutomationServer::handleAssetsCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+										   std::string& outError)
+{
+	ProjectAssetCatalog* catalog= m_mainWindow->getAssetCatalog();
+	if (catalog == nullptr)
+	{
+		outError= "no asset catalog";
+		return false;
+	}
+
+	if (args.empty())
+	{
+		outError= "usage: assets folders|list|refresh|import|refs|delete|select|selected|folder ...";
+		return false;
+	}
+
+	const std::string& verb= args[0];
+
+	if (verb == "folders")
+	{
+		for (const ProjectAssetFolderDesc& desc : ProjectAssetCatalog::getFolderDescs())
+		{
+			const std::string projectSubfolder=
+				!desc.projectSubfolder.empty() ? desc.projectSubfolder.generic_string() : "-";
+			const std::string bundledSubfolder=
+				!desc.bundledSubfolder.empty() ? desc.bundledSubfolder.generic_string() : "-";
+
+			outLines.push_back(desc.id + " project:" + projectSubfolder + " bundled:" + bundledSubfolder + " "
+							   + (desc.bReadOnly ? "readonly" : "writable"));
+		}
+
+		return true;
+	}
+	else if (verb == "list")
+	{
+		if (args.size() >= 2)
+		{
+			for (const ProjectAssetEntry& entry : catalog->getEntries(args[1]))
+			{
+				outLines.push_back(entry.folderId + " " + entry.className + " " + entry.storedPath
+								   + (entry.bReadOnly ? " readonly" : ""));
+			}
+		}
+		else
+		{
+			for (const ProjectAssetFolderDesc& desc : ProjectAssetCatalog::getFolderDescs())
+			{
+				for (const ProjectAssetEntry& entry : catalog->getEntries(desc.id))
+				{
+					outLines.push_back(entry.folderId + " " + entry.className + " " + entry.storedPath
+									   + (entry.bReadOnly ? " readonly" : ""));
+				}
+			}
+		}
+
+		return true;
+	}
+	else if (verb == "refresh")
+	{
+		catalog->refresh();
+		outLines.push_back("refreshed");
+		return true;
+	}
+	else if (verb == "import")
+	{
+		if (args.size() < 3)
+		{
+			outError= "usage: assets import <folderId> <sourcePath>";
+			return false;
+		}
+
+		std::string sourceText= args[2];
+		for (size_t i= 3; i < args.size(); ++i)
+		{
+			sourceText+= " " + args[i];
+		}
+
+		std::string storedPath;
+		if (!catalog->importAsset(args[1], std::filesystem::path(sourceText), storedPath, outError))
+		{
+			return false;
+		}
+
+		outLines.push_back(storedPath);
+		return true;
+	}
+	else if (verb == "refs")
+	{
+		if (args.size() < 2)
+		{
+			outError= "usage: assets refs <storedPath>";
+			return false;
+		}
+
+		std::string storedPath= args[1];
+		for (size_t i= 2; i < args.size(); ++i)
+		{
+			storedPath+= " " + args[i];
+		}
+
+		for (const ProjectAssetReferrer& referrer : catalog->findReferences(storedPath))
+		{
+			outLines.push_back(std::string(referrerKindName(referrer.kind)) + " " + referrer.name + " "
+							   + referrer.detail);
+		}
+
+		return true;
+	}
+	else if (verb == "delete")
+	{
+		if (args.size() < 3)
+		{
+			outError= "usage: assets delete <folderId> <storedPath>";
+			return false;
+		}
+
+		const ProjectAssetEntry* entry= catalog->findEntry(args[1], args[2]);
+		if (entry == nullptr)
+		{
+			outError= "asset not found";
+			return false;
+		}
+
+		const std::vector<ProjectAssetReferrer> referrers= catalog->findReferences(entry->storedPath);
+		if (!referrers.empty())
+		{
+			std::string joined;
+			for (const ProjectAssetReferrer& referrer : referrers)
+			{
+				if (!joined.empty())
+					joined+= ", ";
+				joined+= std::string(referrerKindName(referrer.kind)) + " " + referrer.name;
+			}
+
+			outError= "referenced by: " + joined;
+			return false;
+		}
+
+		if (!catalog->deleteAsset(*entry, outError))
+		{
+			return false;
+		}
+
+		outLines.push_back("deleted");
+		return true;
+	}
+	else if (verb == "select")
+	{
+		if (args.size() < 3)
+		{
+			outError= "usage: assets select <folderId> <storedPath>";
+			return false;
+		}
+
+		AppStage* currentAppStage= m_mainWindow->getCurrentAppStage();
+		std::vector<std::string> results;
+		if (currentAppStage == nullptr
+			|| !currentAppStage->handleRemoteControlCommand("select_asset", {args[1], args[2]}, results))
+		{
+			outError= "asset not found";
+			return false;
+		}
+
+		outLines.push_back("selected");
+		return true;
+	}
+	else if (verb == "selected")
+	{
+		AppStage* currentAppStage= m_mainWindow->getCurrentAppStage();
+		std::vector<std::string> results;
+		if (currentAppStage == nullptr || !currentAppStage->handleRemoteControlCommand("selected_asset", {}, results))
+		{
+			outError= "no current project stage";
+			return false;
+		}
+
+		if (results.size() >= 2)
+			outLines.push_back(results[0] + " " + results[1]);
+		else
+			outLines.push_back("none");
+
+		return true;
+	}
+	else if (verb == "folder")
+	{
+		AppStage* currentAppStage= m_mainWindow->getCurrentAppStage();
+		std::vector<std::string> results;
+		if (currentAppStage == nullptr
+			|| !currentAppStage->handleRemoteControlCommand("current_asset_folder", {}, results) || results.empty())
+		{
+			outError= "no current project stage";
+			return false;
+		}
+
+		outLines.push_back(results[0]);
 		return true;
 	}
 

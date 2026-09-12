@@ -92,7 +92,7 @@ public:
 
 	void editScript();
 	void reloadScript();
-	void selectScript();
+	void removeScript();
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -105,7 +105,7 @@ public:
 	// -- IFunctionInterface ----
 	static const std::string k_editScriptFunctionId;
 	static const std::string k_reloadScriptFunctionId;
-	static const std::string k_selectScriptFunctionId;
+	static const std::string k_removeScriptFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 

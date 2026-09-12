@@ -57,6 +57,8 @@ MainWindow* EditorWindow::getMainWindow() const { return m_ownerApp->getMainWind
 
 ProjectManagerPtr EditorWindow::getProjectManager() const { return getMainWindow()->getProjectManager(); }
 
+ProjectAssetCatalog* EditorWindow::getAssetCatalog() const { return getMainWindow()->getAssetCatalog(); }
+
 MikanServer* EditorWindow::getMikanServer() const { return getMainWindow()->getMikanServer(); }
 
 IMkFontManager* EditorWindow::getFontManager() const { return getMainWindow()->getFontManager(); }

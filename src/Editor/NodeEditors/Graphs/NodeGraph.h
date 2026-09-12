@@ -157,6 +157,12 @@ public:
 	//	return assetRef;
 	//}
 
+	// The graph's own reference to the given asset, appended when the graph does
+	// not already hold one. Graph properties bind to the graph's instance by index
+	// at save time, so an asset arriving from the project catalog is mapped through
+	// this before anything binds to it.
+	AssetReferencePtr findOrAddAssetReference(const std::string& className, const std::filesystem::path& assetPath);
+
 	bool deleteAssetReference(AssetReferencePtr assetRef);
 
 	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceCreated;

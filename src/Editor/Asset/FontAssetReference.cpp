@@ -10,5 +10,7 @@ FontAssetReferenceFactory::FontAssetReferenceFactory()
 
 std::filesystem::path FontAssetReferenceFactory::getDefaultFontPath()
 {
-	return PathUtils::getResourceDirectory() / "font" / "MochiyPopOne-Regular.ttf";
+	// Stored form: the bundled font folder is the read-only overlay behind the
+	// project, so resolveProjectResource finds it without a project prefix
+	return std::filesystem::path("font/MochiyPopOne-Regular.ttf");
 }

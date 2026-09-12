@@ -12,6 +12,7 @@
 #include "MkGuiScopedWindow.h"
 #include "MkGuiStyleManager.h"
 #include "PathUtils.h"
+#include "ProjectAssetCatalog.h"
 
 #include "MaterialCompiler/GlslShaderWriter.h"
 #include "MaterialCompiler/MaterialCompiler.h"
@@ -195,6 +196,12 @@ bool MaterialNodeEditorWindow::compileAndWriteOutputs()
 		{
 			shaderCache->reloadMaterialByPath(materialPath);
 		}
+	}
+
+	// The written .mat may be a material the project did not have before
+	if (ProjectAssetCatalog* catalog= getAssetCatalog())
+	{
+		catalog->refresh();
 	}
 
 	if (m_onMaterialSaved)

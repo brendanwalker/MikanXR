@@ -60,7 +60,6 @@ public:
 	void addNewShapeGraph();
 	void editShapeGraph();
 	void removeShapeGraph();
-	void selectShapeGraph();
 	// Draws with the caller's blend and depth state
 	void renderShapeGraph(const glm::mat4& vpMatrix, class IMkGraphicsContext* graphicsContext);
 	const std::vector<NodeEvaluationError>& getLastNodeEvalErrors() const { return m_lastNodeEvalErrors; }
@@ -72,7 +71,6 @@ public:
 	static const std::string k_addNewShapeGraphFunctionId;
 	static const std::string k_editShapeGraphFunctionId;
 	static const std::string k_removeShapeGraphFunctionId;
-	static const std::string k_selectShapeGraphFunctionId;
 
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);

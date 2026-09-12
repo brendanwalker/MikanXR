@@ -10,6 +10,7 @@
 #include "ARKitDebugChannel.h"
 #include "AutomationServer.h"
 #include "TransactionHistory.h"
+#include "ProjectAssetCatalog.h"
 #include "ClientSourceManager.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
@@ -83,6 +84,7 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_clientSourceManager(new ClientSourceManager(DEFAULT_VIDEO_FRAME_QUEUE_SIZE))
 	, m_inputManager(new InputManager(this))
 	, m_projectManager(std::make_shared<ProjectManager>(this))
+	, m_assetCatalog(new ProjectAssetCatalog())
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(createMkFontManager())
 	, m_appStageFactory(this)
@@ -113,6 +115,7 @@ MainWindow::MainWindow(App* ownerApp)
 
 MainWindow::~MainWindow()
 {
+	delete m_assetCatalog;
 	m_projectManager= nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
@@ -223,6 +226,12 @@ bool MainWindow::startup()
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
 			success= false;
 		}
+	}
+
+	if (success)
+	{
+		// Scans the initial project's asset folders and follows project switches
+		m_assetCatalog->startup(this);
 	}
 
 	if (success)
@@ -591,6 +600,9 @@ void MainWindow::shutdown()
 
 	assert(m_transactionHistory != nullptr);
 	m_transactionHistory->shutdown();
+
+	assert(m_assetCatalog != nullptr);
+	m_assetCatalog->shutdown();
 
 	// Before the automation server, so an in-flight `arkit send` still gets its
 	// error reply out while the automation socket is alive to carry it

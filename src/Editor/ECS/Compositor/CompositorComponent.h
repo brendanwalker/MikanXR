@@ -121,7 +121,6 @@ public:
 	void addNewCompositorGraph();
 	void editCompositorGraph();
 	void removeCompositorGraph();
-	void selectCompositorGraph();
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 
@@ -137,7 +136,6 @@ public:
 	static const std::string k_addNewCompositorGraphFunctionId;
 	static const std::string k_editCompositorGraphFunctionId;
 	static const std::string k_removeCompositorGraphFunctionId;
-	static const std::string k_selectCompositorGraphFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 

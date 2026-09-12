@@ -161,6 +161,34 @@ Loads and compiles material files headlessly, with no editor window involved, so
 - `material info <matPath>` loads the `.mat` config and replies `name`, `domain`, `vertex_preset`, and `source_graph` lines (`none` where a hand-authored material leaves them unset), then one `uniform <name> <semantic>` line per uniform semantic map entry
 - `material compile <graphPath>` loads the graph without an owner window, compiles it with the GLSL writer, and writes the `.vert`, `.frag`, and `.mat` beside the graph file, replying those three paths. Compile errors reply as `error <nodeId> <message>` lines and write nothing.
 
+### Project assets (assets)
+
+Drives the `ProjectAssetCatalog` ([objects.md](./objects.md) covers the property database the component scan reads). All verbs run inline on the main thread, so no reply is deferred.
+
+- `assets folders` replies one line per folder descriptor: `<id> project:<projectSubfolder or -> bundled:<bundledSubfolder or -> <readonly|writable>`
+- `assets list [folderId]` replies one line per entry as `<folderId> <className> <storedPath>[ readonly]`, all folders when the id is omitted
+- `assets refresh` rescans every folder from disk, replying `refreshed`
+- `assets import <folderId> <sourcePath>` copies a file (or a material's folder) into the project and replies the stored path. The source path may contain spaces. Fails with the catalog's own error text, for example a read-only folder or an unsupported file type.
+- `assets refs <storedPath>` replies one `<graph|material|component> <name> <detail>` line per referrer, empty when nothing references the path. The path may contain spaces.
+- `assets delete <folderId> <storedPath>` deletes an asset after checking `findReferences` itself, replying `deleted`. A referenced asset is refused with `referenced by: <kind> <name>, ...` rather than deleting out from under a live reference.
+- `assets select <folderId> <storedPath>` selects an entry in the project Assets panel through the stage's `select_asset` command, replying `selected`, or an error `asset not found`
+- `assets selected` reads the panel's selection back through `selected_asset`, replying `<folderId> <storedPath>` or `none`
+- `assets folder` replies the panel's current folder id through `current_asset_folder`
+
+The `select`, `selected`, and `folder` verbs answer an error when the current app stage is not the project stage, since that is where the Assets panel lives.
+
+A short drive that imports a texture, wires it into a DMX sequence's content path, and confirms the delete guard:
+
+```
+python tools/automate.py "assets import textures ./stripe.png" "assets list textures"
+python tools/automate.py "property set DMXSequenceSystem 1 content_path textures/stripe.png"
+python tools/automate.py "assets refs textures/stripe.png"
+python tools/automate.py "assets delete textures textures/stripe.png"
+python tools/automate.py "property set DMXSequenceSystem 1 content_path \"\"" "assets delete textures textures/stripe.png"
+```
+
+The first delete answers `referenced by: component <sequenceName>` since the sequence still names the file. Clearing `content_path` first lets the second delete succeed with `deleted`.
+
 ### ARKit debug channel (arkit)
 
 Relays debug traffic to and from the MikanARStreamer iPhone app ([videosources.md](./videosources.md)). The phone pushes diagnostics, which are re-emitted through the editor's own logger and so read back through `log tail` interleaved with editor lines on one timeline. Commands travel the other way.

@@ -1,4 +1,5 @@
 #include "AppStage.h"
+#include "AssetPropertyGui.h"
 #include "AssetReferencePropertyMetaData.h"
 #include "Shared/GuiPanel_ShapeComponent.h"
 #include "MkGuiDrawUtils.h"
@@ -17,6 +18,8 @@
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
 #include "TransformComponent.h"
+
+#include <filesystem>
 
 GuiPanel_ShapeComponent::GuiPanel_ShapeComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
@@ -80,20 +83,25 @@ void GuiPanel_ShapeComponent::onConstruct()
 			if (!shapeComponent)
 				return false;
 
+			const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
+			if (!assetMeta)
+				return false;
+
+			ShapeComponentDefinitionPtr componentDef= shapeComponent->getShapeComponentDefinition();
+			const std::string graphPath= componentDef->getShapeGraphPath().generic_string();
+
+			std::string newGraphPath;
+			if (AssetPropertyGui::drawAssetReferenceProperty(
+					m_defaultGuiStyle,
+					shapeComponent->makePropertyUIIdentifier(ShapeComponentDefinition::k_shapeGraphPathPropertyId),
+					locText("componentPanel.graph"), *assetMeta->getFactory(), graphPath, newGraphPath))
+			{
+				addDeferredGuiEvent([shapeComponent, newGraphPath]()
+									{ shapeComponent->setShapeGraphAssetPath(std::filesystem::path(newGraphPath)); });
+			}
+
 			if (shapeComponent->hasValidShapeGraph())
 			{
-				const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
-				ShapeComponentDefinitionPtr componentDef= shapeComponent->getShapeComponentDefinition();
-				const std::string graphPath= componentDef->getShapeGraphPath().generic_string();
-
-				if (MkGui::drawFilePathProperty(
-						m_defaultGuiStyle,
-						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId),
-						locText("componentPanel.graph"), graphPath))
-				{
-					addDeferredGuiEvent([shapeComponent]() { shapeComponent->selectShapeGraph(); });
-				}
-
 				if (MkGui::drawGlyphButtonWithLabel(
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_editShapeGraphFunctionId),
 						ICON_FK_PENCIL, locText("componentPanel.editGraph")))
@@ -109,20 +117,11 @@ void GuiPanel_ShapeComponent::onConstruct()
 			}
 			else
 			{
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.graph"),
-											  locText("componentPanel.noGraph"));
-
 				if (MkGui::drawGlyphButtonWithLabel(
 						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId),
 						ICON_FK_PLUS, locText("componentPanel.addGraph")))
 				{
 					addDeferredGuiEvent([shapeComponent]() { shapeComponent->addNewShapeGraph(); });
-				}
-				if (MkGui::drawGlyphButtonWithLabel(
-						shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_selectShapeGraphFunctionId),
-						ICON_FK_FOLDER_OPEN, locText("componentPanel.selectGraph")))
-				{
-					addDeferredGuiEvent([shapeComponent]() { shapeComponent->selectShapeGraph(); });
 				}
 			}
 

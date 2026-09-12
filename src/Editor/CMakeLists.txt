@@ -200,6 +200,12 @@ file(GLOB MIKAN_ASSET_EXPORT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Asset/Export/*.h"
 )
 source_group("Asset\\Export" FILES ${MIKAN_ASSET_EXPORT_SRC})
+## Asset/Test
+file(GLOB MIKAN_ASSET_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Test/*.h"
+)
+source_group("Asset\\Test" FILES ${MIKAN_ASSET_TEST_SRC})
 
 # Calibration
 file(GLOB MIKAN_CALIBRATION_SRC
@@ -524,6 +530,7 @@ set(MIKAN_SRC
     ${MIKAN_ASSET_SRC}
     ${MIKAN_ASSET_IMPORT_SRC}
     ${MIKAN_ASSET_EXPORT_SRC}
+    ${MIKAN_ASSET_TEST_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_CALIBRATION_TEST_SRC}
     ${MIKAN_COMPONENTS_SRC}
@@ -554,6 +561,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Asset
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Import
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Export
+  ${CMAKE_CURRENT_LIST_DIR}/Asset/Test
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Calibration/Test
   ${ROOT_DIR}/src/Programs/Tests/UnitTests

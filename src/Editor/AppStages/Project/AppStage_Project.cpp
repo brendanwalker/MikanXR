@@ -34,11 +34,13 @@
 #include "MkScene.h"
 #include "MkStateModifiers.h"
 #include "MkStateStack.h"
+#include "ProjectAssetCatalog.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "Project/GuiPanel_ProjectOutliner.h"
+#include "Project/GuiPanel_Assets.h"
 #include "Project/GuiPanel_CompositorList.h"
 #include "Project/GuiPanel_HttpTriggers.h"
 #include "Project/GuiPanel_ProjectSettings.h"
@@ -174,6 +176,9 @@ void AppStage_Project::enter()
 
 		m_compositorListPanel= addGuiPanel<GuiPanel_CompositorList>();
 		m_compositorListPanel->init(m_projectGuiPanelContext, m_projectOutlinerPanel);
+
+		m_assetsPanel= addGuiPanel<GuiPanel_Assets>();
+		m_assetsPanel->init(m_projectGuiPanelContext);
 	}
 
 	setViewMode(eProjectViewMode::scene);
@@ -200,6 +205,7 @@ void AppStage_Project::exit()
 	m_httpTriggersPanel= nullptr;
 	m_sceneListPanel= nullptr;
 	m_compositorListPanel= nullptr;
+	m_assetsPanel= nullptr;
 
 	// Unregister all viewports from the editor
 	m_editorSystem.lock()->clearViewports();
@@ -357,6 +363,16 @@ void AppStage_Project::onGui()
 		}
 	}
 
+	// The project asset browser
+	if (m_bAssetsPanelVisible && m_assetsPanel != nullptr)
+	{
+		MkGuiScopedWindow assetsWindow(locWindowTitle("windows.assets"), &m_bAssetsPanelVisible);
+		if (assetsWindow)
+		{
+			m_assetsPanel->onGui();
+		}
+	}
+
 	if (m_bShowLogPanel)
 	{
 		LogPanel::getInstance().draw(&m_bShowLogPanel);
@@ -403,6 +419,7 @@ void AppStage_Project::onMenuBarGui()
 		ImGui::MenuItem(locLabel("project.panelHttpTriggers"), nullptr, &m_bHttpTriggersPanelVisible);
 		ImGui::MenuItem(locLabel("project.panelScenes"), nullptr, &m_bSceneListVisible);
 		ImGui::MenuItem(locLabel("project.panelCompositors"), nullptr, &m_bCompositorListVisible);
+		ImGui::MenuItem(locLabel("project.panelAssets"), nullptr, &m_bAssetsPanelVisible);
 		ImGui::Separator();
 		ImGui::MenuItem(locLabel("mainWindow.logPanel"), nullptr, &m_bShowLogPanel);
 		ImGui::Separator();
@@ -413,6 +430,7 @@ void AppStage_Project::onMenuBarGui()
 			m_bHttpTriggersPanelVisible= true;
 			m_bSceneListVisible= true;
 			m_bCompositorListVisible= true;
+			m_bAssetsPanelVisible= true;
 			m_bShowLogPanel= true;
 			m_bDockLayoutResetRequested= true;
 		}
@@ -461,19 +479,24 @@ void AppStage_Project::applyPendingProjectActions()
 void AppStage_Project::onBuildDefaultDockLayout(unsigned int dockspaceId)
 {
 	// Project and Settings tabbed on the right. Along the bottom, left to right:
-	// the scene list, the compositor list, and the log. The central node is left
-	// empty for the scene.
+	// the scene list, the compositor list, the assets browser, and the log. The
+	// central node is left empty for the scene.
 	ImGuiID remaining= (ImGuiID)dockspaceId;
 	const ImGuiID rightId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Right, 0.28f, remaining);
-	ImGuiID bottomId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Down, 0.25f, remaining);
-	const ImGuiID scenesId= MkGui::dockBuilderSplit(bottomId, ImGuiDir_Left, 0.2f, bottomId);
-	const ImGuiID compositorsId= MkGui::dockBuilderSplit(bottomId, ImGuiDir_Left, 0.25f, bottomId);
+	// The bottom row is tall enough for a row of asset tiles, and the assets
+	// browser takes half of what the two lists leave, so its folder list and
+	// tile grid both fit at a 720p window
+	ImGuiID bottomId= MkGui::dockBuilderSplit(remaining, ImGuiDir_Down, 0.32f, remaining);
+	const ImGuiID scenesId= MkGui::dockBuilderSplit(bottomId, ImGuiDir_Left, 0.15f, bottomId);
+	const ImGuiID compositorsId= MkGui::dockBuilderSplit(bottomId, ImGuiDir_Left, 0.2f, bottomId);
+	const ImGuiID assetsId= MkGui::dockBuilderSplit(bottomId, ImGuiDir_Left, 0.55f, bottomId);
 
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.project"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.projectSettings"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.httpTriggers"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.scenes"), scenesId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.compositors"), compositorsId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.assets"), assetsId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.log"), bottomId);
 }
 
@@ -1171,6 +1194,35 @@ bool AppStage_Project::handleRemoteControlCommand(const std::string& command,
 	else if (command == "remove_script")
 	{
 		// TODO: Implement script removal - need to determine component ID parameter handling
+		return true;
+	}
+	else if (command == "select_asset")
+	{
+		if (parameters.size() < 2)
+			return false;
+
+		return m_assetsPanel != nullptr && m_assetsPanel->selectEntry(parameters[0], parameters[1]);
+	}
+	else if (command == "selected_asset")
+	{
+		if (m_assetsPanel != nullptr)
+		{
+			if (const ProjectAssetEntry* entry= m_assetsPanel->getSelectedEntry())
+			{
+				outResults.push_back(entry->folderId);
+				outResults.push_back(entry->storedPath);
+			}
+		}
+
+		return true;
+	}
+	else if (command == "current_asset_folder")
+	{
+		if (m_assetsPanel != nullptr)
+		{
+			outResults.push_back(m_assetsPanel->getCurrentFolderId());
+		}
+
 		return true;
 	}
 

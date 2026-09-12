@@ -137,6 +137,7 @@ protected:
 	class GuiPanel_HttpTriggers* m_httpTriggersPanel= nullptr;
 	class GuiPanel_SceneList* m_sceneListPanel= nullptr;
 	class GuiPanel_CompositorList* m_compositorListPanel= nullptr;
+	class GuiPanel_Assets* m_assetsPanel= nullptr;
 	eProjectViewMode m_viewMode= eProjectViewMode::INVALID;
 	// Window visibility, driven by the View menu (session-only)
 	bool m_bOutlinerVisible= true;
@@ -144,6 +145,7 @@ protected:
 	bool m_bHttpTriggersPanelVisible= true;
 	bool m_bSceneListVisible= true;
 	bool m_bCompositorListVisible= true;
+	bool m_bAssetsPanelVisible= true;
 	bool m_bShowLogPanel= true;
 	// Deferred project actions: a menu click must not swap the project out from
 	// under the panels drawing this frame

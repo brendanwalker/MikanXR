@@ -123,7 +123,14 @@ void CompositorNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorSt
 	{
 		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
-			assetRef->editorHandleGraphVariablesDragDrop(editorState);
+			// The payload carries the project catalog's instance, while graph
+			// properties bind to the graph's own reference by index
+			AssetReferencePtr graphAssetRef=
+				getNodeGraph()->findOrAddAssetReference(assetRef->getClassName(), assetRef->getInternalAssetPath());
+			if (graphAssetRef)
+			{
+				graphAssetRef->editorHandleGraphVariablesDragDrop(editorState);
+			}
 			return;
 		}
 	}
@@ -148,7 +155,14 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 	{
 		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
-			assetRef->editorHandleMainFrameDragDrop(editorState);
+			// The payload carries the project catalog's instance, while graph
+			// properties bind to the graph's own reference by index
+			AssetReferencePtr graphAssetRef=
+				getNodeGraph()->findOrAddAssetReference(assetRef->getClassName(), assetRef->getInternalAssetPath());
+			if (graphAssetRef)
+			{
+				graphAssetRef->editorHandleMainFrameDragDrop(editorState);
+			}
 			return;
 		}
 	}

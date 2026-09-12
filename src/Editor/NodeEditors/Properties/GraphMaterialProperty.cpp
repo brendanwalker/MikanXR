@@ -334,12 +334,19 @@ void GraphMaterialProperty::editorRenderPropertySheet(const NodeEditorState& edi
 			setMaterialAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}
 
-		// Drag-Drop Handling
-		auto materialAssetRef=
+		// Drag-Drop Handling: the payload carries the project catalog's instance,
+		// while this property binds to the graph's own reference by index
+		auto droppedAssetRef=
 			MkGui::receiveTypedDragDropPayload<MaterialAssetReference>(MaterialAssetReference::k_assetClassName);
-		if (materialAssetRef)
+		NodeGraphPtr ownerGraph= getOwnerGraph();
+		if (droppedAssetRef && ownerGraph)
 		{
-			setMaterialAssetReference(materialAssetRef);
+			AssetReferencePtr graphAssetRef= ownerGraph->findOrAddAssetReference(
+				MaterialAssetReference::k_assetClassName, droppedAssetRef->getInternalAssetPath());
+			if (graphAssetRef)
+			{
+				setMaterialAssetReference(std::static_pointer_cast<MaterialAssetReference>(graphAssetRef));
+			}
 		}
 	}
 }

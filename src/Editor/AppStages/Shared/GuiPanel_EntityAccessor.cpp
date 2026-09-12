@@ -1,5 +1,6 @@
 #include "GuiPanel_EntityAccessor.h"
 #include "AppStage.h"
+#include "AssetPropertyGui.h"
 #include "AssetReferencePropertyMetaData.h"
 #include "EnumPropertyMetaData.h"
 #include "CommonConfig.h"
@@ -11,7 +12,6 @@
 #include "StringUtils.h"
 
 #include "imgui.h"
-#include "tinyfiledialogs.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -267,17 +267,12 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 			const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
 			if (assetMeta)
 			{
-				if (MkGui::drawFilePathProperty(m_defaultGuiStyle, uiFieldId, label, v))
+				std::string newStoredPath;
+				if (AssetPropertyGui::drawAssetReferenceProperty(m_defaultGuiStyle, uiFieldId, label,
+																 *assetMeta->getFactory(), v, newStoredPath))
 				{
-					const AssetReferenceFactory* factory= assetMeta->getFactory();
-					const char* picked= tinyfd_openFileDialog(
-						factory->getFileDialogTitle(), factory->getDefaultPath(), factory->getFilterPatternCount(),
-						factory->getFilterPatterns(), factory->getFilterDescription(), 0);
-					if (picked && picked[0] != '\0')
-					{
-						newValue= picked;
-						bValueChanged= true;
-					}
+					newValue= newStoredPath;
+					bValueChanged= true;
 				}
 			}
 			else

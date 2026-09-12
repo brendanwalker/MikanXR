@@ -190,12 +190,19 @@ void GraphTextureProperty::editorRenderPropertySheet(const NodeEditorState& edit
 			setTextureAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}
 
-		// Drag-Drop Handling
-		auto textureAssetRef=
+		// Drag-Drop Handling: the payload carries the project catalog's instance,
+		// while this property binds to the graph's own reference by index
+		auto droppedAssetRef=
 			MkGui::receiveTypedDragDropPayload<TextureAssetReference>(TextureAssetReference::k_assetClassName);
-		if (textureAssetRef)
+		NodeGraphPtr ownerGraph= getOwnerGraph();
+		if (droppedAssetRef && ownerGraph)
 		{
-			setTextureAssetReference(textureAssetRef);
+			AssetReferencePtr graphAssetRef= ownerGraph->findOrAddAssetReference(
+				TextureAssetReference::k_assetClassName, droppedAssetRef->getInternalAssetPath());
+			if (graphAssetRef)
+			{
+				setTextureAssetReference(std::static_pointer_cast<TextureAssetReference>(graphAssetRef));
+			}
 		}
 
 		// Texture

@@ -3,6 +3,7 @@
 #include "NodeGraph.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
+#include "PathUtils.h"
 #include "StringUtils.h"
 
 #include "Graphs/NodeEvaluator.h"
@@ -790,6 +791,46 @@ int NodeGraph::getAssetReferenceIndex(AssetReferencePtr assetRef) const
 	}
 
 	return -1;
+}
+
+AssetReferencePtr NodeGraph::findOrAddAssetReference(const std::string& className,
+													 const std::filesystem::path& assetPath)
+{
+	if (className.empty() || assetPath.empty())
+	{
+		return AssetReferencePtr();
+	}
+
+	// Asset references hold their path in stored form, so the match is made in that form
+	const std::filesystem::path storedPath= PathUtils::makeStoredProjectPath(assetPath);
+
+	for (AssetReferencePtr existingAssetRef : m_assetReferences)
+	{
+		if (existingAssetRef->getClassName() == className && existingAssetRef->getInternalAssetPath() == storedPath)
+		{
+			return existingAssetRef;
+		}
+	}
+
+	AssetReferenceFactoryPtr factory= getAssetReferenceFactory(className);
+	if (!factory)
+	{
+		return AssetReferencePtr();
+	}
+
+	AssetReferencePtr assetRef= factory->allocateAssetReference();
+	if (!assetRef)
+	{
+		return AssetReferencePtr();
+	}
+
+	assetRef->setAssetPath(storedPath);
+	m_assetReferences.push_back(assetRef);
+
+	if (OnAssetReferenceCreated)
+		OnAssetReferenceCreated(assetRef);
+
+	return assetRef;
 }
 
 bool NodeGraph::deleteAssetReference(AssetReferencePtr assetRef)

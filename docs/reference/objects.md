@@ -74,6 +74,24 @@ The project file is a single Configuru JSON document with extension `.mikanproj`
 
 ---
 
+## Asset references and the project Assets panel
+
+Every file a project uses (graphs, models, scripts, materials, textures, fonts) is named through an `AssetReference` (`src/Editor/Asset/AssetReference.h`) or through a string property tagged with `AssetReferenceFactoryMetaData`. Paths are stored in project form: forward slashes, relative to the project directory when the file sits under it (`PathUtils::makeStoredProjectPath`), and resolved through `PathUtils::resolveProjectResource`, which looks in the project first and then in the bundled `resources/` folder. `AssetReference::setAssetPath` and every tagged definition setter normalize into that form, so an absolute path handed in from anywhere stores relative. Bundled assets a project does not shadow therefore resolve without a copy, which is how the fonts work.
+
+`ProjectAssetCatalog` (`src/Editor/Asset/ProjectAssetCatalog.h`, owned by `MainWindow`, reached through `IEditorWindow::getAssetCatalog`) is the scanned view of the project's asset folders. Each folder is a `ProjectAssetFolderDesc`: a project subfolder, an optional read-only bundled overlay subfolder, and the asset factories whose file types it holds. The folders are:
+
+- `graphs`, `models`, `scripts`, `textures`: one entry per matching file
+- `materials`: the project's `shaders/` tree, one entry per `.mat` with its sibling graph and shader sources hidden
+- `fonts`: bundled-only, the read-only overlay of `resources/font/`
+
+The catalog stores paths only and creates `AssetReference` instances (which may own a GL preview) lazily on a panel's request, so it refreshes headless and before any window exists. It rescans on project load, after an import or delete, and after a graph or material save. `ProjectManager::newProject` seeds a new project's folders from the same descriptors.
+
+The project stage's Assets panel (`GuiPanel_Assets`) browses the catalog. Its Add buttons are the only import path: the picked file is copied into the folder (a material's whole folder, under `shaders/<domain>/`), a name collision gets a numeric suffix and a duplicate material is refused, and the copy is selected in the panel. Right-click delete runs `ProjectAssetCatalog::findReferences` first, which reads every `.graph` and `.mat` under the project as raw JSON plus every tagged component property in the loaded project, and refuses with the referrer list when anything still names the asset. The compositor, shape, and material editors carry a Graph Assets panel that is the same catalog filtered to the types their graph accepts. Drag and drop never crosses OS windows, since each editor window has its own ImGui context: the project panel feeds the component property rows in the main window, and each editor's own panel feeds its canvas.
+
+A property row tagged with `AssetReferenceFactoryMetaData` draws as the type's glyph and the asset's file name and accepts a drop of a matching asset (`AssetPropertyGui::drawAssetReferenceProperty`). There is no file browser on the row. The project panel's payload is a `ProjectAssetDragPayload` matched by the factory's file patterns, the editor panels' payload is the `AssetReferencePtr` matched by class name.
+
+---
+
 ## Remote control and the property system
 
 Every component and system implements `IEntityAccessor` (`src/Editor/ECS/IEntityAccessor.h`), which is `IPropertyInterface` + `IFunctionInterface`:

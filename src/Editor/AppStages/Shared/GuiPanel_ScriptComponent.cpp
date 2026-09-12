@@ -1,5 +1,7 @@
 #include "Shared/GuiPanel_ScriptComponent.h"
 #include "AppStage.h"
+#include "AssetPropertyGui.h"
+#include "AssetReferencePropertyMetaData.h"
 #include "IconsForkAwesome.h"
 #include "IEditorWindow.h"
 #include "LocText.h"
@@ -13,6 +15,7 @@
 
 #include "imgui.h"
 
+#include <filesystem>
 #include <string.h>
 
 // -- GuiDataSource_OptionalComponentComboBox -----
@@ -60,24 +63,31 @@ void GuiPanel_ScriptComponent::onConstruct()
 
 	m_entityAccessor->setPropertyRenderer(
 		ScriptDefinition::k_scriptPathPropertyId,
-		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		[this](const PropertyDescriptorConstPtr& desc) -> bool
 		{
 			ScriptComponentPtr component= getScriptComponent();
 			if (!component)
 				return false;
 
+			const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
+			if (!assetMeta)
+				return false;
+
 			ScriptDefinitionPtr definition= component->getScriptDefinition();
+			const std::string scriptPath= definition->getScriptPath().generic_string();
+
+			std::string newScriptPath;
+			if (AssetPropertyGui::drawAssetReferenceProperty(
+					m_defaultGuiStyle, component->makePropertyUIIdentifier(ScriptDefinition::k_scriptPathPropertyId),
+					locText("componentPanel.script"), *assetMeta->getFactory(), scriptPath, newScriptPath))
+			{
+				addDeferredGuiEvent(
+					[component, newScriptPath]()
+					{ component->getScriptDefinition()->setScriptPath(std::filesystem::path(newScriptPath)); });
+			}
+
 			if (definition->hasScriptPath())
 			{
-				const std::string scriptPath= definition->getScriptPath().generic_string();
-
-				if (MkGui::drawFilePathProperty(
-						m_defaultGuiStyle,
-						component->makePropertyUIIdentifier(ScriptComponent::k_selectScriptFunctionId),
-						locText("componentPanel.script"), scriptPath))
-				{
-					addDeferredGuiEvent([component]() { component->selectScript(); });
-				}
 				if (!component->isScriptLoaded())
 				{
 					ImGui::TextUnformatted(locText("componentPanel.scriptNotLoaded"));
@@ -95,17 +105,11 @@ void GuiPanel_ScriptComponent::onConstruct()
 				{
 					addDeferredGuiEvent([component]() { component->reloadScript(); });
 				}
-			}
-			else
-			{
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.script"),
-											  locText("componentPanel.noScript"));
-
 				if (MkGui::drawGlyphButtonWithLabel(
-						component->makePropertyUIIdentifier(ScriptComponent::k_selectScriptFunctionId),
-						ICON_FK_FOLDER_OPEN, locText("componentPanel.selectScript")))
+						component->makePropertyUIIdentifier(ScriptComponent::k_removeScriptFunctionId), ICON_FK_TRASH_O,
+						locText("componentPanel.removeScript")))
 				{
-					addDeferredGuiEvent([component]() { component->selectScript(); });
+					addDeferredGuiEvent([component]() { component->removeScript(); });
 				}
 			}
 

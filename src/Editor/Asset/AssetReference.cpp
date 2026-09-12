@@ -1,6 +1,9 @@
 #include "AssetReference.h"
 #include "PathUtils.h"
 
+#include <algorithm>
+#include <cctype>
+
 // -- Asset Reference Config -----
 configuru::Config AssetReferenceConfig::writeToJSON()
 {
@@ -27,7 +30,7 @@ AssetReference::~AssetReference() { m_previewTexture= nullptr; }
 
 bool AssetReference::loadFromConfig(AssetReferenceConfigConstPtr config)
 {
-	setAssetPath(config->assetPath);
+	setAssetPath(PathUtils::utf8ToPath(config->assetPath));
 
 	return true;
 }
@@ -35,7 +38,7 @@ bool AssetReference::loadFromConfig(AssetReferenceConfigConstPtr config)
 void AssetReference::saveToConfig(AssetReferenceConfigPtr config) const
 {
 	config->className= getClassName();
-	config->assetPath= m_assetPath.string();
+	config->assetPath= PathUtils::pathToUtf8(m_assetPath);
 }
 
 const std::filesystem::path& AssetReference::getInternalAssetPath() const { return m_assetPath; }
@@ -47,9 +50,12 @@ const std::filesystem::path AssetReference::getResolvedAssetPath() const
 
 void AssetReference::setAssetPath(const std::filesystem::path& inPath)
 {
-	if (m_assetPath != inPath)
+	const std::filesystem::path storedPath=
+		inPath.empty() ? std::filesystem::path() : std::filesystem::path(PathUtils::makeStoredProjectPath(inPath));
+
+	if (m_assetPath != storedPath)
 	{
-		m_assetPath= inPath;
+		m_assetPath= storedPath;
 		rebuildPreview();
 	}
 }
@@ -73,3 +79,35 @@ AssetReferenceConfigPtr AssetReferenceFactory::allocateAssetReferenceConfig() co
 }
 
 AssetReferencePtr AssetReferenceFactory::allocateAssetReference() const { return std::make_shared<AssetReference>(); }
+
+bool AssetReferenceFactory::matchesFilterPatterns(const std::filesystem::path& path) const
+{
+	std::string extension= path.extension().string();
+	std::transform(extension.begin(), extension.end(), extension.begin(),
+				   [](unsigned char c) { return (char)std::tolower(c); });
+	if (extension.empty())
+	{
+		return false;
+	}
+
+	char const* const* patterns= getFilterPatterns();
+	const int patternCount= getFilterPatternCount();
+	for (int i= 0; i < patternCount; ++i)
+	{
+		// Patterns are "*.ext", so the match is on the suffix after the star
+		std::string pattern(patterns[i]);
+		if (!pattern.empty() && pattern[0] == '*')
+		{
+			pattern.erase(0, 1);
+		}
+		std::transform(pattern.begin(), pattern.end(), pattern.begin(),
+					   [](unsigned char c) { return (char)std::tolower(c); });
+
+		if (pattern == extension)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}

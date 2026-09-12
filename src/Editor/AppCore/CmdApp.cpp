@@ -19,6 +19,7 @@
 #include "NodeGraphHistoryTests.h"
 #include "NodeLinkDirectionTests.h"
 #include "PixelGridLayoutTests.h"
+#include "ProjectAssetCatalogTests.h"
 #include "PropertyNotificationGuardTests.h"
 #include "ScriptContextTests.h"
 #include "ScriptVariablePersistenceTests.h"
@@ -54,6 +55,7 @@ bool run_all_editor_unit_tests()
 	success&= run_node_graph_history_tests();
 	success&= run_node_link_direction_tests();
 	success&= run_pixel_grid_layout_tests();
+	success&= run_project_asset_catalog_tests();
 	success&= run_property_notification_guard_tests();
 	success&= run_script_context_tests();
 	success&= run_script_variable_persistence_tests();

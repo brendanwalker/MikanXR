@@ -18,6 +18,7 @@
 #include "PathUtils.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
+#include "ProjectAssetCatalog.h"
 #include "SceneObjectSystem.h"
 #include "ScriptObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
@@ -218,14 +219,15 @@ bool ProjectManager::newProject(const std::string& projectFilePath)
 		std::filesystem::create_directories(projectDir);
 	}
 
-	// Copy bundled resources (models, scripts, graphs, shaders, textures) into the project folder
+	// Seed the project's asset folders from the bundled resources
 	const std::filesystem::path resourcesDir= PathUtils::getResourceDirectory();
-	const std::vector<std::string> projectResourceFolders= {"models", "scripts", "graphs", "shaders", "textures"};
-
-	for (const std::string& folder : projectResourceFolders)
+	for (const ProjectAssetFolderDesc& folderDesc : ProjectAssetCatalog::getFolderDescs())
 	{
-		std::filesystem::path srcDir= resourcesDir / folder;
-		std::filesystem::path dstDir= projectDir / folder;
+		if (!folderDesc.bCopyOnNewProject)
+			continue;
+
+		std::filesystem::path srcDir= resourcesDir / folderDesc.projectSubfolder;
+		std::filesystem::path dstDir= projectDir / folderDesc.projectSubfolder;
 
 		if (std::filesystem::exists(srcDir))
 		{

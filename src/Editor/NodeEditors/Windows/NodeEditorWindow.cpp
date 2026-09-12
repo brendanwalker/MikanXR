@@ -17,7 +17,9 @@
 
 #include "App.h"
 #include "AssetReference.h"
+#include "AssetTileGui.h"
 #include "MaterialAssetReference.h"
+#include "ProjectAssetCatalog.h"
 #include "MaterialNodeEditorWindow.h"
 #include "IMkGraphicsContext.h"
 #include "MikanModelResourceManager.h"
@@ -61,10 +63,6 @@
 
 namespace ed= ax::NodeEditor;
 
-// Drag-Drop Payload Types
-#define DRAG_DROP_TYPE_VARIABLE "Variable"
-#define DRAG_DROP_TYPE_ASSET_REF "Asset"
-
 // Case-insensitive substring test (ASCII case folding is enough for a menu filter)
 static bool containsIgnoreCase(const std::string& text, const std::string& filter)
 {
@@ -94,28 +92,6 @@ static bool containsIgnoreCase(const std::string& text, const std::string& filte
 	}
 
 	return false;
-}
-
-// Truncate UTF-8 text to fit maxWidth in the current font, appending an ellipsis
-static std::string truncateTextWithEllipsis(const std::string& text, float maxWidth)
-{
-	if (ImGui::CalcTextSize(text.c_str()).x <= maxWidth)
-	{
-		return text;
-	}
-
-	std::string truncated= text;
-	while (!truncated.empty() && ImGui::CalcTextSize((truncated + "...").c_str()).x > maxWidth)
-	{
-		// Pop one codepoint (skip UTF-8 continuation bytes)
-		truncated.pop_back();
-		while (!truncated.empty() && ((unsigned char)truncated.back() & 0xC0) == 0x80)
-		{
-			truncated.pop_back();
-		}
-	}
-
-	return truncated + "...";
 }
 
 //-- public methods -----
@@ -1092,175 +1068,86 @@ void NodeEditorWindow::renderAssetsPanel()
 
 	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 1));
 
-	if (nodeGraph)
+	// Assets are imported from the project's Assets panel. Materials can also be
+	// authored in place for graphs that consume them.
+	const eMaterialDomain authoredDomain= getAuthoredMaterialDomain();
+	if (authoredDomain != eMaterialDomain::INVALID)
 	{
-		auto& factoryMap= nodeGraph->getAssetReferenceFactories();
-		for (auto it= factoryMap.begin(); it != factoryMap.end(); it++)
+		if (ImGui::SmallButton(locLabel("assets.newMaterial")))
 		{
-			auto& assetRefFactory= it->second;
-			const std::string& assetTypeName= assetRefFactory->getAssetTypeName();
-			const std::string addAssetLabel= locFormat("nodeEditor.addAssetFmt", assetTypeName.c_str());
-			const std::string buttonName=
-				StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  ", addAssetLabel, "##", assetTypeName);
-
-			if (ImGui::SmallButton(buttonName.c_str()))
-			{
-				const char* picked= tinyfd_openFileDialog(
-					assetRefFactory->getFileDialogTitle(), assetRefFactory->getDefaultPath(),
-					assetRefFactory->getFilterPatternCount(), assetRefFactory->getFilterPatterns(),
-					assetRefFactory->getFilterDescription(), 1);
-
-				if (picked != nullptr && picked[0] != '\0')
-				{
-					std::stringstream ssPaths(picked);
-					std::string path;
-					while (std::getline(ssPaths, path, '|'))
-					{
-						std::string universalPath(path);
-						std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
-
-						// Create the asset reference
-						AssetReferencePtr assetRef= assetRefFactory->allocateAssetReference();
-						if (assetRef)
-						{
-							// Assign path to the asset
-							assetRef->setAssetPath(universalPath);
-
-							// Register the asset reference with the graph
-							nodeGraph->getAssetReferencesMutable().push_back(assetRef);
-							onAssetReferenceCreated(assetRef);
-						}
-					}
-				}
-			}
-			ImGui::SameLine();
-
-			// Materials can also be authored in place for graphs that consume them
-			if (assetRefFactory->getAssetRefClassName() == MaterialAssetReference::k_assetClassName)
-			{
-				const eMaterialDomain authoredDomain= getAuthoredMaterialDomain();
-				if (authoredDomain != eMaterialDomain::INVALID)
-				{
-					if (ImGui::SmallButton(locLabel("assets.newMaterial")))
-					{
-						openNewMaterialEditor(authoredDomain);
-					}
-					ImGui::SameLine();
-				}
-			}
+			openNewMaterialEditor(authoredDomain);
 		}
+		ImGui::SameLine();
 	}
 
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 18);
 	ImGui::Separator();
 
-	// Assets browser
-	if (nodeGraph)
+	// The project's assets of the types this graph accepts, drawn as drag sources
+	// for the canvas and the variables panel
+	ProjectAssetCatalog* catalog= getAssetCatalog();
+	if (!nodeGraph || catalog == nullptr)
 	{
-		auto& assetRefArray= nodeGraph->getAssetReferences();
-
-		MkGuiScopedChild assetBrowser("AssetBrowser");
-
-		ImGui::Dummy(ImVec2(1, 10));
-		for (int assetIndex= 0; assetIndex < assetRefArray.size(); assetIndex++)
-		{
-			AssetReferencePtr assetRefPtr= assetRefArray[assetIndex];
-
-			ImGui::Dummy(ImVec2(10, 140));
-			ImGui::SameLine();
-			{
-				MkGuiScopedGroup assetGroup;
-				std::string idStr= "##asset" + std::to_string(assetIndex);
-				ImGui::Button(idStr.c_str(), ImVec2(120, 140));
-
-				// Read the tile's hover state before the drag source claims the item
-				const bool bOpenAsset= ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)
-									   && assetRefPtr->editorCanOpen();
-
-				{
-					MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
-					if (dds)
-					{
-						ImGui::SetDragDropPayload(assetRefPtr->getClassName().c_str(), &assetRefPtr,
-												  sizeof(AssetReferencePtr));
-						ImGui::TextUnformatted(assetRefPtr->getShortName().c_str());
-					}
-				}
-
-				// Context menu
-				bool itemDeleted= false;
-				{
-					MkGuiScopedStyle assetContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
-					MkGuiScopedPopupContextItem assetContextMenu;
-					if (assetContextMenu)
-					{
-						clearCanvasSelection();
-
-						m_objectSelection= GraphObjectSelection(GraphObjectIdType::ASSET, 1);
-						m_objectSelection.setObjectId(0, assetIndex);
-
-						if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
-						{
-							deleteSelectedItem();
-							itemDeleted= true;
-						}
-					}
-				}
-
-				if (!itemDeleted)
-				{
-					IMkTexturePtr texture= assetRefPtr->getPreviewTexture();
-
-					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-					ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
-
-					if (texture && texture->getGlTextureId() != 0)
-					{
-						ImGui::Image((void*)(intptr_t)texture->getGlTextureId(), ImVec2(100, 100));
-					}
-					else
-					{
-						// Type icon stand-in for assets with no preview image
-						const ImVec2 tileMin= ImGui::GetCursorScreenPos();
-						ImGui::Dummy(ImVec2(100, 100));
-
-						const char* icon= assetRefPtr->editorGetIcon();
-						ImFont* font= ImGui::GetFont();
-						const float iconFontSize= ImGui::GetFontSize() * 3.f;
-						const ImVec2 iconSize= font->CalcTextSizeA(iconFontSize, FLT_MAX, 0.f, icon);
-						const ImVec2 iconPos(tileMin.x + (100.f - iconSize.x) * 0.5f,
-											 tileMin.y + (100.f - iconSize.y) * 0.5f);
-						ImGui::GetWindowDrawList()->AddText(font, iconFontSize, iconPos,
-															ImGui::GetColorU32(ImGuiCol_Text), icon);
-					}
-					ImGui::Dummy(ImVec2(2, 1));
-					ImGui::SameLine();
-
-					const std::string& shortName= assetRefPtr->getShortName();
-					const std::string clippedName= truncateTextWithEllipsis(shortName, 104.f);
-					ImGui::TextUnformatted(clippedName.c_str());
-					if (ImGui::IsItemHovered() && clippedName != shortName)
-					{
-						ImGui::SetTooltip("%s", shortName.c_str());
-					}
-				}
-
-				if (!itemDeleted && bOpenAsset)
-				{
-					assetRefPtr->editorOpen();
-				}
-			}
-
-			ImGui::SameLine();
-			if (ImGui::GetContentRegionAvail().x < 130)
-			{
-				ImGui::NewLine();
-				ImGui::NewLine();
-			}
-		}
-		ImGui::NewLine();
-		ImGui::Dummy(ImVec2(1, 10));
+		return;
 	}
+
+	const std::vector<AssetReferenceFactoryPtr> validFactories=
+		nodeGraph->editorGetValidAssetRefFactories(m_editorState);
+
+	MkGuiScopedChild assetBrowser("AssetBrowser");
+
+	ImGui::Dummy(ImVec2(1, 10));
+
+	bool bAnyEntryDrawn= false;
+	for (const ProjectAssetFolderDesc& folderDesc : ProjectAssetCatalog::getFolderDescs())
+	{
+		for (const ProjectAssetEntry& entry : catalog->getEntries(folderDesc.id))
+		{
+			const bool bMatchesGraph=
+				std::any_of(validFactories.begin(), validFactories.end(), [&](AssetReferenceFactoryPtr factory)
+							{ return catalog->entryMatchesFactory(entry, *factory); });
+			if (!bMatchesGraph)
+			{
+				continue;
+			}
+
+			AssetReferencePtr assetRef= catalog->getAssetReference(entry);
+			if (!assetRef)
+			{
+				continue;
+			}
+
+			bAnyEntryDrawn= true;
+
+			const AssetTileGui::TileResult tile= AssetTileGui::beginTile("##asset" + entry.key(), false);
+
+			// The payload carries the catalog's instance, which a receiver maps to
+			// the graph's own reference before binding anything to it
+			{
+				MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
+				if (dds)
+				{
+					ImGui::SetDragDropPayload(assetRef->getClassName().c_str(), &assetRef, sizeof(AssetReferencePtr));
+					ImGui::TextUnformatted(entry.displayName.c_str());
+				}
+			}
+
+			if (tile.bDoubleClicked && assetRef->editorCanOpen())
+			{
+				assetRef->editorOpen();
+			}
+
+			AssetTileGui::endTile(assetRef, entry.displayName);
+		}
+	}
+
+	if (!bAnyEntryDrawn)
+	{
+		ImGui::TextDisabled("%s", locText("assets.empty"));
+	}
+
+	ImGui::NewLine();
+	ImGui::Dummy(ImVec2(1, 10));
 }
 
 void NodeEditorWindow::openNewMaterialEditor(eMaterialDomain domain)
@@ -1309,34 +1196,8 @@ void NodeEditorWindow::addMaterialAssetReference(const std::filesystem::path& ma
 		return;
 	}
 
-	const auto& factoryMap= nodeGraph->getAssetReferenceFactories();
-	auto factoryIter= factoryMap.find(MaterialAssetReference::k_assetClassName);
-	if (factoryIter == factoryMap.end())
-	{
-		return;
-	}
-
-	const std::string storedPath= PathUtils::makeStoredProjectPath(materialPath);
-
-	// Saving the same material again refreshes the existing reference rather than duplicating it
-	for (AssetReferencePtr existingAssetRef : nodeGraph->getAssetReferences())
-	{
-		if (existingAssetRef->getClassName() == MaterialAssetReference::k_assetClassName
-			&& existingAssetRef->getInternalAssetPath() == std::filesystem::path(storedPath))
-		{
-			return;
-		}
-	}
-
-	AssetReferencePtr assetRef= factoryIter->second->allocateAssetReference();
-	if (!assetRef)
-	{
-		return;
-	}
-
-	assetRef->setAssetPath(storedPath);
-	nodeGraph->getAssetReferencesMutable().push_back(assetRef);
-	onAssetReferenceCreated(assetRef);
+	// Saving the same material again keeps the existing reference rather than duplicating it
+	nodeGraph->findOrAddAssetReference(MaterialAssetReference::k_assetClassName, materialPath);
 }
 
 void NodeEditorWindow::renderSelectedObjectPanel()
@@ -1348,16 +1209,6 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 		if (node)
 		{
 			node->editorRenderPropertySheet(m_editorState);
-		}
-	}
-	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET)
-	{
-		const int assetIndex= m_objectSelection.getObjectId(0);
-		const std::vector<AssetReferencePtr>& assetArray= getNodeGraph()->getAssetReferences();
-
-		if (assetIndex >= 0 && assetIndex < (int)assetArray.size())
-		{
-			assetArray[assetIndex]->editorRenderPropertySheet(m_editorState);
 		}
 	}
 	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE)
@@ -1474,17 +1325,6 @@ void NodeEditorWindow::deleteSelectedItem()
 			getNodeGraph()->deletePage(pageId);
 		}
 
-		m_objectSelection.clear();
-	}
-	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::ASSET && m_objectSelection.getObjectCount() > 0)
-	{
-		const std::vector<AssetReferencePtr>& assetList= getNodeGraph()->getAssetReferences();
-		const int assetIndex= m_objectSelection.getObjectId(0);
-
-		if (assetIndex >= 0 && assetIndex < (int)assetList.size())
-		{
-			getNodeGraph()->deleteAssetReference(assetList[assetIndex]);
-		}
 		m_objectSelection.clear();
 	}
 }
@@ -1621,6 +1461,13 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 	if (!resolvedPath.empty() && m_editorState.nodeGraph)
 	{
 		NodeGraphFactory::saveNodeGraph(resolvedPath, m_editorState.nodeGraph);
+
+		// A save can land a new graph file in the project's graphs folder
+		if (ProjectAssetCatalog* catalog= getAssetCatalog())
+		{
+			catalog->refresh();
+		}
+
 		return true;
 	}
 
@@ -2085,6 +1932,7 @@ void NodeEditorWindow::onNodeGraphCreated()
 	graph->OnPropertyCreated+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
 	graph->OnPropertyModifed+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 	graph->OnPropertyDeleted+= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+	graph->OnAssetReferenceCreated+= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceCreated);
 	graph->OnAssetReferenceDeleted+= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceDeleted);
 	graph->OnPageCreated+= MakeDelegate(this, &NodeEditorWindow::onPageCreated);
 	graph->OnPageModified+= MakeDelegate(this, &NodeEditorWindow::onPageModified);
@@ -2123,6 +1971,7 @@ void NodeEditorWindow::onNodeGraphDeleted()
 		graph->OnPropertyCreated-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyCreated);
 		graph->OnPropertyModifed-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyModified);
 		graph->OnPropertyDeleted-= MakeDelegate(this, &NodeEditorWindow::onGraphPropertyDeleted);
+		graph->OnAssetReferenceCreated-= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceCreated);
 		graph->OnAssetReferenceDeleted-= MakeDelegate(this, &NodeEditorWindow::onAssetReferenceDeleted);
 		graph->OnPageCreated-= MakeDelegate(this, &NodeEditorWindow::onPageCreated);
 		graph->OnPageModified-= MakeDelegate(this, &NodeEditorWindow::onPageModified);

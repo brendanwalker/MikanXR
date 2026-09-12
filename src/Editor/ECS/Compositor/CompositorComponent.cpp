@@ -40,8 +40,6 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
-#include "tinyfiledialogs.h"
-
 #include <assert.h>
 #include <easy/profiler.h>
 
@@ -160,9 +158,11 @@ std::filesystem::path CompositorDefinition::getCompositorGraphPath() const { ret
 
 void CompositorDefinition::setCompositorGraphPath(const std::filesystem::path& graphPath)
 {
-	if (graphPath != m_nodeGraphAssetRef->assetPath)
+	const std::string stored= graphPath.empty() ? std::string() : PathUtils::makeStoredProjectPath(graphPath);
+
+	if (stored != m_nodeGraphAssetRef->assetPath)
 	{
-		m_nodeGraphAssetRef->assetPath= graphPath.string();
+		m_nodeGraphAssetRef->assetPath= stored;
 		notifyPropertyChanged(
 			ConfigPropertyChangeSet().addPropertyName(CompositorDefinition::k_compositorGraphPathPropertyId));
 	}
@@ -445,21 +445,6 @@ void CompositorComponent::editCompositorGraph()
 }
 
 void CompositorComponent::removeCompositorGraph() { setCompositorGraphAssetPath(std::filesystem::path()); }
-
-void CompositorComponent::selectCompositorGraph()
-{
-	NodeGraphAssetReferenceFactory assetRefFactory;
-	const char* picked= tinyfd_openFileDialog(
-		assetRefFactory.getFileDialogTitle(), assetRefFactory.getDefaultPath(), assetRefFactory.getFilterPatternCount(),
-		assetRefFactory.getFilterPatterns(), assetRefFactory.getFilterDescription(), 1);
-
-	if (picked != nullptr && picked[0] != '\0')
-	{
-		std::filesystem::path newAssetPath(picked);
-
-		setCompositorGraphAssetPath(newAssetPath);
-	}
-}
 
 void CompositorComponent::evaluateCompositorNodeGraph(CompositorNodeGraphPtr nodeGraph)
 {
@@ -864,7 +849,6 @@ bool CompositorComponent::setPropertyValue(const std::string& propertyName, cons
 const std::string CompositorComponent::k_addNewCompositorGraphFunctionId= "add_new_compositor_graph";
 const std::string CompositorComponent::k_editCompositorGraphFunctionId= "edit_compositor_graph";
 const std::string CompositorComponent::k_removeCompositorGraphFunctionId= "remove_compositor_graph";
-const std::string CompositorComponent::k_selectCompositorGraphFunctionId= "select_compositor_graph";
 
 void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -876,9 +860,6 @@ void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorC
 		std::make_shared<FunctionDescriptor>(k_editCompositorGraphFunctionId, "Edit Compositor Graph")->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_removeCompositorGraphFunctionId, "Remove Compositor Graph")
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(k_selectCompositorGraphFunctionId, "Select Compositor Graph")
 			->setUIHidden());
 }
 
@@ -897,11 +878,6 @@ bool CompositorComponent::invokeFunction(const std::string& functionName)
 	else if (functionName == CompositorComponent::k_removeCompositorGraphFunctionId)
 	{
 		removeCompositorGraph();
-		return true;
-	}
-	else if (functionName == CompositorComponent::k_selectCompositorGraphFunctionId)
-	{
-		selectCompositorGraph();
 		return true;
 	}
 
