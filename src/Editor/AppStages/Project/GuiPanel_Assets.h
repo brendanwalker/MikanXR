@@ -40,6 +40,7 @@ private:
 	void renderTileGrid(const ProjectAssetFolderDesc& desc);
 	void importFromFileDialog(const ProjectAssetFolderDesc& desc, AssetReferenceFactoryPtr factory);
 	void requestDeleteEntry(const ProjectAssetEntry& entry);
+	void requestCopyToProject(const ProjectAssetEntry& entry);
 
 	class ProjectGuiPanelContext* m_context= nullptr;
 	std::string m_currentFolderId;

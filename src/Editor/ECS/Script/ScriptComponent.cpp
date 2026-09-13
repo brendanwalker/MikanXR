@@ -2,6 +2,9 @@
 #include "App.h"
 #include "AppSettingsConfig.h"
 #include "AssetReferencePropertyMetaData.h"
+#include "Logger.h"
+#include "MainWindow.h"
+#include "ProjectAssetCatalog.h"
 #include "ProjectScriptContext.h"
 #include "MikanObject.h"
 #include "MikanScriptTypes.h"
@@ -254,8 +257,26 @@ void ScriptComponent::editScript()
 	if (!getScriptDefinition()->hasScriptPath())
 		return;
 
-	const std::filesystem::path scriptPath= getResolvedScriptPath();
+	std::filesystem::path scriptPath= getResolvedScriptPath();
 	const std::string editorCmd= App::getInstance()->getAppSettings()->getScriptEditorCommand();
+
+	// A read-only bundled script is copied into the project first, at the path
+	// that shadows it, so the edit lands in the project and the stored script
+	// path keeps resolving (now to the copy)
+	ProjectAssetCatalog* catalog= App::getInstance()->getMainWindow()->getAssetCatalog();
+	if (catalog != nullptr && catalog->isReadOnlyPath(scriptPath))
+	{
+		std::string storedPath;
+		std::string error;
+		if (!catalog->importAsset("scripts", scriptPath, storedPath, error))
+		{
+			MIKAN_LOG_ERROR("ScriptComponent::editScript")
+				<< "Failed to copy bundled script into the project: " << error;
+			return;
+		}
+
+		scriptPath= PathUtils::resolveProjectResource(storedPath);
+	}
 
 	// A script inside the project opens with the project folder ahead of it, so
 	// the editor lands in the project workspace (where the generated .luarc.json

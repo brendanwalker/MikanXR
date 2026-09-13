@@ -178,6 +178,16 @@ bool MaterialNodeEditorWindow::compileAndWriteOutputs()
 		return false;
 	}
 
+	// The outputs land beside the graph, so a read-only bundled graph has to be
+	// saved into the project first (Save redirects there on its own)
+	ProjectAssetCatalog* catalog= getAssetCatalog();
+	if (catalog != nullptr && catalog->isReadOnlyPath(graphPath))
+	{
+		MIKAN_LOG_INFO("MaterialNodeEditorWindow::compileAndWriteOutputs")
+			<< "Bundled material is read only, save it into the project first: " << graphPath.string();
+		return false;
+	}
+
 	std::string error;
 	if (!MaterialCompiler::writeOutputs(result, graphPath, error))
 	{

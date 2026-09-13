@@ -1439,23 +1439,42 @@ std::filesystem::path NodeEditorWindow::getDefaultGraphDirectory() const
 bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
 	auto resolvedPath= PathUtils::resolveProjectResource(m_editorState.nodeGraphPath);
+	ProjectAssetCatalog* catalog= getAssetCatalog();
+
+	// A graph opened from the read-only bundled resources saves into the project
+	// instead, at the path that shadows the bundled file
+	const bool bReadOnlySource= catalog != nullptr && !resolvedPath.empty() && catalog->isReadOnlyPath(resolvedPath);
 
 	// If no path was set (or non resolved) or we explicitly want to show the file dialog,
 	// bring up the save path dialog
-	if (resolvedPath.empty() || bShowFileDialog)
+	if (resolvedPath.empty() || bShowFileDialog || bReadOnlySource)
 	{
-		std::string defautPath= (getDefaultGraphDirectory() / "new_graph.graph").string();
+		std::filesystem::path defaultPath= getDefaultGraphDirectory() / "new_graph.graph";
+		if (bReadOnlySource)
+		{
+			const std::filesystem::path shadowPath= ProjectAssetCatalog::makeProjectShadowPath(resolvedPath);
+			if (!shadowPath.empty())
+			{
+				std::error_code ec;
+				std::filesystem::create_directories(shadowPath.parent_path(), ec);
+				defaultPath= shadowPath;
+			}
+		}
+		const std::string defaultPathString= defaultPath.string();
 		const char* filterItems[1]= {"*.graph"};
 		const char* filterDesc= locText("nodeEditor.graphFilesFilterDescription");
 
 		const char* picked= tinyfd_saveFileDialog(locText("nodeEditor.saveCompositorGraphDialogTitle"),
-												  defautPath.c_str(), 1, filterItems, filterDesc);
+												  defaultPathString.c_str(), 1, filterItems, filterDesc);
 
-		if (picked != nullptr && picked[0] != '\0')
+		// A cancelled dialog saves nothing, which is what keeps a bundled file untouched
+		if (picked == nullptr || picked[0] == '\0')
 		{
-			m_editorState.nodeGraphPath= picked;
-			resolvedPath= picked;
+			return false;
 		}
+
+		resolvedPath= std::filesystem::path(picked);
+		m_editorState.nodeGraphPath= PathUtils::makeStoredProjectPath(resolvedPath);
 	}
 
 	if (!resolvedPath.empty() && m_editorState.nodeGraph)
@@ -1463,7 +1482,7 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 		NodeGraphFactory::saveNodeGraph(resolvedPath, m_editorState.nodeGraph);
 
 		// A save can land a new graph file in the project's graphs folder
-		if (ProjectAssetCatalog* catalog= getAssetCatalog())
+		if (catalog != nullptr)
 		{
 			catalog->refresh();
 		}

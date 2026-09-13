@@ -47,7 +47,7 @@ const std::vector<ProjectAssetFolderDesc>& ProjectAssetCatalog::getFolderDescs()
 		graphs.id= "graphs";
 		graphs.locKey= "assets.folderGraphs";
 		graphs.projectSubfolder= "graphs";
-		graphs.bCopyOnNewProject= true;
+		graphs.bundledSubfolder= "graphs";
 		graphs.factories= {AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>()};
 		s_descs.push_back(graphs);
 
@@ -55,7 +55,7 @@ const std::vector<ProjectAssetFolderDesc>& ProjectAssetCatalog::getFolderDescs()
 		models.id= "models";
 		models.locKey= "assets.folderModels";
 		models.projectSubfolder= "models";
-		models.bCopyOnNewProject= true;
+		models.bundledSubfolder= "models";
 		models.factories= {AssetReferenceFactory::createFactory<ModelAssetReferenceFactory>()};
 		s_descs.push_back(models);
 
@@ -63,7 +63,7 @@ const std::vector<ProjectAssetFolderDesc>& ProjectAssetCatalog::getFolderDescs()
 		scripts.id= "scripts";
 		scripts.locKey= "assets.folderScripts";
 		scripts.projectSubfolder= "scripts";
-		scripts.bCopyOnNewProject= true;
+		scripts.bundledSubfolder= "scripts";
 		scripts.factories= {AssetReferenceFactory::createFactory<ScriptAssetReferenceFactory>()};
 		s_descs.push_back(scripts);
 
@@ -71,7 +71,7 @@ const std::vector<ProjectAssetFolderDesc>& ProjectAssetCatalog::getFolderDescs()
 		materials.id= "materials";
 		materials.locKey= "assets.folderMaterials";
 		materials.projectSubfolder= "shaders";
-		materials.bCopyOnNewProject= true;
+		materials.bundledSubfolder= "shaders";
 		materials.bMaterialFolder= true;
 		materials.factories= {AssetReferenceFactory::createFactory<MaterialAssetReferenceFactory>()};
 		s_descs.push_back(materials);
@@ -83,7 +83,7 @@ const std::vector<ProjectAssetFolderDesc>& ProjectAssetCatalog::getFolderDescs()
 		textures.id= "textures";
 		textures.locKey= "assets.folderTextures";
 		textures.projectSubfolder= "textures";
-		textures.bCopyOnNewProject= true;
+		textures.bundledSubfolder= "textures";
 		textures.factories= {AssetReferenceFactory::createFactory<TextureAssetReferenceFactory>(),
 							 AssetReferenceFactory::createFactory<PixelContentAssetReferenceFactory>()};
 		s_descs.push_back(textures);
@@ -162,6 +162,75 @@ void ProjectAssetCatalog::onProjectLoaded(ProjectManagerPtr projectManager) { re
 
 void ProjectAssetCatalog::onProjectPreUnload(ProjectManagerPtr projectManager) { clear(); }
 
+void ProjectAssetCatalog::setBundledResourcesEditable(bool bEditable)
+{
+	if (m_bBundledEditable != bEditable)
+	{
+		m_bBundledEditable= bEditable;
+		refresh();
+	}
+}
+
+static bool isUnderFolder(const std::filesystem::path& path, const std::filesystem::path& folder)
+{
+	if (folder.empty())
+	{
+		return false;
+	}
+
+	const std::filesystem::path relative= path.lexically_normal().lexically_relative(folder.lexically_normal());
+	return !relative.empty() && relative.begin()->string() != "..";
+}
+
+bool ProjectAssetCatalog::isBundledPath(const std::filesystem::path& path)
+{
+	if (path.empty())
+	{
+		return false;
+	}
+
+	const std::filesystem::path resolved= path.is_absolute() ? path : PathUtils::resolveProjectResource(path);
+	return !resolved.empty() && isUnderFolder(resolved, PathUtils::getResourceDirectory());
+}
+
+bool ProjectAssetCatalog::isReadOnlyPath(const std::filesystem::path& path) const
+{
+	return !m_bBundledEditable && isBundledPath(path);
+}
+
+std::filesystem::path ProjectAssetCatalog::makeProjectShadowPath(const std::filesystem::path& bundledPath)
+{
+	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
+	const std::filesystem::path resourceDir= PathUtils::getResourceDirectory().lexically_normal();
+	const std::filesystem::path resolved=
+		bundledPath.is_absolute() ? bundledPath : PathUtils::resolveProjectResource(bundledPath);
+	if (projectDir.empty() || resolved.empty() || !isUnderFolder(resolved, resourceDir))
+	{
+		return std::filesystem::path();
+	}
+
+	return (projectDir / resolved.lexically_normal().lexically_relative(resourceDir)).lexically_normal();
+}
+
+std::string ProjectAssetCatalog::makeOverlayStoredPath(const std::filesystem::path& path)
+{
+	// Project first, which is what a stored path already is
+	const std::string projectStored= PathUtils::makeStoredProjectPath(path);
+	if (!std::filesystem::path(projectStored).is_absolute())
+	{
+		return projectStored;
+	}
+
+	const std::filesystem::path resourceDir= PathUtils::getResourceDirectory().lexically_normal();
+	const std::filesystem::path normal= path.lexically_normal();
+	if (isUnderFolder(normal, resourceDir))
+	{
+		return normal.lexically_relative(resourceDir).generic_string();
+	}
+
+	return projectStored;
+}
+
 void ProjectAssetCatalog::refresh()
 {
 	m_entriesByFolder.clear();
@@ -223,7 +292,7 @@ void ProjectAssetCatalog::scanFolder(const ProjectAssetFolderDesc& desc,
 	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
 	if (!desc.projectSubfolder.empty() && !projectDir.empty())
 	{
-		scanDirectory(desc, projectDir / desc.projectSubfolder, projectDir, desc.bReadOnly, outEntries);
+		scanDirectory(desc, projectDir / desc.projectSubfolder, projectDir, false, outEntries);
 	}
 
 	if (!desc.bundledSubfolder.empty())
@@ -242,7 +311,7 @@ void ProjectAssetCatalog::scanFolder(const ProjectAssetFolderDesc& desc,
 }
 
 void ProjectAssetCatalog::scanDirectory(const ProjectAssetFolderDesc& desc, const std::filesystem::path& directory,
-										const std::filesystem::path& storedRoot, bool bReadOnly,
+										const std::filesystem::path& storedRoot, bool bBundled,
 										std::vector<ProjectAssetEntry>& outEntries) const
 {
 	std::error_code ec;
@@ -323,7 +392,8 @@ void ProjectAssetCatalog::scanDirectory(const ProjectAssetFolderDesc& desc, cons
 		entry.storedPath= storedPath;
 		entry.absolutePath= filePath.lexically_normal();
 		entry.displayName= desc.bMaterialFolder ? filePath.stem().string() : filename;
-		entry.bReadOnly= bReadOnly;
+		entry.bBundled= bBundled;
+		entry.bReadOnly= bBundled && !m_bBundledEditable;
 		outEntries.push_back(entry);
 	}
 }
@@ -473,15 +543,23 @@ bool ProjectAssetCatalog::importAsset(const std::string& folderId, const std::fi
 		return true;
 	}
 
-	std::filesystem::create_directories(normalDestDir, ec);
+	// A bundled file keeps its path relative to the resources folder, so the copy
+	// shadows it by stored path. Anything else lands at the folder's top level.
+	std::filesystem::path destPath= normalDestDir / absSource.filename();
+	const std::filesystem::path shadowPath= makeProjectShadowPath(absSource);
+	if (!shadowPath.empty())
+	{
+		destPath= shadowPath;
+	}
+	std::filesystem::create_directories(destPath.parent_path(), ec);
 
 	// Never overwrite: another referrer may depend on the file already there
 	const std::string stem= absSource.stem().string();
 	const std::string extension= absSource.extension().string();
-	std::filesystem::path destPath= normalDestDir / absSource.filename();
+	const std::filesystem::path destFolder= destPath.parent_path();
 	for (int suffix= 2; std::filesystem::exists(destPath, ec); ++suffix)
 	{
-		destPath= normalDestDir / (stem + "_" + std::to_string(suffix) + extension);
+		destPath= destFolder / (stem + "_" + std::to_string(suffix) + extension);
 	}
 
 	if (!std::filesystem::copy_file(absSource, destPath, ec) || ec)
@@ -546,7 +624,7 @@ bool ProjectAssetCatalog::importMaterial(const ProjectAssetFolderDesc& desc, con
 
 std::string ProjectAssetCatalog::makeComparisonKey(const std::filesystem::path& path)
 {
-	std::string key= PathUtils::makeStoredProjectPath(path);
+	std::string key= makeOverlayStoredPath(path);
 	std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) { return (char)std::tolower(c); });
 
 	return key;
@@ -578,91 +656,99 @@ std::vector<ProjectAssetReferrer> ProjectAssetCatalog::findReferences(const std:
 	return referrers;
 }
 
-static bool isUnderFolder(const std::filesystem::path& path, const std::filesystem::path& folder)
+std::vector<std::filesystem::path> ProjectAssetCatalog::getReferrerScanRoots()
 {
-	if (folder.empty())
+	std::vector<std::filesystem::path> roots;
+	std::error_code ec;
+
+	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
+	if (!projectDir.empty() && std::filesystem::is_directory(projectDir, ec))
 	{
-		return false;
+		roots.push_back(projectDir);
 	}
 
-	const std::filesystem::path relative= path.lexically_normal().lexically_relative(folder);
-	return !relative.empty() && relative.begin()->string() != "..";
+	const std::filesystem::path resourceDir= PathUtils::getResourceDirectory();
+	if (std::filesystem::is_directory(resourceDir, ec))
+	{
+		roots.push_back(resourceDir);
+	}
+
+	return roots;
 }
 
 void ProjectAssetCatalog::findGraphReferences(const std::string& targetKey, const std::filesystem::path& excludeFolder,
 											  std::vector<ProjectAssetReferrer>& outReferrers) const
 {
-	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
 	std::error_code ec;
-	if (projectDir.empty() || !std::filesystem::is_directory(projectDir, ec))
+
+	// Every .graph under the project and the bundled resources, which includes the
+	// material graphs under shaders/
+	for (const std::filesystem::path& root : getReferrerScanRoots())
 	{
-		return;
-	}
-
-	// Every .graph under the project, which includes the material graphs under shaders/
-	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(
-			 projectDir, std::filesystem::directory_options::skip_permission_denied, ec))
-	{
-		if (!dirEntry.is_regular_file(ec) || dirEntry.path().extension() != ".graph")
+		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(
+				 root, std::filesystem::directory_options::skip_permission_denied, ec))
 		{
-			continue;
-		}
-
-		const std::filesystem::path& graphPath= dirEntry.path();
-		if (isUnderFolder(graphPath, excludeFolder))
-		{
-			continue;
-		}
-
-		configuru::Config graphJson;
-		try
-		{
-			graphJson= configuru::parse_file(graphPath.string(), configuru::JSON);
-		}
-		catch (const std::exception& e)
-		{
-			MIKAN_LOG_WARNING("ProjectAssetCatalog::findGraphReferences")
-				<< "Skipping unreadable graph " << graphPath << ": " << e.what();
-			continue;
-		}
-
-		bool bReferences= false;
-
-		if (graphJson.has_key("assetReferences") && graphJson["assetReferences"].is_array())
-		{
-			for (const configuru::Config& assetRef : graphJson["assetReferences"].as_array())
+			if (!dirEntry.is_regular_file(ec) || dirEntry.path().extension() != ".graph")
 			{
-				const std::string assetPath= assetRef.get_or<std::string>("asset_path", "");
-				if (!assetPath.empty() && makeComparisonKey(assetPath) == targetKey)
+				continue;
+			}
+
+			const std::filesystem::path& graphPath= dirEntry.path();
+			if (isUnderFolder(graphPath, excludeFolder))
+			{
+				continue;
+			}
+
+			configuru::Config graphJson;
+			try
+			{
+				graphJson= configuru::parse_file(graphPath.string(), configuru::JSON);
+			}
+			catch (const std::exception& e)
+			{
+				MIKAN_LOG_WARNING("ProjectAssetCatalog::findGraphReferences")
+					<< "Skipping unreadable graph " << graphPath << ": " << e.what();
+				continue;
+			}
+
+			bool bReferences= false;
+
+			if (graphJson.has_key("assetReferences") && graphJson["assetReferences"].is_array())
+			{
+				for (const configuru::Config& assetRef : graphJson["assetReferences"].as_array())
 				{
-					bReferences= true;
-					break;
+					const std::string assetPath= assetRef.get_or<std::string>("asset_path", "");
+					if (!assetPath.empty() && makeComparisonKey(assetPath) == targetKey)
+					{
+						bReferences= true;
+						break;
+					}
 				}
 			}
-		}
 
-		// Material graphs carry texture defaults on their parameter nodes rather
-		// than in the asset list
-		if (!bReferences && graphJson.has_key("nodes") && graphJson["nodes"].is_array())
-		{
-			for (const configuru::Config& node : graphJson["nodes"].as_array())
+			// Material graphs carry texture defaults on their parameter nodes rather
+			// than in the asset list
+			if (!bReferences && graphJson.has_key("nodes") && graphJson["nodes"].is_array())
 			{
-				const std::string texturePath= node.get_or<std::string>("default_texture_path", "");
-				if (!texturePath.empty() && makeComparisonKey(texturePath) == targetKey)
+				for (const configuru::Config& node : graphJson["nodes"].as_array())
 				{
-					bReferences= true;
-					break;
+					const std::string texturePath= node.get_or<std::string>("default_texture_path", "");
+					if (!texturePath.empty() && makeComparisonKey(texturePath) == targetKey)
+					{
+						bReferences= true;
+						break;
+					}
 				}
 			}
-		}
 
-		if (bReferences)
-		{
-			ProjectAssetReferrer referrer;
-			referrer.kind= ProjectAssetReferrer::Kind::graph;
-			referrer.name= graphPath.stem().string();
-			referrer.detail= PathUtils::makeStoredProjectPath(graphPath);
-			outReferrers.push_back(referrer);
+			if (bReferences)
+			{
+				ProjectAssetReferrer referrer;
+				referrer.kind= ProjectAssetReferrer::Kind::graph;
+				referrer.name= graphPath.stem().string();
+				referrer.detail= makeOverlayStoredPath(graphPath);
+				outReferrers.push_back(referrer);
+			}
 		}
 	}
 }
@@ -671,73 +757,71 @@ void ProjectAssetCatalog::findMaterialReferences(const std::string& targetKey,
 												 const std::filesystem::path& excludeFolder,
 												 std::vector<ProjectAssetReferrer>& outReferrers) const
 {
-	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
 	std::error_code ec;
-	if (projectDir.empty() || !std::filesystem::is_directory(projectDir, ec))
+
+	for (const std::filesystem::path& root : getReferrerScanRoots())
 	{
-		return;
-	}
-
-	for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(
-			 projectDir, std::filesystem::directory_options::skip_permission_denied, ec))
-	{
-		if (!dirEntry.is_regular_file(ec) || dirEntry.path().extension() != ".mat")
+		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(
+				 root, std::filesystem::directory_options::skip_permission_denied, ec))
 		{
-			continue;
-		}
-
-		const std::filesystem::path& materialPath= dirEntry.path();
-		if (isUnderFolder(materialPath, excludeFolder))
-		{
-			continue;
-		}
-
-		MikanShaderConfig materialConfig;
-		if (!materialConfig.load(materialPath))
-		{
-			continue;
-		}
-
-		bool bReferences= false;
-
-		// Texture defaults are in stored project form
-		for (const auto& textureDefault : materialConfig.uniformTextureDefaults)
-		{
-			if (!textureDefault.second.empty() && makeComparisonKey(textureDefault.second) == targetKey)
+			if (!dirEntry.is_regular_file(ec) || dirEntry.path().extension() != ".mat")
 			{
-				bReferences= true;
-				break;
+				continue;
 			}
-		}
 
-		// The graph and shader sources are relative to the .mat folder
-		if (!bReferences)
-		{
-			const std::filesystem::path materialFolder= materialPath.parent_path();
-			const std::filesystem::path folderRelativePaths[]= {
-				materialConfig.sourceGraphPath, materialConfig.vertexShaderPath, materialConfig.fragmentShaderPath};
-			for (const std::filesystem::path& relativePath : folderRelativePaths)
+			const std::filesystem::path& materialPath= dirEntry.path();
+			if (isUnderFolder(materialPath, excludeFolder))
 			{
-				if (relativePath.empty())
-					continue;
+				continue;
+			}
 
-				const std::filesystem::path resolved=
-					relativePath.is_absolute() ? relativePath : (materialFolder / relativePath).lexically_normal();
-				if (makeComparisonKey(resolved) == targetKey)
+			MikanShaderConfig materialConfig;
+			if (!materialConfig.load(materialPath))
+			{
+				continue;
+			}
+
+			bool bReferences= false;
+
+			// Texture defaults are in stored project form
+			for (const auto& textureDefault : materialConfig.uniformTextureDefaults)
+			{
+				if (!textureDefault.second.empty() && makeComparisonKey(textureDefault.second) == targetKey)
 				{
 					bReferences= true;
 					break;
 				}
 			}
-		}
 
-		if (bReferences)
-		{
-			ProjectAssetReferrer referrer;
-			referrer.kind= ProjectAssetReferrer::Kind::material;
-			referrer.name= materialPath.stem().string();
-			referrer.detail= PathUtils::makeStoredProjectPath(materialPath);
-			outReferrers.push_back(referrer);
+			// The graph and shader sources are relative to the .mat folder
+			if (!bReferences)
+			{
+				const std::filesystem::path materialFolder= materialPath.parent_path();
+				const std::filesystem::path folderRelativePaths[]= {
+					materialConfig.sourceGraphPath, materialConfig.vertexShaderPath, materialConfig.fragmentShaderPath};
+				for (const std::filesystem::path& relativePath : folderRelativePaths)
+				{
+					if (relativePath.empty())
+						continue;
+
+					const std::filesystem::path resolved=
+						relativePath.is_absolute() ? relativePath : (materialFolder / relativePath).lexically_normal();
+					if (makeComparisonKey(resolved) == targetKey)
+					{
+						bReferences= true;
+						break;
+					}
+				}
+			}
+
+			if (bReferences)
+			{
+				ProjectAssetReferrer referrer;
+				referrer.kind= ProjectAssetReferrer::Kind::material;
+				referrer.name= materialPath.stem().string();
+				referrer.detail= makeOverlayStoredPath(materialPath);
+				outReferrers.push_back(referrer);
+			}
 		}
 	}
 }

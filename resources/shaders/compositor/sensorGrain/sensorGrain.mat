@@ -24,6 +24,7 @@
 	"sourceGraphPath":    "sensorGrain.graph",
 	"uniformDefaults":    {
 		"grainIntensity": 1.0,
-		"time":           0.0
+		"time":           0.0,
+		"rgbaTexture":    "textures/container.jpg"
 	}
 }

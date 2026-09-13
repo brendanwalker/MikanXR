@@ -42,6 +42,8 @@ struct CatalogTestProject
 
 		writeFile(projectDir / "textures" / "grid.png", "png");
 		writeFile(projectDir / "textures" / "other.png", "png");
+		// Shadows the bundled texture of the same stored path
+		writeFile(projectDir / "textures" / "whiteRGB.png", "png");
 		writeFile(projectDir / "textures" / "notes.txt", "text");
 		writeFile(projectDir / "scripts" / "a.lua", "return {}");
 		writeFile(projectDir / "models" / "cube.obj", "o cube");
@@ -117,6 +119,18 @@ bool hasEntry(const ProjectAssetCatalog& catalog, const char* folderId, const ch
 	return className == nullptr || entry->className == className;
 }
 
+int countProjectEntries(const ProjectAssetCatalog& catalog, const char* folderId)
+{
+	int count= 0;
+	for (const ProjectAssetEntry& entry : catalog.getEntries(folderId))
+	{
+		if (!entry.bBundled)
+			count++;
+	}
+
+	return count;
+}
+
 bool hasReferrer(const std::vector<ProjectAssetReferrer>& referrers, ProjectAssetReferrer::Kind kind, const char* name)
 {
 	for (const ProjectAssetReferrer& referrer : referrers)
@@ -146,12 +160,12 @@ bool project_asset_catalog_test_scan_lists_each_folder()
 	success&= !hasEntry(catalog, "textures", "textures/notes.txt");
 
 	// One tile per .mat, named after the material, with its sources hidden
-	success&= catalog.getEntries("materials").size() == 1;
+	success&= countProjectEntries(catalog, "materials") == 1;
 	const ProjectAssetEntry* material= catalog.findEntry("materials", "shaders/compositor/m/m.mat");
 	success&= material != nullptr && material->displayName == "m" && !material->bReadOnly
 			  && material->className == "MaterialAssetReference";
 	// The material's own graph is not a graphs-folder entry
-	success&= catalog.getEntries("graphs").size() == 1;
+	success&= countProjectEntries(catalog, "graphs") == 1;
 
 	// The bundled fonts show through as read-only overlay entries in stored form
 	const std::vector<ProjectAssetEntry>& fonts= catalog.getEntries("fonts");
@@ -263,6 +277,84 @@ bool project_asset_catalog_test_find_references()
 	UNIT_TEST_COMPLETE()
 }
 
+bool project_asset_catalog_test_bundled_overlay()
+{
+	UNIT_TEST_BEGIN("bundled resources overlay every folder")
+
+	CatalogTestProject project;
+	ProjectAssetCatalog catalog;
+	catalog.refresh();
+
+	const std::filesystem::path resourceDir= PathUtils::getResourceDirectory();
+
+	// Bundled files show through as read-only entries in stored form
+	const ProjectAssetEntry* bundledGraph= catalog.findEntry("graphs", "graphs/color_key_graph.graph");
+	success&= bundledGraph != nullptr && bundledGraph->bBundled && bundledGraph->bReadOnly;
+	const ProjectAssetEntry* bundledMaterial=
+		catalog.findEntry("materials", "shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat");
+	success&= bundledMaterial != nullptr && bundledMaterial->bBundled && bundledMaterial->bReadOnly
+			  && bundledMaterial->displayName == "rgbUndistortionFrame";
+	const ProjectAssetEntry* bundledModel= catalog.findEntry("models", "models/shapes/sphere.obj");
+	success&= bundledModel != nullptr && bundledModel->bBundled;
+	success&= catalog.findEntry("scripts", "scripts/easing.lua") != nullptr;
+
+	// A project file with the same stored path hides the bundled one
+	int whiteCount= 0;
+	for (const ProjectAssetEntry& entry : catalog.getEntries("textures"))
+	{
+		if (entry.storedPath == "textures/whiteRGB.png")
+		{
+			whiteCount++;
+			success&= !entry.bBundled && !entry.bReadOnly;
+		}
+	}
+	success&= whiteCount == 1;
+
+	// Path helpers tell bundled from project and name the shadowing project path
+	success&= ProjectAssetCatalog::isBundledPath("textures/blackRGB.png");
+	success&= !ProjectAssetCatalog::isBundledPath("textures/grid.png");
+	success&= !ProjectAssetCatalog::isBundledPath("textures/whiteRGB.png");
+	success&= catalog.isReadOnlyPath("textures/blackRGB.png") && !catalog.isReadOnlyPath("textures/grid.png");
+	success&= ProjectAssetCatalog::makeProjectShadowPath(resourceDir / "textures" / "blackRGB.png")
+			  == (project.projectDir / "textures" / "blackRGB.png").lexically_normal();
+	success&= ProjectAssetCatalog::makeProjectShadowPath(project.projectDir / "textures" / "grid.png").empty();
+	success&= ProjectAssetCatalog::makeOverlayStoredPath(resourceDir / "graphs" / "color_key_graph.graph")
+			  == "graphs/color_key_graph.graph";
+
+	// Bundled entries refuse deletion
+	std::string error;
+	success&= !catalog.deleteAsset(*bundledGraph, error) && !error.empty();
+	success&= std::filesystem::exists(resourceDir / "graphs" / "color_key_graph.graph");
+
+	// Copying a bundled file into the project keeps its relative path, so the copy shadows it
+	std::string storedPath;
+	success&= catalog.importAsset("models", resourceDir / "models" / "shapes" / "sphere.obj", storedPath, error);
+	success&= storedPath == "models/shapes/sphere.obj";
+	success&= std::filesystem::exists(project.projectDir / "models" / "shapes" / "sphere.obj");
+	const ProjectAssetEntry* projectModel= catalog.findEntry("models", "models/shapes/sphere.obj");
+	success&= projectModel != nullptr && !projectModel->bBundled;
+
+	// Bundled referrers count: the bundled compositor graphs name this bundled material
+	const std::vector<ProjectAssetReferrer> referrers=
+		catalog.findReferences("shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat");
+	success&= hasReferrer(referrers, ProjectAssetReferrer::Kind::graph, "color_key_graph");
+	for (const ProjectAssetReferrer& referrer : referrers)
+	{
+		if (referrer.name == "color_key_graph")
+			success&= referrer.detail == "graphs/color_key_graph.graph";
+	}
+
+	// The developer switch makes bundled entries writable
+	catalog.setBundledResourcesEditable(true);
+	const ProjectAssetEntry* editableGraph= catalog.findEntry("graphs", "graphs/color_key_graph.graph");
+	success&= editableGraph != nullptr && editableGraph->bBundled && !editableGraph->bReadOnly;
+	success&= !catalog.isReadOnlyPath("textures/blackRGB.png");
+	catalog.setBundledResourcesEditable(false);
+	success&= catalog.isReadOnlyPath("textures/blackRGB.png");
+
+	UNIT_TEST_COMPLETE()
+}
+
 bool project_asset_catalog_test_delete_removes_files()
 {
 	UNIT_TEST_BEGIN("delete removes files")
@@ -282,7 +374,7 @@ bool project_asset_catalog_test_delete_removes_files()
 	const ProjectAssetEntry* material= catalog.findEntry("materials", "shaders/compositor/m/m.mat");
 	success&= material != nullptr && catalog.deleteAsset(*material, error);
 	success&= !std::filesystem::exists(project.projectDir / "shaders" / "compositor" / "m");
-	success&= catalog.getEntries("materials").empty();
+	success&= countProjectEntries(catalog, "materials") == 0;
 
 	// Bundled entries are refused
 	const std::vector<ProjectAssetEntry>& fonts= catalog.getEntries("fonts");
@@ -334,6 +426,7 @@ bool run_project_asset_catalog_tests()
 	UNIT_TEST_MODULE_CALL_TEST(project_asset_catalog_test_import_copies_into_folder);
 	UNIT_TEST_MODULE_CALL_TEST(project_asset_catalog_test_material_import_copies_folder);
 	UNIT_TEST_MODULE_CALL_TEST(project_asset_catalog_test_find_references);
+	UNIT_TEST_MODULE_CALL_TEST(project_asset_catalog_test_bundled_overlay);
 	UNIT_TEST_MODULE_CALL_TEST(project_asset_catalog_test_delete_removes_files);
 	UNIT_TEST_MODULE_CALL_TEST(project_asset_catalog_test_asset_reference_stores_project_relative);
 	UNIT_TEST_MODULE_END()

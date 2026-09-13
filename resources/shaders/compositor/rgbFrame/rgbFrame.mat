@@ -19,5 +19,8 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "rgbFrame.graph"
+	"sourceGraphPath":    "rgbFrame.graph",
+	"uniformDefaults":    {
+		"rgbTexture": "textures/missing_texture.png"
+	}
 }

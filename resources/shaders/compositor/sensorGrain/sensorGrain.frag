@@ -21,7 +21,7 @@ float hash(vec2 p, float t)
 	return t10;
 }
 
-float noise(vec2 uv, float t)
+float dynamicNoise(vec2 uv, float t)
 {
 	float t0 = hash(uv, t);
 	float t1 = (t0 * 2.0);
@@ -37,13 +37,13 @@ void main()
 	vec3 t1 = t0.xyz;
 	vec2 t2 = vec2(textureSize(rgbaTexture, 0));
 	vec2 t3 = (vTexCoords * t2);
-	float t4 = noise(t3, time);
+	float t4 = dynamicNoise(t3, time);
 	float t5 = (grainIntensity * 0.03);
 	float t6 = (t4 * t5);
 	vec2 t7 = (t3 / vec2(8.0));
 	vec2 t8 = floor(t7);
 	vec2 t9 = (t8 * vec2(8.0));
-	float t10 = noise(t9, time);
+	float t10 = dynamicNoise(t9, time);
 	float t11 = (grainIntensity * 0.04);
 	float t12 = (t10 * t11);
 	float t13 = (t6 + t12);

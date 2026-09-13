@@ -219,21 +219,13 @@ bool ProjectManager::newProject(const std::string& projectFilePath)
 		std::filesystem::create_directories(projectDir);
 	}
 
-	// Seed the project's asset folders from the bundled resources
-	const std::filesystem::path resourcesDir= PathUtils::getResourceDirectory();
+	// The asset folders start empty: the bundled resources show through behind
+	// them as read-only entries, and a project shadows one by copying it in
 	for (const ProjectAssetFolderDesc& folderDesc : ProjectAssetCatalog::getFolderDescs())
 	{
-		if (!folderDesc.bCopyOnNewProject)
-			continue;
-
-		std::filesystem::path srcDir= resourcesDir / folderDesc.projectSubfolder;
-		std::filesystem::path dstDir= projectDir / folderDesc.projectSubfolder;
-
-		if (std::filesystem::exists(srcDir))
+		if (!folderDesc.projectSubfolder.empty())
 		{
-			std::filesystem::copy(srcDir, dstDir,
-								  std::filesystem::copy_options::recursive
-									  | std::filesystem::copy_options::update_existing);
+			std::filesystem::create_directories(projectDir / folderDesc.projectSubfolder);
 		}
 	}
 
@@ -268,12 +260,16 @@ static void writeProjectFileIfMissing(const std::filesystem::path& filePath, con
 // assigns (paths relative to the project folder).
 static void writeScriptWorkspaceFiles(const std::filesystem::path& projectDir)
 {
+	// The bundled scripts sit on the module search path behind the project's own,
+	// so the language server sees them too
 	const std::filesystem::path definitionsDir=
 		std::filesystem::absolute(PathUtils::getResourceDirectory() / "lua-definitions");
+	const std::filesystem::path bundledScriptsDir=
+		std::filesystem::absolute(PathUtils::getResourceDirectory() / "scripts");
 	const std::string luarcContent= "{\n"
 									"\t\"runtime.version\": \"Lua 5.4\",\n"
 									"\t\"workspace.library\": [\""
-									+ definitionsDir.generic_string()
+									+ definitionsDir.generic_string() + "\", \"" + bundledScriptsDir.generic_string()
 									+ "\"],\n"
 									  "\t\"workspace.checkThirdParty\": false\n"
 									  "}\n";

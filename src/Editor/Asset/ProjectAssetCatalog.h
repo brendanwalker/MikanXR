@@ -9,10 +9,10 @@
 #include <string>
 #include <vector>
 
-// One browsable folder of project assets. A folder is a project subfolder plus an
-// optional read-only overlay of the same kind under the bundled resources folder.
-// The fonts folder is bundled-only today. Other folders can grow an overlay later
-// without the panels changing.
+// One browsable folder of project assets: a project subfolder plus the overlay of
+// the same kind under the bundled resources folder. A project file shadows a
+// bundled one with the same stored path. Bundled entries are read-only unless the
+// app's "edit bundled resources" setting is on. The fonts folder is bundled-only.
 struct ProjectAssetFolderDesc
 {
 	// Stable id used by the panels and the automation channel
@@ -24,10 +24,8 @@ struct ProjectAssetFolderDesc
 	// Subfolder under PathUtils::getResourceDirectory() that shows through behind
 	// the project entries, empty when the folder has no overlay
 	std::filesystem::path bundledSubfolder;
-	// A read-only folder accepts no imports and refuses deletes
+	// A read-only folder accepts no imports
 	bool bReadOnly= false;
-	// Whether ProjectManager::newProject seeds the folder from the bundled resources
-	bool bCopyOnNewProject= false;
 	// One entry per .mat file, its sibling graph and shader sources hidden.
 	// Import copies the material's folder and delete removes it.
 	bool bMaterialFolder= false;
@@ -46,7 +44,9 @@ struct ProjectAssetEntry
 	std::filesystem::path absolutePath;
 	// The material name for a .mat, otherwise the filename
 	std::string displayName;
-	// Bundled overlay entries and every entry of a read-only folder
+	// The entry comes from the bundled resources rather than the project
+	bool bBundled= false;
+	// Bundled entries while the app's "edit bundled resources" setting is off
 	bool bReadOnly= false;
 
 	std::string key() const { return folderId + "|" + storedPath; }
@@ -104,6 +104,22 @@ public:
 	bool startup(class MainWindow* mainWindow);
 	void shutdown();
 
+	// The developer switch that makes bundled entries writable. Rescans when it changes.
+	void setBundledResourcesEditable(bool bEditable);
+	inline bool isBundledResourcesEditable() const { return m_bBundledEditable; }
+
+	// Whether the path (stored or absolute) resolves to a file under the bundled resources
+	static bool isBundledPath(const std::filesystem::path& path);
+	// A bundled path while bundled resources are not editable
+	bool isReadOnlyPath(const std::filesystem::path& path) const;
+	// The project path that would shadow a bundled file: the project directory
+	// joined with the file's path relative to the resources directory. Empty when
+	// the path is not bundled or no project is loaded.
+	static std::filesystem::path makeProjectShadowPath(const std::filesystem::path& bundledPath);
+	// The stored form for any file under the project or the bundled resources,
+	// relative to whichever root holds it, otherwise the absolute path
+	static std::string makeOverlayStoredPath(const std::filesystem::path& path);
+
 	// Rescans every folder from disk and fires OnCatalogChanged
 	void refresh();
 	void clear();
@@ -121,15 +137,17 @@ public:
 
 	// Copies the file (or the material's folder) into the folder's project
 	// directory and returns the stored path of the copy. A source already inside
-	// that directory is returned as is. A plain file whose name collides gets a
-	// numeric suffix. A material whose folder exists is refused, as is one without
-	// a domain, since the domain names the destination.
+	// that directory is returned as is. A bundled source keeps its path relative
+	// to the resources folder, so the copy shadows it. A plain file whose name
+	// collides gets a numeric suffix. A material whose folder exists is refused,
+	// as is one without a domain, since the domain names the destination.
 	bool importAsset(const std::string& folderId, const std::filesystem::path& sourcePath, std::string& outStoredPath,
 					 std::string& outError);
 
-	// Every graph, material, and project component that names the stored path.
-	// Graphs are read as raw JSON, so no window is needed. When the target is a
-	// material, referrers inside its own folder are not counted.
+	// Every graph and material under the project or the bundled resources, and
+	// every project component, that names the stored path. Graphs are read as raw
+	// JSON, so no window is needed. When the target is a material, referrers inside
+	// its own folder are not counted.
 	std::vector<ProjectAssetReferrer> findReferences(const std::string& storedPath) const;
 
 	// Removes the file (or the material's folder) and rescans. Refuses read-only
@@ -144,24 +162,27 @@ private:
 
 	void scanFolder(const ProjectAssetFolderDesc& desc, std::vector<ProjectAssetEntry>& outEntries) const;
 	void scanDirectory(const ProjectAssetFolderDesc& desc, const std::filesystem::path& directory,
-					   const std::filesystem::path& storedRoot, bool bReadOnly,
+					   const std::filesystem::path& storedRoot, bool bBundled,
 					   std::vector<ProjectAssetEntry>& outEntries) const;
 	bool importMaterial(const ProjectAssetFolderDesc& desc, const std::filesystem::path& sourcePath,
 						std::string& outStoredPath, std::string& outError);
 
+	// The roots the reference scans walk: the project directory, then the bundled resources
+	static std::vector<std::filesystem::path> getReferrerScanRoots();
 	void findGraphReferences(const std::string& targetKey, const std::filesystem::path& excludeFolder,
 							 std::vector<ProjectAssetReferrer>& outReferrers) const;
 	void findMaterialReferences(const std::string& targetKey, const std::filesystem::path& excludeFolder,
 								std::vector<ProjectAssetReferrer>& outReferrers) const;
 	void findComponentReferences(const std::string& targetKey, std::vector<ProjectAssetReferrer>& outReferrers) const;
 
-	// The comparison form of a path: stored form, lower-cased, since Windows
-	// paths compare without case
+	// The comparison form of a path: overlay stored form, lower-cased, since
+	// Windows paths compare without case
 	static std::string makeComparisonKey(const std::filesystem::path& path);
 
 private:
 	class MainWindow* m_mainWindow= nullptr;
 	ProjectManagerPtr m_projectManager;
+	bool m_bBundledEditable= false;
 	std::map<std::string, std::vector<ProjectAssetEntry>> m_entriesByFolder;
 	std::map<std::string, AssetReferencePtr> m_assetRefCache;
 };

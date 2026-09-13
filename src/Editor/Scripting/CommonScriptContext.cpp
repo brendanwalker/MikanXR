@@ -240,9 +240,10 @@ void CommonScriptContext::setupModuleSearchPath()
 {
 	lua_State* L= m_luaState;
 
-	// require() searches the project's own scripts folder first. Lua's stock
-	// entries stay behind ours rather than being replaced, so nothing that
-	// resolved before stops resolving.
+	// require() searches the project's own scripts folder first, then the bundled
+	// scripts behind it, so a project module shadows a bundled one of the same
+	// name. Lua's stock entries stay behind ours rather than being replaced, so
+	// nothing that resolved before stops resolving.
 	std::string searchPath;
 	const std::filesystem::path projectDir= PathUtils::getProjectDirectory();
 	if (!projectDir.empty())
@@ -254,6 +255,10 @@ void CommonScriptContext::setupModuleSearchPath()
 		searchPath+= scriptsDir + "/?.lua;";
 		searchPath+= scriptsDir + "/?/init.lua;";
 	}
+
+	const std::string bundledScriptsDir= (PathUtils::getResourceDirectory() / "scripts").generic_string();
+	searchPath+= bundledScriptsDir + "/?.lua;";
+	searchPath+= bundledScriptsDir + "/?/init.lua;";
 
 	lua_getglobal(L, "package");
 	if (!lua_istable(L, -1))

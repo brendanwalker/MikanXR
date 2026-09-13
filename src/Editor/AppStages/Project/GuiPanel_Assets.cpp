@@ -285,6 +285,16 @@ void GuiPanel_Assets::renderTileGrid(const ProjectAssetFolderDesc& desc)
 			{
 				m_selectedKey= entryKey;
 
+				// A bundled asset becomes editable by copying it into the project,
+				// where the copy shadows it by stored path
+				if (entry.bBundled && !desc.bReadOnly)
+				{
+					if (ImGui::MenuItem(locLabel("assets.copyToProject"), ICON_FK_FILES_O))
+					{
+						requestCopyToProject(entry);
+					}
+				}
+
 				if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, false, !entry.bReadOnly))
 				{
 					requestDeleteEntry(entry);
@@ -292,7 +302,7 @@ void GuiPanel_Assets::renderTileGrid(const ProjectAssetFolderDesc& desc)
 
 				if (entry.bReadOnly)
 				{
-					ImGui::TextDisabled("%s", locText("assets.readOnlyAsset"));
+					ImGui::TextDisabled("%s", locText("assets.bundledAsset"));
 				}
 			}
 		}
@@ -356,6 +366,31 @@ void GuiPanel_Assets::importFromFileDialog(const ProjectAssetFolderDesc& desc, A
 	{
 		selectEntry(desc.id, lastStoredPath);
 	}
+}
+
+void GuiPanel_Assets::requestCopyToProject(const ProjectAssetEntry& entry)
+{
+	const std::string folderId= entry.folderId;
+	const std::filesystem::path sourcePath= entry.absolutePath;
+
+	addDeferredGuiEvent(
+		[this, folderId, sourcePath]()
+		{
+			ProjectAssetCatalog* catalog= getCatalog();
+			if (catalog == nullptr)
+				return;
+
+			std::string storedPath;
+			std::string error;
+			if (!catalog->importAsset(folderId, sourcePath, storedPath, error))
+			{
+				ModalDialog_MessageBox::showMessageBox(m_ownerAppStage,
+													   locFormat("assets.importFailedFmt", error.c_str()));
+				return;
+			}
+
+			selectEntry(folderId, storedPath);
+		});
 }
 
 void GuiPanel_Assets::requestDeleteEntry(const ProjectAssetEntry& entry)

@@ -231,6 +231,7 @@ bool MainWindow::startup()
 	if (success)
 	{
 		// Scans the initial project's asset folders and follows project switches
+		m_assetCatalog->setBundledResourcesEditable(m_ownerApp->getAppSettings()->getEditBundledResources());
 		m_assetCatalog->startup(this);
 	}
 
