@@ -28,7 +28,7 @@ Two suites, both required by CI (see [build.md](./build.md)):
 - `run_depth_mesh_generator_unit_tests`: `src/Editor/Calibration/Test/DepthMeshGeneratorTests.cpp` (the depth shift solver including its negative-z pole case, discontinuity culling, and OBJ winding; see [depth-proxy-mesh.md](./depth-proxy-mesh.md))
 - `run_dmx_universe_rle_tests`: `src/Editor/Server/Test/DMXUniverseRLETests.cpp`
 - `run_light_environment_persistence_tests`: `src/Editor/Server/Test/LightEnvironmentPersistenceTests.cpp`
-- `run_localization_unit_tests`: `src/Editor/Localization/Test/LocalizationTests.cpp` (key parity against English, printf specifier parity, window-title uniqueness, and glyph coverage against the baked font ranges; see [standards.md](./standards.md))
+- `run_localization_unit_tests`: `src/Editor/Localization/Test/LocalizationTests.cpp` (key parity against English, printf specifier parity, window-title uniqueness, and glyph coverage against the baked font ranges; see [localization.md](./localization.md) and [standards.md](./standards.md))
 - `run_material_compiler_tests`: `src/Editor/NodeEditors/Test/MaterialCompilerTests.cpp` (the material graph compiler: stage split, broadcast and type errors, cycles, parameter conflicts, snapshot round trip, and the golden guard that recompiles every shipped `.matgraph` against its checked-in shaders; see [materials.md](./materials.md))
 
 Exit code is nonzero on any failure. Results also go to `MikanCmd.log` next to the working directory.
@@ -104,6 +104,8 @@ The editor is instrumented with easy_profiler (`EASY_FUNCTION()` / `EASY_BLOCK()
 ## Other diagnostic surfaces
 
 - **ML capture runs.** `OnnxSession` logs each loaded model with the execution provider it actually got (`Loaded <path> (EP: DirectML|CPU)`) plus every input and output shape, so a session that fell back from DirectML to CPU is visible rather than just slow. `MoGeInference::run` additionally logs the inputs the metric recovery depended on (`fov_x=... shift=... metric_scale=...`); a wrong FOV reaching the model is the first suspect when a depth proxy comes out the wrong size, and that line settles it. See [scene-lighting.md](./scene-lighting.md) and [depth-proxy-mesh.md](./depth-proxy-mesh.md).
+
+- **Bad UI strings.** `View > Show String Keys` (F9) replaces every localized string with its own key, so a string that reads wrong names itself where it is drawn, and `View > ID Stack Tool` reports the key of whatever interactive widget is hovered. A key visible with the mode off is one no table defines. See [localization.md](./localization.md).
 
 - **Node graph errors.** Failed compositor/shape graph evaluations accumulate `NodeEvaluationError` values on the owning component (`getLastNodeEvalErrors()`); `CompositorNodeEditorWindow` and `ShapeNodeEditorWindow` read and display them each frame.
 

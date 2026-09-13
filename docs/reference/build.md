@@ -72,6 +72,8 @@ Third-party source builds: `thirdparty/CMakeLists.txt` builds `fast_obj_lib`, `i
 
 - `FormatFix` / `FormatCheck`: clang-format wrappers (`cmake/ClangFormat.cmake`), both delegating to `cmake/RunClangFormat.cmake`.
 
+- `LocalizationSync` / `LocalizationCheck`: wrappers around `tools/localization.py` (`cmake/Localization.cmake`), which regenerates the JSON string tables from the gettext catalogs. See [localization.md](./localization.md).
+
 - `CREATE_INSTALLER`: Inno Setup installer build (`cmake/Installer.cmake`); only created when Inno Setup is found. Uses `templates/installer_win64.iss.in`.
 
 - `INSTALL`: installs exes, DLLs, bindings, and the bundled `resources/` tree into `dist/Win64`. The resources filter ships the graph, material, shader, and model sources as well as images, fonts, scripts, and ONNX models, since a project reads the bundled assets in place rather than owning copies.
@@ -82,9 +84,11 @@ Output locations: under the VS generator, executables land in per-target config 
 
 ## CI configuration
 
-`.github/workflows/build-and-test.yml` has two jobs:
+`.github/workflows/build-and-test.yml` has three jobs:
 
 - `format-check` (Linux, no build tree): `pipx install clang-format==19.1.5`, then `cmake -P cmake/RunClangFormat.cmake -- --check`. The version is pinned to match the clang-format 19.1.x bundled with VS2022; other major versions format differently.
+
+- `localization-check` (Linux, no build tree): `pip install polib`, then `python tools/localization.py check`. Fails when a committed string table is not what the generator produces from the catalogs, or when a translation breaks a loader rule. See [localization.md](./localization.md).
 
 - `build` (windows-2022): initializes only the needed submodules, caches `deps/` keyed on the hash of `InitialSetup_x64.bat`, runs setup with `SKIP_GSTREAMER=1`, and configures with the Ninja generator instead of Visual Studio. Ninja is used specifically so `CMAKE_C/CXX_COMPILER_LAUNCHER=sccache` takes effect (the VS/MSBuild generator ignores compiler launchers). Key configure differences from local:
 

@@ -3,6 +3,7 @@
 #include "LocalizationRemoteFetcher.h"
 #include "LocText.h"
 #include "Logger.h"
+#include "MkGuiTheme.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
 
@@ -204,6 +205,9 @@ bool LocalizationManager::loadLanguageFile(const std::filesystem::path& path, La
 	{
 		const json& meta= j["_meta"];
 		outLanguage.info.nativeName= meta.value("nativeName", code);
+		outLanguage.info.stringCount= meta.value("stringCount", 0);
+		outLanguage.info.translatedCount= meta.value("translatedCount", 0);
+		outLanguage.info.reviewedCount= meta.value("reviewedCount", 0);
 		if (meta.value("code", code) != code)
 			addLoadWarning(path.filename().string() + ": _meta.code does not match the filename");
 	}
@@ -246,13 +250,26 @@ void LocalizationManager::overlayLanguageFile(const std::filesystem::path& path)
 	auto it= m_languages.find(code);
 	if (it == m_languages.end())
 	{
-		// A language the shipped build does not bundle at all
+		// A language the shipped build does not bundle at all. The font atlas
+		// is baked into the build, so a language added to the CDN after this
+		// build shipped would list itself in the picker and then draw tofu.
+		// Its own name is the cheapest proof that the glyphs are here.
+		if (!MkGuiTheme::isTextRenderableWithUiGlyphs(overlay.info.nativeName))
+		{
+			MIKAN_LOG_INFO("LocalizationManager::overlayLanguageFile")
+				<< "Ignoring community language '" << code << "': this build has no glyphs for it";
+			return;
+		}
+
 		m_languages[code]= std::move(overlay);
 		return;
 	}
 
 	Language& target= it->second;
 	target.info.nativeName= overlay.info.nativeName;
+	target.info.stringCount= overlay.info.stringCount;
+	target.info.translatedCount= overlay.info.translatedCount;
+	target.info.reviewedCount= overlay.info.reviewedCount;
 	for (auto& [key, text] : overlay.rawStrings)
 	{
 		target.rawStrings[key]= text;
@@ -319,6 +336,7 @@ void LocalizationManager::finalizeLanguage(Language& language)
 		entry.text= text;
 		entry.label= text + "##" + key;
 		entry.windowTitle= text + "###" + englishText;
+		entry.keyWindowTitle= key + "###" + englishText;
 		language.entries[key]= std::move(entry);
 	}
 }
@@ -376,6 +394,12 @@ std::vector<LocalizationManager::LanguageInfo> LocalizationManager::getSupported
 	return languages;
 }
 
+const LocalizationManager::LanguageInfo* LocalizationManager::getLanguageInfo(const std::string& langCode) const
+{
+	const auto it= m_languages.find(langCode);
+	return it != m_languages.end() ? &it->second.info : nullptr;
+}
+
 bool LocalizationManager::isLanguageSupported(const std::string& langCode) const
 {
 	return m_languages.find(langCode) != m_languages.end();
@@ -412,6 +436,11 @@ bool LocalizationManager::hasKey(const char* key) const
 
 const char* LocalizationManager::fetchText(const char* key) const
 {
+	// The key pointer is the passthrough the unknown-key path below already
+	// hands back, so show-keys mode needs nothing precomputed
+	if (m_bShowKeys)
+		return key;
+
 	if (m_currentLanguage != nullptr)
 	{
 		const auto it= m_currentLanguage->entries.find(std::string_view(key));
@@ -428,6 +457,13 @@ const char* LocalizationManager::fetchText(const char* key) const
 
 const char* LocalizationManager::fetchLabel(const char* key) const
 {
+	// ImGui hashes the whole label, resetting only at "###", so the ID of a
+	// "text##key" label already moves with the translation. Answering with the
+	// bare key moves it no more than a language switch does, and the key still
+	// makes the ID unique.
+	if (m_bShowKeys)
+		return key;
+
 	if (m_currentLanguage != nullptr)
 	{
 		const auto it= m_currentLanguage->entries.find(std::string_view(key));
@@ -446,7 +482,12 @@ const char* LocalizationManager::fetchWindowTitle(const char* key) const
 	{
 		const auto it= m_currentLanguage->entries.find(std::string_view(key));
 		if (it != m_currentLanguage->entries.end())
-			return it->second.windowTitle.c_str();
+		{
+			// Unlike the other two, this one keeps its "###" suffix in
+			// show-keys mode: the ImGui ID is the English title, and a window
+			// that changed identity mid-session would lose its docked spot
+			return m_bShowKeys ? it->second.keyWindowTitle.c_str() : it->second.windowTitle.c_str();
+		}
 	}
 
 	if (m_warnedMissingKeys.insert(key).second)

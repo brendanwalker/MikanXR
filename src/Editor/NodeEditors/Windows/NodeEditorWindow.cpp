@@ -32,6 +32,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
+#include "LocDebugUI.h"
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "PathUtils.h"
@@ -280,6 +281,9 @@ void NodeEditorWindow::updateUI()
 
 	MkGui::endDockspaceHost();
 
+	LocDebugUI::drawWindows(m_bShowIdStackTool);
+	LocDebugUI::handleShortcuts();
+
 	// Keyboard chords; text fields keep ImGui's own undo
 	const ImGuiIO& io= ImGui::GetIO();
 	if (ImGui::IsKeyPressed(ImGuiKey_Z, false) && io.KeyCtrl && !ImGui::IsAnyItemActive())
@@ -339,6 +343,8 @@ void NodeEditorWindow::renderMenuBar()
 		ImGui::MenuItem(locLabel("nodeEditor.assetsTab"), nullptr, &m_bShowAssetsPanel);
 		ImGui::MenuItem(locLabel("nodeEditor.details"), nullptr, &m_bShowDetailsPanel);
 		renderViewMenuExtras();
+		ImGui::Separator();
+		LocDebugUI::drawViewMenuItems(m_bShowIdStackTool);
 		ImGui::Separator();
 		if (ImGui::MenuItem(locLabel("nodeEditor.resetLayout")))
 		{

@@ -130,6 +130,84 @@ const ImWchar* getUiGlyphRanges()
 	return s_ranges.data();
 }
 
+static bool decodeNextCodepoint(const std::string& text, size_t& inOutIndex, unsigned int& outCodepoint)
+{
+	const unsigned char lead= (unsigned char)text[inOutIndex];
+	size_t extraBytes= 0;
+	if (lead < 0x80)
+	{
+		outCodepoint= lead;
+	}
+	else if ((lead & 0xE0) == 0xC0)
+	{
+		outCodepoint= lead & 0x1F;
+		extraBytes= 1;
+	}
+	else if ((lead & 0xF0) == 0xE0)
+	{
+		outCodepoint= lead & 0x0F;
+		extraBytes= 2;
+	}
+	else if ((lead & 0xF8) == 0xF0)
+	{
+		outCodepoint= lead & 0x07;
+		extraBytes= 3;
+	}
+	else
+	{
+		return false;
+	}
+
+	for (size_t byteIndex= 0; byteIndex < extraBytes; ++byteIndex)
+	{
+		++inOutIndex;
+		if (inOutIndex >= text.size() || ((unsigned char)text[inOutIndex] & 0xC0) != 0x80)
+			return false;
+		outCodepoint= (outCodepoint << 6) | ((unsigned char)text[inOutIndex] & 0x3F);
+	}
+	++inOutIndex;
+	return true;
+}
+
+bool isTextRenderableWithUiGlyphs(const std::string& text, unsigned int* outBadCodepoint)
+{
+	const ImWchar* ranges= getUiGlyphRanges();
+
+	size_t byteIndex= 0;
+	while (byteIndex < text.size())
+	{
+		unsigned int codepoint= 0;
+		if (!decodeNextCodepoint(text, byteIndex, codepoint))
+		{
+			if (outBadCodepoint != nullptr)
+				*outBadCodepoint= 0;
+			return false;
+		}
+
+		if (codepoint < 0x20)
+			continue; // control characters (\n) are not glyphs
+
+		bool bInRanges= false;
+		for (const ImWchar* range= ranges; range[0] != 0; range+= 2)
+		{
+			if (codepoint >= range[0] && codepoint <= range[1])
+			{
+				bInRanges= true;
+				break;
+			}
+		}
+
+		if (!bInRanges)
+		{
+			if (outBadCodepoint != nullptr)
+				*outBadCodepoint= codepoint;
+			return false;
+		}
+	}
+
+	return true;
+}
+
 ImFont* loadFonts()
 {
 	ImGuiIO& io= ImGui::GetIO();

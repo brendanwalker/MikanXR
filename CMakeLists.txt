@@ -17,6 +17,7 @@ include(cmake/Version.cmake)
 include(cmake/ThirdParty.cmake)
 include(cmake/Installer.cmake)
 include(cmake/ClangFormat.cmake)
+include(cmake/Localization.cmake)
 
 # Mikan will install here
 # ARCH_LABEL set in Environment.cmake

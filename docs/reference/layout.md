@@ -12,9 +12,9 @@ MikanXR/
 ├── InitialSetup_x64.bat                # first-time setup: wipes build/ and deps/, downloads prebuilt deps into deps/
 ├── GenerateProjectFiles_X64_VS2022.bat # configures build/ with the "Visual Studio 17 2022" generator
 ├── CLAUDE.md / README.md / CONTRIBUTING.md / LICENSE
-├── .github/workflows/build-and-test.yml # CI: Linux format-check job + Windows Ninja build/test job
+├── .github/workflows/build-and-test.yml # CI: Linux format-check and localization-check jobs + Windows Ninja build/test job
 ├── .gitmodules                         # submodule list (all under thirdparty/)
-├── cmake/                              # CMake modules: Environment, Version, ThirdParty, Installer, ClangFormat, Find*.cmake
+├── cmake/                              # CMake modules: Environment, Version, ThirdParty, Installer, ClangFormat, Localization, Find*.cmake
 ├── src/                                # all first-party C++ source (the only tree clang-format touches)
 ├── bindings/                           # generated client bindings for C# and TypeScript
 ├── thirdparty/                         # git submodules + a few vendored libs, built from source or used header-only
@@ -22,6 +22,7 @@ MikanXR/
 ├── build/                              # CMake binary dir (build/Mikan.sln, object files, built exes; not in git)
 ├── dist/                               # install prefix (dist/Win64) written by the INSTALL target; version.txt
 ├── resources/                          # runtime assets: calibration patterns, config, dnn models, fonts, icons, gui_styles, localization, lua-definitions
+├── localization/                       # gettext catalogs translators own; resources/localization is generated from them
 ├── models/                             # ONNX checkpoints for the ML capture tools (gitignored, produced by tools/*.py)
 ├── templates/                          # installer_win64.iss.in (Inno Setup script template, filled in by cmake/Installer.cmake)
 ├── tools/                              # checked-in helper tools: 7zip/7za.exe (used by InitialSetup), Spout2, and the Python model tools
@@ -37,6 +38,8 @@ MikanXR/
 - `tools/` mixes two unrelated things. `7zip/` and `Spout2/` are checked-in binaries the build depends on. The `*.py` scripts are developer-only: they export or fetch the ONNX checkpoints into `models/`, and they are the reference implementations the C++ ports are validated against. Neither ships with Mikan nor runs at runtime. See [scene-lighting.md](./scene-lighting.md) and [depth-proxy-mesh.md](./depth-proxy-mesh.md).
 
 - `models/` holds the ONNX checkpoints (`marigold/`, `moge2/`, roughly 8GB together). It is gitignored and `InitialSetup_x64.bat` does not create it; the tools above do.
+
+- `localization/` is a source tree, not a resource tree. It holds the language registry and one gettext catalog per translation, and nothing in it is installed. `resources/localization/` is the generated counterpart that ships and that the CDN serves: only `en.json` there is hand-authored. See [localization.md](./localization.md).
 
 ---
 

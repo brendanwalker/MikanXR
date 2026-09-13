@@ -95,6 +95,8 @@ Key settings (from `.clang-format`, `BasedOnStyle: Microsoft`):
 	- `locWindowTitle` for a window or popup title, so the ImGui ID is the English title and layouts survive a language switch
 	- `locFormat` to expand a `...Fmt` key into a `std::string`
 
+	Adding a key means editing `resources/localization/en.json` and then running `python tools/localization.py sync`, which folds it into every gettext catalog and regenerates the other tables. Only English is hand-authored; the rest are generated and CI rejects a stale one. See [localization.md](./localization.md).
+
 	Log output, config keys, automation command names, node and pin type names, and device names are not user-facing text and stay untranslated. The `localization` module in `MikanCmd -runTests` enforces key parity against English, printf specifier parity, window-title uniqueness, and that every codepoint is inside the baked font glyph ranges.
 
 - Labels the entity panels generate from the property and function databases are keyed by descriptor id rather than written at a call site, so those keys mirror the code identifier exactly (`properties.tracking_mount_id`, `functions.align_camera`) instead of following the lowerCamel rule above. A label resolves through `locResolveDescriptorKey`, which prefers a per-class override `<EntityClassName>.<descriptorId>` and otherwise takes the shared section, so a name only needs a class-specific entry when it means something different in that class. `EnumPropertyMetaData` holds keys in `propertyValues`, never display text, and never one of the `g_*` enum tables that are the JSON persistence spellings. The same test module fails the build when a descriptor that always draws a generic widget has no label.

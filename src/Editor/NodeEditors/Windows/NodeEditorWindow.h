@@ -247,6 +247,7 @@ protected:
 	bool m_bShowPagesPanel= true;
 	bool m_bShowAssetsPanel= true;
 	bool m_bShowDetailsPanel= true;
+	bool m_bShowIdStackTool= false; // localization diagnostic, off by default
 	// View > Reset Layout: rebuild the default dock layout on the next frame
 	bool m_bResetLayoutRequested= false;
 };

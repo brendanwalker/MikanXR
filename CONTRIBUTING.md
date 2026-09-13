@@ -1,5 +1,10 @@
 # Contributing to MikanXR
 
+## Translations
+
+Correcting the machine-generated UI text is the easiest way to contribute and needs no build
+and no C++. See [docs/TRANSLATING.md](docs/TRANSLATING.md).
+
 ## Code formatting
 
 C++ source under `src/` is formatted with [clang-format](https://clang.llvm.org/docs/ClangFormat.html).
