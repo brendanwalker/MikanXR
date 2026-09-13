@@ -1533,7 +1533,7 @@ bool AutomationServer::handleMaterialCommand(const std::vector<std::string>& arg
 
 		outLines.push_back(MaterialCompiler::getVertexShaderPathForGraph(path).string());
 		outLines.push_back(MaterialCompiler::getFragmentShaderPathForGraph(path).string());
-		outLines.push_back(MaterialCompiler::getMaterialPathForGraph(path).string());
+		outLines.push_back(MaterialCompiler::getMaterialPathForGraph(path, materialGraph->getDomain()).string());
 		return true;
 	}
 

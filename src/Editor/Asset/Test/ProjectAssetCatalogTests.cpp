@@ -2,7 +2,7 @@
 #include "unit_test.h"
 
 #include "AssetReference.h"
-#include "MaterialAssetReference.h"
+#include "CompositorMaterialAssetReference.h"
 #include "PathUtils.h"
 #include "ProjectAssetCatalog.h"
 #include "TextureAssetReference.h"
@@ -33,12 +33,12 @@ struct CatalogTestProject
 		projectDir= root / "project";
 		externalDir= root / "external";
 
-		for (const char* folder : {"compositors", "models", "scripts", "shaders/compositor/m", "textures"})
+		for (const char* folder : {"compositors", "models", "scripts", "compositor_materials/m", "textures"})
 		{
 			std::filesystem::create_directories(projectDir / folder);
 		}
 		std::filesystem::create_directories(externalDir / "n");
-		std::filesystem::create_directories(externalDir / "nodomain");
+		std::filesystem::create_directories(externalDir / "wrongdomain");
 
 		writeFile(projectDir / "textures" / "grid.png", "png");
 		writeFile(projectDir / "textures" / "other.png", "png");
@@ -53,14 +53,14 @@ struct CatalogTestProject
 				  R"({
 	"class_name": "CompositorNodeGraph",
 	"assetReferences": [
-		{ "class_name": "MaterialAssetReference", "asset_path": "shaders/compositor/m/m.mat" }
+		{ "class_name": "CompositorMaterialAssetReference", "asset_path": "compositor_materials/m/m.compmat" }
 	],
 	"nodes": []
 })");
 
-		// A material whose .mat defaults a sampler to grid.png and whose graph
+		// A material whose file defaults a sampler to grid.png and whose graph
 		// defaults a texture parameter to other.png
-		writeFile(projectDir / "shaders" / "compositor" / "m" / "m.mat",
+		writeFile(projectDir / "compositor_materials" / "m" / "m.compmat",
 				  R"({
 	"materialName": "m",
 	"vertexShaderPath": "m.vert",
@@ -71,7 +71,7 @@ struct CatalogTestProject
 	"sourceGraphPath": "m.matgraph",
 	"uniformDefaults": { "tex": "textures/grid.png" }
 })");
-		writeFile(projectDir / "shaders" / "compositor" / "m" / "m.matgraph",
+		writeFile(projectDir / "compositor_materials" / "m" / "m.matgraph",
 				  R"({
 	"class_name": "MaterialNodeGraph",
 	"assetReferences": [],
@@ -79,18 +79,20 @@ struct CatalogTestProject
 		{ "class_name": "ShaderTextureParameterNode", "default_texture_path": "textures/other.png" }
 	]
 })");
-		writeFile(projectDir / "shaders" / "compositor" / "m" / "m.vert", "");
-		writeFile(projectDir / "shaders" / "compositor" / "m" / "m.frag", "");
+		writeFile(projectDir / "compositor_materials" / "m" / "m.vert", "");
+		writeFile(projectDir / "compositor_materials" / "m" / "m.frag", "");
 
 		// External imports: a texture, a material with a domain, and one without
 		writeFile(externalDir / "extra.png", "png");
 		writeFile(externalDir / "extra.txt", "text");
 		writeFile(
-			externalDir / "n" / "n.mat",
+			externalDir / "n" / "n.compmat",
 			R"({ "materialName": "n", "vertexAttributes": [], "uniformSemanticMap": {}, "domain": "compositor" })");
 		writeFile(externalDir / "n" / "n.matgraph", "{}");
-		writeFile(externalDir / "nodomain" / "nodomain.mat",
-				  R"({ "materialName": "nodomain", "vertexAttributes": [], "uniformSemanticMap": {} })");
+		// A file carrying the compositor extension whose contents say shape
+		writeFile(
+			externalDir / "wrongdomain" / "wrongdomain.compmat",
+			R"({ "materialName": "wrongdomain", "vertexAttributes": [], "uniformSemanticMap": {}, "domain": "shape" })");
 
 		PathUtils::setProjectDirectory(projectDir);
 	}
@@ -159,11 +161,11 @@ bool project_asset_catalog_test_scan_lists_each_folder()
 	// Unsupported files are not listed
 	success&= !hasEntry(catalog, "textures", "textures/notes.txt");
 
-	// One tile per .mat, named after the material, with its sources hidden
-	success&= countProjectEntries(catalog, "materials") == 1;
-	const ProjectAssetEntry* material= catalog.findEntry("materials", "shaders/compositor/m/m.mat");
+	// One tile per material file, named after the material, with its sources hidden
+	success&= countProjectEntries(catalog, "compositor_materials") == 1;
+	const ProjectAssetEntry* material= catalog.findEntry("compositor_materials", "compositor_materials/m/m.compmat");
 	success&= material != nullptr && material->displayName == "m" && !material->bReadOnly
-			  && material->className == "MaterialAssetReference";
+			  && material->className == "CompositorMaterialAssetReference";
 	// The material's own graph is not a compositors-folder entry
 	success&= countProjectEntries(catalog, "compositors") == 1;
 
@@ -179,7 +181,7 @@ bool project_asset_catalog_test_scan_lists_each_folder()
 	// A texture is also a valid pixel content asset, since both types share the folder
 	const ProjectAssetEntry* grid= catalog.findEntry("textures", "textures/grid.png");
 	TextureAssetReferenceFactory textureFactory;
-	MaterialAssetReferenceFactory materialFactory;
+	CompositorMaterialAssetReferenceFactory materialFactory;
 	success&= grid != nullptr && catalog.entryMatchesFactory(*grid, textureFactory)
 			  && !catalog.entryMatchesFactory(*grid, materialFactory);
 
@@ -230,19 +232,20 @@ bool project_asset_catalog_test_material_import_copies_folder()
 	std::string storedPath;
 	std::string error;
 
-	success&= catalog.importAsset("materials", project.externalDir / "n" / "n.mat", storedPath, error);
-	success&= storedPath == "shaders/compositor/n/n.mat";
-	success&= std::filesystem::exists(project.projectDir / "shaders" / "compositor" / "n" / "n.mat");
-	success&= std::filesystem::exists(project.projectDir / "shaders" / "compositor" / "n" / "n.matgraph");
-	success&= hasEntry(catalog, "materials", "shaders/compositor/n/n.mat");
+	success&= catalog.importAsset("compositor_materials", project.externalDir / "n" / "n.compmat", storedPath, error);
+	success&= storedPath == "compositor_materials/n/n.compmat";
+	success&= std::filesystem::exists(project.projectDir / "compositor_materials" / "n" / "n.compmat");
+	success&= std::filesystem::exists(project.projectDir / "compositor_materials" / "n" / "n.matgraph");
+	success&= hasEntry(catalog, "compositor_materials", "compositor_materials/n/n.compmat");
 
 	// A second import of the same material is refused, since the folder is its identity
-	success&= !catalog.importAsset("materials", project.externalDir / "n" / "n.mat", storedPath, error);
+	success&= !catalog.importAsset("compositor_materials", project.externalDir / "n" / "n.compmat", storedPath, error);
 	success&= !error.empty();
 
-	// Without a domain there is no destination
-	success&= !catalog.importAsset("materials", project.externalDir / "nodomain" / "nodomain.mat", storedPath, error);
-	success&= !std::filesystem::exists(project.projectDir / "shaders" / "compositor" / "nodomain");
+	// A material whose contents name the other domain is refused
+	success&= !catalog.importAsset("compositor_materials", project.externalDir / "wrongdomain" / "wrongdomain.compmat",
+								   storedPath, error);
+	success&= !std::filesystem::exists(project.projectDir / "compositor_materials" / "wrongdomain");
 
 	UNIT_TEST_COMPLETE()
 }
@@ -255,7 +258,7 @@ bool project_asset_catalog_test_find_references()
 	ProjectAssetCatalog catalog;
 	catalog.refresh();
 
-	// The material's .mat defaults a sampler to grid.png
+	// The material file defaults a sampler to grid.png
 	std::vector<ProjectAssetReferrer> gridReferrers= catalog.findReferences("textures/grid.png");
 	success&= gridReferrers.size() == 1 && hasReferrer(gridReferrers, ProjectAssetReferrer::Kind::material, "m");
 
@@ -264,7 +267,7 @@ bool project_asset_catalog_test_find_references()
 	success&= otherReferrers.size() == 1 && hasReferrer(otherReferrers, ProjectAssetReferrer::Kind::graph, "m");
 
 	// The compositor graph references the material; the material's own graph does not count
-	std::vector<ProjectAssetReferrer> materialReferrers= catalog.findReferences("shaders/compositor/m/m.mat");
+	std::vector<ProjectAssetReferrer> materialReferrers= catalog.findReferences("compositor_materials/m/m.compmat");
 	success&=
 		materialReferrers.size() == 1 && hasReferrer(materialReferrers, ProjectAssetReferrer::Kind::graph, "comp");
 
@@ -290,8 +293,8 @@ bool project_asset_catalog_test_bundled_overlay()
 	// Bundled files show through as read-only entries in stored form
 	const ProjectAssetEntry* bundledGraph= catalog.findEntry("compositors", "compositors/color_key_graph.compgraph");
 	success&= bundledGraph != nullptr && bundledGraph->bBundled && bundledGraph->bReadOnly;
-	const ProjectAssetEntry* bundledMaterial=
-		catalog.findEntry("materials", "shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat");
+	const ProjectAssetEntry* bundledMaterial= catalog.findEntry(
+		"compositor_materials", "compositor_materials/rgbUndistortionFrame/rgbUndistortionFrame.compmat");
 	success&= bundledMaterial != nullptr && bundledMaterial->bBundled && bundledMaterial->bReadOnly
 			  && bundledMaterial->displayName == "rgbUndistortionFrame";
 	const ProjectAssetEntry* bundledModel= catalog.findEntry("models", "models/shapes/sphere.obj");
@@ -336,7 +339,7 @@ bool project_asset_catalog_test_bundled_overlay()
 
 	// Bundled referrers count: the bundled compositor graphs name this bundled material
 	const std::vector<ProjectAssetReferrer> referrers=
-		catalog.findReferences("shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat");
+		catalog.findReferences("compositor_materials/rgbUndistortionFrame/rgbUndistortionFrame.compmat");
 	success&= hasReferrer(referrers, ProjectAssetReferrer::Kind::graph, "color_key_graph");
 	for (const ProjectAssetReferrer& referrer : referrers)
 	{
@@ -371,10 +374,10 @@ bool project_asset_catalog_test_delete_removes_files()
 	success&= !hasEntry(catalog, "scripts", "scripts/a.lua");
 
 	// A material delete takes the whole folder
-	const ProjectAssetEntry* material= catalog.findEntry("materials", "shaders/compositor/m/m.mat");
+	const ProjectAssetEntry* material= catalog.findEntry("compositor_materials", "compositor_materials/m/m.compmat");
 	success&= material != nullptr && catalog.deleteAsset(*material, error);
-	success&= !std::filesystem::exists(project.projectDir / "shaders" / "compositor" / "m");
-	success&= countProjectEntries(catalog, "materials") == 0;
+	success&= !std::filesystem::exists(project.projectDir / "compositor_materials" / "m");
+	success&= countProjectEntries(catalog, "compositor_materials") == 0;
 
 	// Bundled entries are refused
 	const std::vector<ProjectAssetEntry>& fonts= catalog.getEntries("fonts");

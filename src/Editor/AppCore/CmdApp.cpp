@@ -12,7 +12,7 @@
 #include "DMXPresetPersistenceTests.h"
 #include "DMXSequenceTests.h"
 #include "DMXUniverseRLETests.h"
-#include "LegacyGraphMigrationTests.h"
+#include "LegacyContentMigrationTests.h"
 #include "LightEnvironmentPersistenceTests.h"
 #include "LocalizationTests.h"
 #include "MaterialCompilerTests.h"
@@ -49,7 +49,7 @@ bool run_all_editor_unit_tests()
 	success&= run_dmx_preset_persistence_tests();
 	success&= run_dmx_sequence_tests();
 	success&= run_dmx_universe_rle_tests();
-	success&= run_legacy_graph_migration_tests();
+	success&= run_legacy_content_migration_tests();
 	success&= run_light_environment_persistence_tests();
 	success&= run_localization_unit_tests();
 	success&= run_material_compiler_tests();
@@ -160,7 +160,7 @@ void CmdApp::printUsage() const
 					"               and write it as an OBJ.\n"
 					"  -compileMaterial=<graph>\n"
 					"               Compile a material graph (.matgraph) and write its .vert, .frag\n"
-					"               and .mat beside the graph file.\n");
+					"               and .compmat or .shapemat beside the graph file.\n");
 }
 
 int CmdApp::compileMaterial() const
@@ -199,7 +199,8 @@ int CmdApp::compileMaterial() const
 
 	fprintf(stdout, "wrote %s\n", MaterialCompiler::getVertexShaderPathForGraph(graphPath).string().c_str());
 	fprintf(stdout, "wrote %s\n", MaterialCompiler::getFragmentShaderPathForGraph(graphPath).string().c_str());
-	fprintf(stdout, "wrote %s\n", MaterialCompiler::getMaterialPathForGraph(graphPath).string().c_str());
+	fprintf(stdout, "wrote %s\n",
+			MaterialCompiler::getMaterialPathForGraph(graphPath, materialGraph->getDomain()).string().c_str());
 
 	return EXIT_SUCCESS;
 }

@@ -26,16 +26,16 @@
 	],
 	"assetReferences": [
 		{
-			"class_name": "MaterialAssetReference",
-			"asset_path": "shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat"
+			"class_name": "CompositorMaterialAssetReference",
+			"asset_path": "compositor_materials/rgbUndistortionFrame/rgbUndistortionFrame.compmat"
 		},
 		{
-			"class_name": "MaterialAssetReference",
-			"asset_path": "shaders/compositor/rgbInvAlphaFrame/rgbInvAlphaFrame.mat"
+			"class_name": "CompositorMaterialAssetReference",
+			"asset_path": "compositor_materials/rgbInvAlphaFrame/rgbInvAlphaFrame.compmat"
 		},
 		{
-			"class_name": "MaterialAssetReference",
-			"asset_path": "shaders/compositor/rgbFrame/rgbFrame.mat"
+			"class_name": "CompositorMaterialAssetReference",
+			"asset_path": "compositor_materials/rgbFrame/rgbFrame.compmat"
 		}
 	],
 	"nodes":           [

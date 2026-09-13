@@ -19,12 +19,12 @@
 	],
 	"assetReferences": [
 		{
-			"class_name": "MaterialAssetReference",
-			"asset_path": "shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat"
+			"class_name": "CompositorMaterialAssetReference",
+			"asset_path": "compositor_materials/rgbUndistortionFrame/rgbUndistortionFrame.compmat"
 		},
 		{
-			"class_name": "MaterialAssetReference",
-			"asset_path": "shaders/compositor/rgbaFrame/rgbaFrame.mat"
+			"class_name": "CompositorMaterialAssetReference",
+			"asset_path": "compositor_materials/rgbaFrame/rgbaFrame.compmat"
 		}
 	],
 	"nodes":           [

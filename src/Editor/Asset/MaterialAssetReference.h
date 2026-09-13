@@ -3,14 +3,14 @@
 #include "AssetReference.h"
 #include "LocText.h"
 
+// The behavior every material reference shares: opening the source graph and
+// dropping onto a graph as a material property and node. The compositor and
+// shape subclasses carry the class name, extension, and folder of their domain.
 class MaterialAssetReference : public AssetReference
 {
 public:
 	MaterialAssetReference()= default;
 
-	inline static const std::string k_assetClassName= "MaterialAssetReference";
-	virtual std::string getClassName() const override { return k_assetClassName; }
-	virtual std::string getAssetTypeName() const override { return "Material"; }
 	virtual const char* editorGetIcon() const override { return ICON_FK_PAINT_BRUSH; }
 
 	virtual void setAssetPath(const std::filesystem::path& inPath) override;
@@ -35,22 +35,7 @@ protected:
 	mutable bool m_bSourceGraphPathResolved= false;
 };
 
-class MaterialAssetReferenceFactory : public TypedAssetReferenceFactory<MaterialAssetReference, AssetReferenceConfig>
-{
-public:
-	MaterialAssetReferenceFactory();
+enum class eMaterialDomain : int;
 
-	virtual std::string getAssetTypeName() const { return "Material"; }
-	virtual char const* getFileDialogTitle() const { return locText("assets.loadMaterialDialogTitle"); }
-	virtual char const* const* getFilterPatterns() const
-	{
-		static const char* filterItems[1]= {"*.mat"};
-		return filterItems;
-	}
-	virtual int getFilterPatternCount() const { return 1; }
-	virtual char const* getFilterDescription() const { return locText("assets.materialFilterDescription"); }
-
-	virtual bool editorCanCreate() const { return true; }
-
-	static std::string getDefaultMaterialPath();
-};
+// The material reference class for a domain, the one its graphs register
+const std::string& getMaterialAssetClassName(eMaterialDomain domain);

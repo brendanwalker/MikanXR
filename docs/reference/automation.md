@@ -148,7 +148,7 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 - `nodegraph deletelink <linkId>` deletes a link
 - `nodegraph undo [n]` / `nodegraph redo [n]` step the window's snapshot history, replying the resulting cursor
 - `nodegraph run on|off` pauses or resumes compositor evaluation of the editor graph (the Compositor menu's Run item), replying the resulting state
-- `nodegraph compile` compiles the material editor's graph and writes its shaders and `.mat` beside the graph file (the Material menu's Compile item), replying `compiled`, or one `error <nodeId> <message>` line per compile error. An unsaved graph has nowhere to write and answers an error. On any other editor window the command answers an error.
+- `nodegraph compile` compiles the material editor's graph and writes its shaders and material file beside the graph file (the Material menu's Compile item), replying `compiled`, or one `error <nodeId> <message>` line per compile error. An unsaved graph has nowhere to write and answers an error. On any other editor window the command answers an error.
 - `nodegraph renamevar <propertyId> <name...>` renames a graph variable (the name is the rest of the line, so spaces survive)
 - `nodegraph reordervar <movedPropertyId> <targetPropertyId>` moves a variable to the target's slot in the list, the headless equivalent of dragging one variable row onto another
 
@@ -156,10 +156,10 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 
 ### Materials (material)
 
-Loads and compiles material files headlessly, with no editor window involved, so a drive can check a `.mat` or rebuild a graph's outputs without opening the editor. Paths resolve the way `nodegraph open material` resolves them.
+Loads and compiles material files headlessly, with no editor window involved, so a drive can check a material file or rebuild a graph's outputs without opening the editor. Paths resolve the way `nodegraph open material` resolves them.
 
-- `material info <matPath>` loads the `.mat` config and replies `name`, `domain`, `vertex_preset`, and `source_graph` lines (`none` where a hand-authored material leaves them unset), then one `uniform <name> <semantic>` line per uniform semantic map entry
-- `material compile <graphPath>` loads the graph without an owner window, compiles it with the GLSL writer, and writes the `.vert`, `.frag`, and `.mat` beside the graph file, replying those three paths. Compile errors reply as `error <nodeId> <message>` lines and write nothing.
+- `material info <matPath>` loads a `.compmat` or `.shapemat` config and replies `name`, `domain`, `vertex_preset`, and `source_graph` lines (`none` where a hand-authored material leaves them unset), then one `uniform <name> <semantic>` line per uniform semantic map entry
+- `material compile <graphPath>` loads the graph without an owner window, compiles it with the GLSL writer, and writes the `.vert`, `.frag`, and the domain's material file beside the graph file, replying those three paths. Compile errors reply as `error <nodeId> <message>` lines and write nothing.
 
 ### Project assets (assets)
 

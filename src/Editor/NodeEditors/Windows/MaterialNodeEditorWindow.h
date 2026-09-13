@@ -39,6 +39,9 @@ public:
 	// Compile, then write the shader and material files beside the graph file
 	// when the graph has a path and compiled without errors
 	bool compileAndWriteOutputs();
+	// Whether the graph's file sits under its domain's material folder, which is
+	// where its compiled material file is allowed to land
+	bool isGraphInDomainFolder(const std::filesystem::path& graphPath) const;
 
 	// Invoked with the written .mat path after each successful compileAndWriteOutputs
 	using MaterialSavedCallback= std::function<void(const std::filesystem::path&)>;

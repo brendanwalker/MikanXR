@@ -5,7 +5,8 @@
 #include "LocText.h"
 #include "Logger.h"
 #include "MainWindow.h"
-#include "MaterialAssetReference.h"
+#include "CompositorMaterialAssetReference.h"
+#include "ShapeMaterialAssetReference.h"
 #include "MikanComponent.h"
 #include "MikanObjectSystem.h"
 #include "MikanPropertyDatabase.h"
@@ -20,6 +21,7 @@
 #include "TextureAssetReference.h"
 
 #include "Graphs/NodeGraphFileTypes.h"
+#include "MaterialCompiler/MaterialDomain.h"
 
 #include <configuru.hpp>
 
@@ -80,14 +82,28 @@ const std::vector<ProjectAssetFolderDesc>& ProjectAssetCatalog::getFolderDescs()
 		scripts.factories= {AssetReferenceFactory::createFactory<ScriptAssetReferenceFactory>()};
 		s_descs.push_back(scripts);
 
-		ProjectAssetFolderDesc materials;
-		materials.id= "materials";
-		materials.locKey= "assets.folderMaterials";
-		materials.projectSubfolder= "shaders";
-		materials.bundledSubfolder= "shaders";
-		materials.bMaterialFolder= true;
-		materials.factories= {AssetReferenceFactory::createFactory<MaterialAssetReferenceFactory>()};
-		s_descs.push_back(materials);
+		// Compositor and shape materials shade different consumers, so each domain
+		// has its own folder and extension
+		ProjectAssetFolderDesc compositorMaterials;
+		compositorMaterials.id= "compositor_materials";
+		compositorMaterials.locKey= "assets.folderCompositorMaterials";
+		compositorMaterials.projectSubfolder= MaterialDomainUtils::materialFolderName(eMaterialDomain::compositor);
+		compositorMaterials.bundledSubfolder= compositorMaterials.projectSubfolder;
+		compositorMaterials.bMaterialFolder= true;
+		compositorMaterials.materialDomain= (int)eMaterialDomain::compositor;
+		compositorMaterials.factories= {
+			AssetReferenceFactory::createFactory<CompositorMaterialAssetReferenceFactory>()};
+		s_descs.push_back(compositorMaterials);
+
+		ProjectAssetFolderDesc shapeMaterials;
+		shapeMaterials.id= "shape_materials";
+		shapeMaterials.locKey= "assets.folderShapeMaterials";
+		shapeMaterials.projectSubfolder= MaterialDomainUtils::materialFolderName(eMaterialDomain::shape);
+		shapeMaterials.bundledSubfolder= shapeMaterials.projectSubfolder;
+		shapeMaterials.bMaterialFolder= true;
+		shapeMaterials.materialDomain= (int)eMaterialDomain::shape;
+		shapeMaterials.factories= {AssetReferenceFactory::createFactory<ShapeMaterialAssetReferenceFactory>()};
+		s_descs.push_back(shapeMaterials);
 
 		// The same image serves a graph texture and a DMX pixel sequence, so the
 		// folder carries both types. The texture factory is first, which makes it
@@ -592,26 +608,34 @@ bool ProjectAssetCatalog::importMaterial(const ProjectAssetFolderDesc& desc, con
 {
 	std::error_code ec;
 	const std::filesystem::path absSource= std::filesystem::absolute(sourcePath, ec).lexically_normal();
-	const std::filesystem::path shadersDir= getFolderDirectory(desc.id).lexically_normal();
+	const std::filesystem::path materialsDir= getFolderDirectory(desc.id).lexically_normal();
 
-	// A material already under the project's shaders folder is the asset itself
-	const std::filesystem::path relativeToDest= absSource.lexically_relative(shadersDir);
+	// A material already under the project's folder for its domain is the asset itself
+	const std::filesystem::path relativeToDest= absSource.lexically_relative(materialsDir);
 	if (!relativeToDest.empty() && relativeToDest.begin()->string() != "..")
 	{
 		outStoredPath= PathUtils::makeStoredProjectPath(absSource);
 		return true;
 	}
 
-	// The domain names the destination subfolder, so a .mat without one has nowhere to go
+	// The extension already names the folder's domain; a material whose own
+	// contents say otherwise would fail every consumer, so it is refused here
 	MikanShaderConfig materialConfig;
-	if (!materialConfig.load(absSource) || materialConfig.domain.empty())
+	if (!materialConfig.load(absSource))
 	{
-		outError= locFormat("assets.importMaterialNoDomainFmt", absSource.filename().string().c_str());
+		outError= locFormat("assets.importFailedFmt", absSource.filename().string().c_str());
+		return false;
+	}
+	const eMaterialDomain recordedDomain= MaterialDomainUtils::resolveMaterialDomain(materialConfig);
+	if (recordedDomain != eMaterialDomain::INVALID && recordedDomain != (eMaterialDomain)desc.materialDomain)
+	{
+		outError= locFormat("assets.importMaterialDomainMismatchFmt", absSource.filename().string().c_str(),
+							MaterialDomainUtils::domainToString(recordedDomain).c_str());
 		return false;
 	}
 
 	const std::string materialName= absSource.stem().string();
-	const std::filesystem::path destFolder= shadersDir / materialConfig.domain / materialName;
+	const std::filesystem::path destFolder= materialsDir / materialName;
 	if (std::filesystem::exists(destFolder, ec))
 	{
 		outError= locFormat("assets.importMaterialExistsFmt", materialName.c_str());
@@ -657,7 +681,7 @@ std::vector<ProjectAssetReferrer> ProjectAssetCatalog::findReferences(const std:
 	// folder, so nothing inside it counts as a referrer
 	std::filesystem::path excludeFolder;
 	const std::filesystem::path resolvedTarget= PathUtils::resolveProjectResource(storedPath);
-	if (!resolvedTarget.empty() && resolvedTarget.extension() == ".mat")
+	if (!resolvedTarget.empty() && MaterialDomainUtils::isMaterialFileExtension(resolvedTarget.extension().string()))
 	{
 		excludeFolder= resolvedTarget.parent_path().lexically_normal();
 	}
@@ -778,7 +802,8 @@ void ProjectAssetCatalog::findMaterialReferences(const std::string& targetKey,
 		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(
 				 root, std::filesystem::directory_options::skip_permission_denied, ec))
 		{
-			if (!dirEntry.is_regular_file(ec) || dirEntry.path().extension() != ".mat")
+			if (!dirEntry.is_regular_file(ec)
+				|| !MaterialDomainUtils::isMaterialFileExtension(dirEntry.path().extension().string()))
 			{
 				continue;
 			}

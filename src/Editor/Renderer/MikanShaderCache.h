@@ -26,6 +26,7 @@ public:
 
 	// Optionally hands back the .mat config the material was loaded from, so a
 	// caller can read the material's domain without a second config load
+	static std::string makeProgramName(const std::filesystem::path& materialPath);
 	MkMaterialPtr loadMaterialAssetReference(MaterialAssetReferencePtr materialAssetRef,
 											 MikanShaderConfig* outConfig= nullptr);
 

@@ -3,7 +3,7 @@
 #include "NodeEditorState.h"
 
 // Asset References
-#include "MaterialAssetReference.h"
+#include "ShapeMaterialAssetReference.h"
 #include "TextureAssetReference.h"
 
 // Properties
@@ -33,7 +33,7 @@ ShapeNodeGraph::ShapeNodeGraph()
 	: NodeGraph()
 {
 	// Assets this graph can reference
-	addAssetReferenceFactory<MaterialAssetReferenceFactory>();
+	addAssetReferenceFactory<ShapeMaterialAssetReferenceFactory>();
 	addAssetReferenceFactory<TextureAssetReferenceFactory>();
 
 	// Add property types this graph can use

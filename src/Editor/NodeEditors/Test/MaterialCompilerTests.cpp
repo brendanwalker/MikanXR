@@ -823,17 +823,27 @@ bool material_compiler_test_shipped_graphs_match_outputs()
 
 	NodeGraphFactory::registerFactory<MaterialNodeGraphFactory>();
 
-	const std::filesystem::path shadersRoot= std::filesystem::path("resources") / "shaders";
-	if (!std::filesystem::exists(shadersRoot))
+	// Every bundled material graph, in either domain's folder
+	std::vector<std::filesystem::path> materialRoots;
+	for (const eMaterialDomain domain : {eMaterialDomain::compositor, eMaterialDomain::shape})
 	{
-		fprintf(stdout, "    FAILED: %s not found (run from the repo root)\n", shadersRoot.string().c_str());
-		success= false;
+		const std::filesystem::path root=
+			std::filesystem::path("resources") / MaterialDomainUtils::materialFolderName(domain);
+		if (!std::filesystem::exists(root))
+		{
+			fprintf(stdout, "    FAILED: %s not found (run from the repo root)\n", root.string().c_str());
+			success= false;
+		}
+		materialRoots.push_back(root);
 	}
 
 	int graphCount= 0;
-	if (success)
+	for (const std::filesystem::path& materialRoot : materialRoots)
 	{
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(shadersRoot))
+		if (!success)
+			break;
+
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(materialRoot))
 		{
 			if (!entry.is_regular_file() || entry.path().extension() != NodeGraphFileTypes::k_materialGraphExtension)
 				continue;
@@ -871,9 +881,9 @@ bool material_compiler_test_shipped_graphs_match_outputs()
 			}
 
 			MikanShaderConfig materialOnDisk;
-			if (!materialOnDisk.load(MaterialCompiler::getMaterialPathForGraph(graphPath)))
+			if (!materialOnDisk.load(MaterialCompiler::getMaterialPathForGraph(graphPath, materialGraph->getDomain())))
 			{
-				fprintf(stdout, "    FAILED: %s has no .mat beside it\n", graphPath.string().c_str());
+				fprintf(stdout, "    FAILED: %s has no material file beside it\n", graphPath.string().c_str());
 				success= false;
 				continue;
 			}

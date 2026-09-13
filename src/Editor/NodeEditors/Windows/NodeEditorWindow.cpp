@@ -1197,7 +1197,7 @@ void NodeEditorWindow::addMaterialAssetReference(const std::filesystem::path& ma
 	}
 
 	// Saving the same material again keeps the existing reference rather than duplicating it
-	nodeGraph->findOrAddAssetReference(MaterialAssetReference::k_assetClassName, materialPath);
+	nodeGraph->findOrAddAssetReference(getMaterialAssetClassName(getAuthoredMaterialDomain()), materialPath);
 }
 
 void NodeEditorWindow::renderSelectedObjectPanel()

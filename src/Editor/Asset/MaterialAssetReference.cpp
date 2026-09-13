@@ -1,5 +1,7 @@
 #include "MaterialAssetReference.h"
 #include "App.h"
+#include "CompositorMaterialAssetReference.h"
+#include "ShapeMaterialAssetReference.h"
 #include "Logger.h"
 #include "MikanShaderConfig.h"
 #include "NodeEditorState.h"
@@ -115,14 +117,8 @@ void MaterialAssetReference::editorRenderPropertySheet(const NodeEditorState& ed
 								   locLabel("assets.materialAssetHeader"));
 }
 
-// -- MaterialAssetReferenceFactory -----
-MaterialAssetReferenceFactory::MaterialAssetReferenceFactory()
-	: TypedAssetReferenceFactory<MaterialAssetReference, AssetReferenceConfig>()
+const std::string& getMaterialAssetClassName(eMaterialDomain domain)
 {
-	m_defaultPath= getDefaultMaterialPath();
-}
-
-std::string MaterialAssetReferenceFactory::getDefaultMaterialPath()
-{
-	return (PathUtils::getProjectDirectory() / "shaders" / "compositor" / "").string();
+	return domain == eMaterialDomain::shape ? ShapeMaterialAssetReference::k_assetClassName
+											: CompositorMaterialAssetReference::k_assetClassName;
 }

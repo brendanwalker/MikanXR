@@ -1,5 +1,6 @@
 #include "MkMaterial.h"
 #include "MikanShaderCache.h"
+#include "PathUtils.h"
 #include "IMkShader.h"
 #include "IMkShaderCode.h"
 #include "MikanShaderConfig.h"
@@ -121,8 +122,8 @@ void MikanShaderCache::applyMaterialDefaults(MkMaterialPtr material, const Mikan
 
 bool MikanShaderCache::reloadMaterialByPath(const std::filesystem::path& materialPath)
 {
-	// Materials are cached under their program name, which is the .mat stem
-	const std::string programName= materialPath.stem().string();
+	// Materials are cached under their program name, which is the material file's path
+	const std::string programName= makeProgramName(PathUtils::resolveProjectResource(materialPath));
 	MkMaterialConstPtr cachedMaterial= m_shaderCache->getMaterialByName(programName);
 	if (!cachedMaterial)
 	{
@@ -225,6 +226,14 @@ IMkShaderCodePtr MikanShaderCache::createShaderCode(const MikanShaderConfig& con
 	return programCode;
 }
 
+// The cache key of a material: its file path, normalized, so two materials that
+// share a name in different folders (a compositor and a shape material, say)
+// never share a program
+std::string MikanShaderCache::makeProgramName(const std::filesystem::path& materialPath)
+{
+	return materialPath.lexically_normal().generic_string();
+}
+
 IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const MikanShaderConfig& config)
 {
 	const std::filesystem::path& shaderConfigPath= config.getLoadedConfigPath();
@@ -232,7 +241,7 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 	std::filesystem::path shaderFolderPath= shaderConfigPath;
 	shaderFolderPath.remove_filename();
 
-	std::string programName= shaderConfigPath.stem().string();
+	const std::string programName= makeProgramName(shaderConfigPath);
 
 	std::filesystem::path vertexShaderFilePath;
 	std::string vertexShaderCode;

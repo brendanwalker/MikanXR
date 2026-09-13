@@ -20,8 +20,8 @@
 	],
 	"assetReferences": [
 		{
-			"class_name": "MaterialAssetReference",
-			"asset_path": "shaders/compositor/videoClientDepthBlend/videoClientDepthBlend.mat"
+			"class_name": "CompositorMaterialAssetReference",
+			"asset_path": "compositor_materials/videoClientDepthBlend/videoClientDepthBlend.compmat"
 		}
 	],
 	"nodes":           [

@@ -3,7 +3,9 @@
 #include "IMkVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
+#include "CompositorMaterialAssetReference.h"
 #include "MaterialAssetReference.h"
+#include "ShapeMaterialAssetReference.h"
 #include "MikanModelResourceManager.h"
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
@@ -18,28 +20,6 @@
 
 #include "imgui.h"
 #include "IconsForkAwesome.h"
-
-namespace
-{
-// The domain a .mat serves: the one it names, else the one its vertex layout implies
-eMaterialDomain resolveMaterialDomain(const MikanShaderConfig& config)
-{
-	if (!config.domain.empty())
-	{
-		return MaterialDomainUtils::domainFromString(config.domain);
-	}
-
-	std::vector<MaterialVertexAttribute> attributes;
-	for (const GlVertexAttributeConfigPtr& attribConfig : config.vertexAttributes)
-	{
-		// Inference only reads the semantic and data type
-		attributes.push_back(
-			{attribConfig->name, attribConfig->dataType, attribConfig->semantic, eShaderValueType::INVALID});
-	}
-
-	return MaterialDomainUtils::inferDomain(attributes);
-}
-} // namespace
 
 // -- MaterialAssetComboDataSource ---
 class MaterialAssetComboDataSource : public MkGui::ComboBoxDataSource
@@ -190,7 +170,7 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 
 			if (m_materialResource)
 			{
-				m_domain= resolveMaterialDomain(materialConfig);
+				m_domain= MaterialDomainUtils::resolveMaterialDomain(materialConfig);
 
 				// Follow the cache's reloads so consumers rebuild against the recompiled program
 				m_listenedShaderCache= shaderCache;
@@ -285,7 +265,7 @@ void GraphMaterialProperty::onMaterialReloaded(MkMaterialPtr material)
 	MikanShaderConfig materialConfig;
 	if (materialConfig.load(m_materialAssetRef->getInternalAssetPath()))
 	{
-		m_domain= resolveMaterialDomain(materialConfig);
+		m_domain= MaterialDomainUtils::resolveMaterialDomain(materialConfig);
 	}
 
 	notifyPropertyModified();
@@ -336,13 +316,20 @@ void GraphMaterialProperty::editorRenderPropertySheet(const NodeEditorState& edi
 
 		// Drag-Drop Handling: the payload carries the project catalog's instance,
 		// while this property binds to the graph's own reference by index
-		auto droppedAssetRef=
-			MkGui::receiveTypedDragDropPayload<MaterialAssetReference>(MaterialAssetReference::k_assetClassName);
+		// Either domain's material class may arrive; the graph accepts only the
+		// class its own factories registered
+		auto droppedAssetRef= MkGui::receiveTypedDragDropPayload<MaterialAssetReference>(
+			CompositorMaterialAssetReference::k_assetClassName);
+		if (!droppedAssetRef)
+		{
+			droppedAssetRef= MkGui::receiveTypedDragDropPayload<MaterialAssetReference>(
+				ShapeMaterialAssetReference::k_assetClassName);
+		}
 		NodeGraphPtr ownerGraph= getOwnerGraph();
 		if (droppedAssetRef && ownerGraph)
 		{
 			AssetReferencePtr graphAssetRef= ownerGraph->findOrAddAssetReference(
-				MaterialAssetReference::k_assetClassName, droppedAssetRef->getInternalAssetPath());
+				droppedAssetRef->getClassName(), droppedAssetRef->getInternalAssetPath());
 			if (graphAssetRef)
 			{
 				setMaterialAssetReference(std::static_pointer_cast<MaterialAssetReference>(graphAssetRef));

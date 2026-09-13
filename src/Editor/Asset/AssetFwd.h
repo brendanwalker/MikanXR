@@ -27,6 +27,12 @@ class MaterialAssetReference;
 using MaterialAssetReferencePtr= std::shared_ptr<MaterialAssetReference>;
 using MaterialAssetReferenceConstPtr= std::shared_ptr<const MaterialAssetReference>;
 
+class CompositorMaterialAssetReference;
+using CompositorMaterialAssetReferencePtr= std::shared_ptr<CompositorMaterialAssetReference>;
+
+class ShapeMaterialAssetReference;
+using ShapeMaterialAssetReferencePtr= std::shared_ptr<ShapeMaterialAssetReference>;
+
 class ModelAssetReference;
 using ModelAssetReferencePtr= std::shared_ptr<ModelAssetReference>;
 using ModelAssetReferenceConstPtr= std::shared_ptr<const ModelAssetReference>;

@@ -920,8 +920,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # The graph, material, shader, and model sources ship too: a project reads
     # the bundled ones through the asset overlay rather than owning copies
     FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.txt" PATTERN "*.lua" PATTERN "*.onnx"
-      PATTERN "*.compgraph" PATTERN "*.shapegraph" PATTERN "*.matgraph" PATTERN "*.mat" PATTERN "*.vert"
-      PATTERN "*.frag" PATTERN "*.obj" PATTERN "*.mtl")
+      PATTERN "*.compgraph" PATTERN "*.shapegraph" PATTERN "*.matgraph" PATTERN "*.compmat" PATTERN "*.shapemat"
+      PATTERN "*.vert" PATTERN "*.frag" PATTERN "*.obj" PATTERN "*.mtl")
 
   # Install CEF binary and resource files
   if(DEFINED CEF_ROOT)
