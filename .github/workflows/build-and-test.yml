@@ -32,6 +32,26 @@ jobs:
       - name: Check source formatting
         run: cmake -P cmake/RunClangFormat.cmake -- --check
 
+  # -----------------------------------------------------------------
+  # The AI usage badges are rendered from docs/ai-usage.json, which is
+  # committed. Collecting into that ledger needs the Claude Code
+  # transcripts on the developer's machine, so it cannot happen here,
+  # but re-rendering from the ledger is a pure function of files in the
+  # repo. This job re-renders and fails if the published badges or
+  # TOKEN_STATS.md have drifted from the ledger. No toolchain, no
+  # secrets, seconds long.
+  # -----------------------------------------------------------------
+  ai-usage-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Check AI usage badges against the ledger
+        run: python tools/token_stats.py --check
+
   build:
     runs-on: windows-2022
 

@@ -165,6 +165,20 @@ All of these build and invoke `MikanClientCodeGen` with the matching `*CodeGenCo
 
 ---
 
+## AI usage badges
+
+The badges in `README.md` and the tables in `TOKEN_STATS.md` are rendered from `docs/ai-usage.json`, a committed ledger of per-session token counts:
+
+```
+python tools/token_stats.py            # scan local Claude Code transcripts, update the ledger, re-render
+python tools/token_stats.py --render   # re-render from the ledger without scanning
+python tools/token_stats.py --check    # verify the rendered files match the ledger (what CI runs)
+```
+
+The scan needs the transcripts under `~/.claude/projects/`, so it only works on the machine the sessions ran on. `--check` reads committed files only.
+
+---
+
 ## Install and installer
 
 ```

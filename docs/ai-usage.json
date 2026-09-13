@@ -1,0 +1,1132 @@
+{
+  "schemaVersion": 1,
+  "sessions": {
+    "bf1aab0e-ac0b-4510-a604-2f41651ed6a5": {
+      "label": "Unreal reference hand skeleton bone transforms",
+      "firstActivity": "2026-07-11T06:48:35.719Z",
+      "lastActivity": "2026-07-11T06:48:42.477Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 1,
+          "input": 2,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 12098,
+          "cacheRead": 23803,
+          "output": 2327
+        }
+      }
+    },
+    "27edf9b1-7c34-4dd4-9179-e604afb801c9": {
+      "label": "BodyStateEstimator code analysis",
+      "firstActivity": "2026-07-12T03:23:25.855Z",
+      "lastActivity": "2026-07-12T03:27:50.785Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 6,
+          "input": 5746,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 42715,
+          "cacheRead": 277599,
+          "output": 5498
+        }
+      }
+    },
+    "bb1669f1-4176-4f99-b70e-38920391cc44": {
+      "label": "ARKit streaming to MikanXR plan",
+      "firstActivity": "2026-07-12T20:49:31.160Z",
+      "lastActivity": "2026-07-30T08:42:48.958Z",
+      "branch": "iphone",
+      "models": {
+        "claude-opus-5": {
+          "calls": 94,
+          "input": 13578,
+          "cacheWrite5m": 596173,
+          "cacheWrite1h": 0,
+          "cacheRead": 7496940,
+          "output": 108902
+        },
+        "claude-sonnet-5": {
+          "calls": 2672,
+          "input": 32484,
+          "cacheWrite5m": 968545,
+          "cacheWrite1h": 16976430,
+          "cacheRead": 1273784544,
+          "output": 2272629
+        }
+      }
+    },
+    "8859e189-cf8e-4d87-b0f0-34188008f1d0": {
+      "label": "LiveLink head position in Unreal/ARKit",
+      "firstActivity": "2026-07-14T05:49:19.421Z",
+      "lastActivity": "2026-07-14T06:27:41.338Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 4,
+          "input": 5597,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 13972,
+          "cacheRead": 138543,
+          "output": 4099
+        }
+      }
+    },
+    "e54cb883-409e-4494-acec-6dbfa3aa717d": {
+      "label": "Blender FBX export size issue",
+      "firstActivity": "2026-07-15T07:35:55.626Z",
+      "lastActivity": "2026-07-15T08:08:00.211Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 24,
+          "input": 6464,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 48540,
+          "cacheRead": 1362943,
+          "output": 23743
+        }
+      }
+    },
+    "e1be012c-f0ab-44ef-9c9d-bf96b6ceace9": {
+      "label": "AngelScript vs Lua for Mikan",
+      "firstActivity": "2026-07-17T03:40:21.680Z",
+      "lastActivity": "2026-07-17T03:41:49.609Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 5,
+          "input": 10,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 16144,
+          "cacheRead": 179616,
+          "output": 1799
+        }
+      }
+    },
+    "e84a4fe6-dbbb-419c-871e-eb02ff808086": {
+      "label": "Sensor grain effect for CG compositing",
+      "firstActivity": "2026-07-17T07:44:00.331Z",
+      "lastActivity": "2026-07-17T08:19:57.525Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 89,
+          "input": 773,
+          "cacheWrite5m": 243523,
+          "cacheWrite1h": 198508,
+          "cacheRead": 9492484,
+          "output": 94566
+        }
+      }
+    },
+    "fd1b0429-d2a8-4ba6-98d0-16ceb78db2ce": {
+      "label": "Efficient Claude integration for MikanXR",
+      "firstActivity": "2026-07-18T04:37:58.407Z",
+      "lastActivity": "2026-07-18T04:40:44.318Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 18,
+          "input": 159,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 45136,
+          "cacheRead": 909205,
+          "output": 10089
+        }
+      }
+    },
+    "b254da4d-1c3c-4146-8029-cf7f17ed016a": {
+      "label": "Lua script HTTP endpoint registration",
+      "firstActivity": "2026-07-18T04:58:13.432Z",
+      "lastActivity": "2026-07-18T07:09:09.846Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 270,
+          "input": 2278,
+          "cacheWrite5m": 412900,
+          "cacheWrite1h": 545861,
+          "cacheRead": 45431122,
+          "output": 222891
+        }
+      }
+    },
+    "d4115c0b-6a16-4dda-8f1e-2413e290e2a7": {
+      "label": "EditorWindow boilerplate refactoring",
+      "firstActivity": "2026-07-18T06:09:18.276Z",
+      "lastActivity": "2026-07-18T06:15:17.535Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 31,
+          "input": 62,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 111664,
+          "cacheRead": 3178012,
+          "output": 21707
+        }
+      }
+    },
+    "3b5b23f6-496e-4fc5-9597-78831354b5f4": {
+      "label": "MCP server integration for MikanXR",
+      "firstActivity": "2026-07-22T09:32:09.738Z",
+      "lastActivity": "2026-07-22T09:46:11.011Z",
+      "branch": "iphone",
+      "models": {
+        "claude-sonnet-5": {
+          "calls": 44,
+          "input": 3721,
+          "cacheWrite5m": 175142,
+          "cacheWrite1h": 74365,
+          "cacheRead": 2531945,
+          "output": 47681
+        }
+      }
+    },
+    "347026e9-bc02-4aeb-90f6-add26b750de3": {
+      "label": "DySample depth upsampling integration",
+      "firstActivity": "2026-07-25T19:07:25.442Z",
+      "lastActivity": "2026-07-26T07:02:26.963Z",
+      "branch": "iphone",
+      "models": {
+        "claude-opus-4-8": {
+          "calls": 413,
+          "input": 6944,
+          "cacheWrite5m": 521884,
+          "cacheWrite1h": 1663718,
+          "cacheRead": 124537340,
+          "output": 465090
+        }
+      }
+    },
+    "df57a597-bd73-4d99-9a23-a21d699dc7b4": {
+      "label": "GStreamer event bus polling in MikanGStreamerVideoDevice",
+      "firstActivity": "2026-07-26T19:18:35.960Z",
+      "lastActivity": "2026-07-26T21:54:18.955Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-opus-4-8": {
+          "calls": 74,
+          "input": 137,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 205588,
+          "cacheRead": 8041655,
+          "output": 68142
+        }
+      }
+    },
+    "2c5fe4d4-b97f-445f-949d-b6764059d234": {
+      "label": "SteamVR device disconnection crash",
+      "firstActivity": "2026-07-26T21:57:22.730Z",
+      "lastActivity": "2026-07-26T23:31:25.419Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-opus-4-8": {
+          "calls": 17,
+          "input": 32,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 76171,
+          "cacheRead": 1003214,
+          "output": 17023
+        }
+      }
+    },
+    "0a2b4224-a7b1-41fb-8879-f965933a1cc6": {
+      "label": "Stencil alignment with natural features",
+      "firstActivity": "2026-07-27T00:35:37.872Z",
+      "lastActivity": "2026-07-27T01:44:39.938Z",
+      "branch": "model_alignment",
+      "models": {
+        "claude-opus-4-8": {
+          "calls": 172,
+          "input": 332,
+          "cacheWrite5m": 263627,
+          "cacheWrite1h": 314094,
+          "cacheRead": 25466083,
+          "output": 188751
+        }
+      }
+    },
+    "4b740127-3fa0-4ec1-bccf-3b3377b18758": {
+      "label": "Orthographic viewport and distance ruler",
+      "firstActivity": "2026-07-27T02:58:16.389Z",
+      "lastActivity": "2026-07-27T07:57:17.282Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-opus-4-8": {
+          "calls": 283,
+          "input": 564,
+          "cacheWrite5m": 499893,
+          "cacheWrite1h": 797740,
+          "cacheRead": 69661824,
+          "output": 286166
+        }
+      }
+    },
+    "3514f9af-f5a4-4a70-bf06-1c513c02c87a": {
+      "label": "Light channel flashing in Unreal",
+      "firstActivity": "2026-07-27T06:09:13.767Z",
+      "lastActivity": "2026-07-27T06:10:16.944Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-opus-4-8": {
+          "calls": 4,
+          "input": 8,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 12872,
+          "cacheRead": 139217,
+          "output": 2721
+        }
+      }
+    },
+    "f606064a-fa31-408f-9d21-74e786c6311f": {
+      "label": "MikanXR plugin request timeout handling",
+      "firstActivity": "2026-07-28T06:11:29.908Z",
+      "lastActivity": "2026-07-28T06:38:22.860Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-opus-4-8": {
+          "calls": 59,
+          "input": 7623,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 182210,
+          "cacheRead": 7807160,
+          "output": 91292
+        }
+      }
+    },
+    "ebeb96da-d1d1-4af0-ba3f-cdafedf91a5d": {
+      "label": "Doctor command",
+      "firstActivity": "2026-07-29T04:05:36.400Z",
+      "lastActivity": "2026-07-29T04:09:54.652Z",
+      "branch": "multi_camera",
+      "models": {
+        "claude-opus-4-8": {
+          "calls": 11,
+          "input": 21,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 55164,
+          "cacheRead": 659186,
+          "output": 16111
+        }
+      }
+    },
+    "75aaf43f-4e17-479a-a584-7621552b2f0d": {
+      "label": "Mikan Claude documentation structure",
+      "firstActivity": "2026-08-03T02:32:04.497Z",
+      "lastActivity": "2026-08-03T03:05:10.085Z",
+      "branch": "iphone",
+      "models": {
+        "claude-fable-5": {
+          "calls": 234,
+          "input": 6417,
+          "cacheWrite5m": 730584,
+          "cacheWrite1h": 181012,
+          "cacheRead": 22075805,
+          "output": 203137
+        }
+      }
+    },
+    "6049a944-5a66-4a54-8723-7b0499433680": {
+      "label": "V-RGBX CUDA device index error",
+      "firstActivity": "2026-08-20T03:00:10.993Z",
+      "lastActivity": "2026-08-22T06:37:19.158Z",
+      "branch": "hdri_light",
+      "models": {
+        "claude-opus-5": {
+          "calls": 483,
+          "input": 966,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 2893679,
+          "cacheRead": 202001155,
+          "output": 394118
+        }
+      }
+    },
+    "41780b27-1318-46e3-926c-edd037489105": {
+      "label": "Depth-derived proxy geometry",
+      "firstActivity": "2026-08-22T06:51:14.238Z",
+      "lastActivity": "2026-08-23T05:26:35.791Z",
+      "branch": "synthetic_depth",
+      "models": {
+        "claude-fable-5": {
+          "calls": 206,
+          "input": 412,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 420876,
+          "cacheRead": 54688244,
+          "output": 224541
+        },
+        "claude-opus-5": {
+          "calls": 199,
+          "input": 398,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 1244441,
+          "cacheRead": 102170076,
+          "output": 189121
+        }
+      }
+    },
+    "e3dcde98-d8cc-4c80-b767-8f1867b136e7": {
+      "label": "Depth-derived proxy geometry",
+      "firstActivity": "2026-08-22T06:51:14.238Z",
+      "lastActivity": "2026-08-22T09:36:57.477Z",
+      "branch": "synthetic_depth",
+      "models": {
+        "claude-fable-5": {
+          "calls": 206,
+          "input": 412,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 420876,
+          "cacheRead": 54688244,
+          "output": 224541
+        },
+        "claude-opus-5": {
+          "calls": 74,
+          "input": 148,
+          "cacheWrite5m": 277704,
+          "cacheWrite1h": 0,
+          "cacheRead": 6871141,
+          "output": 35739
+        }
+      }
+    },
+    "d04d4476-7628-4fc6-89f5-e6072a19da69": {
+      "label": "Claude.md and reference docs review",
+      "firstActivity": "2026-08-23T05:59:34.822Z",
+      "lastActivity": "2026-08-23T06:28:40.621Z",
+      "branch": "main",
+      "models": {
+        "claude-opus-5": {
+          "calls": 186,
+          "input": 372,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 601439,
+          "cacheRead": 40476672,
+          "output": 114065
+        }
+      }
+    },
+    "f7e0ccb0-a6d1-4f1c-8bb1-357e8ddaeba1": {
+      "label": "Mikan automation server framework",
+      "firstActivity": "2026-08-23T06:34:12.777Z",
+      "lastActivity": "2026-08-23T10:46:00.807Z",
+      "branch": "transaction",
+      "models": {
+        "claude-fable-5": {
+          "calls": 341,
+          "input": 682,
+          "cacheWrite5m": 198507,
+          "cacheWrite1h": 1039936,
+          "cacheRead": 116148343,
+          "output": 329322
+        },
+        "claude-opus-5": {
+          "calls": 180,
+          "input": 360,
+          "cacheWrite5m": 690534,
+          "cacheWrite1h": 0,
+          "cacheRead": 23477166,
+          "output": 86746
+        }
+      }
+    },
+    "c61e877b-f1a2-494a-86d4-8ed5ef8a8a7b": {
+      "label": "Rendering order and line depth issues",
+      "firstActivity": "2026-08-25T04:05:31.888Z",
+      "lastActivity": "2026-08-25T05:26:41.392Z",
+      "branch": "main",
+      "models": {
+        "claude-fable-5": {
+          "calls": 185,
+          "input": 370,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 430752,
+          "cacheRead": 53748099,
+          "output": 201264
+        }
+      }
+    },
+    "e7ee15d5-e225-4272-9621-894e08e2a09c": {
+      "label": "MikanXR UI styling from MikanTrack",
+      "firstActivity": "2026-08-25T05:46:17.081Z",
+      "lastActivity": "2026-08-26T06:49:01.239Z",
+      "branch": "ui_update",
+      "models": {
+        "claude-fable-5": {
+          "calls": 276,
+          "input": 552,
+          "cacheWrite5m": 248298,
+          "cacheWrite1h": 359336,
+          "cacheRead": 54193933,
+          "output": 225343
+        },
+        "claude-opus-5": {
+          "calls": 525,
+          "input": 1050,
+          "cacheWrite5m": 364152,
+          "cacheWrite1h": 3210808,
+          "cacheRead": 265250813,
+          "output": 375319
+        },
+        "claude-sonnet-5": {
+          "calls": 660,
+          "input": 1320,
+          "cacheWrite5m": 1278089,
+          "cacheWrite1h": 0,
+          "cacheRead": 85665712,
+          "output": 402155
+        }
+      }
+    },
+    "8bb3f78f-4ec6-44d3-b48d-b754913743fe": {
+      "label": "3D mesh generation for AR occlusion",
+      "firstActivity": "2026-08-25T09:11:12.901Z",
+      "lastActivity": "2026-08-30T05:23:40.583Z",
+      "branch": "3d_reconstruct",
+      "models": {
+        "claude-fable-5": {
+          "calls": 93,
+          "input": 186,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 487335,
+          "cacheRead": 22855017,
+          "output": 136971
+        },
+        "claude-opus-5": {
+          "calls": 26,
+          "input": 52,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 94703,
+          "cacheRead": 2147112,
+          "output": 25628
+        }
+      }
+    },
+    "d18154ee-9d4e-4179-944c-9b445bd03726": {
+      "label": "Daily Checkin Twitch redeem in SAMMI",
+      "firstActivity": "2026-08-26T04:52:46.190Z",
+      "lastActivity": "2026-09-09T04:32:35.824Z",
+      "branch": "ui_update",
+      "models": {
+        "claude-opus-5": {
+          "calls": 75,
+          "input": 150,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 504056,
+          "cacheRead": 11143527,
+          "output": 157324
+        }
+      }
+    },
+    "6d9efba5-aef0-4223-a72b-8b4e81b62cd1": {
+      "label": "Wine glass icon scaling",
+      "firstActivity": "2026-08-26T06:50:50.852Z",
+      "lastActivity": "2026-08-26T06:59:05.059Z",
+      "branch": "ui_update",
+      "models": {
+        "claude-opus-5": {
+          "calls": 27,
+          "input": 54,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 55881,
+          "cacheRead": 1613676,
+          "output": 20724
+        }
+      }
+    },
+    "6367e20c-6ad7-4a0d-bcdb-8eac8658b3f3": {
+      "label": "CompositorNodeGraph undo/redo support",
+      "firstActivity": "2026-08-26T07:17:26.407Z",
+      "lastActivity": "2026-08-27T08:37:36.282Z",
+      "branch": "node_graph_transaction",
+      "models": {
+        "claude-fable-5": {
+          "calls": 463,
+          "input": 926,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 2059578,
+          "cacheRead": 230758376,
+          "output": 475575
+        },
+        "claude-opus-5": {
+          "calls": 189,
+          "input": 378,
+          "cacheWrite5m": 50633,
+          "cacheWrite1h": 1136980,
+          "cacheRead": 99352722,
+          "output": 204095
+        }
+      }
+    },
+    "c7dd6d1c-9bdd-4ead-82dd-d9b65474168c": {
+      "label": "Fix CefShutdown ordering in App::shutdown",
+      "firstActivity": "2026-08-27T08:20:47.156Z",
+      "lastActivity": "2026-08-27T08:24:32.374Z",
+      "branch": "claude/hopeful-hofstadter-cfbd19",
+      "models": {
+        "claude-fable-5": {
+          "calls": 28,
+          "input": 56,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 57962,
+          "cacheRead": 1768221,
+          "output": 15538
+        }
+      }
+    },
+    "f25f7a61-bab5-4222-b0ad-8f098e5d0831": {
+      "label": "Spout logging window management",
+      "firstActivity": "2026-08-27T08:45:22.431Z",
+      "lastActivity": "2026-08-27T09:09:19.378Z",
+      "branch": "main",
+      "models": {
+        "claude-opus-5": {
+          "calls": 143,
+          "input": 286,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 203072,
+          "cacheRead": 22165034,
+          "output": 78634
+        }
+      }
+    },
+    "59aab483-31f6-4be9-b9c9-924089f69e3a": {
+      "label": "Lua component binding architecture",
+      "firstActivity": "2026-08-28T05:58:10.683Z",
+      "lastActivity": "2026-08-28T06:00:40.382Z",
+      "branch": "main",
+      "models": {
+        "claude-opus-5": {
+          "calls": 16,
+          "input": 32,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 93067,
+          "cacheRead": 1374637,
+          "output": 9632
+        }
+      }
+    },
+    "cc06f08e-da03-4ce0-87d2-4e134264ac5d": {
+      "label": "iPhone ARKit merge conflicts",
+      "firstActivity": "2026-08-28T08:04:27.081Z",
+      "lastActivity": "2026-08-28T08:23:35.278Z",
+      "branch": "iphone",
+      "models": {
+        "claude-opus-5": {
+          "calls": 83,
+          "input": 166,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 245498,
+          "cacheRead": 8694207,
+          "output": 44199
+        }
+      }
+    },
+    "b96705be-a5ec-4147-b37f-32b313166b9c": {
+      "label": "List agents",
+      "firstActivity": "2026-08-28T08:18:14.690Z",
+      "lastActivity": "2026-08-30T08:09:23.545Z",
+      "branch": "iphone",
+      "models": {
+        "claude-opus-5": {
+          "calls": 1599,
+          "input": 3198,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 4666315,
+          "cacheRead": 822545213,
+          "output": 1278581
+        }
+      }
+    },
+    "72faf153-adef-474d-8a6a-70f469da514f": {
+      "label": "Project Outliner tree view panel",
+      "firstActivity": "2026-09-01T03:39:30.726Z",
+      "lastActivity": "2026-09-03T06:22:42.872Z",
+      "branch": "outliner",
+      "models": {
+        "claude-fable-5": {
+          "calls": 250,
+          "input": 500,
+          "cacheWrite5m": 162547,
+          "cacheWrite1h": 1506799,
+          "cacheRead": 76684928,
+          "output": 265397
+        },
+        "claude-opus-5": {
+          "calls": 341,
+          "input": 682,
+          "cacheWrite5m": 374605,
+          "cacheWrite1h": 1387881,
+          "cacheRead": 195091568,
+          "output": 256733
+        }
+      }
+    },
+    "21e4ad93-8563-4b6b-bcfa-1503591ecced": {
+      "label": "Homebrew robot arm simulator",
+      "firstActivity": "2026-09-01T08:40:38.214Z",
+      "lastActivity": "2026-09-01T08:41:09.168Z",
+      "branch": "outliner",
+      "models": {
+        "claude-fable-5": {
+          "calls": 1,
+          "input": 2,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 16501,
+          "cacheRead": 25436,
+          "output": 4991
+        }
+      }
+    },
+    "3b01234b-3dfa-43cd-a5bf-f2c43e241f02": {
+      "label": "Visual Studio detached window rendering bug",
+      "firstActivity": "2026-09-03T02:44:40.430Z",
+      "lastActivity": "2026-09-04T02:12:23.122Z",
+      "branch": "project_scripting",
+      "models": {
+        "claude-opus-5": {
+          "calls": 190,
+          "input": 380,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 394695,
+          "cacheRead": 39964555,
+          "output": 128278
+        }
+      }
+    },
+    "51b97c7e-4125-4dd7-b2e1-f57d5ec167a7": {
+      "label": "MikanGStreamer shutdown crash",
+      "firstActivity": "2026-09-03T03:19:18.578Z",
+      "lastActivity": "2026-09-03T03:31:15.264Z",
+      "branch": "outliner",
+      "models": {
+        "claude-opus-5": {
+          "calls": 53,
+          "input": 106,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 108409,
+          "cacheRead": 5099965,
+          "output": 40416
+        }
+      }
+    },
+    "4bc470ee-cf6d-4569-8ff4-7850792122a4": {
+      "label": "Project-level scripting refactor",
+      "firstActivity": "2026-09-03T06:43:25.380Z",
+      "lastActivity": "2026-09-03T08:13:35.312Z",
+      "branch": "project_scripting",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 152,
+          "input": 39187,
+          "cacheWrite5m": 435152,
+          "cacheWrite1h": 492007,
+          "cacheRead": 46281951,
+          "output": 259253
+        },
+        "claude-opus-5": {
+          "calls": 62,
+          "input": 124,
+          "cacheWrite5m": 309325,
+          "cacheWrite1h": 0,
+          "cacheRead": 6909812,
+          "output": 50089
+        },
+        "claude-sonnet-5": {
+          "calls": 57,
+          "input": 114,
+          "cacheWrite5m": 148577,
+          "cacheWrite1h": 0,
+          "cacheRead": 5947886,
+          "output": 28505
+        }
+      }
+    },
+    "091e2641-5525-4c70-bdf0-6ec47e28f1dd": {
+      "label": "Lua procedural light generation",
+      "firstActivity": "2026-09-04T05:41:11.205Z",
+      "lastActivity": "2026-09-07T00:45:15.404Z",
+      "branch": "lights",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 268,
+          "input": 7316,
+          "cacheWrite5m": 220930,
+          "cacheWrite1h": 3145860,
+          "cacheRead": 137080439,
+          "output": 467237
+        },
+        "claude-opus-5": {
+          "calls": 565,
+          "input": 1130,
+          "cacheWrite5m": 742229,
+          "cacheWrite1h": 2454096,
+          "cacheRead": 161030151,
+          "output": 441420
+        },
+        "claude-sonnet-5": {
+          "calls": 311,
+          "input": 622,
+          "cacheWrite5m": 725150,
+          "cacheWrite1h": 0,
+          "cacheRead": 40651837,
+          "output": 169250
+        }
+      }
+    },
+    "b0a87872-dc82-473e-9734-9f92ddb5ad8d": {
+      "label": "MikanXR_UEClientSource compositor rendering",
+      "firstActivity": "2026-09-06T06:14:27.755Z",
+      "lastActivity": "2026-09-06T06:51:24.442Z",
+      "branch": "lights",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 29,
+          "input": 898,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 212181,
+          "cacheRead": 3845732,
+          "output": 83302
+        },
+        "claude-opus-5": {
+          "calls": 30,
+          "input": 90,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 227819,
+          "cacheRead": 6484788,
+          "output": 40926
+        }
+      }
+    },
+    "e72f0682-9b15-4fc2-acd9-882c70a9964d": {
+      "label": "Unreal MCP support evaluation",
+      "firstActivity": "2026-09-06T06:22:27.624Z",
+      "lastActivity": "2026-09-06T17:26:45.948Z",
+      "branch": "lights",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 79,
+          "input": 2174,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 376771,
+          "cacheRead": 19050576,
+          "output": 155421
+        },
+        "claude-opus-5": {
+          "calls": 234,
+          "input": 498,
+          "cacheWrite5m": 279444,
+          "cacheWrite1h": 1688394,
+          "cacheRead": 90372534,
+          "output": 302682
+        }
+      }
+    },
+    "5ce2fbc5-d550-4e8a-9ac8-d69efd439c2a": {
+      "label": "MikanXR stencil model data fetch optimization",
+      "firstActivity": "2026-09-07T00:53:50.315Z",
+      "lastActivity": "2026-09-07T04:28:24.113Z",
+      "branch": "http_fetch",
+      "models": {
+        "claude-opus-5": {
+          "calls": 251,
+          "input": 502,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 643937,
+          "cacheRead": 59424531,
+          "output": 150108
+        }
+      }
+    },
+    "d99d2a0a-1479-45ba-ae73-4d9732bd54dc": {
+      "label": "Twitch channel points integration architecture",
+      "firstActivity": "2026-09-07T04:43:09.873Z",
+      "lastActivity": "2026-09-07T06:15:49.043Z",
+      "branch": "main",
+      "models": {
+        "claude-opus-5": {
+          "calls": 134,
+          "input": 268,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 455487,
+          "cacheRead": 22944037,
+          "output": 70071
+        }
+      }
+    },
+    "ffe73a3e-3f94-47fa-aea8-66ea77f86f56": {
+      "label": "JasperMozuProject porting to link-engine",
+      "firstActivity": "2026-09-07T08:36:52.912Z",
+      "lastActivity": "2026-09-07T21:23:45.323Z",
+      "branch": "vulkanSharedTexture",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 120,
+          "input": 3362,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 1876141,
+          "cacheRead": 55281077,
+          "output": 322514
+        },
+        "claude-opus-5": {
+          "calls": 82,
+          "input": 164,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 763075,
+          "cacheRead": 37826887,
+          "output": 103055
+        }
+      }
+    },
+    "a933b944-3b8f-467e-a7c8-e03ad41e1c3d": {
+      "label": "MikanXR cross-platform rendering",
+      "firstActivity": "2026-09-07T17:40:42.399Z",
+      "lastActivity": "2026-09-07T18:26:25.552Z",
+      "branch": "vulkanSharedTexture",
+      "models": {
+        "claude-opus-5": {
+          "calls": 24,
+          "input": 48,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 103323,
+          "cacheRead": 2022014,
+          "output": 25638
+        }
+      }
+    },
+    "a488c736-4e98-4f3f-95d0-53d8f4681cb4": {
+      "label": "CEF browser window interactivity",
+      "firstActivity": "2026-09-07T21:25:20.198Z",
+      "lastActivity": "2026-09-08T03:53:33.509Z",
+      "branch": "cef-window",
+      "models": {
+        "claude-opus-5": {
+          "calls": 637,
+          "input": 1274,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 1219011,
+          "cacheRead": 296648741,
+          "output": 414758
+        }
+      }
+    },
+    "fbd9ab9b-543c-4af8-b3d3-1592e0425995": {
+      "label": "MikanXR camera position persistence",
+      "firstActivity": "2026-09-08T04:43:29.631Z",
+      "lastActivity": "2026-09-08T06:05:43.016Z",
+      "branch": "main",
+      "models": {
+        "claude-opus-5": {
+          "calls": 272,
+          "input": 544,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 391798,
+          "cacheRead": 72989508,
+          "output": 145965
+        }
+      }
+    },
+    "5147cc88-5032-46c1-b03b-667239cf6638": {
+      "label": "Fix missing CEF localization labels",
+      "firstActivity": "2026-09-08T05:24:29.126Z",
+      "lastActivity": "2026-09-08T07:37:11.422Z",
+      "branch": "claude/busy-pare-83eb2d",
+      "models": {
+        "claude-opus-5": {
+          "calls": 49,
+          "input": 98,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 126720,
+          "cacheRead": 3617494,
+          "output": 26890
+        }
+      }
+    },
+    "a37bfeea-91c6-4df5-b919-4846c047f619": {
+      "label": "QuadShape depth sorting in compositor",
+      "firstActivity": "2026-09-08T06:31:56.290Z",
+      "lastActivity": "2026-09-08T07:25:56.724Z",
+      "branch": "main",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 108,
+          "input": 3126,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 244586,
+          "cacheRead": 18501042,
+          "output": 91524
+        }
+      }
+    },
+    "04e38743-d34a-4b67-8576-5c6a31898e8f": {
+      "label": "Node graph editor for materials",
+      "firstActivity": "2026-09-08T07:27:05.720Z",
+      "lastActivity": "2026-09-10T04:01:01.368Z",
+      "branch": "main",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 515,
+          "input": 15080,
+          "cacheWrite5m": 1431098,
+          "cacheWrite1h": 2579652,
+          "cacheRead": 181756778,
+          "output": 898090
+        },
+        "claude-opus-5": {
+          "calls": 132,
+          "input": 264,
+          "cacheWrite5m": 510472,
+          "cacheWrite1h": 0,
+          "cacheRead": 15447658,
+          "output": 86629
+        }
+      }
+    },
+    "cf9ee194-ef2d-4464-8330-c6d4c9156367": {
+      "label": "Project outliner layout changes",
+      "firstActivity": "2026-09-10T04:29:04.997Z",
+      "lastActivity": "2026-09-12T07:08:45.036Z",
+      "branch": "main",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 225,
+          "input": 6630,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 1755398,
+          "cacheRead": 84756021,
+          "output": 262644
+        },
+        "claude-opus-5": {
+          "calls": 35,
+          "input": 70,
+          "cacheWrite5m": 299581,
+          "cacheWrite1h": 0,
+          "cacheRead": 3113793,
+          "output": 45161
+        }
+      }
+    },
+    "3b6f9234-dee5-4f52-8a6e-1f104bbe2c0f": {
+      "label": "Project asset management system",
+      "firstActivity": "2026-09-12T07:39:14.804Z",
+      "lastActivity": "2026-09-13T07:33:47.049Z",
+      "branch": "content-browser",
+      "models": {
+        "claude-fable-5-1": {
+          "calls": 281,
+          "input": 8320,
+          "cacheWrite5m": 226410,
+          "cacheWrite1h": 2076909,
+          "cacheRead": 125708312,
+          "output": 464934
+        },
+        "claude-opus-5": {
+          "calls": 352,
+          "input": 704,
+          "cacheWrite5m": 1089054,
+          "cacheWrite1h": 0,
+          "cacheRead": 33694241,
+          "output": 220551
+        },
+        "claude-sonnet-5": {
+          "calls": 86,
+          "input": 172,
+          "cacheWrite5m": 462738,
+          "cacheWrite1h": 0,
+          "cacheRead": 9762077,
+          "output": 51389
+        }
+      }
+    },
+    "ed4ca0b7-60ba-415e-a0ad-1860df8cf53c": {
+      "label": "MikanXR energy/water usage badging",
+      "firstActivity": "2026-09-13T04:41:39.804Z",
+      "lastActivity": "2026-09-13T07:50:54.978Z",
+      "branch": "content-browser",
+      "models": {
+        "claude-opus-5": {
+          "calls": 52,
+          "input": 104,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 202558,
+          "cacheRead": 5915713,
+          "output": 52847
+        }
+      }
+    },
+    "5e693a4d-6e17-4531-85d1-584b9d8e813b": {
+      "label": "Localization contribution workflow",
+      "firstActivity": "2026-09-13T06:41:37.836Z",
+      "lastActivity": "2026-09-13T07:13:36.493Z",
+      "branch": "content-browser",
+      "models": {
+        "claude-opus-5": {
+          "calls": 16,
+          "input": 32,
+          "cacheWrite5m": 0,
+          "cacheWrite1h": 127738,
+          "cacheRead": 1127725,
+          "output": 27634
+        }
+      }
+    }
+  },
+  "excluded": {
+    "1ca1a79c-cc0f-40c8-bb95-5b5db469bac6": {
+      "reason": "outside-repo"
+    },
+    "21c00bc2-e910-4fe0-b136-3cfd02ad904b": {
+      "reason": "outside-repo"
+    },
+    "2dc53dce-c715-4265-82d3-88c5ad5ae604": {
+      "reason": "outside-repo"
+    },
+    "356d659d-3cde-4c0b-bbc1-bef43a4d2f3a": {
+      "reason": "outside-repo"
+    },
+    "4ac3774b-763d-45c3-a0ef-f1ca5753b894": {
+      "reason": "manual",
+      "note": "MikanTrack work, counted in that repo"
+    },
+    "58453e30-1564-46ea-8206-f7addea12b7f": {
+      "reason": "outside-repo"
+    },
+    "656cf457-eae9-43c7-aa79-94da1af8abdd": {
+      "reason": "manual",
+      "note": "MikanTrack work, counted in that repo"
+    },
+    "6f113e65-3d35-483b-ad9c-1e5ecbb32974": {
+      "reason": "outside-repo"
+    },
+    "78c6231e-c773-425f-9035-3902d9a912e2": {
+      "reason": "outside-repo"
+    },
+    "7d1bd754-bd18-405a-92cd-2316852369e8": {
+      "reason": "manual",
+      "note": "MikanTrack work, counted in that repo"
+    },
+    "8f667e50-cf5d-4d36-8cd6-92b98572a026": {
+      "reason": "manual",
+      "note": "MikanTrack work, counted in that repo"
+    },
+    "aa3a90ea-54b1-4179-bc80-4cb1994f004d": {
+      "reason": "outside-repo"
+    },
+    "af7ea373-96e6-4a6b-ac6d-5b23d382bfa1": {
+      "reason": "outside-repo"
+    },
+    "d5366ae9-e889-472c-8bf7-51ce7ec7e80b": {
+      "reason": "manual",
+      "note": "MikanTrack work, counted in that repo"
+    },
+    "e4fa6767-be6c-4bae-8461-d662357148a0": {
+      "reason": "outside-repo"
+    },
+    "eeda76ac-a3bd-4ab5-8317-5e075fef93db": {
+      "reason": "outside-repo"
+    }
+  }
+}
