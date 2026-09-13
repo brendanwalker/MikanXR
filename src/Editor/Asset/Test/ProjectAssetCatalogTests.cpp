@@ -33,7 +33,7 @@ struct CatalogTestProject
 		projectDir= root / "project";
 		externalDir= root / "external";
 
-		for (const char* folder : {"graphs", "models", "scripts", "shaders/compositor/m", "textures"})
+		for (const char* folder : {"compositors", "models", "scripts", "shaders/compositor/m", "textures"})
 		{
 			std::filesystem::create_directories(projectDir / folder);
 		}
@@ -49,7 +49,7 @@ struct CatalogTestProject
 		writeFile(projectDir / "models" / "cube.obj", "o cube");
 
 		// A compositor graph that references the material
-		writeFile(projectDir / "graphs" / "comp.graph",
+		writeFile(projectDir / "compositors" / "comp.compgraph",
 				  R"({
 	"class_name": "CompositorNodeGraph",
 	"assetReferences": [
@@ -68,10 +68,10 @@ struct CatalogTestProject
 	"vertexAttributes": [],
 	"uniformSemanticMap": {},
 	"domain": "compositor",
-	"sourceGraphPath": "m.graph",
+	"sourceGraphPath": "m.matgraph",
 	"uniformDefaults": { "tex": "textures/grid.png" }
 })");
-		writeFile(projectDir / "shaders" / "compositor" / "m" / "m.graph",
+		writeFile(projectDir / "shaders" / "compositor" / "m" / "m.matgraph",
 				  R"({
 	"class_name": "MaterialNodeGraph",
 	"assetReferences": [],
@@ -88,7 +88,7 @@ struct CatalogTestProject
 		writeFile(
 			externalDir / "n" / "n.mat",
 			R"({ "materialName": "n", "vertexAttributes": [], "uniformSemanticMap": {}, "domain": "compositor" })");
-		writeFile(externalDir / "n" / "n.graph", "{}");
+		writeFile(externalDir / "n" / "n.matgraph", "{}");
 		writeFile(externalDir / "nodomain" / "nodomain.mat",
 				  R"({ "materialName": "nodomain", "vertexAttributes": [], "uniformSemanticMap": {} })");
 
@@ -151,7 +151,7 @@ bool project_asset_catalog_test_scan_lists_each_folder()
 	ProjectAssetCatalog catalog;
 	catalog.refresh();
 
-	success&= hasEntry(catalog, "graphs", "graphs/comp.graph", "NodeGraphAssetReference");
+	success&= hasEntry(catalog, "compositors", "compositors/comp.compgraph", "CompositorGraphAssetReference");
 	success&= hasEntry(catalog, "models", "models/cube.obj", "ModelAssetReference");
 	success&= hasEntry(catalog, "scripts", "scripts/a.lua", "ScriptAssetReference");
 	success&= hasEntry(catalog, "textures", "textures/grid.png", "TextureAssetReference");
@@ -164,8 +164,8 @@ bool project_asset_catalog_test_scan_lists_each_folder()
 	const ProjectAssetEntry* material= catalog.findEntry("materials", "shaders/compositor/m/m.mat");
 	success&= material != nullptr && material->displayName == "m" && !material->bReadOnly
 			  && material->className == "MaterialAssetReference";
-	// The material's own graph is not a graphs-folder entry
-	success&= countProjectEntries(catalog, "graphs") == 1;
+	// The material's own graph is not a compositors-folder entry
+	success&= countProjectEntries(catalog, "compositors") == 1;
 
 	// The bundled fonts show through as read-only overlay entries in stored form
 	const std::vector<ProjectAssetEntry>& fonts= catalog.getEntries("fonts");
@@ -233,7 +233,7 @@ bool project_asset_catalog_test_material_import_copies_folder()
 	success&= catalog.importAsset("materials", project.externalDir / "n" / "n.mat", storedPath, error);
 	success&= storedPath == "shaders/compositor/n/n.mat";
 	success&= std::filesystem::exists(project.projectDir / "shaders" / "compositor" / "n" / "n.mat");
-	success&= std::filesystem::exists(project.projectDir / "shaders" / "compositor" / "n" / "n.graph");
+	success&= std::filesystem::exists(project.projectDir / "shaders" / "compositor" / "n" / "n.matgraph");
 	success&= hasEntry(catalog, "materials", "shaders/compositor/n/n.mat");
 
 	// A second import of the same material is refused, since the folder is its identity
@@ -288,7 +288,7 @@ bool project_asset_catalog_test_bundled_overlay()
 	const std::filesystem::path resourceDir= PathUtils::getResourceDirectory();
 
 	// Bundled files show through as read-only entries in stored form
-	const ProjectAssetEntry* bundledGraph= catalog.findEntry("graphs", "graphs/color_key_graph.graph");
+	const ProjectAssetEntry* bundledGraph= catalog.findEntry("compositors", "compositors/color_key_graph.compgraph");
 	success&= bundledGraph != nullptr && bundledGraph->bBundled && bundledGraph->bReadOnly;
 	const ProjectAssetEntry* bundledMaterial=
 		catalog.findEntry("materials", "shaders/compositor/rgbUndistortionFrame/rgbUndistortionFrame.mat");
@@ -318,13 +318,13 @@ bool project_asset_catalog_test_bundled_overlay()
 	success&= ProjectAssetCatalog::makeProjectShadowPath(resourceDir / "textures" / "blackRGB.png")
 			  == (project.projectDir / "textures" / "blackRGB.png").lexically_normal();
 	success&= ProjectAssetCatalog::makeProjectShadowPath(project.projectDir / "textures" / "grid.png").empty();
-	success&= ProjectAssetCatalog::makeOverlayStoredPath(resourceDir / "graphs" / "color_key_graph.graph")
-			  == "graphs/color_key_graph.graph";
+	success&= ProjectAssetCatalog::makeOverlayStoredPath(resourceDir / "compositors" / "color_key_graph.compgraph")
+			  == "compositors/color_key_graph.compgraph";
 
 	// Bundled entries refuse deletion
 	std::string error;
 	success&= !catalog.deleteAsset(*bundledGraph, error) && !error.empty();
-	success&= std::filesystem::exists(resourceDir / "graphs" / "color_key_graph.graph");
+	success&= std::filesystem::exists(resourceDir / "compositors" / "color_key_graph.compgraph");
 
 	// Copying a bundled file into the project keeps its relative path, so the copy shadows it
 	std::string storedPath;
@@ -341,12 +341,12 @@ bool project_asset_catalog_test_bundled_overlay()
 	for (const ProjectAssetReferrer& referrer : referrers)
 	{
 		if (referrer.name == "color_key_graph")
-			success&= referrer.detail == "graphs/color_key_graph.graph";
+			success&= referrer.detail == "compositors/color_key_graph.compgraph";
 	}
 
 	// The developer switch makes bundled entries writable
 	catalog.setBundledResourcesEditable(true);
-	const ProjectAssetEntry* editableGraph= catalog.findEntry("graphs", "graphs/color_key_graph.graph");
+	const ProjectAssetEntry* editableGraph= catalog.findEntry("compositors", "compositors/color_key_graph.compgraph");
 	success&= editableGraph != nullptr && editableGraph->bBundled && !editableGraph->bReadOnly;
 	success&= !catalog.isReadOnlyPath("textures/blackRGB.png");
 	catalog.setBundledResourcesEditable(false);

@@ -22,5 +22,5 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "rgbaDepthCompare.graph"
+	"sourceGraphPath":    "rgbaDepthCompare.matgraph"
 }

@@ -1431,10 +1431,7 @@ bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 	return false;
 }
 
-std::filesystem::path NodeEditorWindow::getDefaultGraphDirectory() const
-{
-	return PathUtils::getProjectDirectory() / "graphs";
-}
+std::filesystem::path NodeEditorWindow::getDefaultGraphDirectory() const { return PathUtils::getProjectDirectory(); }
 
 bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
@@ -1449,7 +1446,8 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 	// bring up the save path dialog
 	if (resolvedPath.empty() || bShowFileDialog || bReadOnlySource)
 	{
-		std::filesystem::path defaultPath= getDefaultGraphDirectory() / "new_graph.graph";
+		std::filesystem::path defaultPath=
+			getDefaultGraphDirectory() / (std::string("new_graph") + getGraphFileExtension());
 		if (bReadOnlySource)
 		{
 			const std::filesystem::path shadowPath= ProjectAssetCatalog::makeProjectShadowPath(resolvedPath);
@@ -1461,11 +1459,12 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 			}
 		}
 		const std::string defaultPathString= defaultPath.string();
-		const char* filterItems[1]= {"*.graph"};
-		const char* filterDesc= locText("nodeEditor.graphFilesFilterDescription");
+		const std::string filterPattern= std::string("*") + getGraphFileExtension();
+		const char* filterItems[1]= {filterPattern.c_str()};
+		const char* filterDesc= locText(getGraphFilterDescriptionKey());
 
-		const char* picked= tinyfd_saveFileDialog(locText("nodeEditor.saveCompositorGraphDialogTitle"),
-												  defaultPathString.c_str(), 1, filterItems, filterDesc);
+		const char* picked= tinyfd_saveFileDialog(locText(getSaveDialogTitleKey()), defaultPathString.c_str(), 1,
+												  filterItems, filterDesc);
 
 		// A cancelled dialog saves nothing, which is what keeps a bundled file untouched
 		if (picked == nullptr || picked[0] == '\0')

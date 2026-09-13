@@ -29,7 +29,7 @@ Two suites, both required by CI (see [build.md](./build.md)):
 - `run_dmx_universe_rle_tests`: `src/Editor/Server/Test/DMXUniverseRLETests.cpp`
 - `run_light_environment_persistence_tests`: `src/Editor/Server/Test/LightEnvironmentPersistenceTests.cpp`
 - `run_localization_unit_tests`: `src/Editor/Localization/Test/LocalizationTests.cpp` (key parity against English, printf specifier parity, window-title uniqueness, and glyph coverage against the baked font ranges; see [standards.md](./standards.md))
-- `run_material_compiler_tests`: `src/Editor/NodeEditors/Test/MaterialCompilerTests.cpp` (the material graph compiler: stage split, broadcast and type errors, cycles, parameter conflicts, snapshot round trip, and the golden guard that recompiles every shipped `.graph` against its checked-in shaders; see [materials.md](./materials.md))
+- `run_material_compiler_tests`: `src/Editor/NodeEditors/Test/MaterialCompilerTests.cpp` (the material graph compiler: stage split, broadcast and type errors, cycles, parameter conflicts, snapshot round trip, and the golden guard that recompiles every shipped `.matgraph` against its checked-in shaders; see [materials.md](./materials.md))
 
 Exit code is nonzero on any failure. Results also go to `MikanCmd.log` next to the working directory.
 

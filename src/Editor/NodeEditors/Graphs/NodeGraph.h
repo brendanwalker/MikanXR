@@ -447,7 +447,14 @@ public:
 	virtual NodeGraphPtr allocateNodeGraph() const;
 	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const;
 
-	static NodeGraphPtr loadNodeGraph(class IEditorWindow* ownerWindow, const std::filesystem::path& path);
+	// Loads the graph the file records. With an expected class name, a file of
+	// another kind is refused rather than loaded, since the kinds are not
+	// interchangeable (a shape graph cannot drive a compositor).
+	static NodeGraphPtr loadNodeGraph(class IEditorWindow* ownerWindow, const std::filesystem::path& path,
+									  const std::string& expectedClassName= std::string());
+	// The class name a graph file records, without loading it. Empty when the
+	// file cannot be read.
+	static std::string peekGraphClassName(const std::filesystem::path& path);
 	static NodeGraphPtr loadNodeGraphFromConfig(class IEditorWindow* ownerWindow, NodeGraphConfig& config);
 	static NodeGraphPtr loadNodeGraphFromSnapshotString(class IEditorWindow* ownerWindow, const std::string& snapshot);
 	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);

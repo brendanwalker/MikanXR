@@ -20,5 +20,5 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "rgbUndistortionFrame.graph"
+	"sourceGraphPath":    "rgbUndistortionFrame.matgraph"
 }

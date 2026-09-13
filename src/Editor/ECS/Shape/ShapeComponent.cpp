@@ -8,7 +8,7 @@
 #include "MikanTextureCache.h"
 #include "MikanVariantTypes.h"
 #include "MikanObject.h"
-#include "NodeGraphAssetReference.h"
+#include "ShapeGraphAssetReference.h"
 #include "PathUtils.h"
 #include "ProjectManager.h"
 #include "PropertyInterface.h"
@@ -53,7 +53,7 @@ void ShapeComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_nodeGraphAssetRef= NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
+	m_nodeGraphAssetRef= ShapeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_shapeGraphPathPropertyId))
 	{
 		m_nodeGraphAssetRef->readFromJSON(pt[k_shapeGraphPathPropertyId]);
@@ -99,7 +99,7 @@ void ShapeComponent::init()
 	TransformComponent::init();
 
 	m_nodeGraphAssetRef=
-		std::static_pointer_cast<NodeGraphAssetReference>(NodeGraphAssetReferenceFactory().allocateAssetReference());
+		std::static_pointer_cast<ShapeGraphAssetReference>(ShapeGraphAssetReferenceFactory().allocateAssetReference());
 
 	// Listen for changes to the shape definition
 	getShapeComponentDefinition()->OnPropertyChanged+= MakeDelegate(this, &ShapeComponent::onDefinitionChanged);
@@ -197,6 +197,16 @@ std::filesystem::path ShapeComponent::getShapeGraphAssetResolvedPath() const
 
 void ShapeComponent::setShapeGraphAssetPath(const std::filesystem::path& assetRefPath)
 {
+	// A file of another graph kind is refused outright rather than stored and
+	// failed on every load. A path with no file behind it yet is kept.
+	const std::string graphClassName= NodeGraphFactory::peekGraphClassName(assetRefPath);
+	if (!graphClassName.empty() && graphClassName != ShapeNodeGraph::k_graphClassName)
+	{
+		MIKAN_LOG_ERROR("ShapeComponent::setShapeGraphAssetPath")
+			<< assetRefPath << " is a " << graphClassName << ", not a shape graph";
+		return;
+	}
+
 	handleShapeNodeGraphChanged(assetRefPath);
 	getShapeComponentDefinition()->setShapeGraphPath(assetRefPath);
 }
@@ -205,8 +215,8 @@ void ShapeComponent::handleShapeNodeGraphChanged(const std::filesystem::path& ne
 {
 	if (!m_nodeGraphAssetRef)
 	{
-		m_nodeGraphAssetRef= std::static_pointer_cast<NodeGraphAssetReference>(
-			NodeGraphAssetReferenceFactory().allocateAssetReference());
+		m_nodeGraphAssetRef= std::static_pointer_cast<ShapeGraphAssetReference>(
+			ShapeGraphAssetReferenceFactory().allocateAssetReference());
 	}
 
 	m_nodeGraphAssetRef->setAssetPath(newAssetRefPath);
@@ -214,7 +224,7 @@ void ShapeComponent::handleShapeNodeGraphChanged(const std::filesystem::path& ne
 	if (!m_nodeGraphAssetRef->isEmpty())
 	{
 		m_nodeGraph= std::dynamic_pointer_cast<ShapeNodeGraph>(
-			NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
+			NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath, ShapeNodeGraph::k_graphClassName));
 
 		if (m_nodeGraph)
 		{
@@ -244,7 +254,7 @@ void ShapeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(ShapeComponentDefinition::k_shapeGraphPathPropertyId,
 																  MikanVariantType::STRING)
 								 ->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
-									 AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
+									 AssetReferenceFactory::createFactory<ShapeGraphAssetReferenceFactory>())));
 }
 
 bool ShapeComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const

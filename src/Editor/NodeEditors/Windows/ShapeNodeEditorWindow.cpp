@@ -5,6 +5,7 @@
 #include "MkGuiDrawUtils.h"
 #include "ShapeComponent.h"
 #include "ShapeNodeEditorWindow.h"
+#include "PathUtils.h"
 
 #include "Graphs/ShapeNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -158,4 +159,9 @@ void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& edito
 			return;
 		}
 	}
+}
+
+std::filesystem::path ShapeNodeEditorWindow::getDefaultGraphDirectory() const
+{
+	return PathUtils::getProjectDirectory() / "shapes";
 }

@@ -21,7 +21,7 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "rgbaDepthKeyFrame.graph",
+	"sourceGraphPath":    "rgbaDepthKeyFrame.matgraph",
 	"uniformDefaults":    {
 		"zThreshold": 1.0
 	}

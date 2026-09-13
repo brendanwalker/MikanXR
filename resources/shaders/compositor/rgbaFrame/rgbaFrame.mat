@@ -19,5 +19,5 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "rgbaFrame.graph"
+	"sourceGraphPath":    "rgbaFrame.matgraph"
 }

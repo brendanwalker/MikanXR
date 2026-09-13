@@ -22,5 +22,5 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "videoClientDepthBlend.graph"
+	"sourceGraphPath":    "videoClientDepthBlend.matgraph"
 }

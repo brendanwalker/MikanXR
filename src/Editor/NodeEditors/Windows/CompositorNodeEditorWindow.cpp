@@ -4,6 +4,7 @@
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
 #include "CompositorNodeEditorWindow.h"
+#include "PathUtils.h"
 #include "Logger.h"
 #include "LocText.h"
 #include "MkGuiScopedChild.h"
@@ -195,4 +196,9 @@ bool CompositorNodeEditorWindow::setCompositorRunning(bool bRunning)
 bool CompositorNodeEditorWindow::isCompositorRunning() const
 {
 	return m_compositorComponent != nullptr && !m_compositorComponent->getEditorEvaluationPaused();
+}
+
+std::filesystem::path CompositorNodeEditorWindow::getDefaultGraphDirectory() const
+{
+	return PathUtils::getProjectDirectory() / "compositors";
 }

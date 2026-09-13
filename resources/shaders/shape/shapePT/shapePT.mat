@@ -20,5 +20,5 @@
 	},
 	"domain":             "shape",
 	"vertexPreset":       "PT",
-	"sourceGraphPath":    "shapePT.graph"
+	"sourceGraphPath":    "shapePT.matgraph"
 }

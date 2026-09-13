@@ -92,7 +92,7 @@ protected:
 	void handleShapeNodeGraphChanged(const std::filesystem::path& newAssetRefPath);
 
 	// Shape Node Graph
-	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
+	ShapeGraphAssetReferencePtr m_nodeGraphAssetRef;
 	ShapeNodeGraphPtr m_nodeGraph;           // asset-based (runtime default)
 	ShapeNodeGraphWeakPtr m_editorNodeGraph; // editor override (priority)
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;

@@ -21,7 +21,7 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "sensorGrain.graph",
+	"sourceGraphPath":    "sensorGrain.matgraph",
 	"uniformDefaults":    {
 		"grainIntensity": 1.0,
 		"time":           0.0,

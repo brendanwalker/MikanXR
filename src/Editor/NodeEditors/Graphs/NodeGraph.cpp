@@ -1366,13 +1366,21 @@ int NodeGraph::allocateId()
 // -- NodeGraphFactory -----
 std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
 
-NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const std::filesystem::path& path)
+NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const std::filesystem::path& path,
+											 const std::string& expectedClassName)
 {
 	// Load the node graph config from the file path
 	NodeGraphConfig config;
 	if (!config.load(path))
 	{
 		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to load NodeGraph Config: " << path;
+		return NodeGraphPtr();
+	}
+
+	if (!expectedClassName.empty() && config.className != expectedClassName)
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+			<< path << " is a " << config.className << ", not a " << expectedClassName;
 		return NodeGraphPtr();
 	}
 
@@ -1385,6 +1393,25 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 	}
 
 	return nodeGraph;
+}
+
+std::string NodeGraphFactory::peekGraphClassName(const std::filesystem::path& path)
+{
+	const std::filesystem::path resolvedPath= PathUtils::resolveProjectResource(path);
+	if (resolvedPath.empty())
+	{
+		return std::string();
+	}
+
+	try
+	{
+		const configuru::Config graphJson= configuru::parse_file(resolvedPath.string(), configuru::JSON);
+		return graphJson.get_or<std::string>("class_name", "");
+	}
+	catch (const std::exception&)
+	{
+		return std::string();
+	}
 }
 
 NodeGraphPtr NodeGraphFactory::loadNodeGraphFromConfig(IEditorWindow* ownerWindow, NodeGraphConfig& config)

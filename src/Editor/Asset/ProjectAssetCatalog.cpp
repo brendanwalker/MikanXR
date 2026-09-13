@@ -11,12 +11,15 @@
 #include "MikanPropertyDatabase.h"
 #include "MikanShaderConfig.h"
 #include "ModelAssetReference.h"
-#include "NodeGraphAssetReference.h"
+#include "CompositorGraphAssetReference.h"
+#include "ShapeGraphAssetReference.h"
 #include "PathUtils.h"
 #include "PixelContentAssetReference.h"
 #include "ProjectManager.h"
 #include "ScriptAssetReference.h"
 #include "TextureAssetReference.h"
+
+#include "Graphs/NodeGraphFileTypes.h"
 
 #include <configuru.hpp>
 
@@ -43,13 +46,23 @@ const std::vector<ProjectAssetFolderDesc>& ProjectAssetCatalog::getFolderDescs()
 	static std::vector<ProjectAssetFolderDesc> s_descs;
 	if (s_descs.empty())
 	{
-		ProjectAssetFolderDesc graphs;
-		graphs.id= "graphs";
-		graphs.locKey= "assets.folderGraphs";
-		graphs.projectSubfolder= "graphs";
-		graphs.bundledSubfolder= "graphs";
-		graphs.factories= {AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>()};
-		s_descs.push_back(graphs);
+		// Compositor and shape graphs are node graphs of different kinds, and
+		// neither can stand in for the other, so each has its own folder
+		ProjectAssetFolderDesc compositors;
+		compositors.id= "compositors";
+		compositors.locKey= "assets.folderCompositors";
+		compositors.projectSubfolder= "compositors";
+		compositors.bundledSubfolder= "compositors";
+		compositors.factories= {AssetReferenceFactory::createFactory<CompositorGraphAssetReferenceFactory>()};
+		s_descs.push_back(compositors);
+
+		ProjectAssetFolderDesc shapes;
+		shapes.id= "shapes";
+		shapes.locKey= "assets.folderShapes";
+		shapes.projectSubfolder= "shapes";
+		shapes.bundledSubfolder= "shapes";
+		shapes.factories= {AssetReferenceFactory::createFactory<ShapeGraphAssetReferenceFactory>()};
+		s_descs.push_back(shapes);
 
 		ProjectAssetFolderDesc models;
 		models.id= "models";
@@ -681,14 +694,15 @@ void ProjectAssetCatalog::findGraphReferences(const std::string& targetKey, cons
 {
 	std::error_code ec;
 
-	// Every .graph under the project and the bundled resources, which includes the
-	// material graphs under shaders/
+	// Every graph file of any kind under the project and the bundled resources,
+	// which includes the material graphs under shaders/
 	for (const std::filesystem::path& root : getReferrerScanRoots())
 	{
 		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(
 				 root, std::filesystem::directory_options::skip_permission_denied, ec))
 		{
-			if (!dirEntry.is_regular_file(ec) || dirEntry.path().extension() != ".graph")
+			if (!dirEntry.is_regular_file(ec)
+				|| !NodeGraphFileTypes::isGraphFileExtension(dirEntry.path().extension().string()))
 			{
 				continue;
 			}

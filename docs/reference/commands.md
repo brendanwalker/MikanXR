@@ -119,10 +119,10 @@ MikanCmd.exe -depthMesh -image=<path> -fov=<degrees> [-obj=<path>] [-stride=<n>]
 
 ## Material graphs
 
-Compile a material graph headlessly, writing its `.vert`, `.frag`, and `.mat` beside the `.graph` (the same code the material editor runs on save; see [materials.md](./materials.md)):
+Compile a material graph headlessly, writing its `.vert`, `.frag`, and `.mat` beside the `.matgraph` (the same code the material editor runs on save; see [materials.md](./materials.md)):
 
 ```
-MikanCmd.exe -compileMaterial=resources/shaders/compositor/rgbaFrame/rgbaFrame.graph
+MikanCmd.exe -compileMaterial=resources/shaders/compositor/rgbaFrame/rgbaFrame.matgraph
 ```
 
 Run it after editing a bundled material graph outside the editor, since `MikanCmd.exe -runTests` fails when a checked-in graph and its generated files disagree.

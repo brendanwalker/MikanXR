@@ -5,6 +5,7 @@
 #include "Graphs/MaterialFunctionPage.h"
 #include "Graphs/MaterialNodeGraph.h"
 #include "Graphs/NodeGraph.h"
+#include "Graphs/NodeGraphFileTypes.h"
 #include "MaterialCompiler/GlslShaderWriter.h"
 #include "MaterialCompiler/MaterialCompiler.h"
 #include "Nodes/CommentNode.h"
@@ -834,7 +835,7 @@ bool material_compiler_test_shipped_graphs_match_outputs()
 	{
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(shadersRoot))
 		{
-			if (!entry.is_regular_file() || entry.path().extension() != ".graph")
+			if (!entry.is_regular_file() || entry.path().extension() != NodeGraphFileTypes::k_materialGraphExtension)
 				continue;
 
 			// Config loading resolves relative paths against the project and resource roots, so

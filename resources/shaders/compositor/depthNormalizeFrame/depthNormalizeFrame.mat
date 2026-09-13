@@ -21,7 +21,7 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "depthNormalizeFrame.graph",
+	"sourceGraphPath":    "depthNormalizeFrame.matgraph",
 	"uniformDefaults":    {
 		"zFar":  100.0,
 		"zNear": 0.1

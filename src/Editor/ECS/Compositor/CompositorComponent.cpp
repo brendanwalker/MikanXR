@@ -20,7 +20,7 @@
 #include "MkMaterialInstance.h"
 #include "MkScopedState.h"
 #include "MkStateStack.h"
-#include "NodeGraphAssetReference.h"
+#include "CompositorGraphAssetReference.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
 #include "SceneObjectSystem.h"
@@ -95,7 +95,7 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	if (m_spoutOutputName.empty())
 		m_spoutOutputName= DEFAULT_SPOUT_OUTPUT_NAME;
 
-	m_nodeGraphAssetRef= NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
+	m_nodeGraphAssetRef= CompositorGraphAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_compositorGraphPathPropertyId))
 	{
 		m_nodeGraphAssetRef->readFromJSON(pt[k_compositorGraphPathPropertyId]);
@@ -204,8 +204,8 @@ void CompositorComponent::init()
 	MikanComponent::init();
 
 	m_viewportQuadMesh= createFullscreenQuadMesh(getGraphicsContext(), false);
-	m_nodeGraphAssetRef=
-		std::static_pointer_cast<NodeGraphAssetReference>(NodeGraphAssetReferenceFactory().allocateAssetReference());
+	m_nodeGraphAssetRef= std::static_pointer_cast<CompositorGraphAssetReference>(
+		CompositorGraphAssetReferenceFactory().allocateAssetReference());
 
 	// Listen for changes to the compositor definition
 	getCompositorDefinition()->OnPropertyChanged+= MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
@@ -702,6 +702,16 @@ std::filesystem::path CompositorComponent::getCompositorGraphAssetPath() const
 
 void CompositorComponent::setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath)
 {
+	// A file of another graph kind is refused outright rather than stored and
+	// failed on every load. A path with no file behind it yet is kept.
+	const std::string graphClassName= NodeGraphFactory::peekGraphClassName(assetRefPath);
+	if (!graphClassName.empty() && graphClassName != CompositorNodeGraph::k_graphClassName)
+	{
+		MIKAN_LOG_ERROR("CompositorComponent::setCompositorGraphAssetPath")
+			<< assetRefPath << " is a " << graphClassName << ", not a compositor graph";
+		return;
+	}
+
 	handleCompositorNodeGraphChanged(assetRefPath);
 	getCompositorDefinition()->setCompositorGraphPath(assetRefPath);
 }
@@ -712,8 +722,8 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 
 	if (!newAssetRefPath.empty())
 	{
-		m_nodeGraph= std::dynamic_pointer_cast<CompositorNodeGraph>(
-			NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
+		m_nodeGraph= std::dynamic_pointer_cast<CompositorNodeGraph>(NodeGraphFactory::loadNodeGraph(
+			getOwnerEditorWindow(), newAssetRefPath, CompositorNodeGraph::k_graphClassName));
 		if (m_nodeGraph)
 		{
 			MIKAN_LOG_INFO("CompositorComponent::handleCompositorNodeGraphChanged")
@@ -767,7 +777,7 @@ void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(CompositorDefinition::k_compositorGraphPathPropertyId,
 																  MikanVariantType::STRING)
 								 ->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
-									 AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
+									 AssetReferenceFactory::createFactory<CompositorGraphAssetReferenceFactory>())));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 		CompositorDefinition::k_spoutEnableOutputNamePropertyId, MikanVariantType::BOOL));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(CompositorDefinition::k_spoutOutputNamePropertyId,

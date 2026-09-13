@@ -12,6 +12,7 @@
 #include "DMXPresetPersistenceTests.h"
 #include "DMXSequenceTests.h"
 #include "DMXUniverseRLETests.h"
+#include "LegacyGraphMigrationTests.h"
 #include "LightEnvironmentPersistenceTests.h"
 #include "LocalizationTests.h"
 #include "MaterialCompilerTests.h"
@@ -48,6 +49,7 @@ bool run_all_editor_unit_tests()
 	success&= run_dmx_preset_persistence_tests();
 	success&= run_dmx_sequence_tests();
 	success&= run_dmx_universe_rle_tests();
+	success&= run_legacy_graph_migration_tests();
 	success&= run_light_environment_persistence_tests();
 	success&= run_localization_unit_tests();
 	success&= run_material_compiler_tests();
@@ -157,8 +159,8 @@ void CmdApp::printUsage() const
 					"               Generate a camera-space depth proxy mesh from a single frame\n"
 					"               and write it as an OBJ.\n"
 					"  -compileMaterial=<graph>\n"
-					"               Compile a material graph and write its .vert, .frag and .mat\n"
-					"               beside the graph file.\n");
+					"               Compile a material graph (.matgraph) and write its .vert, .frag\n"
+					"               and .mat beside the graph file.\n");
 }
 
 int CmdApp::compileMaterial() const
@@ -169,8 +171,8 @@ int CmdApp::compileMaterial() const
 
 	NodeGraphFactory::registerFactory<MaterialNodeGraphFactory>();
 
-	auto materialGraph=
-		std::dynamic_pointer_cast<MaterialNodeGraph>(NodeGraphFactory::loadNodeGraph(nullptr, graphPath));
+	auto materialGraph= std::dynamic_pointer_cast<MaterialNodeGraph>(
+		NodeGraphFactory::loadNodeGraph(nullptr, graphPath, MaterialNodeGraph::k_graphClassName));
 	if (!materialGraph)
 	{
 		fprintf(stdout, "error: '%s' is not a loadable material graph\n", graphPath.string().c_str());

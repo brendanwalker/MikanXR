@@ -21,5 +21,5 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "rgbaClientDepthMask.graph"
+	"sourceGraphPath":    "rgbaClientDepthMask.matgraph"
 }

@@ -123,7 +123,7 @@ bool MaterialNodeEditorWindow::openMaterialGraph(const std::filesystem::path& gr
 {
 	m_onMaterialSaved= nullptr;
 
-	// The loader keys on the file's class name, so any .graph file can arrive here
+	// The loader keys on the file's class name, so a graph of another kind can arrive here
 	const bool bLoaded= loadGraph(graphPath);
 	if (bLoaded && !getMaterialNodeGraph())
 	{
@@ -340,6 +340,11 @@ void MaterialNodeEditorWindow::onGraphRestored()
 }
 
 void MaterialNodeEditorWindow::onGraphEdited() { compileGraph(); }
+
+const char* MaterialNodeEditorWindow::getGraphFileExtension() const
+{
+	return NodeGraphFileTypes::k_materialGraphExtension;
+}
 
 std::filesystem::path MaterialNodeEditorWindow::getDefaultGraphDirectory() const
 {

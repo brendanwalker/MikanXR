@@ -20,7 +20,7 @@
 	},
 	"domain":             "compositor",
 	"vertexPreset":       "P2T",
-	"sourceGraphPath":    "rgbColorKeyFrame.graph",
+	"sourceGraphPath":    "rgbColorKeyFrame.matgraph",
 	"uniformDefaults":    {
 		"colorKey": [ 0.0, 1.0, 0.0 ]
 	}

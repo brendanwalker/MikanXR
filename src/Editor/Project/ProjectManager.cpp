@@ -19,6 +19,7 @@
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "ProjectAssetCatalog.h"
+#include "LegacyGraphMigration.h"
 #include "SceneObjectSystem.h"
 #include "ScriptObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
@@ -314,6 +315,10 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 	const std::filesystem::path projectDir= std::filesystem::path(projectFilePath).parent_path();
 	PathUtils::setProjectDirectory(projectDir);
 	writeScriptWorkspaceFiles(projectDir);
+
+	// A project saved before graph kinds had their own folders and extensions
+	// is moved onto the current layout before its file is read
+	LegacyGraphMigration::migrateProject(projectDir, projectFilePath);
 
 	// create an empty project config
 	m_projectConfig= createEmptyProjectConfig();

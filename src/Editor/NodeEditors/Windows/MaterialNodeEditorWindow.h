@@ -53,6 +53,12 @@ protected:
 	virtual void onNodeGraphDeleted() override;
 	virtual void onGraphRestored() override;
 	virtual void onGraphEdited() override;
+	virtual const char* getGraphFileExtension() const override;
+	virtual const char* getSaveDialogTitleKey() const override { return "nodeEditor.saveMaterialGraphDialogTitle"; }
+	virtual const char* getGraphFilterDescriptionKey() const override
+	{
+		return "nodeEditor.materialGraphFilesFilterDescription";
+	}
 	virtual std::filesystem::path getDefaultGraphDirectory() const override;
 	virtual const char* getWindowTitleKey() const override { return "windows.materialEditor"; }
 	virtual std::string getGuiIniName() const override { return "material_editor"; }

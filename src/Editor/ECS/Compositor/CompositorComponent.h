@@ -169,7 +169,7 @@ private:
 	std::queue<MikanCameraNewFrameEvent> m_frameEventQueue;
 
 	// Compositor Node Graph
-	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
+	CompositorGraphAssetReferencePtr m_nodeGraphAssetRef;
 	CompositorNodeGraphPtr m_nodeGraph;
 	CompositorNodeGraphWeakPtr m_editorNodeGraph;
 	bool m_bEditorEvaluationPaused= false;
