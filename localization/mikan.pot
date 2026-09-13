@@ -1,0 +1,4623 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: MikanXR\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Section: CEFTextureSourceComponent
+msgctxt "CEFTextureSourceComponent.show_texture_source_settings"
+msgid "Show Browser Window"
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.alignmentComplete"
+msgid "Camera aligned successfully!"
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.alreadyHasTrackingMountError"
+msgid "Target camera already has a tracking mount. Use the standard alignment calibration instead."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.begin"
+msgid "Begin"
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.failedVideoStart"
+msgid "Error: Failed to start video stream."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.invalidIntrinsicsError"
+msgid "Target camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics first."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+#, c-format
+msgctxt "alignCameraByOriginMarker.markerDetectedFmt"
+msgid "Origin Marker Detected: %s"
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.no"
+msgid "No"
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.noMarkerTrackingVolumeError"
+msgid "Target camera's stage has no marker tracking volume. Please assign a marker tracking volume to the stage."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.noOriginMarkerError"
+msgid "The stage's marker tracking volume has no Origin Marker assigned. Please assign an origin marker to the tracking volume."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.noOwnerStageError"
+msgid "Target camera has no owner stage."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.noVideoSourceError"
+msgid "Target camera has no video source. Please assign a video source before aligning."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.restart"
+msgid "Restart"
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.samplingTransforms"
+msgid "Sampling Origin Marker transforms..."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.startingVideoStream"
+msgid "Starting video stream..."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.verifyAxesOverlay"
+msgid "Verify the axes overlay appears correctly over the Origin Marker."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.verifySetup"
+msgid "Point the camera at the Origin Marker until it is detected, then click Begin."
+msgstr ""
+
+#. Section: alignCameraByOriginMarker
+msgctxt "alignCameraByOriginMarker.yes"
+msgid "Yes"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.alignmentComplete"
+msgid "Target camera aligned successfully!"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.alreadyHasTrackingMountError"
+msgid "Target camera already has a tracking mount. Use the standard alignment calibration instead."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.begin"
+msgid "Begin"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.failedVideoStart"
+msgid "Error: Failed to start video stream(s)."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.invalidIntrinsicsError"
+msgid "Target camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics first."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.no"
+msgid "No"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.noTrackingVolumeError"
+msgid "Target camera's stage has no VR tracking volume. Please assign a VR tracking volume to the stage."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.noUtilityMarkerError"
+msgid "The stage's VR tracking volume has no Utility Marker assigned. Please assign a utility marker to the tracking volume."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.noVideoSourceError"
+msgid "Target camera has no video source. Please assign a video source before aligning."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.restart"
+msgid "Restart"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.samplingTransforms"
+msgid "Sampling Utility Marker transforms..."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.sourceCamera"
+msgid "Source Camera:"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.sourceCameraInvalidIntrinsicsError"
+msgid "Selected source camera has no valid video source or intrinsics."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.sourceCameraNotFoundError"
+msgid "Failed to find selected source camera. Please try again."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+#, c-format
+msgctxt "alignCameraByUtilityMarker.sourceMarkerDetectedFmt"
+msgid "Source Camera - Marker Detected: %s"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.startingVideoStreams"
+msgid "Starting video streams..."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.targetCamera"
+msgid "Target Camera:"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+#, c-format
+msgctxt "alignCameraByUtilityMarker.targetMarkerDetectedFmt"
+msgid "Target Camera - Marker Detected: %s"
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.verifyAxesOverlay"
+msgid "Verify the axes overlay appears correctly over the Utility Marker."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.verifySetup"
+msgid "Point both cameras at the Utility Marker until it is detected, then click Begin."
+msgstr ""
+
+#. Section: alignCameraByUtilityMarker
+msgctxt "alignCameraByUtilityMarker.yes"
+msgid "Yes"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.begin"
+msgid "Begin"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.calibratedSuccessfully"
+msgid "Camera alignment calibrated successfully!"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.cameraSettings"
+msgid "Camera Settings"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.capturingSamples"
+msgid "Capturing calibration samples..."
+msgstr ""
+
+#. Section: alignmentCalibration
+#, c-format
+msgctxt "alignmentCalibration.chessboardDetectedFmt"
+msgid "Chessboard Detected: %s"
+msgstr ""
+
+#. Section: alignmentCalibration
+#, c-format
+msgctxt "alignmentCalibration.chessboardStableFmt"
+msgid "Chessboard Stable: %s"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.failedVideoStream"
+msgid "Error: Failed to start video stream."
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.invalidIntrinsicsMsg"
+msgid "Camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics before using it for alignment."
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.no"
+msgid "No"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.noCharucoMountMsg"
+msgid "VRTracking volume missing ChArUco Mount. Please ensure the ChArUco tracking puck is on before aligning."
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.noTrackingMountMsg"
+msgid "Camera is missing a tracking mount. Please ensure the camera tracking mount puck is on before aligning."
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.noTrackingVolumeMsg"
+msgid "Camera is not associated with a VR tracking volume. Please assign a VR tracking volume to the stage this camera is attached to before aligning."
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.noVideoSourceMsg"
+msgid "Camera is not associated with a video source. Please set a video source for the camera before aligning."
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.positionChessboard"
+msgid "Position the calibration chessboard so it is visible in the camera view."
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.restart"
+msgid "Restart"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.startingVideoStream"
+msgid "Starting video stream..."
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.viewpointCalibration"
+msgid "Calibration"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.viewpointStageView"
+msgid "Stage View"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.viewpointXrView"
+msgid "XR View"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.vrFrameDelay"
+msgid "VR Frame Delay"
+msgstr ""
+
+#. Section: alignmentCalibration
+msgctxt "alignmentCalibration.yes"
+msgid "Yes"
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.captureOrigin1"
+msgid "Camera position 1: Click the anchor origin point in the image."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.captureOrigin2"
+msgid "Camera position 2: Click the anchor origin point in the image."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.captureXAxis1"
+msgid "Camera position 1: Click a point along the anchor X axis."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.captureXAxis2"
+msgid "Camera position 2: Click a point along the anchor X axis."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.captureYAxis1"
+msgid "Camera position 1: Click a point along the anchor Y axis."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.captureYAxis2"
+msgid "Camera position 2: Click a point along the anchor Y axis."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.failedVideoStream"
+msgid "Error: Failed to start video stream."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.moveCamera"
+msgid "Move the camera to a second position with a different angle to the anchor."
+msgstr ""
+
+#. Section: anchorTriangulation
+#, c-format
+msgctxt "anchorTriangulation.pointsCapturedFmt"
+msgid "Points captured: %d"
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.redo"
+msgid "Redo"
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.triangulationComplete"
+msgid "Anchor triangulation complete!"
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.verifyCameraSetup"
+msgid "Verify that the camera is positioned correctly and the video stream is running."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.verifyInitialPointCapture"
+msgid "Verify the captured points from position 1 look correct."
+msgstr ""
+
+#. Section: anchorTriangulation
+msgctxt "anchorTriangulation.verifyTriangulatedPoints"
+msgid "Verify the triangulated anchor points look correct."
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.addAssetFmt"
+msgid "Add %s"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.bundledAsset"
+msgid "Bundled with the application. Copy it to the project to edit it."
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.compositorGraphFilterDescription"
+msgid "Compositor Graph Files (*.compgraph)"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.compositorMaterialFilterDescription"
+msgid "Compositor Material Files (*.compmat)"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.copyToProject"
+msgid "Copy to Project"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.deleteConfirmFmt"
+msgid "Delete '%s'?"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.deleteConfirmTitle"
+msgid "Confirm Delete"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.deleteRefusedFmt"
+msgid "'%s' is still in use and cannot be deleted. Used by:"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.empty"
+msgid "No assets in this folder"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.folderCompositorMaterials"
+msgid "Compositor Materials"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.folderCompositors"
+msgid "Compositor Graphs"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.folderFonts"
+msgid "Fonts"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.folderModels"
+msgid "Models"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.folderScripts"
+msgid "Scripts"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.folderShapeMaterials"
+msgid "Shape Materials"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.folderShapes"
+msgid "Shape Graphs"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.folderTextures"
+msgid "Textures"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.fontFilterDescription"
+msgid "Font Files (*.ttf, *.otf)"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.imageFilterDescription"
+msgid "Image Files (*.jpg;*.jpeg;*.png;*.bmp;*.tga)"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.importFailedFmt"
+msgid "Import failed: %s"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.importMaterialDomainMismatchFmt"
+msgid "'%s' is a %s material and does not belong in this folder"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.importMaterialExistsFmt"
+msgid "A material folder named '%s' already exists in the project"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.importNoProject"
+msgid "No project is loaded"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.importUnsupportedFileFmt"
+msgid "'%s' is not a supported file type for this folder"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.loadCompositorGraphDialogTitle"
+msgid "Load Compositor Graph"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.loadCompositorMaterialDialogTitle"
+msgid "Load Compositor Material"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.loadFontDialogTitle"
+msgid "Load Font"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.loadPixelContentDialogTitle"
+msgid "Load Image or Animation"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.loadShapeGraphDialogTitle"
+msgid "Load Shape Graph"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.loadShapeMaterialDialogTitle"
+msgid "Load Shape Material"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.loadTextureDialogTitle"
+msgid "Load Texture"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.material"
+msgid "Material"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.materialAssetHeader"
+msgid "Material Asset"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.newMaterial"
+msgid "New Material"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.pixelContentFilterDescription"
+msgid "Image Files (*.png, *.gif, *.bmp, *.tga, *.jpg, *.jpeg)"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.readOnlyAsset"
+msgid "Bundled assets are read only"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.readOnlyFolder"
+msgid "Bundled with the application (read only)"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.referrerComponentFmt"
+msgid "Component '%s' (%s)"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.referrerGraphFmt"
+msgid "Graph '%s'"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.referrerMaterialFmt"
+msgid "Material '%s'"
+msgstr ""
+
+#. Section: assets
+#, c-format
+msgctxt "assets.referrerMoreFmt"
+msgid "...and %d more"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.refresh"
+msgid "Refresh"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.shapeGraphFilterDescription"
+msgid "Shape Graph Files (*.shapegraph)"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.shapeMaterialFilterDescription"
+msgid "Shape Material Files (*.shapemat)"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.texture"
+msgid "Texture"
+msgstr ""
+
+#. Section: assets
+msgctxt "assets.textureAssetHeader"
+msgid "Texture Asset"
+msgstr ""
+
+#. Section: cefBrowser
+msgctxt "cefBrowser.back"
+msgid "Back"
+msgstr ""
+
+#. Section: cefBrowser
+msgctxt "cefBrowser.devTools"
+msgid "DevTools"
+msgstr ""
+
+#. Section: cefBrowser
+msgctxt "cefBrowser.forward"
+msgid "Forward"
+msgstr ""
+
+#. Section: cefBrowser
+msgctxt "cefBrowser.reload"
+msgid "Reload"
+msgstr ""
+
+#. Section: cefBrowser
+msgctxt "cefBrowser.windowTitle"
+msgid "Browser"
+msgstr ""
+
+#. Section: cefBrowser
+#, c-format
+msgctxt "cefBrowser.windowTitleFmt"
+msgid "%s - Browser"
+msgstr ""
+
+#. Section: common
+msgctxt "common.cancel"
+msgid "Cancel"
+msgstr ""
+
+#. Section: common
+msgctxt "common.close"
+msgid "Close"
+msgstr ""
+
+#. Section: common
+msgctxt "common.ok"
+msgid "Ok"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.addFixture"
+msgid "Add Fixture"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.addGraph"
+msgid "Add Graph"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.arucoId"
+msgid "Aruco ID"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.blue"
+msgid "Blue"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.camera"
+msgid "Camera"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.charucoMount"
+msgid "Charuco Mount"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.columns"
+msgid "Columns"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.deleteGraph"
+msgid "Delete Graph"
+msgstr ""
+
+#. Section: componentPanel
+#, c-format
+msgctxt "componentPanel.directionalityFmt"
+msgid "Directionality (l1/l0): %.3f"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.directionalityLowTooltip"
+msgid "This environment is close to uniformly lit. The ambient term is usable, but the key light direction is not meaningful."
+msgstr ""
+
+#. Section: componentPanel
+#, c-format
+msgctxt "componentPanel.directionalityNearAmbientFmt"
+msgid "Directionality (l1/l0): %.3f - near ambient"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.displayBuffer"
+msgid "Display Buffer"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.displayBufferColor"
+msgid "Color"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.displayBufferDepth"
+msgid "Depth"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.displayCompositor"
+msgid "Display Compositor"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.dropAssetHint"
+msgid "Drop an asset from the Assets panel"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.editGraph"
+msgid "Edit Graph"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.editScript"
+msgid "Edit Script"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.exposureScaleNote"
+msgid "Values include the exposure scale."
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.fixtures"
+msgid "Fixtures"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.format"
+msgid "Format"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.frameRate"
+msgid "Frame Rate"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.graph"
+msgid "Graph"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.green"
+msgid "Green"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.height"
+msgid "Height"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.noAsset"
+msgid "<None>"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.none"
+msgid "<none>"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.originMarker"
+msgid "Origin Marker"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.parent"
+msgid "Parent"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.presetGroup"
+msgid "Group"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.protocol"
+msgid "Protocol"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.red"
+msgid "Red"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.reloadScript"
+msgid "Reload Script"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.removeFixture"
+msgid "Remove"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.removeScript"
+msgid "Remove Script"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.resolution"
+msgid "Resolution"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.rows"
+msgid "Rows"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.script"
+msgid "Script"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.scriptNotLoaded"
+msgid "<Not Loaded>"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.scriptTriggers"
+msgid "Script Triggers"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.scriptVariables"
+msgid "Script Variables"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.sequenceHandler"
+msgid "Handler"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.sequenceHandlerMissing"
+msgid "<not registered>"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.sequenceScript"
+msgid "Script"
+msgstr ""
+
+#. Section: componentPanel
+#, c-format
+msgctxt "componentPanel.sequenceStatusFmt"
+msgid "%s  %.1f s"
+msgstr ""
+
+#. Section: componentPanel
+#, c-format
+msgctxt "componentPanel.shCoefficientTooltipFmt"
+msgid ""
+"%s\n"
+"%+.4f  %+.4f  %+.4f\n"
+"\n"
+"Swatch is |value| relative to the largest coefficient, so it shows magnitude and hue only - the sign is in the numbers. Negative coefficients are normal for the l=1 and l=2 bands."
+msgstr ""
+
+#. Section: componentPanel
+#, c-format
+msgctxt "componentPanel.skyIrradianceFmt"
+msgid "Sky irradiance  %.3f %.3f %.3f"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.socket"
+msgid "Socket"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.sphericalHarmonics"
+msgid "Spherical Harmonics"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.spoutSource"
+msgid "Spout Source"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.stage"
+msgid "Stage"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.trackingMount"
+msgid "Tracking Mount"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.trackingVolume"
+msgid "Tracking Volume"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.url"
+msgid "URL"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.usbDevice"
+msgid "USB Device"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.utilityMarker"
+msgid "Utility Marker"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.videoSource"
+msgid "Video Source"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.vrDevice"
+msgid "VR Device"
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.width"
+msgid "Width"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.arucoAutoCalibrateNote"
+msgid "If one of the project's ArUco markers is visible in the frame, it is used to calibrate the metric scale automatically."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.calibratingScale"
+msgid "Calibrating metric scale..."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.cameraIntrinsicsUnresolved"
+msgid "Could not resolve the camera intrinsics. Is the camera calibrated?"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.cameraPoseUnresolved"
+msgid "Could not resolve the camera pose. Is the camera tracked?"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.cancelCapture"
+msgid "Cancel Capture"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.cancelling"
+msgid "Cancelling..."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.capture"
+msgid "Capture"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.captureFailed"
+msgid "Depth mesh capture failed."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.cpuWarning"
+msgid "Running on CPU - expect ~10 seconds rather than ~1."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.createStencil"
+msgid "Create Stencil"
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.culledCellsFmt"
+msgid "%d cells cut at depth discontinuities (expected along silhouettes - the mesh separates rather than stretching skirts between surfaces)."
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.depthRangeFmt"
+msgid "Depth range: %.2f - %.2f m"
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.elapsedSecondsFmt"
+msgid "%.1f s elapsed"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.estimatingDepth"
+msgid "Estimating scene depth..."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.frameSceneInstructions"
+msgid "Frame the part of the scene the composited character will interact with - the floor and nearby surfaces that should catch its shadow. Thin structures and transparent surfaces reconstruct poorly."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.generatingMesh"
+msgid "Generating the proxy mesh..."
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.inferenceBackendFmt"
+msgid "Inference backend: %s"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.inferenceFailed"
+msgid "Depth inference failed. See MikanCmd.log for details."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.loadingModel"
+msgid "Loading the depth model..."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.markerCornerDisagreement"
+msgid "The marker corners disagree on the factor - the marker may be at a grazing angle or on a depth edge. Reposition it and redo."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.meshGenerationFailed"
+msgid "Mesh generation produced no usable geometry."
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.meshSummaryFmt"
+msgid "Proxy mesh: %d vertices, %d triangles."
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.meshWriteFailedFmt"
+msgid "Failed to write the mesh to '%s'."
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.modelLoadFailedFmt"
+msgid "Could not load the MoGe-2 model from '%s'. Run tools/fetch_moge2_onnx.py to download it. See MikanCmd.log for details."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.noProjectLoaded"
+msgid "No project is loaded, so there is nowhere to save the mesh."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.noScaleCalibration"
+msgid "No scale calibration"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.noScaleCalibrationExplanation"
+msgid "Metric scale is the model's raw guess and can be off by a large factor. Place an ArUco marker of known size in view and redo to calibrate."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.noUndistortedFrame"
+msgid "No undistorted color frame was available from the video source."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.previewOverlayNote"
+msgid "The overlay colors the recovered depth (red = near, blue = far). Check that color edges hug the object silhouettes in the frame before applying."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.redo"
+msgid "Redo"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.retry"
+msgid "Retry"
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.scaleCorrectionArucoFmt"
+msgid "Scale correction: %.3f (ArUco marker, spread %.1f%%)"
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.scaleCorrectionSavedFmt"
+msgid "Scale correction %.3f was saved to the camera and will apply to future captures without a marker in view."
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.scaleCorrectionStoredFmt"
+msgid "Scale correction: %.3f (stored on camera)"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.scaleFactorSavedNote"
+msgid "Creating the stencil saves this factor to the camera for future marker-less captures."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.startingVideoStream"
+msgid "Starting the video stream..."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.stencilCreateFailed"
+msgid "Failed to create the model stencil."
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.stencilCreatedFmt"
+msgid "Created model stencil '%s'."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.stencilParentedNote"
+msgid "The stencil is parented under the stage at the capturing camera's pose; connected clients pick it up automatically."
+msgstr ""
+
+#. Section: depthMeshCapture
+#, c-format
+msgctxt "depthMeshCapture.stepOfStepsFmt"
+msgid "Step %d of %d"
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.videoStreamStartFailed"
+msgid "Failed to start the video stream."
+msgstr ""
+
+#. Section: depthMeshCapture
+msgctxt "depthMeshCapture.working"
+msgid "Working..."
+msgstr ""
+
+#. Section: entityAccessor
+#, c-format
+msgctxt "entityAccessor.itemsCountFmt"
+msgid "[%d items]"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.activate_scene"
+msgid "Activate Scene"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.align_camera"
+msgid "Align Camera"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.align_stencil"
+msgid "Align Stencil"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.align_tracking_volume"
+msgid "Align Tracking Volume"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.apply_preset"
+msgid "Apply"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.calibrate_intrinsics"
+msgid "Calibrate Intrinsics"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.capture_depth_mesh"
+msgid "Capture Depth Mesh"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.capture_preset"
+msgid "Capture From Live"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.capture_scene_lighting"
+msgid "Capture Scene Lighting"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.edit_anchor"
+msgid "Edit Anchor"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.match_resolution_to_browser_window"
+msgid "Match Resolution to Window"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.pause_sequence"
+msgid "Pause"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.play_sequence"
+msgid "Play"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.print_checkerboard"
+msgid "Print Checkerboard"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.print_marker"
+msgid "Print Marker"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.reset_settings"
+msgid "Reset to Defaults"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.show_compositor_output"
+msgid "Show Compositor Output"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.show_texture_source_settings"
+msgid "Show Texture Source Settings"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.show_video_source_settings"
+msgid "Show Video Source Settings"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.stop_sequence"
+msgid "Stop"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.test_intrinsics"
+msgid "Test Intrinsics"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.triangulate_light"
+msgid "Triangulate Light"
+msgstr ""
+
+#. Section: functions
+msgctxt "functions.zero_all_channels"
+msgid "Zero All Channels"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.default"
+msgid "Default"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.material"
+msgid "Material"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.materialHeader"
+msgid "Material"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.modelHeader"
+msgid "Model"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.name"
+msgid "Name"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.noAssetRef"
+msgid "<No Asset Ref>"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.noShape"
+msgid "<No Shape>"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.noStencil"
+msgid "<No Stencil>"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.noTexture"
+msgid "<No Texture>"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.noTextureSource"
+msgid "<No TextureSource>"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.preview"
+msgid "Preview"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.shapeHeader"
+msgid "Shape"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.source"
+msgid "Source"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.stencilHeader"
+msgid "Stencil"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.texture"
+msgid "Texture"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.textureHeader"
+msgid "Texture"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.textureSourceHeader"
+msgid "TextureSource"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.type"
+msgid "Type"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.value"
+msgid "Value"
+msgstr ""
+
+#. Section: graphProperties
+msgctxt "graphProperties.variableHeader"
+msgid "Variable"
+msgstr ""
+
+#. Section: httpTriggers
+msgctxt "httpTriggers.noRoutesRegistered"
+msgid "No HTTP trigger routes registered"
+msgstr ""
+
+#. Section: httpTriggers
+msgctxt "httpTriggers.serverPort"
+msgid "HTTP Trigger Server Port"
+msgstr ""
+
+#. Section: lightFixtureCalibration
+#, c-format
+msgctxt "lightFixtureCalibration.calibrationCompleteFmt"
+msgid "Fixture '%s' position calibrated successfully."
+msgstr ""
+
+#. Section: lightFixtureCalibration
+#, c-format
+msgctxt "lightFixtureCalibration.capturePosition1Fmt"
+msgid "Camera position 1: Click on the '%s' fixture in the image."
+msgstr ""
+
+#. Section: lightFixtureCalibration
+#, c-format
+msgctxt "lightFixtureCalibration.capturePosition2Fmt"
+msgid "Camera position 2: Click on the '%s' fixture in the image."
+msgstr ""
+
+#. Section: lightFixtureCalibration
+msgctxt "lightFixtureCalibration.failedVideoStart"
+msgid "Error: Failed to start video stream."
+msgstr ""
+
+#. Section: lightFixtureCalibration
+msgctxt "lightFixtureCalibration.moveCamera"
+msgid "Move the camera to a second position with a different angle to the fixture."
+msgstr ""
+
+#. Section: lightFixtureCalibration
+msgctxt "lightFixtureCalibration.pendingVideoStart"
+msgid "Waiting for video stream to start..."
+msgstr ""
+
+#. Section: lightFixtureCalibration
+msgctxt "lightFixtureCalibration.redo"
+msgid "Redo"
+msgstr ""
+
+#. Section: lightFixtureCalibration
+#, c-format
+msgctxt "lightFixtureCalibration.verifyInitialCameraSetupFmt"
+msgid "Fixture '%s' has been set to white. Position the camera so the fixture is visible and verify the video stream is running."
+msgstr ""
+
+#. Section: lightFixtureCalibration
+msgctxt "lightFixtureCalibration.verifyTriangulatedPosition"
+msgid "Verify the triangulated fixture position looks correct in the viewport."
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.autoScroll"
+msgid "Auto Scroll"
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.clear"
+msgid "Clear"
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.levelDebug"
+msgid "Debug"
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.levelError"
+msgid "Error"
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.levelFatal"
+msgid "Fatal"
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.levelInfo"
+msgid "Info"
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.levelTrace"
+msgid "Trace"
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.levelWarning"
+msgid "Warning"
+msgstr ""
+
+#. Section: logPanel
+msgctxt "logPanel.minLevel"
+msgid "Level"
+msgstr ""
+
+#. Section: mainMenu
+msgctxt "mainMenu.exit"
+msgid "Exit"
+msgstr ""
+
+#. Section: mainMenu
+msgctxt "mainMenu.newProject"
+msgid "New Project"
+msgstr ""
+
+#. Section: mainMenu
+msgctxt "mainMenu.newProjectFolderDialogTitle"
+msgid "New Project Folder"
+msgstr ""
+
+#. Section: mainMenu
+msgctxt "mainMenu.openProject"
+msgid "Open Project"
+msgstr ""
+
+#. Section: mainMenu
+msgctxt "mainMenu.openProjectDialogTitle"
+msgid "Open Project"
+msgstr ""
+
+#. Section: mainMenu
+msgctxt "mainMenu.projectFilesFilter"
+msgid "Project Files (*.mikanproj)"
+msgstr ""
+
+#. Section: mainMenu
+msgctxt "mainMenu.resumeProject"
+msgid "Resume Project"
+msgstr ""
+
+#. Section: mainMenu
+msgctxt "mainMenu.title"
+msgid "Main Menu"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.closeProject"
+msgid "Close Project"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.exit"
+msgid "Exit"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.fileMenu"
+msgid "File"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.loadProject"
+msgid "Load Project"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.logPanel"
+msgid "Log Panel"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.newProject"
+msgid "New Project"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.resetLayout"
+msgid "Reset Layout"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.saveProject"
+msgid "Save Project"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.viewMenu"
+msgid "View"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.addFunction"
+msgid "Add Function"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.compile"
+msgid "Compile"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.compileLogHeader"
+msgid "Shader compile errors"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.domain"
+msgid "Domain"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.domainCompositor"
+msgid "Compositor"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.domainMenu"
+msgid "Domain"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.domainShape"
+msgid "Shape"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.functionHeader"
+msgid "Material Function"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.functionName"
+msgid "Name"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.graphHeader"
+msgid "Material Graph"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.materialMenu"
+msgid "Material"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.previewCompileFailed"
+msgid "Shader program failed to compile"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.previewInvalidAttribute"
+msgid "Invalid vertex attribute in compile result"
+msgstr ""
+
+#. Section: materialEditor
+#, c-format
+msgctxt "materialEditor.previewUnknownSemanticFmt"
+msgid "Unknown uniform semantic '%s' on uniform '%s'"
+msgstr ""
+
+#. Section: materialEditor
+#, c-format
+msgctxt "materialEditor.unboundUniformsFmt"
+msgid "Unbound uniforms: %s"
+msgstr ""
+
+#. Section: materialEditor
+msgctxt "materialEditor.vertexPreset"
+msgid "Vertex Preset"
+msgstr ""
+
+#. Section: modals
+msgctxt "modals.no"
+msgid "No"
+msgstr ""
+
+#. Section: modals
+msgctxt "modals.yes"
+msgid "Yes"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.calibrationComplete"
+msgid "Calibration complete!"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.calibrationFailed"
+msgid "Calibration failed. Please try again with more samples."
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.displayMode"
+msgid "Display Mode"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.failedVideoStream"
+msgid "Error: Failed to start video stream."
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.grayscale"
+msgid "Grayscale"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.holdBoardSteady"
+msgid "Hold the calibration board steady in different positions. Press SPACE to sample."
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.no"
+msgid "No"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.normalBgr"
+msgid "Normal (BGR)"
+msgstr ""
+
+#. Section: monoLensCalibration
+#, c-format
+msgctxt "monoLensCalibration.patternDetectedFmt"
+msgid "Pattern Detected: %s"
+msgstr ""
+
+#. Section: monoLensCalibration
+#, c-format
+msgctxt "monoLensCalibration.patternStableFmt"
+msgid "Pattern Stable: %s"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.processingCalibration"
+msgid "Processing calibration..."
+msgstr ""
+
+#. Section: monoLensCalibration
+#, c-format
+msgctxt "monoLensCalibration.reprojectionErrorFmt"
+msgid "Reprojection Error: %.4f"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.restart"
+msgid "Restart"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.undistorted"
+msgid "Undistorted"
+msgstr ""
+
+#. Section: monoLensCalibration
+msgctxt "monoLensCalibration.yes"
+msgid "Yes"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.addPage"
+msgid "Add Page"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.assetsTab"
+msgid "Graph Assets"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.compositorGraphFilesFilterDescription"
+msgid "Compositor Graph Files (*.compgraph)"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.compositorMenu"
+msgid "Compositor"
+msgstr ""
+
+#. Section: nodeEditor
+#, c-format
+msgctxt "nodeEditor.compositorOutputTitleFmt"
+msgid "%s - Compositor Output"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.compositorOutputWindowTitle"
+msgid "Compositor Output"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.delete"
+msgid "Delete"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.details"
+msgid "Details"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.editMenu"
+msgid "Edit"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.evalErrorWindowTitle"
+msgid "Eval Error"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.materialGraphFilesFilterDescription"
+msgid "Material Graph Files (*.matgraph)"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.noCompositor"
+msgid "No Compositor"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.pages"
+msgid "Pages"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.preview"
+msgid "Preview"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.redo"
+msgid "Redo"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.resetLayout"
+msgid "Reset Layout"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.rootPage"
+msgid "Main"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.runCompositor"
+msgid "Run"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.save"
+msgid "Save"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.saveAs"
+msgid "Save As..."
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.saveCompositorGraphDialogTitle"
+msgid "Save Compositor Graph"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.saveMaterialGraphDialogTitle"
+msgid "Save Material Graph"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.saveShapeGraphDialogTitle"
+msgid "Save Shape Graph"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.searchNodes"
+msgid "Search nodes..."
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.shapeGraphFilesFilterDescription"
+msgid "Shape Graph Files (*.shapegraph)"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.undo"
+msgid "Undo"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.variableName"
+msgid "Variable Name"
+msgstr ""
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.variables"
+msgid "Variables"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.addInput"
+msgid "Add Input"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.appendTitle"
+msgid "Append"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.applyMaterialHeader"
+msgid "Apply Material Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.applyMaterialTitle"
+msgid "Apply Material"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.auto"
+msgid "Auto"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.blendMode"
+msgid "Blend Mode"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.blendMultiply"
+msgid "Blend Multiply"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.blendNormal"
+msgid "Blend Normal"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.blendOff"
+msgid "Blend Off"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.camInsideInvert"
+msgid "Cam Inside Invert"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.cameraPositionTitle"
+msgid "Camera Position"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryConstants"
+msgid "Constants"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryCustom"
+msgid "Custom"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryFunctions"
+msgid "Functions"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryInputs"
+msgid "Inputs"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryMath"
+msgid "Math"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryParameters"
+msgid "Parameters"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryTexture"
+msgid "Texture"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryUtility"
+msgid "Utility"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.categoryVector"
+msgid "Vector"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.clientTextureHeader"
+msgid "Client Texture Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.colorConstantTitle"
+msgid "Color Constant"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.colorParameterTitle"
+msgid "Color Parameter"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.commentColor"
+msgid "Color"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.commentHeader"
+msgid "Comment"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.commentText"
+msgid "Text"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.commentTitle"
+msgid "Comment"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.constant2Title"
+msgid "Constant 2"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.constant3Title"
+msgid "Constant 3"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.constant4Title"
+msgid "Constant 4"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.constantTitle"
+msgid "Constant"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.customExpressionHeader"
+msgid "Custom Expression Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.customExpressionTitle"
+msgid "Custom Expression"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.defaultTexture"
+msgid "Default Texture"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.defaultValue"
+msgid "Default Value"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.depthMaskHeader"
+msgid "Depth Mask Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.depthMaskTitle"
+msgid "Depth Mask"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.depthTest"
+msgid "Depth Test"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.disableBoxes"
+msgid "Disable Boxes"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.disableModels"
+msgid "Disable Models"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.disableQuads"
+msgid "Disable Quads"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.drawLayerHeader"
+msgid "Draw Layer Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.drawLayerTitle"
+msgid "Draw Layer"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.drawShapeMeshHeader"
+msgid "Draw Shape Mesh Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.drawShapeMeshTitle"
+msgid "Draw Shape Mesh"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.drawShapesHeader"
+msgid "Draw Shapes Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.drawShapesTitle"
+msgid "Draw Shapes"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.enableBoxes"
+msgid "Enable Boxes"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.enableModels"
+msgid "Enable Models"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.enableQuads"
+msgid "Enable Quads"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.evalMode"
+msgid "Eval Mode"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.evalModeGet"
+msgid "Get"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.evalModeSet"
+msgid "Set"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.expressionBody"
+msgid "Function Body"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.fallbackOpaqueBlack"
+msgid "Opaque Black"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.fallbackOpaqueWhite"
+msgid "Opaque White"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.fallbackTransparentBlack"
+msgid "Transparent Black"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.farPlaneTitle"
+msgid "Far Plane"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.functionCallTitle"
+msgid "Function Call"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.functionInputPrefix"
+msgid "Input: "
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.functionOutputTitle"
+msgid "Function Output"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.ifEqualTitle"
+msgid "If A == B"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.ifGreaterEqualTitle"
+msgid "If A >= B"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.ifGreaterTitle"
+msgid "If A > B"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.ifLessEqualTitle"
+msgid "If A <= B"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.ifLessTitle"
+msgid "If A < B"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.ifNotEqualTitle"
+msgid "If A != B"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.inputs"
+msgid "Inputs"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.makeArrayTitle"
+msgid "Make Array"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.material"
+msgid "Material"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.materialOutputTitle"
+msgid "Material Output"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathAbsTitle"
+msgid "Abs"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathAddTitle"
+msgid "Add"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathClampTitle"
+msgid "Clamp"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathCosTitle"
+msgid "Cos"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathCrossTitle"
+msgid "Cross"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathDistanceTitle"
+msgid "Distance"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathDivideTitle"
+msgid "Divide"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathDotTitle"
+msgid "Dot"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathFloorTitle"
+msgid "Floor"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathFractTitle"
+msgid "Fract"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathLengthTitle"
+msgid "Length"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathLerpTitle"
+msgid "Lerp"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathMaxTitle"
+msgid "Max"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathMinTitle"
+msgid "Min"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathMultiplyTitle"
+msgid "Multiply"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathNormalizeTitle"
+msgid "Normalize"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathOneMinusTitle"
+msgid "One Minus"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathPowerTitle"
+msgid "Power"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathSaturateTitle"
+msgid "Saturate"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathSinTitle"
+msgid "Sin"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathSmoothstepTitle"
+msgid "Smoothstep"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathSqrtTitle"
+msgid "Sqrt"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathStepTitle"
+msgid "Step"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mathSubtractTitle"
+msgid "Subtract"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.mousePositionTitle"
+msgid "MousePosition"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.name"
+msgid "Name"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.nearPlaneTitle"
+msgid "Near Plane"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.noClientFallback"
+msgid "No-Client Fallback"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.nodeTitle"
+msgid "Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.outputType"
+msgid "Output Type"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.parameter2Title"
+msgid "Parameter 2"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.parameter3Title"
+msgid "Parameter 3"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.parameter4Title"
+msgid "Parameter 4"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.parameterName"
+msgid "Parameter Name"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.parameterTitle"
+msgid "Parameter"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.rerouteDeclaration"
+msgid "Reroute"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.rerouteDeclarationHeader"
+msgid "Named Reroute"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.rerouteDeclarationTitle"
+msgid "Named Reroute"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.rerouteName"
+msgid "Name"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.rerouteUsageHeader"
+msgid "Reroute Usage"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.rerouteUsageTitle"
+msgid "Reroute Usage"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.screenPositionTitle"
+msgid "Screen Position"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.screenSizeTitle"
+msgid "Screen Size"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.shaderConstantHeader"
+msgid "Constant Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.shaderParameterHeader"
+msgid "Parameter Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.shaderSwizzleHeader"
+msgid "Swizzle Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.shapeSelectHeader"
+msgid "Shape Select Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.shapeSelectTitle"
+msgid "Shape Select"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.source"
+msgid "Source"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.stencilInside"
+msgid "Inside"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.stencilMode"
+msgid "Stencil Mode"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.stencilNone"
+msgid "None"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.stencilOutside"
+msgid "Outside"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.stencilSelectHeader"
+msgid "Stencil Select Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.stencilSelectTitle"
+msgid "Stencil Select"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.swizzleMask"
+msgid "Mask"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.swizzleTitle"
+msgid "Swizzle"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.texCoordTitle"
+msgid "Texture Coordinate"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.textureParameterHeader"
+msgid "Texture Parameter Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.textureParameterTitle"
+msgid "Texture Parameter"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.textureSampleTitle"
+msgid "Texture Sample"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.textureSizeTitle"
+msgid "Texture Size"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.timeParameterTitle"
+msgid "Time Parameter"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.timeTitle"
+msgid "Time"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferBt709"
+msgid "BT.709"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferFunc"
+msgid "Transfer Func"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferGamma18"
+msgid "Gamma 1.8"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferGamma20"
+msgid "Gamma 2.0"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferGamma22"
+msgid "Gamma 2.2"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferGamma26"
+msgid "Gamma 2.6"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferGamma28"
+msgid "Gamma 2.8"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferLinear"
+msgid "Linear"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.transferSrgb"
+msgid "sRGB"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.type"
+msgid "Type"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.value"
+msgid "Value"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.variableHeader"
+msgid "Variable Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.vertexColorTitle"
+msgid "Vertex Color"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.vertexNormalTitle"
+msgid "Vertex Normal"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.vertexPositionTitle"
+msgid "Vertex Position"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.verticalFlip"
+msgid "Vertical Flip"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.videoSourceDistortion"
+msgid "Distortion"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.videoSourceVideo"
+msgid "Video"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.videoTextureHeader"
+msgid "Video Texture Node"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.videoTextureTitle"
+msgid "Video Texture"
+msgstr ""
+
+#. Section: nodes
+msgctxt "nodes.writeDepthTitle"
+msgid "Write Depth"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.arucoDictionary"
+msgid "Aruco Dictionary"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.charucoDictionary"
+msgid "Charuco Dictionary"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxPriority"
+msgid "DMX Priority"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.networkInterfaceIP"
+msgid "Network Interface IP"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.transmitRateHz"
+msgid "Transmit Rate (Hz)"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.accept"
+msgid "Accept"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.alignmentComplete"
+msgid "Alignment complete."
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.alignmentNotConverged"
+msgid "Alignment finished (did not fully converge). Verify the overlay."
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.autoAlign"
+msgid "Auto-Align"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.automaticAlignment"
+msgid "Automatic stencil alignment."
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.captureFeatureCloud"
+msgid "Slowly move the camera around the object to build a 3D feature cloud."
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.captureWholeView"
+msgid "Capture Whole View"
+msgstr ""
+
+#. Section: pointCloudAlignment
+#, c-format
+msgctxt "pointCloudAlignment.cloudPointsFmt"
+msgid "Cloud points: %d"
+msgstr ""
+
+#. Section: pointCloudAlignment
+#, c-format
+msgctxt "pointCloudAlignment.coverageFmt"
+msgid "Coverage: %.2f m"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.doneCapturing"
+msgid "Done Capturing"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.drawRegion"
+msgid "Draw Region"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.failedVideoStart"
+msgid "Error: Failed to start video stream."
+msgstr ""
+
+#. Section: pointCloudAlignment
+#, c-format
+msgctxt "pointCloudAlignment.inliersFmt"
+msgid "Inliers: %d"
+msgstr ""
+
+#. Section: pointCloudAlignment
+#, c-format
+msgctxt "pointCloudAlignment.keyframesFmt"
+msgid "Keyframes: %d"
+msgstr ""
+
+#. Section: pointCloudAlignment
+#, c-format
+msgctxt "pointCloudAlignment.meanReprojErrorFmt"
+msgid "Mean reproj error: %.2f px"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.paintRegionOfInterest"
+msgid "Click two opposite corners in the camera image to box the object, then capture."
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.realign"
+msgid "Re-Align"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.recapture"
+msgid "Recapture"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.reviewCloud"
+msgid "Review the captured point cloud."
+msgstr ""
+
+#. Section: pointCloudAlignment
+#, c-format
+msgctxt "pointCloudAlignment.rmsResidualFmt"
+msgid "RMS residual: %.1f mm"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.runningAutoAlignment"
+msgid "Aligning model to the feature cloud..."
+msgstr ""
+
+#. Section: pointCloudAlignment
+#, c-format
+msgctxt "pointCloudAlignment.scaleFmt"
+msgid "Scale: %.3f"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.skip"
+msgid "Skip"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.startingVideoStream"
+msgid "Starting video stream..."
+msgstr ""
+
+#. Section: pointCloudAlignment
+#, c-format
+msgctxt "pointCloudAlignment.trackedFeaturesFmt"
+msgid "Tracked features: %d"
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.verifyAlignmentInstructions"
+msgid "Check the wireframe overlay from multiple angles. Nudge with the gizmo and re-align if needed."
+msgstr ""
+
+#. Section: pointCloudAlignment
+msgctxt "pointCloudAlignment.verifyInitialCameraSetup"
+msgid "Position the tracked camera so the physical object is clearly in view, then choose how to restrict feature capture."
+msgstr ""
+
+#. Section: project
+msgctxt "project.addCompositorToScene"
+msgid "Add Compositor To Scene"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.apertureOffsetValidFmt"
+msgid "Aperture offset valid: %s"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.aperturePosFmt"
+msgid "  pos (mm): %.1f, %.1f, %.1f"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.apertureQuatFmt"
+msgid "  quat: w%.4f x%.4f y%.4f z%.4f"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.calibResolutionFmt"
+msgid "Calib resolution: %d x %d"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.cameraFallbackNameFmt"
+msgid "Camera %d"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.compositorFallbackNameFmt"
+msgid "Compositor %d"
+msgstr ""
+
+#. Section: project
+msgctxt "project.compositorListEmpty"
+msgid "No compositors in the active scene"
+msgstr ""
+
+#. Section: project
+msgctxt "project.compositorListNoScene"
+msgid "No active scene"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.cxCyFmt"
+msgid "cx=%.1f  cy=%.1f"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.fxFyFmt"
+msgid "fx=%.1f  fy=%.1f"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.hfovVfovFmt"
+msgid "hfov=%.2f  vfov=%.2f deg"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.liveResolutionFmt"
+msgid "Live resolution:  %d x %d"
+msgstr ""
+
+#. Section: project
+msgctxt "project.no"
+msgid "no"
+msgstr ""
+
+#. Section: project
+msgctxt "project.noActiveCompositorCameras"
+msgid "No active compositor cameras"
+msgstr ""
+
+#. Section: project
+msgctxt "project.noMonoIntrinsics"
+msgid "No mono intrinsics"
+msgstr ""
+
+#. Section: project
+msgctxt "project.noName"
+msgid "<No Name>"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddARKitSource"
+msgid "Add ARKit Video Source"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddAnchor"
+msgid "Add Anchor"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddBoxShape"
+msgid "Add Box Shape"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddBoxStencil"
+msgid "Add Box Stencil"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddCEFSource"
+msgid "Add Browser Texture Source"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddCamera"
+msgid "Add Camera"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddClientSource"
+msgid "Add Client Texture Source"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddCompositor"
+msgid "Add Compositor"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddLightGroup"
+msgid "Add Light Group"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddMarker"
+msgid "Add Aruco Marker"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddMarkerTracking"
+msgid "Add Marker Tracking Volume"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddModelShape"
+msgid "Add Model Shape"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddModelStencil"
+msgid "Add Model Stencil"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddMount"
+msgid "Add Tracking Mount"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddNetworkSource"
+msgid "Add Network Video Source"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddPixelGrid"
+msgid "Add Pixel Grid"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddPreset"
+msgid "Add Preset"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddQuadShape"
+msgid "Add Quad Shape"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddQuadStencil"
+msgid "Add Quad Stencil"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddScene"
+msgid "Add Scene"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddScript"
+msgid "Add Script"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddSequence"
+msgid "Add Sequence"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddSpotLight"
+msgid "Add Spot Light"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddSpoutSource"
+msgid "Add Spout Texture Source"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddStage"
+msgid "Add Stage"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddUSBSource"
+msgid "Add USB Video Source"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerAddVRTracking"
+msgid "Add SteamVR Tracking Volume"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerCamerasGroup"
+msgid "Cameras"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerDeleteComponent"
+msgid "Delete Component"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerDeleteConfirmTitle"
+msgid "Confirm Delete"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.outlinerDeleteManyFmt"
+msgid "Delete '%s' and %d child objects?"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.outlinerDeleteOneFmt"
+msgid "Delete '%s'?"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerLightGroupsGroup"
+msgid "Light Groups"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerLightsGroup"
+msgid "Lights"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerMarkersGroup"
+msgid "Markers"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerRoot"
+msgid "Project"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerScenesGroup"
+msgid "Scenes"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerScriptsGroup"
+msgid "Scripts"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerSourcesGroup"
+msgid "Sources"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerTrackingGroup"
+msgid "Tracking Volumes"
+msgstr ""
+
+#. Section: project
+msgctxt "project.outlinerUnparented"
+msgid "Unparented"
+msgstr ""
+
+#. Section: project
+msgctxt "project.panelAssets"
+msgid "Assets"
+msgstr ""
+
+#. Section: project
+msgctxt "project.panelCompositors"
+msgid "Compositors"
+msgstr ""
+
+#. Section: project
+msgctxt "project.panelHttpTriggers"
+msgid "HTTP Triggers"
+msgstr ""
+
+#. Section: project
+msgctxt "project.panelProject"
+msgid "Project"
+msgstr ""
+
+#. Section: project
+msgctxt "project.panelScenes"
+msgid "Scenes"
+msgstr ""
+
+#. Section: project
+msgctxt "project.panelSettings"
+msgid "Settings"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.puckPoseValidFmt"
+msgid "Puck pose valid: %s"
+msgstr ""
+
+#. Section: project
+msgctxt "project.resolutionMismatch"
+msgid "RESOLUTION MISMATCH"
+msgstr ""
+
+#. Section: project
+msgctxt "project.sceneListEmpty"
+msgid "No scenes in the project"
+msgstr ""
+
+#. Section: project
+msgctxt "project.selectCalibrationCamera"
+msgid "Select Calibration Camera"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.trackingFrameDelayFmt"
+msgid "Tracking frame delay: %d"
+msgstr ""
+
+#. Section: project
+msgctxt "project.viewBack"
+msgid "Back"
+msgstr ""
+
+#. Section: project
+msgctxt "project.viewBottom"
+msgid "Bottom"
+msgstr ""
+
+#. Section: project
+msgctxt "project.viewFront"
+msgid "Front"
+msgstr ""
+
+#. Section: project
+msgctxt "project.viewLeft"
+msgid "Left"
+msgstr ""
+
+#. Section: project
+msgctxt "project.viewPerspective"
+msgid "Perspective"
+msgstr ""
+
+#. Section: project
+msgctxt "project.viewRight"
+msgid "Right"
+msgstr ""
+
+#. Section: project
+msgctxt "project.viewTop"
+msgid "Top"
+msgstr ""
+
+#. Section: project
+msgctxt "project.yes"
+msgid "yes"
+msgstr ""
+
+#. Section: project
+#, c-format
+msgctxt "project.znearZfarFmt"
+msgid "znear=%.3f  zfar=%.1f m"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.debugCameraAlignment"
+msgid "Debug Camera Alignment"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.debugCameraAlignmentTooltip"
+msgid ""
+"Overlays the MR alignment chain: axes at stage origin / puck / aperture,\n"
+"and a window with live vs calibrated intrinsics, resolution, and offsets."
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.debugRenderInCompositor"
+msgid "Debug Render in Compositor"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.debugRenderInCompositorTooltip"
+msgid ""
+"Draws the debug overlay above in the compositor output window too.\n"
+"Off (default): the compositor window shows only the composited shot."
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.editBundledResources"
+msgid "Edit Bundled Resources"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.editBundledResourcesTooltip"
+msgid ""
+"Developer switch. The bundled resources show behind every project as read-only assets.\n"
+"On: the editors save bundled graphs, materials, and scripts in place and can delete them.\n"
+"Off (default): saving a bundled asset writes a project copy that shadows it."
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.gridAndMeasurement"
+msgid "Grid & Measurement"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.gridCellSize"
+msgid "Grid Cell Size (m)"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.gridExtent"
+msgid "Grid Extent (m)"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.language"
+msgid "Language"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.modelStencilDisplay"
+msgid "Model Stencil Display"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.renderAnchors"
+msgid "Render Anchors"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.renderBoxStencils"
+msgid "Render Box Stencils"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.renderComponentNames"
+msgid "Render Component Names"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.renderFrameRate"
+msgid "Render Frame Rate"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.renderModelStencils"
+msgid "Render Model Stencils"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.renderOrigin"
+msgid "Render Origin"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.renderQuadStencils"
+msgid "Render Quad Stencils"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.rulerSnapToGridByDefault"
+msgid "Ruler Snap To Grid By Default"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.rulerSnapTooltip"
+msgid ""
+"Hold Shift while measuring to invert snapping.\n"
+"Off (default): hold Shift to snap, release to move freely."
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.rulerUnitCentimeters"
+msgid "Centimeters"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.rulerUnitMeters"
+msgid "Meters"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.rulerUnitMillimeters"
+msgid "Millimeters"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.rulerUnits"
+msgid "Ruler Units"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.scriptEditorCommand"
+msgid "Script Editor Command"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionAssets"
+msgid "Assets"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionDMX"
+msgid "DMX"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionLocalization"
+msgid "Localization"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionLogging"
+msgid "Logging"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionMarker"
+msgid "Marker"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionRendering"
+msgid "Rendering"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionScripting"
+msgid "Scripting"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.snapIncrement"
+msgid "Snap Increment (m)"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.spoutLogging"
+msgid "Relay Spout Logs"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.spoutLoggingTooltip"
+msgid ""
+"Folds Spout's own diagnostics into the log panel and MikanXR.log.\n"
+"Off (default): Spout logging is disabled entirely, and no Spout console window opens."
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.stencilDisplayBoth"
+msgid "Both"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.stencilDisplaySolid"
+msgid "Solid"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.stencilDisplayTooltip"
+msgid "Wireframe hides the opaque mesh so the real model in the video shows through."
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.stencilDisplayWireframe"
+msgid "Wireframe"
+msgstr ""
+
+#. Section: projectSettings
+#, c-format
+msgctxt "projectSettings.translationReviewNoticeFmt"
+msgid "%d%% of this translation has been reviewed by a person. The rest is machine generated."
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.aruco_dictionary_type"
+msgid "ArUco Dictionary Type"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.aruco_id"
+msgid "ArUco ID"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.available_language_list"
+msgid "Available Languages"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.background_color"
+msgid "Background Color"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.base_port"
+msgid "Base Port"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.blue"
+msgid "Blue"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.box_x_size"
+msgid "Box X Size"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.box_y_size"
+msgid "Box Y Size"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.box_z_size"
+msgid "Box Z Size"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.brightness"
+msgid "Brightness"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.camera_speed"
+msgid "Camera Speed"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.charuco_cols"
+msgid "ChArUco Columns"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.charuco_dictionary_type"
+msgid "ChArUco Dictionary Type"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.charuco_marker_length_mm"
+msgid "ChArUco Marker Length (mm)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.charuco_mount_id"
+msgid "ChArUco Mount ID"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.charuco_mount_offset_mm"
+msgid "ChArUco Mount Offset (mm)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.charuco_rows"
+msgid "ChArUco Rows"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.charuco_square_length_mm"
+msgid "ChArUco Square Length (mm)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.client_source"
+msgid "Client Source"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.component_name"
+msgid "Component Name"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.compositor_graph_path"
+msgid "Compositor Graph Path"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.cone_angle_degrees"
+msgid "Cone Angle (degrees)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.cone_range_meters"
+msgid "Cone Range (meters)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.content_path"
+msgid "Content Image"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.content_source"
+msgid "Content Source"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.cull_mode"
+msgid "Cull Mode"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.current_friendly_name"
+msgid "Current Device Name"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.device_path"
+msgid "Device Path"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.directionality"
+msgid "Directionality"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.display_tracking_space"
+msgid "Display Tracking Space"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.dmx_channel_count"
+msgid "DMX Channel Count"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.dmx_priority"
+msgid "DMX Priority"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.dmx_start_channel"
+msgid "DMX Start Channel"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.dmx_universe"
+msgid "DMX Universe"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.duration_seconds"
+msgid "Duration (s)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.exposure_scale"
+msgid "Exposure Scale"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.font_path"
+msgid "Font"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.foreground_color"
+msgid "Foreground Color"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.green"
+msgid "Green"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.grid_columns"
+msgid "Grid Columns"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.grid_rows"
+msgid "Grid Rows"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.group_id"
+msgid "Group"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.height"
+msgid "Height"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.ip_address"
+msgid "IP Address"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.is_buffer_mirrored"
+msgid "Buffer Mirrored"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.is_disabled"
+msgid "Disabled"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.is_double_sided"
+msgid "Double Sided"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.is_frame_mirrored"
+msgid "Frame Mirrored"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.key_light_direction"
+msgid "Key Light Direction"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.length_mm"
+msgid "Length (mm)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.loop"
+msgid "Loop"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.model_path"
+msgid "Model Path"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.network_interface_ip"
+msgid "Network Interface IP"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.origin_marker_id"
+msgid "Origin Marker ID"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.origin_pixel"
+msgid "Origin Pixel"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.path"
+msgid "Path"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.pixel_separation_mm"
+msgid "Pixel Separation (mm)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.pixel_size_mm"
+msgid "Pixel Size (mm)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.playback_speed_scale"
+msgid "Playback Speed"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.port"
+msgid "Port"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.protocol"
+msgid "Protocol"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.quad_height"
+msgid "Quad Height"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.quad_width"
+msgid "Quad Width"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.red"
+msgid "Red"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.relative_position"
+msgid "Relative Position"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.relative_rotation"
+msgid "Relative Rotation"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.relative_scale"
+msgid "Relative Scale"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.render_anchors"
+msgid "Render Anchors"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.render_box_stencils"
+msgid "Render Box Stencils"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.render_model_stencils"
+msgid "Render Model Stencils"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.render_origin"
+msgid "Render Origin"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.render_quad_stencils"
+msgid "Render Quad Stencils"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.script_path"
+msgid "Script Path"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.scroll_direction"
+msgid "Scroll Direction"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.scroll_speed"
+msgid "Scroll Speed (px/s)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.scroll_text"
+msgid "Text"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.selected_language"
+msgid "Selected Language"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.sequence_name"
+msgid "Sequence"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.sh_coefficients"
+msgid "SH Coefficients"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.shape_graph_path"
+msgid "Shape Graph Path"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.socket_name"
+msgid "Socket Name"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.socket_names"
+msgid "Socket Names"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.spout_enable_output"
+msgid "Enable Spout Output"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.spout_output_name"
+msgid "Spout Output Name"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.spout_source"
+msgid "Spout Source"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.sprite_fps"
+msgid "Sprite Frame Rate"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.sprite_frame_height"
+msgid "Sprite Frame Height"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.sprite_frame_width"
+msgid "Sprite Frame Width"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.stage_bounds_max"
+msgid "Stage Bounds Max"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.stage_bounds_min"
+msgid "Stage Bounds Min"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.stage_id"
+msgid "Stage ID"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.text_pixel_height"
+msgid "Text Height (px)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.tracking_frame_delay"
+msgid "Tracking Frame Delay"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.tracking_runtime"
+msgid "Tracking Runtime"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.tracking_volume_id"
+msgid "Tracking Volume ID"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.transmit_rate_hz"
+msgid "Transmit Rate (Hz)"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.url"
+msgid "URL"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.url_writeback"
+msgid "Save Browsed URL"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.usb_device_map"
+msgid "USB Device Map"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.utility_marker_id"
+msgid "Utility Marker ID"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.video_format"
+msgid "Video Format"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.video_fps"
+msgid "Video FPS"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.video_frame_queue_size"
+msgid "Video Frame Queue Size"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.video_resolution"
+msgid "Video Resolution"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.vr_device_api"
+msgid "VR Device API"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.vr_device_index"
+msgid "VR Device Index"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.vr_device_path"
+msgid "VR Device Path"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.vr_device_path_list"
+msgid "VR Device Paths"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.vr_device_position_offset"
+msgid "VR Device Position Offset"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.vr_device_rotation_offset"
+msgid "VR Device Rotation Offset"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.vr_device_type"
+msgid "VR Device Type"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.vr_space_to_stage_space"
+msgid "VR Space To Stage Space"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.width"
+msgid "Width"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.zig_zag"
+msgid "Zig-Zag"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.pixel_origin_lower_left"
+msgid "Lower Left"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.pixel_origin_lower_right"
+msgid "Lower Right"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.pixel_origin_upper_left"
+msgid "Upper Left"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.pixel_origin_upper_right"
+msgid "Upper Right"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.scroll_down"
+msgid "Down"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.scroll_left"
+msgid "Left"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.scroll_right"
+msgid "Right"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.scroll_up"
+msgid "Up"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.sequence_paused"
+msgid "Paused"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.sequence_playing"
+msgid "Playing"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.sequence_source_play_animation"
+msgid "Play Animation"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.sequence_source_script"
+msgid "Script"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.sequence_source_scroll_bitmap"
+msgid "Scroll Bitmap"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.sequence_source_scroll_text"
+msgid "Scroll Text"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.sequence_stopped"
+msgid "Stopped"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.stage_space"
+msgid "Stage Space"
+msgstr ""
+
+#. Section: propertyValues
+msgctxt "propertyValues.vr_space"
+msgid "VR Space"
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.ambientFmt"
+msgid "Ambient: %s"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.apply"
+msgid "Apply"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.cameraPoseUnresolved"
+msgid "Could not resolve the camera pose. Is the camera tracked?"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.cancelCapture"
+msgid "Cancel Capture"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.cancelling"
+msgid "Cancelling..."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.capture"
+msgid "Capture"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.cpuWarning"
+msgid "Running on CPU - this will take minutes rather than seconds."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.decomposingShading"
+msgid "Decomposing the frame into diffuse shading..."
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.directionalityFmt"
+msgid "Directionality (l1/l0): %.3f"
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.directionalityNearAmbientFmt"
+msgid "Directionality (l1/l0): %.3f - near ambient"
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.elapsedSecondsFmt"
+msgid "%.1f s elapsed"
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.estimateRecoveredFmt"
+msgid "Estimate recovered from %d pixels."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.estimatingGeometry"
+msgid "Estimating surface normals..."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.estimationFailed"
+msgid "Lighting estimation failed."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.estimationFailedSeeLog"
+msgid "Lighting estimation failed. See MikanCmd.log for details."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.fittingLighting"
+msgid "Fitting the lighting environment..."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.frameSceneInstructions"
+msgid "Frame a view of the scene that shows a good spread of surface orientations - floor, walls and objects. Flat views of a single wall cannot constrain the lighting."
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.inferenceBackendFmt"
+msgid "Inference backend: %s"
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.keyLightDirectionFmt"
+msgid "Key light direction: %s"
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.lightingAppliedFmt"
+msgid "Lighting applied to probe '%s'."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.loadingModels"
+msgid "Loading the lighting and geometry models..."
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.modelLoadFailedFmt"
+msgid "Could not load the models from '%s' and '%s'. Run tools/export_marigold_onnx.py and tools/fetch_moge2_onnx.py to produce them. See MikanCmd.log for details."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.nearAmbientExplanation"
+msgid "This scene is close to uniformly lit. The ambient term is usable, but the key light direction is not meaningful and should not be used to place a directional light."
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.negativeRadianceFmt"
+msgid "Negative radiance over %.0f%% of the sphere. This is expected for directional scenes - order-2 spherical harmonics cannot represent a sharp light - and is clamped when the environment is used."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.noCastShadowsNote"
+msgid "Cast shadows are absent by construction - an environment probe has no visibility term. Judge the direction and color of the shading, not the shadows."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.noProbe"
+msgid "<none>"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.noUndistortedFrame"
+msgid "No undistorted color frame was available from the video source."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.preview"
+msgid "Preview"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.previewLitSphere"
+msgid "Lit sphere"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.previewLitSphereExplanation"
+msgid "A sphere lit by the recovered environment, in camera space."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.previewModelShading"
+msgid "Model shading (fit target)"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.previewModelShadingExplanation"
+msgid "The diffuse shading the fit solved against. Its cast shadows are the part an environment probe cannot reproduce."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.previewRecoveredLighting"
+msgid "Recovered lighting"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.previewRecoveredLightingExplanation"
+msgid "The recovered environment evaluated at the scene's own normals. Compare against 'Model shading' - where they agree, the estimate explains the lighting."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.previewRelitScene"
+msgid "Relit scene"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.previewRelitSceneExplanation"
+msgid "The plate re-rendered with only the recovered lighting. It should read like the real frame, minus cast shadows."
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.probeFmt"
+msgid "Probe: %s"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.redo"
+msgid "Redo"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.retry"
+msgid "Retry"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.startingVideoStream"
+msgid "Starting the video stream..."
+msgstr ""
+
+#. Section: sceneLightingCapture
+#, c-format
+msgctxt "sceneLightingCapture.stepOfStepsFmt"
+msgid "Step %d of %d"
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.videoStreamStartFailed"
+msgid "Failed to start the video stream."
+msgstr ""
+
+#. Section: sceneLightingCapture
+msgctxt "sceneLightingCapture.working"
+msgid "Working..."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.alignmentComplete"
+msgid "Stencil alignment complete!"
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.captureOriginPixel"
+msgid "Click the pixel in the camera image that corresponds to the stencil origin."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.captureOriginVertex"
+msgid "Click the vertex on the stencil mesh that corresponds to the origin."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.captureXAxisPixel"
+msgid "Click the pixel in the camera image along the X axis direction."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.captureXAxisVertex"
+msgid "Click the vertex on the stencil mesh along the X axis."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.captureYAxisPixel"
+msgid "Click the pixel in the camera image along the Y axis direction."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.captureYAxisVertex"
+msgid "Click the vertex on the stencil mesh along the Y axis."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.captureZAxisPixel"
+msgid "Click the pixel in the camera image along the Z axis direction."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.captureZAxisVertex"
+msgid "Click the vertex on the stencil mesh along the Z axis."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.failedVideoStart"
+msgid "Error: Failed to start video stream."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.redo"
+msgid "Redo"
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.startingVideoStream"
+msgid "Starting video stream..."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.verifyInitialCameraSetup"
+msgid "Verify that the camera is positioned and video stream is running."
+msgstr ""
+
+#. Section: stencilAlignment
+msgctxt "stencilAlignment.verifyPointsCapture"
+msgid "Verify the captured alignment points look correct."
+msgstr ""
+
+#. Section: textureSourceSettings
+msgctxt "textureSourceSettings.return"
+msgid "Return"
+msgstr ""
+
+#. Section: videoSourceSettings
+#, c-format
+msgctxt "videoSourceSettings.cameraFpsFmt"
+msgid "Camera %.1ffps"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.return"
+msgid "Return"
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.begin"
+msgid "Begin"
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.capturingSamples"
+msgid "Capturing marker pose samples..."
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.failedVideoStream"
+msgid "Error: Failed to start video stream."
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.invalidApertureOffsetMsg"
+msgid "Selected camera does not have a valid aperture offset transform. Please calibrate the camera's tracking mount offset."
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.invalidIntrinsicsMsg"
+msgid "Selected camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics."
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.invalidTrackingMountMsg"
+msgid "Selected camera does not have a valid tracking mount pose. Please assign a tracking mount to the camera."
+msgstr ""
+
+#. Section: vrTrackingRecenter
+#, c-format
+msgctxt "vrTrackingRecenter.markerDetectedFmt"
+msgid "Marker Detected: %s"
+msgstr ""
+
+#. Section: vrTrackingRecenter
+#, c-format
+msgctxt "vrTrackingRecenter.markerStableFmt"
+msgid "Marker Stable: %s"
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.no"
+msgid "No"
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.noVideoSourceMsg"
+msgid "Camera is not associated with a video source. Please set a video source for the camera."
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.placeMarker"
+msgid "Place the Aruco marker on the floor at the desired tracking origin."
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.recenteredSuccessfully"
+msgid "VR tracking recentered successfully!"
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.restart"
+msgid "Restart"
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.startingVideoStream"
+msgid "Starting video stream..."
+msgstr ""
+
+#. Section: vrTrackingRecenter
+msgctxt "vrTrackingRecenter.yes"
+msgid "Yes"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.addCompositor"
+msgid "Add Compositor"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.assets"
+msgid "Assets"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.cameraAlignmentDebug"
+msgid "Camera Alignment Debug"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.compositors"
+msgid "Compositors"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.httpTriggers"
+msgid "HTTP Triggers"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.log"
+msgid "Log"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.materialEditor"
+msgid "Material Editor"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.materialFunctionsPanel"
+msgid "Functions"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.materialPreviewPanel"
+msgid "Preview"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.nodeAssetsPanel"
+msgid "Graph Assets"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.nodeDetailsPanel"
+msgid "Details"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.nodeEditor"
+msgid "Node Editor"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.nodeGraphPanel"
+msgid "Graph"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.nodePagesPanel"
+msgid "Pages"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.nodeVariablesPanel"
+msgid "Variables"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.project"
+msgid "Project"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.projectSettings"
+msgid "Settings"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.scenes"
+msgid "Scenes"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.selectCamera"
+msgid "Select Camera"
+msgstr ""

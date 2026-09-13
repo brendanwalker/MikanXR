@@ -33,6 +33,37 @@ jobs:
         run: cmake -P cmake/RunClangFormat.cmake -- --check
 
   # -----------------------------------------------------------------
+  # Translation gate. Volunteers edit the gettext catalogs under
+  # localization/ and never the JSON tables under resources/, so this
+  # job verifies that the committed tables are exactly what the
+  # generator produces from those catalogs, and that every string still
+  # passes the loader's rules (no "##", printf specifiers matching
+  # English). The CDN serves resources/localization straight off main,
+  # so a merged typo reaches installed builds within a day and this is
+  # the only gate in front of it. Like the format job it needs nothing
+  # but the source tree, so a contributor gets an answer in under a
+  # minute instead of waiting on the Windows build below.
+  #
+  # Glyph coverage is deliberately NOT checked here. The baked font
+  # ranges live in MkGuiTheme, and localization_test_glyph_coverage in
+  # the Windows job owns that check rather than a second copy of the
+  # range table drifting in Python.
+  # -----------------------------------------------------------------
+  localization-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Install polib
+        run: pip install polib
+
+      - name: Check localization tables
+        run: python tools/localization.py check
+
+  # -----------------------------------------------------------------
   # The AI usage badges are rendered from docs/ai-usage.json, which is
   # committed. Collecting into that ledger needs the Claude Code
   # transcripts on the developer's machine, so it cannot happen here,

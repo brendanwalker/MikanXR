@@ -151,6 +151,28 @@ Point at a specific binary with `cmake -DCLANG_FORMAT_EXE=path\to\clang-format -
 
 ---
 
+## Localization
+
+Needs `polib` (`pip install polib`). Background in [localization.md](./localization.md).
+
+```
+python tools/localization.py sync                        # regenerate the tables from the catalogs
+python tools/localization.py check                       # verify they are current (what CI runs)
+python tools/localization.py stats                       # per-language translated and reviewed counts
+python tools/localization.py new fr Francais             # bootstrap a new language
+```
+
+Run `sync` after adding a key to `resources/localization/en.json`; CI fails on a stale generated table. `new` takes `--from-json <path>` to seed a catalog from an existing table, flagging every seeded string fuzzy.
+
+The same first two are also CMake targets, next to `FormatFix`/`FormatCheck` in the IDE:
+
+```
+cmake --build build --target LocalizationSync
+cmake --build build --target LocalizationCheck
+```
+
+---
+
 ## Client bindings codegen
 
 Never hand-edit `bindings/csharp/Generated` or `bindings/typescript/types`; regenerate them instead (see [wire-protocol.md](./wire-protocol.md)):

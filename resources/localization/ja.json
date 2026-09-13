@@ -1,7 +1,10 @@
 {
 	"_meta": {
 		"code": "ja",
-		"nativeName": "日本語"
+		"nativeName": "日本語",
+		"stringCount": 903,
+		"translatedCount": 902,
+		"reviewedCount": 0
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "ブラウザーウィンドウを表示"
@@ -267,10 +270,10 @@
 		"capture_preset": "ライブから取得",
 		"capture_scene_lighting": "シーン照明を取得",
 		"edit_anchor": "アンカーを編集",
+		"match_resolution_to_browser_window": "解像度をウィンドウに合わせる",
 		"pause_sequence": "一時停止",
 		"play_sequence": "再生",
 		"print_checkerboard": "チェッカーボードを印刷",
-		"match_resolution_to_browser_window": "解像度をウィンドウに合わせる",
 		"print_marker": "マーカーを印刷",
 		"reset_settings": "既定値に戻す",
 		"show_compositor_output": "コンポジター出力を表示",
@@ -732,7 +735,8 @@
 		"stencilDisplayBoth": "両方",
 		"stencilDisplaySolid": "ソリッド",
 		"stencilDisplayTooltip": "ワイヤーフレームは不透明メッシュを隠すので、映像内の実際のモデルが透けて見えます。",
-		"stencilDisplayWireframe": "ワイヤーフレーム"
+		"stencilDisplayWireframe": "ワイヤーフレーム",
+		"translationReviewNoticeFmt": "%d%% of this translation has been reviewed by a person. The rest is machine generated."
 	},
 	"properties": {
 		"aruco_dictionary_type": "ArUco 辞書タイプ",

@@ -71,6 +71,18 @@ void GuiPanel_ProjectSettings::onGui()
 				addDeferredGuiEvent([locManager, lang]() { locManager->setLanguage(lang); });
 			}
 		}
+
+		// Community translations start out machine generated. Say so, rather
+		// than letting an unreviewed string read as the project's own wording.
+		const LocalizationManager::LanguageInfo* languageInfo= locManager->getLanguageInfo(m_selectedLanguageId);
+		if (languageInfo != nullptr && languageInfo->stringCount > 0
+			&& languageInfo->reviewedCount < languageInfo->stringCount)
+		{
+			const int reviewedPercent= (languageInfo->reviewedCount * 100) / languageInfo->stringCount;
+			ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+			ImGui::TextWrapped(locText("projectSettings.translationReviewNoticeFmt"), reviewedPercent);
+			ImGui::PopStyleColor();
+		}
 	}
 
 	// -- Rendering ----

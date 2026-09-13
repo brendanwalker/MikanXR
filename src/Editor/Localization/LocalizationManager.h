@@ -12,7 +12,9 @@
 class LocalizationRemoteFetcher;
 
 // UTF-8 UI string tables, one JSON file per language under
-// resources/localization/ (en.json, ja.json, ...).
+// resources/localization/ (en.json, ja.json, ...). English is hand-authored;
+// every other table is generated from a gettext catalog by
+// tools/localization.py and is never hand-edited.
 //
 // Keys are flat "section.key" strings. Every language is loaded once at
 // startup and validated against English: missing keys, orphan keys, printf
@@ -35,6 +37,12 @@ public:
 	{
 		std::string code;       // "en", "ja" (also the filename stem)
 		std::string nativeName; // "English", "日本語"
+		// Translation progress written into _meta by tools/localization.py.
+		// A table predating those fields reports zeroes, which reads as "no
+		// claim made" rather than "nothing translated".
+		int stringCount= 0;
+		int translatedCount= 0;
+		int reviewedCount= 0; // translated and not flagged fuzzy: a human vouched for it
 	};
 
 	LocalizationManager();
@@ -57,6 +65,8 @@ public:
 	std::vector<std::string> getSupportedLanguages() const;
 	// Code + native display name pairs for the settings combo, English first
 	std::vector<LanguageInfo> getSupportedLanguageInfos() const;
+	// One language's info, or nullptr for an unknown code
+	const LanguageInfo* getLanguageInfo(const std::string& langCode) const;
 	bool isLanguageSupported(const std::string& langCode) const;
 	// Live switch: flips the active table and persists appLanguage. ImGui
 	// refetches every frame, so the UI changes immediately.

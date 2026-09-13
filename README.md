@@ -20,6 +20,8 @@ If you want to make modifications to the service or want to debug it, you can bu
 # Contributing
 Code under `src/` is formatted with clang-format and enforced by CI. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to format your changes (`cmake --build build --target FormatFix`).
 
+The app's UI text is currently machine translated. Fixing it needs no build and no C++, just [POEdit](https://poedit.net/) and a pull request: see [docs/TRANSLATING.md](docs/TRANSLATING.md).
+
 # Documentation
 * General setup guides, troubleshooting and design docs can be found on the [wiki](https://github.com/brendanwalker/MikanXR/wiki)
 

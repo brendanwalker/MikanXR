@@ -1,0 +1,12 @@
+{
+	"languages": [
+		{
+			"code": "en",
+			"nativeName": "English"
+		},
+		{
+			"code": "ja",
+			"nativeName": "日本語"
+		}
+	]
+}

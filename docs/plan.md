@@ -23,6 +23,8 @@ The living plan: what is in flight now, what comes next, and the open questions.
 
 ## Later
 
+- [ ] Host the gettext catalogs on Weblate or Crowdin, so a volunteer gets a web editor that opens its own pull request instead of installing POEdit and cloning. Both ingest the `localization/*.po` files directly, so the format decision is already made and the migration is configuration rather than code. Worth doing once translations arrive from people who are not developers.
+- [ ] A spreadsheet round trip for translators who will not use a PO editor, through `translate-toolkit`'s `po2csv`/`csv2po` behind two `tools/localization.py` subcommands. Deferred because the fuzzy flag has no natural column in a spreadsheet, so the review state has to be modeled by hand.
 - [ ] Material graph: per-node preview thumbnails, compiling a variant of the graph with the node's output as the color.
 - [ ] Material graph: draw nodes auto-feeding well-known semantics such as time and screen size, so those parameters need no outer-graph pins. Today a `time` parameter is fed from the outer graph's `TimeNode` like the hand-written materials.
 - [ ] Material graph: a parameter the author never wants exposed as a consumer pin. Every parameter is a pin today; a `bExposed` flag on the parameter nodes that keeps the uniform out of the consumer's pin list (bound only from its default) is the cheap follow-up.

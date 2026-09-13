@@ -1,7 +1,10 @@
 {
 	"_meta": {
 		"code": "en",
-		"nativeName": "English"
+		"nativeName": "English",
+		"stringCount": 903,
+		"translatedCount": 903,
+		"reviewedCount": 903
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -267,10 +270,10 @@
 		"capture_preset": "Capture From Live",
 		"capture_scene_lighting": "Capture Scene Lighting",
 		"edit_anchor": "Edit Anchor",
+		"match_resolution_to_browser_window": "Match Resolution to Window",
 		"pause_sequence": "Pause",
 		"play_sequence": "Play",
 		"print_checkerboard": "Print Checkerboard",
-		"match_resolution_to_browser_window": "Match Resolution to Window",
 		"print_marker": "Print Marker",
 		"reset_settings": "Reset to Defaults",
 		"show_compositor_output": "Show Compositor Output",
@@ -732,7 +735,8 @@
 		"stencilDisplayBoth": "Both",
 		"stencilDisplaySolid": "Solid",
 		"stencilDisplayTooltip": "Wireframe hides the opaque mesh so the real model in the video shows through.",
-		"stencilDisplayWireframe": "Wireframe"
+		"stencilDisplayWireframe": "Wireframe",
+		"translationReviewNoticeFmt": "%d%% of this translation has been reviewed by a person. The rest is machine generated."
 	},
 	"properties": {
 		"aruco_dictionary_type": "ArUco Dictionary Type",

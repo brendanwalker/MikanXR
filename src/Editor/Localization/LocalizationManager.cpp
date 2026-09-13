@@ -3,6 +3,7 @@
 #include "LocalizationRemoteFetcher.h"
 #include "LocText.h"
 #include "Logger.h"
+#include "MkGuiTheme.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
 
@@ -204,6 +205,9 @@ bool LocalizationManager::loadLanguageFile(const std::filesystem::path& path, La
 	{
 		const json& meta= j["_meta"];
 		outLanguage.info.nativeName= meta.value("nativeName", code);
+		outLanguage.info.stringCount= meta.value("stringCount", 0);
+		outLanguage.info.translatedCount= meta.value("translatedCount", 0);
+		outLanguage.info.reviewedCount= meta.value("reviewedCount", 0);
 		if (meta.value("code", code) != code)
 			addLoadWarning(path.filename().string() + ": _meta.code does not match the filename");
 	}
@@ -246,13 +250,26 @@ void LocalizationManager::overlayLanguageFile(const std::filesystem::path& path)
 	auto it= m_languages.find(code);
 	if (it == m_languages.end())
 	{
-		// A language the shipped build does not bundle at all
+		// A language the shipped build does not bundle at all. The font atlas
+		// is baked into the build, so a language added to the CDN after this
+		// build shipped would list itself in the picker and then draw tofu.
+		// Its own name is the cheapest proof that the glyphs are here.
+		if (!MkGuiTheme::isTextRenderableWithUiGlyphs(overlay.info.nativeName))
+		{
+			MIKAN_LOG_INFO("LocalizationManager::overlayLanguageFile")
+				<< "Ignoring community language '" << code << "': this build has no glyphs for it";
+			return;
+		}
+
 		m_languages[code]= std::move(overlay);
 		return;
 	}
 
 	Language& target= it->second;
 	target.info.nativeName= overlay.info.nativeName;
+	target.info.stringCount= overlay.info.stringCount;
+	target.info.translatedCount= overlay.info.translatedCount;
+	target.info.reviewedCount= overlay.info.reviewedCount;
 	for (auto& [key, text] : overlay.rawStrings)
 	{
 		target.rawStrings[key]= text;
@@ -374,6 +391,12 @@ std::vector<LocalizationManager::LanguageInfo> LocalizationManager::getSupported
 			languages.push_back(language.info);
 	}
 	return languages;
+}
+
+const LocalizationManager::LanguageInfo* LocalizationManager::getLanguageInfo(const std::string& langCode) const
+{
+	const auto it= m_languages.find(langCode);
+	return it != m_languages.end() ? &it->second.info : nullptr;
 }
 
 bool LocalizationManager::isLanguageSupported(const std::string& langCode) const

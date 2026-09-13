@@ -1,0 +1,5456 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: MikanXR\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Section: CEFTextureSourceComponent
+#, fuzzy
+msgctxt "CEFTextureSourceComponent.show_texture_source_settings"
+msgid "Show Browser Window"
+msgstr "ブラウザーウィンドウを表示"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.alignmentComplete"
+msgid "Camera aligned successfully!"
+msgstr "カメラの位置合わせが完了しました！"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.alreadyHasTrackingMountError"
+msgid "Target camera already has a tracking mount. Use the standard alignment calibration instead."
+msgstr "ターゲットカメラには既にトラッキングマウントが設定されています。標準の位置合わせ校正を使用してください。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.begin"
+msgid "Begin"
+msgstr "開始"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.failedVideoStart"
+msgid "Error: Failed to start video stream."
+msgstr "エラー: 映像ストリームの開始に失敗しました。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.invalidIntrinsicsError"
+msgid "Target camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics first."
+msgstr "ターゲットカメラの開口部内部パラメーターが無効です。先にカメラの内部パラメーターを校正してください。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy, c-format
+msgctxt "alignCameraByOriginMarker.markerDetectedFmt"
+msgid "Origin Marker Detected: %s"
+msgstr "原点マーカー検出: %s"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.no"
+msgid "No"
+msgstr "いいえ"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.noMarkerTrackingVolumeError"
+msgid "Target camera's stage has no marker tracking volume. Please assign a marker tracking volume to the stage."
+msgstr "ターゲットカメラのステージにマーカートラッキングボリュームが設定されていません。ステージにマーカートラッキングボリュームを割り当ててください。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.noOriginMarkerError"
+msgid "The stage's marker tracking volume has no Origin Marker assigned. Please assign an origin marker to the tracking volume."
+msgstr "ステージのマーカートラッキングボリュームに原点マーカーが割り当てられていません。トラッキングボリュームに原点マーカーを割り当ててください。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.noOwnerStageError"
+msgid "Target camera has no owner stage."
+msgstr "ターゲットカメラに所属ステージがありません。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.noVideoSourceError"
+msgid "Target camera has no video source. Please assign a video source before aligning."
+msgstr "ターゲットカメラに映像ソースがありません。位置合わせの前に映像ソースを割り当ててください。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.restart"
+msgid "Restart"
+msgstr "再開"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.samplingTransforms"
+msgid "Sampling Origin Marker transforms..."
+msgstr "原点マーカーの変換をサンプリングしています..."
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.startingVideoStream"
+msgid "Starting video stream..."
+msgstr "映像ストリームを開始しています..."
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.verifyAxesOverlay"
+msgid "Verify the axes overlay appears correctly over the Origin Marker."
+msgstr "原点マーカー上に軸オーバーレイが正しく表示されているか確認してください。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.verifySetup"
+msgid "Point the camera at the Origin Marker until it is detected, then click Begin."
+msgstr "原点マーカーにカメラを向け、検出されたら「開始」をクリックしてください。"
+
+#. Section: alignCameraByOriginMarker
+#, fuzzy
+msgctxt "alignCameraByOriginMarker.yes"
+msgid "Yes"
+msgstr "はい"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.alignmentComplete"
+msgid "Target camera aligned successfully!"
+msgstr "ターゲットカメラの位置合わせが完了しました！"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.alreadyHasTrackingMountError"
+msgid "Target camera already has a tracking mount. Use the standard alignment calibration instead."
+msgstr "ターゲットカメラには既にトラッキングマウントが設定されています。標準の位置合わせ校正を使用してください。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.begin"
+msgid "Begin"
+msgstr "開始"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.failedVideoStart"
+msgid "Error: Failed to start video stream(s)."
+msgstr "エラー: 映像ストリームの開始に失敗しました。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.invalidIntrinsicsError"
+msgid "Target camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics first."
+msgstr "ターゲットカメラの開口部内部パラメーターが無効です。先にカメラの内部パラメーターを校正してください。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.no"
+msgid "No"
+msgstr "いいえ"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.noTrackingVolumeError"
+msgid "Target camera's stage has no VR tracking volume. Please assign a VR tracking volume to the stage."
+msgstr "ターゲットカメラのステージにVRトラッキングボリュームが設定されていません。ステージにVRトラッキングボリュームを割り当ててください。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.noUtilityMarkerError"
+msgid "The stage's VR tracking volume has no Utility Marker assigned. Please assign a utility marker to the tracking volume."
+msgstr "ステージのVRトラッキングボリュームにユーティリティマーカーが割り当てられていません。トラッキングボリュームにユーティリティマーカーを割り当ててください。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.noVideoSourceError"
+msgid "Target camera has no video source. Please assign a video source before aligning."
+msgstr "ターゲットカメラに映像ソースがありません。位置合わせの前に映像ソースを割り当ててください。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.restart"
+msgid "Restart"
+msgstr "再開"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.samplingTransforms"
+msgid "Sampling Utility Marker transforms..."
+msgstr "ユーティリティマーカーの変換をサンプリングしています..."
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.sourceCamera"
+msgid "Source Camera:"
+msgstr "ソースカメラ:"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.sourceCameraInvalidIntrinsicsError"
+msgid "Selected source camera has no valid video source or intrinsics."
+msgstr "選択したソースカメラには有効な映像ソースまたは内部パラメーターがありません。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.sourceCameraNotFoundError"
+msgid "Failed to find selected source camera. Please try again."
+msgstr "選択したソースカメラが見つかりませんでした。もう一度お試しください。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy, c-format
+msgctxt "alignCameraByUtilityMarker.sourceMarkerDetectedFmt"
+msgid "Source Camera - Marker Detected: %s"
+msgstr "ソースカメラ - マーカー検出: %s"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.startingVideoStreams"
+msgid "Starting video streams..."
+msgstr "映像ストリームを開始しています..."
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.targetCamera"
+msgid "Target Camera:"
+msgstr "ターゲットカメラ:"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy, c-format
+msgctxt "alignCameraByUtilityMarker.targetMarkerDetectedFmt"
+msgid "Target Camera - Marker Detected: %s"
+msgstr "ターゲットカメラ - マーカー検出: %s"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.verifyAxesOverlay"
+msgid "Verify the axes overlay appears correctly over the Utility Marker."
+msgstr "ユーティリティマーカー上に軸オーバーレイが正しく表示されているか確認してください。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.verifySetup"
+msgid "Point both cameras at the Utility Marker until it is detected, then click Begin."
+msgstr "両方のカメラをユーティリティマーカーに向け、検出されたら「開始」をクリックしてください。"
+
+#. Section: alignCameraByUtilityMarker
+#, fuzzy
+msgctxt "alignCameraByUtilityMarker.yes"
+msgid "Yes"
+msgstr "はい"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.begin"
+msgid "Begin"
+msgstr "開始"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.calibratedSuccessfully"
+msgid "Camera alignment calibrated successfully!"
+msgstr "カメラの位置合わせが正常にキャリブレーションされました！"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.cameraSettings"
+msgid "Camera Settings"
+msgstr "カメラ設定"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.capturingSamples"
+msgid "Capturing calibration samples..."
+msgstr "キャリブレーションサンプルを取得中..."
+
+#. Section: alignmentCalibration
+#, fuzzy, c-format
+msgctxt "alignmentCalibration.chessboardDetectedFmt"
+msgid "Chessboard Detected: %s"
+msgstr "チェスボード検出: %s"
+
+#. Section: alignmentCalibration
+#, fuzzy, c-format
+msgctxt "alignmentCalibration.chessboardStableFmt"
+msgid "Chessboard Stable: %s"
+msgstr "チェスボード安定: %s"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.failedVideoStream"
+msgid "Error: Failed to start video stream."
+msgstr "エラー: ビデオストリームの開始に失敗しました。"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.invalidIntrinsicsMsg"
+msgid "Camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics before using it for alignment."
+msgstr "カメラに有効な絞りの内部パラメータがありません。位置合わせに使用する前にカメラの内部パラメータをキャリブレーションしてください。"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.no"
+msgid "No"
+msgstr "いいえ"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.noCharucoMountMsg"
+msgid "VRTracking volume missing ChArUco Mount. Please ensure the ChArUco tracking puck is on before aligning."
+msgstr "VRトラッキングボリュームにChArUcoマウントがありません。位置合わせの前にChArUcoトラッキングパックの電源が入っていることを確認してください。"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.noTrackingMountMsg"
+msgid "Camera is missing a tracking mount. Please ensure the camera tracking mount puck is on before aligning."
+msgstr "カメラにトラッキングマウントがありません。位置合わせの前にカメラのトラッキングマウントパックの電源が入っていることを確認してください。"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.noTrackingVolumeMsg"
+msgid "Camera is not associated with a VR tracking volume. Please assign a VR tracking volume to the stage this camera is attached to before aligning."
+msgstr "カメラにVRトラッキングボリュームが関連付けられていません。位置合わせの前に、このカメラが取り付けられているステージにVRトラッキングボリュームを割り当ててください。"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.noVideoSourceMsg"
+msgid "Camera is not associated with a video source. Please set a video source for the camera before aligning."
+msgstr "カメラにビデオソースが関連付けられていません。位置合わせの前にカメラにビデオソースを設定してください。"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.positionChessboard"
+msgid "Position the calibration chessboard so it is visible in the camera view."
+msgstr "カメラの視野内にキャリブレーションチェスボードが見えるように配置してください。"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.restart"
+msgid "Restart"
+msgstr "リスタート"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.startingVideoStream"
+msgid "Starting video stream..."
+msgstr "ビデオストリームを開始しています..."
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.viewpointCalibration"
+msgid "Calibration"
+msgstr "キャリブレーション"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.viewpointStageView"
+msgid "Stage View"
+msgstr "ステージビュー"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.viewpointXrView"
+msgid "XR View"
+msgstr "XRビュー"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.vrFrameDelay"
+msgid "VR Frame Delay"
+msgstr "VRフレーム遅延"
+
+#. Section: alignmentCalibration
+#, fuzzy
+msgctxt "alignmentCalibration.yes"
+msgid "Yes"
+msgstr "はい"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.captureOrigin1"
+msgid "Camera position 1: Click the anchor origin point in the image."
+msgstr "カメラ位置1: 画像内のアンカー原点をクリックしてください。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.captureOrigin2"
+msgid "Camera position 2: Click the anchor origin point in the image."
+msgstr "カメラ位置2: 画像内のアンカー原点をクリックしてください。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.captureXAxis1"
+msgid "Camera position 1: Click a point along the anchor X axis."
+msgstr "カメラ位置1: アンカーのX軸に沿った点をクリックしてください。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.captureXAxis2"
+msgid "Camera position 2: Click a point along the anchor X axis."
+msgstr "カメラ位置2: アンカーのX軸に沿った点をクリックしてください。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.captureYAxis1"
+msgid "Camera position 1: Click a point along the anchor Y axis."
+msgstr "カメラ位置1: アンカーのY軸に沿った点をクリックしてください。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.captureYAxis2"
+msgid "Camera position 2: Click a point along the anchor Y axis."
+msgstr "カメラ位置2: アンカーのY軸に沿った点をクリックしてください。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.failedVideoStream"
+msgid "Error: Failed to start video stream."
+msgstr "エラー: ビデオストリームの開始に失敗しました。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.moveCamera"
+msgid "Move the camera to a second position with a different angle to the anchor."
+msgstr "カメラをアンカーに対して異なる角度になる2番目の位置に移動してください。"
+
+#. Section: anchorTriangulation
+#, fuzzy, c-format
+msgctxt "anchorTriangulation.pointsCapturedFmt"
+msgid "Points captured: %d"
+msgstr "取得した点数: %d"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.redo"
+msgid "Redo"
+msgstr "やり直す"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.triangulationComplete"
+msgid "Anchor triangulation complete!"
+msgstr "アンカーの三角測量が完了しました！"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.verifyCameraSetup"
+msgid "Verify that the camera is positioned correctly and the video stream is running."
+msgstr "カメラが正しい位置にあり、ビデオストリームが実行中であることを確認してください。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.verifyInitialPointCapture"
+msgid "Verify the captured points from position 1 look correct."
+msgstr "位置1で取得した点が正しく見えることを確認してください。"
+
+#. Section: anchorTriangulation
+#, fuzzy
+msgctxt "anchorTriangulation.verifyTriangulatedPoints"
+msgid "Verify the triangulated anchor points look correct."
+msgstr "三角測量されたアンカー点が正しく見えることを確認してください。"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.addAssetFmt"
+msgid "Add %s"
+msgstr "%sを追加"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.bundledAsset"
+msgid "Bundled with the application. Copy it to the project to edit it."
+msgstr "アプリケーション付属のアセットです。編集するにはプロジェクトにコピーしてください。"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.compositorGraphFilterDescription"
+msgid "Compositor Graph Files (*.compgraph)"
+msgstr "コンポジターグラフファイル (*.compgraph)"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.compositorMaterialFilterDescription"
+msgid "Compositor Material Files (*.compmat)"
+msgstr "コンポジターマテリアルファイル (*.compmat)"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.copyToProject"
+msgid "Copy to Project"
+msgstr "プロジェクトにコピー"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.deleteConfirmFmt"
+msgid "Delete '%s'?"
+msgstr "%s を削除しますか?"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.deleteConfirmTitle"
+msgid "Confirm Delete"
+msgstr "削除の確認"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.deleteRefusedFmt"
+msgid "'%s' is still in use and cannot be deleted. Used by:"
+msgstr "'%s' は使用中のため削除できません。使用元:"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.empty"
+msgid "No assets in this folder"
+msgstr "このフォルダーにアセットはありません"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.folderCompositorMaterials"
+msgid "Compositor Materials"
+msgstr "コンポジターマテリアル"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.folderCompositors"
+msgid "Compositor Graphs"
+msgstr "コンポジターグラフ"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.folderFonts"
+msgid "Fonts"
+msgstr "フォント"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.folderModels"
+msgid "Models"
+msgstr "モデル"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.folderScripts"
+msgid "Scripts"
+msgstr "スクリプト"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.folderShapeMaterials"
+msgid "Shape Materials"
+msgstr "シェイプマテリアル"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.folderShapes"
+msgid "Shape Graphs"
+msgstr "シェイプグラフ"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.folderTextures"
+msgid "Textures"
+msgstr "テクスチャ"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.fontFilterDescription"
+msgid "Font Files (*.ttf, *.otf)"
+msgstr "フォントファイル (*.ttf, *.otf)"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.imageFilterDescription"
+msgid "Image Files (*.jpg;*.jpeg;*.png;*.bmp;*.tga)"
+msgstr "画像ファイル (*.jpg;*.jpeg;*.png;*.bmp;*.tga)"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.importFailedFmt"
+msgid "Import failed: %s"
+msgstr "インポートに失敗しました: %s"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.importMaterialDomainMismatchFmt"
+msgid "'%s' is a %s material and does not belong in this folder"
+msgstr "'%s' は %s マテリアルのため、このフォルダーには入れられません"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.importMaterialExistsFmt"
+msgid "A material folder named '%s' already exists in the project"
+msgstr "'%s' という名前のマテリアルフォルダーは既にプロジェクトに存在します"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.importNoProject"
+msgid "No project is loaded"
+msgstr "プロジェクトが読み込まれていません"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.importUnsupportedFileFmt"
+msgid "'%s' is not a supported file type for this folder"
+msgstr "'%s' はこのフォルダーでサポートされていないファイル形式です"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.loadCompositorGraphDialogTitle"
+msgid "Load Compositor Graph"
+msgstr "コンポジターグラフを読み込む"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.loadCompositorMaterialDialogTitle"
+msgid "Load Compositor Material"
+msgstr "コンポジターマテリアルを読み込む"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.loadFontDialogTitle"
+msgid "Load Font"
+msgstr "フォントを読み込む"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.loadPixelContentDialogTitle"
+msgid "Load Image or Animation"
+msgstr "画像またはアニメーションを読み込む"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.loadShapeGraphDialogTitle"
+msgid "Load Shape Graph"
+msgstr "シェイプグラフを読み込む"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.loadShapeMaterialDialogTitle"
+msgid "Load Shape Material"
+msgstr "シェイプマテリアルを読み込む"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.loadTextureDialogTitle"
+msgid "Load Texture"
+msgstr "テクスチャを読み込む"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.material"
+msgid "Material"
+msgstr "マテリアル"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.materialAssetHeader"
+msgid "Material Asset"
+msgstr "マテリアルアセット"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.newMaterial"
+msgid "New Material"
+msgstr "新規マテリアル"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.pixelContentFilterDescription"
+msgid "Image Files (*.png, *.gif, *.bmp, *.tga, *.jpg, *.jpeg)"
+msgstr "画像ファイル (*.png, *.gif, *.bmp, *.tga, *.jpg, *.jpeg)"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.readOnlyAsset"
+msgid "Bundled assets are read only"
+msgstr "アプリ付属のアセットは読み取り専用です"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.readOnlyFolder"
+msgid "Bundled with the application (read only)"
+msgstr "アプリケーション付属 (読み取り専用)"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.referrerComponentFmt"
+msgid "Component '%s' (%s)"
+msgstr "コンポーネント '%s' (%s)"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.referrerGraphFmt"
+msgid "Graph '%s'"
+msgstr "グラフ '%s'"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.referrerMaterialFmt"
+msgid "Material '%s'"
+msgstr "マテリアル '%s'"
+
+#. Section: assets
+#, fuzzy, c-format
+msgctxt "assets.referrerMoreFmt"
+msgid "...and %d more"
+msgstr "...他 %d 件"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.refresh"
+msgid "Refresh"
+msgstr "更新"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.shapeGraphFilterDescription"
+msgid "Shape Graph Files (*.shapegraph)"
+msgstr "シェイプグラフファイル (*.shapegraph)"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.shapeMaterialFilterDescription"
+msgid "Shape Material Files (*.shapemat)"
+msgstr "シェイプマテリアルファイル (*.shapemat)"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.texture"
+msgid "Texture"
+msgstr "テクスチャ"
+
+#. Section: assets
+#, fuzzy
+msgctxt "assets.textureAssetHeader"
+msgid "Texture Asset"
+msgstr "テクスチャアセット"
+
+#. Section: cefBrowser
+#, fuzzy
+msgctxt "cefBrowser.back"
+msgid "Back"
+msgstr "戻る"
+
+#. Section: cefBrowser
+#, fuzzy
+msgctxt "cefBrowser.devTools"
+msgid "DevTools"
+msgstr "開発者ツール"
+
+#. Section: cefBrowser
+#, fuzzy
+msgctxt "cefBrowser.forward"
+msgid "Forward"
+msgstr "進む"
+
+#. Section: cefBrowser
+#, fuzzy
+msgctxt "cefBrowser.reload"
+msgid "Reload"
+msgstr "再読み込み"
+
+#. Section: cefBrowser
+#, fuzzy
+msgctxt "cefBrowser.windowTitle"
+msgid "Browser"
+msgstr "ブラウザー"
+
+#. Section: cefBrowser
+#, fuzzy, c-format
+msgctxt "cefBrowser.windowTitleFmt"
+msgid "%s - Browser"
+msgstr "%s - ブラウザー"
+
+#. Section: common
+#, fuzzy
+msgctxt "common.cancel"
+msgid "Cancel"
+msgstr "キャンセル"
+
+#. Section: common
+#, fuzzy
+msgctxt "common.close"
+msgid "Close"
+msgstr "閉じる"
+
+#. Section: common
+#, fuzzy
+msgctxt "common.ok"
+msgid "Ok"
+msgstr "OK"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.addFixture"
+msgid "Add Fixture"
+msgstr "フィクスチャを追加"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.addGraph"
+msgid "Add Graph"
+msgstr "グラフを追加"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.arucoId"
+msgid "Aruco ID"
+msgstr "Aruco ID"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.blue"
+msgid "Blue"
+msgstr "青"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.camera"
+msgid "Camera"
+msgstr "カメラ"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.charucoMount"
+msgid "Charuco Mount"
+msgstr "Charuco マウント"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.columns"
+msgid "Columns"
+msgstr "列"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.deleteGraph"
+msgid "Delete Graph"
+msgstr "グラフを削除"
+
+#. Section: componentPanel
+#, fuzzy, c-format
+msgctxt "componentPanel.directionalityFmt"
+msgid "Directionality (l1/l0): %.3f"
+msgstr "指向性 (l1/l0): %.3f"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.directionalityLowTooltip"
+msgid "This environment is close to uniformly lit. The ambient term is usable, but the key light direction is not meaningful."
+msgstr "この環境はほぼ均一に照らされています。アンビエント項は使用できますが、主光源の方向は意味を持ちません。"
+
+#. Section: componentPanel
+#, fuzzy, c-format
+msgctxt "componentPanel.directionalityNearAmbientFmt"
+msgid "Directionality (l1/l0): %.3f - near ambient"
+msgstr "指向性 (l1/l0): %.3f - 環境光に近い"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.displayBuffer"
+msgid "Display Buffer"
+msgstr "表示バッファ"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.displayBufferColor"
+msgid "Color"
+msgstr "カラー"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.displayBufferDepth"
+msgid "Depth"
+msgstr "深度"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.displayCompositor"
+msgid "Display Compositor"
+msgstr "表示コンポジター"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.dropAssetHint"
+msgid "Drop an asset from the Assets panel"
+msgstr "アセットパネルからアセットをドロップ"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.editGraph"
+msgid "Edit Graph"
+msgstr "グラフを編集"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.editScript"
+msgid "Edit Script"
+msgstr "スクリプトを編集"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.exposureScaleNote"
+msgid "Values include the exposure scale."
+msgstr "値には露出スケールが含まれています。"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.fixtures"
+msgid "Fixtures"
+msgstr "フィクスチャ"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.format"
+msgid "Format"
+msgstr "フォーマット"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.frameRate"
+msgid "Frame Rate"
+msgstr "フレームレート"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.graph"
+msgid "Graph"
+msgstr "グラフ"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.green"
+msgid "Green"
+msgstr "緑"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.height"
+msgid "Height"
+msgstr "高さ"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.noAsset"
+msgid "<None>"
+msgstr "<なし>"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.none"
+msgid "<none>"
+msgstr "<なし>"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.originMarker"
+msgid "Origin Marker"
+msgstr "原点マーカー"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.parent"
+msgid "Parent"
+msgstr "親"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.presetGroup"
+msgid "Group"
+msgstr "グループ"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.protocol"
+msgid "Protocol"
+msgstr "プロトコル"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.red"
+msgid "Red"
+msgstr "赤"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.reloadScript"
+msgid "Reload Script"
+msgstr "スクリプトを再読み込み"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.removeFixture"
+msgid "Remove"
+msgstr "削除"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.removeScript"
+msgid "Remove Script"
+msgstr "スクリプトを削除"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.resolution"
+msgid "Resolution"
+msgstr "解像度"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.rows"
+msgid "Rows"
+msgstr "行"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.script"
+msgid "Script"
+msgstr "スクリプト"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.scriptNotLoaded"
+msgid "<Not Loaded>"
+msgstr "<未読み込み>"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.scriptTriggers"
+msgid "Script Triggers"
+msgstr "スクリプトトリガー"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.scriptVariables"
+msgid "Script Variables"
+msgstr "スクリプト変数"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.sequenceHandler"
+msgid "Handler"
+msgstr "ハンドラー"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.sequenceHandlerMissing"
+msgid "<not registered>"
+msgstr "<未登録>"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.sequenceScript"
+msgid "Script"
+msgstr "スクリプト"
+
+#. Section: componentPanel
+#, fuzzy, c-format
+msgctxt "componentPanel.sequenceStatusFmt"
+msgid "%s  %.1f s"
+msgstr "%s  %.1f 秒"
+
+#. Section: componentPanel
+#, fuzzy, c-format
+msgctxt "componentPanel.shCoefficientTooltipFmt"
+msgid ""
+"%s\n"
+"%+.4f  %+.4f  %+.4f\n"
+"\n"
+"Swatch is |value| relative to the largest coefficient, so it shows magnitude and hue only - the sign is in the numbers. Negative coefficients are normal for the l=1 and l=2 bands."
+msgstr ""
+"%s\n"
+"%+.4f  %+.4f  %+.4f\n"
+"\n"
+"スウォッチは最大係数に対する絶対値の相対表示のため、大きさと色相のみを示します。符号は数値側で確認できます。l=1およびl=2帯域では負の係数が生じるのが通常です。"
+
+#. Section: componentPanel
+#, fuzzy, c-format
+msgctxt "componentPanel.skyIrradianceFmt"
+msgid "Sky irradiance  %.3f %.3f %.3f"
+msgstr "空の放射照度  %.3f %.3f %.3f"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.socket"
+msgid "Socket"
+msgstr "ソケット"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.sphericalHarmonics"
+msgid "Spherical Harmonics"
+msgstr "球面調和関数"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.spoutSource"
+msgid "Spout Source"
+msgstr "Spout ソース"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.stage"
+msgid "Stage"
+msgstr "ステージ"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.trackingMount"
+msgid "Tracking Mount"
+msgstr "トラッキングマウント"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.trackingVolume"
+msgid "Tracking Volume"
+msgstr "トラッキングボリューム"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.url"
+msgid "URL"
+msgstr "URL"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.usbDevice"
+msgid "USB Device"
+msgstr "USBデバイス"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.utilityMarker"
+msgid "Utility Marker"
+msgstr "ユーティリティマーカー"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.videoSource"
+msgid "Video Source"
+msgstr "映像ソース"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.vrDevice"
+msgid "VR Device"
+msgstr "VRデバイス"
+
+#. Section: componentPanel
+#, fuzzy
+msgctxt "componentPanel.width"
+msgid "Width"
+msgstr "幅"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.arucoAutoCalibrateNote"
+msgid "If one of the project's ArUco markers is visible in the frame, it is used to calibrate the metric scale automatically."
+msgstr "プロジェクトのArUcoマーカーがフレーム内に見える場合、それを使ってメートル法のスケールを自動的にキャリブレーションします。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.calibratingScale"
+msgid "Calibrating metric scale..."
+msgstr "メートル法のスケールをキャリブレーションしています..."
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.cameraIntrinsicsUnresolved"
+msgid "Could not resolve the camera intrinsics. Is the camera calibrated?"
+msgstr "カメラの内部パラメータを解決できませんでした。カメラはキャリブレーションされていますか?"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.cameraPoseUnresolved"
+msgid "Could not resolve the camera pose. Is the camera tracked?"
+msgstr "カメラのポーズを解決できませんでした。カメラはトラッキングされていますか?"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.cancelCapture"
+msgid "Cancel Capture"
+msgstr "キャプチャをキャンセル"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.cancelling"
+msgid "Cancelling..."
+msgstr "キャンセル中..."
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.capture"
+msgid "Capture"
+msgstr "キャプチャ"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.captureFailed"
+msgid "Depth mesh capture failed."
+msgstr "デプスメッシュキャプチャに失敗しました。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.cpuWarning"
+msgid "Running on CPU - expect ~10 seconds rather than ~1."
+msgstr "CPUで実行中 - 約1秒ではなく約10秒かかります。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.createStencil"
+msgid "Create Stencil"
+msgstr "ステンシルを作成"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.culledCellsFmt"
+msgid "%d cells cut at depth discontinuities (expected along silhouettes - the mesh separates rather than stretching skirts between surfaces)."
+msgstr "%d 個のセルがデプスの不連続部分でカットされました(シルエット沿いでは想定内の現象です - メッシュは面の間で伸びずに分離します)。"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.depthRangeFmt"
+msgid "Depth range: %.2f - %.2f m"
+msgstr "デプス範囲: %.2f - %.2f m"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.elapsedSecondsFmt"
+msgid "%.1f s elapsed"
+msgstr "経過時間 %.1f 秒"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.estimatingDepth"
+msgid "Estimating scene depth..."
+msgstr "シーンのデプスを推定しています..."
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.frameSceneInstructions"
+msgid "Frame the part of the scene the composited character will interact with - the floor and nearby surfaces that should catch its shadow. Thin structures and transparent surfaces reconstruct poorly."
+msgstr "合成するキャラクターが接する部分をフレーミングしてください - 影を受ける床や周辺の面です。細い構造物や透明な面はうまく復元できません。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.generatingMesh"
+msgid "Generating the proxy mesh..."
+msgstr "プロキシメッシュを生成しています..."
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.inferenceBackendFmt"
+msgid "Inference backend: %s"
+msgstr "推論バックエンド: %s"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.inferenceFailed"
+msgid "Depth inference failed. See MikanCmd.log for details."
+msgstr "デプス推論に失敗しました。詳細はMikanCmd.logを参照してください。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.loadingModel"
+msgid "Loading the depth model..."
+msgstr "デプスモデルを読み込んでいます..."
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.markerCornerDisagreement"
+msgid "The marker corners disagree on the factor - the marker may be at a grazing angle or on a depth edge. Reposition it and redo."
+msgstr "マーカーの角ごとに補正係数が一致していません - マーカーが浅い角度にあるか、デプスのエッジ上にある可能性があります。位置を調整してやり直してください。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.meshGenerationFailed"
+msgid "Mesh generation produced no usable geometry."
+msgstr "メッシュ生成で使用可能なジオメトリが得られませんでした。"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.meshSummaryFmt"
+msgid "Proxy mesh: %d vertices, %d triangles."
+msgstr "プロキシメッシュ: 頂点 %d、三角形 %d。"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.meshWriteFailedFmt"
+msgid "Failed to write the mesh to '%s'."
+msgstr "メッシュを「%s」に書き込めませんでした。"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.modelLoadFailedFmt"
+msgid "Could not load the MoGe-2 model from '%s'. Run tools/fetch_moge2_onnx.py to download it. See MikanCmd.log for details."
+msgstr "「%s」からMoGe-2モデルを読み込めませんでした。tools/fetch_moge2_onnx.pyを実行してダウンロードしてください。詳細はMikanCmd.logを参照してください。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.noProjectLoaded"
+msgid "No project is loaded, so there is nowhere to save the mesh."
+msgstr "プロジェクトが読み込まれていないため、メッシュを保存する場所がありません。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.noScaleCalibration"
+msgid "No scale calibration"
+msgstr "スケールキャリブレーションなし"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.noScaleCalibrationExplanation"
+msgid "Metric scale is the model's raw guess and can be off by a large factor. Place an ArUco marker of known size in view and redo to calibrate."
+msgstr "メートル法のスケールはモデルの推測値であり、大きくずれている可能性があります。既知のサイズのArUcoマーカーを視野内に置いてやり直し、キャリブレーションしてください。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.noUndistortedFrame"
+msgid "No undistorted color frame was available from the video source."
+msgstr "ビデオソースからディストーション補正済みのカラーフレームを取得できませんでした。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.previewOverlayNote"
+msgid "The overlay colors the recovered depth (red = near, blue = far). Check that color edges hug the object silhouettes in the frame before applying."
+msgstr "オーバーレイは復元したデプスを色で表示します(赤 = 近い、青 = 遠い)。適用する前に、色の境界がフレーム内の物体のシルエットに沿っているか確認してください。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.redo"
+msgid "Redo"
+msgstr "やり直す"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.retry"
+msgid "Retry"
+msgstr "再試行"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.scaleCorrectionArucoFmt"
+msgid "Scale correction: %.3f (ArUco marker, spread %.1f%%)"
+msgstr "スケール補正: %.3f (ArUcoマーカー、ばらつき %.1f%%)"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.scaleCorrectionSavedFmt"
+msgid "Scale correction %.3f was saved to the camera and will apply to future captures without a marker in view."
+msgstr "スケール補正 %.3f がカメラに保存されました。マーカーが見えない今後のキャプチャにも適用されます。"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.scaleCorrectionStoredFmt"
+msgid "Scale correction: %.3f (stored on camera)"
+msgstr "スケール補正: %.3f (カメラに保存済み)"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.scaleFactorSavedNote"
+msgid "Creating the stencil saves this factor to the camera for future marker-less captures."
+msgstr "ステンシルを作成すると、この係数がカメラに保存され、今後マーカーなしのキャプチャにも適用されます。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.startingVideoStream"
+msgid "Starting the video stream..."
+msgstr "ビデオストリームを開始しています..."
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.stencilCreateFailed"
+msgid "Failed to create the model stencil."
+msgstr "モデルステンシルの作成に失敗しました。"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.stencilCreatedFmt"
+msgid "Created model stencil '%s'."
+msgstr "モデルステンシル「%s」を作成しました。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.stencilParentedNote"
+msgid "The stencil is parented under the stage at the capturing camera's pose; connected clients pick it up automatically."
+msgstr "ステンシルはキャプチャ時のカメラのポーズでステージの下に配置されます。接続中のクライアントは自動的にこれを検知します。"
+
+#. Section: depthMeshCapture
+#, fuzzy, c-format
+msgctxt "depthMeshCapture.stepOfStepsFmt"
+msgid "Step %d of %d"
+msgstr "ステップ %d / %d"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.videoStreamStartFailed"
+msgid "Failed to start the video stream."
+msgstr "ビデオストリームの開始に失敗しました。"
+
+#. Section: depthMeshCapture
+#, fuzzy
+msgctxt "depthMeshCapture.working"
+msgid "Working..."
+msgstr "処理中..."
+
+#. Section: entityAccessor
+#, fuzzy, c-format
+msgctxt "entityAccessor.itemsCountFmt"
+msgid "[%d items]"
+msgstr "[%d 項目]"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.activate_scene"
+msgid "Activate Scene"
+msgstr "シーンを有効化"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.align_camera"
+msgid "Align Camera"
+msgstr "カメラを位置合わせ"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.align_stencil"
+msgid "Align Stencil"
+msgstr "ステンシルを位置合わせ"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.align_tracking_volume"
+msgid "Align Tracking Volume"
+msgstr "トラッキングボリュームを位置合わせ"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.apply_preset"
+msgid "Apply"
+msgstr "適用"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.calibrate_intrinsics"
+msgid "Calibrate Intrinsics"
+msgstr "内部パラメーターを校正"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.capture_depth_mesh"
+msgid "Capture Depth Mesh"
+msgstr "デプスメッシュを取得"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.capture_preset"
+msgid "Capture From Live"
+msgstr "ライブから取得"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.capture_scene_lighting"
+msgid "Capture Scene Lighting"
+msgstr "シーン照明を取得"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.edit_anchor"
+msgid "Edit Anchor"
+msgstr "アンカーを編集"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.match_resolution_to_browser_window"
+msgid "Match Resolution to Window"
+msgstr "解像度をウィンドウに合わせる"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.pause_sequence"
+msgid "Pause"
+msgstr "一時停止"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.play_sequence"
+msgid "Play"
+msgstr "再生"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.print_checkerboard"
+msgid "Print Checkerboard"
+msgstr "チェッカーボードを印刷"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.print_marker"
+msgid "Print Marker"
+msgstr "マーカーを印刷"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.reset_settings"
+msgid "Reset to Defaults"
+msgstr "既定値に戻す"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.show_compositor_output"
+msgid "Show Compositor Output"
+msgstr "コンポジター出力を表示"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.show_texture_source_settings"
+msgid "Show Texture Source Settings"
+msgstr "テクスチャソース設定を表示"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.show_video_source_settings"
+msgid "Show Video Source Settings"
+msgstr "映像ソース設定を表示"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.stop_sequence"
+msgid "Stop"
+msgstr "停止"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.test_intrinsics"
+msgid "Test Intrinsics"
+msgstr "内部パラメーターをテスト"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.triangulate_light"
+msgid "Triangulate Light"
+msgstr "ライトを三角測量"
+
+#. Section: functions
+#, fuzzy
+msgctxt "functions.zero_all_channels"
+msgid "Zero All Channels"
+msgstr "全チャンネルをゼロに"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.default"
+msgid "Default"
+msgstr "デフォルト"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.material"
+msgid "Material"
+msgstr "マテリアル"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.materialHeader"
+msgid "Material"
+msgstr "マテリアル"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.modelHeader"
+msgid "Model"
+msgstr "モデル"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.name"
+msgid "Name"
+msgstr "名前"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.noAssetRef"
+msgid "<No Asset Ref>"
+msgstr "<アセット参照なし>"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.noShape"
+msgid "<No Shape>"
+msgstr "<シェイプなし>"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.noStencil"
+msgid "<No Stencil>"
+msgstr "<ステンシルなし>"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.noTexture"
+msgid "<No Texture>"
+msgstr "<テクスチャなし>"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.noTextureSource"
+msgid "<No TextureSource>"
+msgstr "<テクスチャソースなし>"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.preview"
+msgid "Preview"
+msgstr "プレビュー"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.shapeHeader"
+msgid "Shape"
+msgstr "シェイプ"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.source"
+msgid "Source"
+msgstr "ソース"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.stencilHeader"
+msgid "Stencil"
+msgstr "ステンシル"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.texture"
+msgid "Texture"
+msgstr "テクスチャ"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.textureHeader"
+msgid "Texture"
+msgstr "テクスチャ"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.textureSourceHeader"
+msgid "TextureSource"
+msgstr "テクスチャソース"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.type"
+msgid "Type"
+msgstr "タイプ"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.value"
+msgid "Value"
+msgstr "値"
+
+#. Section: graphProperties
+#, fuzzy
+msgctxt "graphProperties.variableHeader"
+msgid "Variable"
+msgstr "変数"
+
+#. Section: httpTriggers
+#, fuzzy
+msgctxt "httpTriggers.noRoutesRegistered"
+msgid "No HTTP trigger routes registered"
+msgstr "登録されたHTTPトリガールートがありません"
+
+#. Section: httpTriggers
+#, fuzzy
+msgctxt "httpTriggers.serverPort"
+msgid "HTTP Trigger Server Port"
+msgstr "HTTPトリガーサーバーポート"
+
+#. Section: lightFixtureCalibration
+#, fuzzy, c-format
+msgctxt "lightFixtureCalibration.calibrationCompleteFmt"
+msgid "Fixture '%s' position calibrated successfully."
+msgstr "フィクスチャー「%s」の位置校正が完了しました。"
+
+#. Section: lightFixtureCalibration
+#, fuzzy, c-format
+msgctxt "lightFixtureCalibration.capturePosition1Fmt"
+msgid "Camera position 1: Click on the '%s' fixture in the image."
+msgstr "カメラ位置1: 画像内の「%s」フィクスチャーをクリックしてください。"
+
+#. Section: lightFixtureCalibration
+#, fuzzy, c-format
+msgctxt "lightFixtureCalibration.capturePosition2Fmt"
+msgid "Camera position 2: Click on the '%s' fixture in the image."
+msgstr "カメラ位置2: 画像内の「%s」フィクスチャーをクリックしてください。"
+
+#. Section: lightFixtureCalibration
+#, fuzzy
+msgctxt "lightFixtureCalibration.failedVideoStart"
+msgid "Error: Failed to start video stream."
+msgstr "エラー: 映像ストリームの開始に失敗しました。"
+
+#. Section: lightFixtureCalibration
+#, fuzzy
+msgctxt "lightFixtureCalibration.moveCamera"
+msgid "Move the camera to a second position with a different angle to the fixture."
+msgstr "フィクスチャーに対して異なる角度になるよう、カメラを2つ目の位置に移動してください。"
+
+#. Section: lightFixtureCalibration
+#, fuzzy
+msgctxt "lightFixtureCalibration.pendingVideoStart"
+msgid "Waiting for video stream to start..."
+msgstr "映像ストリームの開始を待っています..."
+
+#. Section: lightFixtureCalibration
+#, fuzzy
+msgctxt "lightFixtureCalibration.redo"
+msgid "Redo"
+msgstr "やり直し"
+
+#. Section: lightFixtureCalibration
+#, fuzzy, c-format
+msgctxt "lightFixtureCalibration.verifyInitialCameraSetupFmt"
+msgid "Fixture '%s' has been set to white. Position the camera so the fixture is visible and verify the video stream is running."
+msgstr "フィクスチャー「%s」を白色に設定しました。フィクスチャーが見える位置にカメラを配置し、映像ストリームが動作していることを確認してください。"
+
+#. Section: lightFixtureCalibration
+#, fuzzy
+msgctxt "lightFixtureCalibration.verifyTriangulatedPosition"
+msgid "Verify the triangulated fixture position looks correct in the viewport."
+msgstr "三角測量されたフィクスチャーの位置がビューポート内で正しく見えるか確認してください。"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.autoScroll"
+msgid "Auto Scroll"
+msgstr "自動スクロール"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.clear"
+msgid "Clear"
+msgstr "消去"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.levelDebug"
+msgid "Debug"
+msgstr "デバッグ"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.levelError"
+msgid "Error"
+msgstr "エラー"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.levelFatal"
+msgid "Fatal"
+msgstr "致命的"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.levelInfo"
+msgid "Info"
+msgstr "情報"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.levelTrace"
+msgid "Trace"
+msgstr "トレース"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.levelWarning"
+msgid "Warning"
+msgstr "警告"
+
+#. Section: logPanel
+#, fuzzy
+msgctxt "logPanel.minLevel"
+msgid "Level"
+msgstr "レベル"
+
+#. Section: mainMenu
+#, fuzzy
+msgctxt "mainMenu.exit"
+msgid "Exit"
+msgstr "終了"
+
+#. Section: mainMenu
+#, fuzzy
+msgctxt "mainMenu.newProject"
+msgid "New Project"
+msgstr "新規プロジェクト"
+
+#. Section: mainMenu
+#, fuzzy
+msgctxt "mainMenu.newProjectFolderDialogTitle"
+msgid "New Project Folder"
+msgstr "新規プロジェクトフォルダ"
+
+#. Section: mainMenu
+#, fuzzy
+msgctxt "mainMenu.openProject"
+msgid "Open Project"
+msgstr "プロジェクトを開く"
+
+#. Section: mainMenu
+#, fuzzy
+msgctxt "mainMenu.openProjectDialogTitle"
+msgid "Open Project"
+msgstr "プロジェクトを開く"
+
+#. Section: mainMenu
+#, fuzzy
+msgctxt "mainMenu.projectFilesFilter"
+msgid "Project Files (*.mikanproj)"
+msgstr "プロジェクトファイル (*.mikanproj)"
+
+#. Section: mainMenu
+#, fuzzy
+msgctxt "mainMenu.resumeProject"
+msgid "Resume Project"
+msgstr "プロジェクトを再開"
+
+#. Section: mainMenu
+#, fuzzy
+msgctxt "mainMenu.title"
+msgid "Main Menu"
+msgstr "メインメニュー"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.closeProject"
+msgid "Close Project"
+msgstr "プロジェクトを閉じる"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.exit"
+msgid "Exit"
+msgstr "終了"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.fileMenu"
+msgid "File"
+msgstr "ファイル"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.loadProject"
+msgid "Load Project"
+msgstr "プロジェクトを開く"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.logPanel"
+msgid "Log Panel"
+msgstr "ログパネル"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.newProject"
+msgid "New Project"
+msgstr "新規プロジェクト"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.resetLayout"
+msgid "Reset Layout"
+msgstr "レイアウトをリセット"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.saveProject"
+msgid "Save Project"
+msgstr "プロジェクトを保存"
+
+#. Section: mainWindow
+#, fuzzy
+msgctxt "mainWindow.viewMenu"
+msgid "View"
+msgstr "表示"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.addFunction"
+msgid "Add Function"
+msgstr "関数を追加"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.compile"
+msgid "Compile"
+msgstr "コンパイル"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.compileLogHeader"
+msgid "Shader compile errors"
+msgstr "シェーダーのコンパイルエラー"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.domain"
+msgid "Domain"
+msgstr "ドメイン"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.domainCompositor"
+msgid "Compositor"
+msgstr "コンポジター"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.domainMenu"
+msgid "Domain"
+msgstr "ドメイン"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.domainShape"
+msgid "Shape"
+msgstr "シェイプ"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.functionHeader"
+msgid "Material Function"
+msgstr "マテリアル関数"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.functionName"
+msgid "Name"
+msgstr "名前"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.graphHeader"
+msgid "Material Graph"
+msgstr "マテリアルグラフ"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.materialMenu"
+msgid "Material"
+msgstr "マテリアル"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.previewCompileFailed"
+msgid "Shader program failed to compile"
+msgstr "シェーダープログラムのコンパイルに失敗しました"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.previewInvalidAttribute"
+msgid "Invalid vertex attribute in compile result"
+msgstr "コンパイル結果の頂点属性が無効です"
+
+#. Section: materialEditor
+#, fuzzy, c-format
+msgctxt "materialEditor.previewUnknownSemanticFmt"
+msgid "Unknown uniform semantic '%s' on uniform '%s'"
+msgstr "不明なセマンティック '%s' (ユニフォーム '%s')"
+
+#. Section: materialEditor
+#, fuzzy, c-format
+msgctxt "materialEditor.unboundUniformsFmt"
+msgid "Unbound uniforms: %s"
+msgstr "未バインドのユニフォーム: %s"
+
+#. Section: materialEditor
+#, fuzzy
+msgctxt "materialEditor.vertexPreset"
+msgid "Vertex Preset"
+msgstr "頂点プリセット"
+
+#. Section: modals
+#, fuzzy
+msgctxt "modals.no"
+msgid "No"
+msgstr "いいえ"
+
+#. Section: modals
+#, fuzzy
+msgctxt "modals.yes"
+msgid "Yes"
+msgstr "はい"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.calibrationComplete"
+msgid "Calibration complete!"
+msgstr "キャリブレーション完了！"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.calibrationFailed"
+msgid "Calibration failed. Please try again with more samples."
+msgstr "キャリブレーションに失敗しました。サンプルを増やして再度お試しください。"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.displayMode"
+msgid "Display Mode"
+msgstr "表示モード"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.failedVideoStream"
+msgid "Error: Failed to start video stream."
+msgstr "エラー: ビデオストリームの開始に失敗しました。"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.grayscale"
+msgid "Grayscale"
+msgstr "グレースケール"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.holdBoardSteady"
+msgid "Hold the calibration board steady in different positions. Press SPACE to sample."
+msgstr "キャリブレーションボードを様々な位置で静止させてください。スペースキーでサンプルを取得します。"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.no"
+msgid "No"
+msgstr "いいえ"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.normalBgr"
+msgid "Normal (BGR)"
+msgstr "通常 (BGR)"
+
+#. Section: monoLensCalibration
+#, fuzzy, c-format
+msgctxt "monoLensCalibration.patternDetectedFmt"
+msgid "Pattern Detected: %s"
+msgstr "パターン検出: %s"
+
+#. Section: monoLensCalibration
+#, fuzzy, c-format
+msgctxt "monoLensCalibration.patternStableFmt"
+msgid "Pattern Stable: %s"
+msgstr "パターン安定: %s"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.processingCalibration"
+msgid "Processing calibration..."
+msgstr "キャリブレーション処理中..."
+
+#. Section: monoLensCalibration
+#, fuzzy, c-format
+msgctxt "monoLensCalibration.reprojectionErrorFmt"
+msgid "Reprojection Error: %.4f"
+msgstr "再投影誤差: %.4f"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.restart"
+msgid "Restart"
+msgstr "リスタート"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.undistorted"
+msgid "Undistorted"
+msgstr "ディストーション補正済み"
+
+#. Section: monoLensCalibration
+#, fuzzy
+msgctxt "monoLensCalibration.yes"
+msgid "Yes"
+msgstr "はい"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.addPage"
+msgid "Add Page"
+msgstr "ページを追加"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.assetsTab"
+msgid "Graph Assets"
+msgstr "グラフアセット"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.compositorGraphFilesFilterDescription"
+msgid "Compositor Graph Files (*.compgraph)"
+msgstr "コンポジターグラフファイル (*.compgraph)"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.compositorMenu"
+msgid "Compositor"
+msgstr "コンポジター"
+
+#. Section: nodeEditor
+#, fuzzy, c-format
+msgctxt "nodeEditor.compositorOutputTitleFmt"
+msgid "%s - Compositor Output"
+msgstr "%s - コンポジター出力"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.compositorOutputWindowTitle"
+msgid "Compositor Output"
+msgstr "コンポジター出力"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.delete"
+msgid "Delete"
+msgstr "削除"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.details"
+msgid "Details"
+msgstr "詳細"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.editMenu"
+msgid "Edit"
+msgstr "編集"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.evalErrorWindowTitle"
+msgid "Eval Error"
+msgstr "評価エラー"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.materialGraphFilesFilterDescription"
+msgid "Material Graph Files (*.matgraph)"
+msgstr "マテリアルグラフファイル (*.matgraph)"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.noCompositor"
+msgid "No Compositor"
+msgstr "コンポジターなし"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.pages"
+msgid "Pages"
+msgstr "ページ"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.preview"
+msgid "Preview"
+msgstr "プレビュー"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.redo"
+msgid "Redo"
+msgstr "やり直す"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.resetLayout"
+msgid "Reset Layout"
+msgstr "レイアウトをリセット"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.rootPage"
+msgid "Main"
+msgstr "メイン"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.runCompositor"
+msgid "Run"
+msgstr "実行"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.save"
+msgid "Save"
+msgstr "保存"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.saveAs"
+msgid "Save As..."
+msgstr "名前を付けて保存..."
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.saveCompositorGraphDialogTitle"
+msgid "Save Compositor Graph"
+msgstr "コンポジターグラフを保存"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.saveMaterialGraphDialogTitle"
+msgid "Save Material Graph"
+msgstr "マテリアルグラフを保存"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.saveShapeGraphDialogTitle"
+msgid "Save Shape Graph"
+msgstr "シェイプグラフを保存"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.searchNodes"
+msgid "Search nodes..."
+msgstr "ノードを検索..."
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.shapeGraphFilesFilterDescription"
+msgid "Shape Graph Files (*.shapegraph)"
+msgstr "シェイプグラフファイル (*.shapegraph)"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.undo"
+msgid "Undo"
+msgstr "元に戻す"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.variableName"
+msgid "Variable Name"
+msgstr "変数名"
+
+#. Section: nodeEditor
+#, fuzzy
+msgctxt "nodeEditor.variables"
+msgid "Variables"
+msgstr "変数"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.addInput"
+msgid "Add Input"
+msgstr "入力を追加"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.appendTitle"
+msgid "Append"
+msgstr "結合"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.applyMaterialHeader"
+msgid "Apply Material Node"
+msgstr "マテリアル適用ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.applyMaterialTitle"
+msgid "Apply Material"
+msgstr "マテリアル適用"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.auto"
+msgid "Auto"
+msgstr "自動"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.blendMode"
+msgid "Blend Mode"
+msgstr "ブレンドモード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.blendMultiply"
+msgid "Blend Multiply"
+msgstr "乗算ブレンド"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.blendNormal"
+msgid "Blend Normal"
+msgstr "通常ブレンド"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.blendOff"
+msgid "Blend Off"
+msgstr "ブレンドなし"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.camInsideInvert"
+msgid "Cam Inside Invert"
+msgstr "カメラ内側で反転"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.cameraPositionTitle"
+msgid "Camera Position"
+msgstr "カメラ位置"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryConstants"
+msgid "Constants"
+msgstr "定数"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryCustom"
+msgid "Custom"
+msgstr "カスタム"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryFunctions"
+msgid "Functions"
+msgstr "関数"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryInputs"
+msgid "Inputs"
+msgstr "入力"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryMath"
+msgid "Math"
+msgstr "数学"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryParameters"
+msgid "Parameters"
+msgstr "パラメータ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryTexture"
+msgid "Texture"
+msgstr "テクスチャ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryUtility"
+msgid "Utility"
+msgstr "ユーティリティ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.categoryVector"
+msgid "Vector"
+msgstr "ベクトル"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.clientTextureHeader"
+msgid "Client Texture Node"
+msgstr "クライアントテクスチャノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.colorConstantTitle"
+msgid "Color Constant"
+msgstr "カラー定数"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.colorParameterTitle"
+msgid "Color Parameter"
+msgstr "カラーパラメータ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.commentColor"
+msgid "Color"
+msgstr "色"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.commentHeader"
+msgid "Comment"
+msgstr "コメント"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.commentText"
+msgid "Text"
+msgstr "テキスト"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.commentTitle"
+msgid "Comment"
+msgstr "コメント"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.constant2Title"
+msgid "Constant 2"
+msgstr "定数 2"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.constant3Title"
+msgid "Constant 3"
+msgstr "定数 3"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.constant4Title"
+msgid "Constant 4"
+msgstr "定数 4"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.constantTitle"
+msgid "Constant"
+msgstr "定数"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.customExpressionHeader"
+msgid "Custom Expression Node"
+msgstr "カスタム式ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.customExpressionTitle"
+msgid "Custom Expression"
+msgstr "カスタム式"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.defaultTexture"
+msgid "Default Texture"
+msgstr "デフォルトテクスチャ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.defaultValue"
+msgid "Default Value"
+msgstr "デフォルト値"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.depthMaskHeader"
+msgid "Depth Mask Node"
+msgstr "デプスマスクノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.depthMaskTitle"
+msgid "Depth Mask"
+msgstr "デプスマスク"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.depthTest"
+msgid "Depth Test"
+msgstr "深度テスト"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.disableBoxes"
+msgid "Disable Boxes"
+msgstr "ボックスを無効化"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.disableModels"
+msgid "Disable Models"
+msgstr "モデルを無効化"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.disableQuads"
+msgid "Disable Quads"
+msgstr "クアッドを無効化"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.drawLayerHeader"
+msgid "Draw Layer Node"
+msgstr "レイヤー描画ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.drawLayerTitle"
+msgid "Draw Layer"
+msgstr "レイヤー描画"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.drawShapeMeshHeader"
+msgid "Draw Shape Mesh Node"
+msgstr "シェイプメッシュ描画ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.drawShapeMeshTitle"
+msgid "Draw Shape Mesh"
+msgstr "シェイプメッシュ描画"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.drawShapesHeader"
+msgid "Draw Shapes Node"
+msgstr "シェイプ描画ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.drawShapesTitle"
+msgid "Draw Shapes"
+msgstr "シェイプ描画"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.enableBoxes"
+msgid "Enable Boxes"
+msgstr "ボックスを有効化"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.enableModels"
+msgid "Enable Models"
+msgstr "モデルを有効化"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.enableQuads"
+msgid "Enable Quads"
+msgstr "クアッドを有効化"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.evalMode"
+msgid "Eval Mode"
+msgstr "評価モード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.evalModeGet"
+msgid "Get"
+msgstr "取得"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.evalModeSet"
+msgid "Set"
+msgstr "設定"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.expressionBody"
+msgid "Function Body"
+msgstr "関数本体"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.fallbackOpaqueBlack"
+msgid "Opaque Black"
+msgstr "不透明な黒"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.fallbackOpaqueWhite"
+msgid "Opaque White"
+msgstr "不透明な白"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.fallbackTransparentBlack"
+msgid "Transparent Black"
+msgstr "透明な黒"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.farPlaneTitle"
+msgid "Far Plane"
+msgstr "ファープレーン"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.functionCallTitle"
+msgid "Function Call"
+msgstr "関数呼び出し"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.functionInputPrefix"
+msgid "Input: "
+msgstr "入力: "
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.functionOutputTitle"
+msgid "Function Output"
+msgstr "関数出力"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.ifEqualTitle"
+msgid "If A == B"
+msgstr "If A == B"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.ifGreaterEqualTitle"
+msgid "If A >= B"
+msgstr "If A >= B"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.ifGreaterTitle"
+msgid "If A > B"
+msgstr "If A > B"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.ifLessEqualTitle"
+msgid "If A <= B"
+msgstr "If A <= B"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.ifLessTitle"
+msgid "If A < B"
+msgstr "If A < B"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.ifNotEqualTitle"
+msgid "If A != B"
+msgstr "If A != B"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.inputs"
+msgid "Inputs"
+msgstr "入力"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.makeArrayTitle"
+msgid "Make Array"
+msgstr "配列を作成"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.material"
+msgid "Material"
+msgstr "マテリアル"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.materialOutputTitle"
+msgid "Material Output"
+msgstr "マテリアル出力"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathAbsTitle"
+msgid "Abs"
+msgstr "絶対値"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathAddTitle"
+msgid "Add"
+msgstr "加算"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathClampTitle"
+msgid "Clamp"
+msgstr "クランプ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathCosTitle"
+msgid "Cos"
+msgstr "コサイン"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathCrossTitle"
+msgid "Cross"
+msgstr "外積"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathDistanceTitle"
+msgid "Distance"
+msgstr "距離"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathDivideTitle"
+msgid "Divide"
+msgstr "除算"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathDotTitle"
+msgid "Dot"
+msgstr "内積"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathFloorTitle"
+msgid "Floor"
+msgstr "切り捨て"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathFractTitle"
+msgid "Fract"
+msgstr "小数部"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathLengthTitle"
+msgid "Length"
+msgstr "長さ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathLerpTitle"
+msgid "Lerp"
+msgstr "線形補間"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathMaxTitle"
+msgid "Max"
+msgstr "最大値"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathMinTitle"
+msgid "Min"
+msgstr "最小値"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathMultiplyTitle"
+msgid "Multiply"
+msgstr "乗算"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathNormalizeTitle"
+msgid "Normalize"
+msgstr "正規化"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathOneMinusTitle"
+msgid "One Minus"
+msgstr "1 から減算"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathPowerTitle"
+msgid "Power"
+msgstr "べき乗"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathSaturateTitle"
+msgid "Saturate"
+msgstr "サチュレート"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathSinTitle"
+msgid "Sin"
+msgstr "サイン"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathSmoothstepTitle"
+msgid "Smoothstep"
+msgstr "スムーズステップ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathSqrtTitle"
+msgid "Sqrt"
+msgstr "平方根"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathStepTitle"
+msgid "Step"
+msgstr "ステップ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mathSubtractTitle"
+msgid "Subtract"
+msgstr "減算"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.mousePositionTitle"
+msgid "MousePosition"
+msgstr "マウス位置"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.name"
+msgid "Name"
+msgstr "名前"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.nearPlaneTitle"
+msgid "Near Plane"
+msgstr "ニアプレーン"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.noClientFallback"
+msgid "No-Client Fallback"
+msgstr "クライアント未接続時の代替"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.nodeTitle"
+msgid "Node"
+msgstr "ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.outputType"
+msgid "Output Type"
+msgstr "出力型"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.parameter2Title"
+msgid "Parameter 2"
+msgstr "パラメータ 2"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.parameter3Title"
+msgid "Parameter 3"
+msgstr "パラメータ 3"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.parameter4Title"
+msgid "Parameter 4"
+msgstr "パラメータ 4"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.parameterName"
+msgid "Parameter Name"
+msgstr "パラメータ名"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.parameterTitle"
+msgid "Parameter"
+msgstr "パラメータ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.rerouteDeclaration"
+msgid "Reroute"
+msgstr "リルート"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.rerouteDeclarationHeader"
+msgid "Named Reroute"
+msgstr "名前付きリルート"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.rerouteDeclarationTitle"
+msgid "Named Reroute"
+msgstr "名前付きリルート"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.rerouteName"
+msgid "Name"
+msgstr "名前"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.rerouteUsageHeader"
+msgid "Reroute Usage"
+msgstr "リルート参照"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.rerouteUsageTitle"
+msgid "Reroute Usage"
+msgstr "リルート参照"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.screenPositionTitle"
+msgid "Screen Position"
+msgstr "画面位置"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.screenSizeTitle"
+msgid "Screen Size"
+msgstr "画面サイズ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.shaderConstantHeader"
+msgid "Constant Node"
+msgstr "定数ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.shaderParameterHeader"
+msgid "Parameter Node"
+msgstr "パラメータノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.shaderSwizzleHeader"
+msgid "Swizzle Node"
+msgstr "スウィズルノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.shapeSelectHeader"
+msgid "Shape Select Node"
+msgstr "シェイプ選択ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.shapeSelectTitle"
+msgid "Shape Select"
+msgstr "シェイプ選択"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.source"
+msgid "Source"
+msgstr "ソース"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.stencilInside"
+msgid "Inside"
+msgstr "内側"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.stencilMode"
+msgid "Stencil Mode"
+msgstr "ステンシルモード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.stencilNone"
+msgid "None"
+msgstr "なし"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.stencilOutside"
+msgid "Outside"
+msgstr "外側"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.stencilSelectHeader"
+msgid "Stencil Select Node"
+msgstr "ステンシル選択ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.stencilSelectTitle"
+msgid "Stencil Select"
+msgstr "ステンシル選択"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.swizzleMask"
+msgid "Mask"
+msgstr "マスク"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.swizzleTitle"
+msgid "Swizzle"
+msgstr "スウィズル"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.texCoordTitle"
+msgid "Texture Coordinate"
+msgstr "テクスチャ座標"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.textureParameterHeader"
+msgid "Texture Parameter Node"
+msgstr "テクスチャパラメータノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.textureParameterTitle"
+msgid "Texture Parameter"
+msgstr "テクスチャパラメータ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.textureSampleTitle"
+msgid "Texture Sample"
+msgstr "テクスチャサンプル"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.textureSizeTitle"
+msgid "Texture Size"
+msgstr "テクスチャサイズ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.timeParameterTitle"
+msgid "Time Parameter"
+msgstr "時間パラメータ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.timeTitle"
+msgid "Time"
+msgstr "時間"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferBt709"
+msgid "BT.709"
+msgstr "BT.709"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferFunc"
+msgid "Transfer Func"
+msgstr "伝達関数"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferGamma18"
+msgid "Gamma 1.8"
+msgstr "ガンマ 1.8"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferGamma20"
+msgid "Gamma 2.0"
+msgstr "ガンマ 2.0"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferGamma22"
+msgid "Gamma 2.2"
+msgstr "ガンマ 2.2"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferGamma26"
+msgid "Gamma 2.6"
+msgstr "ガンマ 2.6"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferGamma28"
+msgid "Gamma 2.8"
+msgstr "ガンマ 2.8"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferLinear"
+msgid "Linear"
+msgstr "リニア"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.transferSrgb"
+msgid "sRGB"
+msgstr "sRGB"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.type"
+msgid "Type"
+msgstr "タイプ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.value"
+msgid "Value"
+msgstr "値"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.variableHeader"
+msgid "Variable Node"
+msgstr "変数ノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.vertexColorTitle"
+msgid "Vertex Color"
+msgstr "頂点カラー"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.vertexNormalTitle"
+msgid "Vertex Normal"
+msgstr "頂点法線"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.vertexPositionTitle"
+msgid "Vertex Position"
+msgstr "頂点位置"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.verticalFlip"
+msgid "Vertical Flip"
+msgstr "垂直反転"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.videoSourceDistortion"
+msgid "Distortion"
+msgstr "ディストーション"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.videoSourceVideo"
+msgid "Video"
+msgstr "ビデオ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.videoTextureHeader"
+msgid "Video Texture Node"
+msgstr "ビデオテクスチャノード"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.videoTextureTitle"
+msgid "Video Texture"
+msgstr "ビデオテクスチャ"
+
+#. Section: nodes
+#, fuzzy
+msgctxt "nodes.writeDepthTitle"
+msgid "Write Depth"
+msgstr "デプス書き込み"
+
+#. Section: objectSystemPanel
+#, fuzzy
+msgctxt "objectSystemPanel.arucoDictionary"
+msgid "Aruco Dictionary"
+msgstr "Aruco 辞書"
+
+#. Section: objectSystemPanel
+#, fuzzy
+msgctxt "objectSystemPanel.charucoDictionary"
+msgid "Charuco Dictionary"
+msgstr "Charuco 辞書"
+
+#. Section: objectSystemPanel
+#, fuzzy
+msgctxt "objectSystemPanel.dmxPriority"
+msgid "DMX Priority"
+msgstr "DMX優先度"
+
+#. Section: objectSystemPanel
+#, fuzzy
+msgctxt "objectSystemPanel.networkInterfaceIP"
+msgid "Network Interface IP"
+msgstr "ネットワークインターフェースIP"
+
+#. Section: objectSystemPanel
+#, fuzzy
+msgctxt "objectSystemPanel.transmitRateHz"
+msgid "Transmit Rate (Hz)"
+msgstr "送信レート (Hz)"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.accept"
+msgid "Accept"
+msgstr "承認"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.alignmentComplete"
+msgid "Alignment complete."
+msgstr "位置合わせが完了しました。"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.alignmentNotConverged"
+msgid "Alignment finished (did not fully converge). Verify the overlay."
+msgstr "位置合わせが完了しました（完全には収束していません）。オーバーレイを確認してください。"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.autoAlign"
+msgid "Auto-Align"
+msgstr "自動位置合わせ"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.automaticAlignment"
+msgid "Automatic stencil alignment."
+msgstr "自動ステンシル位置合わせ"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.captureFeatureCloud"
+msgid "Slowly move the camera around the object to build a 3D feature cloud."
+msgstr "対象物の周りをゆっくりカメラで動かして、3Dフィーチャークラウドを構築してください。"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.captureWholeView"
+msgid "Capture Whole View"
+msgstr "画面全体を取得"
+
+#. Section: pointCloudAlignment
+#, fuzzy, c-format
+msgctxt "pointCloudAlignment.cloudPointsFmt"
+msgid "Cloud points: %d"
+msgstr "クラウドポイント数: %d"
+
+#. Section: pointCloudAlignment
+#, fuzzy, c-format
+msgctxt "pointCloudAlignment.coverageFmt"
+msgid "Coverage: %.2f m"
+msgstr "カバレッジ: %.2f m"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.doneCapturing"
+msgid "Done Capturing"
+msgstr "取得完了"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.drawRegion"
+msgid "Draw Region"
+msgstr "領域を描画"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.failedVideoStart"
+msgid "Error: Failed to start video stream."
+msgstr "エラー: 映像ストリームの開始に失敗しました。"
+
+#. Section: pointCloudAlignment
+#, fuzzy, c-format
+msgctxt "pointCloudAlignment.inliersFmt"
+msgid "Inliers: %d"
+msgstr "インライア数: %d"
+
+#. Section: pointCloudAlignment
+#, fuzzy, c-format
+msgctxt "pointCloudAlignment.keyframesFmt"
+msgid "Keyframes: %d"
+msgstr "キーフレーム数: %d"
+
+#. Section: pointCloudAlignment
+#, fuzzy, c-format
+msgctxt "pointCloudAlignment.meanReprojErrorFmt"
+msgid "Mean reproj error: %.2f px"
+msgstr "平均再投影誤差: %.2f px"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.paintRegionOfInterest"
+msgid "Click two opposite corners in the camera image to box the object, then capture."
+msgstr "カメラ画像内で対象物を囲む対角の2点をクリックしてから取得してください。"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.realign"
+msgid "Re-Align"
+msgstr "再位置合わせ"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.recapture"
+msgid "Recapture"
+msgstr "再取得"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.reviewCloud"
+msgid "Review the captured point cloud."
+msgstr "取得したポイントクラウドを確認してください。"
+
+#. Section: pointCloudAlignment
+#, fuzzy, c-format
+msgctxt "pointCloudAlignment.rmsResidualFmt"
+msgid "RMS residual: %.1f mm"
+msgstr "RMS残差: %.1f mm"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.runningAutoAlignment"
+msgid "Aligning model to the feature cloud..."
+msgstr "フィーチャークラウドにモデルを位置合わせしています..."
+
+#. Section: pointCloudAlignment
+#, fuzzy, c-format
+msgctxt "pointCloudAlignment.scaleFmt"
+msgid "Scale: %.3f"
+msgstr "スケール: %.3f"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.skip"
+msgid "Skip"
+msgstr "スキップ"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.startingVideoStream"
+msgid "Starting video stream..."
+msgstr "映像ストリームを開始しています..."
+
+#. Section: pointCloudAlignment
+#, fuzzy, c-format
+msgctxt "pointCloudAlignment.trackedFeaturesFmt"
+msgid "Tracked features: %d"
+msgstr "追跡中のフィーチャー数: %d"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.verifyAlignmentInstructions"
+msgid "Check the wireframe overlay from multiple angles. Nudge with the gizmo and re-align if needed."
+msgstr "複数の角度からワイヤーフレームオーバーレイを確認してください。ギズモで微調整し、必要であれば再度位置合わせしてください。"
+
+#. Section: pointCloudAlignment
+#, fuzzy
+msgctxt "pointCloudAlignment.verifyInitialCameraSetup"
+msgid "Position the tracked camera so the physical object is clearly in view, then choose how to restrict feature capture."
+msgstr "対象物がはっきり映るようトラッキングカメラを配置し、フィーチャー取得の範囲を選択してください。"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.addCompositorToScene"
+msgid "Add Compositor To Scene"
+msgstr "シーンにコンポジターを追加"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.apertureOffsetValidFmt"
+msgid "Aperture offset valid: %s"
+msgstr "アパーチャオフセット有効: %s"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.aperturePosFmt"
+msgid "  pos (mm): %.1f, %.1f, %.1f"
+msgstr "  位置 (mm): %.1f, %.1f, %.1f"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.apertureQuatFmt"
+msgid "  quat: w%.4f x%.4f y%.4f z%.4f"
+msgstr "  クォータニオン: w%.4f x%.4f y%.4f z%.4f"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.calibResolutionFmt"
+msgid "Calib resolution: %d x %d"
+msgstr "校正解像度: %d x %d"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.cameraFallbackNameFmt"
+msgid "Camera %d"
+msgstr "カメラ %d"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.compositorFallbackNameFmt"
+msgid "Compositor %d"
+msgstr "コンポジター %d"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.compositorListEmpty"
+msgid "No compositors in the active scene"
+msgstr "アクティブなシーンにコンポジターがありません"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.compositorListNoScene"
+msgid "No active scene"
+msgstr "アクティブなシーンがありません"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.cxCyFmt"
+msgid "cx=%.1f  cy=%.1f"
+msgstr "cx=%.1f  cy=%.1f"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.fxFyFmt"
+msgid "fx=%.1f  fy=%.1f"
+msgstr "fx=%.1f  fy=%.1f"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.hfovVfovFmt"
+msgid "hfov=%.2f  vfov=%.2f deg"
+msgstr "水平画角=%.2f  垂直画角=%.2f 度"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.liveResolutionFmt"
+msgid "Live resolution:  %d x %d"
+msgstr "現在の解像度:  %d x %d"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.no"
+msgid "no"
+msgstr "いいえ"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.noActiveCompositorCameras"
+msgid "No active compositor cameras"
+msgstr "有効なコンポジターカメラがありません"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.noMonoIntrinsics"
+msgid "No mono intrinsics"
+msgstr "モノラル内部パラメータがありません"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.noName"
+msgid "<No Name>"
+msgstr "<名前なし>"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddARKitSource"
+msgid "Add ARKit Video Source"
+msgstr "ARKit映像ソースを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddAnchor"
+msgid "Add Anchor"
+msgstr "アンカーを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddBoxShape"
+msgid "Add Box Shape"
+msgstr "ボックスシェイプを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddBoxStencil"
+msgid "Add Box Stencil"
+msgstr "ボックスステンシルを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddCEFSource"
+msgid "Add Browser Texture Source"
+msgstr "ブラウザーテクスチャソースを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddCamera"
+msgid "Add Camera"
+msgstr "カメラを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddClientSource"
+msgid "Add Client Texture Source"
+msgstr "クライアントテクスチャソースを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddCompositor"
+msgid "Add Compositor"
+msgstr "コンポジターを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddLightGroup"
+msgid "Add Light Group"
+msgstr "ライトグループを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddMarker"
+msgid "Add Aruco Marker"
+msgstr "Arucoマーカーを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddMarkerTracking"
+msgid "Add Marker Tracking Volume"
+msgstr "マーカートラッキングボリュームを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddModelShape"
+msgid "Add Model Shape"
+msgstr "モデルシェイプを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddModelStencil"
+msgid "Add Model Stencil"
+msgstr "モデルステンシルを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddMount"
+msgid "Add Tracking Mount"
+msgstr "トラッキングマウントを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddNetworkSource"
+msgid "Add Network Video Source"
+msgstr "ネットワーク映像ソースを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddPixelGrid"
+msgid "Add Pixel Grid"
+msgstr "ピクセルグリッドを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddPreset"
+msgid "Add Preset"
+msgstr "プリセットを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddQuadShape"
+msgid "Add Quad Shape"
+msgstr "クアッドシェイプを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddQuadStencil"
+msgid "Add Quad Stencil"
+msgstr "クアッドステンシルを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddScene"
+msgid "Add Scene"
+msgstr "シーンを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddScript"
+msgid "Add Script"
+msgstr "スクリプトを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddSequence"
+msgid "Add Sequence"
+msgstr "シーケンスを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddSpotLight"
+msgid "Add Spot Light"
+msgstr "スポットライトを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddSpoutSource"
+msgid "Add Spout Texture Source"
+msgstr "Spoutテクスチャソースを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddStage"
+msgid "Add Stage"
+msgstr "ステージを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddUSBSource"
+msgid "Add USB Video Source"
+msgstr "USB映像ソースを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerAddVRTracking"
+msgid "Add SteamVR Tracking Volume"
+msgstr "SteamVRトラッキングボリュームを追加"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerCamerasGroup"
+msgid "Cameras"
+msgstr "カメラ"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerDeleteComponent"
+msgid "Delete Component"
+msgstr "コンポーネントを削除"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerDeleteConfirmTitle"
+msgid "Confirm Delete"
+msgstr "削除の確認"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.outlinerDeleteManyFmt"
+msgid "Delete '%s' and %d child objects?"
+msgstr "%s と子オブジェクト %d 個を削除しますか?"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.outlinerDeleteOneFmt"
+msgid "Delete '%s'?"
+msgstr "%s を削除しますか?"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerLightGroupsGroup"
+msgid "Light Groups"
+msgstr "ライトグループ"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerLightsGroup"
+msgid "Lights"
+msgstr "ライト"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerMarkersGroup"
+msgid "Markers"
+msgstr "マーカー"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerRoot"
+msgid "Project"
+msgstr "プロジェクト"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerScenesGroup"
+msgid "Scenes"
+msgstr "シーン"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerScriptsGroup"
+msgid "Scripts"
+msgstr "スクリプト"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerSourcesGroup"
+msgid "Sources"
+msgstr "ソース"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerTrackingGroup"
+msgid "Tracking Volumes"
+msgstr "トラッキングボリューム"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.outlinerUnparented"
+msgid "Unparented"
+msgstr "親なし"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.panelAssets"
+msgid "Assets"
+msgstr "アセット"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.panelCompositors"
+msgid "Compositors"
+msgstr "コンポジター"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.panelHttpTriggers"
+msgid "HTTP Triggers"
+msgstr "HTTPトリガー"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.panelProject"
+msgid "Project"
+msgstr "プロジェクト"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.panelScenes"
+msgid "Scenes"
+msgstr "シーン"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.panelSettings"
+msgid "Settings"
+msgstr "設定"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.puckPoseValidFmt"
+msgid "Puck pose valid: %s"
+msgstr "パックの姿勢が有効: %s"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.resolutionMismatch"
+msgid "RESOLUTION MISMATCH"
+msgstr "解像度が一致しません"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.sceneListEmpty"
+msgid "No scenes in the project"
+msgstr "プロジェクトにシーンがありません"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.selectCalibrationCamera"
+msgid "Select Calibration Camera"
+msgstr "校正用カメラを選択"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.trackingFrameDelayFmt"
+msgid "Tracking frame delay: %d"
+msgstr "トラッキングフレーム遅延: %d"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.viewBack"
+msgid "Back"
+msgstr "背面"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.viewBottom"
+msgid "Bottom"
+msgstr "底面"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.viewFront"
+msgid "Front"
+msgstr "正面"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.viewLeft"
+msgid "Left"
+msgstr "左面"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.viewPerspective"
+msgid "Perspective"
+msgstr "透視投影"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.viewRight"
+msgid "Right"
+msgstr "右面"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.viewTop"
+msgid "Top"
+msgstr "上面"
+
+#. Section: project
+#, fuzzy
+msgctxt "project.yes"
+msgid "yes"
+msgstr "はい"
+
+#. Section: project
+#, fuzzy, c-format
+msgctxt "project.znearZfarFmt"
+msgid "znear=%.3f  zfar=%.1f m"
+msgstr "znear=%.3f  zfar=%.1f m"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.debugCameraAlignment"
+msgid "Debug Camera Alignment"
+msgstr "カメラアライメントのデバッグ"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.debugCameraAlignmentTooltip"
+msgid ""
+"Overlays the MR alignment chain: axes at stage origin / puck / aperture,\n"
+"and a window with live vs calibrated intrinsics, resolution, and offsets."
+msgstr ""
+"MRアライメントチェーンを表示します: ステージ原点 / パック / アパーチャの軸、\n"
+"およびライブと校正済みの内部パラメータ、解像度、オフセットを示すウィンドウ。"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.debugRenderInCompositor"
+msgid "Debug Render in Compositor"
+msgstr "コンポジターでデバッグ表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.debugRenderInCompositorTooltip"
+msgid ""
+"Draws the debug overlay above in the compositor output window too.\n"
+"Off (default): the compositor window shows only the composited shot."
+msgstr ""
+"コンポジター出力ウィンドウにもデバッグオーバーレイを表示します。\n"
+"オフ(既定): コンポジターウィンドウには合成映像のみが表示されます。"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.editBundledResources"
+msgid "Edit Bundled Resources"
+msgstr "付属リソースを編集"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.editBundledResourcesTooltip"
+msgid ""
+"Developer switch. The bundled resources show behind every project as read-only assets.\n"
+"On: the editors save bundled graphs, materials, and scripts in place and can delete them.\n"
+"Off (default): saving a bundled asset writes a project copy that shadows it."
+msgstr ""
+"開発者向けの設定です。付属リソースは各プロジェクトの背後に読み取り専用アセットとして表示されます。\n"
+"オン: エディターは付属のグラフ、マテリアル、スクリプトをその場で保存し、削除もできます。\n"
+"オフ (既定): 付属アセットを保存すると、それを上書き表示するプロジェクトコピーが書き出されます。"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.gridAndMeasurement"
+msgid "Grid & Measurement"
+msgstr "グリッドと計測"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.gridCellSize"
+msgid "Grid Cell Size (m)"
+msgstr "グリッドセルサイズ (m)"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.gridExtent"
+msgid "Grid Extent (m)"
+msgstr "グリッド範囲 (m)"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.language"
+msgid "Language"
+msgstr "言語"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.modelStencilDisplay"
+msgid "Model Stencil Display"
+msgstr "モデルステンシル表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.renderAnchors"
+msgid "Render Anchors"
+msgstr "アンカーを表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.renderBoxStencils"
+msgid "Render Box Stencils"
+msgstr "ボックスステンシルを表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.renderComponentNames"
+msgid "Render Component Names"
+msgstr "コンポーネント名を表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.renderFrameRate"
+msgid "Render Frame Rate"
+msgstr "フレームレートを表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.renderModelStencils"
+msgid "Render Model Stencils"
+msgstr "モデルステンシルを表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.renderOrigin"
+msgid "Render Origin"
+msgstr "原点を表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.renderQuadStencils"
+msgid "Render Quad Stencils"
+msgstr "クアッドステンシルを表示"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.rulerSnapToGridByDefault"
+msgid "Ruler Snap To Grid By Default"
+msgstr "既定でルーラーをグリッドにスナップ"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.rulerSnapTooltip"
+msgid ""
+"Hold Shift while measuring to invert snapping.\n"
+"Off (default): hold Shift to snap, release to move freely."
+msgstr ""
+"計測中にShiftを押すとスナップを反転します。\n"
+"オフ(既定): Shiftを押している間だけスナップし、離すと自由に動きます。"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.rulerUnitCentimeters"
+msgid "Centimeters"
+msgstr "センチメートル"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.rulerUnitMeters"
+msgid "Meters"
+msgstr "メートル"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.rulerUnitMillimeters"
+msgid "Millimeters"
+msgstr "ミリメートル"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.rulerUnits"
+msgid "Ruler Units"
+msgstr "ルーラー単位"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.scriptEditorCommand"
+msgid "Script Editor Command"
+msgstr "スクリプトエディタコマンド"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.sectionAssets"
+msgid "Assets"
+msgstr "アセット"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.sectionDMX"
+msgid "DMX"
+msgstr "DMX"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.sectionLocalization"
+msgid "Localization"
+msgstr "ローカライズ"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.sectionLogging"
+msgid "Logging"
+msgstr "ログ"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.sectionMarker"
+msgid "Marker"
+msgstr "マーカー"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.sectionRendering"
+msgid "Rendering"
+msgstr "レンダリング"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.sectionScripting"
+msgid "Scripting"
+msgstr "スクリプト"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.snapIncrement"
+msgid "Snap Increment (m)"
+msgstr "スナップ間隔 (m)"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.spoutLogging"
+msgid "Relay Spout Logs"
+msgstr "Spoutログを転送"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.spoutLoggingTooltip"
+msgid ""
+"Folds Spout's own diagnostics into the log panel and MikanXR.log.\n"
+"Off (default): Spout logging is disabled entirely, and no Spout console window opens."
+msgstr ""
+"Spout自身の診断メッセージをログパネルとMikanXR.logに取り込みます。\n"
+"オフ(既定): Spoutのログは無効で、Spoutのコンソールウィンドウは開きません。"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.stencilDisplayBoth"
+msgid "Both"
+msgstr "両方"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.stencilDisplaySolid"
+msgid "Solid"
+msgstr "ソリッド"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.stencilDisplayTooltip"
+msgid "Wireframe hides the opaque mesh so the real model in the video shows through."
+msgstr "ワイヤーフレームは不透明メッシュを隠すので、映像内の実際のモデルが透けて見えます。"
+
+#. Section: projectSettings
+#, fuzzy
+msgctxt "projectSettings.stencilDisplayWireframe"
+msgid "Wireframe"
+msgstr "ワイヤーフレーム"
+
+#. Section: projectSettings
+#, c-format
+msgctxt "projectSettings.translationReviewNoticeFmt"
+msgid "%d%% of this translation has been reviewed by a person. The rest is machine generated."
+msgstr ""
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.aruco_dictionary_type"
+msgid "ArUco Dictionary Type"
+msgstr "ArUco 辞書タイプ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.aruco_id"
+msgid "ArUco ID"
+msgstr "ArUco ID"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.available_language_list"
+msgid "Available Languages"
+msgstr "利用可能な言語"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.background_color"
+msgid "Background Color"
+msgstr "背景色"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.base_port"
+msgid "Base Port"
+msgstr "ベースポート"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.blue"
+msgid "Blue"
+msgstr "青"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.box_x_size"
+msgid "Box X Size"
+msgstr "ボックス X サイズ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.box_y_size"
+msgid "Box Y Size"
+msgstr "ボックス Y サイズ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.box_z_size"
+msgid "Box Z Size"
+msgstr "ボックス Z サイズ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.brightness"
+msgid "Brightness"
+msgstr "明るさ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.camera_speed"
+msgid "Camera Speed"
+msgstr "カメラ速度"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.charuco_cols"
+msgid "ChArUco Columns"
+msgstr "ChArUco 列数"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.charuco_dictionary_type"
+msgid "ChArUco Dictionary Type"
+msgstr "ChArUco 辞書タイプ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.charuco_marker_length_mm"
+msgid "ChArUco Marker Length (mm)"
+msgstr "ChArUco マーカー長 (mm)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.charuco_mount_id"
+msgid "ChArUco Mount ID"
+msgstr "ChArUco マウント ID"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.charuco_mount_offset_mm"
+msgid "ChArUco Mount Offset (mm)"
+msgstr "ChArUco マウントオフセット (mm)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.charuco_rows"
+msgid "ChArUco Rows"
+msgstr "ChArUco 行数"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.charuco_square_length_mm"
+msgid "ChArUco Square Length (mm)"
+msgstr "ChArUco マス目長 (mm)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.client_source"
+msgid "Client Source"
+msgstr "クライアントソース"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.component_name"
+msgid "Component Name"
+msgstr "コンポーネント名"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.compositor_graph_path"
+msgid "Compositor Graph Path"
+msgstr "コンポジターグラフのパス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.cone_angle_degrees"
+msgid "Cone Angle (degrees)"
+msgstr "コーン角度 (度)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.cone_range_meters"
+msgid "Cone Range (meters)"
+msgstr "コーン距離 (メートル)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.content_path"
+msgid "Content Image"
+msgstr "コンテンツ画像"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.content_source"
+msgid "Content Source"
+msgstr "コンテンツソース"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.cull_mode"
+msgid "Cull Mode"
+msgstr "カリングモード"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.current_friendly_name"
+msgid "Current Device Name"
+msgstr "現在のデバイス名"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.device_path"
+msgid "Device Path"
+msgstr "デバイスパス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.directionality"
+msgid "Directionality"
+msgstr "指向性"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.display_tracking_space"
+msgid "Display Tracking Space"
+msgstr "表示トラッキング空間"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.dmx_channel_count"
+msgid "DMX Channel Count"
+msgstr "DMX チャンネル数"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.dmx_priority"
+msgid "DMX Priority"
+msgstr "DMX 優先度"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.dmx_start_channel"
+msgid "DMX Start Channel"
+msgstr "DMX 開始チャンネル"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.dmx_universe"
+msgid "DMX Universe"
+msgstr "DMX ユニバース"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.duration_seconds"
+msgid "Duration (s)"
+msgstr "長さ (秒)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.exposure_scale"
+msgid "Exposure Scale"
+msgstr "露出スケール"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.font_path"
+msgid "Font"
+msgstr "フォント"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.foreground_color"
+msgid "Foreground Color"
+msgstr "前景色"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.green"
+msgid "Green"
+msgstr "緑"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.grid_columns"
+msgid "Grid Columns"
+msgstr "グリッド列数"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.grid_rows"
+msgid "Grid Rows"
+msgstr "グリッド行数"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.group_id"
+msgid "Group"
+msgstr "グループ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.height"
+msgid "Height"
+msgstr "高さ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.ip_address"
+msgid "IP Address"
+msgstr "IP アドレス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.is_buffer_mirrored"
+msgid "Buffer Mirrored"
+msgstr "バッファを左右反転"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.is_disabled"
+msgid "Disabled"
+msgstr "無効"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.is_double_sided"
+msgid "Double Sided"
+msgstr "両面"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.is_frame_mirrored"
+msgid "Frame Mirrored"
+msgstr "フレームを左右反転"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.key_light_direction"
+msgid "Key Light Direction"
+msgstr "主光源の方向"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.length_mm"
+msgid "Length (mm)"
+msgstr "長さ (mm)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.loop"
+msgid "Loop"
+msgstr "ループ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.model_path"
+msgid "Model Path"
+msgstr "モデルのパス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.network_interface_ip"
+msgid "Network Interface IP"
+msgstr "ネットワークインターフェース IP"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.origin_marker_id"
+msgid "Origin Marker ID"
+msgstr "原点マーカー ID"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.origin_pixel"
+msgid "Origin Pixel"
+msgstr "原点ピクセル"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.path"
+msgid "Path"
+msgstr "パス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.pixel_separation_mm"
+msgid "Pixel Separation (mm)"
+msgstr "ピクセル間隔 (mm)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.pixel_size_mm"
+msgid "Pixel Size (mm)"
+msgstr "ピクセルサイズ (mm)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.playback_speed_scale"
+msgid "Playback Speed"
+msgstr "再生速度"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.port"
+msgid "Port"
+msgstr "ポート"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.protocol"
+msgid "Protocol"
+msgstr "プロトコル"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.quad_height"
+msgid "Quad Height"
+msgstr "クアッドの高さ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.quad_width"
+msgid "Quad Width"
+msgstr "クアッドの幅"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.red"
+msgid "Red"
+msgstr "赤"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.relative_position"
+msgid "Relative Position"
+msgstr "相対位置"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.relative_rotation"
+msgid "Relative Rotation"
+msgstr "相対回転"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.relative_scale"
+msgid "Relative Scale"
+msgstr "相対スケール"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.render_anchors"
+msgid "Render Anchors"
+msgstr "アンカーを表示"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.render_box_stencils"
+msgid "Render Box Stencils"
+msgstr "ボックスステンシルを表示"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.render_model_stencils"
+msgid "Render Model Stencils"
+msgstr "モデルステンシルを表示"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.render_origin"
+msgid "Render Origin"
+msgstr "原点を表示"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.render_quad_stencils"
+msgid "Render Quad Stencils"
+msgstr "クアッドステンシルを表示"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.script_path"
+msgid "Script Path"
+msgstr "スクリプトパス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.scroll_direction"
+msgid "Scroll Direction"
+msgstr "スクロール方向"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.scroll_speed"
+msgid "Scroll Speed (px/s)"
+msgstr "スクロール速度 (px/s)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.scroll_text"
+msgid "Text"
+msgstr "テキスト"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.selected_language"
+msgid "Selected Language"
+msgstr "選択中の言語"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.sequence_name"
+msgid "Sequence"
+msgstr "シーケンス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.sh_coefficients"
+msgid "SH Coefficients"
+msgstr "SH 係数"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.shape_graph_path"
+msgid "Shape Graph Path"
+msgstr "シェイプグラフのパス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.socket_name"
+msgid "Socket Name"
+msgstr "ソケット名"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.socket_names"
+msgid "Socket Names"
+msgstr "ソケット名の一覧"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.spout_enable_output"
+msgid "Enable Spout Output"
+msgstr "Spout 出力を有効化"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.spout_output_name"
+msgid "Spout Output Name"
+msgstr "Spout 出力名"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.spout_source"
+msgid "Spout Source"
+msgstr "Spout ソース"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.sprite_fps"
+msgid "Sprite Frame Rate"
+msgstr "スプライトフレームレート"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.sprite_frame_height"
+msgid "Sprite Frame Height"
+msgstr "スプライト高さ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.sprite_frame_width"
+msgid "Sprite Frame Width"
+msgstr "スプライト幅"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.stage_bounds_max"
+msgid "Stage Bounds Max"
+msgstr "ステージ範囲の最大値"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.stage_bounds_min"
+msgid "Stage Bounds Min"
+msgstr "ステージ範囲の最小値"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.stage_id"
+msgid "Stage ID"
+msgstr "ステージ ID"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.text_pixel_height"
+msgid "Text Height (px)"
+msgstr "テキスト高さ (px)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.tracking_frame_delay"
+msgid "Tracking Frame Delay"
+msgstr "トラッキングのフレーム遅延"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.tracking_runtime"
+msgid "Tracking Runtime"
+msgstr "トラッキングランタイム"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.tracking_volume_id"
+msgid "Tracking Volume ID"
+msgstr "トラッキングボリューム ID"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.transmit_rate_hz"
+msgid "Transmit Rate (Hz)"
+msgstr "送信レート (Hz)"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.url"
+msgid "URL"
+msgstr "URL"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.url_writeback"
+msgid "Save Browsed URL"
+msgstr "閲覧した URL を保存"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.usb_device_map"
+msgid "USB Device Map"
+msgstr "USB デバイスマップ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.utility_marker_id"
+msgid "Utility Marker ID"
+msgstr "ユーティリティマーカー ID"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.video_format"
+msgid "Video Format"
+msgstr "映像フォーマット"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.video_fps"
+msgid "Video FPS"
+msgstr "映像 FPS"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.video_frame_queue_size"
+msgid "Video Frame Queue Size"
+msgstr "映像フレームキューのサイズ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.video_resolution"
+msgid "Video Resolution"
+msgstr "映像解像度"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.vr_device_api"
+msgid "VR Device API"
+msgstr "VR デバイス API"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.vr_device_index"
+msgid "VR Device Index"
+msgstr "VR デバイス番号"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.vr_device_path"
+msgid "VR Device Path"
+msgstr "VR デバイスパス"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.vr_device_path_list"
+msgid "VR Device Paths"
+msgstr "VR デバイスパスの一覧"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.vr_device_position_offset"
+msgid "VR Device Position Offset"
+msgstr "VR デバイス位置オフセット"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.vr_device_rotation_offset"
+msgid "VR Device Rotation Offset"
+msgstr "VR デバイス回転オフセット"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.vr_device_type"
+msgid "VR Device Type"
+msgstr "VR デバイスタイプ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.vr_space_to_stage_space"
+msgid "VR Space To Stage Space"
+msgstr "VR 空間からステージ空間へ"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.width"
+msgid "Width"
+msgstr "幅"
+
+#. Section: properties
+#, fuzzy
+msgctxt "properties.zig_zag"
+msgid "Zig-Zag"
+msgstr "ジグザグ"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.pixel_origin_lower_left"
+msgid "Lower Left"
+msgstr "左下"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.pixel_origin_lower_right"
+msgid "Lower Right"
+msgstr "右下"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.pixel_origin_upper_left"
+msgid "Upper Left"
+msgstr "左上"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.pixel_origin_upper_right"
+msgid "Upper Right"
+msgstr "右上"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.scroll_down"
+msgid "Down"
+msgstr "下"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.scroll_left"
+msgid "Left"
+msgstr "左"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.scroll_right"
+msgid "Right"
+msgstr "右"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.scroll_up"
+msgid "Up"
+msgstr "上"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.sequence_paused"
+msgid "Paused"
+msgstr "一時停止中"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.sequence_playing"
+msgid "Playing"
+msgstr "再生中"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.sequence_source_play_animation"
+msgid "Play Animation"
+msgstr "アニメーション再生"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.sequence_source_script"
+msgid "Script"
+msgstr "スクリプト"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.sequence_source_scroll_bitmap"
+msgid "Scroll Bitmap"
+msgstr "画像スクロール"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.sequence_source_scroll_text"
+msgid "Scroll Text"
+msgstr "テキストスクロール"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.sequence_stopped"
+msgid "Stopped"
+msgstr "停止中"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.stage_space"
+msgid "Stage Space"
+msgstr "ステージ空間"
+
+#. Section: propertyValues
+#, fuzzy
+msgctxt "propertyValues.vr_space"
+msgid "VR Space"
+msgstr "VR 空間"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.ambientFmt"
+msgid "Ambient: %s"
+msgstr "環境光: %s"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.apply"
+msgid "Apply"
+msgstr "適用"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.cameraPoseUnresolved"
+msgid "Could not resolve the camera pose. Is the camera tracked?"
+msgstr "カメラのポーズを解決できませんでした。カメラはトラッキングされていますか?"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.cancelCapture"
+msgid "Cancel Capture"
+msgstr "キャプチャをキャンセル"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.cancelling"
+msgid "Cancelling..."
+msgstr "キャンセル中..."
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.capture"
+msgid "Capture"
+msgstr "キャプチャ"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.cpuWarning"
+msgid "Running on CPU - this will take minutes rather than seconds."
+msgstr "CPUで実行中 - 数秒ではなく数分かかります。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.decomposingShading"
+msgid "Decomposing the frame into diffuse shading..."
+msgstr "フレームを拡散シェーディングに分解しています..."
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.directionalityFmt"
+msgid "Directionality (l1/l0): %.3f"
+msgstr "方向性 (l1/l0): %.3f"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.directionalityNearAmbientFmt"
+msgid "Directionality (l1/l0): %.3f - near ambient"
+msgstr "方向性 (l1/l0): %.3f - ほぼ環境光"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.elapsedSecondsFmt"
+msgid "%.1f s elapsed"
+msgstr "経過時間 %.1f 秒"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.estimateRecoveredFmt"
+msgid "Estimate recovered from %d pixels."
+msgstr "%d ピクセルから推定を復元しました。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.estimatingGeometry"
+msgid "Estimating surface normals..."
+msgstr "表面法線を推定しています..."
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.estimationFailed"
+msgid "Lighting estimation failed."
+msgstr "ライティング推定に失敗しました。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.estimationFailedSeeLog"
+msgid "Lighting estimation failed. See MikanCmd.log for details."
+msgstr "ライティング推定に失敗しました。詳細はMikanCmd.logを参照してください。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.fittingLighting"
+msgid "Fitting the lighting environment..."
+msgstr "ライティング環境をフィッティングしています..."
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.frameSceneInstructions"
+msgid "Frame a view of the scene that shows a good spread of surface orientations - floor, walls and objects. Flat views of a single wall cannot constrain the lighting."
+msgstr "床、壁、物体など、さまざまな面の向きが写るようにシーンをフレーミングしてください。単一の壁だけの平坦な構図では、ライティングを十分に制約できません。"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.inferenceBackendFmt"
+msgid "Inference backend: %s"
+msgstr "推論バックエンド: %s"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.keyLightDirectionFmt"
+msgid "Key light direction: %s"
+msgstr "キーライトの方向: %s"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.lightingAppliedFmt"
+msgid "Lighting applied to probe '%s'."
+msgstr "プローブ「%s」にライティングを適用しました。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.loadingModels"
+msgid "Loading the lighting and geometry models..."
+msgstr "ライティングとジオメトリのモデルを読み込んでいます..."
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.modelLoadFailedFmt"
+msgid "Could not load the models from '%s' and '%s'. Run tools/export_marigold_onnx.py and tools/fetch_moge2_onnx.py to produce them. See MikanCmd.log for details."
+msgstr "「%s」と「%s」からモデルを読み込めませんでした。tools/export_marigold_onnx.pyとtools/fetch_moge2_onnx.pyを実行して生成してください。詳細はMikanCmd.logを参照してください。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.nearAmbientExplanation"
+msgid "This scene is close to uniformly lit. The ambient term is usable, but the key light direction is not meaningful and should not be used to place a directional light."
+msgstr "このシーンはほぼ均一に照らされています。環境光項は使用できますが、キーライトの方向には意味がなく、指向性ライトの配置には使用しないでください。"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.negativeRadianceFmt"
+msgid "Negative radiance over %.0f%% of the sphere. This is expected for directional scenes - order-2 spherical harmonics cannot represent a sharp light - and is clamped when the environment is used."
+msgstr "球面の%.0f%%で放射輝度が負になっています。指向性のあるシーンでは想定内の現象です - 2次球面調和関数は鋭い光源を表現できないため、環境を使用する際にクランプされます。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.noCastShadowsNote"
+msgid "Cast shadows are absent by construction - an environment probe has no visibility term. Judge the direction and color of the shading, not the shadows."
+msgstr "構造上、キャストシャドウは含まれません - 環境プローブには可視性項がありません。シャドウではなく、シェーディングの方向と色で判断してください。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.noProbe"
+msgid "<none>"
+msgstr "<なし>"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.noUndistortedFrame"
+msgid "No undistorted color frame was available from the video source."
+msgstr "ビデオソースからディストーション補正済みのカラーフレームを取得できませんでした。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.preview"
+msgid "Preview"
+msgstr "プレビュー"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.previewLitSphere"
+msgid "Lit sphere"
+msgstr "ライティングされた球体"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.previewLitSphereExplanation"
+msgid "A sphere lit by the recovered environment, in camera space."
+msgstr "復元した環境でライティングされた球体(カメラ空間)。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.previewModelShading"
+msgid "Model shading (fit target)"
+msgstr "モデルシェーディング(フィット対象)"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.previewModelShadingExplanation"
+msgid "The diffuse shading the fit solved against. Its cast shadows are the part an environment probe cannot reproduce."
+msgstr "フィットが解を求めた拡散シェーディングです。そのキャストシャドウは環境プローブでは再現できない部分です。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.previewRecoveredLighting"
+msgid "Recovered lighting"
+msgstr "復元したライティング"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.previewRecoveredLightingExplanation"
+msgid "The recovered environment evaluated at the scene's own normals. Compare against 'Model shading' - where they agree, the estimate explains the lighting."
+msgstr "シーン自身の法線で評価した復元環境です。「モデルシェーディング」と比較してください - 一致する部分では推定がライティングを説明できています。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.previewRelitScene"
+msgid "Relit scene"
+msgstr "再照明したシーン"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.previewRelitSceneExplanation"
+msgid "The plate re-rendered with only the recovered lighting. It should read like the real frame, minus cast shadows."
+msgstr "復元したライティングのみで再レンダリングしたプレートです。キャストシャドウを除けば、実際のフレームのように見えるはずです。"
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.probeFmt"
+msgid "Probe: %s"
+msgstr "プローブ: %s"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.redo"
+msgid "Redo"
+msgstr "やり直す"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.retry"
+msgid "Retry"
+msgstr "再試行"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.startingVideoStream"
+msgid "Starting the video stream..."
+msgstr "ビデオストリームを開始しています..."
+
+#. Section: sceneLightingCapture
+#, fuzzy, c-format
+msgctxt "sceneLightingCapture.stepOfStepsFmt"
+msgid "Step %d of %d"
+msgstr "ステップ %d / %d"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.videoStreamStartFailed"
+msgid "Failed to start the video stream."
+msgstr "ビデオストリームの開始に失敗しました。"
+
+#. Section: sceneLightingCapture
+#, fuzzy
+msgctxt "sceneLightingCapture.working"
+msgid "Working..."
+msgstr "処理中..."
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.alignmentComplete"
+msgid "Stencil alignment complete!"
+msgstr "ステンシルの位置合わせが完了しました！"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.captureOriginPixel"
+msgid "Click the pixel in the camera image that corresponds to the stencil origin."
+msgstr "カメラ画像内で、ステンシルの原点に対応するピクセルをクリックしてください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.captureOriginVertex"
+msgid "Click the vertex on the stencil mesh that corresponds to the origin."
+msgstr "ステンシルメッシュ上で、原点に対応する頂点をクリックしてください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.captureXAxisPixel"
+msgid "Click the pixel in the camera image along the X axis direction."
+msgstr "カメラ画像内で、X軸方向に沿ったピクセルをクリックしてください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.captureXAxisVertex"
+msgid "Click the vertex on the stencil mesh along the X axis."
+msgstr "ステンシルメッシュ上で、X軸に沿った頂点をクリックしてください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.captureYAxisPixel"
+msgid "Click the pixel in the camera image along the Y axis direction."
+msgstr "カメラ画像内で、Y軸方向に沿ったピクセルをクリックしてください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.captureYAxisVertex"
+msgid "Click the vertex on the stencil mesh along the Y axis."
+msgstr "ステンシルメッシュ上で、Y軸に沿った頂点をクリックしてください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.captureZAxisPixel"
+msgid "Click the pixel in the camera image along the Z axis direction."
+msgstr "カメラ画像内で、Z軸方向に沿ったピクセルをクリックしてください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.captureZAxisVertex"
+msgid "Click the vertex on the stencil mesh along the Z axis."
+msgstr "ステンシルメッシュ上で、Z軸に沿った頂点をクリックしてください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.failedVideoStart"
+msgid "Error: Failed to start video stream."
+msgstr "エラー: 映像ストリームの開始に失敗しました。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.redo"
+msgid "Redo"
+msgstr "やり直し"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.startingVideoStream"
+msgid "Starting video stream..."
+msgstr "映像ストリームを開始しています..."
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.verifyInitialCameraSetup"
+msgid "Verify that the camera is positioned and video stream is running."
+msgstr "カメラの位置と映像ストリームが正しく動作していることを確認してください。"
+
+#. Section: stencilAlignment
+#, fuzzy
+msgctxt "stencilAlignment.verifyPointsCapture"
+msgid "Verify the captured alignment points look correct."
+msgstr "取得した位置合わせポイントが正しいか確認してください。"
+
+#. Section: textureSourceSettings
+#, fuzzy
+msgctxt "textureSourceSettings.return"
+msgid "Return"
+msgstr "戻る"
+
+#. Section: videoSourceSettings
+#, fuzzy, c-format
+msgctxt "videoSourceSettings.cameraFpsFmt"
+msgid "Camera %.1ffps"
+msgstr "カメラ %.1ffps"
+
+#. Section: videoSourceSettings
+#, fuzzy
+msgctxt "videoSourceSettings.return"
+msgid "Return"
+msgstr "戻る"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.begin"
+msgid "Begin"
+msgstr "開始"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.capturingSamples"
+msgid "Capturing marker pose samples..."
+msgstr "マーカー姿勢サンプルを取得中..."
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.failedVideoStream"
+msgid "Error: Failed to start video stream."
+msgstr "エラー: ビデオストリームの開始に失敗しました。"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.invalidApertureOffsetMsg"
+msgid "Selected camera does not have a valid aperture offset transform. Please calibrate the camera's tracking mount offset."
+msgstr "選択したカメラに有効な絞りオフセット変換がありません。カメラのトラッキングマウントオフセットをキャリブレーションしてください。"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.invalidIntrinsicsMsg"
+msgid "Selected camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics."
+msgstr "選択したカメラに有効な絞りの内部パラメータがありません。カメラの内部パラメータをキャリブレーションしてください。"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.invalidTrackingMountMsg"
+msgid "Selected camera does not have a valid tracking mount pose. Please assign a tracking mount to the camera."
+msgstr "選択したカメラに有効なトラッキングマウントの姿勢がありません。カメラにトラッキングマウントを割り当ててください。"
+
+#. Section: vrTrackingRecenter
+#, fuzzy, c-format
+msgctxt "vrTrackingRecenter.markerDetectedFmt"
+msgid "Marker Detected: %s"
+msgstr "マーカー検出: %s"
+
+#. Section: vrTrackingRecenter
+#, fuzzy, c-format
+msgctxt "vrTrackingRecenter.markerStableFmt"
+msgid "Marker Stable: %s"
+msgstr "マーカー安定: %s"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.no"
+msgid "No"
+msgstr "いいえ"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.noVideoSourceMsg"
+msgid "Camera is not associated with a video source. Please set a video source for the camera."
+msgstr "カメラにビデオソースが関連付けられていません。カメラにビデオソースを設定してください。"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.placeMarker"
+msgid "Place the Aruco marker on the floor at the desired tracking origin."
+msgstr "希望するトラッキング原点となる床にArucoマーカーを配置してください。"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.recenteredSuccessfully"
+msgid "VR tracking recentered successfully!"
+msgstr "VRトラッキングの再センタリングが完了しました！"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.restart"
+msgid "Restart"
+msgstr "リスタート"
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.startingVideoStream"
+msgid "Starting video stream..."
+msgstr "ビデオストリームを開始しています..."
+
+#. Section: vrTrackingRecenter
+#, fuzzy
+msgctxt "vrTrackingRecenter.yes"
+msgid "Yes"
+msgstr "はい"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.addCompositor"
+msgid "Add Compositor"
+msgstr "コンポジターを追加"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.assets"
+msgid "Assets"
+msgstr "アセット"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.cameraAlignmentDebug"
+msgid "Camera Alignment Debug"
+msgstr "カメラ位置合わせデバッグ"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.compositors"
+msgid "Compositors"
+msgstr "コンポジター"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.httpTriggers"
+msgid "HTTP Triggers"
+msgstr "HTTPトリガー"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.log"
+msgid "Log"
+msgstr "ログ"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.materialEditor"
+msgid "Material Editor"
+msgstr "マテリアルエディター"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.materialFunctionsPanel"
+msgid "Functions"
+msgstr "関数"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.materialPreviewPanel"
+msgid "Preview"
+msgstr "プレビュー"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.nodeAssetsPanel"
+msgid "Graph Assets"
+msgstr "グラフアセット"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.nodeDetailsPanel"
+msgid "Details"
+msgstr "詳細"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.nodeEditor"
+msgid "Node Editor"
+msgstr "ノードエディター"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.nodeGraphPanel"
+msgid "Graph"
+msgstr "グラフ"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.nodePagesPanel"
+msgid "Pages"
+msgstr "ページ"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.nodeVariablesPanel"
+msgid "Variables"
+msgstr "変数"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.project"
+msgid "Project"
+msgstr "プロジェクト"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.projectSettings"
+msgid "Settings"
+msgstr "設定"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.scenes"
+msgid "Scenes"
+msgstr "シーン"
+
+#. Section: windows
+#, fuzzy
+msgctxt "windows.selectCamera"
+msgid "Select Camera"
+msgstr "カメラを選択"
