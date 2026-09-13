@@ -9,10 +9,12 @@ ledger whose counters only ever grow, then renders `TOKEN_STATS.md` and the
 README badge line from that ledger alone.
 
     python tools/token_stats.py            scan transcripts, update the ledger, render
-    python tools/token_stats.py --render   render from the ledger, do not scan
+    python tools/token_stats.py --render   rewrite the ledger and the docs, do not scan
     python tools/token_stats.py --check    verify the rendered files match the ledger
 
---check reads nothing but committed files, which is what lets CI run it.
+Both writing modes rewrite the ledger, so a session added to its `excluded` map
+by hand is retired by either one. --check writes nothing and reads nothing but
+committed files, which is what lets CI run it.
 
 The ledger never stores an absolute path. Sessions are attributed by the working
 directory recorded in their transcript, but only the verdict is written down, so
@@ -191,8 +193,15 @@ def scan_session(paths):
 
 
 def load_ledger():
+    """Read the ledger, and cull any session the exclusion list claims.
+
+    The exclusion list is authoritative, so adding an id to it by hand is the
+    whole gesture needed to retire a session: the next write drops its counters.
+    Returns the ledger and the ids that were culled, so the caller can report
+    a file that still has to be rewritten.
+    """
     if not os.path.isfile(LEDGER_JSON):
-        return {"schemaVersion": SCHEMA_VERSION, "sessions": {}, "excluded": {}}
+        return {"schemaVersion": SCHEMA_VERSION, "sessions": {}, "excluded": {}}, []
     with open(LEDGER_JSON, encoding="utf-8") as fh:
         ledger = json.load(fh)
     if ledger.get("schemaVersion") != SCHEMA_VERSION:
@@ -202,12 +211,10 @@ def load_ledger():
         )
     ledger.setdefault("sessions", {})
     ledger.setdefault("excluded", {})
-    # The exclusion list is authoritative, so adding an id to it by hand is
-    # enough to retire a session the working-directory rule wrongly claimed.
-    for sid in list(ledger["sessions"]):
-        if sid in ledger["excluded"]:
-            del ledger["sessions"][sid]
-    return ledger
+    culled = [sid for sid in ledger["sessions"] if sid in ledger["excluded"]]
+    for sid in culled:
+        del ledger["sessions"][sid]
+    return ledger, culled
 
 
 def assert_no_paths(node, trail="ledger"):
@@ -424,7 +431,7 @@ def write_rendered(ledger):
             fh.write(text)
 
 
-def check_rendered(ledger):
+def check_rendered(ledger, culled):
     stale = False
     for path, expected in rendered_files(ledger).items():
         with open(path, encoding="utf-8") as fh:
@@ -442,6 +449,11 @@ def check_rendered(ledger):
                 tofile=f"{rel} (from ledger)",
             )
         )
+    if culled:
+        stale = True
+        print(f"docs/ai-usage.json still holds {len(culled)} session(s) its excluded list retires:")
+        for sid in culled:
+            print(f"  {sid}")
     if stale:
         raise SystemExit("error: run `python tools/token_stats.py --render` and commit the result")
     print("docs/ai-usage.json, TOKEN_STATS.md and README.md agree")
@@ -456,10 +468,10 @@ def main():
                       help="verify the rendered files match the ledger, and exit nonzero if not")
     args = parser.parse_args()
 
-    ledger = load_ledger()
+    ledger, culled = load_ledger()
 
     if args.check:
-        check_rendered(ledger)
+        check_rendered(ledger, culled)
         return
 
     if not args.render:
@@ -474,8 +486,12 @@ def main():
             print(f"excluded {sid}: worked in {cwd}")
         print(f"scanned {len(scanned)} sessions: {len(added)} new, {len(updated)} updated, "
               f"{len(skipped)} newly excluded")
-        write_ledger(ledger)
 
+    for sid in culled:
+        print(f"culled {sid}: listed in excluded")
+    # Both writing modes rewrite the ledger, so a hand-added exclusion is
+    # persisted by either one rather than only by a full scan.
+    write_ledger(ledger)
     write_rendered(ledger)
     _, _, grand, gw, central_kwh = render(ledger)
     print(f"total output {fmt(grand['output'])}, cache read {fmt(grand['cacheRead'])}, "

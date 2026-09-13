@@ -2,7 +2,7 @@
 A simple tool for mixed reality camera calibration and video compositing
 
 <!-- AI_USAGE_BADGES:BEGIN -->
-![AI tokens](https://img.shields.io/badge/AI_tokens-16M_out_%2F_5.8B_read-blueviolet) ![est. energy](https://img.shields.io/badge/est._energy-~322_kWh-yellow) ![est. water](https://img.shields.io/badge/est._water-~966_L-blue)
+![AI tokens](https://img.shields.io/badge/AI_tokens-14M_out_%2F_5.5B_read-blueviolet) ![est. energy](https://img.shields.io/badge/est._energy-~303_kWh-yellow) ![est. water](https://img.shields.io/badge/est._water-~909_L-blue)
 (estimates, see [TOKEN_STATS.md](TOKEN_STATS.md))
 <!-- AI_USAGE_BADGES:END -->
 

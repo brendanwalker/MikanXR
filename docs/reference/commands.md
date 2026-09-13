@@ -171,11 +171,13 @@ The badges in `README.md` and the tables in `TOKEN_STATS.md` are rendered from `
 
 ```
 python tools/token_stats.py            # scan local Claude Code transcripts, update the ledger, re-render
-python tools/token_stats.py --render   # re-render from the ledger without scanning
+python tools/token_stats.py --render   # rewrite the ledger and the docs without scanning
 python tools/token_stats.py --check    # verify the rendered files match the ledger (what CI runs)
 ```
 
-The scan needs the transcripts under `~/.claude/projects/`, so it only works on the machine the sessions ran on. `--check` reads committed files only.
+The scan needs the transcripts under `~/.claude/projects/`, so it only works on the machine the sessions ran on. `--check` reads committed files only and writes nothing.
+
+To drop a session the attribution rule wrongly claimed, add its id to the ledger's `excluded` map with `"reason": "manual"` and an optional `note`, then run `--render`. That list is authoritative and permanent: the run deletes the session's counters, and later scans never re-add it. Use `--render` rather than a full scan when the only change is by hand, since a scan of a live session also folds in tokens spent since the last run.
 
 ---
 
