@@ -1846,6 +1846,11 @@ msgid "File"
 msgstr "ファイル"
 
 #. Section: mainWindow
+msgctxt "mainWindow.idStackTool"
+msgid "ID Stack Tool"
+msgstr ""
+
+#. Section: mainWindow
 #, fuzzy
 msgctxt "mainWindow.loadProject"
 msgid "Load Project"
@@ -1874,6 +1879,11 @@ msgstr "レイアウトをリセット"
 msgctxt "mainWindow.saveProject"
 msgid "Save Project"
 msgstr "プロジェクトを保存"
+
+#. Section: mainWindow
+msgctxt "mainWindow.showStringKeys"
+msgid "Show String Keys"
+msgstr ""
 
 #. Section: mainWindow
 #, fuzzy

@@ -336,6 +336,7 @@ void LocalizationManager::finalizeLanguage(Language& language)
 		entry.text= text;
 		entry.label= text + "##" + key;
 		entry.windowTitle= text + "###" + englishText;
+		entry.keyWindowTitle= key + "###" + englishText;
 		language.entries[key]= std::move(entry);
 	}
 }
@@ -435,6 +436,11 @@ bool LocalizationManager::hasKey(const char* key) const
 
 const char* LocalizationManager::fetchText(const char* key) const
 {
+	// The key pointer is the passthrough the unknown-key path below already
+	// hands back, so show-keys mode needs nothing precomputed
+	if (m_bShowKeys)
+		return key;
+
 	if (m_currentLanguage != nullptr)
 	{
 		const auto it= m_currentLanguage->entries.find(std::string_view(key));
@@ -451,6 +457,13 @@ const char* LocalizationManager::fetchText(const char* key) const
 
 const char* LocalizationManager::fetchLabel(const char* key) const
 {
+	// ImGui hashes the whole label, resetting only at "###", so the ID of a
+	// "text##key" label already moves with the translation. Answering with the
+	// bare key moves it no more than a language switch does, and the key still
+	// makes the ID unique.
+	if (m_bShowKeys)
+		return key;
+
 	if (m_currentLanguage != nullptr)
 	{
 		const auto it= m_currentLanguage->entries.find(std::string_view(key));
@@ -469,7 +482,12 @@ const char* LocalizationManager::fetchWindowTitle(const char* key) const
 	{
 		const auto it= m_currentLanguage->entries.find(std::string_view(key));
 		if (it != m_currentLanguage->entries.end())
-			return it->second.windowTitle.c_str();
+		{
+			// Unlike the other two, this one keeps its "###" suffix in
+			// show-keys mode: the ImGui ID is the English title, and a window
+			// that changed identity mid-session would lose its docked spot
+			return m_bShowKeys ? it->second.keyWindowTitle.c_str() : it->second.windowTitle.c_str();
+		}
 	}
 
 	if (m_warnedMissingKeys.insert(key).second)

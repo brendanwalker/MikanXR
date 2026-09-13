@@ -2,7 +2,7 @@
 	"_meta": {
 		"code": "ja",
 		"nativeName": "日本語",
-		"stringCount": 903,
+		"stringCount": 905,
 		"translatedCount": 902,
 		"reviewedCount": 0
 	},
@@ -346,11 +346,13 @@
 		"closeProject": "プロジェクトを閉じる",
 		"exit": "終了",
 		"fileMenu": "ファイル",
+		"idStackTool": "ID Stack Tool",
 		"loadProject": "プロジェクトを開く",
 		"logPanel": "ログパネル",
 		"newProject": "新規プロジェクト",
 		"resetLayout": "レイアウトをリセット",
 		"saveProject": "プロジェクトを保存",
+		"showStringKeys": "Show String Keys",
 		"viewMenu": "表示"
 	},
 	"materialEditor": {

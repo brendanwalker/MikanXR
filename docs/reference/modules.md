@@ -117,7 +117,7 @@ Subdirectories (each is a source group, not a separate target):
 
 - `Interprocess` is the server-side transport: `WebsocketInterprocessMessageServer` (ixwebsocket), `HttpInterprocessMessageServer`, `SharedTextureReader`, `ClientTextureFrameQueue`.
 
-- `Localization`: `LocalizationManager` (JSON string tables under `resources/localization`, one file per language, generated from the gettext catalogs in `localization/`), the `LocText.h` call-site helpers, and the remote fetcher that overlays community translations from the CDN. See [localization.md](./localization.md).
+- `Localization`: `LocalizationManager` (JSON string tables under `resources/localization`, one file per language, generated from the gettext catalogs in `localization/`), the `LocText.h` call-site helpers, the remote fetcher that overlays community translations from the CDN, and `LocDebugUI` (the show-keys mode and the ID Stack Tool item every View menu carries). See [localization.md](./localization.md).
 
 - `Math`: editor-side math helpers (`CameraMath`, `MathTypeConversion` between glm/OpenCV/Mikan types).
 

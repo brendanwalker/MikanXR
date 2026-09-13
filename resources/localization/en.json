@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 903,
-		"translatedCount": 903,
-		"reviewedCount": 903
+		"stringCount": 905,
+		"translatedCount": 905,
+		"reviewedCount": 905
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -346,11 +346,13 @@
 		"closeProject": "Close Project",
 		"exit": "Exit",
 		"fileMenu": "File",
+		"idStackTool": "ID Stack Tool",
 		"loadProject": "Load Project",
 		"logPanel": "Log Panel",
 		"newProject": "New Project",
 		"resetLayout": "Reset Layout",
 		"saveProject": "Save Project",
+		"showStringKeys": "Show String Keys",
 		"viewMenu": "View"
 	},
 	"materialEditor": {

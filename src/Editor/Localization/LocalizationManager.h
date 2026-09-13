@@ -72,14 +72,25 @@ public:
 	// refetches every frame, so the UI changes immediately.
 	bool setLanguage(const std::string& langCode);
 
+	// Diagnostic view: every fetch answers with its own key instead of the
+	// translation, so a string that reads wrong on screen names itself in
+	// place. One manager serves every window, so this is global, and it is
+	// deliberately not persisted. A key that is visible with this off is one
+	// no table defines.
+	bool getShowKeys() const { return m_bShowKeys; }
+	void setShowKeys(bool bShowKeys) { m_bShowKeys= bShowKeys; }
+
 	// Is "section.key" defined? Unlike fetchText this is silent on a miss, so
 	// it can drive a fallback chain (see locResolveDescriptorKey).
 	bool hasKey(const char* key) const;
 	// "section.key" -> localized UTF-8. Unknown key returns the key pointer
 	// itself (a passthrough, never a sentinel).
 	const char* fetchText(const char* key) const;
-	// Localized text + "##" + key: a widget label whose ImGui ID stays stable
-	// and collision-free across languages
+	// Localized text + "##" + key: a widget label whose ImGui ID is
+	// collision-free across languages, since the key disambiguates two widgets
+	// whose translations happen to match. The ID is not stable across a
+	// language switch: ImHashStr resets only at "###", so the translated
+	// prefix is part of the hash. Only fetchWindowTitle below is stable.
 	const char* fetchLabel(const char* key) const;
 	// Localized text + "###" + English text: a window/popup title whose ImGui
 	// ID equals the English title, keeping ini layouts and by-name window
@@ -100,6 +111,11 @@ private:
 		std::string text;        // localized UTF-8
 		std::string label;       // text + "##" + key
 		std::string windowTitle; // text + "###" + English text
+		// The show-keys variant of windowTitle. Only this one needs
+		// precomputing: text and label answer with the key pointer itself,
+		// but a window title has to keep its "###" suffix or the window
+		// changes identity and loses its ini layout when the mode is toggled.
+		std::string keyWindowTitle; // key + "###" + English text
 	};
 
 	struct Language
@@ -129,6 +145,7 @@ private:
 	AppSettingsConfigWeakPtr m_appSettings;
 	std::vector<std::string> m_loadWarnings;
 	mutable std::set<std::string> m_warnedMissingKeys;
+	bool m_bShowKeys= false;
 	std::unique_ptr<LocalizationRemoteFetcher> m_remoteFetcher;
 
 	static LocalizationManager* s_instance;

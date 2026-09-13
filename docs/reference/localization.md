@@ -73,6 +73,22 @@ An untranslated key is written into the table as its English text rather than be
 
 ---
 
+## Finding the key behind a bad string
+
+Two diagnostics, both under `View` in the main window and in the node editors.
+
+**Show String Keys** (F9) makes every fetch answer with its own key, so a string that reads wrong names itself in the widget it was drawn in. It covers every string kind: display text, tooltips, format strings, widget labels, window titles, combo entries, and the descriptor-generated panel labels. The flag is global across all four ImGui contexts and is not persisted.
+
+A key that is visible with the mode off is a key no table defines, which is a code bug rather than a translation one.
+
+Two mechanical notes. Window titles keep their `###` suffix in this mode, because the ImGui ID is the English title and a window that changed identity mid-session would lose its docked position. Widget labels do not: ImGui's `ImHashStr` resets only at `###`, so a `text##key` label's ID already moves with the translation, and answering with the bare key moves it no further than a language switch does.
+
+**ID Stack Tool** is ImGui's own hover inspector. Because `locLabel` puts the key after `##`, hovering an interactive widget reports its key without leaving the normal view. It only sees widgets that own an ID, so plain text needs show-keys mode. Unlike show-keys it is per window, since it reports the hovered item of its own context.
+
+Both live in `src/Editor/Localization/LocDebugUI.cpp`.
+
+---
+
 ## Adding a UI string
 
 Add the key to `resources/localization/en.json`, then run `sync`. The key reaches every catalog as an untranslated entry, and every generated table as the English text. `check` fails the build if the sync step was skipped.

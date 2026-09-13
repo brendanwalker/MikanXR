@@ -46,6 +46,12 @@ Anything else is yours to phrase naturally. Short button labels should stay shor
 
 ---
 
+## Finding which string is which
+
+If you spot a bad string while using the app and want to know which catalog entry it came from, press **F9** (or `View > Show String Keys`). Every piece of text turns into its key, in place. Press F9 again to switch back. Paste that key into POEdit's search box and you are on the right entry.
+
+---
+
 ## Checking your work before you push
 
 Optional, but it catches mistakes faster than waiting on CI:

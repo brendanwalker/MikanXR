@@ -1577,6 +1577,11 @@ msgid "File"
 msgstr ""
 
 #. Section: mainWindow
+msgctxt "mainWindow.idStackTool"
+msgid "ID Stack Tool"
+msgstr ""
+
+#. Section: mainWindow
 msgctxt "mainWindow.loadProject"
 msgid "Load Project"
 msgstr ""
@@ -1599,6 +1604,11 @@ msgstr ""
 #. Section: mainWindow
 msgctxt "mainWindow.saveProject"
 msgid "Save Project"
+msgstr ""
+
+#. Section: mainWindow
+msgctxt "mainWindow.showStringKeys"
+msgid "Show String Keys"
 msgstr ""
 
 #. Section: mainWindow

@@ -15,6 +15,7 @@
 #include "IMkWireframeMesh.h"
 #include "LightEnvironmentComponent.h"
 #include "LightEnvironmentSystem.h"
+#include "LocDebugUI.h"
 #include "LocText.h"
 #include "MathGLM.h"
 #include "MathMikan.h"
@@ -377,6 +378,9 @@ void AppStage_Project::onGui()
 	{
 		LogPanel::getInstance().draw(&m_bShowLogPanel);
 	}
+
+	LocDebugUI::drawWindows(m_bShowIdStackTool);
+	LocDebugUI::handleShortcuts();
 }
 
 void AppStage_Project::onMenuBarGui()
@@ -422,6 +426,8 @@ void AppStage_Project::onMenuBarGui()
 		ImGui::MenuItem(locLabel("project.panelAssets"), nullptr, &m_bAssetsPanelVisible);
 		ImGui::Separator();
 		ImGui::MenuItem(locLabel("mainWindow.logPanel"), nullptr, &m_bShowLogPanel);
+		ImGui::Separator();
+		LocDebugUI::drawViewMenuItems(m_bShowIdStackTool);
 		ImGui::Separator();
 		if (ImGui::MenuItem(locLabel("mainWindow.resetLayout")))
 		{
