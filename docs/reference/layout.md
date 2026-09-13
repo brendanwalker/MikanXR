@@ -50,7 +50,7 @@ The editor/server application itself. All editor code compiles once into the `Mi
 
 - `AppCore`: entry points, top-level app object, `Version.h` (source of the project version string)
 - `AppStages`: top-level app state machine (menus, calibration flows, compositor stage)
-- `Asset`, `Project`, `Config`: persisted project/scene/asset state (Configuru-backed config files)
+- `Asset`, `Project`, `Config`: persisted project/scene/asset state (Configuru-backed config files); `Asset` also holds the `ProjectAssetCatalog` behind the Assets panels, the shared tile and property-row widgets, and `Asset/Test` for the catalog test module (see [objects.md](./objects.md))
 - `Calibration`: camera/mixed-reality calibration algorithms (OpenCV-based), see [calibration.md](./calibration.md); also the ONNX-backed frame estimators behind [scene-lighting.md](./scene-lighting.md) and [depth-proxy-mesh.md](./depth-proxy-mesh.md)
 - `ECS`: entity/component scene representation (see [objects.md](./objects.md))
 - `Delegates`, `Events`: callback/event plumbing

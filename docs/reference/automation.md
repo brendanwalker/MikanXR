@@ -134,7 +134,7 @@ A drive that mutates state can restore it exactly with `history undo` instead of
 Drives the node editor window and its snapshot undo history ([transactions.md](./transactions.md)). One node editor window is targeted at a time; the commands answer an error when none is open.
 
 - `nodegraph open [compositorComponentId]` opens the compositor graph editor window (the id may be omitted when the project has exactly one compositor)
-- `nodegraph open material <graphPath>` opens the material graph editor window on a `.graph` file, reusing and raising the window when one is already open. A relative path resolves against the project (then the app resources) and otherwise against the working directory. The command answers an error when the file does not load or is not a material graph.
+- `nodegraph open material <graphPath>` opens the material graph editor window on a `.matgraph` file, reusing and raising the window when one is already open. A relative path resolves against the project (then the app resources) and otherwise against the working directory. The command answers an error when the file does not load or is not a material graph.
 - `nodegraph open material new [compositor|shape]` opens the material editor with a fresh graph of that domain (default `compositor`)
 - `nodegraph close` asks the app to tear the window down at the end of the frame
 - `nodegraph info` replies the graph class and path, node/pin/link/property counts, a `page` line with the current page id, a `pages` line with the page count (the implicit root is not counted), `can_undo`/`can_redo`, the history depth and cursor, the session log path ([transactions.md](./transactions.md)), for the compositor editor a `running` line, and for the material editor `domain`, `vertex_preset`, and `compile_errors` (the error count of the last compile) lines
@@ -148,7 +148,7 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 - `nodegraph deletelink <linkId>` deletes a link
 - `nodegraph undo [n]` / `nodegraph redo [n]` step the window's snapshot history, replying the resulting cursor
 - `nodegraph run on|off` pauses or resumes compositor evaluation of the editor graph (the Compositor menu's Run item), replying the resulting state
-- `nodegraph compile` compiles the material editor's graph and writes its shaders and `.mat` beside the graph file (the Material menu's Compile item), replying `compiled`, or one `error <nodeId> <message>` line per compile error. An unsaved graph has nowhere to write and answers an error. On any other editor window the command answers an error.
+- `nodegraph compile` compiles the material editor's graph and writes its shaders and material file beside the graph file (the Material menu's Compile item), replying `compiled`, or one `error <nodeId> <message>` line per compile error. An unsaved graph has nowhere to write and answers an error. On any other editor window the command answers an error.
 - `nodegraph renamevar <propertyId> <name...>` renames a graph variable (the name is the rest of the line, so spaces survive)
 - `nodegraph reordervar <movedPropertyId> <targetPropertyId>` moves a variable to the target's slot in the list, the headless equivalent of dragging one variable row onto another
 
@@ -156,10 +156,39 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 
 ### Materials (material)
 
-Loads and compiles material files headlessly, with no editor window involved, so a drive can check a `.mat` or rebuild a graph's outputs without opening the editor. Paths resolve the way `nodegraph open material` resolves them.
+Loads and compiles material files headlessly, with no editor window involved, so a drive can check a material file or rebuild a graph's outputs without opening the editor. Paths resolve the way `nodegraph open material` resolves them.
 
-- `material info <matPath>` loads the `.mat` config and replies `name`, `domain`, `vertex_preset`, and `source_graph` lines (`none` where a hand-authored material leaves them unset), then one `uniform <name> <semantic>` line per uniform semantic map entry
-- `material compile <graphPath>` loads the graph without an owner window, compiles it with the GLSL writer, and writes the `.vert`, `.frag`, and `.mat` beside the graph file, replying those three paths. Compile errors reply as `error <nodeId> <message>` lines and write nothing.
+- `material info <matPath>` loads a `.compmat` or `.shapemat` config and replies `name`, `domain`, `vertex_preset`, and `source_graph` lines (`none` where a hand-authored material leaves them unset), then one `uniform <name> <semantic>` line per uniform semantic map entry
+- `material compile <graphPath>` loads the graph without an owner window, compiles it with the GLSL writer, and writes the `.vert`, `.frag`, and the domain's material file beside the graph file, replying those three paths. Compile errors reply as `error <nodeId> <message>` lines and write nothing.
+
+### Project assets (assets)
+
+Drives the `ProjectAssetCatalog` ([objects.md](./objects.md) covers the property database the component scan reads). All verbs run inline on the main thread, so no reply is deferred.
+
+- `assets folders` replies one line per folder descriptor: `<id> project:<projectSubfolder or -> bundled:<bundledSubfolder or -> <readonly|writable>`
+- `assets list [folderId]` replies one line per entry as `<folderId> <className> <storedPath>[ readonly]`, all folders when the id is omitted
+- `assets refresh` rescans every folder from disk, replying `refreshed`
+- `assets import <folderId> <sourcePath>` copies a file (or a material's folder) into the project and replies the stored path. The source path may contain spaces. Fails with the catalog's own error text, for example a read-only folder or an unsupported file type.
+- `assets refs <storedPath>` replies one `<graph|material|component> <name> <detail>` line per referrer, empty when nothing references the path. The path may contain spaces.
+- `assets delete <folderId> <storedPath>` deletes an asset after checking `findReferences` itself, replying `deleted`. A referenced asset is refused with `referenced by: <kind> <name>, ...` rather than deleting out from under a live reference.
+- `assets select <folderId> <storedPath>` selects an entry in the project Assets panel through the stage's `select_asset` command, replying `selected`, or an error `asset not found`
+- `assets open <folderId> <storedPath>` opens the entry in its editor, the same open a double click on it performs (a compositor or shape graph in that editor, bound to the component driving it when one does; a material's source graph in the material editor), replying `opened`, or an error when nothing opens that kind
+- `assets selected` reads the panel's selection back through `selected_asset`, replying `<folderId> <storedPath>` or `none`
+- `assets folder` replies the panel's current folder id through `current_asset_folder`
+
+The `select`, `selected`, and `folder` verbs answer an error when the current app stage is not the project stage, since that is where the Assets panel lives.
+
+A short drive that imports a texture, wires it into a DMX sequence's content path, and confirms the delete guard:
+
+```
+python tools/automate.py "assets import textures ./stripe.png" "assets list textures"
+python tools/automate.py "property set DMXSequenceSystem 1 content_path textures/stripe.png"
+python tools/automate.py "assets refs textures/stripe.png"
+python tools/automate.py "assets delete textures textures/stripe.png"
+python tools/automate.py "property set DMXSequenceSystem 1 content_path \"\"" "assets delete textures textures/stripe.png"
+```
+
+The first delete answers `referenced by: component <sequenceName>` since the sequence still names the file. Clearing `content_path` first lets the second delete succeed with `deleted`.
 
 ### ARKit debug channel (arkit)
 

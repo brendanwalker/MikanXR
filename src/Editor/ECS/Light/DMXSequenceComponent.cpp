@@ -267,9 +267,11 @@ std::filesystem::path DMXSequenceDefinition::getContentPath() const { return m_c
 
 void DMXSequenceDefinition::setContentPath(const std::filesystem::path& contentPath)
 {
-	if (contentPath.string() != m_contentAssetRefConfig->assetPath)
+	const std::string stored= contentPath.empty() ? std::string() : PathUtils::makeStoredProjectPath(contentPath);
+
+	if (stored != m_contentAssetRefConfig->assetPath)
 	{
-		m_contentAssetRefConfig->assetPath= contentPath.string();
+		m_contentAssetRefConfig->assetPath= stored;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_contentPathPropertyId));
 	}
 }
@@ -293,9 +295,11 @@ std::filesystem::path DMXSequenceDefinition::getFontPath() const
 
 void DMXSequenceDefinition::setFontPath(const std::filesystem::path& fontPath)
 {
-	if (fontPath.string() != m_fontAssetRefConfig->assetPath)
+	const std::string stored= fontPath.empty() ? std::string() : PathUtils::makeStoredProjectPath(fontPath);
+
+	if (stored != m_fontAssetRefConfig->assetPath)
 	{
-		m_fontAssetRefConfig->assetPath= fontPath.string();
+		m_fontAssetRefConfig->assetPath= stored;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_fontPathPropertyId));
 	}
 }
@@ -638,7 +642,8 @@ bool DMXSequenceComponent::rebuildContent()
 	case eDMXSequenceContentSource::scrollBitmap:
 	{
 		DMXPixelCanvas canvas;
-		if (!DMXSequenceContent::loadImage(getEffectiveContentPath(), canvas, error))
+		const std::filesystem::path resolvedPath= PathUtils::resolveProjectResource(getEffectiveContentPath());
+		if (!DMXSequenceContent::loadImage(resolvedPath, canvas, error))
 			break;
 
 		m_contentFrames.push_back(std::move(canvas));
@@ -660,7 +665,8 @@ bool DMXSequenceComponent::rebuildContent()
 		colorToBytes(definition->getBackgroundColor(), background);
 
 		DMXPixelCanvas canvas;
-		if (!DMXSequenceContent::rasterizeText(getEffectiveText(), definition->getFontPath(), pixelHeight, foreground,
+		const std::filesystem::path resolvedFontPath= PathUtils::resolveProjectResource(definition->getFontPath());
+		if (!DMXSequenceContent::rasterizeText(getEffectiveText(), resolvedFontPath, pixelHeight, foreground,
 											   background, canvas, error))
 		{
 			break;
@@ -670,9 +676,9 @@ bool DMXSequenceComponent::rebuildContent()
 	}
 	break;
 	case eDMXSequenceContentSource::playAnimation:
-		DMXSequenceContent::loadAnimation(getEffectiveContentPath(), definition->getSpriteFrameWidth(),
-										  definition->getSpriteFrameHeight(), definition->getSpriteFps(),
-										  m_contentFrames, m_contentFrameDelaysMs, error);
+		DMXSequenceContent::loadAnimation(PathUtils::resolveProjectResource(getEffectiveContentPath()),
+										  definition->getSpriteFrameWidth(), definition->getSpriteFrameHeight(),
+										  definition->getSpriteFps(), m_contentFrames, m_contentFrameDelaysMs, error);
 		break;
 	default:
 		break;

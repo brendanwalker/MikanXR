@@ -3,6 +3,8 @@
 #include "AppSettingsConfig.h"
 #include "AppStage.h"
 #include "EditorObjectSystem.h"
+#include "IEditorWindow.h"
+#include "ProjectAssetCatalog.h"
 #include "LocText.h"
 #include "LocalizationManager.h"
 #include "MkGuiDrawUtils.h"
@@ -256,6 +258,32 @@ void GuiPanel_ProjectSettings::onGui()
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::SetTooltip("%s", locText("projectSettings.spoutLoggingTooltip"));
+		}
+	}
+
+	// -- Assets ----
+	if (MkGui::drawPropertySheetHeader(m_defaultGuiStyle, locText("projectSettings.sectionAssets")))
+	{
+		// The bundled resources show through behind the project as read-only
+		// assets; this developer switch lets the editors write them in place
+		auto appSettings= App::getInstance()->getAppSettings();
+		bool bEditBundled= appSettings->getEditBundledResources();
+		if (ImGui::Checkbox(locLabel("projectSettings.editBundledResources"), &bEditBundled))
+		{
+			IEditorWindow* ownerWindow= m_ownerAppStage->getOwnerWindow();
+			addDeferredGuiEvent(
+				[appSettings, ownerWindow, bEditBundled]()
+				{
+					appSettings->setEditBundledResources(bEditBundled);
+					if (ProjectAssetCatalog* catalog= ownerWindow ? ownerWindow->getAssetCatalog() : nullptr)
+					{
+						catalog->setBundledResourcesEditable(bEditBundled);
+					}
+				});
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("%s", locText("projectSettings.editBundledResourcesTooltip"));
 		}
 	}
 

@@ -5,9 +5,7 @@
 --
 -- Positions are in the stage's local frame in meters. Angles are Euler
 -- degrees. Integer defaults register INT variables, so a float parameter
--- must be written with a decimal point. parent_stage is a component
--- reference: the panel offers the stages in a dropdown, and the global holds
--- the stage handle or nil.
+-- must be written with a decimal point.
 
 ScriptContext.registerVariable("num_rows", 2)
 ScriptContext.registerVariable("lights_per_row", 4)
@@ -19,13 +17,13 @@ ScriptContext.registerVariable("cone_angle", 30.0)
 ScriptContext.registerVariable("cone_range", 4.0)
 ScriptContext.registerVariable("start_universe_id", 1)
 ScriptContext.registerVariable("start_channel_index", 1)
-ScriptContext.registerComponent("parent_stage", "StageComponent")
+ScriptContext.registerVariable("parent_stage", -1)
 
 local LIGHT_PREFIX = "gen_light_"
 local CHANNELS_PER_LIGHT = 3
 
 local function resolve_stage()
-	local stage = parent_stage
+	local stage = StageSystem:getStageById(parent_stage)
 	if stage == nil then
 		stage = StageSystem:getFirstStage()
 	end

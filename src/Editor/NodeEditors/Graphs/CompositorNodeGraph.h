@@ -20,7 +20,8 @@ public:
 
 	static const std::string k_compositeFrameEventName;
 
-	virtual std::string getClassName() const override { return "CompositorNodeGraph"; }
+	inline static const std::string k_graphClassName= "CompositorNodeGraph";
+	virtual std::string getClassName() const override { return k_graphClassName; }
 	virtual bool loadFromConfig(const NodeGraphConfig& config) override;
 	bool compositeFrame(NodeEvaluator& evaluator);
 	IMkTextureConstPtr getCompositedFrameTexture() const;

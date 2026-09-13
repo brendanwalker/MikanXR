@@ -7,7 +7,10 @@
 #include "MkGuiDrawUtils.h"
 
 #include "imgui.h"
+#include "AssetPropertyGui.h"
 #include "AssetReferencePropertyMetaData.h"
+
+#include <filesystem>
 
 GuiPanel_CompositorComponent::GuiPanel_CompositorComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
@@ -65,20 +68,26 @@ void GuiPanel_CompositorComponent::onConstruct()
 			if (!compositorComp)
 				return false;
 
+			const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
+			if (!assetMeta)
+				return false;
+
+			CompositorDefinitionPtr componentDef= compositorComp->getCompositorDefinition();
+			const std::string graphPath= componentDef->getCompositorGraphPath().generic_string();
+
+			std::string newGraphPath;
+			if (AssetPropertyGui::drawAssetReferenceProperty(
+					m_defaultGuiStyle,
+					compositorComp->makePropertyUIIdentifier(CompositorDefinition::k_compositorGraphPathPropertyId),
+					locText("componentPanel.graph"), *assetMeta->getFactory(), graphPath, newGraphPath))
+			{
+				addDeferredGuiEvent(
+					[compositorComp, newGraphPath]()
+					{ compositorComp->setCompositorGraphAssetPath(std::filesystem::path(newGraphPath)); });
+			}
+
 			if (compositorComp->hasValidCompositorGraph())
 			{
-				const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
-				CompositorDefinitionPtr componentDef= compositorComp->getCompositorDefinition();
-				const std::string scriptPath= componentDef->getCompositorGraphPath().generic_string();
-
-				if (MkGui::drawFilePathProperty(m_defaultGuiStyle,
-												compositorComp->makePropertyUIIdentifier(
-													CompositorComponent::k_addNewCompositorGraphFunctionId),
-												locText("componentPanel.graph"), scriptPath))
-				{
-					addDeferredGuiEvent([compositorComp]() { compositorComp->selectCompositorGraph(); });
-				}
-
 				if (MkGui::drawGlyphButtonWithLabel(
 						compositorComp->makePropertyUIIdentifier(CompositorComponent::k_editCompositorGraphFunctionId),
 						ICON_FK_PENCIL, locText("componentPanel.editGraph")))
@@ -94,20 +103,11 @@ void GuiPanel_CompositorComponent::onConstruct()
 			}
 			else
 			{
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.graph"),
-											  locText("componentPanel.noGraph"));
-
 				if (MkGui::drawGlyphButtonWithLabel(compositorComp->makePropertyUIIdentifier(
 														CompositorComponent::k_addNewCompositorGraphFunctionId),
 													ICON_FK_PLUS, locText("componentPanel.addGraph")))
 				{
 					addDeferredGuiEvent([compositorComp]() { compositorComp->addNewCompositorGraph(); });
-				}
-				if (MkGui::drawGlyphButtonWithLabel(compositorComp->makePropertyUIIdentifier(
-														CompositorComponent::k_selectCompositorGraphFunctionId),
-													ICON_FK_FOLDER_OPEN, locText("componentPanel.selectGraph")))
-				{
-					addDeferredGuiEvent([compositorComp]() { compositorComp->selectCompositorGraph(); });
 				}
 			}
 

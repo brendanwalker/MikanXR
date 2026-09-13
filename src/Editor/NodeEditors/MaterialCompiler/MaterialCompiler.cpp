@@ -833,7 +833,8 @@ bool MaterialCompiler::writeOutputs(MaterialCompileResult& result, const std::fi
 
 	const std::filesystem::path vertexPath= getVertexShaderPathForGraph(graphPath);
 	const std::filesystem::path fragmentPath= getFragmentShaderPathForGraph(graphPath);
-	const std::filesystem::path materialPath= getMaterialPathForGraph(graphPath);
+	const std::filesystem::path materialPath=
+		getMaterialPathForGraph(graphPath, MaterialDomainUtils::domainFromString(result.config->domain));
 
 	if (!writeTextFile(vertexPath, result.vertexSource, outError)
 		|| !writeTextFile(fragmentPath, result.fragmentSource, outError))
@@ -870,9 +871,10 @@ bool MaterialCompiler::writeOutputs(MaterialCompileResult& result, const std::fi
 	return true;
 }
 
-std::filesystem::path MaterialCompiler::getMaterialPathForGraph(const std::filesystem::path& graphPath)
+std::filesystem::path MaterialCompiler::getMaterialPathForGraph(const std::filesystem::path& graphPath,
+																eMaterialDomain domain)
 {
-	return graphPath.parent_path() / (graphPath.stem().string() + ".mat");
+	return graphPath.parent_path() / (graphPath.stem().string() + MaterialDomainUtils::materialExtension(domain));
 }
 
 std::filesystem::path MaterialCompiler::getVertexShaderPathForGraph(const std::filesystem::path& graphPath)

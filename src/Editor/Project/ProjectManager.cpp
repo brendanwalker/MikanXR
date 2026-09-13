@@ -18,6 +18,8 @@
 #include "PathUtils.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
+#include "ProjectAssetCatalog.h"
+#include "LegacyContentMigration.h"
 #include "SceneObjectSystem.h"
 #include "ScriptObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
@@ -218,20 +220,13 @@ bool ProjectManager::newProject(const std::string& projectFilePath)
 		std::filesystem::create_directories(projectDir);
 	}
 
-	// Copy bundled resources (models, scripts, graphs, shaders, textures) into the project folder
-	const std::filesystem::path resourcesDir= PathUtils::getResourceDirectory();
-	const std::vector<std::string> projectResourceFolders= {"models", "scripts", "graphs", "shaders", "textures"};
-
-	for (const std::string& folder : projectResourceFolders)
+	// The asset folders start empty: the bundled resources show through behind
+	// them as read-only entries, and a project shadows one by copying it in
+	for (const ProjectAssetFolderDesc& folderDesc : ProjectAssetCatalog::getFolderDescs())
 	{
-		std::filesystem::path srcDir= resourcesDir / folder;
-		std::filesystem::path dstDir= projectDir / folder;
-
-		if (std::filesystem::exists(srcDir))
+		if (!folderDesc.projectSubfolder.empty())
 		{
-			std::filesystem::copy(srcDir, dstDir,
-								  std::filesystem::copy_options::recursive
-									  | std::filesystem::copy_options::update_existing);
+			std::filesystem::create_directories(projectDir / folderDesc.projectSubfolder);
 		}
 	}
 
@@ -266,12 +261,16 @@ static void writeProjectFileIfMissing(const std::filesystem::path& filePath, con
 // assigns (paths relative to the project folder).
 static void writeScriptWorkspaceFiles(const std::filesystem::path& projectDir)
 {
+	// The bundled scripts sit on the module search path behind the project's own,
+	// so the language server sees them too
 	const std::filesystem::path definitionsDir=
 		std::filesystem::absolute(PathUtils::getResourceDirectory() / "lua-definitions");
+	const std::filesystem::path bundledScriptsDir=
+		std::filesystem::absolute(PathUtils::getResourceDirectory() / "scripts");
 	const std::string luarcContent= "{\n"
 									"\t\"runtime.version\": \"Lua 5.4\",\n"
 									"\t\"workspace.library\": [\""
-									+ definitionsDir.generic_string()
+									+ definitionsDir.generic_string() + "\", \"" + bundledScriptsDir.generic_string()
 									+ "\"],\n"
 									  "\t\"workspace.checkThirdParty\": false\n"
 									  "}\n";
@@ -316,6 +315,10 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 	const std::filesystem::path projectDir= std::filesystem::path(projectFilePath).parent_path();
 	PathUtils::setProjectDirectory(projectDir);
 	writeScriptWorkspaceFiles(projectDir);
+
+	// A project saved before graph and material kinds had their own folders and
+	// extensions is moved onto the current layout before its file is read
+	LegacyContentMigration::migrateProject(projectDir, projectFilePath);
 
 	// create an empty project config
 	m_projectConfig= createEmptyProjectConfig();

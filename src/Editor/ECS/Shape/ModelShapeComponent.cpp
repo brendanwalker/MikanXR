@@ -6,6 +6,8 @@
 #include "LuaBridge/LuaBridge.h"
 
 #include "AssetReference.h"
+#include "AssetReferencePropertyMetaData.h"
+#include "ModelAssetReference.h"
 #include "PathUtils.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
@@ -80,9 +82,11 @@ void ModelShapeDefinition::setModelPath(const std::filesystem::path& path, bool 
 	if (!m_modelAssetRefConfig)
 		m_modelAssetRefConfig= std::make_shared<AssetReferenceConfig>();
 
-	if (m_modelAssetRefConfig->assetPath != path || bForceDirty)
+	const std::string stored= path.empty() ? std::string() : PathUtils::makeStoredProjectPath(path);
+
+	if (m_modelAssetRefConfig->assetPath != stored || bForceDirty)
 	{
-		m_modelAssetRefConfig->assetPath= path.string();
+		m_modelAssetRefConfig->assetPath= stored;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelPathPropertyId));
 	}
 }
@@ -172,8 +176,8 @@ void ModelShapeComponent::rebuildMeshComponents()
 	MikanModelResourceManager* modelResourceManager= ownerWindow->getModelResourceManager();
 	MkMaterialConstPtr shapeMaterial=
 		ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
-	MikanRenderModelResourcePtr modelResourcePtr=
-		modelResourceManager->fetchRenderModel(modelDef->getModelPath(), shapeMaterial);
+	MikanRenderModelResourcePtr modelResourcePtr= modelResourceManager->fetchRenderModel(
+		PathUtils::resolveProjectResource(modelDef->getModelPath()), shapeMaterial);
 
 	// Held onto so the client render geometry request can reach the resource's cached payload
 	// without re-resolving the model path and material.
@@ -222,7 +226,9 @@ void ModelShapeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 	ShapeComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(ModelShapeDefinition::k_modelPathPropertyId, MikanVariantType::STRING));
+		std::make_shared<PropertyDescriptor>(ModelShapeDefinition::k_modelPathPropertyId, MikanVariantType::STRING)
+			->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
+				AssetReferenceFactory::createFactory<ModelAssetReferenceFactory>())));
 }
 
 bool ModelShapeComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const

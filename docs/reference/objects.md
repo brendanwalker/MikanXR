@@ -74,6 +74,26 @@ The project file is a single Configuru JSON document with extension `.mikanproj`
 
 ---
 
+## Asset references and the project Assets panel
+
+Every file a project uses (graphs, models, scripts, materials, textures, fonts) is named through an `AssetReference` (`src/Editor/Asset/AssetReference.h`) or through a string property tagged with `AssetReferenceFactoryMetaData`. Paths are stored in project form: forward slashes, relative to the project directory when the file sits under it (`PathUtils::makeStoredProjectPath`), and resolved through `PathUtils::resolveProjectResource`, which looks in the project first and then in the bundled `resources/` folder. `AssetReference::setAssetPath` and every tagged definition setter normalize into that form, so an absolute path handed in from anywhere stores relative. A project therefore owns only the assets it adds or edits: everything bundled with the application resolves in place, and a project file at the same stored path shadows the bundled one.
+
+`ProjectAssetCatalog` (`src/Editor/Asset/ProjectAssetCatalog.h`, owned by `MainWindow`, reached through `IEditorWindow::getAssetCatalog`) is the scanned view of the project's asset folders. Each folder is a `ProjectAssetFolderDesc`: a project subfolder, the bundled subfolder of the same kind under `resources/` that shows through behind it, and the asset factories whose file types it holds. The folders are:
+
+- `compositors` (`*.compgraph`), `shapes` (`*.shapegraph`), `models`, `scripts`, `textures`: one entry per matching file
+- `compositor_materials` (`*.compmat`), `shape_materials` (`*.shapemat`): one entry per material with its sibling graph and shader sources hidden
+- `fonts`: bundled-only, `resources/font/`, with no Add button
+
+Every folder is scanned project first, then bundled, and a bundled file whose stored path a project file already holds is not listed. Bundled entries carry `bBundled` and are read-only (`bReadOnly`) unless the app setting "Edit bundled resources" is on, a developer switch in the Settings panel (`AppSettingsConfig::getEditBundledResources`, mirrored into the catalog by `setBundledResourcesEditable`) that lets the editors save and delete bundled files in place. The catalog stores paths only and creates `AssetReference` instances (which may own a GL preview) lazily on a panel's request, so it refreshes headless and before any window exists. It rescans on project load, after an import or delete, after a graph or material save, and when the setting flips. A new project starts with empty asset folders (`ProjectManager::newProject` creates them and copies nothing).
+
+The project stage's Assets panel (`GuiPanel_Assets`) browses the catalog. Its Add buttons are the only import path: the picked file is copied into the folder (a material's whole folder, under its domain's folder), a name collision gets a numeric suffix and a duplicate material is refused, and the copy is selected in the panel. A bundled tile's right-click menu offers Copy to Project, which imports it at its own relative path so the copy shadows it. Right-click delete runs `ProjectAssetCatalog::findReferences` first, which reads every graph file and every material file under the project and under `resources/` as raw JSON plus every tagged component property in the loaded project, and refuses with the referrer list when anything still names the asset. The compositor, shape, and material editors carry a Graph Assets panel that is the same catalog filtered to the types their graph accepts. Drag and drop never crosses OS windows, since each editor window has its own ImGui context: the project panel feeds the component property rows in the main window, and each editor's own panel feeds its canvas.
+
+Editing a bundled asset without the switch never writes into `resources/`. A graph or material opened from a bundled file saves through the Save As dialog, opened at the project path that shadows it (`ProjectAssetCatalog::makeProjectShadowPath`), and a build-only compile of a bundled material graph is refused until it is saved into the project. The script row's Edit button copies a bundled script into the project first and opens the copy. Since the copies keep the bundled stored path, components that referenced the bundled file follow the project copy with no change.
+
+A property row tagged with `AssetReferenceFactoryMetaData` draws as the type's glyph and the asset's file name and accepts a drop of a matching asset (`AssetPropertyGui::drawAssetReferenceProperty`). There is no file browser on the row. The project panel's payload is a `ProjectAssetDragPayload` matched by the factory's file patterns, the editor panels' payload is the `AssetReferencePtr` matched by class name.
+
+---
+
 ## Remote control and the property system
 
 Every component and system implements `IEntityAccessor` (`src/Editor/ECS/IEntityAccessor.h`), which is `IPropertyInterface` + `IFunctionInterface`:

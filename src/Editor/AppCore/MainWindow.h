@@ -41,6 +41,7 @@ public:
 	virtual class ClientSourceManager* getClientSourceManager() const override { return m_clientSourceManager; }
 	virtual class InputManager* getInputManager() const override { return m_inputManager; }
 	virtual ProjectManagerPtr getProjectManager() const override { return m_projectManager; }
+	virtual class ProjectAssetCatalog* getAssetCatalog() const override { return m_assetCatalog; }
 	virtual class OpenCVManager* getOpenCVManager() const override { return m_openCVManager; }
 	virtual class IMkFontManager* getFontManager() const override { return m_fontManager.get(); }
 	class AutomationServer* getAutomationServer() const { return m_automationServer; }
@@ -92,6 +93,9 @@ private:
 
 	// Object System manager
 	ProjectManagerPtr m_projectManager;
+
+	// The scanned project asset folders the Assets panels browse
+	class ProjectAssetCatalog* m_assetCatalog= nullptr;
 
 	// OpenCV management
 	class OpenCVManager* m_openCVManager;

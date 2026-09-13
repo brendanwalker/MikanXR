@@ -15,13 +15,23 @@ class AssetReferenceFactory;
 using AssetReferenceFactoryPtr= std::shared_ptr<AssetReferenceFactory>;
 using AssetReferenceFactoryConstPtr= std::shared_ptr<const AssetReferenceFactory>;
 
-class NodeGraphAssetReference;
-using NodeGraphAssetReferencePtr= std::shared_ptr<NodeGraphAssetReference>;
-using NodeGraphAssetReferenceConstPtr= std::shared_ptr<const NodeGraphAssetReference>;
+class CompositorGraphAssetReference;
+using CompositorGraphAssetReferencePtr= std::shared_ptr<CompositorGraphAssetReference>;
+using CompositorGraphAssetReferenceConstPtr= std::shared_ptr<const CompositorGraphAssetReference>;
+
+class ShapeGraphAssetReference;
+using ShapeGraphAssetReferencePtr= std::shared_ptr<ShapeGraphAssetReference>;
+using ShapeGraphAssetReferenceConstPtr= std::shared_ptr<const ShapeGraphAssetReference>;
 
 class MaterialAssetReference;
 using MaterialAssetReferencePtr= std::shared_ptr<MaterialAssetReference>;
 using MaterialAssetReferenceConstPtr= std::shared_ptr<const MaterialAssetReference>;
+
+class CompositorMaterialAssetReference;
+using CompositorMaterialAssetReferencePtr= std::shared_ptr<CompositorMaterialAssetReference>;
+
+class ShapeMaterialAssetReference;
+using ShapeMaterialAssetReferencePtr= std::shared_ptr<ShapeMaterialAssetReference>;
 
 class ModelAssetReference;
 using ModelAssetReferencePtr= std::shared_ptr<ModelAssetReference>;

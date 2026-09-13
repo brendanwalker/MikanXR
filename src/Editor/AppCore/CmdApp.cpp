@@ -12,6 +12,7 @@
 #include "DMXPresetPersistenceTests.h"
 #include "DMXSequenceTests.h"
 #include "DMXUniverseRLETests.h"
+#include "LegacyContentMigrationTests.h"
 #include "LightEnvironmentPersistenceTests.h"
 #include "LocalizationTests.h"
 #include "MaterialCompilerTests.h"
@@ -19,6 +20,7 @@
 #include "NodeGraphHistoryTests.h"
 #include "NodeLinkDirectionTests.h"
 #include "PixelGridLayoutTests.h"
+#include "ProjectAssetCatalogTests.h"
 #include "PropertyNotificationGuardTests.h"
 #include "ScriptContextTests.h"
 #include "ScriptVariablePersistenceTests.h"
@@ -47,6 +49,7 @@ bool run_all_editor_unit_tests()
 	success&= run_dmx_preset_persistence_tests();
 	success&= run_dmx_sequence_tests();
 	success&= run_dmx_universe_rle_tests();
+	success&= run_legacy_content_migration_tests();
 	success&= run_light_environment_persistence_tests();
 	success&= run_localization_unit_tests();
 	success&= run_material_compiler_tests();
@@ -54,6 +57,7 @@ bool run_all_editor_unit_tests()
 	success&= run_node_graph_history_tests();
 	success&= run_node_link_direction_tests();
 	success&= run_pixel_grid_layout_tests();
+	success&= run_project_asset_catalog_tests();
 	success&= run_property_notification_guard_tests();
 	success&= run_script_context_tests();
 	success&= run_script_variable_persistence_tests();
@@ -155,8 +159,8 @@ void CmdApp::printUsage() const
 					"               Generate a camera-space depth proxy mesh from a single frame\n"
 					"               and write it as an OBJ.\n"
 					"  -compileMaterial=<graph>\n"
-					"               Compile a material graph and write its .vert, .frag and .mat\n"
-					"               beside the graph file.\n");
+					"               Compile a material graph (.matgraph) and write its .vert, .frag\n"
+					"               and .compmat or .shapemat beside the graph file.\n");
 }
 
 int CmdApp::compileMaterial() const
@@ -167,8 +171,8 @@ int CmdApp::compileMaterial() const
 
 	NodeGraphFactory::registerFactory<MaterialNodeGraphFactory>();
 
-	auto materialGraph=
-		std::dynamic_pointer_cast<MaterialNodeGraph>(NodeGraphFactory::loadNodeGraph(nullptr, graphPath));
+	auto materialGraph= std::dynamic_pointer_cast<MaterialNodeGraph>(
+		NodeGraphFactory::loadNodeGraph(nullptr, graphPath, MaterialNodeGraph::k_graphClassName));
 	if (!materialGraph)
 	{
 		fprintf(stdout, "error: '%s' is not a loadable material graph\n", graphPath.string().c_str());
@@ -195,7 +199,8 @@ int CmdApp::compileMaterial() const
 
 	fprintf(stdout, "wrote %s\n", MaterialCompiler::getVertexShaderPathForGraph(graphPath).string().c_str());
 	fprintf(stdout, "wrote %s\n", MaterialCompiler::getFragmentShaderPathForGraph(graphPath).string().c_str());
-	fprintf(stdout, "wrote %s\n", MaterialCompiler::getMaterialPathForGraph(graphPath).string().c_str());
+	fprintf(stdout, "wrote %s\n",
+			MaterialCompiler::getMaterialPathForGraph(graphPath, materialGraph->getDomain()).string().c_str());
 
 	return EXIT_SUCCESS;
 }

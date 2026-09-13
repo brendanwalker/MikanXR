@@ -20,7 +20,7 @@
 #include "MkMaterialInstance.h"
 #include "MkScopedState.h"
 #include "MkStateStack.h"
-#include "NodeGraphAssetReference.h"
+#include "CompositorGraphAssetReference.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
 #include "SceneObjectSystem.h"
@@ -39,8 +39,6 @@
 
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
-
-#include "tinyfiledialogs.h"
 
 #include <assert.h>
 #include <easy/profiler.h>
@@ -97,7 +95,7 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	if (m_spoutOutputName.empty())
 		m_spoutOutputName= DEFAULT_SPOUT_OUTPUT_NAME;
 
-	m_nodeGraphAssetRef= NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
+	m_nodeGraphAssetRef= CompositorGraphAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_compositorGraphPathPropertyId))
 	{
 		m_nodeGraphAssetRef->readFromJSON(pt[k_compositorGraphPathPropertyId]);
@@ -160,9 +158,11 @@ std::filesystem::path CompositorDefinition::getCompositorGraphPath() const { ret
 
 void CompositorDefinition::setCompositorGraphPath(const std::filesystem::path& graphPath)
 {
-	if (graphPath != m_nodeGraphAssetRef->assetPath)
+	const std::string stored= graphPath.empty() ? std::string() : PathUtils::makeStoredProjectPath(graphPath);
+
+	if (stored != m_nodeGraphAssetRef->assetPath)
 	{
-		m_nodeGraphAssetRef->assetPath= graphPath.string();
+		m_nodeGraphAssetRef->assetPath= stored;
 		notifyPropertyChanged(
 			ConfigPropertyChangeSet().addPropertyName(CompositorDefinition::k_compositorGraphPathPropertyId));
 	}
@@ -204,8 +204,8 @@ void CompositorComponent::init()
 	MikanComponent::init();
 
 	m_viewportQuadMesh= createFullscreenQuadMesh(getGraphicsContext(), false);
-	m_nodeGraphAssetRef=
-		std::static_pointer_cast<NodeGraphAssetReference>(NodeGraphAssetReferenceFactory().allocateAssetReference());
+	m_nodeGraphAssetRef= std::static_pointer_cast<CompositorGraphAssetReference>(
+		CompositorGraphAssetReferenceFactory().allocateAssetReference());
 
 	// Listen for changes to the compositor definition
 	getCompositorDefinition()->OnPropertyChanged+= MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
@@ -445,21 +445,6 @@ void CompositorComponent::editCompositorGraph()
 }
 
 void CompositorComponent::removeCompositorGraph() { setCompositorGraphAssetPath(std::filesystem::path()); }
-
-void CompositorComponent::selectCompositorGraph()
-{
-	NodeGraphAssetReferenceFactory assetRefFactory;
-	const char* picked= tinyfd_openFileDialog(
-		assetRefFactory.getFileDialogTitle(), assetRefFactory.getDefaultPath(), assetRefFactory.getFilterPatternCount(),
-		assetRefFactory.getFilterPatterns(), assetRefFactory.getFilterDescription(), 1);
-
-	if (picked != nullptr && picked[0] != '\0')
-	{
-		std::filesystem::path newAssetPath(picked);
-
-		setCompositorGraphAssetPath(newAssetPath);
-	}
-}
 
 void CompositorComponent::evaluateCompositorNodeGraph(CompositorNodeGraphPtr nodeGraph)
 {
@@ -717,6 +702,16 @@ std::filesystem::path CompositorComponent::getCompositorGraphAssetPath() const
 
 void CompositorComponent::setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath)
 {
+	// A file of another graph kind is refused outright rather than stored and
+	// failed on every load. A path with no file behind it yet is kept.
+	const std::string graphClassName= NodeGraphFactory::peekGraphClassName(assetRefPath);
+	if (!graphClassName.empty() && graphClassName != CompositorNodeGraph::k_graphClassName)
+	{
+		MIKAN_LOG_ERROR("CompositorComponent::setCompositorGraphAssetPath")
+			<< assetRefPath << " is a " << graphClassName << ", not a compositor graph";
+		return;
+	}
+
 	handleCompositorNodeGraphChanged(assetRefPath);
 	getCompositorDefinition()->setCompositorGraphPath(assetRefPath);
 }
@@ -727,8 +722,8 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 
 	if (!newAssetRefPath.empty())
 	{
-		m_nodeGraph= std::dynamic_pointer_cast<CompositorNodeGraph>(
-			NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
+		m_nodeGraph= std::dynamic_pointer_cast<CompositorNodeGraph>(NodeGraphFactory::loadNodeGraph(
+			getOwnerEditorWindow(), newAssetRefPath, CompositorNodeGraph::k_graphClassName));
 		if (m_nodeGraph)
 		{
 			MIKAN_LOG_INFO("CompositorComponent::handleCompositorNodeGraphChanged")
@@ -782,7 +777,7 @@ void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(CompositorDefinition::k_compositorGraphPathPropertyId,
 																  MikanVariantType::STRING)
 								 ->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
-									 AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
+									 AssetReferenceFactory::createFactory<CompositorGraphAssetReferenceFactory>())));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 		CompositorDefinition::k_spoutEnableOutputNamePropertyId, MikanVariantType::BOOL));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(CompositorDefinition::k_spoutOutputNamePropertyId,
@@ -864,7 +859,6 @@ bool CompositorComponent::setPropertyValue(const std::string& propertyName, cons
 const std::string CompositorComponent::k_addNewCompositorGraphFunctionId= "add_new_compositor_graph";
 const std::string CompositorComponent::k_editCompositorGraphFunctionId= "edit_compositor_graph";
 const std::string CompositorComponent::k_removeCompositorGraphFunctionId= "remove_compositor_graph";
-const std::string CompositorComponent::k_selectCompositorGraphFunctionId= "select_compositor_graph";
 
 void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -876,9 +870,6 @@ void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorC
 		std::make_shared<FunctionDescriptor>(k_editCompositorGraphFunctionId, "Edit Compositor Graph")->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_removeCompositorGraphFunctionId, "Remove Compositor Graph")
-			->setUIHidden());
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(k_selectCompositorGraphFunctionId, "Select Compositor Graph")
 			->setUIHidden());
 }
 
@@ -897,11 +888,6 @@ bool CompositorComponent::invokeFunction(const std::string& functionName)
 	else if (functionName == CompositorComponent::k_removeCompositorGraphFunctionId)
 	{
 		removeCompositorGraph();
-		return true;
-	}
-	else if (functionName == CompositorComponent::k_selectCompositorGraphFunctionId)
-	{
-		selectCompositorGraph();
 		return true;
 	}
 

@@ -70,6 +70,7 @@ bool run_script_context_tests()
 {
 	UNIT_TEST_MODULE_BEGIN("script_context")
 	UNIT_TEST_MODULE_CALL_TEST(script_module_test_resolves_project_scripts);
+	UNIT_TEST_MODULE_CALL_TEST(script_module_test_resolves_bundled_scripts);
 	UNIT_TEST_MODULE_CALL_TEST(script_module_test_chunk_name_is_project_relative);
 	UNIT_TEST_MODULE_CALL_TEST(script_module_test_missing_module_names_scripts_folder);
 	UNIT_TEST_MODULE_CALL_TEST(script_context_test_pushes_concrete_component_class);
@@ -110,6 +111,29 @@ bool script_module_test_resolves_project_scripts()
 
 	// The module ran once and its result is cached under the name it was required by
 	success&= context->evalString("return package.loaded['test_color'] ~= nil", result) && result == "true";
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
+bool script_module_test_resolves_bundled_scripts()
+{
+	UNIT_TEST_BEGIN("require finds bundled modules behind the project scripts folder")
+
+	// The project has no easing.lua of its own; the bundled resources/scripts copy answers
+	ScopedTestProject project;
+	const std::filesystem::path callerPath=
+		project.writeScript("test_caller.lua", "local easing = require('easing')\n"
+											   "test_has_easing = type(easing) == 'table'\n");
+
+	auto context= std::make_shared<CommonScriptContext>();
+	success&= context->createScriptState();
+	assert(success);
+	success&= context->runScriptFile(callerPath, 1);
+	assert(success);
+
+	std::string result;
+	success&= context->evalString("return test_has_easing", result) && result == "true";
 	assert(success);
 
 	UNIT_TEST_COMPLETE()

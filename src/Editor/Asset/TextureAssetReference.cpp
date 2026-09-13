@@ -5,14 +5,10 @@
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
-#include "StringUtils.h"
 
 #include "Graphs/NodeGraph.h"
 #include "Nodes/TextureNode.h"
 #include "Properties/GraphTextureProperty.h"
-
-#include "IconsForkAwesome.h"
-#include "tinyfiledialogs.h"
 
 // -- MaterialAssetReference -----
 void TextureAssetReference::rebuildPreview()
@@ -52,27 +48,8 @@ void TextureAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState&
 
 void TextureAssetReference::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
-									   locLabel("assets.textureAssetHeader")))
-	{
-		const std::string buttonName= StringUtils::stringify(ICON_FK_FOLDER_OPEN, locLabel("assets.texture"));
-
-		if (ImGui::SmallButton(buttonName.c_str()))
-		{
-			static std::string texturePath= TextureAssetReferenceFactory::getDefaultTexturePath();
-
-			const char* picked= tinyfd_openFileDialog(locText("assets.loadTextureDialogTitle"), texturePath.c_str(),
-													  TextureAssetReferenceFactory::getTextureFilterPatternCount(),
-													  TextureAssetReferenceFactory::getTextureFilterPatterns(),
-													  TextureAssetReferenceFactory::getTextureFilterDescription(),
-													  0); // disallow multiple selections
-
-			if (picked != nullptr && picked[0] != '\0')
-			{
-				setAssetPath(picked);
-			}
-		}
-	}
+	MkGui::drawPropertySheetHeader(editorState.styleManager->getStyle("node_editor_panel_header"),
+								   locLabel("assets.textureAssetHeader"));
 }
 
 // -- TextureAssetReferenceFactory -----

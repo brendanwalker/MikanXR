@@ -25,7 +25,7 @@
 
 // Assets References
 #include "ModelAssetReference.h"
-#include "MaterialAssetReference.h"
+#include "CompositorMaterialAssetReference.h"
 #include "TextureAssetReference.h"
 
 // Properties
@@ -70,7 +70,7 @@ CompositorNodeGraph::CompositorNodeGraph()
 	: NodeGraph()
 {
 	// Assets this graph can reference
-	addAssetReferenceFactory<MaterialAssetReferenceFactory>();
+	addAssetReferenceFactory<CompositorMaterialAssetReferenceFactory>();
 	addAssetReferenceFactory<TextureAssetReferenceFactory>();
 
 	// Add property types this graph can use

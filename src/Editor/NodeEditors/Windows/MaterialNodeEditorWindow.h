@@ -39,6 +39,9 @@ public:
 	// Compile, then write the shader and material files beside the graph file
 	// when the graph has a path and compiled without errors
 	bool compileAndWriteOutputs();
+	// Whether the graph's file sits under its domain's material folder, which is
+	// where its compiled material file is allowed to land
+	bool isGraphInDomainFolder(const std::filesystem::path& graphPath) const;
 
 	// Invoked with the written .mat path after each successful compileAndWriteOutputs
 	using MaterialSavedCallback= std::function<void(const std::filesystem::path&)>;
@@ -53,6 +56,12 @@ protected:
 	virtual void onNodeGraphDeleted() override;
 	virtual void onGraphRestored() override;
 	virtual void onGraphEdited() override;
+	virtual const char* getGraphFileExtension() const override;
+	virtual const char* getSaveDialogTitleKey() const override { return "nodeEditor.saveMaterialGraphDialogTitle"; }
+	virtual const char* getGraphFilterDescriptionKey() const override
+	{
+		return "nodeEditor.materialGraphFilesFilterDescription";
+	}
 	virtual std::filesystem::path getDefaultGraphDirectory() const override;
 	virtual const char* getWindowTitleKey() const override { return "windows.materialEditor"; }
 	virtual std::string getGuiIniName() const override { return "material_editor"; }

@@ -12,6 +12,7 @@
 #include "MkGuiScopedWindow.h"
 #include "MkGuiStyleManager.h"
 #include "PathUtils.h"
+#include "ProjectAssetCatalog.h"
 
 #include "MaterialCompiler/GlslShaderWriter.h"
 #include "MaterialCompiler/MaterialCompiler.h"
@@ -61,13 +62,36 @@ void MaterialNodeEditorWindow::newGraph() { newMaterialGraph(eMaterialDomain::co
 
 bool MaterialNodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
+	// A graph whose domain no longer matches the folder it was saved in (the
+	// domain flipped, or a legacy location) saves as a new material under the
+	// domain's folder rather than writing the other domain's file beside it
+	const std::filesystem::path resolvedPath= PathUtils::resolveProjectResource(getNodeGraphPath());
+	if (!resolvedPath.empty() && !isGraphInDomainFolder(resolvedPath))
+	{
+		bShowFileDialog= true;
+	}
+
 	if (!NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
 		return false;
 	}
 
-	// The written .graph is only useful once its shaders and .mat sit beside it
+	// The written graph is only useful once its shaders and material file sit beside it
 	return compileAndWriteOutputs();
+}
+
+bool MaterialNodeEditorWindow::isGraphInDomainFolder(const std::filesystem::path& graphPath) const
+{
+	MaterialNodeGraphPtr materialGraph= getMaterialNodeGraph();
+	if (!materialGraph)
+	{
+		return true;
+	}
+
+	// <root>/<domain folder>/<material>/<material>.matgraph
+	const std::filesystem::path materialFolder= graphPath.lexically_normal().parent_path();
+	return materialFolder.parent_path().filename()
+		   == MaterialDomainUtils::materialFolderName(materialGraph->getDomain());
 }
 
 void MaterialNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& editorState)
@@ -122,7 +146,7 @@ bool MaterialNodeEditorWindow::openMaterialGraph(const std::filesystem::path& gr
 {
 	m_onMaterialSaved= nullptr;
 
-	// The loader keys on the file's class name, so any .graph file can arrive here
+	// The loader keys on the file's class name, so a graph of another kind can arrive here
 	const bool bLoaded= loadGraph(graphPath);
 	if (bLoaded && !getMaterialNodeGraph())
 	{
@@ -177,6 +201,25 @@ bool MaterialNodeEditorWindow::compileAndWriteOutputs()
 		return false;
 	}
 
+	// The outputs land beside the graph, so a read-only bundled graph has to be
+	// saved into the project first (Save redirects there on its own)
+	ProjectAssetCatalog* catalog= getAssetCatalog();
+	if (catalog != nullptr && catalog->isReadOnlyPath(graphPath))
+	{
+		MIKAN_LOG_INFO("MaterialNodeEditorWindow::compileAndWriteOutputs")
+			<< "Bundled material is read only, save it into the project first: " << graphPath.string();
+		return false;
+	}
+
+	// The material file's extension names its domain, so it only belongs under
+	// that domain's folder (Save moves the graph there on its own)
+	if (!isGraphInDomainFolder(graphPath))
+	{
+		MIKAN_LOG_INFO("MaterialNodeEditorWindow::compileAndWriteOutputs")
+			<< "Material graph is not under its domain's folder, save it there first: " << graphPath.string();
+		return false;
+	}
+
 	std::string error;
 	if (!MaterialCompiler::writeOutputs(result, graphPath, error))
 	{
@@ -185,8 +228,9 @@ bool MaterialNodeEditorWindow::compileAndWriteOutputs()
 		return false;
 	}
 
-	// Every window caches materials separately, so each one reloads the rewritten .mat
-	const std::filesystem::path materialPath= MaterialCompiler::getMaterialPathForGraph(graphPath);
+	// Every window caches materials separately, so each one reloads the rewritten material
+	const std::filesystem::path materialPath=
+		MaterialCompiler::getMaterialPathForGraph(graphPath, getMaterialNodeGraph()->getDomain());
 	for (EditorWindow* window : App::getInstance()->getAppWindows())
 	{
 		MikanModelResourceManager* modelResourceManager= window->getModelResourceManager();
@@ -195,6 +239,12 @@ bool MaterialNodeEditorWindow::compileAndWriteOutputs()
 		{
 			shaderCache->reloadMaterialByPath(materialPath);
 		}
+	}
+
+	// The written material may be one the project did not have before
+	if (ProjectAssetCatalog* catalog= getAssetCatalog())
+	{
+		catalog->refresh();
 	}
 
 	if (m_onMaterialSaved)
@@ -324,6 +374,11 @@ void MaterialNodeEditorWindow::onGraphRestored()
 
 void MaterialNodeEditorWindow::onGraphEdited() { compileGraph(); }
 
+const char* MaterialNodeEditorWindow::getGraphFileExtension() const
+{
+	return NodeGraphFileTypes::k_materialGraphExtension;
+}
+
 std::filesystem::path MaterialNodeEditorWindow::getDefaultGraphDirectory() const
 {
 	MaterialNodeGraphPtr materialGraph= getMaterialNodeGraph();
@@ -332,7 +387,5 @@ std::filesystem::path MaterialNodeEditorWindow::getDefaultGraphDirectory() const
 		return NodeEditorWindow::getDefaultGraphDirectory();
 	}
 
-	const std::string& domainName= MaterialDomainUtils::domainToString(materialGraph->getDomain());
-
-	return PathUtils::getProjectDirectory() / "shaders" / domainName;
+	return PathUtils::getProjectDirectory() / MaterialDomainUtils::materialFolderName(materialGraph->getDomain());
 }

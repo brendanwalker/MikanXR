@@ -2,6 +2,9 @@
 #include "App.h"
 #include "AppSettingsConfig.h"
 #include "AssetReferencePropertyMetaData.h"
+#include "Logger.h"
+#include "MainWindow.h"
+#include "ProjectAssetCatalog.h"
 #include "ProjectScriptContext.h"
 #include "MikanObject.h"
 #include "MikanScriptTypes.h"
@@ -9,8 +12,6 @@
 #include "PathUtils.h"
 #include "ScriptAssetReference.h"
 #include "ScriptObjectSystem.h"
-
-#include "tinyfiledialogs.h"
 
 // -- ScriptDefinition -----
 const std::string ScriptDefinition::k_scriptPathPropertyId= "script_path";
@@ -83,9 +84,11 @@ std::filesystem::path ScriptDefinition::getScriptPath() const { return m_scriptA
 
 void ScriptDefinition::setScriptPath(const std::filesystem::path& scriptPath)
 {
-	if (scriptPath.string() != m_scriptAssetRefConfig->assetPath)
+	const std::string stored= scriptPath.empty() ? std::string() : PathUtils::makeStoredProjectPath(scriptPath);
+
+	if (stored != m_scriptAssetRefConfig->assetPath)
 	{
-		m_scriptAssetRefConfig->assetPath= scriptPath.string();
+		m_scriptAssetRefConfig->assetPath= stored;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_scriptPathPropertyId));
 	}
 }
@@ -254,8 +257,26 @@ void ScriptComponent::editScript()
 	if (!getScriptDefinition()->hasScriptPath())
 		return;
 
-	const std::filesystem::path scriptPath= getResolvedScriptPath();
+	std::filesystem::path scriptPath= getResolvedScriptPath();
 	const std::string editorCmd= App::getInstance()->getAppSettings()->getScriptEditorCommand();
+
+	// A read-only bundled script is copied into the project first, at the path
+	// that shadows it, so the edit lands in the project and the stored script
+	// path keeps resolving (now to the copy)
+	ProjectAssetCatalog* catalog= App::getInstance()->getMainWindow()->getAssetCatalog();
+	if (catalog != nullptr && catalog->isReadOnlyPath(scriptPath))
+	{
+		std::string storedPath;
+		std::string error;
+		if (!catalog->importAsset("scripts", scriptPath, storedPath, error))
+		{
+			MIKAN_LOG_ERROR("ScriptComponent::editScript")
+				<< "Failed to copy bundled script into the project: " << error;
+			return;
+		}
+
+		scriptPath= PathUtils::resolveProjectResource(storedPath);
+	}
 
 	// A script inside the project opens with the project folder ahead of it, so
 	// the editor lands in the project workspace (where the generated .luarc.json
@@ -283,19 +304,7 @@ void ScriptComponent::reloadScript()
 	}
 }
 
-void ScriptComponent::selectScript()
-{
-	ScriptAssetReferenceFactory assetRefFactory;
-	const char* picked= tinyfd_openFileDialog(
-		assetRefFactory.getFileDialogTitle(), assetRefFactory.getDefaultPath(), assetRefFactory.getFilterPatternCount(),
-		assetRefFactory.getFilterPatterns(), assetRefFactory.getFilterDescription(), 1);
-
-	if (picked != nullptr && picked[0] != '\0')
-	{
-		// The definition change reloads the project context through onDefinitionMarkedDirty
-		getScriptDefinition()->setScriptPath(std::filesystem::path(picked));
-	}
-}
+void ScriptComponent::removeScript() { getScriptDefinition()->setScriptPath(std::filesystem::path()); }
 
 void ScriptComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr,
 											  const ConfigPropertyChangeSet& changedPropertySet)
@@ -394,7 +403,7 @@ bool ScriptComponent::setPropertyValue(const std::string& propertyName, const Mi
 // -- IFunctionInterface ----
 const std::string ScriptComponent::k_editScriptFunctionId= "edit_script";
 const std::string ScriptComponent::k_reloadScriptFunctionId= "reload_script";
-const std::string ScriptComponent::k_selectScriptFunctionId= "select_script";
+const std::string ScriptComponent::k_removeScriptFunctionId= "remove_script";
 
 void ScriptComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -406,7 +415,7 @@ void ScriptComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(k_reloadScriptFunctionId, "Reload Script")->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(k_selectScriptFunctionId, "Select Script")->setUIHidden());
+		std::make_shared<FunctionDescriptor>(k_removeScriptFunctionId, "Remove Script")->setUIHidden());
 }
 
 bool ScriptComponent::invokeFunction(const std::string& functionName)
@@ -421,9 +430,9 @@ bool ScriptComponent::invokeFunction(const std::string& functionName)
 		reloadScript();
 		return true;
 	}
-	else if (functionName == k_selectScriptFunctionId)
+	else if (functionName == k_removeScriptFunctionId)
 	{
-		selectScript();
+		removeScript();
 		return true;
 	}
 

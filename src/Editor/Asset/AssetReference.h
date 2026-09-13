@@ -45,6 +45,8 @@ public:
 	virtual const char* editorGetIcon() const { return ICON_FK_FILE_O; }
 	inline IMkTexturePtr getPreviewTexture() const { return m_previewTexture; }
 
+	// The stored form of the path: forward slashes, relative to the project when the
+	// file sits under it. setAssetPath normalizes whatever it is given into this form.
 	const std::filesystem::path& getInternalAssetPath() const;
 	const std::filesystem::path getResolvedAssetPath() const;
 	virtual void setAssetPath(const std::filesystem::path& inPath);
@@ -84,6 +86,12 @@ public:
 
 	virtual AssetReferenceConfigPtr allocateAssetReferenceConfig() const;
 	virtual AssetReferencePtr allocateAssetReference() const;
+
+	// The prototype instance the factory was created with, for its icon and type name
+	inline AssetReferencePtr getDefaultAssetReference() const { return m_defaultAssetRefObject; }
+
+	// Whether the file's extension matches one of the factory's "*.ext" dialog patterns
+	bool matchesFilterPatterns(const std::filesystem::path& path) const;
 
 	template <class t_factory_class>
 	static std::shared_ptr<t_factory_class> createFactory()

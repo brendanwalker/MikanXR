@@ -14,7 +14,8 @@ public:
 
 	static const std::string k_renderShapeEventName;
 
-	virtual std::string getClassName() const override { return "ShapeNodeGraph"; }
+	inline static const std::string k_graphClassName= "ShapeNodeGraph";
+	virtual std::string getClassName() const override { return k_graphClassName; }
 	virtual bool loadFromConfig(const NodeGraphConfig& config) override;
 
 	// Evaluation — sets the transient VP matrix, evaluates the OnRenderShape chain

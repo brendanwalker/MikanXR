@@ -200,6 +200,12 @@ file(GLOB MIKAN_ASSET_EXPORT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Asset/Export/*.h"
 )
 source_group("Asset\\Export" FILES ${MIKAN_ASSET_EXPORT_SRC})
+## Asset/Test
+file(GLOB MIKAN_ASSET_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Asset/Test/*.h"
+)
+source_group("Asset\\Test" FILES ${MIKAN_ASSET_TEST_SRC})
 
 # Calibration
 file(GLOB MIKAN_CALIBRATION_SRC
@@ -505,6 +511,12 @@ file(GLOB MIKAN_SERVER_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Server/Test/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/Server/Test/*.h"
 )
+## Project/Test
+file(GLOB MIKAN_PROJECT_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Project/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Project/Test/*.h"
+)
+source_group("Project\\Test" FILES ${MIKAN_PROJECT_TEST_SRC})
 source_group("Server\\Test" FILES ${MIKAN_SERVER_TEST_SRC})
 
 # Transactions
@@ -524,6 +536,7 @@ set(MIKAN_SRC
     ${MIKAN_ASSET_SRC}
     ${MIKAN_ASSET_IMPORT_SRC}
     ${MIKAN_ASSET_EXPORT_SRC}
+    ${MIKAN_ASSET_TEST_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_CALIBRATION_TEST_SRC}
     ${MIKAN_COMPONENTS_SRC}
@@ -539,6 +552,7 @@ set(MIKAN_SRC
     ${MIKAN_OBJECT_SRC}
     ${MIKAN_OPENCV_SRC}
     ${MIKAN_PROJECT_SRC}
+    ${MIKAN_PROJECT_TEST_SRC}
     ${MIKAN_RENDERER_SRC}
     ${MIKAN_SCRIPTING_SRC}
     ${MIKAN_SERVER_SRC}
@@ -554,6 +568,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Asset
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Import
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Export
+  ${CMAKE_CURRENT_LIST_DIR}/Asset/Test
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Calibration/Test
   ${ROOT_DIR}/src/Programs/Tests/UnitTests
@@ -591,6 +606,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Renderer
   ${CMAKE_CURRENT_LIST_DIR}/Server
   ${CMAKE_CURRENT_LIST_DIR}/Server/Test
+  ${CMAKE_CURRENT_LIST_DIR}/Project/Test
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
   ${CMAKE_CURRENT_LIST_DIR}/Transactions
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
@@ -901,7 +917,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(DIRECTORY ${ROOT_DIR}/resources
     DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
     # *.txt carries the font license files, which must ship alongside the fonts
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.txt" PATTERN "*.lua" PATTERN "*.onnx")
+    # The graph, material, shader, and model sources ship too: a project reads
+    # the bundled ones through the asset overlay rather than owning copies
+    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.txt" PATTERN "*.lua" PATTERN "*.onnx"
+      PATTERN "*.compgraph" PATTERN "*.shapegraph" PATTERN "*.matgraph" PATTERN "*.compmat" PATTERN "*.shapemat"
+      PATTERN "*.vert" PATTERN "*.frag" PATTERN "*.obj" PATTERN "*.mtl")
 
   # Install CEF binary and resource files
   if(DEFINED CEF_ROOT)

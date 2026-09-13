@@ -1,25 +1,32 @@
 #include "ShaderTextureParameterNode.h"
 #include "ShaderNodeUtils.h"
 #include "ShaderParameterNode.h"
+#include "AssetPropertyGui.h"
 #include "IconsForkAwesome.h"
 #include "LocText.h"
-#include "PathUtils.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "NodeEditorState.h"
+#include "TextureAssetReference.h"
 #include "Graphs/NodeGraph.h"
 #include "MaterialCompiler/MaterialCompiler.h"
 
 #include "imgui.h"
-#include "tinyfiledialogs.h"
 
 #include <algorithm>
 #include <cstring>
 
 namespace
 {
-const char* k_shaderTextureFilterPatterns[]= {"*.png", "*.jpg", "*.jpeg", "*.bmp", "*.tga"};
-const int k_shaderTextureFilterPatternCount= 5;
+// The node keeps a texture path rather than an asset reference, so the property
+// row borrows a factory for the type's glyph and its accepted file kinds
+std::shared_ptr<TextureAssetReferenceFactory> getTextureAssetFactory()
+{
+	static std::shared_ptr<TextureAssetReferenceFactory> factory=
+		AssetReferenceFactory::createFactory<TextureAssetReferenceFactory>();
+
+	return factory;
+}
 } // namespace
 
 // -- ShaderTextureParameterNodeConfig -----
@@ -163,19 +170,13 @@ void ShaderTextureParameterNode::editorRenderPropertySheet(const NodeEditorState
 			setParameterName(nameBuffer);
 		}
 
-		// The path field carries its own browse button
-		if (MkGui::drawFilePathProperty(propertyStyle, "shaderTextureParameterDefault", locText("nodes.defaultTexture"),
-										m_defaultTexturePath))
+		// The default texture is set by dropping a texture tile on the row
+		std::string newTexturePath;
+		if (AssetPropertyGui::drawAssetReferenceProperty(propertyStyle, "shaderTextureParameterDefault",
+														 locText("nodes.defaultTexture"), *getTextureAssetFactory(),
+														 m_defaultTexturePath, newTexturePath))
 		{
-			const char* picked=
-				tinyfd_openFileDialog(locText("assets.loadTextureDialogTitle"), m_defaultTexturePath.c_str(),
-									  k_shaderTextureFilterPatternCount, k_shaderTextureFilterPatterns,
-									  locText("assets.imageFilterDescription"), 0);
-
-			if (picked != nullptr && picked[0] != '\0')
-			{
-				setDefaultTexturePath(PathUtils::makeStoredProjectPath(picked));
-			}
+			setDefaultTexturePath(newTexturePath);
 		}
 	}
 }

@@ -32,8 +32,6 @@ MIKAN_GUI_FUNC(bool) drawFloat4Property(MkGuiStyleConstPtr style, const std::str
 										float* inout_v);
 MIKAN_GUI_FUNC(bool) drawStringProperty(MkGuiStyleConstPtr style, const std::string fieldName, const std::string label,
 										char* buf, size_t bufSize);
-MIKAN_GUI_FUNC(bool) drawFilePathProperty(MkGuiStyleConstPtr style, const std::string fieldName,
-										  const std::string label, const std::string& path);
 MIKAN_GUI_FUNC(bool) drawSimpleComboBoxProperty(MkGuiStyleConstPtr style, const std::string fieldName,
 												const std::string label, const char* items, int& inout_selectedIdex);
 MIKAN_GUI_FUNC(void) drawImageProperty(MkGuiStyleConstPtr style, const std::string label, IMkTextureConstPtr image);

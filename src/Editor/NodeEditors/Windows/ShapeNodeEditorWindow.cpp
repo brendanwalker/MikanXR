@@ -5,6 +5,7 @@
 #include "MkGuiDrawUtils.h"
 #include "ShapeComponent.h"
 #include "ShapeNodeEditorWindow.h"
+#include "PathUtils.h"
 
 #include "Graphs/ShapeNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -50,6 +51,43 @@ bool ShapeNodeEditorWindow::bindShapeComponent(ShapeComponentPtr shapeComponent)
 	// Tell the shape component about the node graph it's bound to
 	m_shapeComponent->setEditorShapeNodeGraph(shapeNodeGraph);
 
+	return true;
+}
+
+void ShapeNodeEditorWindow::unbindShapeComponent()
+{
+	if (m_shapeComponent)
+	{
+		m_shapeComponent->setEditorShapeNodeGraph(nullptr);
+		m_shapeComponent= nullptr;
+	}
+}
+
+bool ShapeNodeEditorWindow::openShapeComponent(ShapeComponentPtr shapeComponent)
+{
+	if (m_shapeComponent == shapeComponent)
+	{
+		return true;
+	}
+
+	unbindShapeComponent();
+	return bindShapeComponent(shapeComponent);
+}
+
+bool ShapeNodeEditorWindow::openGraphFile(const std::filesystem::path& graphPath)
+{
+	// A failed load keeps the graph and shape the window already shows. A window
+	// that has none yet gets an empty graph, since the editor always draws one.
+	if (!loadGraph(graphPath))
+	{
+		if (!m_editorState.nodeGraph)
+		{
+			newGraph();
+		}
+		return false;
+	}
+
+	unbindShapeComponent();
 	return true;
 }
 
@@ -100,7 +138,11 @@ bool ShapeNodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
-		m_shapeComponent->setShapeGraphAssetPath(m_editorState.nodeGraphPath);
+		// A graph opened on its own has no shape to follow the saved path
+		if (m_shapeComponent)
+		{
+			m_shapeComponent->setShapeGraphAssetPath(m_editorState.nodeGraphPath);
+		}
 		return true;
 	}
 
@@ -109,13 +151,26 @@ bool ShapeNodeEditorWindow::saveGraph(bool bShowFileDialog)
 
 void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& editorState)
 {
+	// The window may hold no graph for a frame after a failed open
+	if (!getNodeGraph())
+	{
+		return;
+	}
+
 	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories=
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
 		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
-			assetRef->editorHandleGraphVariablesDragDrop(editorState);
+			// The payload carries the project catalog's instance, while graph
+			// properties bind to the graph's own reference by index
+			AssetReferencePtr graphAssetRef=
+				getNodeGraph()->findOrAddAssetReference(assetRef->getClassName(), assetRef->getInternalAssetPath());
+			if (graphAssetRef)
+			{
+				graphAssetRef->editorHandleGraphVariablesDragDrop(editorState);
+			}
 			return;
 		}
 	}
@@ -123,6 +178,12 @@ void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& 
 
 void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& editorState)
 {
+	// The window may hold no graph for a frame after a failed open
+	if (!getNodeGraph())
+	{
+		return;
+	}
+
 	std::vector<GraphPropertyFactoryPtr> validPropertyFactories=
 		getNodeGraph()->editorGetValidPropertyFactories(editorState);
 	for (auto factory : validPropertyFactories)
@@ -140,8 +201,20 @@ void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& edito
 	{
 		if (auto assetRef= MkGui::receiveTypedDragDropPayload<AssetReference>(factory->getAssetRefClassName()))
 		{
-			assetRef->editorHandleMainFrameDragDrop(editorState);
+			// The payload carries the project catalog's instance, while graph
+			// properties bind to the graph's own reference by index
+			AssetReferencePtr graphAssetRef=
+				getNodeGraph()->findOrAddAssetReference(assetRef->getClassName(), assetRef->getInternalAssetPath());
+			if (graphAssetRef)
+			{
+				graphAssetRef->editorHandleMainFrameDragDrop(editorState);
+			}
 			return;
 		}
 	}
+}
+
+std::filesystem::path ShapeNodeEditorWindow::getDefaultGraphDirectory() const
+{
+	return PathUtils::getProjectDirectory() / "shapes";
 }

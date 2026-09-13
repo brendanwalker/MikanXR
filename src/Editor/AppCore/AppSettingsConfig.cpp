@@ -8,6 +8,7 @@ const std::string AppSettingsConfig::k_scriptEditorCommandPropertyId= "scriptEdi
 const std::string AppSettingsConfig::k_httpServerPortPropertyId= "httpServerPort";
 const std::string AppSettingsConfig::k_automationServerPortPropertyId= "automationServerPort";
 const std::string AppSettingsConfig::k_spoutLogEnabledPropertyId= "spoutLogEnabled";
+const std::string AppSettingsConfig::k_editBundledResourcesPropertyId= "editBundledResources";
 const std::string AppSettingsConfig::k_arkitDebugChannelEnabledPropertyId= "arkitDebugChannelEnabled";
 const std::string AppSettingsConfig::k_arkitDebugChannelPortPropertyId= "arkitDebugChannelPort";
 
@@ -24,6 +25,7 @@ configuru::Config AppSettingsConfig::writeToJSON()
 	pt[k_httpServerPortPropertyId]= m_httpServerPort;
 	pt[k_automationServerPortPropertyId]= m_automationServerPort;
 	pt[k_spoutLogEnabledPropertyId]= m_bSpoutLogEnabled;
+	pt[k_editBundledResourcesPropertyId]= m_bEditBundledResources;
 	pt[k_arkitDebugChannelEnabledPropertyId]= m_bARKitDebugChannelEnabled;
 	pt[k_arkitDebugChannelPortPropertyId]= m_arkitDebugChannelPort;
 
@@ -40,6 +42,7 @@ void AppSettingsConfig::readFromJSON(const configuru::Config& pt)
 	m_httpServerPort= pt.get_or<int>(k_httpServerPortPropertyId, m_httpServerPort);
 	m_automationServerPort= pt.get_or<int>(k_automationServerPortPropertyId, m_automationServerPort);
 	m_bSpoutLogEnabled= pt.get_or<bool>(k_spoutLogEnabledPropertyId, m_bSpoutLogEnabled);
+	m_bEditBundledResources= pt.get_or<bool>(k_editBundledResourcesPropertyId, m_bEditBundledResources);
 	m_bARKitDebugChannelEnabled= pt.get_or<bool>(k_arkitDebugChannelEnabledPropertyId, m_bARKitDebugChannelEnabled);
 	m_arkitDebugChannelPort= pt.get_or<int>(k_arkitDebugChannelPortPropertyId, m_arkitDebugChannelPort);
 }
@@ -95,6 +98,15 @@ void AppSettingsConfig::setSpoutLogEnabled(bool bEnabled)
 	{
 		m_bSpoutLogEnabled= bEnabled;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutLogEnabledPropertyId));
+	}
+}
+
+void AppSettingsConfig::setEditBundledResources(bool bEditable)
+{
+	if (m_bEditBundledResources != bEditable)
+	{
+		m_bEditBundledResources= bEditable;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_editBundledResourcesPropertyId));
 	}
 }
 

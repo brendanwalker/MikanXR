@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "Graphs/NodeGraphFileTypes.h"
 #include "Windows/NodeEditorWindow.h"
 
 class CompositorNodeEditorWindow : public NodeEditorWindow
@@ -20,9 +21,24 @@ public:
 	virtual void handleGraphVariablesDragDrop(const class NodeEditorState& editorState) override;
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 	virtual eMaterialDomain getAuthoredMaterialDomain() const override { return eMaterialDomain::compositor; }
+	virtual const char* getGraphFileExtension() const override
+	{
+		return NodeGraphFileTypes::k_compositorGraphExtension;
+	}
+	virtual const char* getSaveDialogTitleKey() const override { return "nodeEditor.saveCompositorGraphDialogTitle"; }
+	virtual const char* getGraphFilterDescriptionKey() const override
+	{
+		return "nodeEditor.compositorGraphFilesFilterDescription";
+	}
+	virtual std::filesystem::path getDefaultGraphDirectory() const override;
 
 	// -- CompositorNodeEditorWindow ----
 	bool bindCompositorComponent(CompositorComponentPtr compositorComponent);
+	void unbindCompositorComponent();
+	// Shows the graph a compositor drives, or a graph file no compositor drives
+	// (edited on its own, with nothing evaluating it)
+	bool openCompositorComponent(CompositorComponentPtr compositorComponent);
+	bool openGraphFile(const std::filesystem::path& graphPath);
 
 	// Editor pause of compositor evaluation (the Compositor menu's Run item)
 	bool setCompositorRunning(bool bRunning);

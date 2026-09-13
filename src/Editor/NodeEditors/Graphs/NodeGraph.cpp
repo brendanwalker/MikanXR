@@ -3,6 +3,7 @@
 #include "NodeGraph.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
+#include "PathUtils.h"
 #include "StringUtils.h"
 
 #include "Graphs/NodeEvaluator.h"
@@ -792,6 +793,46 @@ int NodeGraph::getAssetReferenceIndex(AssetReferencePtr assetRef) const
 	return -1;
 }
 
+AssetReferencePtr NodeGraph::findOrAddAssetReference(const std::string& className,
+													 const std::filesystem::path& assetPath)
+{
+	if (className.empty() || assetPath.empty())
+	{
+		return AssetReferencePtr();
+	}
+
+	// Asset references hold their path in stored form, so the match is made in that form
+	const std::filesystem::path storedPath= PathUtils::makeStoredProjectPath(assetPath);
+
+	for (AssetReferencePtr existingAssetRef : m_assetReferences)
+	{
+		if (existingAssetRef->getClassName() == className && existingAssetRef->getInternalAssetPath() == storedPath)
+		{
+			return existingAssetRef;
+		}
+	}
+
+	AssetReferenceFactoryPtr factory= getAssetReferenceFactory(className);
+	if (!factory)
+	{
+		return AssetReferencePtr();
+	}
+
+	AssetReferencePtr assetRef= factory->allocateAssetReference();
+	if (!assetRef)
+	{
+		return AssetReferencePtr();
+	}
+
+	assetRef->setAssetPath(storedPath);
+	m_assetReferences.push_back(assetRef);
+
+	if (OnAssetReferenceCreated)
+		OnAssetReferenceCreated(assetRef);
+
+	return assetRef;
+}
+
 bool NodeGraph::deleteAssetReference(AssetReferencePtr assetRef)
 {
 	auto it= std::find(m_assetReferences.begin(), m_assetReferences.end(), assetRef);
@@ -1325,13 +1366,21 @@ int NodeGraph::allocateId()
 // -- NodeGraphFactory -----
 std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
 
-NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const std::filesystem::path& path)
+NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const std::filesystem::path& path,
+											 const std::string& expectedClassName)
 {
 	// Load the node graph config from the file path
 	NodeGraphConfig config;
 	if (!config.load(path))
 	{
 		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph") << "Failed to load NodeGraph Config: " << path;
+		return NodeGraphPtr();
+	}
+
+	if (!expectedClassName.empty() && config.className != expectedClassName)
+	{
+		MIKAN_LOG_ERROR("NodeGraphFactory::loadNodeGraph")
+			<< path << " is a " << config.className << ", not a " << expectedClassName;
 		return NodeGraphPtr();
 	}
 
@@ -1344,6 +1393,25 @@ NodeGraphPtr NodeGraphFactory::loadNodeGraph(IEditorWindow* ownerWindow, const s
 	}
 
 	return nodeGraph;
+}
+
+std::string NodeGraphFactory::peekGraphClassName(const std::filesystem::path& path)
+{
+	const std::filesystem::path resolvedPath= PathUtils::resolveProjectResource(path);
+	if (resolvedPath.empty())
+	{
+		return std::string();
+	}
+
+	try
+	{
+		const configuru::Config graphJson= configuru::parse_file(resolvedPath.string(), configuru::JSON);
+		return graphJson.get_or<std::string>("class_name", "");
+	}
+	catch (const std::exception&)
+	{
+		return std::string();
+	}
 }
 
 NodeGraphPtr NodeGraphFactory::loadNodeGraphFromConfig(IEditorWindow* ownerWindow, NodeGraphConfig& config)

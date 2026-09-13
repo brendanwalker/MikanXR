@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+class MikanShaderConfig;
+
 // What a material draws. Compositor materials shade the fullscreen layer quad,
 // shape materials shade shape renderables under a model-view-projection.
 enum class eMaterialDomain : int
@@ -44,6 +46,27 @@ namespace MaterialDomainUtils
 {
 const std::string& domainToString(eMaterialDomain domain);
 eMaterialDomain domainFromString(const std::string& name);
+
+// Each domain's material files carry their own extension and live in their own
+// project folder (one subfolder per material), since a material of one domain
+// cannot drive the other's consumers
+inline constexpr const char* k_compositorMaterialExtension= ".compmat";
+inline constexpr const char* k_shapeMaterialExtension= ".shapemat";
+inline constexpr const char* k_compositorMaterialFilterPattern= "*.compmat";
+inline constexpr const char* k_shapeMaterialFilterPattern= "*.shapemat";
+// The extension every material carried before the split, recognized on load so
+// an old project migrates
+inline constexpr const char* k_legacyMaterialExtension= ".mat";
+
+const char* materialExtension(eMaterialDomain domain);
+const char* materialFolderName(eMaterialDomain domain);
+eMaterialDomain domainFromMaterialExtension(const std::string& extension);
+// Whether the extension names a material file, legacy included
+bool isMaterialFileExtension(const std::string& extension);
+
+// The domain a material file serves: the one it names, else the one its vertex
+// layout implies, INVALID when neither is known
+eMaterialDomain resolveMaterialDomain(const MikanShaderConfig& config);
 
 const std::string& presetToString(eMaterialVertexPreset preset);
 eMaterialVertexPreset presetFromString(const std::string& name);

@@ -1,0 +1,30 @@
+{
+	"materialName":       "sensorGrain",
+	"vertexShaderPath":   "sensorGrain.vert",
+	"fragmentShaderPath": "sensorGrain.frag",
+	"vertexAttributes":   [
+		{
+			"name":     "aPos",
+			"dataType": "vec2",
+			"semantic": "position"
+		},
+		{
+			"name":     "aTexCoords",
+			"dataType": "vec2",
+			"semantic": "texCoord"
+		}
+	],
+	"uniformSemanticMap": {
+		"grainIntensity": "floatParam",
+		"rgbaTexture":    "textureParam",
+		"time":           "floatParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "sensorGrain.matgraph",
+	"uniformDefaults":    {
+		"grainIntensity": 1.0,
+		"time":           0.0,
+		"rgbaTexture":    "textures/container.jpg"
+	}
+}

@@ -107,6 +107,8 @@ private:
 							 std::string& outError);
 	bool handleInputCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
 							std::string& outError);
+	bool handleAssetsCommand(const std::vector<std::string>& args, std::vector<std::string>& outLines,
+							 std::string& outError);
 
 	/// Resolve a window index from the `window list` ordering.
 	class EditorWindow* resolveWindowIndex(const std::string& indexText, std::string& outError) const;

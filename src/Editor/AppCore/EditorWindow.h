@@ -45,6 +45,7 @@ public:
 	// each of these to return its own members directly.
 	virtual class MainWindow* getMainWindow() const;
 	virtual ProjectManagerPtr getProjectManager() const override;
+	virtual class ProjectAssetCatalog* getAssetCatalog() const override;
 	virtual class MikanServer* getMikanServer() const override;
 	virtual class IMkFontManager* getFontManager() const override;
 	virtual class InputManager* getInputManager() const override;

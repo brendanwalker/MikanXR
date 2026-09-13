@@ -27,6 +27,7 @@ public:
 	virtual ProjectManagerPtr getProjectManager() const= 0;
 	virtual class MikanServer* getMikanServer() const= 0;
 	virtual class TransactionHistory* getTransactionHistory() const { return nullptr; }
+	virtual class ProjectAssetCatalog* getAssetCatalog() const { return nullptr; }
 	virtual class IMkFontManager* getFontManager() const= 0;
 	virtual class InputManager* getInputManager() const= 0;
 	virtual class OpenCVManager* getOpenCVManager() const= 0;

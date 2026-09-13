@@ -1,0 +1,26 @@
+{
+	"materialName":       "rgbFrame",
+	"vertexShaderPath":   "rgbFrame.vert",
+	"fragmentShaderPath": "rgbFrame.frag",
+	"vertexAttributes":   [
+		{
+			"name":     "aPos",
+			"dataType": "vec2",
+			"semantic": "position"
+		},
+		{
+			"name":     "aTexCoords",
+			"dataType": "vec2",
+			"semantic": "texCoord"
+		}
+	],
+	"uniformSemanticMap": {
+		"rgbTexture": "textureParam"
+	},
+	"domain":             "compositor",
+	"vertexPreset":       "P2T",
+	"sourceGraphPath":    "rgbFrame.matgraph",
+	"uniformDefaults":    {
+		"rgbTexture": "textures/missing_texture.png"
+	}
+}

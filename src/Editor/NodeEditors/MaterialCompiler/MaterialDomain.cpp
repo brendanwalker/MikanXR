@@ -1,4 +1,5 @@
 #include "MaterialDomain.h"
+#include "MikanShaderConfig.h"
 
 namespace
 {
@@ -50,6 +51,50 @@ const std::string& domainToString(eMaterialDomain domain)
 	const int index= (int)domain;
 	return (index > (int)eMaterialDomain::INVALID && index < (int)eMaterialDomain::COUNT) ? k_domainNames[index]
 																						  : k_invalidDomainName;
+}
+
+const char* materialExtension(eMaterialDomain domain)
+{
+	return domain == eMaterialDomain::shape ? k_shapeMaterialExtension : k_compositorMaterialExtension;
+}
+
+const char* materialFolderName(eMaterialDomain domain)
+{
+	return domain == eMaterialDomain::shape ? "shape_materials" : "compositor_materials";
+}
+
+eMaterialDomain domainFromMaterialExtension(const std::string& extension)
+{
+	if (extension == k_compositorMaterialExtension)
+		return eMaterialDomain::compositor;
+	if (extension == k_shapeMaterialExtension)
+		return eMaterialDomain::shape;
+
+	return eMaterialDomain::INVALID;
+}
+
+bool isMaterialFileExtension(const std::string& extension)
+{
+	return extension == k_compositorMaterialExtension || extension == k_shapeMaterialExtension
+		   || extension == k_legacyMaterialExtension;
+}
+
+eMaterialDomain resolveMaterialDomain(const MikanShaderConfig& config)
+{
+	if (!config.domain.empty())
+	{
+		return domainFromString(config.domain);
+	}
+
+	std::vector<MaterialVertexAttribute> attributes;
+	for (const GlVertexAttributeConfigPtr& attribConfig : config.vertexAttributes)
+	{
+		// Inference only reads the semantic and data type
+		attributes.push_back(
+			{attribConfig->name, attribConfig->dataType, attribConfig->semantic, eShaderValueType::INVALID});
+	}
+
+	return inferDomain(attributes);
 }
 
 eMaterialDomain domainFromString(const std::string& name)

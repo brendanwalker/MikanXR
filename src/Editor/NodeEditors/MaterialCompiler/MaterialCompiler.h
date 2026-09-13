@@ -175,7 +175,9 @@ public:
 	static bool writeOutputs(MaterialCompileResult& result, const std::filesystem::path& graphPath,
 							 std::string& outError);
 
-	static std::filesystem::path getMaterialPathForGraph(const std::filesystem::path& graphPath);
+	// The material file beside the graph, named for the graph and the domain's extension
+	static std::filesystem::path getMaterialPathForGraph(const std::filesystem::path& graphPath,
+														 eMaterialDomain domain);
 	static std::filesystem::path getVertexShaderPathForGraph(const std::filesystem::path& graphPath);
 	static std::filesystem::path getFragmentShaderPathForGraph(const std::filesystem::path& graphPath);
 

@@ -1,0 +1,24 @@
+{
+	"materialName":       "shapePT",
+	"vertexShaderPath":   "shapePT.vert",
+	"fragmentShaderPath": "shapePT.frag",
+	"vertexAttributes":   [
+		{
+			"name":     "aPos",
+			"dataType": "vec3",
+			"semantic": "position"
+		},
+		{
+			"name":     "aTexCoords",
+			"dataType": "vec2",
+			"semantic": "texCoord"
+		}
+	],
+	"uniformSemanticMap": {
+		"mvpMatrix":   "modelViewProjectionMatrix",
+		"rgbaTexture": "textureParam"
+	},
+	"domain":             "shape",
+	"vertexPreset":       "PT",
+	"sourceGraphPath":    "shapePT.matgraph"
+}

@@ -157,6 +157,12 @@ public:
 	//	return assetRef;
 	//}
 
+	// The graph's own reference to the given asset, appended when the graph does
+	// not already hold one. Graph properties bind to the graph's instance by index
+	// at save time, so an asset arriving from the project catalog is mapped through
+	// this before anything binds to it.
+	AssetReferencePtr findOrAddAssetReference(const std::string& className, const std::filesystem::path& assetPath);
+
 	bool deleteAssetReference(AssetReferencePtr assetRef);
 
 	MulticastDelegate<void(AssetReferencePtr assetRef)> OnAssetReferenceCreated;
@@ -441,7 +447,14 @@ public:
 	virtual NodeGraphPtr allocateNodeGraph() const;
 	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const;
 
-	static NodeGraphPtr loadNodeGraph(class IEditorWindow* ownerWindow, const std::filesystem::path& path);
+	// Loads the graph the file records. With an expected class name, a file of
+	// another kind is refused rather than loaded, since the kinds are not
+	// interchangeable (a shape graph cannot drive a compositor).
+	static NodeGraphPtr loadNodeGraph(class IEditorWindow* ownerWindow, const std::filesystem::path& path,
+									  const std::string& expectedClassName= std::string());
+	// The class name a graph file records, without loading it. Empty when the
+	// file cannot be read.
+	static std::string peekGraphClassName(const std::filesystem::path& path);
 	static NodeGraphPtr loadNodeGraphFromConfig(class IEditorWindow* ownerWindow, NodeGraphConfig& config);
 	static NodeGraphPtr loadNodeGraphFromSnapshotString(class IEditorWindow* ownerWindow, const std::string& snapshot);
 	static void saveNodeGraph(const std::filesystem::path& path, NodeGraphConstPtr nodeGraph);

@@ -165,7 +165,12 @@ protected:
 	// Called once an edit has settled into a committed history checkpoint
 	virtual void onGraphEdited() {}
 
-	// Directory the save dialog opens in when the graph has no path yet
+	// The file kind this editor saves: its extension, and the localization keys
+	// of the save dialog title and filter description. Directory the save dialog
+	// opens in when the graph has no path yet.
+	virtual const char* getGraphFileExtension() const= 0;
+	virtual const char* getSaveDialogTitleKey() const= 0;
+	virtual const char* getGraphFilterDescriptionKey() const= 0;
 	virtual std::filesystem::path getDefaultGraphDirectory() const;
 
 	// The window title's localization key, and the ini the window's dock
