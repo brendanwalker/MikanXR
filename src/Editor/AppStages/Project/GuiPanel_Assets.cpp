@@ -23,7 +23,7 @@
 #include <sstream>
 
 // Width of the folder list beside the tile grid
-static constexpr float k_folderListWidth= 150.f;
+static constexpr float k_folderListWidth= 200.f;
 // How many referrers the refused-delete message names before it summarizes the rest
 static constexpr int k_maxReferrerLines= 12;
 
@@ -252,75 +252,100 @@ void GuiPanel_Assets::renderTileGrid(const ProjectAssetFolderDesc& desc)
 
 	MkGuiScopedChild tileGrid("AssetTileGrid");
 
-	ImGui::Dummy(ImVec2(1, 10));
-	for (const ProjectAssetEntry& entry : entries)
+	if (desc.bPreviewTiles)
 	{
-		const std::string entryKey= entry.key();
-		const bool bSelected= entryKey == m_selectedKey;
-
-		const AssetTileGui::TileResult tile= AssetTileGui::beginTile("##asset" + entryKey, bSelected);
-
-		if (bSelected && m_bScrollToSelection)
+		ImGui::Dummy(ImVec2(1, 10));
+		for (const ProjectAssetEntry& entry : entries)
 		{
-			ImGui::SetScrollHereY(0.5f);
-			m_bScrollToSelection= false;
-		}
+			const std::string entryKey= entry.key();
+			const bool bSelected= entryKey == m_selectedKey;
 
+			const AssetTileGui::ItemResult tile= AssetTileGui::beginTile("##asset" + entryKey, bSelected);
+			handleEntryInteraction(desc, entry, tile.bClicked, tile.bDoubleClicked);
+			AssetTileGui::endTile(catalog->getAssetReference(entry), entry.displayName);
+		}
+	}
+	else if (AssetTileGui::beginList("AssetList"))
+	{
+		for (const ProjectAssetEntry& entry : entries)
 		{
-			MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
-			if (dds)
-			{
-				ProjectAssetDragPayload payload(entry);
+			const std::string entryKey= entry.key();
+			const bool bSelected= entryKey == m_selectedKey;
 
-				ImGui::SetDragDropPayload(ProjectAssetCatalog::k_dragPayloadType, &payload,
-										  sizeof(ProjectAssetDragPayload));
-				ImGui::TextUnformatted(entry.displayName.c_str());
-			}
+			AssetReferencePtr assetRef= catalog->getAssetReference(entry);
+			const char* glyph= assetRef ? assetRef->editorGetIcon() : "";
+			const AssetTileGui::ItemResult row=
+				AssetTileGui::drawListItem("##asset" + entryKey, glyph, entry.displayName, bSelected);
+			handleEntryInteraction(desc, entry, row.bClicked, row.bDoubleClicked);
 		}
+		AssetTileGui::endList();
+	}
+}
 
+void GuiPanel_Assets::handleEntryInteraction(const ProjectAssetFolderDesc& desc, const ProjectAssetEntry& entry,
+											 bool bClicked, bool bDoubleClicked)
+{
+	ProjectAssetCatalog* catalog= getCatalog();
+	const std::string entryKey= entry.key();
+	const bool bSelected= entryKey == m_selectedKey;
+
+	if (bSelected && m_bScrollToSelection)
+	{
+		ImGui::SetScrollHereY(0.5f);
+		m_bScrollToSelection= false;
+	}
+
+	{
+		MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
+		if (dds)
 		{
-			MkGuiScopedStyle contextStyle(m_contextMenuStyle);
-			MkGuiScopedPopupContextItem contextMenu;
-			if (contextMenu)
-			{
-				m_selectedKey= entryKey;
+			ProjectAssetDragPayload payload(entry);
 
-				// A bundled asset becomes editable by copying it into the project,
-				// where the copy shadows it by stored path
-				if (entry.bBundled && !desc.bReadOnly)
-				{
-					if (ImGui::MenuItem(locLabel("assets.copyToProject"), ICON_FK_FILES_O))
-					{
-						requestCopyToProject(entry);
-					}
-				}
-
-				if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, false, !entry.bReadOnly))
-				{
-					requestDeleteEntry(entry);
-				}
-
-				if (entry.bReadOnly)
-				{
-					ImGui::TextDisabled("%s", locText("assets.bundledAsset"));
-				}
-			}
+			ImGui::SetDragDropPayload(ProjectAssetCatalog::k_dragPayloadType, &payload,
+									  sizeof(ProjectAssetDragPayload));
+			ImGui::TextUnformatted(entry.displayName.c_str());
 		}
+	}
 
-		if (tile.bClicked)
+	{
+		MkGuiScopedStyle contextStyle(m_contextMenuStyle);
+		MkGuiScopedPopupContextItem contextMenu;
+		if (contextMenu)
 		{
 			m_selectedKey= entryKey;
+
+			// A bundled asset becomes editable by copying it into the project,
+			// where the copy shadows it by stored path
+			if (entry.bBundled && !desc.bReadOnly)
+			{
+				if (ImGui::MenuItem(locLabel("assets.copyToProject"), ICON_FK_FILES_O))
+				{
+					requestCopyToProject(entry);
+				}
+			}
+
+			if (ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, false, !entry.bReadOnly))
+			{
+				requestDeleteEntry(entry);
+			}
+
+			if (entry.bReadOnly)
+			{
+				ImGui::TextDisabled("%s", locText("assets.bundledAsset"));
+			}
 		}
+	}
 
-		AssetReferencePtr assetRef= catalog->getAssetReference(entry);
+	if (bClicked)
+	{
+		m_selectedKey= entryKey;
+	}
 
-		if (tile.bDoubleClicked && assetRef && assetRef->editorCanOpen())
-		{
-			// Deferred: opening pushes an editor window while the grid is drawing
-			addDeferredGuiEvent([assetRef]() { assetRef->editorOpen(); });
-		}
-
-		AssetTileGui::endTile(assetRef, entry.displayName);
+	AssetReferencePtr assetRef= catalog ? catalog->getAssetReference(entry) : AssetReferencePtr();
+	if (bDoubleClicked && assetRef && assetRef->editorCanOpen())
+	{
+		// Deferred: opening pushes an editor window while the grid is drawing
+		addDeferredGuiEvent([assetRef]() { assetRef->editorOpen(); });
 	}
 }
 

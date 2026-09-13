@@ -479,7 +479,7 @@ void AutomationServer::registerCoreNamespaces()
 							 {"assets folders", "assets list [folderId]", "assets refresh",
 							  "assets import <folderId> <sourcePath>", "assets refs <storedPath>",
 							  "assets delete <folderId> <storedPath>", "assets select <folderId> <storedPath>",
-							  "assets selected", "assets folder"},
+							  "assets open <folderId> <storedPath>", "assets selected", "assets folder"},
 							 std::bind(&AutomationServer::handleAssetsCommand, this, _1, _2, _3));
 
 	// The history namespace is registered by TransactionHistory after startup
@@ -2140,6 +2140,33 @@ bool AutomationServer::handleAssetsCommand(const std::vector<std::string>& args,
 		}
 
 		outLines.push_back("selected");
+		return true;
+	}
+	else if (verb == "open")
+	{
+		if (args.size() < 3)
+		{
+			outError= "usage: assets open <folderId> <storedPath>";
+			return false;
+		}
+
+		// The same open a double click on the entry performs
+		const ProjectAssetEntry* entry= catalog->findEntry(args[1], args[2]);
+		if (entry == nullptr)
+		{
+			outError= "asset not found";
+			return false;
+		}
+
+		AssetReferencePtr assetRef= catalog->getAssetReference(*entry);
+		if (!assetRef || !assetRef->editorCanOpen())
+		{
+			outError= "asset has no editor";
+			return false;
+		}
+
+		assetRef->editorOpen();
+		outLines.push_back("opened");
 		return true;
 	}
 	else if (verb == "selected")

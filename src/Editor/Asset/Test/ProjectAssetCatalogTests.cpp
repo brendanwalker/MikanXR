@@ -291,8 +291,14 @@ bool project_asset_catalog_test_bundled_overlay()
 	const std::filesystem::path resourceDir= PathUtils::getResourceDirectory();
 
 	// Bundled files show through as read-only entries in stored form
-	const ProjectAssetEntry* bundledGraph= catalog.findEntry("compositors", "compositors/color_key_graph.compgraph");
+	// A bundled graph every install ships; nothing in the test depends on its contents
+	const ProjectAssetEntry* bundledGraph= catalog.findEntry("compositors", "compositors/video_only.compgraph");
 	success&= bundledGraph != nullptr && bundledGraph->bBundled && bundledGraph->bReadOnly;
+	if (bundledGraph == nullptr)
+	{
+		fprintf(stdout, "    FAILED: bundled compositors/video_only.compgraph not listed (run from the repo root)\n");
+		UNIT_TEST_COMPLETE()
+	}
 	const ProjectAssetEntry* bundledMaterial= catalog.findEntry(
 		"compositor_materials", "compositor_materials/rgbUndistortionFrame/rgbUndistortionFrame.compmat");
 	success&= bundledMaterial != nullptr && bundledMaterial->bBundled && bundledMaterial->bReadOnly
@@ -321,13 +327,13 @@ bool project_asset_catalog_test_bundled_overlay()
 	success&= ProjectAssetCatalog::makeProjectShadowPath(resourceDir / "textures" / "blackRGB.png")
 			  == (project.projectDir / "textures" / "blackRGB.png").lexically_normal();
 	success&= ProjectAssetCatalog::makeProjectShadowPath(project.projectDir / "textures" / "grid.png").empty();
-	success&= ProjectAssetCatalog::makeOverlayStoredPath(resourceDir / "compositors" / "color_key_graph.compgraph")
-			  == "compositors/color_key_graph.compgraph";
+	success&= ProjectAssetCatalog::makeOverlayStoredPath(resourceDir / "compositors" / "video_only.compgraph")
+			  == "compositors/video_only.compgraph";
 
 	// Bundled entries refuse deletion
 	std::string error;
 	success&= !catalog.deleteAsset(*bundledGraph, error) && !error.empty();
-	success&= std::filesystem::exists(resourceDir / "compositors" / "color_key_graph.compgraph");
+	success&= std::filesystem::exists(resourceDir / "compositors" / "video_only.compgraph");
 
 	// Copying a bundled file into the project keeps its relative path, so the copy shadows it
 	std::string storedPath;
@@ -337,19 +343,19 @@ bool project_asset_catalog_test_bundled_overlay()
 	const ProjectAssetEntry* projectModel= catalog.findEntry("models", "models/shapes/sphere.obj");
 	success&= projectModel != nullptr && !projectModel->bBundled;
 
-	// Bundled referrers count: the bundled compositor graphs name this bundled material
+	// Bundled referrers count: the bundled video_only graph names this bundled material
 	const std::vector<ProjectAssetReferrer> referrers=
-		catalog.findReferences("compositor_materials/rgbUndistortionFrame/rgbUndistortionFrame.compmat");
-	success&= hasReferrer(referrers, ProjectAssetReferrer::Kind::graph, "color_key_graph");
+		catalog.findReferences("compositor_materials/rgbFrame/rgbFrame.compmat");
+	success&= hasReferrer(referrers, ProjectAssetReferrer::Kind::graph, "video_only");
 	for (const ProjectAssetReferrer& referrer : referrers)
 	{
-		if (referrer.name == "color_key_graph")
-			success&= referrer.detail == "compositors/color_key_graph.compgraph";
+		if (referrer.name == "video_only")
+			success&= referrer.detail == "compositors/video_only.compgraph";
 	}
 
 	// The developer switch makes bundled entries writable
 	catalog.setBundledResourcesEditable(true);
-	const ProjectAssetEntry* editableGraph= catalog.findEntry("compositors", "compositors/color_key_graph.compgraph");
+	const ProjectAssetEntry* editableGraph= catalog.findEntry("compositors", "compositors/video_only.compgraph");
 	success&= editableGraph != nullptr && editableGraph->bBundled && !editableGraph->bReadOnly;
 	success&= !catalog.isReadOnlyPath("textures/blackRGB.png");
 	catalog.setBundledResourcesEditable(false);

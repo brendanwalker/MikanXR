@@ -14,6 +14,11 @@ public:
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "ShapeGraph"; }
 	virtual const char* editorGetIcon() const override { return ICON_FK_CUBES; }
+
+	// Opens the graph in the shape editor, bound to the shape that drives it when
+	// one does so the graph evaluates live
+	virtual bool editorCanOpen() const override { return !isEmpty(); }
+	virtual void editorOpen() override;
 };
 
 class ShapeGraphAssetReferenceFactory

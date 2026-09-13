@@ -113,6 +113,7 @@ const std::vector<ProjectAssetFolderDesc>& ProjectAssetCatalog::getFolderDescs()
 		textures.locKey= "assets.folderTextures";
 		textures.projectSubfolder= "textures";
 		textures.bundledSubfolder= "textures";
+		textures.bPreviewTiles= true;
 		textures.factories= {AssetReferenceFactory::createFactory<TextureAssetReferenceFactory>(),
 							 AssetReferenceFactory::createFactory<PixelContentAssetReferenceFactory>()};
 		s_descs.push_back(textures);

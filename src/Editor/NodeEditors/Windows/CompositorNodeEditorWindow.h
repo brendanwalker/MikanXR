@@ -34,6 +34,11 @@ public:
 
 	// -- CompositorNodeEditorWindow ----
 	bool bindCompositorComponent(CompositorComponentPtr compositorComponent);
+	void unbindCompositorComponent();
+	// Shows the graph a compositor drives, or a graph file no compositor drives
+	// (edited on its own, with nothing evaluating it)
+	bool openCompositorComponent(CompositorComponentPtr compositorComponent);
+	bool openGraphFile(const std::filesystem::path& graphPath);
 
 	// Editor pause of compositor evaluation (the Compositor menu's Run item)
 	bool setCompositorRunning(bool bRunning);

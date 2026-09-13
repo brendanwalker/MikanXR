@@ -38,6 +38,9 @@ private:
 	void renderFolderList();
 	void renderToolbar(const ProjectAssetFolderDesc& desc);
 	void renderTileGrid(const ProjectAssetFolderDesc& desc);
+	// The click, drag, context menu, and open handling shared by a tile and a list row
+	void handleEntryInteraction(const ProjectAssetFolderDesc& desc, const ProjectAssetEntry& entry, bool bClicked,
+								bool bDoubleClicked);
 	void importFromFileDialog(const ProjectAssetFolderDesc& desc, AssetReferenceFactoryPtr factory);
 	void requestDeleteEntry(const ProjectAssetEntry& entry);
 	void requestCopyToProject(const ProjectAssetEntry& entry);

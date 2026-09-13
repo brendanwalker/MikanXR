@@ -26,6 +26,9 @@ struct ProjectAssetFolderDesc
 	std::filesystem::path bundledSubfolder;
 	// A read-only folder accepts no imports
 	bool bReadOnly= false;
+	// Entries draw as preview tiles (an image tells them apart) rather than as
+	// glyph-and-name rows in a list
+	bool bPreviewTiles= false;
 	// One entry per material file, its sibling graph and shader sources hidden.
 	// Import copies the material's folder and delete removes it. The domain is
 	// the one the folder's material extension names, checked against an import.

@@ -1098,46 +1098,73 @@ void NodeEditorWindow::renderAssetsPanel()
 
 	ImGui::Dummy(ImVec2(1, 10));
 
+	// The payload carries the catalog's instance, which a receiver maps to the
+	// graph's own reference before binding anything to it
+	auto attachDragAndOpen= [&](AssetReferencePtr assetRef, const ProjectAssetEntry& entry, bool bDoubleClicked)
+	{
+		{
+			MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
+			if (dds)
+			{
+				ImGui::SetDragDropPayload(assetRef->getClassName().c_str(), &assetRef, sizeof(AssetReferencePtr));
+				ImGui::TextUnformatted(entry.displayName.c_str());
+			}
+		}
+
+		if (bDoubleClicked && assetRef->editorCanOpen())
+		{
+			assetRef->editorOpen();
+		}
+	};
+
 	bool bAnyEntryDrawn= false;
 	for (const ProjectAssetFolderDesc& folderDesc : ProjectAssetCatalog::getFolderDescs())
 	{
+		// The folder's entries this graph accepts
+		std::vector<const ProjectAssetEntry*> matchingEntries;
 		for (const ProjectAssetEntry& entry : catalog->getEntries(folderDesc.id))
 		{
 			const bool bMatchesGraph=
 				std::any_of(validFactories.begin(), validFactories.end(), [&](AssetReferenceFactoryPtr factory)
 							{ return catalog->entryMatchesFactory(entry, *factory); });
-			if (!bMatchesGraph)
+			if (bMatchesGraph)
 			{
-				continue;
+				matchingEntries.push_back(&entry);
 			}
+		}
+		if (matchingEntries.empty())
+		{
+			continue;
+		}
+		bAnyEntryDrawn= true;
 
-			AssetReferencePtr assetRef= catalog->getAssetReference(entry);
-			if (!assetRef)
+		if (folderDesc.bPreviewTiles)
+		{
+			for (const ProjectAssetEntry* entry : matchingEntries)
 			{
-				continue;
+				AssetReferencePtr assetRef= catalog->getAssetReference(*entry);
+				if (!assetRef)
+					continue;
+
+				const AssetTileGui::ItemResult tile= AssetTileGui::beginTile("##asset" + entry->key(), false);
+				attachDragAndOpen(assetRef, *entry, tile.bDoubleClicked);
+				AssetTileGui::endTile(assetRef, entry->displayName);
 			}
-
-			bAnyEntryDrawn= true;
-
-			const AssetTileGui::TileResult tile= AssetTileGui::beginTile("##asset" + entry.key(), false);
-
-			// The payload carries the catalog's instance, which a receiver maps to
-			// the graph's own reference before binding anything to it
+			ImGui::NewLine();
+		}
+		else if (AssetTileGui::beginList(("##assetList" + folderDesc.id).c_str()))
+		{
+			for (const ProjectAssetEntry* entry : matchingEntries)
 			{
-				MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
-				if (dds)
-				{
-					ImGui::SetDragDropPayload(assetRef->getClassName().c_str(), &assetRef, sizeof(AssetReferencePtr));
-					ImGui::TextUnformatted(entry.displayName.c_str());
-				}
-			}
+				AssetReferencePtr assetRef= catalog->getAssetReference(*entry);
+				if (!assetRef)
+					continue;
 
-			if (tile.bDoubleClicked && assetRef->editorCanOpen())
-			{
-				assetRef->editorOpen();
+				const AssetTileGui::ItemResult row= AssetTileGui::drawListItem(
+					"##asset" + entry->key(), assetRef->editorGetIcon(), entry->displayName, false);
+				attachDragAndOpen(assetRef, *entry, row.bDoubleClicked);
 			}
-
-			AssetTileGui::endTile(assetRef, entry.displayName);
+			AssetTileGui::endList();
 		}
 	}
 
@@ -1146,7 +1173,6 @@ void NodeEditorWindow::renderAssetsPanel()
 		ImGui::TextDisabled("%s", locText("assets.empty"));
 	}
 
-	ImGui::NewLine();
 	ImGui::Dummy(ImVec2(1, 10));
 }
 

@@ -54,6 +54,43 @@ bool ShapeNodeEditorWindow::bindShapeComponent(ShapeComponentPtr shapeComponent)
 	return true;
 }
 
+void ShapeNodeEditorWindow::unbindShapeComponent()
+{
+	if (m_shapeComponent)
+	{
+		m_shapeComponent->setEditorShapeNodeGraph(nullptr);
+		m_shapeComponent= nullptr;
+	}
+}
+
+bool ShapeNodeEditorWindow::openShapeComponent(ShapeComponentPtr shapeComponent)
+{
+	if (m_shapeComponent == shapeComponent)
+	{
+		return true;
+	}
+
+	unbindShapeComponent();
+	return bindShapeComponent(shapeComponent);
+}
+
+bool ShapeNodeEditorWindow::openGraphFile(const std::filesystem::path& graphPath)
+{
+	// A failed load keeps the graph and shape the window already shows. A window
+	// that has none yet gets an empty graph, since the editor always draws one.
+	if (!loadGraph(graphPath))
+	{
+		if (!m_editorState.nodeGraph)
+		{
+			newGraph();
+		}
+		return false;
+	}
+
+	unbindShapeComponent();
+	return true;
+}
+
 void ShapeNodeEditorWindow::onGraphRestored()
 {
 	if (m_shapeComponent == nullptr)
@@ -101,7 +138,11 @@ bool ShapeNodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
-		m_shapeComponent->setShapeGraphAssetPath(m_editorState.nodeGraphPath);
+		// A graph opened on its own has no shape to follow the saved path
+		if (m_shapeComponent)
+		{
+			m_shapeComponent->setShapeGraphAssetPath(m_editorState.nodeGraphPath);
+		}
 		return true;
 	}
 
@@ -110,6 +151,12 @@ bool ShapeNodeEditorWindow::saveGraph(bool bShowFileDialog)
 
 void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& editorState)
 {
+	// The window may hold no graph for a frame after a failed open
+	if (!getNodeGraph())
+	{
+		return;
+	}
+
 	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories=
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
@@ -131,6 +178,12 @@ void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& 
 
 void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& editorState)
 {
+	// The window may hold no graph for a frame after a failed open
+	if (!getNodeGraph())
+	{
+		return;
+	}
+
 	std::vector<GraphPropertyFactoryPtr> validPropertyFactories=
 		getNodeGraph()->editorGetValidPropertyFactories(editorState);
 	for (auto factory : validPropertyFactories)

@@ -69,13 +69,13 @@
 			"video_texture_source": "Video Texture"
 		},
 		{
-			"class_name":          "ClientColorTextureNode",
+			"class_name":          "ColorTextureSourceNode",
 			"id":                  34,
 			"pins_in":             [ ],
 			"pins_out":            [ 35 ],
 			"pos":                 [ 465.0, 155.0 ],
-			"client_texture_type": "colorRGB",
-			"client_index":        0
+			"texture_source_color_type": "colorRGB",
+			"texture_source_id":        -1
 		},
 		{
 			"class_name":                "DrawLayerNode",

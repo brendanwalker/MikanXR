@@ -172,6 +172,7 @@ Drives the `ProjectAssetCatalog` ([objects.md](./objects.md) covers the property
 - `assets refs <storedPath>` replies one `<graph|material|component> <name> <detail>` line per referrer, empty when nothing references the path. The path may contain spaces.
 - `assets delete <folderId> <storedPath>` deletes an asset after checking `findReferences` itself, replying `deleted`. A referenced asset is refused with `referenced by: <kind> <name>, ...` rather than deleting out from under a live reference.
 - `assets select <folderId> <storedPath>` selects an entry in the project Assets panel through the stage's `select_asset` command, replying `selected`, or an error `asset not found`
+- `assets open <folderId> <storedPath>` opens the entry in its editor, the same open a double click on it performs (a compositor or shape graph in that editor, bound to the component driving it when one does; a material's source graph in the material editor), replying `opened`, or an error when nothing opens that kind
 - `assets selected` reads the panel's selection back through `selected_asset`, replying `<folderId> <storedPath>` or `none`
 - `assets folder` replies the panel's current folder id through `current_asset_folder`
 

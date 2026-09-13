@@ -14,6 +14,11 @@ public:
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "CompositorGraph"; }
 	virtual const char* editorGetIcon() const override { return ICON_FK_SITEMAP; }
+
+	// Opens the graph in the compositor editor, bound to the compositor that
+	// drives it when one does so the graph evaluates live
+	virtual bool editorCanOpen() const override { return !isEmpty(); }
+	virtual void editorOpen() override;
 };
 
 class CompositorGraphAssetReferenceFactory
