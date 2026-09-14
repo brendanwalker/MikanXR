@@ -93,7 +93,7 @@ Mouse position is warped rather than fabricated, which moves the real cursor. Im
 - `input click <windowIndex> <x> <y> [left|middle|right] [clickCount]` moves, then presses and releases. Pass `2` as the click count for a double click.
 - `input press|release <windowIndex> <x> <y> [left|middle|right]` are the halves of a click, for drags and for widgets whose popup only survives while the button is held
 - `input wheel <windowIndex> <x> <y> <scrollY> [scrollX]` scrolls in notches
-- `input key <windowIndex> <keyName> [modifiers...]` presses and releases a key. Names are `return`/`enter`, `tab`, `escape`, `backspace`, `delete`, `space`, the arrows, `home`, `end`, `pageup`, `pagedown`, `insert`, `f1` to `f12`, or a single printable character. Modifiers are `shift`, `ctrl`, `alt`, `gui`.
+- `input key <windowIndex> <keyName> [modifiers...]` presses and releases a key, and `input keydown` / `input keyup` are its halves, so a drive can hold a modifier across a mouse press, move, and release (`input keydown 1 ctrl ctrl`, then `input keyup 1 ctrl`; the modifier key names are `ctrl`, `shift`, `alt`). Names are `return`/`enter`, `tab`, `escape`, `backspace`, `delete`, `space`, the arrows, `home`, `end`, `pageup`, `pagedown`, `insert`, `f1` to `f12`, or a single printable character. Modifiers are `shift`, `ctrl`, `alt`, `gui`.
 - `input text <windowIndex> <text...>` commits text the way typing does, taking the raw untokenized rest of the line
 
 Two things a warp cannot fake. A warped move often reports a zero relative delta, so anything driven by relative motion rather than by cursor position is unreliable under synthetic input: the viewport camera's right-drag rotate and pan usually see delta 0 and leave the camera where it was. A `input key` press and release land in the same frame, so held-key behavior such as the WASD fly never accumulates. Verify camera manipulation by hand, or seed the state and check that the editor applies it.
@@ -149,7 +149,7 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 - `nodegraph undo [n]` / `nodegraph redo [n]` step the window's snapshot history, replying the resulting cursor
 - `nodegraph run on|off` pauses or resumes compositor evaluation of the editor graph (the Compositor menu's Run item), replying the resulting state
 - `nodegraph compile` compiles the material editor's graph and writes its shaders and material file beside the graph file (the Material menu's Compile item), replying `compiled`, or one `error <nodeId> <message>` line per compile error. An unsaved graph has nowhere to write and answers an error. On any other editor window the command answers an error.
-- `nodegraph renamevar <propertyId> <name...>` renames a graph variable (the name is the rest of the line, so spaces survive)
+- `nodegraph renamevar <propertyId> <name...>` renames a graph variable (the name is the rest of the line, so spaces survive). A name another variable holds gets a numeric suffix, the same rule every rename surface applies
 - `nodegraph reordervar <movedPropertyId> <targetPropertyId>` moves a variable to the target's slot in the list, the headless equivalent of dragging one variable row onto another
 
 `nodegraph list properties` replies in variable-list order, so a reorder is observable there.

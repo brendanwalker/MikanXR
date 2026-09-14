@@ -78,6 +78,12 @@
 
 #include <algorithm>
 
+// The outliner tree never shrinks below this, and the action strip below it
+// always keeps at least its minimum
+static constexpr float k_minOutlinerTreeHeight= 100.f;
+static constexpr float k_minOutlinerActionsHeight= 120.f;
+static constexpr float k_outlinerSplitterHeight= 6.f;
+
 // One payload type for all seven scene actor classes: the payload itself is
 // always a TransformComponentPtr
 static const char* k_outlinerActorPayloadType= "OutlinerSceneActor";
@@ -130,11 +136,10 @@ void GuiPanel_ProjectOutliner::onGui()
 
 	drawTree();
 
-	ImGui::Separator();
-
 	drawSelectedNodeActions(getSelectedNode());
 
 	handleDeleteShortcut();
+	handleRenameShortcut();
 }
 
 void GuiPanel_ProjectOutliner::rebuildIfDirty()
@@ -175,8 +180,18 @@ void GuiPanel_ProjectOutliner::rebuildIfDirty()
 // -- Tree drawing ----
 void GuiPanel_ProjectOutliner::drawTree()
 {
-	const float treeHeight= std::max(150.f, ImGui::GetContentRegionAvail().y * 0.6f);
-	if (ImGui::BeginChild("##OutlinerTree", ImVec2(0.f, treeHeight)))
+	// A fixed height the splitter below adjusts, clamped so the tree never
+	// collapses and the action strip under it always keeps some room
+	EditorObjectSystemDefinitionPtr editorConfig= getEditorConfig();
+	if (!m_bTreeHeightDragging && editorConfig)
+	{
+		m_treeHeight= editorConfig->getOutlinerTreeHeight();
+	}
+	const float maxTreeHeight=
+		std::max(k_minOutlinerTreeHeight, ImGui::GetContentRegionAvail().y - k_minOutlinerActionsHeight);
+	m_treeHeight= std::clamp(m_treeHeight, k_minOutlinerTreeHeight, maxTreeHeight);
+
+	if (ImGui::BeginChild("##OutlinerTree", ImVec2(0.f, m_treeHeight)))
 	{
 		if (ProjectOutlinerNodePtr rootNode= m_model.getRoot())
 		{
@@ -184,6 +199,48 @@ void GuiPanel_ProjectOutliner::drawTree()
 		}
 	}
 	ImGui::EndChild();
+
+	drawTreeSplitter(editorConfig, maxTreeHeight);
+}
+
+void GuiPanel_ProjectOutliner::drawTreeSplitter(EditorObjectSystemDefinitionPtr editorConfig, float maxTreeHeight)
+{
+	const float width= std::max(ImGui::GetContentRegionAvail().x, 1.f);
+	ImGui::InvisibleButton("##OutlinerSplitter", ImVec2(width, k_outlinerSplitterHeight));
+	const bool bHovered= ImGui::IsItemHovered();
+	const bool bActive= ImGui::IsItemActive();
+
+	if (bHovered || bActive)
+	{
+		ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
+	}
+
+	// The drag moves the local height frame by frame; the release commits it
+	// to the project once, so a drag lands as one config change
+	if (bActive)
+	{
+		m_bTreeHeightDragging= true;
+		m_treeHeight+= ImGui::GetIO().MouseDelta.y;
+	}
+	else if (m_bTreeHeightDragging)
+	{
+		m_bTreeHeightDragging= false;
+		const float treeHeight= std::clamp(m_treeHeight, k_minOutlinerTreeHeight, maxTreeHeight);
+		if (editorConfig)
+		{
+			addDeferredGuiEvent([editorConfig, treeHeight]() { editorConfig->setOutlinerTreeHeight(treeHeight); });
+		}
+	}
+
+	// Drawn as a separator line that brightens under the mouse, so the bar
+	// reads as a handle without taking more room than the separator it replaces
+	const ImVec2 rectMin= ImGui::GetItemRectMin();
+	const ImVec2 rectMax= ImGui::GetItemRectMax();
+	const float lineY= (rectMin.y + rectMax.y) * 0.5f;
+	const ImU32 lineColor= ImGui::GetColorU32(bActive    ? ImGuiCol_SeparatorActive
+											  : bHovered ? ImGuiCol_SeparatorHovered
+														 : ImGuiCol_Separator);
+	ImGui::GetWindowDrawList()->AddLine(ImVec2(rectMin.x, lineY), ImVec2(rectMax.x, lineY), lineColor);
 }
 
 void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
@@ -220,8 +277,15 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 	if (bIsSelected)
 		flags|= ImGuiTreeNodeFlags_Selected;
 
-	const std::string label= node->icon + " " + node->displayName + "##node" + std::to_string((int)node->kind) + "_"
-							 + std::to_string(node->componentId);
+	// A row being renamed keeps only its icon in the tree node, so the arrow and
+	// indent stay put while the field takes the rest of the row
+	const bool bIsComponentRow= node->componentId != INVALID_MIKAN_ID;
+	const bool bIsRenaming= bIsComponentRow && m_rename.isEditing(node->componentId);
+	const std::string rowId= "node" + std::to_string((int)node->kind) + "_" + std::to_string(node->componentId);
+	const std::string label=
+		bIsRenaming ? node->icon + "##" + rowId : node->icon + " " + node->displayName + "##" + rowId;
+	if (bIsRenaming)
+		flags&= ~ImGuiTreeNodeFlags_SpanAvailWidth;
 
 	bool bOpen= false;
 	if (isActiveHighlightNode(node))
@@ -240,21 +304,46 @@ void GuiPanel_ProjectOutliner::drawNode(ProjectOutlinerNodePtr node)
 							{ editorConfig->setOutlinerNodeOpen(stateKey, bOpen, bDefaultOpen); });
 	}
 
-	if (bIsSelected && m_bScrollToSelection)
+	if (bIsRenaming)
 	{
-		ImGui::SetScrollHereY(0.5f);
-		m_bScrollToSelection= false;
+		ImGui::SameLine();
+		const MkGui::eInlineRenameResult result= MkGui::drawInlineRenameField(m_rename, "##rename_" + rowId);
+		if (result == MkGui::eInlineRenameResult::committed)
+		{
+			// The same path as the property row: one recorded transaction
+			const std::string newName= m_rename.buffer;
+			MikanComponentPtr component= node->component.lock();
+			if (component && newName != component->getName())
+			{
+				addDeferredGuiEvent([component, newName]() { component->setName(newName); });
+			}
+		}
 	}
-
-	// The unparented tray is the one row that is not selectable
-	const bool bIsSelectable= node->componentId != INVALID_MIKAN_ID || bIsSyntheticSelectable;
-	if (bIsSelectable && ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
+	else
 	{
-		ProjectOutlinerNodePtr clickedNode= node;
-		addDeferredGuiEvent([this, clickedNode]() { setSelectedNode(clickedNode, true); });
-	}
+		if (bIsSelected && m_bScrollToSelection)
+		{
+			ImGui::SetScrollHereY(0.5f);
+			m_bScrollToSelection= false;
+		}
 
-	handleNodeDragDrop(node);
+		// The unparented tray is the one row that is not selectable
+		const bool bIsSelectable= bIsComponentRow || bIsSyntheticSelectable;
+		if (bIsSelectable && ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
+		{
+			ProjectOutlinerNodePtr clickedNode= node;
+			addDeferredGuiEvent([this, clickedNode]() { setSelectedNode(clickedNode, true); });
+		}
+
+		// A second click on the selected row, released in place, starts the rename
+		if (bIsComponentRow
+			&& MkGui::isRenameClickOnSelectedItem(bIsSelected, node->componentId, m_renamePressedComponentId))
+		{
+			beginRename(node->component.lock());
+		}
+
+		handleNodeDragDrop(node);
+	}
 
 	if (bOpen)
 	{
@@ -475,6 +564,32 @@ void GuiPanel_ProjectOutliner::handleDeleteShortcut()
 		if (canDeleteNode(selectedNode))
 			requestDeleteNode(selectedNode);
 	}
+}
+
+void GuiPanel_ProjectOutliner::handleRenameShortcut()
+{
+	// The outliner window has to be the focused one, so F2 in another panel
+	// of the main window does nothing here. Keyboard capture is not required:
+	// with no widget active ImGui does not claim the keyboard, and that is
+	// exactly when a row rename should start.
+	if (ImGui::IsAnyItemActive() || m_ownerAppStage->getCurrentModalDialog() != nullptr
+		|| !ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+		return;
+
+	if (ImGui::IsKeyPressed(ImGuiKey_F2, false))
+	{
+		ProjectOutlinerNodePtr selectedNode= getSelectedNode();
+		if (selectedNode)
+			beginRename(selectedNode->component.lock());
+	}
+}
+
+void GuiPanel_ProjectOutliner::beginRename(MikanComponentPtr component)
+{
+	// The field starts from the component's own name rather than the row's
+	// display text, which substitutes a placeholder for an empty name
+	if (component)
+		m_rename.begin(component->getComponentId(), component->getName());
 }
 
 void GuiPanel_ProjectOutliner::onDeleteSelectionRequested()

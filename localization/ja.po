@@ -650,10 +650,10 @@ msgid "Material Asset"
 msgstr "マテリアルアセット"
 
 #. Section: assets
-#, fuzzy
-msgctxt "assets.newMaterial"
-msgid "New Material"
-msgstr "新規マテリアル"
+#, c-format
+msgctxt "assets.newAssetFmt"
+msgid "New %s"
+msgstr ""
 
 #. Section: assets
 #, fuzzy
@@ -2136,6 +2136,11 @@ msgstr "削除"
 msgctxt "nodeEditor.details"
 msgid "Details"
 msgstr "詳細"
+
+#. Section: nodeEditor
+msgctxt "nodeEditor.disconnect"
+msgid "Disconnect"
+msgstr ""
 
 #. Section: nodeEditor
 #, fuzzy
@@ -3854,6 +3859,13 @@ msgid "znear=%.3f  zfar=%.1f m"
 msgstr "znear=%.3f  zfar=%.1f m"
 
 #. Section: projectSettings
+msgctxt "projectSettings.componentNamingTooltip"
+msgid ""
+"A new component is named <prefix>_<id>, for example CAM_1096.\n"
+"An empty prefix names it by its class instead, for example CameraComponent_1096."
+msgstr ""
+
+#. Section: projectSettings
 #, fuzzy
 msgctxt "projectSettings.debugCameraAlignment"
 msgid "Debug Camera Alignment"
@@ -3976,6 +3988,11 @@ msgid "Render Quad Stencils"
 msgstr "クアッドステンシルを表示"
 
 #. Section: projectSettings
+msgctxt "projectSettings.resetComponentNamePrefixes"
+msgid "Reset to Defaults"
+msgstr ""
+
+#. Section: projectSettings
 #, fuzzy
 msgctxt "projectSettings.rulerSnapToGridByDefault"
 msgid "Ruler Snap To Grid By Default"
@@ -4026,6 +4043,11 @@ msgstr "スクリプトエディタコマンド"
 msgctxt "projectSettings.sectionAssets"
 msgid "Assets"
 msgstr "アセット"
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionComponentNaming"
+msgid "Component Naming"
+msgstr ""
 
 #. Section: projectSettings
 #, fuzzy
@@ -5464,3 +5486,8 @@ msgstr "シーン"
 msgctxt "windows.selectCamera"
 msgid "Select Camera"
 msgstr "カメラを選択"
+
+#, fuzzy
+#~ msgctxt "assets.newMaterial"
+#~ msgid "New Material"
+#~ msgstr "新規マテリアル"

@@ -8,6 +8,7 @@
 #include "AutomationProtocolTests.h"
 #include "AutomationVariantTextTests.h"
 #include "ClientApiPropertySchemaTests.h"
+#include "ComponentNamingTests.h"
 #include "DepthMeshGeneratorTests.h"
 #include "DMXPresetPersistenceTests.h"
 #include "DMXSequenceTests.h"
@@ -18,6 +19,7 @@
 #include "MaterialCompilerTests.h"
 #include "ModelGeometryPayloadTests.h"
 #include "NodeGraphHistoryTests.h"
+#include "NodeGraphPropertyNameTests.h"
 #include "NodeLinkDirectionTests.h"
 #include "PixelGridLayoutTests.h"
 #include "ProjectAssetCatalogTests.h"
@@ -45,6 +47,7 @@ bool run_all_editor_unit_tests()
 	success&= run_automation_protocol_tests();
 	success&= run_automation_variant_text_tests();
 	success&= run_client_api_property_schema_tests();
+	success&= run_component_naming_tests();
 	success&= run_depth_mesh_generator_unit_tests();
 	success&= run_dmx_preset_persistence_tests();
 	success&= run_dmx_sequence_tests();
@@ -55,6 +58,7 @@ bool run_all_editor_unit_tests()
 	success&= run_material_compiler_tests();
 	success&= run_model_geometry_payload_tests();
 	success&= run_node_graph_history_tests();
+	success&= run_node_graph_property_name_tests();
 	success&= run_node_link_direction_tests();
 	success&= run_pixel_grid_layout_tests();
 	success&= run_project_asset_catalog_tests();

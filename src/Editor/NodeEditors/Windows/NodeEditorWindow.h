@@ -8,6 +8,7 @@
 #include "NodeEditorState.h"
 
 #include "Graphs/GraphObjectSelection.h"
+#include "MkGuiDrawUtils.h"
 #include "Graphs/NodeError.h"
 #include "Graphs/NodeGraphHistory.h"
 #include "Graphs/NodeGraphLogWriter.h"
@@ -87,10 +88,6 @@ public:
 	// Ask the app to tear this window down at the end of the frame
 	void requestClose() { m_bCloseRequested= true; }
 
-	// The domain a material authored from this window's assets panel is
-	// compiled for. INVALID for graphs that consume no materials.
-	virtual eMaterialDomain getAuthoredMaterialDomain() const { return eMaterialDomain::INVALID; }
-
 	// -- IEditorWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
@@ -131,12 +128,8 @@ protected:
 	virtual void renderAssetsPanel();
 	virtual void renderSelectedObjectPanel();
 	void renderVariableNameField(GraphPropertyPtr property);
-
-	// The assets panel's New Material button: open or focus the material editor
-	// on a fresh graph for this window's authored domain, and add the written
-	// .mat to this graph once it is saved
-	void openNewMaterialEditor(eMaterialDomain domain);
-	void addMaterialAssetReference(const std::filesystem::path& materialPath);
+	// F2: the selected variable or page gets its inline rename field
+	void beginSelectedObjectRename();
 
 	virtual void deleteSelectedItem();
 
@@ -215,6 +208,15 @@ protected:
 
 	GraphObjectSelection m_objectSelection;
 
+	// Ctrl+drag link detach in flight: the pin the link was picked up from and
+	// the far pin the drag now hangs off. The link itself is in the editor state.
+	t_node_pin_id m_detachHeldPinId= -1;
+	t_node_pin_id m_detachAnchorPinId= -1;
+	void clearLinkDetach();
+
+	// The pin whose right-click menu is open
+	t_node_pin_id m_contextPinId= -1;
+
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
 
@@ -237,6 +239,14 @@ protected:
 	// Rename field state for the selected graph variable
 	char m_variableNameBuffer[256]= {};
 	t_graph_property_id m_variableNameBufferId= -1;
+	bool m_bVariableNameFieldActive= false;
+
+	// Inline rename of a Variables row and of a Pages row, with the row a
+	// rename click was pressed on
+	MkGui::InlineRenameState m_variableRename;
+	t_graph_property_id m_variableRenamePressedId= -1;
+	MkGui::InlineRenameState m_pageRename;
+	t_graph_page_id m_pageRenamePressedId= -1;
 
 	// Filter text of the create-node context menu, cleared each time it opens
 	char m_nodeSearchBuffer[64]= {};

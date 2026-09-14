@@ -297,6 +297,10 @@ void NodeEditorWindow::updateUI()
 			undo();
 		}
 	}
+	if (ImGui::IsKeyPressed(ImGuiKey_F2, false) && !ImGui::IsAnyItemActive())
+	{
+		beginSelectedObjectRename();
+	}
 	if (ImGui::IsKeyPressed(ImGuiKey_S, false) && io.KeyCtrl && !ImGui::IsAnyItemActive())
 	{
 		saveGraph(false);
@@ -393,6 +397,7 @@ void NodeEditorWindow::renderMainFrame()
 	// Interaction results gathered inside the canvas scope but acted on after
 	// it closes: popups and graph mutations stay out of the canvas transform
 	bool bOpenNodeMenu= false;
+	bool bOpenPinMenu= false;
 	bool bOpenLinkMenu= false;
 	bool bOpenBackgroundMenu= false;
 	struct PendingLinkCreate
@@ -472,9 +477,36 @@ void NodeEditorWindow::renderMainFrame()
 		// Calling it unconditionally therefore fires on every frame that is not
 		// mid-drag, which is nearly all of them. It went unnoticed because
 		// IM_ASSERT is assert(), so only a debug build trips it.
+		// Ctrl+press on a connected pin picks up that link's end: the editor is
+		// told to drag from the far pin, the link hides while carried, and the
+		// graph changes only on release (rewire on a pin, delete on the canvas).
+		// One link at a time: an input holds at most one, an output qualifies
+		// only while it holds exactly one.
+		if (nodeGraph && m_editorState.detachedLinkId == -1 && ImGui::GetIO().KeyCtrl
+			&& ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			const ed::PinId hoveredPinId= ed::GetHoveredPin();
+			NodePinPtr heldPin= hoveredPinId.Get() != 0
+									? nodeGraph->getPinById(MkCanvas::fromCanvasId((int)hoveredPinId.Get()))
+									: NodePinPtr();
+			if (heldPin && heldPin->getConnectedLinks().size() == 1)
+			{
+				NodeLinkPtr heldLink= heldPin->getConnectedLinks()[0];
+				NodePinPtr anchorPin= heldLink->getConnectedPin(heldPin);
+				if (anchorPin)
+				{
+					ed::SetLinkDragAnchor(MkCanvas::toCanvasId(anchorPin->getId()));
+					m_editorState.detachedLinkId= heldLink->getId();
+					m_detachHeldPinId= heldPin->getId();
+					m_detachAnchorPinId= anchorPin->getId();
+				}
+			}
+		}
+
 		const bool bCreateStarted= ed::BeginCreate();
 		if (bCreateStarted)
 		{
+			const bool bDetachInFlight= m_editorState.detachedLinkId != -1;
 			ed::PinId startPinId, endPinId;
 			ed::PinId hangPinId;
 			if (ed::QueryNewLink(&startPinId, &endPinId))
@@ -485,11 +517,26 @@ void NodeEditorWindow::renderMainFrame()
 
 				NodePinPtr startPin= nodeGraph ? nodeGraph->getPinById(startGraphPinId) : NodePinPtr();
 				NodePinPtr endPin= nodeGraph ? nodeGraph->getPinById(endGraphPinId) : NodePinPtr();
-				if (startPin && endPin && startPin->canPinsBeConnected(endPin))
+				if (bDetachInFlight && endGraphPinId == m_detachHeldPinId)
+				{
+					// Dropped back where it was picked up: the old link stays
+					if (ed::AcceptNewItem())
+					{
+						clearLinkDetach();
+					}
+				}
+				else if (startPin && endPin && startPin->canPinsBeConnected(endPin))
 				{
 					const ImVec4 previewColor= ImGui::ColorConvertU32ToFloat4(startPin->editorGetLinkStyleColor());
 					if (ed::AcceptNewItem(previewColor, 3.f))
 					{
+						// A rewire deletes the carried link and creates the new one
+						// in the same apply pass, so undo sees a single step
+						if (bDetachInFlight)
+						{
+							pendingLinkDeletes.push_back(m_editorState.detachedLinkId);
+							clearLinkDetach();
+						}
 						pendingLinkCreates.push_back({startGraphPinId, endGraphPinId});
 					}
 				}
@@ -502,7 +549,16 @@ void NodeEditorWindow::renderMainFrame()
 			{
 				m_editorState.startedLinkPinId= MkCanvas::fromCanvasId((int)hangPinId.Get());
 
-				if (ed::AcceptNewItem())
+				if (bDetachInFlight)
+				{
+					// A carried link released over the canvas is dropped, not re-homed
+					if (ed::AcceptNewItem())
+					{
+						pendingLinkDeletes.push_back(m_editorState.detachedLinkId);
+						clearLinkDetach();
+					}
+				}
+				else if (ed::AcceptNewItem())
 				{
 					// Link dropped on empty canvas: offer node creation there
 					m_editorState.bLinkHanged= true;
@@ -514,6 +570,13 @@ void NodeEditorWindow::renderMainFrame()
 		else if (!m_editorState.bLinkHanged)
 		{
 			m_editorState.startedLinkPinId= -1;
+
+			// A Ctrl+press that never became a drag, or a drag the editor
+			// cancelled, leaves the link as it was
+			if (m_editorState.detachedLinkId != -1 && !ImGui::IsMouseDown(ImGuiMouseButton_Left))
+			{
+				clearLinkDetach();
+			}
 		}
 
 		if (bCreateStarted)
@@ -583,6 +646,7 @@ void NodeEditorWindow::renderMainFrame()
 
 		// Context menu queries; popups open after the canvas closes
 		ed::NodeId contextNodeId;
+		ed::PinId contextPinId;
 		ed::LinkId contextLinkId;
 		if (ed::ShowNodeContextMenu(&contextNodeId))
 		{
@@ -590,6 +654,11 @@ void NodeEditorWindow::renderMainFrame()
 			m_objectSelection.setObjectId(0, MkCanvas::fromCanvasId((int)contextNodeId.Get()));
 			ed::SelectNode(contextNodeId);
 			bOpenNodeMenu= true;
+		}
+		else if (ed::ShowPinContextMenu(&contextPinId))
+		{
+			m_contextPinId= MkCanvas::fromCanvasId((int)contextPinId.Get());
+			bOpenPinMenu= true;
 		}
 		else if (ed::ShowLinkContextMenu(&contextLinkId))
 		{
@@ -620,17 +689,19 @@ void NodeEditorWindow::renderMainFrame()
 	// the drop target must attach before any other item renders
 	handleMainFrameDragDrop(m_editorState);
 
-	// Apply the gathered graph mutations
+	// Apply the gathered graph mutations. Deletes go first: a rewire that lands
+	// on an input pin would otherwise have the input's own single-link rule
+	// delete the carried link before the queued delete reaches it.
 	if (nodeGraph)
 	{
+		for (t_node_link_id linkId : pendingLinkDeletes)
+		{
+			nodeGraph->deleteLinkById(linkId);
+		}
 		for (const PendingLinkCreate& linkCreate : pendingLinkCreates)
 		{
 			m_editorState.startedLinkPinId= -1;
 			nodeGraph->createLink(linkCreate.startPinId, linkCreate.endPinId);
-		}
-		for (t_node_link_id linkId : pendingLinkDeletes)
-		{
-			nodeGraph->deleteLinkById(linkId);
 		}
 		for (t_node_id nodeId : pendingNodeDeletes)
 		{
@@ -645,6 +716,10 @@ void NodeEditorWindow::renderMainFrame()
 	if (bOpenNodeMenu)
 	{
 		ImGui::OpenPopup("editor_context_menu_node");
+	}
+	else if (bOpenPinMenu)
+	{
+		ImGui::OpenPopup("editor_context_menu_pin");
 	}
 	else if (bOpenLinkMenu)
 	{
@@ -736,34 +811,67 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 		}
 		else
 		{
-			MkGuiScopedPopup linkPopup("editor_context_menu_link");
-			if (linkPopup)
+			MkGuiScopedPopup pinPopup("editor_context_menu_pin");
+			if (pinPopup)
 			{
-				if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK
-					&& ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
+				NodePinPtr pin= getNodeGraph() ? getNodeGraph()->getPinById(m_contextPinId) : NodePinPtr();
+				if (pin)
 				{
-					getNodeGraph()->deleteLinkById(m_objectSelection.getObjectId(0));
+					// Disconnect drops every link on the pin; the pin kind may add its own items after it
+					if (ImGui::MenuItem(locLabel("nodeEditor.disconnect"), ICON_FK_CHAIN_BROKEN, false,
+										pin->hasAnyConnectedLinks()))
+					{
+						const std::vector<NodeLinkPtr> links= pin->getConnectedLinks();
+						for (const NodeLinkPtr& link : links)
+						{
+							getNodeGraph()->deleteLinkById(link->getId());
+						}
+					}
+					pin->editorRenderContextMenu(editorState);
+				}
+				else
+				{
+					ImGui::CloseCurrentPopup();
 				}
 			}
 			else
 			{
-				MkGuiScopedPopup nodesPopup("editor_context_menu_nodes");
-				if (nodesPopup)
+				MkGuiScopedPopup linkPopup("editor_context_menu_link");
+				if (linkPopup)
 				{
-					NodeGraphPtr nodeGraph= getNodeGraph();
-					if (nodeGraph)
+					if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK
+						&& ImGui::MenuItem(locLabel("nodeEditor.delete"), ICON_FK_TRASH, "DELETE"))
 					{
-						renderCreateNodeMenu(editorState);
+						getNodeGraph()->deleteLinkById(m_objectSelection.getObjectId(0));
 					}
 				}
-				else if (m_editorState.bLinkHanged)
+				else
 				{
-					m_editorState.bLinkHanged= false;
-					m_editorState.startedLinkPinId= -1;
+					MkGuiScopedPopup nodesPopup("editor_context_menu_nodes");
+					if (nodesPopup)
+					{
+						NodeGraphPtr nodeGraph= getNodeGraph();
+						if (nodeGraph)
+						{
+							renderCreateNodeMenu(editorState);
+						}
+					}
+					else if (m_editorState.bLinkHanged)
+					{
+						m_editorState.bLinkHanged= false;
+						m_editorState.startedLinkPinId= -1;
+					}
 				}
 			}
 		}
 	}
+}
+
+void NodeEditorWindow::clearLinkDetach()
+{
+	m_editorState.detachedLinkId= -1;
+	m_detachHeldPinId= -1;
+	m_detachAnchorPinId= -1;
 }
 
 void NodeEditorWindow::renderCreateNodeMenu(const NodeEditorState& editorState)
@@ -865,22 +973,34 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 			ImGui::TextColored(variconColor, "%s", varIcon.c_str());
 			ImGui::SameLine();
 
+			// A row being renamed shows the field in place of its label and takes
+			// no drag, drop, or context menu until the edit ends
+			if (m_variableRename.isEditing(propertyId))
+			{
+				const MkGui::eInlineRenameResult result= MkGui::drawInlineRenameField(
+					m_variableRename, StringUtils::stringify("##rename_property", std::to_string(propertyId)));
+				if (result == MkGui::eInlineRenameResult::committed)
+				{
+					getNodeGraph()->renameProperty(propertyId, m_variableRename.buffer);
+				}
+				continue;
+			}
+
 			const std::string varEntryName=
 				StringUtils::stringify(variable->getName(), "##property", std::to_string(propertyId));
 			bool isSelected= m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE;
 			isSelected= isSelected && (m_objectSelection.getObjectId(0) == variable->getId());
-			if (ImGui::Selectable(varEntryName.c_str(), &isSelected))
+			// A click on the selected row keeps it selected: released in place it
+			// starts the rename, dragged it carries the variable to the canvas
+			if (ImGui::Selectable(varEntryName.c_str(), isSelected))
 			{
 				clearCanvasSelection();
-				if (isSelected)
-				{
-					m_objectSelection= GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
-					m_objectSelection.setObjectId(0, variable->getId());
-				}
-				else
-				{
-					m_objectSelection.clear();
-				}
+				m_objectSelection= GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
+				m_objectSelection.setObjectId(0, variable->getId());
+			}
+			if (MkGui::isRenameClickOnSelectedItem(isSelected, propertyId, m_variableRenamePressedId))
+			{
+				m_variableRename.begin(propertyId, variable->getName());
 			}
 			{
 				MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
@@ -993,17 +1113,32 @@ void NodeEditorWindow::renderPagesPanel()
 	{
 		MkGuiScopedStyle selectionStyle(m_styleManager->getStyle("node_editor_variable_list"));
 
-		const auto renderPageRow= [&](t_graph_page_id pageId, const char* icon, const std::string& title)
+		const auto renderPageRow=
+			[&](GraphPagePtr page, t_graph_page_id pageId, const char* icon, const std::string& title)
 		{
 			const bool bIsRootPage= (pageId == NodeGraph::k_rootPageId);
 
 			ImGui::TextUnformatted(icon);
 			ImGui::SameLine();
 
+			// A row being renamed shows the field in place of its label. The page
+			// validates the name itself and a refused one leaves the old name.
+			if (page && m_pageRename.isEditing(pageId))
+			{
+				const MkGui::eInlineRenameResult result= MkGui::drawInlineRenameField(
+					m_pageRename, StringUtils::stringify("##rename_page", std::to_string(pageId)));
+				if (result == MkGui::eInlineRenameResult::committed)
+				{
+					page->editorRename(m_pageRename.buffer);
+				}
+				return;
+			}
+
 			// The current page draws selected; the row click also selects the
 			// page object so the Details panel shows its sheet
+			const bool bWasCurrent= m_editorState.currentPageId == pageId;
 			const std::string rowLabel= StringUtils::stringify(title, "##page", std::to_string(pageId));
-			if (ImGui::Selectable(rowLabel.c_str(), m_editorState.currentPageId == pageId))
+			if (ImGui::Selectable(rowLabel.c_str(), bWasCurrent))
 			{
 				setCurrentPage(pageId);
 				clearCanvasSelection();
@@ -1016,6 +1151,11 @@ void NodeEditorWindow::renderPagesPanel()
 					m_objectSelection= GraphObjectSelection(GraphObjectIdType::PAGE, 1);
 					m_objectSelection.setObjectId(0, pageId);
 				}
+			}
+			if (page && page->editorCanRename()
+				&& MkGui::isRenameClickOnSelectedItem(bWasCurrent, pageId, m_pageRenamePressedId))
+			{
+				m_pageRename.begin(pageId, page->getName());
 			}
 
 			if (!bIsRootPage)
@@ -1036,11 +1176,11 @@ void NodeEditorWindow::renderPagesPanel()
 			}
 		};
 
-		renderPageRow(NodeGraph::k_rootPageId, ICON_FK_HOME, locText("nodeEditor.rootPage"));
+		renderPageRow(GraphPagePtr(), NodeGraph::k_rootPageId, ICON_FK_HOME, locText("nodeEditor.rootPage"));
 		for (const auto& pageEntry : nodeGraph->getPages())
 		{
 			GraphPagePtr page= pageEntry.second;
-			renderPageRow(page->getId(), page->editorGetIcon(), page->editorGetTitle());
+			renderPageRow(page, page->getId(), page->editorGetIcon(), page->editorGetTitle());
 		}
 	}
 
@@ -1072,25 +1212,9 @@ void NodeEditorWindow::renderAssetsPanel()
 
 	MkGuiScopedChild assetSubFrame("AssetSubFrame");
 
-	ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 1));
-
-	// Assets are imported from the project's Assets panel. Materials can also be
-	// authored in place for graphs that consume them.
-	const eMaterialDomain authoredDomain= getAuthoredMaterialDomain();
-	if (authoredDomain != eMaterialDomain::INVALID)
-	{
-		if (ImGui::SmallButton(locLabel("assets.newMaterial")))
-		{
-			openNewMaterialEditor(authoredDomain);
-		}
-		ImGui::SameLine();
-	}
-
-	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 18);
-	ImGui::Separator();
-
 	// The project's assets of the types this graph accepts, drawn as drag sources
-	// for the canvas and the variables panel
+	// for the canvas and the variables panel. Assets are imported and authored
+	// from the project's Assets panel, so there is no toolbar here.
 	ProjectAssetCatalog* catalog= getAssetCatalog();
 	if (!nodeGraph || catalog == nullptr)
 	{
@@ -1142,6 +1266,12 @@ void NodeEditorWindow::renderAssetsPanel()
 		{
 			continue;
 		}
+
+		// One divider between folder groups (materials above textures), none above the first
+		if (bAnyEntryDrawn)
+		{
+			ImGui::Separator();
+		}
 		bAnyEntryDrawn= true;
 
 		if (folderDesc.bPreviewTiles)
@@ -1180,56 +1310,6 @@ void NodeEditorWindow::renderAssetsPanel()
 	}
 
 	ImGui::Dummy(ImVec2(1, 10));
-}
-
-void NodeEditorWindow::openNewMaterialEditor(eMaterialDomain domain)
-{
-	App* app= getOwnerApp();
-
-	// One material editor at a time, brought forward when it already exists
-	MaterialNodeEditorWindow* materialWindow= app->getWindowOfType<MaterialNodeEditorWindow>();
-	if (materialWindow != nullptr)
-	{
-		materialWindow->getMkWindowContext()->raiseWindow();
-	}
-	else
-	{
-		materialWindow= app->createAppWindow<MaterialNodeEditorWindow>();
-	}
-
-	if (materialWindow == nullptr)
-	{
-		return;
-	}
-
-	materialWindow->newMaterialGraph(domain);
-
-	// The material window outlives any one requesting window, so the callback
-	// checks this window is still open before touching its graph
-	NodeEditorWindow* requestingWindow= this;
-	materialWindow->setOnMaterialSaved(
-		[requestingWindow](const std::filesystem::path& materialPath)
-		{
-			const std::vector<EditorWindow*>& openWindows= App::getInstance()->getAppWindows();
-			if (std::find(openWindows.begin(), openWindows.end(), requestingWindow) == openWindows.end())
-			{
-				return;
-			}
-
-			requestingWindow->addMaterialAssetReference(materialPath);
-		});
-}
-
-void NodeEditorWindow::addMaterialAssetReference(const std::filesystem::path& materialPath)
-{
-	NodeGraphPtr nodeGraph= getNodeGraph();
-	if (!nodeGraph)
-	{
-		return;
-	}
-
-	// Saving the same material again keeps the existing reference rather than duplicating it
-	nodeGraph->findOrAddAssetReference(getMaterialAssetClassName(getAuthoredMaterialDomain()), materialPath);
 }
 
 void NodeEditorWindow::renderSelectedObjectPanel()
@@ -1275,9 +1355,11 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 
 void NodeEditorWindow::renderVariableNameField(GraphPropertyPtr property)
 {
-	// Refill the edit buffer when the selection moves to a different variable,
+	// Refill the edit buffer when the selection moves to a different variable
+	// or the name changed elsewhere (the inline rename, automation, undo),
 	// leaving in-progress typing alone otherwise
-	if (m_variableNameBufferId != property->getId())
+	const bool bNameChangedOutside= !m_bVariableNameFieldActive && property->getName() != m_variableNameBuffer;
+	if (m_variableNameBufferId != property->getId() || bNameChangedOutside)
 	{
 		m_variableNameBufferId= property->getId();
 		strncpy(m_variableNameBuffer, property->getName().c_str(), sizeof(m_variableNameBuffer) - 1);
@@ -1297,15 +1379,37 @@ void NodeEditorWindow::renderVariableNameField(GraphPropertyPtr property)
 									   ? std::string()
 									   : typedName.substr(firstIndex, lastIndex - firstIndex + 1);
 
-		if (!newName.empty())
-		{
-			property->setName(newName);
-			property->notifyPropertyModified();
-		}
+		// The graph keeps the name unique, so an all-space or duplicate entry
+		// lands as nothing or as a suffixed name
+		getNodeGraph()->renameProperty(property->getId(), newName);
 
-		// Reflect whatever the property actually kept (an all-space entry is dropped)
+		// Reflect whatever the property actually kept
 		strncpy(m_variableNameBuffer, property->getName().c_str(), sizeof(m_variableNameBuffer) - 1);
 		m_variableNameBuffer[sizeof(m_variableNameBuffer) - 1]= '\0';
+	}
+	m_bVariableNameFieldActive= ImGui::IsItemActive();
+}
+
+void NodeEditorWindow::beginSelectedObjectRename()
+{
+	NodeGraphPtr nodeGraph= getNodeGraph();
+	if (!nodeGraph || m_objectSelection.getObjectCount() < 1)
+		return;
+
+	if (m_objectSelection.getObjectIdType() == GraphObjectIdType::VARIABLE)
+	{
+		if (GraphPropertyPtr property= nodeGraph->getPropertyById(m_objectSelection.getObjectId(0)))
+		{
+			m_variableRename.begin(property->getId(), property->getName());
+		}
+	}
+	else if (m_objectSelection.getObjectIdType() == GraphObjectIdType::PAGE)
+	{
+		GraphPagePtr page= nodeGraph->getPageById(m_objectSelection.getObjectId(0));
+		if (page && page->editorCanRename())
+		{
+			m_pageRename.begin(page->getId(), page->getName());
+		}
 	}
 }
 
