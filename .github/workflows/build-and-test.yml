@@ -228,7 +228,6 @@ jobs:
             -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="%GITHUB_WORKSPACE%\build\bin" ^
             -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
-            -DCEF_DEBUG_INFO_FLAG=/Z7 ^
             -DCMAKE_UNITY_BUILD=ON
 
           if %ERRORLEVEL% NEQ 0 (
@@ -316,6 +315,38 @@ jobs:
             echo C++ unit tests failed
             exit /b 1
           )
+
+      # ---------------------------------------------------------------
+      # Crash the command-line tool on purpose and require the crash
+      # reporter's files. A nonzero exit is the expected outcome here:
+      # a zero exit means the crash never happened. The stack overflow
+      # kind is the one that needs the reporter's writer thread, so it
+      # runs too.
+      # ---------------------------------------------------------------
+      - name: Check crash reporter
+        shell: cmd
+        run: |
+          setlocal EnableDelayedExpansion
+          for %%K in (access stackoverflow) do (
+            if exist build\crash rmdir /s /q build\crash
+            build\bin\MikanCmd.exe -crash=%%K -crashReportDir=build\crash
+            set CRASH_EXIT=!ERRORLEVEL!
+            if !CRASH_EXIT! EQU 0 (
+              echo MikanCmd did not crash on kind %%K
+              exit /b 1
+            )
+            if not exist build\crash\*.dmp (
+              echo No minidump written for kind %%K, exit code !CRASH_EXIT!
+              if exist build\crash dir build\crash
+              exit /b 1
+            )
+            if not exist build\crash\*.txt (
+              echo No crash summary written for kind %%K
+              exit /b 1
+            )
+            type build\crash\*.txt
+          )
+          exit /b 0
 
       # Upload test binaries and runtime DLLs for inspection.
       # Only upload on main branch pushes to avoid wasting storage on

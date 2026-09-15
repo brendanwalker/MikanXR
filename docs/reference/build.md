@@ -26,7 +26,7 @@ The DirectML package ships every architecture at roughly 350MB. The script keeps
 
 The model checkpoints those tools consume are not dependencies and `InitialSetup_x64.bat` does not fetch them. They live under a gitignored `models/` at the repo root and are produced by the Python tools in `tools/` (see [commands.md](./commands.md)).
 
-GStreamer is different: the script downloads runtime and devel MSIs (1.26.10 mingw x86_64) and installs them system-wide via `msiexec`. Setting the environment variable `SKIP_GSTREAMER=1` skips both MSIs (CI does this).
+GStreamer is different: the script downloads runtime and devel MSIs (1.26.10 mingw x86_64) and installs them system-wide via `msiexec`. Setting the environment variable `SKIP_GSTREAMER=1` skips both MSIs (CI does this), and `GSTREAMER_ONLY=1` runs only the two MSI installs (the release workflow does this after restoring the cached `deps/`).
 
 Since the script wipes `build/` and `deps/`, rerun project generation afterwards.
 
@@ -74,11 +74,21 @@ Third-party source builds: `thirdparty/CMakeLists.txt` builds `fast_obj_lib`, `i
 
 - `LocalizationSync` / `LocalizationCheck`: wrappers around `tools/localization.py` (`cmake/Localization.cmake`), which regenerates the JSON string tables from the gettext catalogs. See [localization.md](./localization.md).
 
-- `CREATE_INSTALLER`: Inno Setup installer build (`cmake/Installer.cmake`); only created when Inno Setup is found. Uses `templates/installer_win64.iss.in`.
+- `CREATE_INSTALLER`: Inno Setup installer build (`cmake/Installer.cmake`); only created when `ISCC.exe` (Inno Setup 6) is found. Fills in `templates/installer_win64.iss.in` and writes `dist/Mikan_<version>_Win64_Setup.exe` from the `dist/Win64` payload.
 
-- `INSTALL`: installs exes, DLLs, bindings, and the bundled `resources/` tree into `dist/Win64`. The resources filter ships the graph, material, shader, and model sources as well as images, fonts, scripts, and ONNX models, since a project reads the bundled assets in place rather than owning copies.
+- `INSTALL`: installs exes, DLLs, bindings, and the bundled `resources/` tree into `dist/Win64`, and every executable and DLL PDB into `dist/symbols/Win64`. The resources filter ships the graph, material, shader, and model sources as well as images, fonts, scripts, and ONNX models, since a project reads the bundled assets in place rather than owning copies.
+
+- `PACKAGE_APP` / `PACKAGE_SYMBOLS` (`cmake/Symbols.cmake`): zip `dist/Win64` and `dist/symbols/Win64` into `dist/Mikan_<version>_Win64.zip` and `dist/Mikan_<version>_Win64_symbols.zip`. Both assume `INSTALL` has run.
 
 Output locations: under the VS generator, executables land in per-target config folders (`build\src\Editor\<Config>\Mikan.exe`, `build\src\Programs\Tests\UnitTests\<Config>\unit_test_suite_cpp.exe`). CI overrides this with `CMAKE_RUNTIME_OUTPUT_DIRECTORY=build\bin`.
+
+---
+
+## Symbols
+
+Release builds compile with `/Z7` and link with `/DEBUG:FULL /OPT:REF /OPT:ICF` (`cmake/Environment.cmake`), so every executable and DLL has a PDB while the optimized code stays what a plain Release link produces. The options are directory-scoped on purpose: `cmake/cef_variables.cmake` clears `CMAKE_CXX_FLAGS_RELEASE` under Ninja in the scope where `find_package(CEF)` runs, which would silently drop a flag set that way. `/Z7` rather than `/Zi` because sccache and unity builds need the debug info inside the object file; `thirdparty/CMakeLists.txt` forces `CEF_DEBUG_INFO_FLAG` to the same for `libcef_dll_wrapper`.
+
+`cmake/Symbols.cmake` walks the `src` target tree and installs the PDB of every executable, shared, and module library under `dist/symbols/Win64` (the type filter matters: `$<TARGET_PDB_FILE>` is a generate-time error for OBJECT, static, and utility targets). A crash minidump from a shipped build is only readable against that build's PDBs, which is why every release carries the symbols zip (see [debugging.md](./debugging.md)).
 
 ---
 
@@ -97,11 +107,12 @@ Output locations: under the VS generator, executables land in per-target config 
 -DMIKAN_WITH_GSTREAMER=OFF
 -DCMAKE_RUNTIME_OUTPUT_DIRECTORY=%GITHUB_WORKSPACE%\build\bin
 -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
--DCEF_DEBUG_INFO_FLAG=/Z7
 -DCMAKE_UNITY_BUILD=ON
 ```
 
-CI then builds `MikanCmd` and `unit_test_suite_cpp`, runs `build\bin\MikanCmd.exe -runTests` (dumping `MikanCmd.log` afterwards) and `build\bin\unit_test_suite_cpp.exe`, and uploads `build\bin` as an artifact on `main` pushes.
+CI then builds `MikanCmd` and `unit_test_suite_cpp`, runs `build\bin\MikanCmd.exe -runTests` (dumping `MikanCmd.log` afterwards) and `build\bin\unit_test_suite_cpp.exe`, crashes `MikanCmd` on purpose with `-crash=access` and requires the report files to appear, and uploads `build\bin` (PDBs included) as an artifact on `main` pushes.
+
+`.github/workflows/release.yml` runs on a `v*` tag push. It restores the same `deps/` cache, installs the GStreamer MSIs (`GSTREAMER_ONLY=1`) and a minimal CUDA toolkit (the `MikanARKitVideo` plugin builds under the GStreamer gate and includes `cuda.h`), checks the tag against `src/Editor/AppCore/Version.h`, configures like CI with `MIKAN_WITH_GSTREAMER=ON`, builds the `install` target, runs both suites and the crash check, then `PACKAGE_SYMBOLS`, `PACKAGE_APP`, and `CREATE_INSTALLER`, and drafts a GitHub release with the three assets. See [commands.md](./commands.md) for the tagging procedure.
 
 ---
 
