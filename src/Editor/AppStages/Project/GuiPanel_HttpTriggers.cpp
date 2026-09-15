@@ -18,11 +18,14 @@ bool GuiPanel_HttpTriggers::init(ProjectGuiPanelContext* context)
 void GuiPanel_HttpTriggers::onGui()
 {
 	// Server port (e.g. for Stream Deck style integrations). Changing it
-	// restarts the server, which re-registers every route.
+	// restarts the server, which re-registers every route. The edit commits on
+	// Enter rather than per keystroke, so typing 8100 does not restart the
+	// server on ports 8, 81 and 810 on the way there.
 	{
 		AppSettingsConfigPtr appSettings= App::getInstance()->getAppSettings();
 		int httpPort= appSettings->getHttpServerPort();
-		if (ImGui::InputInt(locLabel("httpTriggers.serverPort"), &httpPort))
+		if (ImGui::InputInt(locLabel("httpTriggers.serverPort"), &httpPort, 1, 100,
+							ImGuiInputTextFlags_EnterReturnsTrue))
 		{
 			if (httpPort < 1)
 				httpPort= 1;
