@@ -142,13 +142,31 @@ jobs:
       # ---------------------------------------------------------------
       # The GStreamer MSI sets GSTREAMER_1_0_ROOT_MINGW_X86_64 as a
       # machine-level variable, which a process already running (this
-      # job) never sees. cmake/FindGStreamer.cmake reads exactly that
-      # variable, so export it by hand at the path the MSI installs to.
-      # Single quotes keep bash from eating the trailing backslash.
+      # job) never sees, but a fresh registry read does. Reading it
+      # back rather than hardcoding the install folder keeps this step
+      # right across GStreamer versions, and a missing value means the
+      # MSI never installed, which is reported with the candidate
+      # folders listed so the log says why.
+      # cmake/FindGStreamer.cmake reads exactly this variable.
       # ---------------------------------------------------------------
       - name: Export GStreamer root
-        shell: bash
-        run: echo 'GSTREAMER_1_0_ROOT_MINGW_X86_64=C:\gstreamer\1.0\mingw_x86_64\' >> $GITHUB_ENV
+        shell: cmd
+        run: |
+          set GST_ROOT=
+          for /f "tokens=2,*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v GSTREAMER_1_0_ROOT_MINGW_X86_64 2^>nul ^| findstr /i GSTREAMER') do set GST_ROOT=%%B
+          if not defined GST_ROOT (
+            echo The GStreamer MSI did not register GSTREAMER_1_0_ROOT_MINGW_X86_64, so it did not install
+            if exist C:\gstreamer dir /s /b /ad C:\gstreamer
+            if exist "C:\Program Files\gstreamer" dir /s /b /ad "C:\Program Files\gstreamer"
+            exit /b 1
+          )
+          echo GStreamer root: %GST_ROOT%
+          if not exist "%GST_ROOT%\lib\gstreamer-1.0.lib" (
+            echo gstreamer-1.0.lib is missing under %GST_ROOT%, the devel MSI did not install
+            dir "%GST_ROOT%"
+            exit /b 1
+          )
+          echo GSTREAMER_1_0_ROOT_MINGW_X86_64=%GST_ROOT%>> %GITHUB_ENV%
 
       # ---------------------------------------------------------------
       # MikanARKitVideo builds whenever GStreamer is on and includes the

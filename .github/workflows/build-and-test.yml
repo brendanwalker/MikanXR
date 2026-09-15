@@ -1,7 +1,10 @@
 name: Build and Test
 
+# Branch pushes only: a release tag push runs release.yml, which builds and tests
+# the same commit itself, so running this job on it too would only duplicate work.
 on:
   push:
+    branches: [ '**' ]
   pull_request:
     branches: [ main, master ]
 
