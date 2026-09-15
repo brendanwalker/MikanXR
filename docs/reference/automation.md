@@ -6,12 +6,21 @@ How to drive and inspect a running `Mikan.exe` over the automation server: a loo
 
 ## Enabling and port
 
-The server always starts with `Mikan.exe` and listens on 127.0.0.1 only. The default port is 21120 (clear of the websocket 8080, HTTP 8090, and Lua debugger 21110 ports).
+The server is off by default. The channel drives, inspects and scripts the editor, so any local process that reaches it owns the session, and a shipped editor has no reason to be listening. It binds 127.0.0.1 only. The default port is 21120 (clear of the websocket 8080, HTTP 8090, and Lua debugger 21110 ports).
 
-- The port persists in `AppSettingsConfig` under `automationServerPort`.
-- `-automationPort=<n>` on the command line overrides the setting.
-- `-noAutomationServer` skips starting the listener.
-- A failed bind logs an error and the editor runs on without the channel.
+- `automationServerEnabled` in `AppSettingsConfig` turns it on, and the Automation section of the project settings panel is the switch for it. Toggling there opens or closes the listener immediately, with no restart.
+
+- `-automationServer` on the command line turns it on for that launch without touching the setting, which is how a drive script gets a channel on a machine that leaves it off.
+
+- `-automationPort=<n>` overrides the port and implies `-automationServer`, since a port with nothing listening is a trap.
+
+- `-noAutomationServer` holds the listener closed for the whole session, overriding both the setting and the flags. The settings checkbox shows as disabled in that session rather than as a control that does nothing.
+
+- The port persists in `AppSettingsConfig` under `automationServerPort`. Editing it in the settings panel rebinds an open listener, and the edit commits on Enter rather than on each keystroke.
+
+- A failed bind logs an error and the editor runs on without the channel. The settings panel reports the listener state rather than the setting, so a failed bind and a `-automationPort` override are both visible there.
+
+The command namespaces register whether or not the listener opens, so the registry survives the listener being toggled off and on.
 
 ## Protocol
 
@@ -198,7 +207,7 @@ Relays debug traffic to and from the MikanARStreamer iPhone app ([videosources.m
 - `arkit status` replies whether the listener is enabled, its port, whether a phone is connected, and that phone's address, device name, and protocol version
 - `arkit send <text...>` sends one command line to the phone and replies with the phone's own reply
 
-The channel is off by default. Unlike this server it binds every interface, because its peer is a phone on the LAN, so it is opt-in: `arkitDebugChannelEnabled` in `AppSettingsConfig` (port `arkitDebugChannelPort`, default 21121), or `-arkitDebugChannel` on the command line with `-arkitDebugPort=<n>` to override the port. The `arkit` namespace registers either way, so `arkit status` still answers when the listener is off.
+The channel is off by default, like this server. It binds every interface rather than loopback only, because its peer is a phone on the LAN: `arkitDebugChannelEnabled` in `AppSettingsConfig` (port `arkitDebugChannelPort`, default 21121), or `-arkitDebugChannel` on the command line with `-arkitDebugPort=<n>` to override the port. The `arkit` namespace registers either way, so `arkit status` still answers when the listener is off.
 
 `arkit send` takes the raw rest of the line, so quoting reaches the phone verbatim. Its reply is parked until the phone answers rather than being answered immediately, and a phone that goes quiet fails the command after five seconds instead of leaving the client waiting. Only one command is in flight at a time. The command text is opaque to the editor: the phone owns its own vocabulary, so it can grow without an editor rebuild.
 
@@ -234,7 +243,7 @@ The phone must be unlocked for install, and ARKit still needs textured surroundi
 `tools/arkit_debug_stub.py` stands in for the phone, which is how the channel is tested without a device on the bench. It answers `ping`, `stats`, and `empty`, and deliberately ignores `silent` so the timeout path can be exercised.
 
 ```
-build/src/Editor/Release/Mikan.exe -arkitDebugChannel
+build/src/Editor/Release/Mikan.exe -automationServer -arkitDebugChannel
 python tools/arkit_debug_stub.py
 python tools/automate.py "arkit status" "arkit send ping" "log tail 20 info"
 ```
@@ -259,10 +268,10 @@ Three arguments run client-side instead of being sent:
 
 ## The drive and verify loop
 
-The standard way to verify an editor feature objectively: launch `Mikan.exe`, drive it with commands, then read state back rather than assuming behavior.
+The standard way to verify an editor feature objectively: launch `Mikan.exe` with the channel on, drive it with commands, then read state back rather than assuming behavior.
 
 ```
-./build/src/Editor/Release/Mikan.exe &
+./build/src/Editor/Release/Mikan.exe -automationServer &
 python tools/automate.py "app resume" "until:app info:stage Compositor" "screenshot compositor"
 python tools/automate.py "property get <system> <id> <name>" "log tail 20 error" "app quit"
 ```

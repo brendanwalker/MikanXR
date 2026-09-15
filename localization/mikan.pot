@@ -3301,6 +3301,39 @@ msgid "znear=%.3f  zfar=%.1f m"
 msgstr ""
 
 #. Section: projectSettings
+msgctxt "projectSettings.automationServer"
+msgid "Automation Server"
+msgstr ""
+
+#. Section: projectSettings
+#, c-format
+msgctxt "projectSettings.automationServerListeningFmt"
+msgid "Listening on 127.0.0.1:%d"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.automationServerLockedOffTooltip"
+msgid "This session was launched with -noAutomationServer, which holds the channel closed until the editor restarts."
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.automationServerNotListening"
+msgid "Not listening"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.automationServerPort"
+msgid "Automation Port"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.automationServerTooltip"
+msgid ""
+"Opens a loopback command channel that lets local tools drive, inspect and script this editor, including running Lua in process.\n"
+"Off (default): nothing is listening."
+msgstr ""
+
+#. Section: projectSettings
 msgctxt "projectSettings.componentNamingTooltip"
 msgid ""
 "A new component is named <prefix>_<id>, for example CAM_1096.\n"
@@ -3449,6 +3482,11 @@ msgstr ""
 #. Section: projectSettings
 msgctxt "projectSettings.sectionAssets"
 msgid "Assets"
+msgstr ""
+
+#. Section: projectSettings
+msgctxt "projectSettings.sectionAutomation"
+msgid "Automation"
 msgstr ""
 
 #. Section: projectSettings

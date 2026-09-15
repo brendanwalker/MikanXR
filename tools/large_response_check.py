@@ -5,7 +5,7 @@ Fetches a model stencil's render geometry over a raw websocket, then sends a sma
 same connection and requires an answer. A server that stops reading after the large response fails
 the second step while still streaming events, so the connection looks alive but answers nothing.
 
-    build\\src\\Editor\\Release\\Mikan.exe
+    build\\src\\Editor\\Release\\Mikan.exe -automationServer
     python tools/large_response_check.py
 
 The stencil is found through the automation server unless --stencil names one, so the loaded

@@ -257,16 +257,33 @@ bool MainWindow::startup()
 		}
 	}
 
-	if (success && !m_ownerApp->hasCommandLineFlag("noAutomationServer"))
+	if (success)
 	{
-		// Start the automation text command server (loopback only).
-		// A failed bind is logged and tolerated.
-		int automationPort= m_ownerApp->getAppSettings()->getAutomationServerPort();
-		const std::string portOverride= m_ownerApp->getCommandLineStringArg("automationPort");
-		if (!portOverride.empty())
-			automationPort= atoi(portOverride.c_str());
+		// The automation text command server (loopback only) can drive and
+		// script the editor, so it opens only when asked for: the app setting,
+		// -automationServer, or -automationPort, which implies the flag since a
+		// port with nothing listening is a trap. -noAutomationServer holds it
+		// closed for the session whatever the setting says.
+		// Its namespaces register either way, so the command registry survives
+		// the listener being toggled off and on from the settings panel.
+		m_automationServer->initialize(this);
 
-		m_automationServer->startup(this, (uint16_t)automationPort);
+		bool bAutomationEnabled= m_ownerApp->getAppSettings()->getAutomationServerEnabled();
+		if (m_ownerApp->hasCommandLineFlag("automationServer")
+			|| !m_ownerApp->getCommandLineStringArg("automationPort").empty())
+		{
+			bAutomationEnabled= true;
+		}
+		if (getIsAutomationServerLockedOff())
+		{
+			bAutomationEnabled= false;
+		}
+
+		if (bAutomationEnabled)
+		{
+			// A failed bind is logged and tolerated
+			m_automationServer->startListener(resolveAutomationServerPort());
+		}
 	}
 
 	if (success)
@@ -279,9 +296,9 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		// The ARKit debug channel binds every interface, so unlike the
-		// loopback-only automation server it is opt-in. Its `arkit` namespace
-		// registers either way, so `arkit status` can report that it is off.
+		// The ARKit debug channel binds every interface rather than loopback
+		// only, so it is opt-in as well. Its `arkit` namespace registers either
+		// way, so `arkit status` can report that it is off.
 		bool bARKitDebugEnabled= m_ownerApp->getAppSettings()->getARKitDebugChannelEnabled();
 		if (m_ownerApp->hasCommandLineFlag("arkitDebugChannel"))
 			bARKitDebugEnabled= true;
@@ -386,6 +403,50 @@ void MainWindow::update(float deltaSeconds)
 			appStage->update(deltaSeconds);
 		}
 	}
+}
+
+void MainWindow::setAutomationServerEnabled(bool bEnabled)
+{
+	assert(m_automationServer != nullptr);
+
+	if (getIsAutomationServerLockedOff())
+		return;
+
+	if (bEnabled)
+	{
+		if (!m_automationServer->isListening())
+		{
+			m_automationServer->startListener(resolveAutomationServerPort());
+		}
+	}
+	else
+	{
+		m_automationServer->stopListener();
+	}
+}
+
+void MainWindow::restartAutomationServerListener()
+{
+	assert(m_automationServer != nullptr);
+
+	if (m_automationServer->isListening())
+	{
+		m_automationServer->stopListener();
+		m_automationServer->startListener(resolveAutomationServerPort());
+	}
+}
+
+bool MainWindow::getIsAutomationServerLockedOff() const { return m_ownerApp->hasCommandLineFlag("noAutomationServer"); }
+
+uint16_t MainWindow::resolveAutomationServerPort() const
+{
+	int port= m_ownerApp->getAppSettings()->getAutomationServerPort();
+
+	const std::string portOverride= m_ownerApp->getCommandLineStringArg("automationPort");
+	if (!portOverride.empty())
+		port= atoi(portOverride.c_str());
+
+	return (uint16_t)port;
 }
 
 void MainWindow::requestOpenProject(const std::filesystem::path& projectFilePath)

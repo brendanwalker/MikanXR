@@ -9,6 +9,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -46,6 +47,15 @@ public:
 	virtual class IMkFontManager* getFontManager() const override { return m_fontManager.get(); }
 	class AutomationServer* getAutomationServer() const { return m_automationServer; }
 
+	// The automation channel can drive and script the editor, so it is opt-in
+	// (AppSettingsConfig, or -automationServer / -automationPort on the command
+	// line). These apply a settings change without a restart.
+	void setAutomationServerEnabled(bool bEnabled);
+	void restartAutomationServerListener();
+	// True when -noAutomationServer was passed, which holds the channel closed
+	// for the whole session no matter what the setting says
+	bool getIsAutomationServerLockedOff() const;
+
 	virtual AppStage* getCurrentAppStage() const override;
 	virtual AppStage* getParentAppStage() const override;
 	virtual AppStage* pushAppStage(const std::string& appStageName) override;
@@ -73,6 +83,9 @@ public:
 
 private:
 	void processPendingProjectRequest();
+	// The -automationPort override wins over the setting, so a toggle rebinds
+	// the port the launch asked for rather than the stored one
+	uint16_t resolveAutomationServerPort() const;
 
 private:
 	// Mikan API Server

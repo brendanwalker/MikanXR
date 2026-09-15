@@ -2,12 +2,14 @@
 #include "App.h"
 #include "AppSettingsConfig.h"
 #include "AppStage.h"
+#include "AutomationServer.h"
 #include "ComponentNaming.h"
 #include "EditorObjectSystem.h"
 #include "IEditorWindow.h"
 #include "ProjectAssetCatalog.h"
 #include "LocText.h"
 #include "LocalizationManager.h"
+#include "MainWindow.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -311,6 +313,76 @@ void GuiPanel_ProjectSettings::onGui()
 		{
 			const std::string newCmd(editorBuf);
 			addDeferredGuiEvent([appSettings, newCmd]() { appSettings->setScriptEditorCommand(newCmd); });
+		}
+	}
+
+	// -- Automation ----
+	if (MkGui::drawPropertySheetHeader(m_defaultGuiStyle, locText("projectSettings.sectionAutomation")))
+	{
+		// The loopback command channel that test scripts and AI tooling drive
+		// the editor through. Off by default, and toggling it opens or closes
+		// the listener without a restart.
+		auto appSettings= App::getInstance()->getAppSettings();
+		MainWindow* mainWindow= App::getInstance()->getMainWindow();
+		AutomationServer* automationServer= mainWindow ? mainWindow->getAutomationServer() : nullptr;
+		const bool bLockedOff= mainWindow != nullptr && mainWindow->getIsAutomationServerLockedOff();
+
+		ImGui::BeginDisabled(bLockedOff);
+
+		bool bAutomationEnabled= appSettings->getAutomationServerEnabled();
+		if (ImGui::Checkbox(locLabel("projectSettings.automationServer"), &bAutomationEnabled))
+		{
+			addDeferredGuiEvent(
+				[appSettings, mainWindow, bAutomationEnabled]()
+				{
+					appSettings->setAutomationServerEnabled(bAutomationEnabled);
+					if (mainWindow != nullptr)
+					{
+						mainWindow->setAutomationServerEnabled(bAutomationEnabled);
+					}
+				});
+		}
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::SetTooltip("%s", locText(bLockedOff ? "projectSettings.automationServerLockedOffTooltip"
+													   : "projectSettings.automationServerTooltip"));
+		}
+
+		// Changing the port rebinds an open listener. The edit commits on Enter
+		// rather than per keystroke, so typing 21200 does not bind its way
+		// through ports 2, 21, 212 and 2120 on the way there.
+		int automationPort= appSettings->getAutomationServerPort();
+		if (ImGui::InputInt(locLabel("projectSettings.automationServerPort"), &automationPort, 1, 100,
+							ImGuiInputTextFlags_EnterReturnsTrue))
+		{
+			if (automationPort < 1)
+				automationPort= 1;
+			if (automationPort > 65535)
+				automationPort= 65535;
+
+			addDeferredGuiEvent(
+				[appSettings, mainWindow, automationPort]()
+				{
+					appSettings->setAutomationServerPort(automationPort);
+					if (mainWindow != nullptr)
+					{
+						mainWindow->restartAutomationServerListener();
+					}
+				});
+		}
+
+		ImGui::EndDisabled();
+
+		// The listener state rather than the setting, so a failed bind and a
+		// -automationPort override are both visible
+		if (automationServer != nullptr && automationServer->isListening())
+		{
+			ImGui::Text(locText("projectSettings.automationServerListeningFmt"),
+						(int)automationServer->getListenPort());
+		}
+		else
+		{
+			ImGui::TextUnformatted(locText("projectSettings.automationServerNotListening"));
 		}
 	}
 

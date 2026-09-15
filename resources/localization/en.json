@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 911,
-		"translatedCount": 911,
-		"reviewedCount": 911
+		"stringCount": 918,
+		"translatedCount": 918,
+		"reviewedCount": 918
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -704,6 +704,12 @@
 		"znearZfarFmt": "znear=%.3f  zfar=%.1f m"
 	},
 	"projectSettings": {
+		"automationServer": "Automation Server",
+		"automationServerListeningFmt": "Listening on 127.0.0.1:%d",
+		"automationServerLockedOffTooltip": "This session was launched with -noAutomationServer, which holds the channel closed until the editor restarts.",
+		"automationServerNotListening": "Not listening",
+		"automationServerPort": "Automation Port",
+		"automationServerTooltip": "Opens a loopback command channel that lets local tools drive, inspect and script this editor, including running Lua in process.\nOff (default): nothing is listening.",
 		"componentNamingTooltip": "A new component is named <prefix>_<id>, for example CAM_1096.\nAn empty prefix names it by its class instead, for example CameraComponent_1096.",
 		"debugCameraAlignment": "Debug Camera Alignment",
 		"debugCameraAlignmentTooltip": "Overlays the MR alignment chain: axes at stage origin / puck / aperture,\nand a window with live vs calibrated intrinsics, resolution, and offsets.",
@@ -732,6 +738,7 @@
 		"rulerUnits": "Ruler Units",
 		"scriptEditorCommand": "Script Editor Command",
 		"sectionAssets": "Assets",
+		"sectionAutomation": "Automation",
 		"sectionComponentNaming": "Component Naming",
 		"sectionDMX": "DMX",
 		"sectionLocalization": "Localization",

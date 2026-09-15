@@ -2,7 +2,7 @@
 	"_meta": {
 		"code": "ja",
 		"nativeName": "日本語",
-		"stringCount": 911,
+		"stringCount": 918,
 		"translatedCount": 901,
 		"reviewedCount": 0
 	},
@@ -704,6 +704,12 @@
 		"znearZfarFmt": "znear=%.3f  zfar=%.1f m"
 	},
 	"projectSettings": {
+		"automationServer": "Automation Server",
+		"automationServerListeningFmt": "Listening on 127.0.0.1:%d",
+		"automationServerLockedOffTooltip": "This session was launched with -noAutomationServer, which holds the channel closed until the editor restarts.",
+		"automationServerNotListening": "Not listening",
+		"automationServerPort": "Automation Port",
+		"automationServerTooltip": "Opens a loopback command channel that lets local tools drive, inspect and script this editor, including running Lua in process.\nOff (default): nothing is listening.",
 		"componentNamingTooltip": "A new component is named <prefix>_<id>, for example CAM_1096.\nAn empty prefix names it by its class instead, for example CameraComponent_1096.",
 		"debugCameraAlignment": "カメラアライメントのデバッグ",
 		"debugCameraAlignmentTooltip": "MRアライメントチェーンを表示します: ステージ原点 / パック / アパーチャの軸、\nおよびライブと校正済みの内部パラメータ、解像度、オフセットを示すウィンドウ。",
@@ -732,6 +738,7 @@
 		"rulerUnits": "ルーラー単位",
 		"scriptEditorCommand": "スクリプトエディタコマンド",
 		"sectionAssets": "アセット",
+		"sectionAutomation": "Automation",
 		"sectionComponentNaming": "Component Naming",
 		"sectionDMX": "DMX",
 		"sectionLocalization": "ローカライズ",

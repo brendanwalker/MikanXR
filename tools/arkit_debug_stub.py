@@ -7,7 +7,7 @@ protocol problem without a device on the bench.
 
 Run the editor with the channel enabled, then this stub, then drive it:
 
-    build/src/Editor/Release/Mikan.exe -arkitDebugChannel
+    build/src/Editor/Release/Mikan.exe -automationServer -arkitDebugChannel
     python tools/arkit_debug_stub.py
     python tools/automate.py "arkit status" "arkit send ping" "log tail 20 info"
 

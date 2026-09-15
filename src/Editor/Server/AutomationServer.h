@@ -33,9 +33,25 @@ public:
 	AutomationServer(const AutomationServer&)= delete;
 	AutomationServer& operator=(const AutomationServer&)= delete;
 
-	/// Open the loopback listener and register the built-in command namespaces.
+	/// Bind the server to the editor and register the built-in command
+	/// namespaces. Called once at startup whether or not the listener opens, so
+	/// the namespaces other subsystems register survive the listener being
+	/// toggled off and on again.
+	void initialize(class MainWindow* mainWindow);
+
+	/// Open the loopback listener.
 	/// @returns false if the listener socket could not open
-	bool startup(class MainWindow* mainWindow, uint16_t port);
+	bool startListener(uint16_t port);
+
+	/// Close the listener, leaving the command registry intact. A connected
+	/// client sees its connection close mid-conversation, so this is called
+	/// from the deferred gui event queue rather than from inside a handler.
+	void stopListener();
+
+	inline bool isListening() const { return m_socket != nullptr; }
+
+	/// The port the open listener bound, or 0 when it is closed.
+	inline uint16_t getListenPort() const { return m_socket != nullptr ? m_listenPort : 0; }
 
 	/// Service socket I/O and dispatch any received commands.
 	/// Called once per frame on the main thread, so handlers may call editor
@@ -121,6 +137,7 @@ private:
 
 	class MainWindow* m_mainWindow= nullptr;
 	std::unique_ptr<class AutomationSocket> m_socket;
+	uint16_t m_listenPort= 0;
 	std::map<std::string, CommandProvider> m_commandProviders;
 
 	// The raw line of the command currently dispatching, for handlers whose

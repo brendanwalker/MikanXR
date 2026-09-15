@@ -295,12 +295,15 @@ AutomationServer::AutomationServer()= default;
 
 AutomationServer::~AutomationServer() { shutdown(); }
 
-bool AutomationServer::startup(MainWindow* mainWindow, uint16_t port)
+void AutomationServer::initialize(MainWindow* mainWindow)
 {
 	m_mainWindow= mainWindow;
 
 	registerCoreNamespaces();
+}
 
+bool AutomationServer::startListener(uint16_t port)
+{
 	m_socket= std::make_unique<AutomationSocket>(port);
 	m_socket->onLineReceived= [this](const std::string& line) { handleCommandLine(line); };
 
@@ -312,8 +315,12 @@ bool AutomationServer::startup(MainWindow* mainWindow, uint16_t port)
 		return false;
 	}
 
+	m_listenPort= port;
+
 	return true;
 }
+
+void AutomationServer::stopListener() { m_socket= nullptr; }
 
 void AutomationServer::poll()
 {

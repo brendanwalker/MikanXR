@@ -33,6 +33,10 @@ public:
 	inline int getHttpServerPort() const { return m_httpServerPort; }
 	void setHttpServerPort(int port);
 
+	static const std::string k_automationServerEnabledPropertyId;
+	inline bool getAutomationServerEnabled() const { return m_bAutomationServerEnabled; }
+	void setAutomationServerEnabled(bool bEnabled);
+
 	static const std::string k_automationServerPortPropertyId;
 	inline int getAutomationServerPort() const { return m_automationServerPort; }
 	void setAutomationServerPort(int port);
@@ -64,14 +68,17 @@ protected:
 	std::filesystem::path m_lastProjectPath;
 	std::string m_appLanguage;
 	std::string m_scriptEditorCommand= "code --reuse-window";
-	int m_httpServerPort= 8090;        // mirrors HTTP_SERVER_PORT in HttpInterprocessMessageServer.h
+	int m_httpServerPort= 8090; // mirrors HTTP_SERVER_PORT in HttpInterprocessMessageServer.h
+	// The automation channel drives and scripts the editor, so any local process
+	// reaching it owns the session. It stays off until asked for.
+	bool m_bAutomationServerEnabled= false;
 	int m_automationServerPort= 21120; // loopback automation command channel
 	bool m_bSpoutLogEnabled= false;    // relays Spout's own logs into the editor log
 	// Developer switch: the bundled resources are read-only assets behind every
 	// project until this is on, when the editors save into them in place
 	bool m_bEditBundledResources= false;
-	// The ARKit debug channel binds every interface, unlike the loopback-only
-	// automation channel, so it stays off until asked for
+	// The ARKit debug channel binds every interface rather than loopback only,
+	// so it stays off until asked for
 	bool m_bARKitDebugChannelEnabled= false;
 	int m_arkitDebugChannelPort= 21121;
 	// Only the prefixes that differ from the built-in defaults, keyed by

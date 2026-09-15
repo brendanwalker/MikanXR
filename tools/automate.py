@@ -4,6 +4,9 @@
 Connects to the loopback automation port of a running Mikan.exe, sends each
 positional argument as one command, and prints each framed reply.
 
+The server is off by default. Launch the editor with -automationServer, or turn
+on Automation Server in the project settings panel.
+
     python tools/automate.py "app info"
     python tools/automate.py "app resume" sleep:1 "screenshot compositor"
     python tools/automate.py "until:app info:stage Compositor" "property get ..."
@@ -37,7 +40,11 @@ class AutomationClient:
                 break
             except OSError:
                 if time.monotonic() >= deadline:
-                    raise SystemExit(f"error: could not connect to 127.0.0.1:{port}")
+                    raise SystemExit(
+                        f"error: could not connect to 127.0.0.1:{port}\n"
+                        "the automation server is off by default: launch Mikan.exe with "
+                        "-automationServer, or turn it on in the project settings panel"
+                    )
                 time.sleep(CONNECT_RETRY_SECONDS)
         self.buffer = b""
 
@@ -48,7 +55,10 @@ class AutomationClient:
                 raise SystemExit("error: timed out waiting for a reply line")
             try:
                 chunk = self.sock.recv(4096)
-            except ConnectionResetError:
+            except TimeoutError:
+                raise SystemExit("error: timed out waiting for a reply line")
+            except OSError:
+                # A reset, or an abort when the editor closes the listener
                 raise SystemExit("error: server closed the connection")
             if not chunk:
                 raise SystemExit("error: server closed the connection")
