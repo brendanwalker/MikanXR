@@ -220,6 +220,11 @@ popd
 EXIT /B 0
 
 :: Downloads and runs both GStreamer MSIs. Called from the deps folder.
+:: msiexec is a GUI process, and launched plainly from a batch file in an
+:: unattended session it returns 0 at once without installing anything (the
+:: release runner did exactly that). start /wait blocks until the install is
+:: really done and passes its exit code through, /qn keeps it fully silent,
+:: and the verbose log names the reason when the exit code is not 0.
 :install_gstreamer
 echo "Downloading gstreamer-runtime installer"
 curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-mingw-x86_64-1.26.10.msi
@@ -227,9 +232,11 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading gstreamer-1.0-mingw-x86_64-1.26.10.msi"
   EXIT /B 1
 )
-msiexec /i gstreamer-1.0-mingw-x86_64-1.26.10.msi /qb
+echo "Installing gstreamer-runtime (silent, takes a minute or two)"
+start /wait "" msiexec /i gstreamer-1.0-mingw-x86_64-1.26.10.msi /qn /norestart /l*v gstreamer-runtime-install.log
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer-runtime installer"
+  echo "Error installing gstreamer-runtime installer, msiexec exit code %ERRORLEVEL%"
+  findstr /i "error return value" gstreamer-runtime-install.log
   EXIT /B 1
 )
 
@@ -239,9 +246,11 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi"
   EXIT /B 1
 )
-msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi /qb
+echo "Installing gstreamer-devel (silent, takes a minute or two)"
+start /wait "" msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi /qn /norestart /l*v gstreamer-devel-install.log
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer-devel installer"
+  echo "Error installing gstreamer-devel installer, msiexec exit code %ERRORLEVEL%"
+  findstr /i "error return value" gstreamer-devel-install.log
   EXIT /B 1
 )
 EXIT /B 0

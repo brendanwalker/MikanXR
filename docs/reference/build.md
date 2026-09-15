@@ -26,7 +26,7 @@ The DirectML package ships every architecture at roughly 350MB. The script keeps
 
 The model checkpoints those tools consume are not dependencies and `InitialSetup_x64.bat` does not fetch them. They live under a gitignored `models/` at the repo root and are produced by the Python tools in `tools/` (see [commands.md](./commands.md)).
 
-GStreamer is different: the script downloads runtime and devel MSIs (1.26.10 mingw x86_64) and installs them system-wide via `msiexec`. Setting the environment variable `SKIP_GSTREAMER=1` skips both MSIs (CI does this), and `GSTREAMER_ONLY=1` runs only the two MSI installs (the release workflow does this after restoring the cached `deps/`).
+GStreamer is different: the script downloads runtime and devel MSIs (1.26.10 mingw x86_64) and installs them system-wide via `msiexec`, silently (`/qn`) and under `start /wait`, because a plain `msiexec` call from a batch file in an unattended session returns at once without installing. Each install writes a `gstreamer-*-install.log` next to the MSI in `deps/`. Setting the environment variable `SKIP_GSTREAMER=1` skips both MSIs (CI does this), and `GSTREAMER_ONLY=1` runs only the two MSI installs (the release workflow does this after restoring the cached `deps/`).
 
 Since the script wipes `build/` and `deps/`, rerun project generation afterwards.
 
