@@ -175,11 +175,13 @@ jobs:
       # lib\x64\cuda.lib, which is everything cmake/ThirdParty.cmake
       # looks for. No nvcc, no runtime libraries, no driver. The action
       # writes CUDA_PATH to GITHUB_ENV itself.
+      # The plugin calls the four-argument cuCtxCreate that CUDA 13
+      # introduced, so a 12.x toolkit does not compile it.
       # ---------------------------------------------------------------
       - name: Install CUDA headers and driver import library
         uses: Jimver/cuda-toolkit@v0.2.36
         with:
-          cuda: '12.6.3'
+          cuda: '13.1.2'
           method: 'network'
           sub-packages: '["cudart"]'
 

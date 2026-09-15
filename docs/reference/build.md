@@ -44,7 +44,7 @@ Notable CMake options (defined in `cmake/ThirdParty.cmake` unless noted):
 
 - `CEF_ROOT`: defaults to the versioned folder under `deps/cef` if not given.
 
-- `CUDA_PATH` (environment, `iphone` branch only): when set with GStreamer enabled, locates CUDA Toolkit headers for the ARKit plugin's CUDA-GL interop.
+- `CUDA_PATH` (environment): when set with GStreamer enabled, locates the CUDA Toolkit headers and `cuda.lib` for the ARKit plugin's CUDA-GL interop. Toolkit 13 or newer: the plugin uses the four-argument `cuCtxCreate` that 13.0 introduced, so a 12.x toolkit fails to compile it. The release workflow installs 13.1.
 
 - `CLANG_FORMAT_EXE`: overrides clang-format discovery for the format targets.
 
