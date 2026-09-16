@@ -11,6 +11,27 @@
 
 using namespace WMFUtility;
 
+namespace
+{
+// The symbolic link an enumerated activate names, in the same form
+// WMFDeviceList stores it, or empty when the activate has none
+std::string readSymbolicLink(IMFActivate* activate)
+{
+	wchar_t* wszSymbolicLink= nullptr;
+	if (FAILED(activate->GetAllocatedString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_SYMBOLIC_LINK, &wszSymbolicLink,
+											NULL)))
+	{
+		return std::string();
+	}
+
+	char szSymbolicLink[512];
+	wcstombs(szSymbolicLink, wszSymbolicLink, (unsigned)_countof(szSymbolicLink));
+	CoTaskMemFree(wszSymbolicLink);
+
+	return std::string(szSymbolicLink);
+}
+} // namespace
+
 // -- MikanUsbVideoDevice -----
 MikanWMFVideoDevice::MikanWMFVideoDevice(MikanWMFVideoDeviceManager* ownerDeviceManager,
 										 const WMFDeviceInfo& deviceInfo)
@@ -22,9 +43,19 @@ MikanWMFVideoDevice::MikanWMFVideoDevice(MikanWMFVideoDeviceManager* ownerDevice
 MikanWMFVideoDevice::~MikanWMFVideoDevice() { close(); }
 
 // -- Device Listener
-void MikanWMFVideoDevice::addListener(IUsbVideoDeviceListener* listener) { m_listeners.insert(listener); }
+void MikanWMFVideoDevice::addListener(IUsbVideoDeviceListener* listener)
+{
+	std::lock_guard<std::mutex> lock(m_listenerMutex);
+	m_listeners.insert(listener);
+}
 
-void MikanWMFVideoDevice::removeListener(IUsbVideoDeviceListener* listener) { m_listeners.erase(listener); }
+// Takes the same lock the frame fan-out holds, so a listener removed here is
+// never entered by a frame that was already being delivered
+void MikanWMFVideoDevice::removeListener(IUsbVideoDeviceListener* listener)
+{
+	std::lock_guard<std::mutex> lock(m_listenerMutex);
+	m_listeners.erase(listener);
+}
 
 // -- Device Properties
 const char* MikanWMFVideoDevice::getDevicePath() const { return m_deviceInfo.deviceSymbolicLink.c_str(); }
@@ -57,58 +88,95 @@ bool MikanWMFVideoDevice::open()
 									 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
 		}
 
+		// The activate is found by its symbolic link rather than by the position
+		// the device held when the list was built: a camera plugged in or pulled
+		// since then shifts every later index, and the enumeration order carries
+		// no promise between calls.
+		const char* failedStage= "create attributes";
 		IMFActivate* deviceActivationInterface= nullptr;
 		if (SUCCEEDED(hr))
 		{
+			failedStage= "enumerate devices";
 			IMFActivate** ppDevices= nullptr;
-			UINT32 wmfDeviceCount;
+			UINT32 wmfDeviceCount= 0;
 			hr= MFEnumDeviceSources(pAttributes, &ppDevices, &wmfDeviceCount);
 
-			if (m_deviceInfo.wmfDeviceIndex >= 0 && m_deviceInfo.wmfDeviceIndex < (int)wmfDeviceCount)
+			if (SUCCEEDED(hr))
 			{
-				deviceActivationInterface= ppDevices[m_deviceInfo.wmfDeviceIndex];
-				deviceActivationInterface->AddRef();
-			}
+				for (UINT32 i= 0; i < wmfDeviceCount; i++)
+				{
+					if (deviceActivationInterface == nullptr
+						&& readSymbolicLink(ppDevices[i]) == m_deviceInfo.deviceSymbolicLink)
+					{
+						deviceActivationInterface= ppDevices[i];
+						deviceActivationInterface->AddRef();
+					}
 
-			for (UINT32 i= 0; i < wmfDeviceCount; i++)
-			{
-				MemoryUtils::safeRelease(&ppDevices[i]);
-			}
+					MemoryUtils::safeRelease(&ppDevices[i]);
+				}
 
-			MemoryUtils::safeReleaseAllCount(ppDevices);
+				// The array itself is task memory owned by the caller
+				CoTaskMemFree(ppDevices);
+
+				if (deviceActivationInterface == nullptr)
+				{
+					failedStage= "find device";
+					hr= MF_E_NOT_FOUND;
+				}
+			}
 		}
 
 		if (SUCCEEDED(hr))
 		{
+			failedStage= "activate media source";
 			hr= deviceActivationInterface->ActivateObject(__uuidof(IMFMediaSource), (void**)&m_mediaSource);
 		}
 
 		IMFPresentationDescriptor* pPD= nullptr;
 		if (SUCCEEDED(hr))
+		{
+			failedStage= "create presentation descriptor";
 			hr= m_mediaSource->CreatePresentationDescriptor(&pPD);
+		}
 
 		BOOL fSelected;
 		IMFStreamDescriptor* pSD= nullptr;
 		if (SUCCEEDED(hr))
+		{
+			failedStage= "get stream descriptor";
 			hr= pPD->GetStreamDescriptorByIndex(0, &fSelected, &pSD);
+		}
 
 		IMFMediaTypeHandler* pHandler= nullptr;
 		if (SUCCEEDED(hr))
+		{
+			failedStage= "get media type handler";
 			hr= pSD->GetMediaTypeHandler(&pHandler);
+		}
 
 		DWORD cTypes= 0;
 		if (SUCCEEDED(hr))
+		{
+			failedStage= "get media type count";
 			hr= pHandler->GetMediaTypeCount(&cTypes);
+		}
 
 		IMFMediaType* pType= nullptr;
 		if (SUCCEEDED(hr))
+		{
+			failedStage= "get media type";
 			hr= pHandler->GetMediaTypeByIndex((DWORD)m_currentVideoModeIndex, &pType);
-
-		if (SUCCEEDED(hr))
-			hr= pHandler->SetCurrentMediaType(pType);
+		}
 
 		if (SUCCEEDED(hr))
 		{
+			failedStage= "set media type";
+			hr= pHandler->SetCurrentMediaType(pType);
+		}
+
+		if (SUCCEEDED(hr))
+		{
+			failedStage= "init frame reader";
 			const WMFDeviceFormatInfo& deviceFormat= m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex];
 
 			m_videoFrameProcessor= new WMFVideoFrameProcessor(m_deviceInfo.wmfDeviceIndex, deviceFormat, this);
@@ -124,15 +192,18 @@ bool MikanWMFVideoDevice::open()
 			}
 		}
 
-		MemoryUtils::safeReleaseAllCount(&pPD);
+		MemoryUtils::safeRelease(&pPD);
 		MemoryUtils::safeRelease(&pSD);
 		MemoryUtils::safeRelease(&pHandler);
 		MemoryUtils::safeRelease(&pType);
-		MemoryUtils::safeReleaseAllCount(&deviceActivationInterface);
-		MemoryUtils::safeReleaseAllCount(&pAttributes);
+		MemoryUtils::safeRelease(&deviceActivationInterface);
+		MemoryUtils::safeRelease(&pAttributes);
 
 		if (!SUCCEEDED(hr))
 		{
+			MIKAN_LOG_ERROR("MikanWMFVideoDevice::open")
+				<< "Failed to open " << m_deviceInfo.deviceFriendlyName << " (" << m_deviceInfo.deviceSymbolicLink
+				<< ") at stage '" << failedStage << "': " << getHresultMessage(hr);
 			close();
 		}
 	}
@@ -148,13 +219,21 @@ void MikanWMFVideoDevice::close()
 {
 	if (m_videoFrameProcessor != nullptr)
 	{
-		delete m_videoFrameProcessor;
+		// Stopping waits for the reader's flush, so no callback is in flight by
+		// the time the reader is released. The processor is a COM object the
+		// reader also referenced, so it is released, never deleted.
+		m_videoFrameProcessor->stopVideoFrameStream();
+		m_videoFrameProcessor->dispose();
+		m_videoFrameProcessor->Release();
 		m_videoFrameProcessor= nullptr;
 	}
 
 	if (m_mediaSource != nullptr)
 	{
 		m_mediaSource->Stop();
+		// Shutdown is what actually frees the capture device, so the same camera
+		// can be opened again in this process
+		m_mediaSource->Shutdown();
 		MemoryUtils::safeRelease(&m_mediaSource);
 	}
 }
@@ -747,11 +826,18 @@ bool MikanWMFVideoDevice::getCameraControlRange(CameraControlProperty propId, Vi
 	return SUCCEEDED(hr);
 }
 
+// The main thread notifications walk a copy of the set, since a listener may
+// remove itself in response
 void MikanWMFVideoDevice::notifyVideoDeviceDisconnected()
 {
 	close();
 
-	for (auto listener : m_listeners)
+	std::set<IUsbVideoDeviceListener*> listeners;
+	{
+		std::lock_guard<std::mutex> lock(m_listenerMutex);
+		listeners= m_listeners;
+	}
+	for (auto listener : listeners)
 	{
 		listener->notifyVideoDeviceDisconnected(this);
 	}
@@ -759,7 +845,12 @@ void MikanWMFVideoDevice::notifyVideoDeviceDisconnected()
 
 void MikanWMFVideoDevice::notifyVideoModePropertiesChanged()
 {
-	for (auto listener : m_listeners)
+	std::set<IUsbVideoDeviceListener*> listeners;
+	{
+		std::lock_guard<std::mutex> lock(m_listenerMutex);
+		listeners= m_listeners;
+	}
+	for (auto listener : listeners)
 	{
 		listener->notifyVideoModePropertiesChanged(this);
 	}
@@ -767,6 +858,7 @@ void MikanWMFVideoDevice::notifyVideoModePropertiesChanged()
 
 void MikanWMFVideoDevice::notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo)
 {
+	std::lock_guard<std::mutex> lock(m_listenerMutex);
 	for (auto listener : m_listeners)
 	{
 		listener->notifyVideoFrameReceived(bufferInfo);

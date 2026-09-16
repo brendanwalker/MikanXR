@@ -76,10 +76,23 @@ void USBVideoSourceSystem::update(float deltaTime)
 		}
 	}
 
+	// Pumps the hotplug window, which lives on this thread from its first tick
+	if (m_usbVideoDeviceManager)
+	{
+		m_usbVideoDeviceManager->update(deltaTime);
+	}
+
 	Super::update(deltaTime);
 }
 
-void USBVideoSourceSystem::dispose()
+// The device manager and its plugin live for the process, not the project.
+// Disposing them with the project unloaded the DLL under a receive thread and
+// left the loader state at ready with no manager behind it, so the next project
+// could never open a camera. The components close their devices in
+// Super::dispose(); the manager waits for app shutdown.
+void USBVideoSourceSystem::dispose() { Super::dispose(); }
+
+USBVideoSourceSystem::~USBVideoSourceSystem()
 {
 	// If async init is still in-flight, block until it completes so we can safely clean up
 	if (m_usbVideoManagerFuture.valid())
@@ -89,7 +102,6 @@ void USBVideoSourceSystem::dispose()
 		m_usbVideoDeviceManager= result.manager;
 	}
 
-	Super::dispose();
 	disposeUsbVideoDeviceManager();
 }
 
@@ -329,6 +341,15 @@ void USBVideoSourceSystem::onConnectedDeviceListChanged()
 	if (OnVideoSourceListChanged)
 	{
 		OnVideoSourceListChanged();
+	}
+
+	// A source whose camera was unplugged closed itself; if the camera is back
+	// in the list, reopen it. A source whose camera is still missing bails out
+	// of openVideoSource without side effects.
+	for (const auto& [id, weakComp] : Super::getComponentMap())
+	{
+		if (auto comp= weakComp.lock(); comp && comp->getDevicePath().empty())
+			comp->openVideoSource();
 	}
 }
 

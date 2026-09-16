@@ -6,7 +6,7 @@ How to drive and inspect a running `Mikan.exe` over the automation server: a loo
 
 ## Enabling and port
 
-The server is off by default. The channel drives, inspects and scripts the editor, so any local process that reaches it owns the session, and a shipped editor has no reason to be listening. It binds 127.0.0.1 only. The default port is 21120 (clear of the websocket 8080, HTTP 8090, and Lua debugger 21110 ports).
+The server is off by default. The channel drives, inspects and scripts the editor, so any local process that reaches it owns the session, and a shipped editor has no reason to be listening. It binds 127.0.0.1 only. The default port is 21120 (clear of the websocket 8080, HTTP 8090, and Lua debugger 21110 ports). Of those, only the HTTP server can be opened to the LAN, by a setting in the HTTP Triggers panel, for the phone's capture upload.
 
 - `automationServerEnabled` in `AppSettingsConfig` turns it on, and the Automation section of the project settings panel is the switch for it. Toggling there opens or closes the listener immediately, with no restart.
 
@@ -54,6 +54,16 @@ Stage transitions land on the frame after the command that requested them, so a 
 - `restart` discards the samples and returns to `verifySetup`
 
 Reach the stage with `function invoke CameraObjectSystem <cameraId> align_camera`, which is what the editor's own Align Camera button calls.
+
+`VideoSourceSettings` records takes from the source it was opened on ([videosources.md](./videosources.md)):
+
+- `get_video_source_component_id` replies the source's component id
+- `record_start [marker]` starts a movie, `record_stop` finishes it
+- `capture_image [marker]` writes the next frame as a still
+- `get_recording_state` replies `state`, `frames`, `dropped`, `last` (the stored path of the last file written), `sidecar`, `sidecar_skip`, `backend`, and `error` lines
+- `return` pops the stage
+
+Reach it with `function invoke <VideoSourceSystem> <componentId> show_video_source_settings`, since `app push VideoSourceSettings` gives the stage no source.
 
 ### Scene introspection (system, component, property, function)
 
@@ -219,6 +229,19 @@ The commands the MikanARStreamer app answers today:
 - `stats` replies the capture, encode, drop, and send counters as `name value` lines
 - `verbose on|off` gates the per-frame encode-latency relay, which is off by default because one line per frame fills the 2000-line log ring in about a minute and evicts the editor's own diagnostics
 - `screenshot [name]` captures the app's own UI to a PNG in its container and replies with the path, pixel size, and byte count
+- `mode [photo|video|stream]` reads or sets the capture mode the phone's screen is in
+- `capture [marker]` writes the next frame as a JPEG with its one-frame pose track beside it, `marker` naming it as the marker reference for the last take, and replies with both container paths, the pixel size, and the byte count
+- `record start [marker]` begins recording an H.264 movie with its pose track, replying with the take name; `record stop` finishes it and replies with both paths, the frames written and dropped, and the duration; `record` alone reports whether one is in progress
+
+A take and its marker reference pulled off the phone drop straight into a project's `movies` folder as a file video source ([videosources.md](./videosources.md)):
+
+```
+python tools/automate.py "arkit send record start" "sleep:5" "arkit send record stop"
+python tools/automate.py "arkit send capture marker"
+xcrun devicectl device copy from --device <deviceId> \
+  --domain-type appDataContainer --domain-identifier com.mikan.ARStreamer \
+  --source Documents/take_20260915_120000.mp4 --destination ./movies/take_20260915_120000.mp4
+```
 
 The screenshot command exists because nothing else can see that screen. `devicectl` can copy files off a device but cannot capture one, and `simctl io screenshot` is simulator only, so the app takes the picture itself and leaves it where a copy can reach:
 

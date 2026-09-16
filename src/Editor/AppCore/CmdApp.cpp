@@ -16,6 +16,8 @@
 #include "DMXPresetPersistenceTests.h"
 #include "DMXSequenceTests.h"
 #include "DMXUniverseRLETests.h"
+#include "FileVideoSourceTests.h"
+#include "HttpServerTests.h"
 #include "LegacyContentMigrationTests.h"
 #include "LightEnvironmentPersistenceTests.h"
 #include "LocalizationTests.h"
@@ -29,6 +31,7 @@
 #include "PropertyNotificationGuardTests.h"
 #include "ScriptContextTests.h"
 #include "ScriptVariablePersistenceTests.h"
+#include "VideoRecordingTests.h"
 
 #include "Graphs/MaterialNodeGraph.h"
 #include "MaterialCompiler/GlslShaderWriter.h"
@@ -55,6 +58,8 @@ bool run_all_editor_unit_tests()
 	success&= run_dmx_preset_persistence_tests();
 	success&= run_dmx_sequence_tests();
 	success&= run_dmx_universe_rle_tests();
+	success&= run_file_video_source_tests();
+	success&= run_http_server_tests();
 	success&= run_legacy_content_migration_tests();
 	success&= run_light_environment_persistence_tests();
 	success&= run_localization_unit_tests();
@@ -68,6 +73,7 @@ bool run_all_editor_unit_tests()
 	success&= run_property_notification_guard_tests();
 	success&= run_script_context_tests();
 	success&= run_script_variable_persistence_tests();
+	success&= run_video_recording_tests();
 	// Future: add more test modules here
 	return success;
 }
