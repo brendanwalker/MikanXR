@@ -98,7 +98,7 @@ void GuiPanel_HttpTriggers::drawRouteTable()
 		// before the user names it
 		const ScriptHttpRouteTable& routes= scriptSystem->getTypedDefinitionConst()->getHttpRoutes();
 		ScriptHttpRoute newRoute;
-		int suffix= routes.getRouteCount() + 1;
+		size_t suffix= routes.getRouteCount() + 1;
 		do
 		{
 			newRoute.route= "route_" + std::to_string(suffix++);
