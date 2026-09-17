@@ -937,24 +937,28 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 void AppStage_Project::renderProjectStages(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	StageObjectSystemPtr stageObjectSystem= m_stageObjectSystem.lock();
+	if (!stageObjectSystem)
+		return;
+
+	// The camera and light meshes belong to the project rather than to any one
+	// stage, so they are submitted once no matter how many stages draw below
+	addAllRenderablesToMkScene(m_cameraObjectSystem.lock(), m_mkScene);
+	addAllRenderablesToMkScene(m_pixelGridLightSystem.lock(), m_mkScene);
+	addAllRenderablesToMkScene(m_spotLightSystem.lock(), m_mkScene);
+
+	// Light axes and labels; the additive cones come after the opaque pass
+	if (auto spotLightSystem= m_spotLightSystem.lock())
+		spotLightSystem->customRender(graphicsContext, viewportCamera);
+
+	// Pixel grid boxes are opaque and write depth, so they belong here
+	if (auto pixelGridSystem= m_pixelGridLightSystem.lock())
+		pixelGridSystem->customRender(graphicsContext, viewportCamera);
+
 	for (auto& [id, wp] : stageObjectSystem->getComponentMap())
 	{
 		StageComponentConstPtr stageComponent= wp.lock();
 		if (stageComponent)
 		{
-			// Render static meshes for cameras and light objects
-			addAllRenderablesToMkScene(m_cameraObjectSystem.lock(), m_mkScene);
-			addAllRenderablesToMkScene(m_pixelGridLightSystem.lock(), m_mkScene);
-			addAllRenderablesToMkScene(m_spotLightSystem.lock(), m_mkScene);
-
-			// Light axes and labels; the additive cones come after the opaque pass
-			if (auto spotLightSystem= m_spotLightSystem.lock())
-				spotLightSystem->customRender(graphicsContext, viewportCamera);
-
-			// Pixel grid boxes are opaque and write depth, so they belong here
-			if (auto pixelGridSystem= m_pixelGridLightSystem.lock())
-				pixelGridSystem->customRender(graphicsContext, viewportCamera);
-
 			// Draw all the environment lights in the stage
 			renderEnvironmentLightComponents(graphicsContext, viewportCamera, stageComponent);
 
