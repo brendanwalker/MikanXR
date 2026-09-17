@@ -169,14 +169,17 @@ jobs:
           echo GSTREAMER_1_0_ROOT_MINGW_X86_64=%GST_ROOT%>> %GITHUB_ENV%
 
       # ---------------------------------------------------------------
-      # MikanARKitVideo builds whenever GStreamer is on and includes the
-      # CUDA driver API headers directly, and links cuda.lib. Only the
-      # cudart sub-package is installed: it carries include\cuda.h and
-      # lib\x64\cuda.lib, which is everything cmake/ThirdParty.cmake
+      # MikanARKitVideo includes the CUDA driver API headers directly and
+      # links cuda.lib, so it builds only where a Toolkit is found
+      # (MIKAN_WITH_ARKIT_VIDEO in cmake/ThirdParty.cmake). That gate skips
+      # the plugin instead of failing, so without this step a release would
+      # quietly ship without it - the verify step below is what catches that.
+      # Only the cudart sub-package is installed: it carries include\cuda.h
+      # and lib\x64\cuda.lib, which is everything cmake/ThirdParty.cmake
       # looks for. No nvcc, no runtime libraries, no driver. The action
-      # writes CUDA_PATH to GITHUB_ENV itself.
-      # The plugin calls the four-argument cuCtxCreate that CUDA 13
-      # introduced, so a 12.x toolkit does not compile it.
+      # writes CUDA_PATH to GITHUB_ENV itself. The plugin calls the
+      # four-argument cuCtxCreate that CUDA 13 introduced, and the gate reads
+      # anything older as absent, so the version here must stay 13 or newer.
       # ---------------------------------------------------------------
       - name: Install CUDA headers and driver import library
         uses: Jimver/cuda-toolkit@v0.2.36

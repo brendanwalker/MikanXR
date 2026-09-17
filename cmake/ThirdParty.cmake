@@ -161,10 +161,32 @@ if(MIKAN_WITH_GSTREAMER)
     # MikanARKitVideo/CMakeLists.txt) - loaded via cuModuleLoadData at runtime,
     # not linked into any host translation unit.
     find_program(CUDA_NVCC_EXECUTABLE NAMES nvcc HINTS "$ENV{CUDA_PATH}/bin")
+
+    # cuCtxCreate grew a fourth argument in CUDA 13.0 and MikanARKitVideo calls that form,
+    # so an older Toolkit is treated as absent rather than left to fail mid-compile.
+    if(EXISTS "${CUDA_TOOLKIT_INCLUDE_DIR}/cuda.h")
+      file(STRINGS "${CUDA_TOOLKIT_INCLUDE_DIR}/cuda.h" CUDA_VERSION_LINE REGEX "^#define CUDA_VERSION ")
+      string(REGEX MATCH "[0-9]+" CUDA_TOOLKIT_VERSION "${CUDA_VERSION_LINE}")
+    endif()
+  endif()
+
+  # MikanARKitVideo needs the CUDA Toolkit on top of GStreamer. The Toolkit is a separate
+  # system install, so a machine can have GStreamer and not have it: the plugin and the CUDA
+  # half of the unit test suite then drop out and the rest of a GStreamer build is unaffected.
+  set(MIKAN_WITH_ARKIT_VIDEO OFF)
+  if(CUDA_TOOLKIT_VERSION AND CUDA_TOOLKIT_VERSION GREATER_EQUAL 13000 AND CUDA_DRIVER_LIBRARY)
+    set(MIKAN_WITH_ARKIT_VIDEO ON)
+    MESSAGE(STATUS "CUDA Toolkit ${CUDA_TOOLKIT_VERSION} found at $ENV{CUDA_PATH} - building MikanARKitVideo")
+  elseif(CUDA_TOOLKIT_VERSION)
+    MESSAGE(STATUS "CUDA Toolkit ${CUDA_TOOLKIT_VERSION} at $ENV{CUDA_PATH} is older than the 13000 MikanARKitVideo needs - skipping it")
+  else()
+    MESSAGE(STATUS "No CUDA Toolkit found (set CUDA_PATH) - skipping MikanARKitVideo")
   endif()
   find_package(GLIB2 REQUIRED)
   find_package(GObject REQUIRED)
   set(GSTREAMER_BIN_DIR ${GSTREAMER_ROOT}/bin)
+else()
+  set(MIKAN_WITH_ARKIT_VIDEO OFF)
 endif()
 
 # Nlohmann JSON

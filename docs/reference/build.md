@@ -28,6 +28,8 @@ The model checkpoints those tools consume are not dependencies and `InitialSetup
 
 GStreamer is different: the script downloads runtime and devel MSIs (1.26.10 mingw x86_64) and installs them system-wide via `msiexec`, silently (`/qn`) and under `start /wait`, because a plain `msiexec` call from a batch file in an unattended session returns at once without installing. Each install writes a `gstreamer-*-install.log` next to the MSI in `deps/`. An MSI whose product is already installed at that version is skipped, download included: run over an identical install, msiexec switches to maintenance mode, and the secure repair check there rejects the devel package's elevated custom action under `/qn` (error 1730, msiexec exit code 1603). Setting the environment variable `SKIP_GSTREAMER=1` skips both MSIs (CI does this), and `GSTREAMER_ONLY=1` runs only the two MSI installs (the release workflow does this after restoring the cached `deps/`).
 
+The CUDA Toolkit follows GStreamer in the script and is handled much the same way. The 10MB network installer downloads and runs as `-s cudart_<version>`, which fetches only the `include/cuda.h` and `lib/x64/cuda.lib` that `MikanARKitVideo` needs, no nvcc and no driver. `-s` is also how NVIDIA's license is accepted, and the install needs administrator rights. A Toolkit the build can already use, meaning 13.0 or newer at `CUDA_PATH`, is left alone: installing over a newer one would point `CUDA_PATH` back at the older release for every project on the machine. Because the installer writes `CUDA_PATH` machine-wide rather than into the shell that ran setup, project generation has to happen in a new shell or the plugin drops out of the build. `SKIP_CUDA=1` declines the Toolkit, and `SKIP_GSTREAMER=1` implies it, since `MikanARKitVideo` needs both.
+
 Since the script wipes `build/` and `deps/`, rerun project generation afterwards.
 
 The repo's batch files must keep CRLF line endings. `cmd` seeks by byte offset when it resolves `call :label`, and in an LF-only file the second call to a given label fails with "The system cannot find the batch label specified". `.gitattributes` normalizes them on checkout, so the trap is an editor or script that rewrites one with bare newlines.
@@ -40,13 +42,15 @@ The repo's batch files must keep CRLF line endings. `cmd` seeks by byte offset w
 
 Notable CMake options (defined in `cmake/ThirdParty.cmake` unless noted):
 
-- `MIKAN_WITH_GSTREAMER` (default `ON`): gates the GStreamer `find_package` calls and the `MikanGStreamerVideo` plugin (`src/Plugins/CMakeLists.txt`), plus GStreamer-dependent unit tests and the `MikanARKitVideo` plugin.
+- `MIKAN_WITH_GSTREAMER` (default `ON`): gates the GStreamer `find_package` calls, the `MikanGStreamerVideo` plugin (`src/Plugins/CMakeLists.txt`), and the GStreamer-dependent unit tests.
+
+- `MIKAN_WITH_ARKIT_VIDEO`: derived, not set by hand. On when `MIKAN_WITH_GSTREAMER` is on and a CUDA Toolkit of 13.0 or newer was found through `CUDA_PATH`. It gates the `MikanARKitVideo` plugin, the copies of its DLL next to `Mikan.exe` and the test executable, and the `CudaGLInterop` sources the unit test suite dual-compiles (`MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE`, which switches `arkit_cuda_gl_interop_unit_tests.cpp` to a skip stub). The remaining ARKit test modules build either way and report a skip when the plugin DLL cannot load. Configure prints which way it resolved.
 
 - `CMAKE_UNITY_BUILD`: on in both local and CI configurations; see the gotcha below.
 
 - `CEF_ROOT`: defaults to the versioned folder under `deps/cef` if not given.
 
-- `CUDA_PATH` (environment): when set with GStreamer enabled, locates the CUDA Toolkit headers and `cuda.lib` for the ARKit plugin's CUDA-GL interop. Toolkit 13 or newer: the plugin uses the four-argument `cuCtxCreate` that 13.0 introduced, so a 12.x toolkit fails to compile it. The release workflow installs 13.1.
+- `CUDA_PATH` (environment): when set with GStreamer enabled, locates the CUDA Toolkit headers and `cuda.lib` for the ARKit plugin's CUDA-GL interop. Toolkit 13 or newer: the plugin uses the four-argument `cuCtxCreate` that 13.0 introduced, so an older Toolkit is read as absent and `MIKAN_WITH_ARKIT_VIDEO` stays off rather than failing the compile. The version comes from `CUDA_VERSION` in the Toolkit's own `cuda.h`. The release workflow installs 13.1.
 
 - `CLANG_FORMAT_EXE`: overrides clang-format discovery for the format targets.
 
@@ -64,7 +68,7 @@ Third-party source builds: `thirdparty/CMakeLists.txt` builds `fast_obj_lib`, `i
 
 - Library targets: one per `src/Libraries` subdirectory, `SHARED` except `MikanDMX` and `MikanOnnx`, which are `STATIC` (see [layout.md](./layout.md)).
 
-- Plugin DLLs: `MikanWMFVideo`, `MikanSteamVR`, and (GStreamer builds only) `MikanGStreamerVideo` and `MikanARKitVideo`. Each is a `SHARED` library compiled with `CXX_VISIBILITY_PRESET hidden` and its own `*_EXPORTS` define, then copied next to `Mikan.exe` by the `copy_mikan_runtime_deps` post-build step in `src/Editor/CMakeLists.txt` (along with SDL2, OpenCV, GLEW, Spout2, CEF, Lua, Refureku, easy_profiler, ONNX Runtime, and DirectML runtime DLLs).
+- Plugin DLLs: `MikanWMFVideo`, `MikanSteamVR`, `MikanGStreamerVideo` (GStreamer builds only), and `MikanARKitVideo` (GStreamer plus CUDA builds only). Each is a `SHARED` library compiled with `CXX_VISIBILITY_PRESET hidden` and its own `*_EXPORTS` define, then copied next to `Mikan.exe` by the `copy_mikan_runtime_deps` post-build step in `src/Editor/CMakeLists.txt` (along with SDL2, OpenCV, GLEW, Spout2, CEF, Lua, Refureku, easy_profiler, ONNX Runtime, and DirectML runtime DLLs).
 
 - `MikanClientCodeGen`: bindings generator executable (`src/Programs/ClientCodeGen`).
 

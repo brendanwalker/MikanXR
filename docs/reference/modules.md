@@ -73,7 +73,7 @@ Each plugin is a `SHARED` DLL with hidden symbol visibility that links only low-
 
 - `MikanGStreamerVideo`: network video sources via GStreamer (core/app/base/video plus GLib/GObject). Implements `INetworkVideoDeviceModule`. Links `MikanCoreApp`, `MikanUtility`. Loaded by `NetworkVideoSourceSystem`. Only built when `MIKAN_WITH_GSTREAMER=ON` (off in CI).
 
-- `MikanARKitVideo`: iOS ARKit camera streaming (RTP over GStreamer, with a pose payload in the RTP stream). Uses GStreamer core/app/base/video/rtp/cuda, the CUDA Driver API (`Private/Cuda/CudaGLInterop` for CUDA-GL texture registration and plane copies), and GLEW. Implements `IARKitVideoDeviceModule`. Links `MikanCoreApp`, `MikanRenderer`, `MikanUtility`. Loaded by `ARKitVideoDeviceManagerLoader`. Only built when `MIKAN_WITH_GSTREAMER=ON`.
+- `MikanARKitVideo`: iOS ARKit camera streaming (RTP over GStreamer, with a pose payload in the RTP stream). Uses GStreamer core/app/base/video/rtp/cuda, the CUDA Driver API (`Private/Cuda/CudaGLInterop` for CUDA-GL texture registration and plane copies), and GLEW. Implements `IARKitVideoDeviceModule`. Links `MikanCoreApp`, `MikanRenderer`, `MikanUtility`. Loaded by `ARKitVideoDeviceManagerLoader`. Only built when `MIKAN_WITH_ARKIT_VIDEO` is on, which is `MIKAN_WITH_GSTREAMER=ON` plus an installed CUDA Toolkit ([build.md](./build.md)).
 
 - `MikanSteamVR`: VR tracker/HMD poses via OpenVR (`${OPENVR_LIBRARY}`). Implements `IVRDeviceModule`. Links `MikanCoreApp`, `MikanRenderer`, `MikanWindow`, `MikanUtility`. Loaded by `VRObjectSystem`.
 

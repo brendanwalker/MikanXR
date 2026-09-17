@@ -10,7 +10,11 @@ Handy commands for working in the MikanXR repo, all run from the repo root unles
 InitialSetup_x64.bat
 ```
 
-Downloads prebuilt dependencies into `deps/` (large download) and installs GStreamer system-wide via MSI. Warning: it deletes any existing `build/` and `deps/` first. Set `SKIP_GSTREAMER=1` in the environment to skip the GStreamer MSIs (then configure with `-DMIKAN_WITH_GSTREAMER=OFF`).
+Downloads prebuilt dependencies into `deps/` (large download) and installs GStreamer and the CUDA Toolkit's cudart package system-wide. Warning: it deletes any existing `build/` and `deps/` first. The CUDA installer needs administrator rights and writes `CUDA_PATH` machine-wide, so generate project files from a new shell afterwards. Environment variables it honors:
+
+- `SKIP_GSTREAMER=1` skips the GStreamer MSIs and the CUDA Toolkit (then configure with `-DMIKAN_WITH_GSTREAMER=OFF`)
+- `SKIP_CUDA=1` skips only the CUDA Toolkit, which drops the `MikanARKitVideo` plugin from the build
+- `GSTREAMER_ONLY=1` runs the GStreamer MSIs and nothing else
 
 ```
 git submodule update --init --recursive

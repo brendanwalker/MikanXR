@@ -26,8 +26,8 @@ list(APPEND UNIT_TEST_SRC
 # Driver API C++ - no GObject/GstMeta registration, so (unlike
 # ARKitRTPHeaderExtension.cpp above) it's safe to dual-compile into both this
 # executable and MikanARKitVideo.dll. Needs the CUDA Toolkit headers/driver lib,
-# which - like GStreamer's own CUDA support - are only available when
-# MIKAN_WITH_GSTREAMER is ON (see ThirdParty.cmake).
+# so it is gated on MIKAN_WITH_ARKIT_VIDEO, which is GStreamer plus a CUDA
+# Toolkit new enough for the plugin (see ThirdParty.cmake).
 # Additionally needs MikanRenderer (IMkTexture) and GLEW (GLuint/GL_TEXTURE_2D
 # types, required before cudaGL.h) - compiling it here proves it builds cleanly
 # against the real headers/libs on every run, even though its actual CUDA-GL
@@ -37,7 +37,7 @@ list(APPEND UNIT_TEST_SRC
 # gates that test file's actual test body (vs. a skip stub) on this block having
 # run - there's no PTX/kernel module to gate on anymore since "Phase 6" moved
 # NV12->RGBA conversion out of CUDA entirely.
-if(MIKAN_WITH_GSTREAMER)
+if(MIKAN_WITH_ARKIT_VIDEO)
   list(APPEND UNIT_TEST_SRC
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.h
     ${MIKAN_PLUGINS_DIR}/MikanARKitVideo/Private/Cuda/CudaGLInterop.cpp
@@ -95,7 +95,7 @@ target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_SERIALIZATION_REFL
 target_compile_definitions(unit_test_suite_cpp PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(unit_test_suite_cpp PRIVATE ENABLE_MIKANAPI_REFLECTION)
-if(MIKAN_WITH_GSTREAMER)
+if(MIKAN_WITH_ARKIT_VIDEO)
   target_compile_definitions(unit_test_suite_cpp PRIVATE MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE)
 endif()
 SET_TARGET_PROPERTIES(unit_test_suite_cpp PROPERTIES FOLDER Test)
@@ -115,7 +115,7 @@ add_dependencies(unit_test_suite_cpp MikanMath)
 add_dependencies(unit_test_suite_cpp MikanSerialization)
 add_dependencies(unit_test_suite_cpp MikanSharedTexture)
 add_dependencies(unit_test_suite_cpp MikanUtility)
-if(MIKAN_WITH_GSTREAMER)
+if(MIKAN_WITH_ARKIT_VIDEO)
   add_dependencies(unit_test_suite_cpp MikanARKitVideo)
 endif()
 
@@ -175,7 +175,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	COMMAND ${CMAKE_COMMAND} -E copy
 	"${RFK_SHARED_LIBRARIES}"
 	$<TARGET_FILE_DIR:unit_test_suite_cpp>)
-  if(MIKAN_WITH_GSTREAMER)
+  if(MIKAN_WITH_ARKIT_VIDEO)
     add_custom_command(
 	  TARGET unit_test_suite_cpp POST_BUILD
 	  COMMAND ${CMAKE_COMMAND} -E copy

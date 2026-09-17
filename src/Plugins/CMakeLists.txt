@@ -2,6 +2,9 @@
 if(MIKAN_WITH_GSTREAMER)
   MESSAGE(STATUS "Stepping into MikanGStreamerVideo")
   add_subdirectory(MikanGStreamerVideo)
+endif()
+# MikanARKitVideo additionally needs the CUDA Toolkit - see cmake/ThirdParty.cmake.
+if(MIKAN_WITH_ARKIT_VIDEO)
   MESSAGE(STATUS "Stepping into MikanARKitVideo")
   add_subdirectory(MikanARKitVideo)
 endif()

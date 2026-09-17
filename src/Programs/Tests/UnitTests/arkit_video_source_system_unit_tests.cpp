@@ -260,17 +260,15 @@ static bool arkit_video_source_system_test_full_open_close_cycle_via_loaded_plug
 
 	ARKitVideoDeviceManagerLoader system;
 
-	const bool ready= pollUntil(system,
-								[&]
-								{
-									return system.getARKitVideoManagerState()
-										   == ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::ready;
-								});
-	if (!ready)
+	// Polls to a terminal state rather than to "ready" specifically: when the plugin
+	// DLL is absent (a build without the CUDA Toolkit) or GStreamer is not installed,
+	// the load fails outright, and waiting for a "ready" that cannot arrive would just
+	// burn the timeout.
+	pollUntil(system, [&] { return isTerminalState(system.getARKitVideoManagerState()); });
+	if (system.getARKitVideoManagerState() != ARKitVideoDeviceManagerLoader::eARKitVideoManagerState::ready)
 	{
-		// GStreamer isn't installed on whatever machine ran this - the plugin
-		// genuinely cannot load, so there's no manager to exercise an open/close
-		// cycle against. Not a failure of this test; nothing further to verify.
+		// The plugin genuinely cannot load here, so there's no manager to exercise an
+		// open/close cycle against. Not a failure of this test; nothing further to verify.
 		UNIT_TEST_COMPLETE()
 	}
 

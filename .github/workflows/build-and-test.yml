@@ -159,7 +159,8 @@ jobs:
       # ---------------------------------------------------------------
       # Only fetch deps on a cache miss. SKIP_GSTREAMER=1 tells
       # InitialSetup_x64.bat to skip the GStreamer MSI downloads and
-      # installs — none of the test targets depend on GStreamer, and
+      # installs, and with them the CUDA Toolkit that only the ARKit
+      # plugin needs - none of the test targets depend on GStreamer, and
       # skipping it saves several hundred MB of download on first run.
       # ---------------------------------------------------------------
       - name: Fetch dependencies

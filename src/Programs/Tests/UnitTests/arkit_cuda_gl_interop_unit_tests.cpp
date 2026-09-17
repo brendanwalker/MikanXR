@@ -4,7 +4,8 @@
 #include "unit_test.h"
 
 // Same compile-time guard as before - this file needs CUDA (only available
-// when MIKAN_WITH_GSTREAMER is ON - see UnitTests/CMakeLists.txt, which defines
+// when MIKAN_WITH_ARKIT_VIDEO is ON, which is GStreamer plus an installed CUDA
+// Toolkit - see UnitTests/CMakeLists.txt, which defines
 // MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE for exactly this).
 #if defined(MIKAN_ARKIT_CUDA_GL_INTEROP_AVAILABLE)
 
@@ -264,7 +265,7 @@ bool run_arkit_cuda_gl_interop_unit_tests()
 bool run_arkit_cuda_gl_interop_unit_tests()
 {
 	fprintf(stdout, "[arkit_cuda_gl_interop]\n");
-	fprintf(stdout, "  skipped - built without MIKAN_WITH_GSTREAMER\n");
+	fprintf(stdout, "  skipped - built without the CUDA Toolkit\n");
 	return true;
 }
 
