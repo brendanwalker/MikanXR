@@ -30,8 +30,8 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 popd
-EXIT \B 0
+EXIT /B 0
 
 :failure
 pause
-EXIT \B 1
+EXIT /B 1
