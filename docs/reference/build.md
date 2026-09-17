@@ -26,9 +26,11 @@ The DirectML package ships every architecture at roughly 350MB. The script keeps
 
 The model checkpoints those tools consume are not dependencies and `InitialSetup_x64.bat` does not fetch them. They live under a gitignored `models/` at the repo root and are produced by the Python tools in `tools/` (see [commands.md](./commands.md)).
 
-GStreamer is different: the script downloads runtime and devel MSIs (1.26.10 mingw x86_64) and installs them system-wide via `msiexec`, silently (`/qn`) and under `start /wait`, because a plain `msiexec` call from a batch file in an unattended session returns at once without installing. Each install writes a `gstreamer-*-install.log` next to the MSI in `deps/`. Setting the environment variable `SKIP_GSTREAMER=1` skips both MSIs (CI does this), and `GSTREAMER_ONLY=1` runs only the two MSI installs (the release workflow does this after restoring the cached `deps/`).
+GStreamer is different: the script downloads runtime and devel MSIs (1.26.10 mingw x86_64) and installs them system-wide via `msiexec`, silently (`/qn`) and under `start /wait`, because a plain `msiexec` call from a batch file in an unattended session returns at once without installing. Each install writes a `gstreamer-*-install.log` next to the MSI in `deps/`. An MSI whose product is already installed at that version is skipped, download included: run over an identical install, msiexec switches to maintenance mode, and the secure repair check there rejects the devel package's elevated custom action under `/qn` (error 1730, msiexec exit code 1603). Setting the environment variable `SKIP_GSTREAMER=1` skips both MSIs (CI does this), and `GSTREAMER_ONLY=1` runs only the two MSI installs (the release workflow does this after restoring the cached `deps/`).
 
 Since the script wipes `build/` and `deps/`, rerun project generation afterwards.
+
+The repo's batch files must keep CRLF line endings. `cmd` seeks by byte offset when it resolves `call :label`, and in an LF-only file the second call to a given label fails with "The system cannot find the batch label specified". `.gitattributes` normalizes them on checkout, so the trap is an editor or script that rewrites one with bare newlines.
 
 ---
 

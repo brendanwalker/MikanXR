@@ -220,39 +220,52 @@ popd
 EXIT /B 0
 
 :: Downloads and runs both GStreamer MSIs. Called from the deps folder.
-:: msiexec is a GUI process, and launched plainly from a batch file in an
-:: unattended session it returns 0 at once without installing anything (the
-:: release runner did exactly that). start /wait blocks until the install is
-:: really done and passes its exit code through, /qn keeps it fully silent,
-:: and the verbose log names the reason when the exit code is not 0.
 :install_gstreamer
-echo "Downloading gstreamer-runtime installer"
-curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-mingw-x86_64-1.26.10.msi
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading gstreamer-1.0-mingw-x86_64-1.26.10.msi"
-  EXIT /B 1
-)
-echo "Installing gstreamer-runtime (silent, takes a minute or two)"
-start /wait "" msiexec /i gstreamer-1.0-mingw-x86_64-1.26.10.msi /qn /norestart /l*v gstreamer-runtime-install.log
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer-runtime installer, msiexec exit code %ERRORLEVEL%"
-  findstr /i "error return value" gstreamer-runtime-install.log
-  EXIT /B 1
-)
+set GSTREAMER_VERSION=1.26.10
+call :install_gstreamer_msi "GStreamer 1.0 (MinGW x86_64)" gstreamer-runtime gstreamer-1.0-mingw-x86_64-%GSTREAMER_VERSION%.msi
+IF ERRORLEVEL 1 EXIT /B 1
+call :install_gstreamer_msi "GStreamer 1.0 (Development Files) (MinGW x86_64)" gstreamer-devel gstreamer-1.0-devel-mingw-x86_64-%GSTREAMER_VERSION%.msi
+IF ERRORLEVEL 1 EXIT /B 1
+EXIT /B 0
 
-echo "Downloading gstreamer-devel installer"
-curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi
+:: Downloads and installs one GStreamer MSI: %1 is the installed product name to look for,
+:: %2 the label used in messages and in the log name, %3 the MSI file name. A product already
+:: installed at %GSTREAMER_VERSION% is left alone, because running the MSI over an identical
+:: install puts msiexec in maintenance mode, where the secure repair check rejects the devel
+:: package's elevated custom action under /qn (error 1730, msiexec exit code 1603).
+:: msiexec is a GUI process, and launched plainly from a batch file in an unattended session
+:: it returns 0 at once without installing anything (the release runner did exactly that).
+:: start /wait blocks until the install is really done and passes its exit code through, /qn
+:: keeps it fully silent, and the verbose log names the reason when the exit code is not 0.
+:install_gstreamer_msi
+call :query_installed_version %1
+if "%INSTALLED_VERSION%"=="%GSTREAMER_VERSION%" (
+  echo "%~2 %GSTREAMER_VERSION% is already installed, skipping"
+  EXIT /B 0
+)
+echo "Downloading %~2 installer"
+curl -L https://gstreamer.freedesktop.org/data/pkg/windows/%GSTREAMER_VERSION%/mingw/%~3 --output %~3
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi"
+  echo "Error downloading %~3"
   EXIT /B 1
 )
-echo "Installing gstreamer-devel (silent, takes a minute or two)"
-start /wait "" msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi /qn /norestart /l*v gstreamer-devel-install.log
+echo "Installing %~2 (silent, takes a minute or two)"
+start /wait "" msiexec /i %~3 /qn /norestart /l*v %~2-install.log
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer-devel installer, msiexec exit code %ERRORLEVEL%"
-  findstr /i "error return value" gstreamer-devel-install.log
+  echo "Error installing %~2 installer, msiexec exit code %ERRORLEVEL%"
+  findstr /i "error return value" %~2-install.log
   EXIT /B 1
 )
+EXIT /B 0
+
+:: Sets INSTALLED_VERSION to the version the product named %1 is installed at, or to
+:: nothing when no such product is installed.
+:query_installed_version
+set "INSTALLED_VERSION="
+set "PRODUCT_KEY="
+for /f "delims=" %%K in ('reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" /s /f "%~1" /d /e 2^>nul ^| findstr /b /c:"HKEY_"') do if not defined PRODUCT_KEY set "PRODUCT_KEY=%%K"
+if not defined PRODUCT_KEY EXIT /B 0
+for /f "tokens=2,*" %%A in ('reg query "%PRODUCT_KEY%" /v DisplayVersion 2^>nul ^| findstr /c:"DisplayVersion"') do set "INSTALLED_VERSION=%%B"
 EXIT /B 0
 
 :failure
