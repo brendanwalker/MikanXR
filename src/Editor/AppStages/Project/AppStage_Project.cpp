@@ -65,6 +65,7 @@
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
 #include "StageComponent.h"
+#include "StageObjectSystem.h"
 #include "TextStyle.h"
 #include "TrackingVolumeComponent.h"
 #include "VRTrackingVolumeComponent.h"
@@ -110,6 +111,7 @@ void AppStage_Project::enter()
 	ProjectManagerPtr objectSystemManager= m_ownerWindow->getProjectManager();
 	m_editorSystem= objectSystemManager->getSystemOfType<EditorObjectSystem>();
 	m_sceneObjectSystem= objectSystemManager->getSystemOfType<SceneObjectSystem>();
+	m_stageObjectSystem= objectSystemManager->getSystemOfType<StageObjectSystem>();
 	m_anchorObjectSystem= objectSystemManager->getSystemOfType<AnchorObjectSystem>();
 	m_cameraObjectSystem= objectSystemManager->getSystemOfType<CameraObjectSystem>();
 	m_markerObjectSystem= objectSystemManager->getSystemOfType<MarkerObjectSystem>();
@@ -831,7 +833,7 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		const EditorSettings& editorSettings= editorObjectSystem->getEditorSettings();
 
 		// Render the stage
-		renderProjectStage(graphicsContext, viewportCamera);
+		renderProjectStages(graphicsContext, viewportCamera);
 
 		// Render anchors if enabled
 		if (editorSettings.bDebugRenderAnchors)
@@ -932,35 +934,39 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 	}
 }
 
-void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+void AppStage_Project::renderProjectStages(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
-	StageComponentConstPtr stageComponent= getCurrentStageConst();
-	if (stageComponent)
+	StageObjectSystemPtr stageObjectSystem= m_stageObjectSystem.lock();
+	for (auto& [id, wp] : stageObjectSystem->getComponentMap())
 	{
-		// Render static meshes for cameras and light objects
-		addAllRenderablesToMkScene(m_cameraObjectSystem.lock(), m_mkScene);
-		addAllRenderablesToMkScene(m_pixelGridLightSystem.lock(), m_mkScene);
-		addAllRenderablesToMkScene(m_spotLightSystem.lock(), m_mkScene);
+		StageComponentConstPtr stageComponent= wp.lock();
+		if (stageComponent)
+		{
+			// Render static meshes for cameras and light objects
+			addAllRenderablesToMkScene(m_cameraObjectSystem.lock(), m_mkScene);
+			addAllRenderablesToMkScene(m_pixelGridLightSystem.lock(), m_mkScene);
+			addAllRenderablesToMkScene(m_spotLightSystem.lock(), m_mkScene);
 
-		// Light axes and labels; the additive cones come after the opaque pass
-		if (auto spotLightSystem= m_spotLightSystem.lock())
-			spotLightSystem->customRender(graphicsContext, viewportCamera);
+			// Light axes and labels; the additive cones come after the opaque pass
+			if (auto spotLightSystem= m_spotLightSystem.lock())
+				spotLightSystem->customRender(graphicsContext, viewportCamera);
 
-		// Pixel grid boxes are opaque and write depth, so they belong here
-		if (auto pixelGridSystem= m_pixelGridLightSystem.lock())
-			pixelGridSystem->customRender(graphicsContext, viewportCamera);
+			// Pixel grid boxes are opaque and write depth, so they belong here
+			if (auto pixelGridSystem= m_pixelGridLightSystem.lock())
+				pixelGridSystem->customRender(graphicsContext, viewportCamera);
 
-		// Draw all the environment lights in the stage
-		renderEnvironmentLightComponents(graphicsContext, viewportCamera, stageComponent);
+			// Draw all the environment lights in the stage
+			renderEnvironmentLightComponents(graphicsContext, viewportCamera, stageComponent);
 
-		// Draw the cameras on the stage
-		renderCameraComponents(graphicsContext, viewportCamera, stageComponent);
+			// Draw the cameras on the stage
+			renderCameraComponents(graphicsContext, viewportCamera, stageComponent);
 
-		// Draw the tracking volume for the stage
-		renderProjectTracking(graphicsContext, viewportCamera, stageComponent);
+			// Draw the tracking volume for the stage
+			renderProjectTracking(graphicsContext, viewportCamera, stageComponent);
 
-		// Draw the state bounds
-		stageComponent->renderStageBounds(graphicsContext, stageComponent->getWorldTransform());
+			// Draw the state bounds
+			stageComponent->renderStageBounds(graphicsContext, stageComponent->getWorldTransform());
+		}
 	}
 }
 

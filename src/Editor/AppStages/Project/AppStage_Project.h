@@ -62,7 +62,7 @@ protected:
 	// it however the depth buffer came out.
 	void renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
 							std::vector<ShapeComponentPtr>& outDeferredShapeGraphs) const;
-	void renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+	void renderProjectStages(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
 							   StageComponentConstPtr stageComponent) const;
 	void renderEnvironmentLightComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
@@ -116,6 +116,7 @@ protected:
 
 	EditorObjectSystemWeakPtr m_editorSystem;
 	SceneObjectSystemWeakPtr m_sceneObjectSystem;
+	StageObjectSystemWeakPtr m_stageObjectSystem;
 
 	// Systems with object that care about depending on active panel
 	AnchorObjectSystemWeakPtr m_anchorObjectSystem;
