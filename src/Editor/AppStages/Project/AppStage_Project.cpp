@@ -725,7 +725,7 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 		renderProjectScene(graphicsContext, viewportCamera, deferredShapeGraphs);
 		break;
 	case eProjectViewMode::tracking:
-		renderProjectTracking(graphicsContext, viewportCamera);
+		renderProjectTracking(graphicsContext, viewportCamera, StageComponentConstPtr());
 		break;
 	}
 
@@ -957,15 +957,18 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 		renderCameraComponents(graphicsContext, viewportCamera, stageComponent);
 
 		// Draw the tracking volume for the stage
-		renderProjectTracking(graphicsContext, viewportCamera);
+		renderProjectTracking(graphicsContext, viewportCamera, stageComponent);
 
 		// Draw the state bounds
-		stageComponent->renderStageBounds(graphicsContext, glm::mat4(1.f));
+		stageComponent->renderStageBounds(graphicsContext, stageComponent->getWorldTransform());
 	}
 }
 
-void AppStage_Project::renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+void AppStage_Project::renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+											 StageComponentConstPtr stageComponent) const
 {
+	glm::mat4 stageToWorldSpace= stageComponent ? stageComponent->getWorldTransform() : glm::mat4(1.f);
+
 	TrackingVolumeComponentConstPtr trackingVolume= getCurrentTrackingVolumeConst();
 	if (trackingVolume)
 	{
@@ -973,23 +976,27 @@ void AppStage_Project::renderProjectTracking(IMkGraphicsContext* graphicsContext
 		{
 		case eTrackingVolumeType::vr:
 			renderVRTrackingVolume(graphicsContext, viewportCamera,
-								   std::dynamic_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume));
+								   std::dynamic_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume),
+								   stageToWorldSpace);
 			break;
 		case eTrackingVolumeType::marker:
 			renderMarkerTrackingVolume(graphicsContext, viewportCamera,
-									   std::dynamic_pointer_cast<const MarkerTrackingVolumeComponent>(trackingVolume));
+									   std::dynamic_pointer_cast<const MarkerTrackingVolumeComponent>(trackingVolume),
+									   stageToWorldSpace);
 			break;
 		}
 	}
 }
 
 void AppStage_Project::renderVRTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
-											  VRTrackingVolumeComponentConstPtr vrTrackingVolume) const
+											  VRTrackingVolumeComponentConstPtr vrTrackingVolume,
+											  glm::mat4 stageToWorldSpace) const
 {
 	VRObjectSystemPtr vrObjectSystem= getObjectSystemOfType<VRObjectSystem>();
 
 	// Resolve VRSpace -> StageSpace offset from the VR tracking volume
 	glm::mat4 vrSpaceToStageSpace= vrTrackingVolume->getVRSpaceToStageSpace();
+	glm::mat4 vrSpaceToWorldSpace= glm_composite_xform(vrSpaceToStageSpace, stageToWorldSpace);
 
 	// Get the tracking volume origin marker (if it exists) so we can render it in the correct space
 	const MikanMarkerID originMarkerId= vrTrackingVolume->getOriginMarkerId();
@@ -1025,15 +1032,15 @@ void AppStage_Project::renderVRTrackingVolume(IMkGraphicsContext* graphicsContex
 		case MikanTrackingSpace_Stage:
 		{
 			// Render the VR devices in stage space
-			addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
+			addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToWorldSpace);
 
 			// Render the VR Device info in stage space
-			renderAllVRDeviceInfo(vrObjectSystem, graphicsContext, viewportCamera, vrSpaceToStageSpace);
+			renderAllVRDeviceInfo(vrObjectSystem, graphicsContext, viewportCamera, vrSpaceToWorldSpace);
 
 			// Render the origin marker as a textured quad at world origin
 			if (markerComp)
 			{
-				markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
+				markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageToWorldSpace);
 			}
 		}
 		break;
@@ -1042,18 +1049,19 @@ void AppStage_Project::renderVRTrackingVolume(IMkGraphicsContext* graphicsContex
 	else
 	{
 		// Render the VR devices in scene space
-		addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
+		addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToWorldSpace);
 
 		// Render the origin marker as a textured quad at world origin
 		if (markerComp)
 		{
-			markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
+			markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageToWorldSpace);
 		}
 	}
 }
 
 void AppStage_Project::renderMarkerTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
-												  MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const
+												  MarkerTrackingVolumeComponentConstPtr markerTrackingVolume,
+												  glm::mat4 stageToWorldSpace) const
 {
 	const MikanMarkerID originMarkerId= markerTrackingVolume->getOriginMarkerId();
 	if (originMarkerId != INVALID_MIKAN_ID)
@@ -1062,7 +1070,7 @@ void AppStage_Project::renderMarkerTrackingVolume(IMkGraphicsContext* graphicsCo
 		MarkerComponentPtr markerComp= markerSystem->getMarkerById(originMarkerId);
 		if (markerComp)
 		{
-			markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
+			markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageToWorldSpace);
 		}
 	}
 }
@@ -1120,8 +1128,9 @@ void AppStage_Project::renderCameraAlignmentDebug(IMkGraphicsContext* graphicsCo
 		if (!cameraComponent)
 			continue;
 
+		// World space: these axes are drawn into the world-space project viewport
 		glm::mat4 aperturePose(1.f);
-		if (!cameraComponent->getStageSpaceAperturePose(aperturePose))
+		if (!cameraComponent->getWorldSpaceAperturePose(aperturePose))
 			continue;
 
 		const glm::vec3 aperturePos= glm::vec3(aperturePose[3]);

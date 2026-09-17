@@ -190,9 +190,10 @@ void AppStage_PointCloudAlignment::setupTools()
 
 void AppStage_PointCloudAlignment::updateXRCamera()
 {
-	// Update the transform of the camera so that vr models align over the tracking puck
+	// Update the transform of the camera so that vr models align over the tracking puck.
+	// World space: the stencil this stage aligns carries a world transform.
 	glm::mat4 cameraPose;
-	if (m_cameraComponent->getStageSpaceAperturePose(cameraPose))
+	if (m_cameraComponent->getWorldSpaceAperturePose(cameraPose))
 	{
 		m_mkCamera->setCameraTransform(cameraPose);
 	}

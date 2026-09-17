@@ -52,7 +52,7 @@ The ML frame estimators cross the same boundary and have their own single point.
 
 ## Spherical harmonic environments do not transform like vectors
 
-A recovered lighting environment is a spherical function stored as 27 coefficients in Mikan world space, not a direction. Unreal's frame is a Y/Z swap away from Mikan's, and a swap is a handedness flip rather than a rotation, so the coefficients cannot be moved between the two frames at all. The consumer instead leaves them in Mikan space and evaluates the basis at the swapped direction. This is why `UMikanLightEnvironmentData::GetSHCoefficients` returns Mikan-space values while `GetKeyLightDirection` returns Unreal-space ones: a direction is a vector and converts directly, a spherical function does not. The editor's own probe sphere needs no swap for the same reason, but it must be drawn unrotated, since its shader treats object-space position as the world-space direction to evaluate along. See [scene-lighting.md](./scene-lighting.md).
+A recovered lighting environment is a spherical function stored as 27 coefficients in the stage space of the capturing camera's stage, not a direction. Unreal's frame is a Y/Z swap away from Mikan's, and a swap is a handedness flip rather than a rotation, so the coefficients cannot be moved between the two frames at all. The consumer instead leaves them in Mikan space and evaluates the basis at the swapped direction. This is why `UMikanLightEnvironmentData::GetSHCoefficients` returns Mikan-space values while `GetKeyLightDirection` returns Unreal-space ones: a direction is a vector and converts directly, a spherical function does not. The editor's own probe sphere needs no swap for the same reason, but it must be drawn unrotated, since its shader treats object-space position as the world-space direction to evaluate along. See [scene-lighting.md](./scene-lighting.md).
 
 ## Rotation representations
 
@@ -78,9 +78,20 @@ A recovered lighting environment is a spherical function stored as 27 coefficien
 
 - VR tracking space (SteamVR/OpenVR) is right handed, +Y up, meters, -Z forward: the same convention as Mikan world space. `vr_HmdMatrix34_to_glm_mat4` in `src/Plugins/MikanSteamVR/Private/MikanSteamVRMath.cpp` is therefore a pure row/column transpose with no axis flip.
 
-- Stage space is Mikan's calibrated world space. The VR-to-stage transform is stored per tracking volume: `VRTrackingVolumeComponent::getVRSpaceToStageSpace()` (`src/Editor/ECS/TrackingVolume/VRTrackingVolumeComponent.h`), set by the recenter flow (`AppStage_VRTrackingRecenter`). The single application point is `VRDevicePoseView::getPose` (`src/Editor/ECS/VRObject/VRDevicePoseView.cpp`): a pose view built with `eVRDevicePoseSpace::MikanTrackingVolumePose` composes the raw device pose with `vrSpaceToStageSpace`; `VRTrackingSystemPose` returns it raw.
+- Stage space is the calibrated frame a `StageComponent` establishes: the frame every calibration flow solves in and every tracked pose lands in. World space is the editor's root frame. They are distinct, and `StageComponent::getWorldTransform()` is the conversion between them. A project with one stage at the identity transform makes the two coincide, which is a coincidence and not a rule.
 
-- Camera poses for VR-tracked cameras chain: VR puck pose (`TrackingMountComponent` -> `VRDeviceComponent`) composed with the calibrated puck-to-aperture offset stored in `CameraDefinition` (`CameraComponent::updateAperturePoseFromTrackingMount`). That offset comes from `computeCameraPuckToApertureXform` (`CameraMath.cpp`), which also documents two physical-space quirks: the mat-puck offset measurement swaps Y and Z entering VR tracking space, and the calibration pattern is yawed 180 degrees relative to the mat puck's forward. `CameraComponent::getStageSpaceAperturePose` is the pose everything downstream (rendering, `computeOpenCVCameraExtrinsicMatrix`) consumes.
+- The VR-to-stage transform is stored per tracking volume: `VRTrackingVolumeComponent::getVRSpaceToStageSpace()` (`src/Editor/ECS/TrackingVolume/VRTrackingVolumeComponent.h`), set by the recenter flow (`AppStage_VRTrackingRecenter`). The single application point is `VRDevicePoseView::getPose` (`src/Editor/ECS/VRObject/VRDevicePoseView.cpp`): a pose view built with `eVRDevicePoseSpace::MikanTrackingVolumePose` composes the raw device pose with `vrSpaceToStageSpace`. `VRTrackingSystemPose` returns it raw.
+
+- Camera poses for VR-tracked cameras chain: VR puck pose (`TrackingMountComponent` -> `VRDeviceComponent`) composed with the calibrated puck-to-aperture offset stored in `CameraDefinition` (`CameraComponent::updateAperturePoseFromTrackingMount`). That offset comes from `computeCameraPuckToApertureXform` (`CameraMath.cpp`), which also documents two physical-space quirks: the mat-puck offset measurement swaps Y and Z entering VR tracking space, and the calibration pattern is yawed 180 degrees relative to the mat puck's forward. `CameraComponent::getStageSpaceAperturePose` is that chain's result, and `getWorldSpaceAperturePose` composes it with the owner stage's world transform.
+
+### Which aperture pose a caller wants
+
+A stage-space view matrix applied to world-space model matrices is the failure this split exists to prevent, so each consumer picks deliberately:
+
+- rendering takes world space: `getApertureViewMatrix` and `getApertureViewProjectionMatrix` are built on `getWorldSpaceAperturePose`, because every model matrix they multiply comes from `TransformComponent::getWorldTransform()`
+- calibration solves take world space, since their results are stored with `setWorldTransform` (`StencilAligner`, `AnchorTriangulator`, `LightFixtureTriangulator`, `NaturalFeatureCloudBuilder`, `AppStage_DepthMeshCapture`)
+- the recenter and camera-alignment stages take stage space, because they draw the stage origin at identity to verify the calibration they just solved
+- `MikanCameraNewFrameEvent` and the scene lighting estimate take stage space, because a client anchors what it renders at the stage ([wire-protocol.md](./wire-protocol.md))
 
 - Marker-based tracking volumes (`MarkerTrackingVolumeComponent`) anchor stage space to an ArUco origin marker (`TrackingVolumeDefinition::getOriginMarkerId`) instead of a VR-space offset.
 

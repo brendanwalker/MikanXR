@@ -63,15 +63,17 @@ protected:
 	void renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
 							std::vector<ShapeComponentPtr>& outDeferredShapeGraphs) const;
 	void renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
-	void renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+	void renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
+							   StageComponentConstPtr stageComponent) const;
 	void renderEnvironmentLightComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
 										  StageComponentConstPtr stageComponent) const;
 	void renderCameraComponents(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
 								StageComponentConstPtr stageComponent) const;
 	void renderVRTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
-								VRTrackingVolumeComponentConstPtr vrTrackingVolume) const;
+								VRTrackingVolumeComponentConstPtr vrTrackingVolume, glm::mat4 originMat) const;
 	void renderMarkerTrackingVolume(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
-									MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const;
+									MarkerTrackingVolumeComponentConstPtr markerTrackingVolume,
+									glm::mat4 originMat) const;
 
 	// Viewport view mode
 	void setViewMode(eProjectViewMode newViewMode);

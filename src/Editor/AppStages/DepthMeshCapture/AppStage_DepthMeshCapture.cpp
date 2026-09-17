@@ -637,7 +637,7 @@ bool AppStage_DepthMeshCapture::createStencilFromMesh()
 	// simply the capturing camera's pose. An untracked camera would place the
 	// proxy at a stale or default pose, so fail loudly instead.
 	glm::mat4 cameraPose(1.f);
-	if (!m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
+	if (!m_currentSceneCameraComponent->getWorldSpaceAperturePose(cameraPose))
 	{
 		m_capturePanel->setFailureReason(locText("depthMeshCapture.cameraPoseUnresolved"));
 		setMenuState(eDepthMeshCaptureMenuState::failedInference);

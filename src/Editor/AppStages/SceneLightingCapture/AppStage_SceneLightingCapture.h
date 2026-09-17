@@ -54,7 +54,7 @@ protected:
 	struct EstimateRequest
 	{
 		cv::Mat bgrFrame;
-		glm::mat3 cameraToWorldRotation= glm::mat3(1.f);
+		glm::mat3 cameraToStageRotation= glm::mat3(1.f);
 		float fovXDegrees= 0.f;
 	};
 

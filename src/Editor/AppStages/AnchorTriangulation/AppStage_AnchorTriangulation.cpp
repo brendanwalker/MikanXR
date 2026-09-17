@@ -142,9 +142,10 @@ void AppStage_AnchorTriangulation::exit()
 
 void AppStage_AnchorTriangulation::updateCameraTransform()
 {
-	// Update the transform of the camera so that vr models align over the tracking puck
+	// Update the transform of the camera so that vr models align over the tracking puck.
+	// World space: the triangulated anchor is stored with setWorldTransform.
 	glm::mat4 cameraPose;
-	if (m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
+	if (m_currentSceneCameraComponent->getWorldSpaceAperturePose(cameraPose))
 	{
 		m_mkCamera->setCameraTransform(cameraPose);
 	}

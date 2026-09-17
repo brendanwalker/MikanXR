@@ -362,7 +362,7 @@ void CameraComponent::updateAperturePoseFromTrackingMount()
 void CameraComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
 	CameraDefinitionPtr cameraDefinition= getCameraDefinition();
-	const glm::mat4 glmCameraXform= getRelativeTransform().getMat4();
+	const glm::mat4 glmCameraXform= getWorldTransform();
 	glm::vec3 cameraPos(glmCameraXform[3]);
 
 	// Draw the camera name at the camera position
@@ -600,6 +600,41 @@ bool CameraComponent::getStageSpaceAperturePose(glm::dmat4& outCameraPose) const
 	return false;
 }
 
+glm::mat4 CameraComponent::getStageToWorldTransform() const
+{
+	StageComponentConstPtr ownerStage= getOwnerStageComponent();
+
+	return ownerStage ? ownerStage->getWorldTransform() : glm::mat4(1.f);
+}
+
+bool CameraComponent::getWorldSpaceAperturePose(glm::mat4& outCameraPose) const
+{
+	glm::mat4 aperturePose_StageSpace;
+	if (!getStageSpaceAperturePose(aperturePose_StageSpace))
+	{
+		return false;
+	}
+
+	// Composed from the owner stage rather than read off getWorldTransform(): a
+	// tracking-mounted camera only writes its relative transform during update(),
+	// so the cached world transform is stale for anything that runs before it.
+	outCameraPose= glm_composite_xform(aperturePose_StageSpace, getStageToWorldTransform());
+
+	return true;
+}
+
+bool CameraComponent::getWorldSpaceAperturePose(glm::dmat4& outCameraPose) const
+{
+	glm::mat4 cameraPose;
+	if (getWorldSpaceAperturePose(cameraPose))
+	{
+		outCameraPose= glm::dmat4(cameraPose);
+		return true;
+	}
+
+	return false;
+}
+
 bool CameraComponent::getApertureProjectionMatrix(glm::mat4& outProjectionMatrix, bool bVerticalFlip) const
 {
 	VideoSourceComponentPtr videoSourceComponent= getVideoSourceComponent();
@@ -621,8 +656,10 @@ bool CameraComponent::getApertureProjectionMatrix(glm::mat4& outProjectionMatrix
 
 bool CameraComponent::getApertureViewMatrix(glm::mat4& outViewMatrix) const
 {
+	// World space, not stage space: every consumer of this view matrix pairs it with
+	// model matrices that come from TransformComponent::getWorldTransform().
 	glm::mat4 cameraPose;
-	if (getStageSpaceAperturePose(cameraPose))
+	if (getWorldSpaceAperturePose(cameraPose))
 	{
 		outViewMatrix= computeGLMCameraViewMatrix(cameraPose);
 		return true;
@@ -651,8 +688,12 @@ bool CameraComponent::makeNewCameraFrameEvent(int64_t frameIndex, int defaultWid
 	outNewFrameEvent.camera_id= getCameraId();
 	outNewFrameEvent.frame= frameIndex;
 
-	// Assign Camera Extrinsic values
-	const glm::mat4 cameraXform= getWorldTransform();
+	// Assign Camera Extrinsic values.
+	// Stage space, not world space: a client anchors the scene it renders at the stage,
+	// and places that stage wherever it likes in its own world. A world-space pose would
+	// have the stage transform applied a second time by the client's own stage anchor.
+	glm::mat4 cameraXform(1.f);
+	getStageSpaceAperturePose(cameraXform);
 	const glm::vec3 cameraUp(cameraXform[1]);             // Camera up is along the y-axis
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
 	const glm::vec3 cameraPosition(cameraXform[3]);       // Camera up is along the y-axis

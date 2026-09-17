@@ -175,9 +175,10 @@ void AppStage_StencilAlignment::setupStencilAligner()
 
 void AppStage_StencilAlignment::updateXRCamera()
 {
-	// Update the transform of the camera so that vr models align over the tracking puck
+	// Update the transform of the camera so that vr models align over the tracking puck.
+	// World space: the stencil wireframe meshes in m_scene carry world transforms.
 	glm::mat4 cameraPose;
-	if (m_cameraComponent->getStageSpaceAperturePose(cameraPose))
+	if (m_cameraComponent->getWorldSpaceAperturePose(cameraPose))
 	{
 		m_mkCamera->setCameraTransform(cameraPose);
 	}

@@ -15,6 +15,7 @@
 #include "PropertyInterface.h"
 #include "SceneLightingCapture/AppStage_SceneLightingCapture.h"
 #include "SerializableList.h"
+#include "StageComponent.h"
 
 #include <cmath>
 #include <vector>
@@ -290,15 +291,19 @@ void LightEnvironmentComponent::customRender(IMkGraphicsContext* graphicsContext
 		materialInstance->setVec3BySemantic(semantic, environment.coefficients[coefficientIndex]);
 	}
 
-	// Translation and uniform scale only. The shader evaluates a world-space
-	// environment along the object-space position, so any rotation on this
-	// component would silently rotate the environment with it - and a probe's
-	// orientation means nothing here anyway.
+	// The shader evaluates the environment along the object-space position, so
+	// object space has to be the space the coefficients are in. That is the owner
+	// stage's space, which means the sphere carries the stage's world rotation and
+	// nothing else: the probe's own orientation would silently rotate the
+	// environment with it, and means nothing here anyway.
+	StageComponentConstPtr ownerStage= getOwnerStageComponent();
+	const glm::mat4 stageToWorld= ownerStage ? ownerStage->getWorldTransform() : glm::mat4(1.f);
+
 	const glm::vec3 position= glm::vec3(getWorldTransform()[3]);
 	glm::mat4 sphereXform(1.f);
-	sphereXform[0][0]= k_environmentSphereRadius;
-	sphereXform[1][1]= k_environmentSphereRadius;
-	sphereXform[2][2]= k_environmentSphereRadius;
+	sphereXform[0]= glm::vec4(glm::normalize(glm::vec3(stageToWorld[0])) * k_environmentSphereRadius, 0.f);
+	sphereXform[1]= glm::vec4(glm::normalize(glm::vec3(stageToWorld[1])) * k_environmentSphereRadius, 0.f);
+	sphereXform[2]= glm::vec4(glm::normalize(glm::vec3(stageToWorld[2])) * k_environmentSphereRadius, 0.f);
 	sphereXform[3]= glm::vec4(position, 1.f);
 
 	MkStateStack& stateStack= graphicsContext->getMkStateStack();

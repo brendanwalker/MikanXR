@@ -298,16 +298,18 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 /// source. Clients should treat it as a soft environment (a SkyLight) and add
 /// their own key light if they need crisp shadows.
 ///
-/// This derives from MikanTransformComponentValues so the probe has a world
-/// position: a single environment assumes spatially-invariant lighting, which
-/// real interiors violate, so multiple probes are the expected escape hatch.
+/// This derives from MikanTransformComponentValues so the probe has a position:
+/// a single environment assumes spatially-invariant lighting, which real
+/// interiors violate, so multiple probes are the expected escape hatch.
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanLightEnvironmentComponentValues
 	: public MikanTransformComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	/// 27 floats: 9 order-2 SH coefficients, each RGB, in Mikan world space.
+	/// 27 floats: 9 order-2 SH coefficients, each RGB, in the stage space of the
+	/// stage that owns the capturing camera, so the estimate rotates with that
+	/// stage wherever the client anchors it.
 	/// Laid out flat rather than as vectors because the serializer's list
 	/// element types do not include a 3-vector. Index (coefficient * 3 +
 	/// channel). These are RADIANCE, so evaluating them directly against the SH
@@ -328,8 +330,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanLi
 	/// a confident one.
 	FIELD() float directionality= 0.f;
 
-	/// Suggested key light direction in world space. Only meaningful when
-	/// directionality is high.
+	/// Suggested key light direction, in the same stage space as sh_coefficients.
+	/// Only meaningful when directionality is high.
 	FIELD() MikanVector3f key_light_direction;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

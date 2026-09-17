@@ -79,8 +79,9 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 	if (!cameraComponent)
 		return false;
 
+	// World space: the stencil systems cull against stencil world transforms
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
+	if (!cameraComponent->getWorldSpaceAperturePose(cameraXform))
 		return false;
 
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis

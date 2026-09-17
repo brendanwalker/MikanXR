@@ -248,7 +248,9 @@ void AppStage_SceneLightingCapture::onCaptureEvent()
 	}
 
 	// The models return camera-space normals, so the fit needs the camera's
-	// orientation to place the recovered environment in world space.
+	// orientation to place the recovered environment in stage space. Stage space
+	// and not world space: the estimate belongs to the stage it was captured on,
+	// and a client anchors it at that stage wherever it places it.
 	glm::mat4 cameraPose(1.f);
 	if (!m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
 	{
@@ -266,7 +268,7 @@ void AppStage_SceneLightingCapture::onCaptureEvent()
 	// Cloned because the video pipeline reuses the buffer as soon as the next
 	// frame arrives, and the worker reads it for seconds afterwards.
 	request.bgrFrame= bgrBuffer->clone();
-	request.cameraToWorldRotation= glm::mat3(cameraPose);
+	request.cameraToStageRotation= glm::mat3(cameraPose);
 	request.fovXDegrees= (float)cameraIntrinsics.getMonoIntrinsics().hfov;
 
 	m_bCancelRequested= false;
@@ -420,7 +422,7 @@ void AppStage_SceneLightingCapture::runEstimateRequest(const EstimateRequest& re
 	};
 	progress.isCancelled= [this]() { return m_bCancelRequested.load(); };
 
-	if (!estimator->estimate(request.bgrFrame, request.cameraToWorldRotation, request.fovXDegrees, outOutput.result,
+	if (!estimator->estimate(request.bgrFrame, request.cameraToStageRotation, request.fovXDegrees, outOutput.result,
 							 progress))
 	{
 		// A cancelled estimate fails the same way a broken one does, so the

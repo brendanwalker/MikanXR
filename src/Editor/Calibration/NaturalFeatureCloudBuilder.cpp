@@ -257,7 +257,8 @@ void NaturalFeatureCloudBuilder::processCurrentFrame()
 	cv::Mat curGray= gsBuffer->clone();
 
 	glm::mat4 cameraPose;
-	const bool poseValid= m_cameraComponent->getStageSpaceAperturePose(cameraPose);
+	// World space: ModelPointCloudAligner matches this cloud against the model's world transform
+	const bool poseValid= m_cameraComponent->getWorldSpaceAperturePose(cameraPose);
 
 	// 1. Track existing features with Lucas-Kanade optical flow
 	if (!m_state->prevGray.empty() && !m_state->tracks.empty())

@@ -721,9 +721,10 @@ void DrawLayerNode::evaluateQuadStencils(CameraComponentPtr cameraComponent, IMk
 	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	IMkTriangulatedMeshPtr stencilQuadMesh= compositorGraph->getStencilQuadMesh();
 
-	// Get the camera pose matrix for the current tracked video source
+	// Get the camera pose matrix for the current tracked video source.
+	// World space: the stencils this pose culls against carry world transforms.
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
+	if (!cameraComponent->getWorldSpaceAperturePose(cameraXform))
 		return;
 
 	// Also get the the view-projection matrix for the tracked video source
@@ -830,9 +831,10 @@ void DrawLayerNode::evaluateBoxStencils(CameraComponentPtr cameraComponent, IMkS
 	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	IMkTriangulatedMeshPtr stencilBoxMesh= compositorGraph->getStencilBoxMesh();
 
-	// Get the camera pose matrix for the current tracked video source
+	// Get the camera pose matrix for the current tracked video source.
+	// World space: the stencils this pose culls against carry world transforms.
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
+	if (!cameraComponent->getWorldSpaceAperturePose(cameraXform))
 		return;
 
 	// Also get the the view-projection matrix for the tracked video source
@@ -908,9 +910,10 @@ void DrawLayerNode::evaluateModelStencils(CameraComponentPtr cameraComponent, IM
 
 	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 
-	// Get the camera pose matrix for the current tracked video source
+	// Get the camera pose matrix for the current tracked video source.
+	// World space: the stencils this pose culls against carry world transforms.
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
+	if (!cameraComponent->getWorldSpaceAperturePose(cameraXform))
 		return;
 
 	// Also get the the view-projection matrix for the tracked video source

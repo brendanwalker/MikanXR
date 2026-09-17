@@ -117,8 +117,9 @@ void AppStage_LightFixtureCalibration::exit()
 
 void AppStage_LightFixtureCalibration::updateCameraTransform()
 {
+	// World space: the calibrated fixture is stored with setWorldTransform
 	glm::mat4 cameraPose;
-	if (m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
+	if (m_currentSceneCameraComponent->getWorldSpaceAperturePose(cameraPose))
 	{
 		m_mkCamera->setCameraTransform(cameraPose);
 	}

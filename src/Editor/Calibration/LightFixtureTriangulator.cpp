@@ -73,7 +73,7 @@ void LightFixtureTriangulator::resetCalibrationState() { m_state->reset(); }
 void LightFixtureTriangulator::sampleCameraPose()
 {
 	glm::mat4 cameraPose;
-	if (m_cameraComponent->getStageSpaceAperturePose(cameraPose))
+	if (m_cameraComponent->getWorldSpaceAperturePose(cameraPose))
 	{
 		m_state->initialCameraPose= cameraPose;
 	}
@@ -103,7 +103,7 @@ void LightFixtureTriangulator::computeCurrentTriangulation()
 							ray1Start, ray1Dir);
 
 	glm::mat4 currentCameraPose;
-	if (m_cameraComponent->getStageSpaceAperturePose(currentCameraPose))
+	if (m_cameraComponent->getWorldSpaceAperturePose(currentCameraPose))
 	{
 		glm::vec3 ray2Start, ray2Dir;
 		computeCameraRayAtPixel(m_state->inputCameraIntrinsics, currentCameraPose, computeMouseScreenPosition(),

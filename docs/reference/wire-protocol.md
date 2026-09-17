@@ -149,6 +149,17 @@ What it cannot check is leg 3: a `getPropertyValue` that ignores a name fails on
 
 ---
 
+## Which space a client receives
+
+The component values a client mirrors are relative, never absolute. `MikanTransformComponentValues` (`MikanTransformTypes.h`) carries `parent_transform_id` plus a relative scale, quaternion and position, and nothing else. A client rebuilds a world transform by walking the parent chain itself, which is what lets it anchor a whole stage wherever it likes in its own scene. The Unreal plugin does exactly this, and deliberately lets the artist place the stage actor freely and pin it there, so the editor's own stage transform is not the client's.
+
+Two things on the wire are absolute, and both are therefore stage-relative rather than world-relative:
+
+- `MikanCameraNewFrameEvent` (`MikanCameraEvents.h`) carries `camera_position` / `camera_forward` / `camera_up` from `CameraComponent::getStageSpaceAperturePose`. A world-space pose here would be applied a second time by the client's own stage anchor, putting the composited CG off by the stage transform.
+- `MikanLightEnvironmentComponentValues`' `sh_coefficients` and `key_light_direction` (`MikanLightTypes.h`) are in the stage space of the capturing camera's stage, so a stage's lighting travels with the stage. Spherical harmonics do not transform like vectors. See [conventions.md](./conventions.md) and [scene-lighting.md](./scene-lighting.md) for why a client evaluates them in Mikan space rather than converting them.
+
+---
+
 ## Out-of-band: video frames via shared textures
 
 Rendered frames never travel over the websocket. Clients allocate shared render target textures through the core C API (`Mikan_AllocateCameraRenderTargetTextures` with a `MikanRenderTargetDescriptor`, then `Mikan_WriteCameraColorRenderTargetTexture` / `...Depth...` / `...Shadow...` per frame), backed by the `src/Libraries/MikanSharedTexture` library (`SharedTextureWriter.h`). On the editor side, `src/Editor/Interprocess/SharedTextureReader.h` (`SharedTextureReadAccessor`) opens the same shared textures by sender name and pulls color/depth/shadow into `IMkTexture`s when `readRenderTargetTextures` sees a new frame index. A float depth buffer (`FLOAT_DEVICE_DEPTH` or `FLOAT_SCENE_DEPTH`) is packed on the client side into an RGBA8 sender as linear eye depth normalized between the camera's near and far planes, `(eyeDepth - zNear) / (zFar - zNear)` clamped below 1, the same normalization the editor's `DepthMaskNode` writes for stencils, so a client surface and a stencil at one distance compare equal in the depth mask. The websocket carries only the control traffic around this seam (the render-target requests in `MikanRenderTargetRequests.h` and frame events); pixels move through GPU shared texture memory. See [compositor.md](./compositor.md) for how the editor consumes these frames.

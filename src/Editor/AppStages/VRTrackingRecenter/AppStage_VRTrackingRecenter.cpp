@@ -210,7 +210,9 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 	break;
 	case eVRTrackingRecenterMenuState::testCalibration:
 	{
-		// Use the re-centered scene space for the camera
+		// Use the re-centered scene space for the camera.
+		// Stage space, deliberately: this stage draws the stage origin at identity to
+		// check the recenter, so its viewpoint has to be in that same frame.
 		glm::mat4 cameraPose;
 		if (m_cameraComponent->getStageSpaceAperturePose(cameraPose))
 		{

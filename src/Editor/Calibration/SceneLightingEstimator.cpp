@@ -53,7 +53,7 @@ void SceneLightingEstimator::requestCancel()
 	m_geometryInference.requestCancel();
 }
 
-bool SceneLightingEstimator::estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation,
+bool SceneLightingEstimator::estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToStageRotation,
 									  float fovXDegrees, Result& outResult, const Progress& progress)
 {
 	if (!getIsInitialized())
@@ -103,7 +103,7 @@ bool SceneLightingEstimator::estimate(const cv::Mat& bgrImage, const glm::mat3& 
 	// normal fails the fit's unit-length check, so masking needs no extra code.
 	modelOutputs.normals= geometry.normals;
 
-	return fitFromModelOutputs(modelOutputs, cameraToWorldRotation, outResult);
+	return fitFromModelOutputs(modelOutputs, cameraToStageRotation, outResult);
 }
 
 cv::Mat SceneLightingEstimator::renderReconstructionImage(const Result& result, eReconstructionView view)
@@ -180,7 +180,7 @@ cv::Mat SceneLightingEstimator::renderReconstructionImage(const Result& result, 
 }
 
 bool SceneLightingEstimator::fitFromModelOutputs(const MarigoldInference::Result& modelOutputs,
-												 const glm::mat3& cameraToWorldRotation, Result& outResult) const
+												 const glm::mat3& cameraToStageRotation, Result& outResult) const
 {
 	const cv::Mat& normals= modelOutputs.normals;
 	const cv::Mat& shading= modelOutputs.shading;
@@ -238,8 +238,9 @@ bool SceneLightingEstimator::fitFromModelOutputs(const MarigoldInference::Result
 	}
 
 	// The model returns camera-space normals, so the solved environment is in
-	// camera space too. Rotate it into Mikan world space with the tracked pose.
-	outResult.environment= outResult.cameraSpaceEnvironment.rotated(cameraToWorldRotation);
+	// camera space too. Rotate it into stage space with the tracked pose, so the
+	// estimate travels with the stage the way the rest of the stage's contents do.
+	outResult.environment= outResult.cameraSpaceEnvironment.rotated(cameraToStageRotation);
 
 	outResult.directionality= outResult.environment.getDirectionality();
 	outResult.keyLightDirection= outResult.environment.getDominantDirection();

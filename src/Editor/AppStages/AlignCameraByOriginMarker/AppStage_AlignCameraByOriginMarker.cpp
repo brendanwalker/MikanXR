@@ -570,6 +570,8 @@ void AppStage_AlignCameraByOriginMarker::setMenuState(eAlignCameraByOriginMarker
 
 // Point the test viewpoint at wherever the target camera currently sits in stage
 // space, so the stage-origin axes are drawn from the same place the video was shot.
+// Stage space, deliberately: render() draws the origin marker at identity, so this
+// viewpoint must stay in the stage's own frame rather than the editor's world frame.
 void AppStage_AlignCameraByOriginMarker::syncViewportToTargetCamera()
 {
 	if (!m_targetCameraComponent)

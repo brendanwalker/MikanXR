@@ -248,8 +248,10 @@ void CompositorOutputEditorWindow::update(float deltaSeconds)
 		CameraComponentPtr cameraComponent= compositor->getCameraComponent();
 		if (cameraComponent && m_viewCamera)
 		{
+			// World space: this view camera renders scene renderables, whose model
+			// matrices are world transforms
 			glm::mat4 cameraXform;
-			if (cameraComponent->getStageSpaceAperturePose(cameraXform))
+			if (cameraComponent->getWorldSpaceAperturePose(cameraXform))
 			{
 				m_viewCamera->setCameraTransform(cameraXform);
 			}

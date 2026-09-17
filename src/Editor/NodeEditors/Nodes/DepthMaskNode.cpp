@@ -355,9 +355,10 @@ void DepthMaskNode::evaluateQuadDepthMasks(CameraComponentPtr cameraComponent, I
 	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	IMkTriangulatedMeshPtr depthQuadMesh= compositorGraph->getDepthQuadMesh();
 
-	// Get the camera pose matrix for the current tracked video source
+	// Get the camera pose matrix for the current tracked video source.
+	// World space: the stencils this pose culls against carry world transforms.
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
+	if (!cameraComponent->getWorldSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -423,9 +424,10 @@ void DepthMaskNode::evaluateBoxDepthMasks(CameraComponentPtr cameraComponent, IM
 	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	IMkTriangulatedMeshPtr stencilBoxMesh= compositorGraph->getDepthBoxMesh();
 
-	// Get the camera pose matrix for the current tracked video source
+	// Get the camera pose matrix for the current tracked video source.
+	// World space: the stencils this pose culls against carry world transforms.
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
+	if (!cameraComponent->getWorldSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -490,9 +492,10 @@ void DepthMaskNode::evaluateModelDepthMasks(CameraComponentPtr cameraComponent, 
 
 	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 
-	// Get the camera pose matrix for the current tracked video source
+	// Get the camera pose matrix for the current tracked video source.
+	// World space: the stencils this pose culls against carry world transforms.
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getStageSpaceAperturePose(cameraXform))
+	if (!cameraComponent->getWorldSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera

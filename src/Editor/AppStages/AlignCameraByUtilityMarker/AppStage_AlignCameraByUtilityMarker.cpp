@@ -595,6 +595,8 @@ void AppStage_AlignCameraByUtilityMarker::setMenuState(eAlignCameraByUtilityMark
 		{
 			MikanCameraPtr mkCamera= getFirstViewport()->getCurrentMikanCamera();
 
+			// Stage space, deliberately: render() draws the utility marker at its
+			// stage-space transform, so this viewpoint stays in the stage's own frame.
 			mkCamera->setCameraTransform(m_targetCameraComponent->getRelativeTransform().getMat4());
 		}
 	}

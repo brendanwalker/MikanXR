@@ -153,6 +153,9 @@ public:
 	bool getApertureOffsetXform(glm::mat4& outAperatureToTrackingMountXform) const;
 	bool getStageSpaceAperturePose(glm::mat4& outCameraPose) const;
 	bool getStageSpaceAperturePose(glm::dmat4& outCameraPose) const;
+	bool getWorldSpaceAperturePose(glm::mat4& outCameraPose) const;
+	bool getWorldSpaceAperturePose(glm::dmat4& outCameraPose) const;
+	glm::mat4 getStageToWorldTransform() const;
 	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix, bool bVerticalFlip= false) const;
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip= false) const;

@@ -28,7 +28,7 @@ E(n) ≈ Σ_{l≤2} Â_l · L_lm · Y_lm(n)        Â = [π, 2π/3, π/4]
 
 The recovered coefficients are the **radiance** environment (the Â factors live in the design matrix), so they can be evaluated directly as an environment map.
 
-Normals come out of the model in **camera space** and must be rotated into Mikan world space using the tracked camera pose at capture time. This is what makes the resulting environment correctly oriented relative to the Unreal scene, and it is the reason this belongs inside Mikan rather than as a standalone tool.
+Normals come out of the model in **camera space** and must be rotated into the capturing camera's stage space using the tracked camera pose at capture time. This is what makes the resulting environment correctly oriented relative to the Unreal scene, and it is the reason this belongs inside Mikan rather than as a standalone tool.
 
 ---
 
@@ -321,7 +321,7 @@ Two deliberate choices:
 
 - **The estimate is judged before it is committed.** The panel shows `l1/l0` prominently (in amber below 0.25) and renders the estimate over the plate. The failure mode this guards against is a confident-looking near-ambient estimate.
 
-- **The camera is chosen explicitly** rather than inferred. The recovered environment is only meaningful in world space if the frame's camera pose is known, so an untracked camera should fail loudly rather than silently produce a mis-oriented environment.
+- **The camera is chosen explicitly** rather than inferred. The recovered environment is only meaningful in stage space if the frame's camera pose is known, so an untracked camera should fail loudly rather than silently produce a mis-oriented environment.
 
 ### Judging the estimate: reconstruct the scene, not a sphere
 
@@ -348,7 +348,7 @@ The material is a new internal shader, `INTERNAL_MATERIAL_P_SH_ENVIRONMENT`, whi
 
 Two constraints worth knowing before changing it:
 
-- **The mesh is position-only and must be drawn unrotated.** The shader treats the object-space position as the direction to evaluate along, which is what lets a bare unit sphere carry the environment with no normals or UVs. The environment is world space, so `customRender` composes translation and uniform scale only. A rotation on the component would silently rotate the recovered environment with it. Unlike Unreal there is no Y/Z swap, because the direction is already in Mikan space.
+- **The mesh is position-only and carries the stage's rotation, not the probe's.** The shader treats the object-space position as the direction to evaluate along, which is what lets a bare unit sphere carry the environment with no normals or UVs. Object space therefore has to be the space the coefficients are in, so `customRender` builds the sphere transform from the probe's world position, uniform scale, and the owner stage's world rotation. The probe's own rotation is dropped: it would silently rotate the recovered environment with it, and a probe has no meaningful orientation. Unlike Unreal there is no Y/Z swap, because the direction is already in Mikan space.
 
 - **The sphere is scene sized, not sky sized.** `k_environmentSphereRadius` is 10 metres, which reads as a probe ball from outside on a typical stage. It is an ordinary opaque mesh, so raising the radius far enough to enclose the scene is the one-line change that turns it into a skybox; back-face culling is already disabled so it reads correctly from inside as well as outside.
 

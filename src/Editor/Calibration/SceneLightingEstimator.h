@@ -75,7 +75,7 @@ public:
 
 	struct Result
 	{
-		/// The recovered environment, in Mikan world space.
+		/// The recovered environment, in the capturing camera's stage space.
 		SHLightingEnvironment environment;
 
 		/// The same environment before the camera-pose rotation, kept for
@@ -130,12 +130,12 @@ public:
 	const char* getActiveExecutionProvider() const { return m_inference.getActiveExecutionProvider(); }
 
 	/// bgrImage should already be undistorted (see VideoFrameDistortionView).
-	/// cameraToWorldRotation is the tracked camera's orientation at capture.
+	/// cameraToStageRotation is the tracked camera's orientation at capture.
 	/// fovXDegrees is the calibrated horizontal FOV of the undistorted frame;
 	/// the normals the fit consumes are FOV-independent (measured 0.0 degrees
 	/// across a 45-70 sweep), but MoGe-2's metric depth recovery needs it, so
 	/// pass the real value where one exists.
-	bool estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToWorldRotation, float fovXDegrees, Result& outResult,
+	bool estimate(const cv::Mat& bgrImage, const glm::mat3& cameraToStageRotation, float fovXDegrees, Result& outResult,
 				  const Progress& progress= {});
 
 	/// What renderReconstructionImage should draw.
@@ -158,7 +158,7 @@ public:
 
 	/// Fit only, for tests and for re-fitting cached model output without
 	/// paying for inference again.
-	bool fitFromModelOutputs(const MarigoldInference::Result& modelOutputs, const glm::mat3& cameraToWorldRotation,
+	bool fitFromModelOutputs(const MarigoldInference::Result& modelOutputs, const glm::mat3& cameraToStageRotation,
 							 Result& outResult) const;
 
 private:
