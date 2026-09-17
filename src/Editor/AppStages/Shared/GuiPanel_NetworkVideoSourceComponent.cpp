@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
+#include "Shared/VideoSourceStatusGui.h"
 #include "LocText.h"
 #include "NetworkVideoSourceComponent.h"
 
@@ -66,5 +67,6 @@ void GuiPanel_NetworkVideoSourceComponent::drawCompactGui()
 	static const std::set<std::string> compactFunctions= {
 		NetworkVideoSourceComponent::k_showVideoSourceSettingsFunctionId};
 	entityAccessor->drawPropertiesGui(compactProperties);
+	VideoSourceStatusGui::drawIntrinsicsWarning(getNetworkVideoSourceComponent());
 	entityAccessor->drawFunctionsGui(compactFunctions);
 }

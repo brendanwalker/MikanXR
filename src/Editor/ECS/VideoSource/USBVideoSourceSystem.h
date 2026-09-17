@@ -13,7 +13,6 @@
 #include <map>
 #include <string>
 
-using USBVideoSourcePathList= std::vector<std::string>;
 using USBVideoSourcePathMap= std::map<std::string, std::string>; // path -> friendly name
 
 class USBVideoSourceSystemDefinition
@@ -58,7 +57,6 @@ public:
 	};
 	eUsbVideoManagerState getUsbVideoManagerState() const { return m_usbVideoManagerState; }
 
-	bool getConnectedUSBVideoSourcePaths(USBVideoSourcePathList& outVideoSourcePathList) const;
 	bool getConnectedUSBVideoSourcePathMap(USBVideoSourcePathMap& outVideoSourcePathMap) const;
 	VideoSourceIdList getVideoSourceIdList() const;
 

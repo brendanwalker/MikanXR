@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_FileVideoSourceComponent.h"
+#include "Shared/VideoSourceStatusGui.h"
 #include "FileVideoSourceComponent.h"
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
@@ -87,5 +88,6 @@ void GuiPanel_FileVideoSourceComponent::drawCompactGui()
 		FileVideoSourceComponent::k_showVideoSourceSettingsFunctionId,
 	};
 	entityAccessor->drawPropertiesGui(compactProperties);
+	VideoSourceStatusGui::drawIntrinsicsWarning(getFileVideoSourceComponent());
 	entityAccessor->drawFunctionsGui(compactFunctions);
 }

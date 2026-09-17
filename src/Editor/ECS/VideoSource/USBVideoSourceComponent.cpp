@@ -105,7 +105,15 @@ void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
 	if (devicePath != m_devicePath)
 	{
 		m_devicePath= devicePath;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_desiredDevicePathPropertyId));
+
+		// The settings map is keyed by video mode name alone and two cameras can
+		// name the same mode, so keeping it would apply the old camera's values to
+		// the new one. Emptied, the new camera's first mode pulls its own defaults.
+		m_videoSettingsMap.clear();
+
+		notifyPropertyChanged(ConfigPropertyChangeSet()
+								  .addPropertyName(k_desiredDevicePathPropertyId)
+								  .addPropertyName(k_videoSettingsPropertyId));
 	}
 }
 
@@ -185,8 +193,7 @@ void USBVideoSourceComponent::update(float deltaSeconds)
 	{
 		m_bDeviceChanged= false;
 
-		closeVideoSource();
-		openVideoSource();
+		reopenVideoSource();
 	}
 	// If the video mode changed, update the video mode
 	else if (m_bModeChanged)
@@ -707,6 +714,12 @@ void USBVideoSourceComponent::closeVideoSource()
 
 		// Clear the USB video device pointer
 		m_usbVideoDevice= nullptr;
+
+		// Settings and constraints describe the device that just closed. A setting
+		// the next device does not support would otherwise keep this one's cached
+		// fraction and be written back into the definition as if it were a default.
+		m_currentVideoSettings= {};
+		m_currentVideoConstraints= {};
 	}
 }
 

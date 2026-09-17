@@ -575,7 +575,7 @@ void CompositorComponent::startVideoSourceStreaming(VideoSourceComponentPtr vide
 	m_videoDistortionSource= videoSource;
 
 	// Create a distortion view to read the incoming video frames into a texture
-	// (VideoFrameDistortionView subscribes to OnFrameSizeChanged internally)
+	// (the view resizes itself when a frame of a new size arrives)
 	m_videoDistortionView=
 		std::make_shared<VideoFrameDistortionView>(videoSource, eVideoFrameProcessorMode::COMPOSITOR,
 												   videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());

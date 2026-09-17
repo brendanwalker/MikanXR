@@ -978,6 +978,17 @@ msgid "Height"
 msgstr "高さ"
 
 #. Section: componentPanel
+#, c-format
+msgctxt "componentPanel.intrinsicsResolutionMismatchFmt"
+msgid "Calibrated at %dx%d but running at %dx%d. Recalibrate or return to the calibrated video mode."
+msgstr ""
+
+#. Section: componentPanel
+msgctxt "componentPanel.intrinsicsUncalibrated"
+msgid "Not calibrated. Run lens calibration before using this source for alignment or compositing."
+msgstr ""
+
+#. Section: componentPanel
 #, fuzzy
 msgctxt "componentPanel.noAsset"
 msgid "<None>"

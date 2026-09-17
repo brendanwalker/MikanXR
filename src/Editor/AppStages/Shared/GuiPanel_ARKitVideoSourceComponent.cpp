@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_ARKitVideoSourceComponent.h"
+#include "Shared/VideoSourceStatusGui.h"
 #include "ARKitVideoSourceComponent.h"
 
 bool GuiPanel_ARKitVideoSourceComponent::init() { return initTypedPropertyInterface<ARKitVideoSourceComponent>(); }
@@ -25,5 +26,6 @@ void GuiPanel_ARKitVideoSourceComponent::drawCompactGui()
 	static const std::set<std::string> compactFunctions= {
 		ARKitVideoSourceComponent::k_showVideoSourceSettingsFunctionId};
 	entityAccessor->drawPropertiesGui(compactProperties);
+	VideoSourceStatusGui::drawIntrinsicsWarning(getARKitVideoSourceComponent());
 	entityAccessor->drawFunctionsGui(compactFunctions);
 }

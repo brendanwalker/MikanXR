@@ -226,25 +226,6 @@ void USBVideoSourceSystem::disposeUsbVideoDeviceManager()
 	}
 }
 
-bool USBVideoSourceSystem::getConnectedUSBVideoSourcePaths(USBVideoSourcePathList& outVideoSourcePathList) const
-{
-	outVideoSourcePathList.clear();
-
-	if (m_usbVideoDeviceManager)
-	{
-		for (size_t index= 0; index < m_usbVideoDeviceManager->getDeviceCount(); index++)
-		{
-			IUsbVideoDevice* usbVideoDevice= m_usbVideoDeviceManager->getDeviceByIndex(index);
-
-			outVideoSourcePathList.push_back(usbVideoDevice->getDevicePath());
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
 bool USBVideoSourceSystem::getConnectedUSBVideoSourcePathMap(USBVideoSourcePathMap& outVideoSourcePathMap) const
 {
 	outVideoSourcePathMap.clear();
@@ -323,7 +304,6 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
 				{
 					const char* videoModeName= usbVideoDevice->getVideoModeName();
 
-					def->setComponentName(usbVideoDevice->getFriendlyName());
 					def->setDevicePath(usbVideoDevice->getDevicePath());
 					def->setVideoMode(videoModeName ? videoModeName : "<INVALID>");
 

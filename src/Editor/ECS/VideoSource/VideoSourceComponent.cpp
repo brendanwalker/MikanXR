@@ -139,6 +139,30 @@ VideoSourceComponent::VideoSourceComponent(MikanObjectWeakPtr owner)
 	m_bWantsUpdate= true;
 }
 
+void VideoSourceComponent::reopenVideoSource()
+{
+	// closeVideoSource() clears the subscriber set through forceStopVideoStream,
+	// which is what a real close wants. A reopen puts it back before the device
+	// opens, so OnOpened and OnFrameSizeChanged fire with the views still attached.
+	std::set<VideoFrameDistortionView*> retainedViews;
+	{
+		std::lock_guard<std::mutex> lock(m_activeViewMutex);
+
+		retainedViews= m_activeViews;
+	}
+
+	closeVideoSource();
+
+	{
+		std::lock_guard<std::mutex> lock(m_activeViewMutex);
+
+		m_activeViews= retainedViews;
+		m_bHasAnyActiveViews= !m_activeViews.empty();
+	}
+
+	openVideoSource();
+}
+
 void VideoSourceComponent::startVideoStream(VideoFrameDistortionView* view)
 {
 	std::lock_guard<std::mutex> lock(m_activeViewMutex);
@@ -216,6 +240,29 @@ bool VideoSourceComponent::getVideoColorimetry(VideoColorimetry& outColorimetry)
 bool VideoSourceComponent::areCameraIntrinsicsValid() const
 {
 	return getVideoSourceDefinition()->getCameraIntrinsicsType() != MikanIntrinsicsType::INVALID_CAMERA_INTRINSICS;
+}
+
+// Stereo intrinsics report the per-eye section width rather than the frame width,
+// so there is nothing to compare them against here and they report ok.
+eVideoSourceIntrinsicsStatus VideoSourceComponent::getCameraIntrinsicsStatus() const
+{
+	MikanVideoSourceIntrinsics intrinsics;
+	if (!getCameraIntrinsics(intrinsics))
+		return eVideoSourceIntrinsicsStatus::uncalibrated;
+
+	if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+	{
+		const MikanMonoIntrinsics& monoIntrinsics= intrinsics.getMonoIntrinsics();
+
+		int liveWidth= 0, liveHeight= 0;
+		if (getVideoPixelDimensions(liveWidth, liveHeight)
+			&& (liveWidth != (int)monoIntrinsics.pixel_width || liveHeight != (int)monoIntrinsics.pixel_height))
+		{
+			return eVideoSourceIntrinsicsStatus::resolutionMismatch;
+		}
+	}
+
+	return eVideoSourceIntrinsicsStatus::ok;
 }
 
 bool VideoSourceComponent::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const

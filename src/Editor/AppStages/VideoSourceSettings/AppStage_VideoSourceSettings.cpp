@@ -6,6 +6,7 @@
 #include "Shared/GuiPanel_FileVideoSourceComponent.h"
 #include "Shared/GuiPanel_USBVideoSourceComponent.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
+#include "Shared/VideoSourceStatusGui.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
@@ -228,6 +229,10 @@ void AppStage_VideoSourceSettings::onGui()
 	ImGui::Separator();
 
 	drawRecordingGui();
+
+	// One warning for whichever source type this stage was entered on, above the
+	// panels, since only the matching one has a component bound
+	VideoSourceStatusGui::drawIntrinsicsWarning(m_videoSourceComponent.lock());
 
 	for (IGuiPanel* guiPanel : m_guiPanels)
 		guiPanel->onGui();

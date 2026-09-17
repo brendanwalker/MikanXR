@@ -27,7 +27,9 @@ protected:
 
 private:
 	USBVideoSourceSystemWeakPtr m_usbVideoSourceSystem;
-	GuiDataSource_StringList m_devicePathDataSource;
+	// Friendly names for display, paths at the matching indices for the value
+	GuiDataSource_StringList m_deviceDataSource;
+	std::vector<std::string> m_connectedDevicePaths;
 	GuiDataSource_StringList m_resolutionDataSource;
 	GuiDataSource_StringList m_frameRateDataSource;
 	GuiDataSource_StringList m_formatDataSource;

@@ -58,6 +58,16 @@ private:
 	MikanVideoSourceIntrinsics m_intrinsics;
 };
 
+// Whether the source's stored intrinsics describe the video mode it is running.
+// Nothing rescales intrinsics, so a mode at another resolution silently breaks
+// the projection rather than failing.
+enum class eVideoSourceIntrinsicsStatus
+{
+	ok,
+	uncalibrated,
+	resolutionMismatch
+};
+
 class VideoSourceComponent : public MikanComponent
 {
 public:
@@ -81,6 +91,10 @@ public:
 	virtual std::string getDeviceAPI() const= 0;
 	virtual bool openVideoSource()= 0;
 	virtual void closeVideoSource()= 0;
+	// Close and reopen the device without dropping stream subscribers, so a stage
+	// or compositor watching the source keeps its view across a device swap.
+	// update() starts the stream again once the new device is open.
+	void reopenVideoSource();
 	void startVideoStream(class VideoFrameDistortionView* view);
 	void stopVideoStream(class VideoFrameDistortionView* view);
 	void forceStopVideoStream();
@@ -117,6 +131,7 @@ public:
 	virtual bool getFrameRate(float& outFrameRate) const;
 	virtual bool getVideoColorimetry(VideoColorimetry& outColorimetry) const;
 	virtual bool areCameraIntrinsicsValid() const;
+	eVideoSourceIntrinsicsStatus getCameraIntrinsicsStatus() const;
 	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
 	virtual glm::mat4 getProjectionMatrix() const;

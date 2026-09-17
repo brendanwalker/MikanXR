@@ -9,6 +9,7 @@ The living plan: what is in flight now, what comes next, and the open questions.
 
 ## Next
 - [ ] Localize the USB video setting slider labels. `GuiPanel_USBVideoSourceComponent` builds them at runtime from `k_videoSettingPropertyPrefixes` ("brightness" to "Brightness") inside a custom renderer, so they sit outside the descriptor label mechanism and still read English in every language.
+- [ ] `VideoFrameDistortionView` only re-reads its source's intrinsics when the frame size changes (`ensureFrameBufferSize`), so swapping a USB source onto a camera with the same resolution leaves the view undistorting with the previous camera's coefficients until the stage is re-entered.
 - [ ] `AppStage_AlignCameraByUtilityMarker` never applies the camera intrinsics to the viewport camera. Its overlay is drawn through whatever projection the viewport camera happens to hold.
 - [ ] `AMikanLightEnvironmentActor::UpdateKeyLight` sets the key light with `SetWorldRotation` and feeds the skydome its SH parameters globally, but both are in the capturing stage's space now. Correct while no stage carries a rotation. A rotated stage needs the UE side to rotate them by the stage actor's transform first.
 - [ ] `GuiPanel_ShapeComponent`'s parent picker offers scenes, anchors and shapes but not stencils, so a shape cannot be parented to a stencil from the panel even though the hierarchy allows it. The stencil and anchor pickers have the matching gap for shapes.

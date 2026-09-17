@@ -5,6 +5,7 @@
 #include "TransactionHistory.h"
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
+#include "Shared/VideoSourceStatusGui.h"
 
 #include "imgui.h"
 
@@ -30,23 +31,39 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			if (!usbComp)
 				return false;
 
+			// The dropdown reads as friendly names; the device path is the value
+			// behind each entry and the tooltip on the row.
 			auto usbSystem= getUSBVideoSourceSystem();
-			std::vector<std::string> devicePaths;
+			USBVideoSourcePathMap devicePathMap;
 			if (usbSystem)
-				usbSystem->getConnectedUSBVideoSourcePaths(devicePaths);
-			m_devicePathDataSource.setEntries(devicePaths);
+				usbSystem->getConnectedUSBVideoSourcePathMap(devicePathMap);
+
+			m_connectedDevicePaths.clear();
+			std::vector<std::string> friendlyNames;
+			for (const auto& [devicePath, friendlyName] : devicePathMap)
+			{
+				m_connectedDevicePaths.push_back(devicePath);
+				friendlyNames.push_back(friendlyName);
+			}
+			m_deviceDataSource.setEntries(friendlyNames);
 
 			const std::string& currentPath= usbComp->getUSBVideoSourceDefinition()->getDevicePath();
-			int selectedIndex= m_devicePathDataSource.getEntryIndexByString(currentPath);
+			auto currentIt= std::find(m_connectedDevicePaths.begin(), m_connectedDevicePaths.end(), currentPath);
+			int selectedIndex=
+				(currentIt != m_connectedDevicePaths.end()) ? (int)(currentIt - m_connectedDevicePaths.begin()) : -1;
 
-			if (MkGui::drawComboBoxProperty(
-					m_defaultGuiStyle,
-					usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_desiredDevicePathPropertyId),
-					locText("componentPanel.usbDevice"), &m_devicePathDataSource, selectedIndex))
+			const bool bSelectionChanged= MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle,
+				usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_desiredDevicePathPropertyId),
+				locText("componentPanel.usbDevice"), &m_deviceDataSource, selectedIndex);
+
+			if (selectedIndex >= 0 && selectedIndex < (int)m_connectedDevicePaths.size())
 			{
-				if (selectedIndex >= 0)
+				ImGui::SetItemTooltip("%s", m_connectedDevicePaths[selectedIndex].c_str());
+
+				if (bSelectionChanged)
 				{
-					const std::string newPath= m_devicePathDataSource.getEntryDisplayString(selectedIndex);
+					const std::string newPath= m_connectedDevicePaths[selectedIndex];
 					addDeferredGuiEvent([usbComp, newPath]()
 										{ usbComp->getUSBVideoSourceDefinition()->setDevicePath(newPath); });
 				}
@@ -245,11 +262,14 @@ void GuiPanel_USBVideoSourceComponent::drawCompactGui()
 {
 	GuiPanel_EntityAccessorPtr entityAccessor= getPropertyInterface();
 
-	static const std::set<std::string> compactProperties= {
-		MikanComponentDefinition::k_componentNamePropertyId, USBVideoSourceComponent::k_currentFriendlyNamePropertyId,
-		USBVideoSourceDefinition::k_videoResolutionPropertyId, USBVideoSourceDefinition::k_videoFrameRatePropertyId,
-		USBVideoSourceDefinition::k_videoFormatPropertyId};
+	static const std::set<std::string> compactProperties= {MikanComponentDefinition::k_componentNamePropertyId,
+														   USBVideoSourceDefinition::k_desiredDevicePathPropertyId,
+														   USBVideoSourceComponent::k_currentFriendlyNamePropertyId,
+														   USBVideoSourceDefinition::k_videoResolutionPropertyId,
+														   USBVideoSourceDefinition::k_videoFrameRatePropertyId,
+														   USBVideoSourceDefinition::k_videoFormatPropertyId};
 	static const std::set<std::string> compactFunctions= {USBVideoSourceComponent::k_showVideoSourceSettingsFunctionId};
 	entityAccessor->drawPropertiesGui(compactProperties);
+	VideoSourceStatusGui::drawIntrinsicsWarning(getUSBVideoSourceComponent());
 	entityAccessor->drawFunctionsGui(compactFunctions);
 }

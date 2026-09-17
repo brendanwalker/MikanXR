@@ -2,7 +2,7 @@
 	"_meta": {
 		"code": "ja",
 		"nativeName": "日本語",
-		"stringCount": 978,
+		"stringCount": 980,
 		"translatedCount": 899,
 		"reviewedCount": 0
 	},
@@ -186,6 +186,8 @@
 		"graph": "グラフ",
 		"green": "緑",
 		"height": "高さ",
+		"intrinsicsResolutionMismatchFmt": "Calibrated at %dx%d but running at %dx%d. Recalibrate or return to the calibrated video mode.",
+		"intrinsicsUncalibrated": "Not calibrated. Run lens calibration before using this source for alignment or compositing.",
 		"noAsset": "<なし>",
 		"none": "<なし>",
 		"originMarker": "原点マーカー",
