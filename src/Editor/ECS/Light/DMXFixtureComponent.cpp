@@ -190,8 +190,9 @@ void DMXFixtureComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
-	// The owning stage is set by the action that creates or reparents the fixture,
-	// never typed in, matching the camera's own stage id
+	// A fixture belongs to the stage that created it for life. Its group and
+	// sequence memberships live in that stage, so moving it would leave holes in
+	// them, and the id is set once at creation rather than edited.
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 								 DMXFixtureComponentDefinition::k_ownerStageIdPropertyId, MikanVariantType::INT)
 								 ->setReadOnly()
@@ -244,12 +245,9 @@ bool DMXFixtureComponent::setPropertyValue(const std::string& propertyName, cons
 {
 	DMXFixtureComponentDefinitionPtr def= getDMXFixtureDefinition();
 
-	if (propertyName == DMXFixtureComponentDefinition::k_ownerStageIdPropertyId)
-	{
-		def->setOwnerStageId(inValue.getIntValue());
-		return true;
-	}
-	else if (propertyName == DMXFixtureComponentDefinition::k_dmxUniversePropertyId)
+	// No owner stage id branch: a fixture never changes stage, and the actions
+	// that create one reach setOwnerStageId on the definition directly
+	if (propertyName == DMXFixtureComponentDefinition::k_dmxUniversePropertyId)
 	{
 		def->setDMXUniverse(inValue.getUShortValue());
 		return true;
