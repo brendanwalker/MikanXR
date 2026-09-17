@@ -76,6 +76,9 @@ public:
 	}
 	inline DMXObjectSystemPtr getDMXObjectSystem() const { return m_dmxObjectSystem.lock(); }
 
+	// -- TransformComponent ----
+	virtual bool canAttachToParent(TransformComponentConstPtr newParentComponent) const override;
+
 	StageComponentConstPtr getOwnerStageComponent() const;
 	eTrackingVolumeType getTrackingVolumeType() const;
 

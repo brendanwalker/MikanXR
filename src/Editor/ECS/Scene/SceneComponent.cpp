@@ -142,6 +142,12 @@ std::vector<CompositorComponentPtr> SceneComponent::getOutputCompositors() const
 	return outputCompositors;
 }
 
+// -- TransformComponent ----
+bool SceneComponent::canAttachToParent(TransformComponentConstPtr newParentComponent) const
+{
+	return std::dynamic_pointer_cast<const StageComponent>(newParentComponent) != nullptr;
+}
+
 void SceneComponent::attachToStage(MikanStageID newParentId)
 {
 	auto stageSystem= getObjectSystemOfType<StageObjectSystem>();

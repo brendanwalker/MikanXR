@@ -64,7 +64,22 @@ Component IDs are project-wide integers. `ProjectConfig` owns two allocators (`s
 
 ## Transforms and parenting
 
-`TransformComponent` (`src/Editor/ECS/Scene/TransformComponent.h`) holds a relative `GlmTransform` (TRS, `src/Libraries/MikanMath/Public/Transform.h`) and a cached world `glm::mat4`. Parenting is by component ID: `TransformComponentDefinition` persists `m_parentTransformId` (`k_parentTransformIdPropertyId`) alongside the relative scale/rotation/position. At runtime `attachToComponent(newParent)` / `detachFromParent(reason)` maintain parent/child weak-pointer lists, and `propogateWorldTransformChange` recomputes and pushes world transforms down the child list. `setWorldTransform` back-computes the relative transform from the parent. Math conventions (handedness, units, matrix order) are in [conventions.md](./conventions.md).
+`TransformComponent` (`src/Editor/ECS/Scene/TransformComponent.h`) holds a relative `GlmTransform` (TRS, `src/Libraries/MikanMath/Public/Transform.h`) and a cached world `glm::mat4`. Parenting is by component ID: `TransformComponentDefinition` persists `m_parentTransformId` (`k_parentTransformIdPropertyId`) alongside the relative scale/rotation/position. At runtime `attachToComponent(newParent)` / `detachFromParent(reason)` maintain parent/child weak-pointer lists, and `propogateWorldTransformChange` recomputes and pushes world transforms down the child list. `setWorldTransform` back-computes the relative transform from the parent, and `reparentPreservingWorldTransform` pairs the two so a reparent changes only which frame the component is expressed in. Math conventions (handedness, units, matrix order) are in [conventions.md](./conventions.md).
+
+### Which parents a component accepts
+
+The scene hierarchy is fixed by type, not by convention. `TransformComponent::canAttachToParent` states the rule per component class and `attachToComponent` is the only place it is enforced, which covers every path that sets a parent: project load through `postInit`, the outliner drag-drop, the component panels' parent pickers, and `setPropertyValue("parent_transform_id")` from the client API, Lua, or automation. A refused attach is logged and leaves the component unparented rather than repaired, where the outliner surfaces it for a manual fix.
+
+| Component | Accepted parent |
+| --- | --- |
+| `StageComponent` | none, it is a root |
+| `CameraComponent` | `StageComponent` |
+| `SceneComponent` | `StageComponent` |
+| `DMXFixtureComponent` (`RGBSpotLightComponent`, `RGBPixelGridComponent`) | `StageComponent` |
+| `LightEnvironmentComponent` | `CameraComponent` |
+| `AnchorComponent`, `StencilComponent`, `ShapeComponent` | `SceneComponent`, or one another |
+
+The last row is the scene-actor rule, shared by the three types through `isValidSceneActorParent` (`src/Editor/ECS/Scene/SceneActorParenting.h`). Every other `TransformComponent` subclass keeps the permissive base: colliders, static meshes, gizmo handles and VR device sockets are attached internally to their own object's root and are not part of the authored hierarchy. Attaching into one's own subtree is refused for all of them.
 
 ---
 

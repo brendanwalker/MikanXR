@@ -331,6 +331,14 @@ SHLightingEnvironment LightEnvironmentComponent::getScaledLightingEnvironment() 
 	return environment;
 }
 
+// -- TransformComponent ----
+bool LightEnvironmentComponent::canAttachToParent(TransformComponentConstPtr newParentComponent) const
+{
+	// The probe belongs to the camera whose frame recovered it, not to the stage
+	// its readings are expressed in
+	return std::dynamic_pointer_cast<const CameraComponent>(newParentComponent) != nullptr;
+}
+
 /// Get the camera component that owns this light environment
 CameraComponentConstPtr LightEnvironmentComponent::getOwnerCameraComponent() const
 {

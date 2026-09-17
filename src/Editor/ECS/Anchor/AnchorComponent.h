@@ -43,6 +43,9 @@ public:
 		return std::static_pointer_cast<AnchorDefinition>(m_definition);
 	}
 
+	// -- TransformComponent ----
+	virtual bool canAttachToParent(TransformComponentConstPtr newParentComponent) const override;
+
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 

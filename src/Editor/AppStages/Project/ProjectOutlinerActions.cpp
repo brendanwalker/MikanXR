@@ -466,21 +466,9 @@ bool reparentSceneActor(TransformComponentPtr draggedComponent, TransformCompone
 	if (draggedComponent->getParentTransformComponent() == newParentComponent)
 		return false;
 
-	// Refuse a drop into the dragged component's own subtree
-	for (TransformComponentPtr ancestor= newParentComponent; ancestor;
-		 ancestor= ancestor->getParentTransformComponent())
-	{
-		if (ancestor == draggedComponent)
-			return false;
-	}
-
-	const glm::mat4 savedWorldTransform= draggedComponent->getWorldTransform();
-	if (!draggedComponent->attachToComponent(newParentComponent))
-		return false;
-
-	draggedComponent->setWorldTransform(savedWorldTransform);
-
-	return true;
+	// Subtree cycles and disallowed parent types are both refused inside
+	// TransformComponent::attachToComponent
+	return draggedComponent->reparentPreservingWorldTransform(newParentComponent);
 }
 
 } // namespace ProjectOutlinerActions

@@ -226,22 +226,17 @@ void TransformComponent::dispose()
 
 		if (childComponent)
 		{
-			if (grandparent)
+			// reparentPreservingWorldTransform() internally detaches the child from us
+			// (removes it from m_childComponents) before attaching to the grandparent,
+			// which is what keeps this while-loop terminating.
+			//
+			// The grandparent is not always a legal parent for the child: deleting a
+			// scene leaves its anchors and stencils facing the stage above it, which
+			// they may not attach to. Those children detach to root level instead,
+			// where the outliner lists them for a manual home. The detach has to
+			// happen either way, or the child stays in the list and this loop spins.
+			if (!grandparent || !childComponent->reparentPreservingWorldTransform(grandparent))
 			{
-				// Save world transform before attachToComponent() clobbers it
-				const glm::mat4 savedChildWorld= childComponent->getWorldTransform();
-
-				// attachToComponent() internally detaches child from us (removes from m_childComponents)
-				// then attaches to grandparent — safe for the while-loop pattern
-				childComponent->attachToComponent(grandparent);
-
-				// Restore correct world position; setWorldTransform recomputes
-				// relative = inv(grandparent_world) * savedChildWorld
-				childComponent->setWorldTransform(savedChildWorld);
-			}
-			else
-			{
-				// No grandparent: existing behavior — detach child to root level
 				childComponent->detachFromParent(eDetachReason::parentDisposed);
 			}
 		}
@@ -280,6 +275,29 @@ bool TransformComponent::attachToComponent(TransformComponentPtr newParentCompon
 	if (!newParentComponent || newParentComponent == oldParentComponent)
 		return false;
 
+	// Refuse an attachment to our own subtree, which would orphan the cycle from
+	// the root and spin propogateWorldTransformChange forever
+	for (TransformComponentPtr ancestor= newParentComponent; ancestor;
+		 ancestor= ancestor->getParentTransformComponent())
+	{
+		if (ancestor.get() == this)
+		{
+			MIKAN_LOG_ERROR("TransformComponent::attachToComponent")
+				<< "Refusing to attach component " << getComponentId() << " to component "
+				<< newParentComponent->getComponentId() << ", which is inside its own subtree";
+			return false;
+		}
+	}
+
+	if (!canAttachToParent(newParentComponent))
+	{
+		MIKAN_LOG_ERROR("TransformComponent::attachToComponent")
+			<< "Refusing to attach " << getComponentClassName() << " " << getComponentId() << " to "
+			<< newParentComponent->getComponentClassName() << " " << newParentComponent->getComponentId()
+			<< ": not an allowed parent type";
+		return false;
+	}
+
 	// Detach from old parent
 	if (oldParentComponent)
 	{
@@ -297,6 +315,21 @@ bool TransformComponent::attachToComponent(TransformComponentPtr newParentCompon
 
 	// Let any derived classes know that we've been attached to a new parent
 	onAttachedToNewParent(newParentComponent);
+
+	return true;
+}
+
+bool TransformComponent::reparentPreservingWorldTransform(TransformComponentPtr newParentComponent)
+{
+	const glm::mat4 savedWorldTransform= m_worldTransform;
+
+	if (!attachToComponent(newParentComponent))
+		return false;
+
+	// attachToComponent recomputes the world transform from the retained relative
+	// one, which moves the component. Put it back and let the relative transform
+	// be the thing that changes.
+	setWorldTransform(savedWorldTransform);
 
 	return true;
 }

@@ -73,6 +73,9 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
+	// -- TransformComponent ----
+	virtual bool canAttachToParent(TransformComponentConstPtr newParentComponent) const override;
+
 	/// Draws a sphere shaded with the recovered environment, so the probe can
 	/// be seen in the scene rather than only in the capture tool. Visualization
 	/// only: it has no collider and lights nothing, the editor twin of the

@@ -17,6 +17,8 @@
 #include "ModelShapeSystem.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
+#include "IEditorWindow.h"
+#include "TransactionHistory.h"
 #include "TransformComponent.h"
 
 #include <filesystem>
@@ -60,14 +62,27 @@ void GuiPanel_ShapeComponent::onConstruct()
 											locText("componentPanel.parent"), &m_parentTransformDataSource,
 											selectedIndex))
 			{
-				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
+				auto newParent= std::dynamic_pointer_cast<TransformComponent>(
+					m_parentTransformDataSource.getEntryAtIndex(selectedIndex));
 				if (newParent)
 				{
+					TransactionHistory* transactionHistory=
+						getOwnerAppStage()->getOwnerWindow()->getTransactionHistory();
+
 					addDeferredGuiEvent(
-						[shapeComponent, newParent]()
+						[shapeComponent, newParent, transactionHistory]()
 						{
-							shapeComponent->getShapeComponentDefinition()->setParentTransformId(
-								newParent->getComponentId());
+							// Reparenting goes through the component, not the definition: the
+							// definition setter alone leaves the runtime hierarchy stale until
+							// the next project load. The gesture keeps the attach and the
+							// relative-transform rewrite as one undo step.
+							if (transactionHistory)
+								transactionHistory->beginGesture("panel_reparent");
+
+							shapeComponent->reparentPreservingWorldTransform(newParent);
+
+							if (transactionHistory)
+								transactionHistory->endGesture();
 						});
 				}
 			}

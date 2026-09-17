@@ -14,6 +14,8 @@
 #include "MkGuiDrawUtils.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
+#include "IEditorWindow.h"
+#include "TransactionHistory.h"
 #include "TransformComponent.h"
 
 GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage)
@@ -54,14 +56,27 @@ void GuiPanel_StencilComponent::onConstruct()
 											locText("componentPanel.parent"), &m_parentTransformDataSource,
 											selectedIndex))
 			{
-				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
+				auto newParent= std::dynamic_pointer_cast<TransformComponent>(
+					m_parentTransformDataSource.getEntryAtIndex(selectedIndex));
 				if (newParent)
 				{
+					TransactionHistory* transactionHistory=
+						getOwnerAppStage()->getOwnerWindow()->getTransactionHistory();
+
 					addDeferredGuiEvent(
-						[stencilComponent, newParent]()
+						[stencilComponent, newParent, transactionHistory]()
 						{
-							stencilComponent->getStencilComponentDefinition()->setParentTransformId(
-								newParent->getComponentId());
+							// Reparenting goes through the component, not the definition: the
+							// definition setter alone leaves the runtime hierarchy stale until
+							// the next project load. The gesture keeps the attach and the
+							// relative-transform rewrite as one undo step.
+							if (transactionHistory)
+								transactionHistory->beginGesture("panel_reparent");
+
+							stencilComponent->reparentPreservingWorldTransform(newParent);
+
+							if (transactionHistory)
+								transactionHistory->endGesture();
 						});
 				}
 			}

@@ -57,6 +57,11 @@ public:
 	inline static const std::string k_componentClassName= "StageComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	// -- TransformComponent ----
+	// A stage is a root: its transform is what defines stage space against the
+	// editor's world space, so it has nothing to hang from
+	virtual bool canAttachToParent(TransformComponentConstPtr newParentComponent) const override { return false; }
+
 	TrackingVolumeComponentConstPtr getTrackingVolumeConst() const;
 	TrackingVolumeDefinitionConstPtr getTrackingVolumeDefinitionConst() const;
 

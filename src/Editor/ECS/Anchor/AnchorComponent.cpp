@@ -1,4 +1,5 @@
 #include "AnchorComponent.h"
+#include "SceneActorParenting.h"
 #include "EditorObjectSystem.h"
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
@@ -47,6 +48,12 @@ bool AnchorDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
 AnchorComponent::AnchorComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
+}
+
+// -- TransformComponent ----
+bool AnchorComponent::canAttachToParent(TransformComponentConstPtr newParentComponent) const
+{
+	return isValidSceneActorParent(newParentComponent);
 }
 
 // -- IEntityAccessor ----

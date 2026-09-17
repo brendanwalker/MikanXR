@@ -43,6 +43,9 @@ public:
 	inline static const std::string k_componentClassName= "SceneComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	// -- TransformComponent ----
+	virtual bool canAttachToParent(TransformComponentConstPtr newParentComponent) const override;
+
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 

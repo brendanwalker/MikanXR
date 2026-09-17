@@ -13,6 +13,7 @@
 #include "ProjectManager.h"
 #include "PropertyInterface.h"
 #include "ShapeComponent.h"
+#include "SceneActorParenting.h"
 #include "Windows/ShapeNodeEditorWindow.h"
 
 #include "Graphs/NodeEvaluator.h"
@@ -92,6 +93,12 @@ ShapeComponent::ShapeComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
 	m_bWantsUpdate= true;
+}
+
+// -- TransformComponent ----
+bool ShapeComponent::canAttachToParent(TransformComponentConstPtr newParentComponent) const
+{
+	return isValidSceneActorParent(newParentComponent);
 }
 
 void ShapeComponent::init()

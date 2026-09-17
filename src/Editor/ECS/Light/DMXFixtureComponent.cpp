@@ -152,6 +152,12 @@ void DMXFixtureComponent::init()
 	m_dmxObjectSystem= getObjectSystemOfType<DMXObjectSystem>();
 }
 
+// -- TransformComponent ----
+bool DMXFixtureComponent::canAttachToParent(TransformComponentConstPtr newParentComponent) const
+{
+	return std::dynamic_pointer_cast<const StageComponent>(newParentComponent) != nullptr;
+}
+
 StageComponentConstPtr DMXFixtureComponent::getOwnerStageComponent() const
 {
 	MikanStageID stageId= getDMXFixtureDefinition()->getOwnerStageId();

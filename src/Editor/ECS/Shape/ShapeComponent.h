@@ -47,6 +47,9 @@ public:
 	inline static const std::string k_componentClassName= "ShapeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	// -- TransformComponent ----
+	virtual bool canAttachToParent(TransformComponentConstPtr newParentComponent) const override;
+
 	virtual void init() override;
 	virtual void postInit() override;
 	virtual void dispose() override;

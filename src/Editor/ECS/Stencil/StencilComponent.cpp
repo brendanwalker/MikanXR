@@ -1,6 +1,7 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
 #include "StencilComponent.h"
+#include "SceneActorParenting.h"
 #include "TransformComponent.h"
 #include "MikanObject.h"
 #include "MikanStencilTypes.h"
@@ -84,6 +85,12 @@ void StencilComponentDefinition::setCullMode(eStencilCullMode mode)
 StencilComponent::StencilComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
+}
+
+// -- TransformComponent ----
+bool StencilComponent::canAttachToParent(TransformComponentConstPtr newParentComponent) const
+{
+	return isValidSceneActorParent(newParentComponent);
 }
 
 // -- IEntityAccessor ----

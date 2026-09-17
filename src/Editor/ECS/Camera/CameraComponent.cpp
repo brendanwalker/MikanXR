@@ -395,6 +395,12 @@ void CameraComponent::customRender(IMkGraphicsContext* graphicsContext, MikanCam
 	drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
 }
 
+// -- TransformComponent ----
+bool CameraComponent::canAttachToParent(TransformComponentConstPtr newParentComponent) const
+{
+	return std::dynamic_pointer_cast<const StageComponent>(newParentComponent) != nullptr;
+}
+
 StageComponentConstPtr CameraComponent::getOwnerStageComponent() const
 {
 	MikanStageID stageId= getCameraDefinition()->getOwnerStageId();

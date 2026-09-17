@@ -93,7 +93,19 @@ public:
 	inline TransformComponentPtr getParentTransformComponent() const { return m_parentComponent.lock(); }
 	inline const TransformComponentList& getChildTransformComponents() const { return m_childComponents; }
 
+	// Which parents this component type accepts. The base accepts any, so the
+	// internal attachments (colliders, meshes, gizmo handles, VR device sockets)
+	// are unaffected. The authored types override it to pin the scene hierarchy.
+	// attachToComponent is the only enforcement point, and every path that sets a
+	// parent - project load, the outliner, the property setter - routes through it.
+	virtual bool canAttachToParent(TransformComponentConstPtr newParentComponent) const { return true; }
+
 	bool attachToComponent(TransformComponentPtr newParentComponent);
+
+	// Reparent while leaving the component where it is in the world, by
+	// recomputing the relative transform against the new parent.
+	bool reparentPreservingWorldTransform(TransformComponentPtr newParentComponent);
+
 	enum class eDetachReason : int
 	{
 		selfDisposed,

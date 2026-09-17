@@ -144,6 +144,9 @@ public:
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 	void setVideoSourceById(MikanVideoSourceID videoSourceId);
 
+	// -- TransformComponent ----
+	virtual bool canAttachToParent(TransformComponentConstPtr newParentComponent) const override;
+
 	// Helper functions used to fetch camera lens properties
 	bool hasValidTrackingMountPoseView() const;
 	bool getAperturePixelDimensions(int& outWidth, int& outHeight) const;
