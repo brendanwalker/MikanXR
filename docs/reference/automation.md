@@ -90,6 +90,7 @@ Value syntax for `property get`/`set`:
 - quaternions order their components w x y z
 - matrices take 16 floats in `MikanMatrix4f` field order (x0 x1 x2 x3 y0 ... w3)
 - strings with spaces are quoted (`"My Anchor"`); a bare string may span tokens, which rejoin with single spaces
+- a backslash is literal in a bare string, and inside quotes only `\"` and `\\` are escapes, so a Windows device path is either bare (`\\?\usb#vid_046d...`) or quoted with each backslash doubled. A shell of its own may eat a backslash run before the client sees it, so check the command the client echoes rather than the one that was typed
 - int arrays take one integer token per element and accept a set (`property set ... fixture_ids 1052 1118`)
 - other array, map, and object typed properties read back as formatted text but refuse a set
 
