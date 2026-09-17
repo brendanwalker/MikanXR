@@ -190,8 +190,12 @@ void DMXFixtureComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
+	// The owning stage is set by the action that creates or reparents the fixture,
+	// never typed in, matching the camera's own stage id
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		DMXFixtureComponentDefinition::k_ownerStageIdPropertyId, MikanVariantType::INT));
+								 DMXFixtureComponentDefinition::k_ownerStageIdPropertyId, MikanVariantType::INT)
+								 ->setReadOnly()
+								 ->setUIHidden());
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 		DMXFixtureComponentDefinition::k_dmxUniversePropertyId, MikanVariantType::USHORT));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
