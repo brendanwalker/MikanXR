@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 1013,
-		"translatedCount": 1013,
-		"reviewedCount": 1013
+		"stringCount": 1017,
+		"translatedCount": 1017,
+		"reviewedCount": 1017
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -378,7 +378,8 @@
 		"openProjectDialogTitle": "Open Project",
 		"projectFilesFilter": "Project Files (*.mikanproj)",
 		"resumeProject": "Resume Project",
-		"title": "Main Menu"
+		"title": "Main Menu",
+		"uiScale": "UI Scale"
 	},
 	"mainWindow": {
 		"closeProject": "Close Project",
@@ -803,6 +804,7 @@
 		"sectionAutomation": "Automation",
 		"sectionComponentNaming": "Component Naming",
 		"sectionDMX": "DMX",
+		"sectionInterface": "Interface",
 		"sectionLocalization": "Localization",
 		"sectionLogging": "Logging",
 		"sectionMarker": "Marker",
@@ -815,7 +817,9 @@
 		"stencilDisplaySolid": "Solid",
 		"stencilDisplayTooltip": "Wireframe hides the opaque mesh so the real model in the video shows through.",
 		"stencilDisplayWireframe": "Wireframe",
-		"translationReviewNoticeFmt": "%d%% of this translation has been reviewed by a person. The rest is machine generated."
+		"translationReviewNoticeFmt": "%d%% of this translation has been reviewed by a person. The rest is machine generated.",
+		"uiScale": "UI Scale",
+		"uiScaleTooltip": "Scales the editor UI on top of the scale the display already reports. Leave it at 100 to use the display scale as-is."
 	},
 	"properties": {
 		"aruco_dictionary_type": "ArUco Dictionary Type",
