@@ -4,8 +4,7 @@
 #include "CompositorObjectSystem.h"
 #include "LocText.h"
 #include "MkGuiDrawUtils.h"
-
-#include "imgui.h"
+#include "Shared/PickerPropertyGui.h"
 
 GuiPanel_SceneComponent::GuiPanel_SceneComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
@@ -39,16 +38,10 @@ void GuiPanel_SceneComponent::onConstruct()
 				return false;
 
 			m_compositorDataSource.refreshEntries();
-			if (m_compositorDataSource.getEntryCount() == 0)
-			{
-				// Declining here would fall through to the descriptor's generic
-				// widget, which for an id is an editable raw int field
-				ImGui::BeginDisabled(true);
-				MkGui::drawStaticTextProperty(m_defaultGuiStyle, locText("componentPanel.displayCompositor"),
-											  locText("componentPanel.noCompositors"));
-				ImGui::EndDisabled();
+			if (PickerPropertyGui::drawEmptyPlaceholder(m_defaultGuiStyle, m_compositorDataSource,
+														"componentPanel.displayCompositor",
+														"componentPanel.noCompositors"))
 				return true;
-			}
 
 			const MikanCompositorID currentCompositorId=
 				sceneComp->getSceneComponentDefinition()->getDisplayCompositorId();
