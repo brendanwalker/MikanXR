@@ -861,6 +861,11 @@ msgid "<None>"
 msgstr ""
 
 #. Section: componentPanel
+msgctxt "componentPanel.noCompositors"
+msgid "No Compositors"
+msgstr ""
+
+#. Section: componentPanel
 msgctxt "componentPanel.none"
 msgid "<none>"
 msgstr ""
