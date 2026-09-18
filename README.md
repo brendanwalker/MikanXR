@@ -1,6 +1,8 @@
 # MikanXR
 A simple tool for mixed reality camera calibration and video compositing
 
+Project site: [mikanxr.org](https://mikanxr.org)
+
 <!-- AI_USAGE_BADGES:BEGIN -->
 ![AI tokens](https://img.shields.io/badge/AI_tokens-14M_out_%2F_5.5B_read-blueviolet) ![est. energy](https://img.shields.io/badge/est._energy-~303_kWh-yellow) ![est. water](https://img.shields.io/badge/est._water-~909_L-blue)
 (estimates, see [TOKEN_STATS.md](TOKEN_STATS.md))
