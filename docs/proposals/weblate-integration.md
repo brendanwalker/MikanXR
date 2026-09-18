@@ -44,7 +44,7 @@ Roughly thirty lines of YAML. The pull request that reaches `main` is then alrea
 
 Create the project at [hosted.weblate.org](https://hosted.weblate.org/), then one component:
 
-- Source code repository: `https://github.com/brendanwalker/MikanXR`
+- Source code repository: `https://github.com/MikanXR/MikanXR`
 - Repository branch: `main`
 - File format: `gettext PO file`
 - File mask: `localization/*.po`
