@@ -183,6 +183,21 @@ std::set<uint16_t> DMXObjectSystem::getActiveDMXUniverseIdSet() const
 	return result;
 }
 
+std::set<uint16_t> DMXObjectSystem::getDirtyDMXUniverseIdSet() const
+{
+	std::set<uint16_t> result;
+
+	for (const auto& [universeId, universeData] : m_universeBuffers)
+	{
+		if (universeData->dirty)
+		{
+			result.insert(universeId);
+		}
+	}
+
+	return result;
+}
+
 bool DMXObjectSystem::extractUniverseData(uint16_t universeId, MikanUniverseDMXData& outUniverseData)
 {
 	auto it= m_universeBuffers.find(universeId);
@@ -191,10 +206,8 @@ bool DMXObjectSystem::extractUniverseData(uint16_t universeId, MikanUniverseDMXD
 		UniverseDataPtr universeData= it->second;
 		outUniverseData.dmx_universe_id= universeId;
 
-		// Only write out universes marked dirty
-		return universeData->dirty
-			   && mikanRLEEncodeDMXUniverseBuffer(kDMXUniverseChannelCount, universeData->channelData, &outUniverseData)
-					  > 0;
+		return mikanRLEEncodeDMXUniverseBuffer(kDMXUniverseChannelCount, universeData->channelData, &outUniverseData)
+			   > 0;
 	}
 
 	return false;

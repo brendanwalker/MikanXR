@@ -140,6 +140,13 @@ Every component and system implements `IEntityAccessor` (`src/Editor/ECS/IEntity
 
 Note that `IRemoteControllable` / `RemoteControlManager` (`src/Editor/Server`) is a separate, string-command mechanism for remote-controlling `AppStage` UI screens (push/pop stage, `handleRemoteControlCommand`), not scene objects. Scene objects are remotely controlled through the property/function databases above.
 
+A fixture's live channel bytes are the exception: they are not properties and never cross as component values. `RGBSpotLightComponent`'s `red`/`green`/`blue` are `setClientAPIHidden` runtime members, not even persisted, so a project loads with every fixture dark until a preset, sequence or script writes one. A client learns the colour only from the DMX stream in `LightRequestHandler`, which sends two ways:
+
+- subscribing answers with the current data, so a client that connects between writes is not left holding zeros
+- `DMXObjectSystem::update` broadcasts afterwards, once per tick in which a universe was written
+
+`DMXObjectSystem::extractUniverseData` answers for any universe; the per-tick filter lives in the broadcast caller through `getDirtyDMXUniverseIdSet`. Keep it that way. Folding the dirty check back into the extract silently empties both the subscribe snapshot and the `GetDMXData` request, which is a bug that presents as a client rendering black lights rather than as an error.
+
 ---
 
 ## Selection, interaction, and gizmos

@@ -82,6 +82,14 @@ public:
 	// DMX Universe Data helpers
 	void writeUniverseData(uint16_t universeId, uint16_t startChannel, const uint8_t* values, uint16_t count);
 	std::set<uint16_t> getActiveDMXUniverseIdSet() const;
+
+	// The universes written since the last update tick. Only populated inside the
+	// OnDMXDataChanged callback, since update() clears the flags once the change has gone out.
+	// A caller that wants the current state rather than this tick's delta ignores it.
+	std::set<uint16_t> getDirtyDMXUniverseIdSet() const;
+
+	// Answers with the universe's current channel data whether or not it changed this tick,
+	// so a client that arrives between writes can still be told what the lights are doing.
 	bool extractUniverseData(uint16_t universeId, struct MikanUniverseDMXData& outUniverseData);
 
 	/// Fired when DMX Universe data changed.
