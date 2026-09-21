@@ -156,6 +156,7 @@ protected:
 	bool m_bSceneListVisible= true;
 	bool m_bCompositorListVisible= true;
 	bool m_bAssetsPanelVisible= true;
+	bool m_bDMXPanelVisible= false;
 	bool m_bShowLogPanel= true;
 	bool m_bShowIdStackTool= false; // localization diagnostic, off by default
 	// Deferred project actions: a menu click must not swap the project out from

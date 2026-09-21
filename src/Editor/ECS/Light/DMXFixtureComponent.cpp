@@ -24,6 +24,8 @@ const std::string DMXFixtureComponentDefinition::k_dmxUniversePropertyId= "dmx_u
 const std::string DMXFixtureComponentDefinition::k_dmxStartChannelPropertyId= "dmx_start_channel";
 const std::string DMXFixtureComponentDefinition::k_dmxChannelCountPropertyId= "dmx_channel_count";
 const std::string DMXFixtureComponentDefinition::k_isDisabledPropertyId= "is_disabled";
+const std::string DMXFixtureComponentDefinition::k_maxWattagePropertyId= "max_wattage";
+const std::string DMXFixtureComponentDefinition::k_lumensPerWattPropertyId= "lumens_per_watt";
 
 DMXFixtureComponentDefinition::DMXFixtureComponentDefinition()
 	: TransformComponentDefinition()
@@ -44,6 +46,8 @@ configuru::Config DMXFixtureComponentDefinition::writeToJSON()
 	pt[k_dmxStartChannelPropertyId]= m_dmxStartChannel;
 	pt[k_dmxChannelCountPropertyId]= m_dmxChannelCount;
 	pt[k_isDisabledPropertyId]= m_bIsDisabled;
+	pt[k_maxWattagePropertyId]= m_maxWattage;
+	pt[k_lumensPerWattPropertyId]= m_lumensPerWatt;
 
 	return pt;
 }
@@ -57,6 +61,8 @@ void DMXFixtureComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_dmxStartChannel= pt.get_or<uint16_t>(k_dmxStartChannelPropertyId, 1);
 	m_dmxChannelCount= pt.get_or<uint16_t>(k_dmxChannelCountPropertyId, 3);
 	m_bIsDisabled= pt.get_or<bool>(k_isDisabledPropertyId, false);
+	m_maxWattage= pt.get_or<float>(k_maxWattagePropertyId, m_maxWattage);
+	m_lumensPerWatt= pt.get_or<float>(k_lumensPerWattPropertyId, m_lumensPerWatt);
 }
 
 bool DMXFixtureComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
@@ -73,6 +79,8 @@ bool DMXFixtureComponentDefinition::readFromInitParams(MikanObjectSystem* ownerO
 		m_dmxStartChannel= values->dmx_start_channel;
 		m_dmxChannelCount= values->dmx_channel_count;
 		m_bIsDisabled= values->is_disabled;
+		m_maxWattage= values->max_wattage;
+		m_lumensPerWatt= values->lumens_per_watt;
 
 		// Make sure our parent is always the stage component (if a stage was given)
 		if (m_stageId != INVALID_MIKAN_ID)
@@ -125,6 +133,24 @@ void DMXFixtureComponentDefinition::setIsDisabled(bool flag)
 	{
 		m_bIsDisabled= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_isDisabledPropertyId));
+	}
+}
+
+void DMXFixtureComponentDefinition::setMaxWattage(float watts)
+{
+	if (m_maxWattage != watts)
+	{
+		m_maxWattage= watts;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_maxWattagePropertyId));
+	}
+}
+
+void DMXFixtureComponentDefinition::setLumensPerWatt(float lumensPerWatt)
+{
+	if (m_lumensPerWatt != lumensPerWatt)
+	{
+		m_lumensPerWatt= lumensPerWatt;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_lumensPerWattPropertyId));
 	}
 }
 
@@ -206,6 +232,10 @@ void DMXFixtureComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 								 ->setReadOnly());
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(DMXFixtureComponentDefinition::k_isDisabledPropertyId,
 																  MikanVariantType::BOOL));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(DMXFixtureComponentDefinition::k_maxWattagePropertyId,
+																  MikanVariantType::FLOAT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		DMXFixtureComponentDefinition::k_lumensPerWattPropertyId, MikanVariantType::FLOAT));
 }
 
 bool DMXFixtureComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
@@ -237,6 +267,16 @@ bool DMXFixtureComponent::getPropertyValue(const std::string& propertyName, Mika
 		outValue= def->getIsDisabled();
 		return true;
 	}
+	else if (propertyName == DMXFixtureComponentDefinition::k_maxWattagePropertyId)
+	{
+		outValue= def->getMaxWattage();
+		return true;
+	}
+	else if (propertyName == DMXFixtureComponentDefinition::k_lumensPerWattPropertyId)
+	{
+		outValue= def->getLumensPerWatt();
+		return true;
+	}
 
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
@@ -260,6 +300,16 @@ bool DMXFixtureComponent::setPropertyValue(const std::string& propertyName, cons
 	else if (propertyName == DMXFixtureComponentDefinition::k_isDisabledPropertyId)
 	{
 		def->setIsDisabled(inValue.getBoolValue());
+		return true;
+	}
+	else if (propertyName == DMXFixtureComponentDefinition::k_maxWattagePropertyId)
+	{
+		def->setMaxWattage(inValue.getFloatValue());
+		return true;
+	}
+	else if (propertyName == DMXFixtureComponentDefinition::k_lumensPerWattPropertyId)
+	{
+		def->setLumensPerWatt(inValue.getFloatValue());
 		return true;
 	}
 

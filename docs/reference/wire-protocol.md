@@ -147,6 +147,10 @@ The guard test is `src/Editor/Server/Test/ClientApiPropertySchemaTests.cpp`, run
 
 What it cannot check is leg 3: a `getPropertyValue` that ignores a name fails only at runtime (the field stays default-valued). So when adding a property: add the `FIELD()`, add the descriptor with matching name/type, implement `getPropertyValue` (and `setPropertyValue` if writable), and add a `SCHEMA_ENTRY` if the class is new. Then regenerate bindings, since the values struct changed the wire protocol.
 
+There is a fourth wire, easy to miss on an object system. `SystemGetValuesRequest` allocates its response object from `MikanObjectSystem::getClientAPIValuesStructType`, whose base returns the empty `MikanSystemValues`. A system that declares a `Mikan*SystemValues` struct but never overrides that accessor answers the base struct instead, so a client reading the response as the derived type reads whatever follows the base in its own memory. Nothing fails loudly. A `SCHEMA_ENTRY` for the system is what catches it, which is why every system with a values struct has one.
+
+Note also that a property the editor panels show needs a localization key, or `run_localization_unit_tests` fails the build ([localization.md](./localization.md)). Only a `setUIHidden` descriptor is exempt.
+
 ---
 
 ## Which space a client receives

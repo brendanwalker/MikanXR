@@ -6,7 +6,8 @@
 #include "ObjectSystemColliderQueries.h"
 
 ColliderRaycastHitResult findClosestCollisionAlongRay(std::set<const MikanObjectSystem*> objectSystems,
-													  const ColliderRaycastHitRequest& request)
+													  const ColliderRaycastHitRequest& request,
+													  ColliderObjectFilter objectFilter)
 {
 	ColliderRaycastHitResult closestResult= {};
 
@@ -15,7 +16,7 @@ ColliderRaycastHitResult findClosestCollisionAlongRay(std::set<const MikanObject
 		if (objectSystem)
 		{
 			ColliderRaycastHitResult result=
-				findClosestCollisionAlongRay(objectSystem->shared_from_this(), request, &closestResult);
+				findClosestCollisionAlongRay(objectSystem->shared_from_this(), request, &closestResult, objectFilter);
 
 			if (result.hitValid && result.isHigherPriorityThan(closestResult))
 			{
@@ -29,7 +30,8 @@ ColliderRaycastHitResult findClosestCollisionAlongRay(std::set<const MikanObject
 
 ColliderRaycastHitResult findClosestCollisionAlongRay(MikanObjectSystemConstPtr objectSystem,
 													  const ColliderRaycastHitRequest& request,
-													  const ColliderRaycastHitResult* inPrevClosestResult)
+													  const ColliderRaycastHitResult* inPrevClosestResult,
+													  ColliderObjectFilter objectFilter)
 {
 	ColliderRaycastHitResult closestResult;
 
@@ -45,8 +47,11 @@ ColliderRaycastHitResult findClosestCollisionAlongRay(MikanObjectSystemConstPtr 
 	}
 
 	objectSystem->visitAllObjects(
-		[&request, &closestResult](MikanObjectPtr objectPtr)
+		[&request, &closestResult, &objectFilter](MikanObjectPtr objectPtr)
 		{
+			if (objectFilter && !objectFilter(objectPtr))
+				return;
+
 			objectPtr->visitAllComponents(
 				[objectPtr, &request, &closestResult](MikanComponentPtr componentPtr)
 				{

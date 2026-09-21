@@ -17,6 +17,9 @@ public:
 	virtual void onGui() override;
 
 protected:
+	// The universe -> unicast address table, drawn under the transport properties
+	void drawDestinationTable();
+
 	DMXObjectSystemPtr getDMXObjectSystem() const;
 	DMXObjectSystemDefinitionPtr getDMXObjectSystemDefinition() const;
 

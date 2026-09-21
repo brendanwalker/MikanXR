@@ -147,6 +147,12 @@ void SceneObjectSystem::setCurrentSceneById(MikanSceneID newSceneId)
 	}
 }
 
+// -- IEntityAccessor ----
+rfk::Struct const* SceneObjectSystem::getClientAPIValuesStructType() const
+{
+	return &MikanSceneSystemValues::staticGetArchetype();
+}
+
 // -- IPropertyInterface ----
 void SceneObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {

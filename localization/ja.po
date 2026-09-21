@@ -3526,10 +3526,50 @@ msgid "Charuco Dictionary"
 msgstr "Charuco 辞書"
 
 #. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxAddAddress"
+msgid "Add Address"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxAddUniverse"
+msgid "Add Universe"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinationIP"
+msgid "Address"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinations"
+msgid "Unicast Destinations"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinationsHelp"
+msgid "A universe listed here is sent to its addresses instead of multicast. Leave empty to multicast."
+msgstr ""
+
+#. Section: objectSystemPanel
 #, fuzzy
 msgctxt "objectSystemPanel.dmxPriority"
 msgid "DMX Priority"
 msgstr "DMX優先度"
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxRemoveAddress"
+msgid "X"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxRemoveUniverse"
+msgid "Remove Universe"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxUniverse"
+msgid "Universe"
+msgstr ""
 
 #. Section: objectSystemPanel
 #, fuzzy
@@ -4069,6 +4109,11 @@ msgstr "アセット"
 msgctxt "project.panelCompositors"
 msgid "Compositors"
 msgstr "コンポジター"
+
+#. Section: project
+msgctxt "project.panelDMX"
+msgid "DMX Panel"
+msgstr ""
 
 #. Section: project
 #, fuzzy
@@ -4678,6 +4723,11 @@ msgid "Current Device Name"
 msgstr "現在のデバイス名"
 
 #. Section: properties
+msgctxt "properties.current_scene_id"
+msgid "Current Scene"
+msgstr ""
+
+#. Section: properties
 #, fuzzy
 msgctxt "properties.device_path"
 msgid "Device Path"
@@ -4736,6 +4786,11 @@ msgstr "露出スケール"
 msgctxt "properties.font_path"
 msgid "Font"
 msgstr "フォント"
+
+#. Section: properties
+msgctxt "properties.force_render"
+msgid "Force Render"
+msgstr ""
 
 #. Section: properties
 #, fuzzy
@@ -4822,6 +4877,11 @@ msgid "Loop"
 msgstr "ループ"
 
 #. Section: properties
+msgctxt "properties.lumens_per_watt"
+msgid "Lumens per Watt"
+msgstr ""
+
+#. Section: properties
 msgctxt "properties.marker_media_path"
 msgid "Marker Reference Media"
 msgstr ""
@@ -4829,6 +4889,11 @@ msgstr ""
 #. Section: properties
 msgctxt "properties.marker_pose_track_path"
 msgid "Marker Reference Pose Track"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.max_wattage"
+msgid "Max Wattage (W)"
 msgstr ""
 
 #. Section: properties
@@ -5951,6 +6016,11 @@ msgstr "カメラ位置合わせデバッグ"
 msgctxt "windows.compositors"
 msgid "Compositors"
 msgstr "コンポジター"
+
+#. Section: windows
+msgctxt "windows.dmx"
+msgid "DMX"
+msgstr ""
 
 #. Section: windows
 #, fuzzy

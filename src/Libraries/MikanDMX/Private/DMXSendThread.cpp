@@ -23,20 +23,20 @@ DMXSendThread::DMXSendThread() { generateRandomCID(m_cid); }
 
 DMXSendThread::~DMXSendThread() { stop(); }
 
-bool DMXSendThread::start(const std::string& bindIP, const std::string& sourceName, uint8_t priority,
-						  float transmitRateHz)
+bool DMXSendThread::start(const DMXManagerConfig& config)
 {
 	if (m_running.load())
 		return true;
 
-	m_sourceName= sourceName;
-	m_priority= priority;
-	m_transmitRateHz= transmitRateHz > 0.0f ? transmitRateHz : 44.0f;
+	m_sourceName= config.sourceName;
+	m_priority= config.priority;
+	m_transmitRateHz= config.transmitRateHz > 0.0f ? config.transmitRateHz : 44.0f;
+	m_universeDestinations= config.universeDestinations;
 
-	if (!m_socket.open(bindIP))
+	if (!m_socket.open(config.networkInterfaceIP))
 		return false;
 
-	e131_packet_init(m_packetTemplate, m_cid, sourceName.c_str(), priority);
+	e131_packet_init(m_packetTemplate, m_cid, m_sourceName.c_str(), m_priority);
 
 	m_stopRequested.store(false);
 	m_thread= std::thread(&DMXSendThread::threadFunc, this);
@@ -69,7 +69,6 @@ void DMXSendThread::setChannels(uint16_t universe, uint16_t startChannel, const 
 
 		UniverseBuffer& buf= m_universeBuffers[universe];
 		std::memcpy(&buf.slots[startChannel - 1], values, clampedCount);
-		buf.dirty= true;
 	}
 }
 
@@ -84,7 +83,6 @@ void DMXSendThread::setUniverseData(uint16_t universe, const uint8_t* slotData, 
 		std::memcpy(buf.slots, slotData, clampedCount);
 		if (clampedCount < 512)
 			std::memset(&buf.slots[clampedCount], 0, 512 - clampedCount);
-		buf.dirty= true;
 	}
 }
 
@@ -98,15 +96,26 @@ void DMXSendThread::transmitUniverse(uint16_t universe, UniverseBuffer& buf)
 	// Copy slot data into property_values[1..512]
 	e131_packet_set_slots(pkt, 1, buf.slots, 512);
 
-	// Compute multicast destination IP: 239.255.X.Y
-	uint8_t destIPBytes[4];
-	e131_multicast_address(universe, destIPBytes);
-	char destIP[16];
-	std::snprintf(destIP, sizeof(destIP), "%u.%u.%u.%u", destIPBytes[0], destIPBytes[1], destIPBytes[2],
-				  destIPBytes[3]);
+	// Configured destinations address their controllers directly, one packet each.
+	// A universe nobody mapped goes to its 239.255.X.Y group, the E1.31 default.
+	auto destinationIt= m_universeDestinations.find(universe);
+	if (destinationIt != m_universeDestinations.end() && !destinationIt->second.empty())
+	{
+		for (const std::string& destIP : destinationIt->second)
+		{
+			m_socket.sendTo(destIP, E131_PORT, &pkt, sizeof(pkt));
+		}
+	}
+	else
+	{
+		uint8_t destIPBytes[4];
+		e131_multicast_address(universe, destIPBytes);
+		char destIP[16];
+		std::snprintf(destIP, sizeof(destIP), "%u.%u.%u.%u", destIPBytes[0], destIPBytes[1], destIPBytes[2],
+					  destIPBytes[3]);
 
-	m_socket.sendTo(destIP, E131_PORT, &pkt, sizeof(pkt));
-	buf.dirty= false;
+		m_socket.sendTo(destIP, E131_PORT, &pkt, sizeof(pkt));
+	}
 }
 
 void DMXSendThread::threadFunc()
@@ -114,21 +123,19 @@ void DMXSendThread::threadFunc()
 	using Clock= std::chrono::steady_clock;
 	using Duration= std::chrono::duration<double>;
 
-	const Duration interval(1.0 / m_transmitRateHz);
-	auto nextWakeUp= Clock::now() + interval;
+	// Held in the clock's own duration so the deadline and Clock::now() share a type
+	const Clock::duration interval= std::chrono::duration_cast<Clock::duration>(Duration(1.0 / m_transmitRateHz));
+	Clock::time_point nextWakeUp= Clock::now() + interval;
 
 	while (!m_stopRequested.load())
 	{
-		// Collect dirty universes under lock
+		// Snapshot every known universe under lock. A universe only appears here once
+		// something has written it, so an idle project still sends nothing at all.
 		std::map<uint16_t, UniverseBuffer> snapshot;
 		{
 			std::lock_guard<std::mutex> lock(m_bufferMutex);
 
-			for (auto& [universe, buf] : m_universeBuffers)
-			{
-				if (buf.dirty)
-					snapshot[universe]= buf;
-			}
+			snapshot= m_universeBuffers;
 		}
 
 		// Transmit outside the lock
@@ -136,16 +143,18 @@ void DMXSendThread::threadFunc()
 		{
 			transmitUniverse(universe, buf);
 
-			// Write the updated sequence number and clear dirty flag back
+			// Write the advanced sequence number back
 			{
 				std::lock_guard<std::mutex> lock(m_bufferMutex);
 
 				m_universeBuffers[universe].sequenceNumber= buf.sequenceNumber;
-				m_universeBuffers[universe].dirty= false;
 			}
 		}
 
 		std::this_thread::sleep_until(nextWakeUp);
-		nextWakeUp+= interval;
+
+		// Re-base after a stall rather than chasing a deadline already in the past,
+		// which would spin the thread flat out trying to catch up frames nobody wants
+		nextWakeUp= std::max(nextWakeUp + interval, Clock::now());
 	}
 }

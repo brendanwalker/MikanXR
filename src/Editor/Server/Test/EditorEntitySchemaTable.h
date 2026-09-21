@@ -50,6 +50,7 @@
 #include "Marker/MarkerComponent.h"
 #include "Marker/MarkerObjectSystem.h"
 #include "Scene/SceneComponent.h"
+#include "Scene/SceneObjectSystem.h"
 #include "Scene/TransformComponent.h"
 #include "Script/ScriptComponent.h"
 #include "Shape/BoxShapeComponent.h"
@@ -150,6 +151,7 @@ inline const SchemaTestEntry k_schemaTestEntries[]= {
 	SCHEMA_ENTRY(BoxShapeSystem, MikanBoxShapeSystemValues),
 	SCHEMA_ENTRY(ModelShapeSystem, MikanModelShapeSystemValues),
 	SCHEMA_ENTRY(QuadShapeSystem, MikanQuadShapeSystemValues),
+	SCHEMA_ENTRY(SceneObjectSystem, MikanSceneSystemValues),
 	SCHEMA_ENTRY(USBVideoSourceSystem, MikanUSBVideoSourceSystemValues),
 	SCHEMA_ENTRY(VRObjectSystem, MikanVRObjectSystemValues),
 };

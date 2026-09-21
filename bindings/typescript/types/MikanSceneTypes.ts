@@ -14,9 +14,11 @@ export class MikanSceneSystemValues extends MikanSystemValues {
 
 export class MikanSceneComponentValues extends MikanTransformComponentValues {
   display_compositor_id: number = -1;
+  force_render: boolean = false;
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'display_compositor_id', type: 'int32' }
+    { name: 'display_compositor_id', type: 'int32' },
+    { name: 'force_render', type: 'boolean' }
   ];
 }
 

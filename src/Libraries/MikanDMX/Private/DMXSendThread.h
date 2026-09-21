@@ -1,5 +1,6 @@
 #pragma once
 
+#include "DMXManagerConfig.h"
 #include "E131Packet.h"
 #include "UdpMulticastSocket.h"
 
@@ -9,16 +10,18 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
-/// Per-universe transmit buffer with a dirty flag.
+/// Per-universe transmit buffer. Every known universe is retransmitted each tick, so there
+/// is no dirty flag: a receiver times its stream out after a couple of seconds of silence
+/// and falls back to its idle effect, which would strand any held look.
 struct UniverseBuffer
 {
 	uint8_t slots[512]= {}; // DMX slot data (slots 1–512)
 	uint8_t sequenceNumber= 0;
-	bool dirty= false;
 };
 
-/// Background thread that transmits dirty E1.31 universe buffers at a fixed rate.
+/// Background thread that transmits every known E1.31 universe buffer at a fixed rate.
 /// Thread-safe: setChannels / setUniverseData may be called from any thread.
 class DMXSendThread
 {
@@ -30,7 +33,7 @@ public:
 	DMXSendThread(const DMXSendThread&)= delete;
 	DMXSendThread& operator=(const DMXSendThread&)= delete;
 
-	bool start(const std::string& bindIP, const std::string& sourceName, uint8_t priority, float transmitRateHz);
+	bool start(const struct DMXManagerConfig& config);
 
 	void stop();
 
@@ -52,6 +55,7 @@ private:
 	uint8_t m_cid[16]= {};
 	uint8_t m_priority= 100;
 	std::string m_sourceName;
+	std::map<uint16_t, std::vector<std::string>> m_universeDestinations;
 
 	// Socket
 	UdpMulticastSocket m_socket;

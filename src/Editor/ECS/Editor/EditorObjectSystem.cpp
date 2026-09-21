@@ -1125,8 +1125,9 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(const glm::
 	request.rayOrigin= rayOrigin;
 	request.rayDirection= rayDir;
 
-	// Find the closest collision result in the
-	outRaycastResult= findClosestCollisionAlongRay(m_objectSystemSelectionFilter, request);
+	// Find the closest collision result, skipping geometry the viewport is not drawing.
+	// Without that the ray still hits a hidden scene's meshes and the click selects nothing visible.
+	outRaycastResult= findClosestCollisionAlongRay(m_objectSystemSelectionFilter, request, isSceneGeometryRendered);
 
 	SelectionComponentPtr closestSelectionComponent;
 	ColliderComponentPtr hitCollider= outRaycastResult.hitComponent.lock();

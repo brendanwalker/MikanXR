@@ -446,10 +446,4 @@ void GuiPanel_ProjectSettings::onGui()
 			addDeferredGuiEvent([appSettings]() { appSettings->resetComponentNamePrefixes(); });
 		}
 	}
-
-	// -- DMX ----
-	if (MkGui::drawPropertySheetHeader(m_defaultGuiStyle, locText("projectSettings.sectionDMX")))
-	{
-		m_context->getDMXSystemPanel()->onGui();
-	}
 }

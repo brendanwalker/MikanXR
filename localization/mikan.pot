@@ -3041,8 +3041,48 @@ msgid "Charuco Dictionary"
 msgstr ""
 
 #. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxAddAddress"
+msgid "Add Address"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxAddUniverse"
+msgid "Add Universe"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinationIP"
+msgid "Address"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinations"
+msgid "Unicast Destinations"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinationsHelp"
+msgid "A universe listed here is sent to its addresses instead of multicast. Leave empty to multicast."
+msgstr ""
+
+#. Section: objectSystemPanel
 msgctxt "objectSystemPanel.dmxPriority"
 msgid "DMX Priority"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxRemoveAddress"
+msgid "X"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxRemoveUniverse"
+msgid "Remove Universe"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxUniverse"
+msgid "Universe"
 msgstr ""
 
 #. Section: objectSystemPanel
@@ -3513,6 +3553,11 @@ msgstr ""
 #. Section: project
 msgctxt "project.panelCompositors"
 msgid "Compositors"
+msgstr ""
+
+#. Section: project
+msgctxt "project.panelDMX"
+msgid "DMX Panel"
 msgstr ""
 
 #. Section: project
@@ -4031,6 +4076,11 @@ msgid "Current Device Name"
 msgstr ""
 
 #. Section: properties
+msgctxt "properties.current_scene_id"
+msgid "Current Scene"
+msgstr ""
+
+#. Section: properties
 msgctxt "properties.device_path"
 msgid "Device Path"
 msgstr ""
@@ -4078,6 +4128,11 @@ msgstr ""
 #. Section: properties
 msgctxt "properties.font_path"
 msgid "Font"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.force_render"
+msgid "Force Render"
 msgstr ""
 
 #. Section: properties
@@ -4151,6 +4206,11 @@ msgid "Loop"
 msgstr ""
 
 #. Section: properties
+msgctxt "properties.lumens_per_watt"
+msgid "Lumens per Watt"
+msgstr ""
+
+#. Section: properties
 msgctxt "properties.marker_media_path"
 msgid "Marker Reference Media"
 msgstr ""
@@ -4158,6 +4218,11 @@ msgstr ""
 #. Section: properties
 msgctxt "properties.marker_pose_track_path"
 msgid "Marker Reference Pose Track"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.max_wattage"
+msgid "Max Wattage (W)"
 msgstr ""
 
 #. Section: properties
@@ -5135,6 +5200,11 @@ msgstr ""
 #. Section: windows
 msgctxt "windows.compositors"
 msgid "Compositors"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.dmx"
+msgid "DMX"
 msgstr ""
 
 #. Section: windows

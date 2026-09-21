@@ -48,6 +48,7 @@
 #include "Project/GuiPanel_HttpTriggers.h"
 #include "Project/GuiPanel_ProjectSettings.h"
 #include "Project/GuiPanel_SceneList.h"
+#include "Shared/GuiPanel_DMXObjectSystem.h"
 #include "AnchorObjectSystem.h"
 #include "BoxShapeComponent.h"
 #include "BoxShapeSystem.h"
@@ -428,6 +429,16 @@ void AppStage_Project::onGui()
 		}
 	}
 
+	// The DMX lighting transport settings
+	if (m_bDMXPanelVisible && m_projectGuiPanelContext != nullptr)
+	{
+		MkGuiScopedWindow dmxWindow(locWindowTitle("windows.dmx"), &m_bDMXPanelVisible);
+		if (dmxWindow)
+		{
+			m_projectGuiPanelContext->getDMXSystemPanel()->onGui();
+		}
+	}
+
 	if (m_bShowLogPanel)
 	{
 		LogPanel::getInstance().draw(&m_bShowLogPanel);
@@ -478,6 +489,7 @@ void AppStage_Project::onMenuBarGui()
 		ImGui::MenuItem(locLabel("project.panelScenes"), nullptr, &m_bSceneListVisible);
 		ImGui::MenuItem(locLabel("project.panelCompositors"), nullptr, &m_bCompositorListVisible);
 		ImGui::MenuItem(locLabel("project.panelAssets"), nullptr, &m_bAssetsPanelVisible);
+		ImGui::MenuItem(locLabel("project.panelDMX"), nullptr, &m_bDMXPanelVisible);
 		ImGui::Separator();
 		ImGui::MenuItem(locLabel("mainWindow.logPanel"), nullptr, &m_bShowLogPanel);
 		ImGui::Separator();
@@ -554,6 +566,7 @@ void AppStage_Project::onBuildDefaultDockLayout(unsigned int dockspaceId)
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.project"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.projectSettings"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.httpTriggers"), rightId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.dmx"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.scenes"), scenesId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.compositors"), compositorsId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.assets"), assetsId);
@@ -829,110 +842,120 @@ TrackingVolumeComponentConstPtr AppStage_Project::getCurrentTrackingVolumeConst(
 void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera,
 										  std::vector<ShapeComponentPtr>& outDeferredShapeGraphs) const
 {
-	SceneComponentConstPtr currentScene= getCurrentSceneConst();
-	if (currentScene)
+	auto editorObjectSystem= getObjectSystemOfType<EditorObjectSystem>();
+	const EditorSettings& editorSettings= editorObjectSystem->getEditorSettings();
+
+	// Scene actors draw for the current scene only, plus any scene asking to be drawn
+	// anyway. Every stage draws either way, so two stages can be aligned against each
+	// other without the inactive scenes on them piling up in the viewport.
+	auto isComponentRendered= [](auto componentPtr) { return isSceneGeometryRendered(componentPtr->getOwnerObject()); };
+
+	// Render the stage
+	renderProjectStages(graphicsContext, viewportCamera);
+
+	// Render anchors if enabled
+	if (editorSettings.bDebugRenderAnchors)
 	{
-		auto editorObjectSystem= getObjectSystemOfType<EditorObjectSystem>();
-		const EditorSettings& editorSettings= editorObjectSystem->getEditorSettings();
+		AnchorObjectSystemPtr anchorSystem= m_anchorObjectSystem.lock();
 
-		// Render the stage
-		renderProjectStages(graphicsContext, viewportCamera);
+		addAllRenderablesToMkScene(anchorSystem, m_mkScene, isSceneGeometryRendered);
+		anchorSystem->customRender(graphicsContext, viewportCamera, isComponentRendered);
+	}
 
-		// Render anchors if enabled
-		if (editorSettings.bDebugRenderAnchors)
+	// Render the stencils if enabled
+	if (editorSettings.bDebugRenderBoxStencils)
+	{
+		BoxStencilSystemPtr boxStencilSystem= m_boxStencilSystem.lock();
+
+		addAllRenderablesToMkScene(boxStencilSystem, m_mkScene, isSceneGeometryRendered);
+		boxStencilSystem->customRender(graphicsContext, viewportCamera, isComponentRendered);
+	}
+	if (editorSettings.bDebugRenderModelStencils)
+	{
+		ModelStencilSystemPtr modelStencilSystem= m_modelStencilSystem.lock();
+
+		addAllRenderablesToMkScene(modelStencilSystem, m_mkScene, isSceneGeometryRendered);
+		modelStencilSystem->customRender(graphicsContext, viewportCamera, isComponentRendered);
+	}
+	if (editorSettings.bDebugRenderQuadStencils)
+	{
+		QuadStencilSystemPtr quadStencilSystem= m_quadStencilSystem.lock();
+
+		addAllRenderablesToMkScene(quadStencilSystem, m_mkScene, isSceneGeometryRendered);
+		quadStencilSystem->customRender(graphicsContext, viewportCamera, isComponentRendered);
+	}
+
+	// Render the shapes if enabled
+	if (editorSettings.bDebugRenderQuadShapes)
+	{
+		QuadShapeSystemPtr quadShapeSystem= m_quadShapeSystem.lock();
+
+		std::vector<QuadShapeComponentPtr> quadShapes;
+		quadShapeSystem->getQuadShapeComponentList(quadShapes);
+
+		bool bAnyLegacyShapes= false;
+		for (auto& shape : quadShapes)
 		{
-			AnchorObjectSystemPtr anchorSystem= m_anchorObjectSystem.lock();
+			if (!isComponentRendered(shape))
+				continue;
 
-			addAllRenderablesToMkScene(anchorSystem, m_mkScene);
-			anchorSystem->customRender(graphicsContext, viewportCamera);
+			if (shape->hasValidShapeGraph())
+				outDeferredShapeGraphs.push_back(shape);
+			else
+				bAnyLegacyShapes= true;
 		}
-
-		// Render the stencils if enabled
-		if (editorSettings.bDebugRenderBoxStencils)
+		if (bAnyLegacyShapes)
 		{
-			BoxStencilSystemPtr boxStencilSystem= m_boxStencilSystem.lock();
-
-			addAllRenderablesToMkScene(boxStencilSystem, m_mkScene);
-			boxStencilSystem->customRender(graphicsContext, viewportCamera);
+			addAllRenderablesToMkScene(quadShapeSystem, m_mkScene, isSceneGeometryRendered);
+			quadShapeSystem->customRender(graphicsContext, viewportCamera, isComponentRendered);
 		}
-		if (editorSettings.bDebugRenderModelStencils)
-		{
-			ModelStencilSystemPtr modelStencilSystem= m_modelStencilSystem.lock();
+	}
+	if (editorSettings.bDebugRenderBoxShapes)
+	{
+		BoxShapeSystemPtr boxShapeSystem= m_boxShapeSystem.lock();
 
-			addAllRenderablesToMkScene(modelStencilSystem, m_mkScene);
-			modelStencilSystem->customRender(graphicsContext, viewportCamera);
+		std::vector<BoxShapeComponentPtr> boxShapes;
+		boxShapeSystem->getBoxShapeComponentList(boxShapes);
+
+		bool bAnyLegacyShapes= false;
+		for (auto& shape : boxShapes)
+		{
+			if (!isComponentRendered(shape))
+				continue;
+
+			if (shape->hasValidShapeGraph())
+				outDeferredShapeGraphs.push_back(shape);
+			else
+				bAnyLegacyShapes= true;
 		}
-		if (editorSettings.bDebugRenderQuadStencils)
+		if (bAnyLegacyShapes)
 		{
-			QuadStencilSystemPtr quadStencilSystem= m_quadStencilSystem.lock();
-
-			addAllRenderablesToMkScene(quadStencilSystem, m_mkScene);
-			quadStencilSystem->customRender(graphicsContext, viewportCamera);
+			addAllRenderablesToMkScene(boxShapeSystem, m_mkScene, isSceneGeometryRendered);
+			boxShapeSystem->customRender(graphicsContext, viewportCamera, isComponentRendered);
 		}
+	}
+	if (editorSettings.bDebugRenderModelShapes)
+	{
+		ModelShapeSystemPtr modelShapeSystem= m_modelShapeSystem.lock();
 
-		// Render the shapes if enabled
-		if (editorSettings.bDebugRenderQuadShapes)
+		std::vector<ModelShapeComponentPtr> modelShapes;
+		modelShapeSystem->getModelShapeComponentList(modelShapes);
+
+		bool bAnyLegacyShapes= false;
+		for (auto& shape : modelShapes)
 		{
-			QuadShapeSystemPtr quadShapeSystem= m_quadShapeSystem.lock();
+			if (!isComponentRendered(shape))
+				continue;
 
-			std::vector<QuadShapeComponentPtr> quadShapes;
-			quadShapeSystem->getQuadShapeComponentList(quadShapes);
-
-			bool bAnyLegacyShapes= false;
-			for (auto& shape : quadShapes)
-			{
-				if (shape->hasValidShapeGraph())
-					outDeferredShapeGraphs.push_back(shape);
-				else
-					bAnyLegacyShapes= true;
-			}
-			if (bAnyLegacyShapes)
-			{
-				addAllRenderablesToMkScene(quadShapeSystem, m_mkScene);
-				quadShapeSystem->customRender(graphicsContext, viewportCamera);
-			}
+			if (shape->hasValidShapeGraph())
+				outDeferredShapeGraphs.push_back(shape);
+			else
+				bAnyLegacyShapes= true;
 		}
-		if (editorSettings.bDebugRenderBoxShapes)
+		if (bAnyLegacyShapes)
 		{
-			BoxShapeSystemPtr boxShapeSystem= m_boxShapeSystem.lock();
-
-			std::vector<BoxShapeComponentPtr> boxShapes;
-			boxShapeSystem->getBoxShapeComponentList(boxShapes);
-
-			bool bAnyLegacyShapes= false;
-			for (auto& shape : boxShapes)
-			{
-				if (shape->hasValidShapeGraph())
-					outDeferredShapeGraphs.push_back(shape);
-				else
-					bAnyLegacyShapes= true;
-			}
-			if (bAnyLegacyShapes)
-			{
-				addAllRenderablesToMkScene(boxShapeSystem, m_mkScene);
-				boxShapeSystem->customRender(graphicsContext, viewportCamera);
-			}
-		}
-		if (editorSettings.bDebugRenderModelShapes)
-		{
-			ModelShapeSystemPtr modelShapeSystem= m_modelShapeSystem.lock();
-
-			std::vector<ModelShapeComponentPtr> modelShapes;
-			modelShapeSystem->getModelShapeComponentList(modelShapes);
-
-			bool bAnyLegacyShapes= false;
-			for (auto& shape : modelShapes)
-			{
-				if (shape->hasValidShapeGraph())
-					outDeferredShapeGraphs.push_back(shape);
-				else
-					bAnyLegacyShapes= true;
-			}
-			if (bAnyLegacyShapes)
-			{
-				addAllRenderablesToMkScene(modelShapeSystem, m_mkScene);
-				modelShapeSystem->customRender(graphicsContext, viewportCamera);
-			}
+			addAllRenderablesToMkScene(modelShapeSystem, m_mkScene, isSceneGeometryRendered);
+			modelShapeSystem->customRender(graphicsContext, viewportCamera, isComponentRendered);
 		}
 	}
 }

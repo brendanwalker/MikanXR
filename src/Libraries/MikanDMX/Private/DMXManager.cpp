@@ -7,10 +7,7 @@ std::unique_ptr<IDMXManager> IDMXManager::create() { return std::make_unique<DMX
 // -- DMXManager -----
 DMXManager::~DMXManager() { shutdown(); }
 
-bool DMXManager::startup(const DMXManagerConfig& config)
-{
-	return m_sendThread.start(config.networkInterfaceIP, config.sourceName, config.priority, config.transmitRateHz);
-}
+bool DMXManager::startup(const DMXManagerConfig& config) { return m_sendThread.start(config); }
 
 void DMXManager::shutdown() { m_sendThread.stop(); }
 
@@ -19,7 +16,7 @@ bool DMXManager::getIsRunning() const { return m_sendThread.isRunning(); }
 bool DMXManager::restart(const DMXManagerConfig& config)
 {
 	m_sendThread.stop();
-	return m_sendThread.start(config.networkInterfaceIP, config.sourceName, config.priority, config.transmitRateHz);
+	return m_sendThread.start(config);
 }
 
 void DMXManager::setChannels(uint16_t universe, uint16_t startChannel, const uint8_t* values, uint16_t count)

@@ -46,6 +46,12 @@ void LightRequestHandler::onDMXDataChanged()
 {
 	auto dmxSystem= getObjectSystemOfType<DMXObjectSystem>();
 
+	// Only the universes written this tick belong in a change event. extractUniverseData
+	// answers for any universe now, so this is where the change filter lives.
+	const std::set<uint16_t> dirtyUniverseIds= dmxSystem->getDirtyDMXUniverseIdSet();
+	if (dirtyUniverseIds.empty())
+		return;
+
 	std::map<uint16_t, MikanUniverseDMXData> universeDataCache;
 
 	for (const auto subscriptionIt : m_lightSubscriptions)
@@ -56,46 +62,60 @@ void LightRequestHandler::onDMXDataChanged()
 		MikanClientConnectionStatePtr clientState= m_owner->getConnectedClientState(clientId);
 		if (clientState)
 		{
-			// Get all the universes IDs this client is subscribed to
-			std::set<uint16_t> universeIds;
-			computeDMXUniverseIdsForLights(subscriptionInfo, universeIds);
+			publishDMXDataToClient(clientState, subscriptionInfo, &dirtyUniverseIds, universeDataCache);
+		}
+	}
+}
 
-			// Add all universes that the client is subscribe to
-			MikanLightDMXDataChangedEvent dmxChangedEvent;
-			dmxChangedEvent.dmx_data.server_time_seconds= getServerTime();
+void LightRequestHandler::publishDMXDataToClient(MikanClientConnectionStatePtr clientState,
+												 ClientLightSubscriptionInfoPtr subscriptionInfo,
+												 const std::set<uint16_t>* universeIdFilter,
+												 std::map<uint16_t, MikanUniverseDMXData>& universeDataCache) const
+{
+	auto dmxSystem= getObjectSystemOfType<DMXObjectSystem>();
+	if (!dmxSystem)
+		return;
 
-			for (uint16_t universeId : universeIds)
+	// Get all the universes IDs this client is subscribed to
+	std::set<uint16_t> universeIds;
+	computeDMXUniverseIdsForLights(subscriptionInfo, universeIds);
+
+	MikanLightDMXDataChangedEvent dmxChangedEvent;
+	dmxChangedEvent.dmx_data.server_time_seconds= getServerTime();
+
+	for (uint16_t universeId : universeIds)
+	{
+		if (universeIdFilter != nullptr && !universeIdFilter->contains(universeId))
+			continue;
+
+		auto cacheIt= universeDataCache.find(universeId);
+		if (cacheIt != universeDataCache.end())
+		{
+			// Add the cached universe data that was already fetched
+			dmxChangedEvent.dmx_data.universes.push_back(cacheIt->second);
+		}
+		else
+		{
+			// No cached data, extract DMX channel data for the universe
+			MikanUniverseDMXData universeData;
+			if (dmxSystem->extractUniverseData(universeId, universeData))
 			{
-				auto cacheIt= universeDataCache.find(universeId);
-				if (cacheIt != universeDataCache.end())
-				{
-					// Add the cached universe data that was already fetched
-					dmxChangedEvent.dmx_data.universes.push_back(cacheIt->second);
-				}
-				else
-				{
-					// No cached data, extract DMX channel data for universe (if dirty)
-					MikanUniverseDMXData universeData;
-					if (dmxSystem->extractUniverseData(universeId, universeData))
-					{
-						// Add the universe data to the event
-						dmxChangedEvent.dmx_data.universes.push_back(universeData);
+				// Add the universe data to the event
+				dmxChangedEvent.dmx_data.universes.push_back(universeData);
 
-						// Add to the cache for other clients
-						universeDataCache.insert({universeId, universeData});
-					}
-				}
-			}
-
-			// Broadcast all changed universes, if any, to the client
-			if (dmxChangedEvent.dmx_data.universes.size() > 0)
-			{
-				// TODO: Make this a binary event
-				const std::string eventJson= mikanTypeToJsonString(dmxChangedEvent);
-
-				clientState->publishMikanJsonEvent(eventJson);
+				// Add to the cache for other clients
+				universeDataCache.insert({universeId, universeData});
 			}
 		}
+	}
+
+	// Send all the universes, if any, to the client
+	if (dmxChangedEvent.dmx_data.universes.size() > 0)
+	{
+		// TODO: Make this a binary event
+		const std::string eventJson= mikanTypeToJsonString(dmxChangedEvent);
+
+		clientState->publishMikanJsonEvent(eventJson);
 	}
 }
 
@@ -141,6 +161,17 @@ void LightRequestHandler::setLightDMXDataSubscriptionHandler(const ClientRequest
 			// All lights subscribed
 			subscriptionInfo->subscribedLights.clear();
 			subscriptionInfo->subscribedLights.insert(k_AllLights);
+		}
+
+		// Send the current channel data straight away. The change event only fires on the tick
+		// a universe is written, so without this a client that subscribes between writes holds
+		// every light at zero until something happens to move it.
+		MikanClientConnectionStatePtr clientState= m_owner->getConnectedClientState(clientId);
+		if (clientState)
+		{
+			std::map<uint16_t, MikanUniverseDMXData> universeDataCache;
+
+			publishDMXDataToClient(clientState, subscriptionInfo, nullptr, universeDataCache);
 		}
 	}
 	else

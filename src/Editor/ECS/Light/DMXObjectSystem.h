@@ -36,6 +36,16 @@ public:
 	uint8_t getDMXPriority() const { return m_dmxConfig.priority; }
 	void setDMXPriority(uint8_t priority);
 
+	// Unicast destinations keyed by universe; a universe with no row multicasts
+	static const std::string k_dmxDestinationsPropertyId;
+	using UniverseDestinationMap= std::map<uint16_t, std::vector<std::string>>;
+	const UniverseDestinationMap& getUniverseDestinations() const { return m_dmxConfig.universeDestinations; }
+	void setUniverseDestinations(const UniverseDestinationMap& destinations);
+
+	// The same table as the JSON text the property surface and the panel exchange
+	std::string universeDestinationsToJsonString() const;
+	bool universeDestinationsFromJsonString(const std::string& jsonText);
+
 	static const std::string k_transmitRateHzPropertyId;
 	float getTransmitRateHz() const { return m_dmxConfig.transmitRateHz; }
 	void setTransmitRateHz(float hz);
@@ -82,6 +92,14 @@ public:
 	// DMX Universe Data helpers
 	void writeUniverseData(uint16_t universeId, uint16_t startChannel, const uint8_t* values, uint16_t count);
 	std::set<uint16_t> getActiveDMXUniverseIdSet() const;
+
+	// The universes written since the last update tick. Only populated inside the
+	// OnDMXDataChanged callback, since update() clears the flags once the change has gone out.
+	// A caller that wants the current state rather than this tick's delta ignores it.
+	std::set<uint16_t> getDirtyDMXUniverseIdSet() const;
+
+	// Answers with the universe's current channel data whether or not it changed this tick,
+	// so a client that arrives between writes can still be told what the lights are doing.
 	bool extractUniverseData(uint16_t universeId, struct MikanUniverseDMXData& outUniverseData);
 
 	/// Fired when DMX Universe data changed.

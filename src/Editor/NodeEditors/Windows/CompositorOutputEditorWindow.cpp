@@ -358,20 +358,21 @@ void CompositorOutputEditorWindow::render()
 					// enabled. The per-object "Render <X>" flags still apply on top of it.
 					if (editorConfig.bDebugRenderInCompositor)
 					{
-						// Add scene actors to the MkScene for rendering
+						// Add scene actors to the MkScene for rendering, minus the scenes
+						// the project viewport is not drawing either
 						if (editorConfig.bDebugRenderBoxStencils)
 						{
-							addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene);
+							addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene, isSceneGeometryRendered);
 						}
 
 						if (editorConfig.bDebugRenderModelStencils)
 						{
-							addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene);
+							addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene, isSceneGeometryRendered);
 						}
 
 						if (editorConfig.bDebugRenderQuadStencils)
 						{
-							addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
+							addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene, isSceneGeometryRendered);
 						}
 
 						// Clear the depth buffer so the overlay scene draws over the composited frame
