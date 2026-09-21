@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 1014,
-		"translatedCount": 1014,
-		"reviewedCount": 1014
+		"stringCount": 1015,
+		"translatedCount": 1015,
+		"reviewedCount": 1015
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -845,6 +845,7 @@
 		"content_source": "Content Source",
 		"cull_mode": "Cull Mode",
 		"current_friendly_name": "Current Device Name",
+		"current_scene_id": "Current Scene",
 		"device_path": "Device Path",
 		"directionality": "Directionality",
 		"display_tracking_space": "Display Tracking Space",

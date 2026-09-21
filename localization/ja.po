@@ -4658,6 +4658,11 @@ msgid "Current Device Name"
 msgstr "現在のデバイス名"
 
 #. Section: properties
+msgctxt "properties.current_scene_id"
+msgid "Current Scene"
+msgstr ""
+
+#. Section: properties
 #, fuzzy
 msgctxt "properties.device_path"
 msgid "Device Path"

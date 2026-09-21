@@ -4011,6 +4011,11 @@ msgid "Current Device Name"
 msgstr ""
 
 #. Section: properties
+msgctxt "properties.current_scene_id"
+msgid "Current Scene"
+msgstr ""
+
+#. Section: properties
 msgctxt "properties.device_path"
 msgid "Device Path"
 msgstr ""

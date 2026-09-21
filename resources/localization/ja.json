@@ -2,7 +2,7 @@
 	"_meta": {
 		"code": "ja",
 		"nativeName": "日本語",
-		"stringCount": 1014,
+		"stringCount": 1015,
 		"translatedCount": 899,
 		"reviewedCount": 0
 	},
@@ -845,6 +845,7 @@
 		"content_source": "コンテンツソース",
 		"cull_mode": "カリングモード",
 		"current_friendly_name": "現在のデバイス名",
+		"current_scene_id": "Current Scene",
 		"device_path": "デバイスパス",
 		"directionality": "指向性",
 		"display_tracking_space": "表示トラッキング空間",
