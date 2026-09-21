@@ -138,6 +138,12 @@ void DrawLayerNode::onGraphLoaded(bool success)
 {
 	if (success)
 	{
+		// Push the loaded values into the pins before anything reads them back. A dynamic pin
+		// serializes no value of its own, so it restores at zero and the node's defaults map is
+		// the only record; rebuildInputPins below captures the pins into that map first, which
+		// would bank the zeroes over what was just loaded.
+		applyDynamicPinDefaultValues();
+
 		// Make sure we have a material input pin
 		PropertyPinPtr materialInPin= getFirstPinOfType<PropertyPin>(eNodePinDirection::INPUT);
 		if (materialInPin && materialInPin->getPropertyClassName() == GraphMaterialProperty::k_propertyClassName)
