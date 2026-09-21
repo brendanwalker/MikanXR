@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 1017,
-		"translatedCount": 1017,
-		"reviewedCount": 1017
+		"stringCount": 1019,
+		"translatedCount": 1019,
+		"reviewedCount": 1019
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
