@@ -29,6 +29,7 @@
 
 // -- SceneComponentDefinition -----
 const std::string SceneComponentDefinition::k_displayCompositorIdPropertyId= "display_compositor_id";
+const std::string SceneComponentDefinition::k_forceRenderPropertyId= "force_render";
 
 SceneComponentDefinition::SceneComponentDefinition()
 	: TransformComponentDefinition()
@@ -45,6 +46,7 @@ configuru::Config SceneComponentDefinition::writeToJSON()
 	configuru::Config pt= TransformComponentDefinition::writeToJSON();
 
 	pt[k_displayCompositorIdPropertyId]= m_displayCompositorId;
+	pt[k_forceRenderPropertyId]= m_bForceRender;
 
 	return pt;
 }
@@ -54,6 +56,7 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 	TransformComponentDefinition::readFromJSON(pt);
 
 	m_displayCompositorId= pt.get_or<int>(k_displayCompositorIdPropertyId, INVALID_MIKAN_ID);
+	m_bForceRender= pt.get_or<bool>(k_forceRenderPropertyId, false);
 }
 
 bool SceneComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSystem,
@@ -66,6 +69,7 @@ bool SceneComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObject
 	if (componentValues)
 	{
 		m_displayCompositorId= componentValues->display_compositor_id;
+		m_bForceRender= componentValues->force_render;
 	}
 
 	return true;
@@ -80,6 +84,15 @@ void SceneComponentDefinition::setDisplayCompositorId(MikanCompositorID composit
 	}
 }
 
+void SceneComponentDefinition::setForceRender(bool bForceRender)
+{
+	if (m_bForceRender != bForceRender)
+	{
+		m_bForceRender= bForceRender;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_forceRenderPropertyId));
+	}
+}
+
 // -- SceneComponent -----
 SceneComponent::SceneComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
@@ -90,6 +103,18 @@ SceneComponent::SceneComponent(MikanObjectWeakPtr owner)
 rfk::Struct const* SceneComponent::getClientAPIValuesStructType() const
 {
 	return &MikanSceneComponentValues::staticGetArchetype();
+}
+
+bool SceneComponent::isCurrentScene() const
+{
+	SceneObjectSystemPtr sceneSystem= getObjectSystemOfType<SceneObjectSystem>();
+
+	return sceneSystem && sceneSystem->getCurrentSceneId() == getSceneId();
+}
+
+bool SceneComponent::shouldRender() const
+{
+	return isCurrentScene() || getSceneComponentDefinition()->getForceRender();
 }
 
 MikanStageID SceneComponent::getParentStageId() const { return getSceneComponentDefinition()->getParentTransformId(); }
@@ -221,6 +246,10 @@ void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 								 SceneComponentDefinition::k_displayCompositorIdPropertyId, MikanVariantType::INT)
 								 ->setDefaultValue(-1)
 								 ->setUIHidden());
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(SceneComponentDefinition::k_forceRenderPropertyId, MikanVariantType::BOOL)
+			->setDefaultValue(false));
 }
 
 bool SceneComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
@@ -228,6 +257,12 @@ bool SceneComponent::getPropertyValue(const std::string& propertyName, MikanVari
 	if (propertyName == SceneComponentDefinition::k_displayCompositorIdPropertyId)
 	{
 		outValue= getSceneComponentDefinition()->getDisplayCompositorId();
+		return true;
+	}
+
+	if (propertyName == SceneComponentDefinition::k_forceRenderPropertyId)
+	{
+		outValue= getSceneComponentDefinition()->getForceRender();
 		return true;
 	}
 
@@ -241,6 +276,12 @@ bool SceneComponent::setPropertyValue(const std::string& propertyName, const Mik
 		MikanCompositorID compositorId= inValue.getIntValue();
 
 		getSceneComponentDefinition()->setDisplayCompositorId(compositorId);
+		return true;
+	}
+
+	if (propertyName == SceneComponentDefinition::k_forceRenderPropertyId)
+	{
+		getSceneComponentDefinition()->setForceRender(inValue.getBoolValue());
 		return true;
 	}
 
@@ -292,6 +333,12 @@ void SceneComponent::bindLuaFunctions(struct lua_State* L)
 			{ return component->getSceneComponentDefinition()->getDisplayCompositorId(); },
 			[](SceneComponent* component, int compositorId)
 			{ component->getSceneComponentDefinition()->setDisplayCompositorId(compositorId); })
+		.addProperty(
+			"forceRender", [](SceneComponent* component) -> bool
+			{ return component->getSceneComponentDefinition()->getForceRender(); },
+			[](SceneComponent* component, bool bForceRender)
+			{ component->getSceneComponentDefinition()->setForceRender(bForceRender); })
+		.addProperty("isCurrentScene", [](SceneComponent* component) -> bool { return component->isCurrentScene(); })
 		.addFunction("showCompositorOutput", [](SceneComponent* c) { c->showCompositorOutput(); })
 		.addFunction("getParentStage", [](SceneComponent* c) -> StageComponent* { return c->getParentStage().get(); })
 		.addFunction("getOutputCompositorCount",
@@ -303,4 +350,26 @@ void SceneComponent::bindLuaFunctions(struct lua_State* L)
 						 return (i >= 0 && i < static_cast<int>(v.size())) ? v[i].get() : nullptr;
 					 })
 		.endClass();
+}
+
+// -- Scene geometry render gate -----
+bool isSceneGeometryRendered(MikanObjectConstPtr objectPtr)
+{
+	if (!objectPtr)
+		return false;
+
+	TransformComponentPtr transformComponent= objectPtr->getRootComponent();
+	while (transformComponent)
+	{
+		auto sceneComponent= std::dynamic_pointer_cast<SceneComponent>(transformComponent);
+		if (sceneComponent)
+		{
+			return sceneComponent->shouldRender();
+		}
+
+		transformComponent= transformComponent->getParentTransformComponent();
+	}
+
+	// Stage level and unparented geometry belongs to no scene, so no scene gates it
+	return true;
 }

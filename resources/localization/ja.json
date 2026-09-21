@@ -2,7 +2,7 @@
 	"_meta": {
 		"code": "ja",
 		"nativeName": "日本語",
-		"stringCount": 1013,
+		"stringCount": 1014,
 		"translatedCount": 899,
 		"reviewedCount": 0
 	},
@@ -855,6 +855,7 @@
 		"duration_seconds": "長さ (秒)",
 		"exposure_scale": "露出スケール",
 		"font_path": "フォント",
+		"force_render": "Force Render",
 		"foreground_color": "前景色",
 		"green": "緑",
 		"grid_columns": "グリッド列数",

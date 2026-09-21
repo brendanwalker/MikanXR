@@ -7,19 +7,24 @@
 #include "ObjectSystemRenderQueries.h"
 #include "TransformComponent.h"
 
-void addAllRenderablesToMkScene(std::set<const MikanObjectSystem*> objectSystems, IMkScenePtr mkScene)
+void addAllRenderablesToMkScene(std::set<const MikanObjectSystem*> objectSystems, IMkScenePtr mkScene,
+								RenderableObjectFilter objectFilter)
 {
 	for (const MikanObjectSystem* objectSystem : objectSystems)
 	{
-		addAllRenderablesToMkScene(objectSystem->shared_from_this(), mkScene);
+		addAllRenderablesToMkScene(objectSystem->shared_from_this(), mkScene, objectFilter);
 	}
 }
 
-void addAllRenderablesToMkScene(MikanObjectSystemConstPtr objectSystem, IMkScenePtr mkScene)
+void addAllRenderablesToMkScene(MikanObjectSystemConstPtr objectSystem, IMkScenePtr mkScene,
+								RenderableObjectFilter objectFilter)
 {
 	objectSystem->visitAllObjects(
-		[mkScene](MikanObjectPtr objectPtr)
+		[mkScene, objectFilter](MikanObjectPtr objectPtr)
 		{
+			if (objectFilter && !objectFilter(objectPtr))
+				return;
+
 			objectPtr->visitAllComponents(
 				[mkScene](MikanComponentPtr componentPtr)
 				{

@@ -4718,6 +4718,11 @@ msgid "Font"
 msgstr "フォント"
 
 #. Section: properties
+msgctxt "properties.force_render"
+msgid "Force Render"
+msgstr ""
+
+#. Section: properties
 #, fuzzy
 msgctxt "properties.foreground_color"
 msgid "Foreground Color"

@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 1013,
-		"translatedCount": 1013,
-		"reviewedCount": 1013
+		"stringCount": 1014,
+		"translatedCount": 1014,
+		"reviewedCount": 1014
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -855,6 +855,7 @@
 		"duration_seconds": "Duration (s)",
 		"exposure_scale": "Exposure Scale",
 		"font_path": "Font",
+		"force_render": "Force Render",
 		"foreground_color": "Foreground Color",
 		"green": "Green",
 		"grid_columns": "Grid Columns",

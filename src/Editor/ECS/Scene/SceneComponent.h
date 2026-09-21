@@ -26,8 +26,13 @@ public:
 	MikanCompositorID getDisplayCompositorId() const { return m_displayCompositorId; }
 	void setDisplayCompositorId(MikanCompositorID compositorId);
 
+	static const std::string k_forceRenderPropertyId;
+	bool getForceRender() const { return m_bForceRender; }
+	void setForceRender(bool bForceRender);
+
 protected:
 	MikanCompositorID m_displayCompositorId= INVALID_MIKAN_ID;
+	bool m_bForceRender= false;
 };
 
 class SceneComponent final : public TransformComponent
@@ -65,6 +70,12 @@ public:
 
 	// -- SceneComponent ----
 	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getComponentId(); }
+	bool isCurrentScene() const;
+
+	// Whether this scene's subtree draws. Only the current scene does, unless the scene
+	// asks to be drawn anyway, which is how two stages get aligned against each other.
+	bool shouldRender() const;
+
 	MikanStageID getParentStageId() const;
 	StageComponentPtr getParentStage() const;
 	std::vector<MikanCompositorID> getOutputCompositorIDs() const;
@@ -79,3 +90,8 @@ protected:
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr,
 										 const ConfigPropertyChangeSet& changedPropertySet) override;
 };
+
+// Whether an object's geometry takes part in the project viewport this frame, from the
+// scene that owns it. An object under no scene (stage level, or unparented) always does.
+// The render and the collider queries share this so picking never reaches hidden geometry.
+bool isSceneGeometryRendered(MikanObjectConstPtr objectPtr);

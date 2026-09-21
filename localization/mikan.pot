@@ -4061,6 +4061,11 @@ msgid "Font"
 msgstr ""
 
 #. Section: properties
+msgctxt "properties.force_render"
+msgid "Force Render"
+msgstr ""
+
+#. Section: properties
 msgctxt "properties.foreground_color"
 msgid "Foreground Color"
 msgstr ""

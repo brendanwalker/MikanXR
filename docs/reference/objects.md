@@ -85,6 +85,23 @@ The last row is the scene-actor rule, shared by the three types through `isValid
 
 ---
 
+## Which scenes draw
+
+Every stage draws in the project viewport, so two stages can be aligned against each other. Scene actors do not: a scene draws when it is the current scene, or when its `force_render` flag is set. Without that, two scenes on one stage stack their geometry on top of each other, which is unreadable in the editor and casts inactive-scene shadows on a client. `force_render` on the current scene is a no-op.
+
+`SceneComponent::shouldRender` states the rule and the free `isSceneGeometryRendered` (both in `src/Editor/ECS/Scene/SceneComponent.h`) applies it to one object, by walking its root component up the transform chain to the first `SceneComponent`. An object under no scene, which is every stage-parented camera, light and tracking volume, always draws.
+
+That predicate is passed at two seams, so nothing is drawn that cannot be clicked and nothing is clicked that is not drawn:
+
+- `addAllRenderablesToMkScene` (`src/Editor/ECS/Scene/ObjectSystemRenderQueries.h`), which `AppStage_Project::renderProjectScene` and the compositor output window's debug overlay submit through, alongside the matching `MikanTypedObjectSystem::customRender` filters
+- `findClosestCollisionAlongRay` (`src/Editor/ECS/Collision/ObjectSystemColliderQueries.h`), which `EditorObjectSystem::findClosestSelectionTarget` raycasts through
+
+Outliner selection is unfiltered: picking a hidden scene's actor from the tree stays possible, since that selection is explicit rather than spatial. The compositor node graph is unaffected either way, because `DrawLayerNode` and `DepthMaskNode` take their stencil sets from author-chosen pin arrays rather than from everything in the project.
+
+`force_render` crosses the wire on `MikanSceneComponentValues`, beside the scene system's `current_scene_id` on `MikanSceneSystemValues` ([wire-protocol.md](./wire-protocol.md)), so a client applies the same rule to the actors it spawns.
+
+---
+
 ## Persistence
 
 The project file is a single Configuru JSON document with extension `.mikanproj` (`ProjectManager::k_mikanProjectFileExtension`), written by `ProjectConfig::writeToJSON` via `ProjectManager::saveProject` / loaded by `loadProject`. `ProjectConfig` holds one `*ObjectSystemDefinition` per system (created through `addTypedDefinition<TConfig, TSystem>`, keyed by the system's `k_objectSystemClassName`), each of which serializes its component-definition pool under `k_componentPoolPropertyId`. So the persistence pattern per object type is: component class, definition (config) class, system definition holding the pool of definitions, all nested as `CommonConfig` children of `ProjectConfig`. `CommonConfig::readVector2f` / `readVector3f` zero their output when the key is absent rather than leaving the member alone, so a new vector property added to an existing definition must guard its read with `has_key` or every project saved before it existed loads zeroes instead of the default. Definition property setters call the change-notification helpers, which mark the config dirty and drive the autosave cooldown. The same notification chain feeds the editor transaction recorder ([transactions.md](./transactions.md)).

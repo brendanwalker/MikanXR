@@ -7,6 +7,7 @@ namespace MikanXR
 	public class MikanSceneComponentValues : MikanTransformComponentValues
 	{
 		public int display_compositor_id;
+		public bool force_render;
 	};
 
 	public class MikanSceneSystemValues : MikanSystemValues
