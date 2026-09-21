@@ -23,20 +23,20 @@ DMXSendThread::DMXSendThread() { generateRandomCID(m_cid); }
 
 DMXSendThread::~DMXSendThread() { stop(); }
 
-bool DMXSendThread::start(const std::string& bindIP, const std::string& sourceName, uint8_t priority,
-						  float transmitRateHz)
+bool DMXSendThread::start(const DMXManagerConfig& config)
 {
 	if (m_running.load())
 		return true;
 
-	m_sourceName= sourceName;
-	m_priority= priority;
-	m_transmitRateHz= transmitRateHz > 0.0f ? transmitRateHz : 44.0f;
+	m_sourceName= config.sourceName;
+	m_priority= config.priority;
+	m_transmitRateHz= config.transmitRateHz > 0.0f ? config.transmitRateHz : 44.0f;
+	m_universeDestinations= config.universeDestinations;
 
-	if (!m_socket.open(bindIP))
+	if (!m_socket.open(config.networkInterfaceIP))
 		return false;
 
-	e131_packet_init(m_packetTemplate, m_cid, sourceName.c_str(), priority);
+	e131_packet_init(m_packetTemplate, m_cid, m_sourceName.c_str(), m_priority);
 
 	m_stopRequested.store(false);
 	m_thread= std::thread(&DMXSendThread::threadFunc, this);
@@ -96,14 +96,26 @@ void DMXSendThread::transmitUniverse(uint16_t universe, UniverseBuffer& buf)
 	// Copy slot data into property_values[1..512]
 	e131_packet_set_slots(pkt, 1, buf.slots, 512);
 
-	// Compute multicast destination IP: 239.255.X.Y
-	uint8_t destIPBytes[4];
-	e131_multicast_address(universe, destIPBytes);
-	char destIP[16];
-	std::snprintf(destIP, sizeof(destIP), "%u.%u.%u.%u", destIPBytes[0], destIPBytes[1], destIPBytes[2],
-				  destIPBytes[3]);
+	// Configured destinations address their controllers directly, one packet each.
+	// A universe nobody mapped goes to its 239.255.X.Y group, the E1.31 default.
+	auto destinationIt= m_universeDestinations.find(universe);
+	if (destinationIt != m_universeDestinations.end() && !destinationIt->second.empty())
+	{
+		for (const std::string& destIP : destinationIt->second)
+		{
+			m_socket.sendTo(destIP, E131_PORT, &pkt, sizeof(pkt));
+		}
+	}
+	else
+	{
+		uint8_t destIPBytes[4];
+		e131_multicast_address(universe, destIPBytes);
+		char destIP[16];
+		std::snprintf(destIP, sizeof(destIP), "%u.%u.%u.%u", destIPBytes[0], destIPBytes[1], destIPBytes[2],
+					  destIPBytes[3]);
 
-	m_socket.sendTo(destIP, E131_PORT, &pkt, sizeof(pkt));
+		m_socket.sendTo(destIP, E131_PORT, &pkt, sizeof(pkt));
+	}
 }
 
 void DMXSendThread::threadFunc()

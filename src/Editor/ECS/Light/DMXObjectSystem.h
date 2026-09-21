@@ -36,6 +36,16 @@ public:
 	uint8_t getDMXPriority() const { return m_dmxConfig.priority; }
 	void setDMXPriority(uint8_t priority);
 
+	// Unicast destinations keyed by universe; a universe with no row multicasts
+	static const std::string k_dmxDestinationsPropertyId;
+	using UniverseDestinationMap= std::map<uint16_t, std::vector<std::string>>;
+	const UniverseDestinationMap& getUniverseDestinations() const { return m_dmxConfig.universeDestinations; }
+	void setUniverseDestinations(const UniverseDestinationMap& destinations);
+
+	// The same table as the JSON text the property surface and the panel exchange
+	std::string universeDestinationsToJsonString() const;
+	bool universeDestinationsFromJsonString(const std::string& jsonText);
+
 	static const std::string k_transmitRateHzPropertyId;
 	float getTransmitRateHz() const { return m_dmxConfig.transmitRateHz; }
 	void setTransmitRateHz(float hz);

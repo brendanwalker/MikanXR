@@ -147,7 +147,12 @@ A fixture's live channel bytes are the exception: they are not properties and ne
 
 `DMXObjectSystem::extractUniverseData` answers for any universe; the per-tick filter lives in the broadcast caller through `getDirtyDMXUniverseIdSet`. Keep it that way. Folding the dirty check back into the extract silently empties both the subscribe snapshot and the `GetDMXData` request, which is a bug that presents as a client rendering black lights rather than as an error.
 
-Reaching the physical fixtures is a separate path, `MikanDMX` (`src/Libraries/MikanDMX`). `DMXObjectSystem::writeUniverseData` hands channel bytes to `DMXSendThread`, which transmits E1.31 from its own thread at `transmit_rate_hz`. **Every known universe transmits every tick**, not only the ones that changed: a receiver times its stream out after a couple of seconds of silence and falls back to its idle effect, so change-only output strands any look that is deliberately held. A universe only exists once something has written it, so an idle project still sends nothing.
+Reaching the physical fixtures is a separate path, `MikanDMX` (`src/Libraries/MikanDMX`). `DMXObjectSystem::writeUniverseData` hands channel bytes to `DMXSendThread`, which transmits E1.31 from its own thread at `transmit_rate_hz`. Two rules there are easy to get wrong:
+
+- **Every known universe transmits every tick**, not only the ones that changed. A receiver times its stream out after a couple of seconds of silence and falls back to its idle effect, so change-only output strands any look that is deliberately held. A universe only exists once something has written it, so an idle project still sends nothing.
+- **A universe listed in `dmx_destinations` is unicast to each of its addresses; anything else goes to its `239.255.x.y` group.** Multicast is the E1.31 default and right on a wired LAN, but a controller on Wi-Fi frequently never receives it, because consumer access points drop multicast they hold no IGMP state for and often expose no setting to change that. The table is keyed by universe alone: E1.31 sends a universe whole and the receiver selects its own channel window, so a channel range here could not affect what is sent.
+
+The table is editor-only (`setUIHidden`, `setClientAPIHidden`), persisted as a configuru array and exchanged as JSON text by the DMX panel and the automation channel. LAN routing is not a client's concern.
 
 ---
 

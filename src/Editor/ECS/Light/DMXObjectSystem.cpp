@@ -13,9 +13,16 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
+// Defined below, beside the setter they round-trip for
+static configuru::Config writeUniverseDestinationsToJSON(
+	const DMXObjectSystemDefinition::UniverseDestinationMap& destinations);
+static void readUniverseDestinationsFromJSON(const configuru::Config& rows,
+											 DMXObjectSystemDefinition::UniverseDestinationMap& outDestinations);
+
 // -- DMXObjectSystemDefinition -----
 const std::string DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId= "network_interface_ip";
 const std::string DMXObjectSystemDefinition::k_dmxPriorityPropertyId= "dmx_priority";
+const std::string DMXObjectSystemDefinition::k_dmxDestinationsPropertyId= "dmx_destinations";
 const std::string DMXObjectSystemDefinition::k_transmitRateHzPropertyId= "transmit_rate_hz";
 
 configuru::Config DMXObjectSystemDefinition::writeToJSON()
@@ -24,6 +31,7 @@ configuru::Config DMXObjectSystemDefinition::writeToJSON()
 
 	pt[k_networkInterfaceIPPropertyId]= m_dmxConfig.networkInterfaceIP;
 	pt[k_dmxPriorityPropertyId]= m_dmxConfig.priority;
+	pt[k_dmxDestinationsPropertyId]= writeUniverseDestinationsToJSON(m_dmxConfig.universeDestinations);
 	pt[k_transmitRateHzPropertyId]= m_dmxConfig.transmitRateHz;
 
 	return pt;
@@ -35,6 +43,8 @@ void DMXObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 
 	m_dmxConfig.networkInterfaceIP= pt.get_or<std::string>(k_networkInterfaceIPPropertyId, "0.0.0.0");
 	m_dmxConfig.priority= static_cast<uint8_t>(pt.get_or<int>(k_dmxPriorityPropertyId, 100));
+	if (pt.has_key(k_dmxDestinationsPropertyId))
+		readUniverseDestinationsFromJSON(pt[k_dmxDestinationsPropertyId], m_dmxConfig.universeDestinations);
 	m_dmxConfig.transmitRateHz= pt.get_or<float>(k_transmitRateHzPropertyId, 44.0f);
 }
 
@@ -44,6 +54,92 @@ void DMXObjectSystemDefinition::setNetworkInterfaceIP(const std::string& ip)
 	{
 		m_dmxConfig.networkInterfaceIP= ip;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_networkInterfaceIPPropertyId));
+	}
+}
+
+void DMXObjectSystemDefinition::setUniverseDestinations(const UniverseDestinationMap& destinations)
+{
+	if (m_dmxConfig.universeDestinations != destinations)
+	{
+		m_dmxConfig.universeDestinations= destinations;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_dmxDestinationsPropertyId));
+	}
+}
+
+static configuru::Config writeUniverseDestinationsToJSON(
+	const DMXObjectSystemDefinition::UniverseDestinationMap& destinations)
+{
+	auto rows= configuru::Config::array();
+	for (const auto& [universe, ips] : destinations)
+	{
+		auto ipList= configuru::Config::array();
+		for (const std::string& ip : ips)
+			ipList.push_back(ip);
+
+		auto row= configuru::Config::object();
+		row["universe"]= (int)universe;
+		row["ips"]= ipList;
+		rows.push_back(row);
+	}
+
+	return rows;
+}
+
+static void readUniverseDestinationsFromJSON(const configuru::Config& rows,
+											 DMXObjectSystemDefinition::UniverseDestinationMap& outDestinations)
+{
+	outDestinations.clear();
+	if (!rows.is_array())
+		return;
+
+	for (const configuru::Config& row : rows.as_array())
+	{
+		if (!row.has_key("universe"))
+			continue;
+
+		const int universe= (int)row["universe"];
+		if (universe < 1 || universe > 63999)
+			continue;
+
+		std::vector<std::string> ips;
+		if (row.has_key("ips") && row["ips"].is_array())
+		{
+			for (const configuru::Config& ip : row["ips"].as_array())
+			{
+				const std::string ipText= (std::string)ip;
+				if (!ipText.empty())
+					ips.push_back(ipText);
+			}
+		}
+
+		if (!ips.empty())
+			outDestinations[(uint16_t)universe]= ips;
+	}
+}
+
+std::string DMXObjectSystemDefinition::universeDestinationsToJsonString() const
+{
+	configuru::FormatOptions options= configuru::make_json_options();
+	options.indentation= "";
+
+	return configuru::dump_string(writeUniverseDestinationsToJSON(m_dmxConfig.universeDestinations), options);
+}
+
+bool DMXObjectSystemDefinition::universeDestinationsFromJsonString(const std::string& jsonText)
+{
+	try
+	{
+		configuru::Config rows= configuru::parse_string(jsonText.c_str(), configuru::JSON, "DMXObjectSystemDefinition");
+
+		UniverseDestinationMap parsed;
+		readUniverseDestinationsFromJSON(rows, parsed);
+		setUniverseDestinations(parsed);
+
+		return true;
+	}
+	catch (const std::exception&)
+	{
+		return false;
 	}
 }
 
@@ -250,7 +346,8 @@ void DMXObjectSystem::onDefinitionMarkedDirty(CommonConfigPtr configPtr, const c
 {
 	if (changeSet.hasPropertyName(DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId)
 		|| changeSet.hasPropertyName(DMXObjectSystemDefinition::k_dmxPriorityPropertyId)
-		|| changeSet.hasPropertyName(DMXObjectSystemDefinition::k_transmitRateHzPropertyId))
+		|| changeSet.hasPropertyName(DMXObjectSystemDefinition::k_transmitRateHzPropertyId)
+		|| changeSet.hasPropertyName(DMXObjectSystemDefinition::k_dmxDestinationsPropertyId))
 	{
 		if (m_dmxManager)
 			m_dmxManager->restart(getDMXManagerConfig());
@@ -282,6 +379,12 @@ void DMXObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 		DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(DMXObjectSystemDefinition::k_dmxPriorityPropertyId,
 																  MikanVariantType::UBYTE));
+	// The panel draws a real table and a client has no use for LAN routing, so this
+	// carries the JSON only for automation and persistence
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+								 DMXObjectSystemDefinition::k_dmxDestinationsPropertyId, MikanVariantType::STRING)
+								 ->setUIHidden()
+								 ->setClientAPIHidden());
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(DMXObjectSystemDefinition::k_transmitRateHzPropertyId,
 																  MikanVariantType::FLOAT));
 }
@@ -298,6 +401,11 @@ bool DMXObjectSystem::getPropertyValue(const std::string& propertyName, MikanVar
 	else if (propertyName == DMXObjectSystemDefinition::k_dmxPriorityPropertyId)
 	{
 		outValue= def->getDMXPriority();
+		return true;
+	}
+	else if (propertyName == DMXObjectSystemDefinition::k_dmxDestinationsPropertyId)
+	{
+		outValue= def->universeDestinationsToJsonString();
 		return true;
 	}
 	else if (propertyName == DMXObjectSystemDefinition::k_transmitRateHzPropertyId)
@@ -323,6 +431,10 @@ bool DMXObjectSystem::setPropertyValue(const std::string& propertyName, const Mi
 	{
 		def->setDMXPriority(inValue.getUByteValue());
 		return true;
+	}
+	else if (propertyName == DMXObjectSystemDefinition::k_dmxDestinationsPropertyId)
+	{
+		return def->universeDestinationsFromJsonString(inValue.getUtf8Value());
 	}
 	else if (propertyName == DMXObjectSystemDefinition::k_transmitRateHzPropertyId)
 	{
