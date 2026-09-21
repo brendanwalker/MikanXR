@@ -114,8 +114,9 @@ void DMXSendThread::threadFunc()
 	using Clock= std::chrono::steady_clock;
 	using Duration= std::chrono::duration<double>;
 
-	const Duration interval(1.0 / m_transmitRateHz);
-	auto nextWakeUp= Clock::now() + interval;
+	// Held in the clock's own duration so the deadline and Clock::now() share a type
+	const Clock::duration interval= std::chrono::duration_cast<Clock::duration>(Duration(1.0 / m_transmitRateHz));
+	Clock::time_point nextWakeUp= Clock::now() + interval;
 
 	while (!m_stopRequested.load())
 	{
@@ -146,6 +147,9 @@ void DMXSendThread::threadFunc()
 		}
 
 		std::this_thread::sleep_until(nextWakeUp);
-		nextWakeUp+= interval;
+
+		// Re-base after a stall rather than chasing a deadline already in the past,
+		// which would spin the thread flat out trying to catch up frames nobody wants
+		nextWakeUp= std::max(nextWakeUp + interval, Clock::now());
 	}
 }
