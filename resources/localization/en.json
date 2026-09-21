@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 1021,
-		"translatedCount": 1021,
-		"reviewedCount": 1021
+		"stringCount": 1031,
+		"translatedCount": 1031,
+		"reviewedCount": 1031
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -651,7 +651,15 @@
 	"objectSystemPanel": {
 		"arucoDictionary": "Aruco Dictionary",
 		"charucoDictionary": "Charuco Dictionary",
+		"dmxAddAddress": "Add Address",
+		"dmxAddUniverse": "Add Universe",
+		"dmxDestinationIP": "Address",
+		"dmxDestinations": "Unicast Destinations",
+		"dmxDestinationsHelp": "A universe listed here is sent to its addresses instead of multicast. Leave empty to multicast.",
 		"dmxPriority": "DMX Priority",
+		"dmxRemoveAddress": "X",
+		"dmxRemoveUniverse": "Remove Universe",
+		"dmxUniverse": "Universe",
 		"networkInterfaceIP": "Network Interface IP",
 		"transmitRateHz": "Transmit Rate (Hz)"
 	},
@@ -746,6 +754,7 @@
 		"outlinerUnparented": "Unparented",
 		"panelAssets": "Assets",
 		"panelCompositors": "Compositors",
+		"panelDMX": "DMX Panel",
 		"panelHttpTriggers": "HTTP Triggers",
 		"panelProject": "Project",
 		"panelScenes": "Scenes",
@@ -1087,6 +1096,7 @@
 		"assets": "Assets",
 		"cameraAlignmentDebug": "Camera Alignment Debug",
 		"compositors": "Compositors",
+		"dmx": "DMX",
 		"httpTriggers": "HTTP Triggers",
 		"log": "Log",
 		"materialEditor": "Material Editor",

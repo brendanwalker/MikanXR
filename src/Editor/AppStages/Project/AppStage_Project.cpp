@@ -48,6 +48,7 @@
 #include "Project/GuiPanel_HttpTriggers.h"
 #include "Project/GuiPanel_ProjectSettings.h"
 #include "Project/GuiPanel_SceneList.h"
+#include "Shared/GuiPanel_DMXObjectSystem.h"
 #include "AnchorObjectSystem.h"
 #include "BoxShapeComponent.h"
 #include "BoxShapeSystem.h"
@@ -428,6 +429,16 @@ void AppStage_Project::onGui()
 		}
 	}
 
+	// The DMX lighting transport settings
+	if (m_bDMXPanelVisible && m_projectGuiPanelContext != nullptr)
+	{
+		MkGuiScopedWindow dmxWindow(locWindowTitle("windows.dmx"), &m_bDMXPanelVisible);
+		if (dmxWindow)
+		{
+			m_projectGuiPanelContext->getDMXSystemPanel()->onGui();
+		}
+	}
+
 	if (m_bShowLogPanel)
 	{
 		LogPanel::getInstance().draw(&m_bShowLogPanel);
@@ -478,6 +489,7 @@ void AppStage_Project::onMenuBarGui()
 		ImGui::MenuItem(locLabel("project.panelScenes"), nullptr, &m_bSceneListVisible);
 		ImGui::MenuItem(locLabel("project.panelCompositors"), nullptr, &m_bCompositorListVisible);
 		ImGui::MenuItem(locLabel("project.panelAssets"), nullptr, &m_bAssetsPanelVisible);
+		ImGui::MenuItem(locLabel("project.panelDMX"), nullptr, &m_bDMXPanelVisible);
 		ImGui::Separator();
 		ImGui::MenuItem(locLabel("mainWindow.logPanel"), nullptr, &m_bShowLogPanel);
 		ImGui::Separator();
@@ -554,6 +566,7 @@ void AppStage_Project::onBuildDefaultDockLayout(unsigned int dockspaceId)
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.project"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.projectSettings"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.httpTriggers"), rightId);
+	MkGui::dockBuilderDockWindow(locWindowTitle("windows.dmx"), rightId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.scenes"), scenesId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.compositors"), compositorsId);
 	MkGui::dockBuilderDockWindow(locWindowTitle("windows.assets"), assetsId);

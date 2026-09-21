@@ -3041,8 +3041,48 @@ msgid "Charuco Dictionary"
 msgstr ""
 
 #. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxAddAddress"
+msgid "Add Address"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxAddUniverse"
+msgid "Add Universe"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinationIP"
+msgid "Address"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinations"
+msgid "Unicast Destinations"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxDestinationsHelp"
+msgid "A universe listed here is sent to its addresses instead of multicast. Leave empty to multicast."
+msgstr ""
+
+#. Section: objectSystemPanel
 msgctxt "objectSystemPanel.dmxPriority"
 msgid "DMX Priority"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxRemoveAddress"
+msgid "X"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxRemoveUniverse"
+msgid "Remove Universe"
+msgstr ""
+
+#. Section: objectSystemPanel
+msgctxt "objectSystemPanel.dmxUniverse"
+msgid "Universe"
 msgstr ""
 
 #. Section: objectSystemPanel
@@ -3513,6 +3553,11 @@ msgstr ""
 #. Section: project
 msgctxt "project.panelCompositors"
 msgid "Compositors"
+msgstr ""
+
+#. Section: project
+msgctxt "project.panelDMX"
+msgid "DMX Panel"
 msgstr ""
 
 #. Section: project
@@ -5155,6 +5200,11 @@ msgstr ""
 #. Section: windows
 msgctxt "windows.compositors"
 msgid "Compositors"
+msgstr ""
+
+#. Section: windows
+msgctxt "windows.dmx"
+msgid "DMX"
 msgstr ""
 
 #. Section: windows
