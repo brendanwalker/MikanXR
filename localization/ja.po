@@ -4832,6 +4832,11 @@ msgid "Loop"
 msgstr "ループ"
 
 #. Section: properties
+msgctxt "properties.lumens_per_watt"
+msgid "Lumens per Watt"
+msgstr ""
+
+#. Section: properties
 msgctxt "properties.marker_media_path"
 msgid "Marker Reference Media"
 msgstr ""
@@ -4839,6 +4844,11 @@ msgstr ""
 #. Section: properties
 msgctxt "properties.marker_pose_track_path"
 msgid "Marker Reference Pose Track"
+msgstr ""
+
+#. Section: properties
+msgctxt "properties.max_wattage"
+msgid "Max Wattage (W)"
 msgstr ""
 
 #. Section: properties

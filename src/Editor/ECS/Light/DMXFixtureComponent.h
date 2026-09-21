@@ -51,6 +51,19 @@ public:
 	bool getIsDisabled() const { return m_bIsDisabled; }
 	void setIsDisabled(bool flag);
 
+	// -- Emitter spec --
+	// What the fixture physically is, rather than what it is currently doing. A client turns
+	// a channel byte into a renderable light with these, so they belong to the project
+	// alongside the DMX address rather than being guessed per integration.
+
+	static const std::string k_maxWattagePropertyId;
+	float getMaxWattage() const { return m_maxWattage; }
+	void setMaxWattage(float watts);
+
+	static const std::string k_lumensPerWattPropertyId;
+	float getLumensPerWatt() const { return m_lumensPerWatt; }
+	void setLumensPerWatt(float lumensPerWatt);
+
 protected:
 	void setDMXChannelCount(uint16_t count);
 
@@ -59,6 +72,8 @@ protected:
 	uint16_t m_dmxStartChannel= 1;
 	uint16_t m_dmxChannelCount= 3;
 	bool m_bIsDisabled= false;
+	float m_maxWattage= 0.3f;
+	float m_lumensPerWatt= 83.f;
 };
 
 // -- DMXFixtureComponent -----

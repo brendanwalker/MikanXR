@@ -2,7 +2,7 @@
 	"_meta": {
 		"code": "ja",
 		"nativeName": "日本語",
-		"stringCount": 1019,
+		"stringCount": 1021,
 		"translatedCount": 899,
 		"reviewedCount": 0
 	},
@@ -875,8 +875,10 @@
 		"key_light_direction": "主光源の方向",
 		"length_mm": "長さ (mm)",
 		"loop": "ループ",
+		"lumens_per_watt": "Lumens per Watt",
 		"marker_media_path": "Marker Reference Media",
 		"marker_pose_track_path": "Marker Reference Pose Track",
+		"max_wattage": "Max Wattage (W)",
 		"media_path": "Media",
 		"model_path": "モデルのパス",
 		"network_interface_ip": "ネットワークインターフェース IP",

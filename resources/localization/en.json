@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 1019,
-		"translatedCount": 1019,
-		"reviewedCount": 1019
+		"stringCount": 1021,
+		"translatedCount": 1021,
+		"reviewedCount": 1021
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -875,8 +875,10 @@
 		"key_light_direction": "Key Light Direction",
 		"length_mm": "Length (mm)",
 		"loop": "Loop",
+		"lumens_per_watt": "Lumens per Watt",
 		"marker_media_path": "Marker Reference Media",
 		"marker_pose_track_path": "Marker Reference Pose Track",
+		"max_wattage": "Max Wattage (W)",
 		"media_path": "Media",
 		"model_path": "Model Path",
 		"network_interface_ip": "Network Interface IP",

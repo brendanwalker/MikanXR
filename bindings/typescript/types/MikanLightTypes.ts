@@ -146,13 +146,17 @@ export class MikanDMXFixtureComponentValues extends MikanTransformComponentValue
   dmx_start_channel: number = 1;
   dmx_channel_count: number = 3;
   is_disabled: boolean = false;
+  max_wattage: number = 0.300000012;
+  lumens_per_watt: number = 83;
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'stage_id', type: 'int32' },
     { name: 'dmx_universe', type: 'uint16' },
     { name: 'dmx_start_channel', type: 'uint16' },
     { name: 'dmx_channel_count', type: 'uint16' },
-    { name: 'is_disabled', type: 'boolean' }
+    { name: 'is_disabled', type: 'boolean' },
+    { name: 'max_wattage', type: 'float' },
+    { name: 'lumens_per_watt', type: 'float' }
   ];
 }
 

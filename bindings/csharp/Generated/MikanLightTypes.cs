@@ -47,6 +47,8 @@ namespace MikanXR
 		public ushort dmx_start_channel;
 		public ushort dmx_channel_count;
 		public bool is_disabled;
+		public float max_wattage;
+		public float lumens_per_watt;
 	};
 
 	public class MikanDMXFixtureGroupComponentValues : MikanComponentValues
