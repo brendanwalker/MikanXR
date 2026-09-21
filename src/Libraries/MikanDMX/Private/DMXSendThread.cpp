@@ -69,7 +69,6 @@ void DMXSendThread::setChannels(uint16_t universe, uint16_t startChannel, const 
 
 		UniverseBuffer& buf= m_universeBuffers[universe];
 		std::memcpy(&buf.slots[startChannel - 1], values, clampedCount);
-		buf.dirty= true;
 	}
 }
 
@@ -84,7 +83,6 @@ void DMXSendThread::setUniverseData(uint16_t universe, const uint8_t* slotData, 
 		std::memcpy(buf.slots, slotData, clampedCount);
 		if (clampedCount < 512)
 			std::memset(&buf.slots[clampedCount], 0, 512 - clampedCount);
-		buf.dirty= true;
 	}
 }
 
@@ -106,7 +104,6 @@ void DMXSendThread::transmitUniverse(uint16_t universe, UniverseBuffer& buf)
 				  destIPBytes[3]);
 
 	m_socket.sendTo(destIP, E131_PORT, &pkt, sizeof(pkt));
-	buf.dirty= false;
 }
 
 void DMXSendThread::threadFunc()
@@ -120,16 +117,13 @@ void DMXSendThread::threadFunc()
 
 	while (!m_stopRequested.load())
 	{
-		// Collect dirty universes under lock
+		// Snapshot every known universe under lock. A universe only appears here once
+		// something has written it, so an idle project still sends nothing at all.
 		std::map<uint16_t, UniverseBuffer> snapshot;
 		{
 			std::lock_guard<std::mutex> lock(m_bufferMutex);
 
-			for (auto& [universe, buf] : m_universeBuffers)
-			{
-				if (buf.dirty)
-					snapshot[universe]= buf;
-			}
+			snapshot= m_universeBuffers;
 		}
 
 		// Transmit outside the lock
@@ -137,12 +131,11 @@ void DMXSendThread::threadFunc()
 		{
 			transmitUniverse(universe, buf);
 
-			// Write the updated sequence number and clear dirty flag back
+			// Write the advanced sequence number back
 			{
 				std::lock_guard<std::mutex> lock(m_bufferMutex);
 
 				m_universeBuffers[universe].sequenceNumber= buf.sequenceNumber;
-				m_universeBuffers[universe].dirty= false;
 			}
 		}
 

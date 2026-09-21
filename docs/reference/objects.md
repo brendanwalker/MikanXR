@@ -147,6 +147,8 @@ A fixture's live channel bytes are the exception: they are not properties and ne
 
 `DMXObjectSystem::extractUniverseData` answers for any universe; the per-tick filter lives in the broadcast caller through `getDirtyDMXUniverseIdSet`. Keep it that way. Folding the dirty check back into the extract silently empties both the subscribe snapshot and the `GetDMXData` request, which is a bug that presents as a client rendering black lights rather than as an error.
 
+Reaching the physical fixtures is a separate path, `MikanDMX` (`src/Libraries/MikanDMX`). `DMXObjectSystem::writeUniverseData` hands channel bytes to `DMXSendThread`, which transmits E1.31 from its own thread at `transmit_rate_hz`. **Every known universe transmits every tick**, not only the ones that changed: a receiver times its stream out after a couple of seconds of silence and falls back to its idle effect, so change-only output strands any look that is deliberately held. A universe only exists once something has written it, so an idle project still sends nothing.
+
 ---
 
 ## Selection, interaction, and gizmos

@@ -10,15 +10,16 @@
 #include <string>
 #include <thread>
 
-/// Per-universe transmit buffer with a dirty flag.
+/// Per-universe transmit buffer. Every known universe is retransmitted each tick, so there
+/// is no dirty flag: a receiver times its stream out after a couple of seconds of silence
+/// and falls back to its idle effect, which would strand any held look.
 struct UniverseBuffer
 {
 	uint8_t slots[512]= {}; // DMX slot data (slots 1–512)
 	uint8_t sequenceNumber= 0;
-	bool dirty= false;
 };
 
-/// Background thread that transmits dirty E1.31 universe buffers at a fixed rate.
+/// Background thread that transmits every known E1.31 universe buffer at a fixed rate.
 /// Thread-safe: setChannels / setUniverseData may be called from any thread.
 class DMXSendThread
 {
