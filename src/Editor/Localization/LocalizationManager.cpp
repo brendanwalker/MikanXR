@@ -517,7 +517,7 @@ void LocalizationManager::startRemoteFetch()
 	// Use @main so community translation updates reach users without requiring a new build.
 	// Version-pinned tags (e.g. @v1.0.0) are permanently cached by jsDelivr and cannot be
 	// updated after tagging, which would defeat the purpose of remote localization.
-	const std::string baseUrl= "https://cdn.jsdelivr.net/gh/brendanwalker/MikanXR@main/resources/localization";
+	const std::string baseUrl= "https://cdn.jsdelivr.net/gh/MikanXR/MikanXR@main/resources/localization";
 
 	m_remoteFetcher= std::make_unique<LocalizationRemoteFetcher>(baseUrl, getUserLocalizationCacheDir());
 	m_remoteFetcher->startFetch();

@@ -1,5 +1,7 @@
 #include "MkGuiContext.h"
 #include "MkGuiScopedContext.h"
+#include "MkGuiDockspace.h"
+#include "MkGuiDrawUtils.h"
 #include "MkGuiTheme.h"
 #include "Logger.h"
 #include "IMkWindowContext.h"
@@ -40,6 +42,9 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "backends/imgui_impl_sdl2.h"
 #include "backends/imgui_impl_opengl3.h"
+
+// The app-wide user scale multiplier, applied on top of each monitor's content scale
+static float g_userUiScale= 1.f;
 
 MkGuiContext::MkGuiContext(class IMkWindowContext* window, const std::string& iniFilePath, bool bEnableDocking)
 	: m_window(window)
@@ -106,10 +111,78 @@ bool MkGuiContext::startup()
 		}
 	}
 
+	// Size the UI to the display this window opened on, so the first frame is
+	// already scaled rather than snapping a frame later
+	if (success)
+	{
+		refreshUiScale();
+	}
+
 	// Restore the previous context
 	ImGui::SetCurrentContext(prevImGuiContext);
 
 	return success;
+}
+
+void MkGuiContext::setUserUiScale(float scale) { g_userUiScale= scale > 0.f ? scale : 1.f; }
+
+float MkGuiContext::getUserUiScale() { return g_userUiScale; }
+
+void MkGuiContext::refreshLayoutScale()
+{
+	MkGuiScopedContext scopedContext(*this);
+
+	const float uiScale= MkGui::getUiScale();
+
+	// An ini with no reference (and a layout built fresh this run) is already
+	// proportioned for the scale it was laid out at
+	if (m_layoutRefScale <= 0.f)
+	{
+		m_layoutRefScale= uiScale;
+		return;
+	}
+
+	if (uiScale == m_layoutRefScale)
+		return;
+
+	MkGui::scaleWindowLayout(uiScale / m_layoutRefScale);
+	m_layoutRefScale= uiScale;
+}
+
+void MkGuiContext::refreshUiScale()
+{
+	MkGuiScopedContext scopedContext(*this);
+
+	if (m_baseStyle == nullptr)
+		return;
+
+	float monitorScale= 1.f;
+	if (m_imguiWindowAPI == eWindowAPI::SDL)
+	{
+		SDL_Window* sdlWindow= (SDL_Window*)m_window->getNativeWindowHandle();
+		monitorScale= ImGui_ImplSDL2_GetContentScaleForWindow(sdlWindow);
+	}
+	if (monitorScale <= 0.f)
+	{
+		monitorScale= 1.f;
+	}
+
+	const float effectiveScale= monitorScale * g_userUiScale;
+	if (effectiveScale == m_appliedUiScale)
+		return;
+
+	// ScaleAllSizes compounds and truncates, so each change re-derives the metrics
+	// from the theme's authored values rather than scaling the live style again
+	ImGuiStyle& style= ImGui::GetStyle();
+	style= *m_baseStyle;
+	style.ScaleAllSizes(effectiveScale);
+
+	// Fonts take the two factors separately. ImGui multiplies both into every font
+	// size, including the sizes MkGuiScopedFont pushes explicitly.
+	style.FontScaleDpi= monitorScale;
+	style.FontScaleMain= g_userUiScale;
+
+	m_appliedUiScale= effectiveScale;
 }
 
 bool MkGuiContext::initImGuiSDLBackend()
@@ -235,6 +308,8 @@ void MkGuiContext::shutdown()
 
 		ImGui::DestroyContext(m_imguiContext);
 		m_imguiContext= nullptr;
+		m_baseStyle.reset();
+		m_appliedUiScale= 0.f;
 	}
 
 	// Restore the previous context
@@ -269,9 +344,17 @@ void MkGuiContext::configImGui()
 	if (m_bEnableDocking)
 	{
 		io.ConfigFlags|= ImGuiConfigFlags_DockingEnable;
+
+		// Registered before the first frame loads the ini, so the scale the saved
+		// layout was arranged at is in hand when the dock nodes come back
+		MkGui::installLayoutSettings(&m_layoutRefScale);
 	}
 
 	MkGuiTheme::applyStyle();
+
+	// The authored, unscaled metrics. refreshUiScale re-derives the live style from
+	// this copy every time the UI scale changes.
+	m_baseStyle= std::make_unique<ImGuiStyle>(ImGui::GetStyle());
 
 	// One UI font with the icons merged in. The normal/big icon distinction is
 	// now a push size on the same font (see MkGuiStyleManager's font block).
