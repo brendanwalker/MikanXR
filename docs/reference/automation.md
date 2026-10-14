@@ -65,6 +65,18 @@ Reach the stage with `function invoke CameraObjectSystem <cameraId> align_camera
 
 Reach it with `function invoke <VideoSourceSystem> <componentId> show_video_source_settings`, since `app push VideoSourceSettings` gives the stage no source.
 
+`OcclusionMeshBuild` fuses a file video source's LiDAR take into a model stencil ([occlusion-mesh.md](./occlusion-mesh.md)):
+
+- `get_state` replies the menu state (`verifyTake`, `building`, `failed`, `verifyMesh`, `buildComplete`)
+- `get_take_info` replies `frames`, `depth_width`, `depth_height`, and `session_id` lines
+- `set_option <voxel_preset|keyframe_stride|frame_to_model|replace_pose_track> <value>` sets a build option while in `verifyTake` (`room`/`tabletop`, an integer, `on`/`off`)
+- `build` starts the worker, `get_progress` replies `phase`, `frames`, `total`, and `elapsed` lines while it runs
+- `get_summary` replies the triangle counts, grid, frames fused, registration counts, and the final correction once a mesh exists
+- `apply` creates the stencil, writes the refined pose track, and replies `created` or `failed`
+- `cancel` stops a build in progress or discards a result, `return` pops the stage
+
+Reach it with `function invoke FileVideoSourceSystem <componentId> build_occlusion_mesh`, which refuses a take without depth sidecars or without a solved alignment through a message box rather than entering the stage.
+
 ### Scene introspection (system, component, property, function)
 
 These reach every object system and component through the property and function databases ([objects.md](./objects.md)).
@@ -172,6 +184,8 @@ Drives the node editor window and its snapshot undo history ([transactions.md](.
 - `nodegraph deletenode <nodeId>` deletes a node with its pins and links
 - `nodegraph createlink <startPinId> <endPinId>` connects two compatible pins, replying the new link id
 - `nodegraph deletelink <linkId>` deletes a link
+- `nodegraph setconfig <nodeId> <key> <value>` sets one persisted config field of a node by key. The value is coerced to the type the key already holds: a bool takes `true`, `false`, `1`, or `0`, an int takes a whole integer, a float takes any number, and a string takes the token verbatim (quote it to keep spaces). The editor-owned keys `class_name`, `id`, `pins_in`, `pins_out`, `pos`, and `page` are refused, as are missing keys and container values. The graph is rebuilt from the edited snapshot, the same path undo takes, so the edit lands as one undo step and in the session log. The reply is empty on success.
+- `nodegraph getconfig <nodeId> [key]` replies the key's value as text (bools as `true`/`false`), or without a key the node's whole config entry as one JSON line
 - `nodegraph undo [n]` / `nodegraph redo [n]` step the window's snapshot history, replying the resulting cursor
 - `nodegraph run on|off` pauses or resumes compositor evaluation of the editor graph (the Compositor menu's Run item), replying the resulting state
 - `nodegraph compile` compiles the material editor's graph and writes its shaders and material file beside the graph file (the Material menu's Compile item), replying `compiled`, or one `error <nodeId> <message>` line per compile error. An unsaved graph has nowhere to write and answers an error. On any other editor window the command answers an error.

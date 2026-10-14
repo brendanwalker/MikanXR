@@ -48,9 +48,17 @@ bool PoseTrack::loadFromJSON(const configuru::Config& pt)
 		return false;
 	}
 
-	if (!pt.has_key("version") || !pt["version"].is_int() || pt["version"].as_integer<int>() != k_supportedVersion)
+	if (!pt.has_key("version") || !pt["version"].is_int())
 	{
-		MIKAN_LOG_ERROR("PoseTrack::loadFromJSON") << "Pose track version is missing or not " << k_supportedVersion;
+		MIKAN_LOG_ERROR("PoseTrack::loadFromJSON") << "Pose track version is missing";
+		return false;
+	}
+
+	const int version= pt["version"].as_integer<int>();
+	if (version < k_minSupportedVersion || version > k_maxSupportedVersion)
+	{
+		MIKAN_LOG_ERROR("PoseTrack::loadFromJSON") << "Pose track version " << version << " is outside "
+												   << k_minSupportedVersion << ".." << k_maxSupportedVersion;
 		return false;
 	}
 
@@ -76,6 +84,43 @@ bool PoseTrack::loadFromJSON(const configuru::Config& pt)
 		return false;
 	}
 
+	// The depth header is optional in version 2 and absent in version 1. The
+	// two sizes come together or not at all; the unit defaults to millimetres.
+	int depthWidth= 0;
+	int depthHeight= 0;
+	double depthUnitMm= 0.0;
+	const bool bHasDepthWidth= pt.has_key("depth_width");
+	const bool bHasDepthHeight= pt.has_key("depth_height");
+	if (bHasDepthWidth || bHasDepthHeight)
+	{
+		if (!bHasDepthWidth || !bHasDepthHeight || !pt["depth_width"].is_int() || !pt["depth_height"].is_int())
+		{
+			MIKAN_LOG_ERROR("PoseTrack::loadFromJSON")
+				<< "Pose track depth size needs both depth_width and depth_height";
+			return false;
+		}
+
+		depthWidth= pt["depth_width"].as_integer<int>();
+		depthHeight= pt["depth_height"].as_integer<int>();
+		if (depthWidth <= 0 || depthHeight <= 0)
+		{
+			MIKAN_LOG_ERROR("PoseTrack::loadFromJSON")
+				<< "Pose track depth size is not positive: " << depthWidth << "x" << depthHeight;
+			return false;
+		}
+
+		depthUnitMm= 1.0;
+		if (pt.has_key("depth_unit_mm"))
+		{
+			if (!pt["depth_unit_mm"].is_number() || pt["depth_unit_mm"].as_double() <= 0.0)
+			{
+				MIKAN_LOG_ERROR("PoseTrack::loadFromJSON") << "Pose track depth_unit_mm is not a positive number";
+				return false;
+			}
+			depthUnitMm= pt["depth_unit_mm"].as_double();
+		}
+	}
+
 	if (!pt.has_key("frames") || !pt["frames"].is_array())
 	{
 		MIKAN_LOG_ERROR("PoseTrack::loadFromJSON") << "Pose track frames array is missing";
@@ -92,6 +137,7 @@ bool PoseTrack::loadFromJSON(const configuru::Config& pt)
 			return false;
 		}
 
+		frame.fileIndex= frames.size();
 		frames.push_back(frame);
 	}
 
@@ -108,6 +154,9 @@ bool PoseTrack::loadFromJSON(const configuru::Config& pt)
 	m_sessionId= pt["session_id"].as_string();
 	m_imageWidth= imageWidth;
 	m_imageHeight= imageHeight;
+	m_depthWidth= depthWidth;
+	m_depthHeight= depthHeight;
+	m_depthUnitMm= depthUnitMm;
 	m_frames= std::move(frames);
 	m_bIsLoaded= true;
 	return true;
@@ -180,6 +229,9 @@ void PoseTrack::clear()
 	m_sessionId.clear();
 	m_imageWidth= 0;
 	m_imageHeight= 0;
+	m_depthWidth= 0;
+	m_depthHeight= 0;
+	m_depthUnitMm= 0.0;
 	m_frames.clear();
 	m_bIsLoaded= false;
 }
@@ -189,6 +241,14 @@ const std::string& PoseTrack::getSessionId() const { return m_sessionId; }
 int PoseTrack::getImageWidth() const { return m_imageWidth; }
 
 int PoseTrack::getImageHeight() const { return m_imageHeight; }
+
+bool PoseTrack::hasDepthTrack() const { return m_depthWidth > 0 && m_depthHeight > 0; }
+
+int PoseTrack::getDepthWidth() const { return m_depthWidth; }
+
+int PoseTrack::getDepthHeight() const { return m_depthHeight; }
+
+double PoseTrack::getDepthUnitMm() const { return m_depthUnitMm; }
 
 size_t PoseTrack::getFrameCount() const { return m_frames.size(); }
 
@@ -265,15 +325,33 @@ void PoseTrackWriter::append(int64_t timeUs, int64_t captureTimestampUs, const g
 	m_frames.push_back(frame);
 }
 
+void PoseTrackWriter::setDepthTrack(int depthWidth, int depthHeight, double depthUnitMm)
+{
+	m_depthWidth= depthWidth;
+	m_depthHeight= depthHeight;
+	m_depthUnitMm= depthUnitMm;
+}
+
 configuru::Config PoseTrackWriter::toConfig() const
 {
+	const bool bHasDepthTrack= m_depthWidth > 0 && m_depthHeight > 0;
+
 	configuru::Config pt= configuru::Config::object();
 	pt["format"]= PoseTrack::k_formatName;
-	pt["version"]= static_cast<int64_t>(PoseTrack::k_supportedVersion);
+	// Only the depth header needs version 2, so a track without one is written
+	// at the version every reader accepts
+	pt["version"]=
+		static_cast<int64_t>(bHasDepthTrack ? PoseTrack::k_maxSupportedVersion : PoseTrack::k_minSupportedVersion);
 	pt["session_id"]= m_sessionId;
 	pt["image_width"]= static_cast<int64_t>(m_imageWidth);
 	pt["image_height"]= static_cast<int64_t>(m_imageHeight);
 	pt["first_capture_timestamp_us"]= static_cast<int64_t>(m_frames.empty() ? 0 : m_frames.front().captureTimestampUs);
+	if (bHasDepthTrack)
+	{
+		pt["depth_width"]= static_cast<int64_t>(m_depthWidth);
+		pt["depth_height"]= static_cast<int64_t>(m_depthHeight);
+		pt["depth_unit_mm"]= m_depthUnitMm;
+	}
 
 	configuru::Config frames= configuru::Config::array();
 	for (const PoseTrackFrame& frame : m_frames)

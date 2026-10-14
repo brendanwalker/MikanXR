@@ -78,6 +78,12 @@ file(GLOB MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/DepthMeshCapture/*.h"
 )
 source_group("AppStages\\DepthMeshCapture" FILES ${MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC})
+## OcclusionMeshBuild
+file(GLOB MIKAN_APP_STAGES_OCCLUSION_MESH_BUILD_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/OcclusionMeshBuild/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppStages/OcclusionMeshBuild/*.h"
+)
+source_group("AppStages\\OcclusionMeshBuild" FILES ${MIKAN_APP_STAGES_OCCLUSION_MESH_BUILD_SRC})
 ## MainMenu
 file(GLOB MIKAN_APP_STAGES_MAIN_MENU_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppStages/MainMenu/*.cpp"
@@ -173,6 +179,7 @@ set(MIKAN_APP_STAGES_SRC
     ${MIKAN_APP_STAGES_LIGHT_FIXTURE_CALIBRATION_SRC}
     ${MIKAN_APP_STAGES_SCENE_LIGHTING_CAPTURE_SRC}
     ${MIKAN_APP_STAGES_DEPTH_MESH_CAPTURE_SRC}
+    ${MIKAN_APP_STAGES_OCCLUSION_MESH_BUILD_SRC}
     ${MIKAN_APP_STAGES_MAIN_MENU_SRC}
     ${MIKAN_APP_STAGES_MODAL_CONFIRM_SRC}
     ${MIKAN_APP_STAGES_MODAL_MESSAGE_BOX_SRC}
@@ -225,6 +232,18 @@ file(GLOB MIKAN_CALIBRATION_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Calibration/Test/*.h"
 )
 source_group("Calibration\\Test" FILES ${MIKAN_CALIBRATION_TEST_SRC})
+
+# Reconstruction
+file(GLOB MIKAN_RECONSTRUCTION_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Reconstruction/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Reconstruction/*.h"
+)
+source_group("Reconstruction" FILES ${MIKAN_RECONSTRUCTION_SRC})
+file(GLOB MIKAN_RECONSTRUCTION_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Reconstruction/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Reconstruction/Test/*.h"
+)
+source_group("Reconstruction\\Test" FILES ${MIKAN_RECONSTRUCTION_TEST_SRC})
 
 # Config
 file(GLOB MIKAN_CONFIG_SRC
@@ -553,6 +572,8 @@ set(MIKAN_SRC
     ${MIKAN_ASSET_TEST_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_CALIBRATION_TEST_SRC}
+    ${MIKAN_RECONSTRUCTION_SRC}
+    ${MIKAN_RECONSTRUCTION_TEST_SRC}
     ${MIKAN_COMPONENTS_SRC}
     ${MIKAN_CONFIG_SRC}
     ${MIKAN_DELEGATES_SRC}
@@ -586,6 +607,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Test
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Calibration/Test
+  ${CMAKE_CURRENT_LIST_DIR}/Reconstruction
+  ${CMAKE_CURRENT_LIST_DIR}/Reconstruction/Test
   ${ROOT_DIR}/src/Programs/Tests/UnitTests
   ${CMAKE_CURRENT_LIST_DIR}/Config
   ${CMAKE_CURRENT_LIST_DIR}/Delegates
@@ -661,6 +684,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${LUA_BRIDGE_INCLUDE_DIRS}
   ${ROOT_DIR}/thirdparty/lrdb/include
   ${FAST_OBJ_LOADER_INCLUDE_DIRS}
+  ${CGLTF_INCLUDE_DIR}
   ${libharu_SOURCE_DIR}/include
   ${libharu_BINARY_DIR}/include)
 
@@ -703,6 +727,7 @@ list(APPEND MIKAN_REQ_LIBS
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/OpenCVCameraEnumerator.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 # Carries the editor's stb_image / stb_truetype implementations
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/ECS/Light/DMXSequenceContent.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Asset/GltfImplementation.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/AutomationSocket.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/HttpInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -973,7 +998,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     # the bundled ones through the asset overlay rather than owning copies
     FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.txt" PATTERN "*.lua" PATTERN "*.onnx"
       PATTERN "*.compgraph" PATTERN "*.shapegraph" PATTERN "*.matgraph" PATTERN "*.compmat" PATTERN "*.shapemat"
-      PATTERN "*.vert" PATTERN "*.frag" PATTERN "*.obj" PATTERN "*.mtl")
+      PATTERN "*.vert" PATTERN "*.frag" PATTERN "*.obj" PATTERN "*.mtl" PATTERN "*.glb")
 
   # Install CEF binary and resource files
   if(DEFINED CEF_ROOT)
