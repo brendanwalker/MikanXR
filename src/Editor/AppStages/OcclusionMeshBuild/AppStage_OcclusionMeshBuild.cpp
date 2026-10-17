@@ -7,6 +7,7 @@
 
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
+#include "Capture.h"
 #include "DepthTrackReader.h"
 #include "FileVideoSourceComponent.h"
 #include "GlbMeshWriter.h"
@@ -19,6 +20,7 @@
 #include "MikanCamera.h"
 #include "MikanViewport.h"
 #include "ModalMessageBox/ModalDialog_MessageBox.h"
+#include "MovieDecoder.h"
 #include "ModelStencilComponent.h"
 #include "ModelStencilSystem.h"
 #include "PathUtils.h"
@@ -32,8 +34,11 @@
 
 #include "glm/glm.hpp"
 
+#include <opencv2/imgcodecs.hpp>
+
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <ctime>
 #include <filesystem>
 #include <numeric>
@@ -44,8 +49,8 @@ namespace OcclusionMeshBuildStage
 {
 const char* k_refinedTrackSuffix= ".refined.pose.json";
 
-// A take's refined track sits beside the media with the media's stem, like
-// the recorded track, so the depth sidecars still resolve from the media
+// A capture is never rewritten, so its refined track sits beside it in the
+// captures folder under the capture's stem
 std::filesystem::path refinedTrackPathForMedia(const std::filesystem::path& mediaPath)
 {
 	return mediaPath.parent_path() / (mediaPath.stem().string() + k_refinedTrackSuffix);
@@ -129,25 +134,48 @@ bool AppStage_OcclusionMeshBuild::tryEnterBuild(AppStage* fromAppStage, FileVide
 		return false;
 	}
 
-	const std::filesystem::path trackPath= PathUtils::resolveProjectResource(definition->getPoseTrackPath());
-	PoseTrack track;
-	if (trackPath.empty() || !track.loadFromFile(trackPath))
+	// Only a trackcamera carries a per-frame track and the depth it describes
+	Capture capture;
+	std::string captureError;
+	if (CaptureKindUtils::kindFromExtension(mediaPath) != eCaptureKind::trackcamera
+		|| !capture.open(mediaPath, captureError))
 	{
-		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("occlusionMeshBuild.poseTrackMissing"));
+		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("occlusionMeshBuild.notTrackCamera"));
 		return false;
 	}
 
-	if (!track.hasDepthTrack())
+	// The override, when set, is a refined track from an earlier build on
+	// this capture; the capture's own track otherwise. An override from
+	// another session is a leftover of a different take and is skipped the
+	// way playback skips it, since its frames index nothing in this capture.
+	PoseTrack track;
+	const std::filesystem::path trackPath= PathUtils::resolveProjectResource(definition->getPoseTrackPath());
+	if (!definition->getPoseTrackPath().empty())
+	{
+		if (trackPath.empty() || !track.loadFromFile(trackPath))
+		{
+			ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("occlusionMeshBuild.poseTrackMissing"));
+			return false;
+		}
+		if (track.getSessionId() != capture.getManifest().sessionId)
+		{
+			MIKAN_LOG_WARNING("AppStage_OcclusionMeshBuild")
+				<< "The pose track override " << trackPath << " was recorded in session " << track.getSessionId()
+				<< ", not the capture's " << capture.getManifest().sessionId << ", so the capture's own track is used";
+			track.clear();
+		}
+	}
+	if (!track.isLoaded())
+	{
+		track= capture.getPoseTrack(eCaptureMemberRole::movie_pose);
+	}
+
+	const CaptureArchiveMember* depthMember= capture.findMember(eCaptureMemberRole::depth);
+	const CaptureArchiveMember* confidenceMember= capture.findMember(eCaptureMemberRole::confidence);
+	const CaptureArchiveMember* movieMember= capture.findMember(eCaptureMemberRole::movie);
+	if (!track.hasDepthTrack() || depthMember == nullptr || confidenceMember == nullptr || movieMember == nullptr)
 	{
 		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("occlusionMeshBuild.noDepthTrack"));
-		return false;
-	}
-
-	std::error_code ec;
-	if (!std::filesystem::is_regular_file(DepthTrackReader::depthSidecarPathForMedia(mediaPath), ec)
-		|| !std::filesystem::is_regular_file(DepthTrackReader::confidenceSidecarPathForMedia(mediaPath), ec))
-	{
-		ModalDialog_MessageBox::showMessageBox(fromAppStage, locText("occlusionMeshBuild.depthSidecarsMissing"));
 		return false;
 	}
 
@@ -168,18 +196,26 @@ bool AppStage_OcclusionMeshBuild::tryEnterBuild(AppStage* fromAppStage, FileVide
 	}
 
 	auto* buildStage= ownerWindow->pushAppStageOfType<AppStage_OcclusionMeshBuild>();
-	buildStage->setSourceVideoSource(videoSource, camera, stage, track);
+	buildStage->setSourceVideoSource(videoSource, camera, stage, track, mediaPath, *depthMember, *confidenceMember,
+									 *movieMember);
 	return true;
 }
 
 void AppStage_OcclusionMeshBuild::setSourceVideoSource(FileVideoSourceComponentPtr videoSource,
 													   CameraComponentPtr camera, StageComponentConstPtr stage,
-													   const PoseTrack& track)
+													   const PoseTrack& track, const std::filesystem::path& capturePath,
+													   const CaptureArchiveMember& depthMember,
+													   const CaptureArchiveMember& confidenceMember,
+													   const CaptureArchiveMember& movieMember)
 {
 	m_videoSource= videoSource;
 	m_camera= camera;
 	m_stage= stage;
 	m_track= track;
+	m_capturePath= capturePath;
+	m_depthMember= depthMember;
+	m_confidenceMember= confidenceMember;
+	m_movieMember= movieMember;
 }
 
 void AppStage_OcclusionMeshBuild::enter()
@@ -236,6 +272,8 @@ OcclusionMeshBuildSettings AppStage_OcclusionMeshBuild::gatherSettings() const
 	OcclusionMeshBuildStage::applyVoxelPreset(m_buildPanel->getVoxelPreset(), settings);
 	settings.keyframeStride= std::max(m_buildPanel->getKeyframeStride(), 1);
 	settings.bFrameToModel= m_buildPanel->getFrameToModel();
+	settings.cameraPathRadius= std::max(m_buildPanel->getPathRadius(), 0.f);
+	settings.bTexture= m_buildPanel->getTexture();
 	return settings;
 }
 
@@ -286,13 +324,12 @@ void AppStage_OcclusionMeshBuild::onBuildEvent()
 	if (m_buildPanel->getMenuState() != eOcclusionMeshBuildMenuState::verifyTake)
 		return;
 
-	const std::filesystem::path mediaPath=
-		PathUtils::resolveProjectResource(m_videoSource->getFileVideoSourceDefinition()->getMediaPath());
-
 	BuildRequest request;
 	request.track= m_track;
-	request.depthPath= DepthTrackReader::depthSidecarPathForMedia(mediaPath);
-	request.confidencePath= DepthTrackReader::confidenceSidecarPathForMedia(mediaPath);
+	request.capturePath= m_capturePath;
+	request.depthMember= m_depthMember;
+	request.confidenceMember= m_confidenceMember;
+	request.movieMember= m_movieMember;
 	request.settings= gatherSettings();
 
 	m_bCancelRequested= false;
@@ -379,15 +416,26 @@ void AppStage_OcclusionMeshBuild::runBuildRequest(const BuildRequest& request, B
 	const PoseTrack& track= request.track;
 
 	DepthTrackReader reader;
-	if (!reader.open(request.depthPath, request.confidencePath, track.getDepthWidth(), track.getDepthHeight(),
-					 track.getDepthUnitMm(), track.getFrameCount()))
+	if (!reader.open(request.capturePath, request.depthMember, request.confidenceMember, track.getDepthWidth(),
+					 track.getDepthHeight(), track.getDepthUnitMm(), track.getFrameCount()))
 	{
-		outOutput.result.failureReason= locText("occlusionMeshBuild.depthSidecarsUnreadable");
+		outOutput.result.failureReason= locText("occlusionMeshBuild.depthTracksUnreadable");
 		return;
 	}
 
+	// The movie plays in place inside the capture, decoded here on the worker
+	// with no GL in sight. A movie that will not open costs the texture, not
+	// the mesh.
+	MovieDecoder decoder;
+	if (request.settings.bTexture
+		&& !decoder.openMovieUrl(Capture::makeSubfileUrl(request.capturePath, request.movieMember)))
+	{
+		MIKAN_LOG_WARNING("AppStage_OcclusionMeshBuild") << "The take's movie could not be opened for texturing";
+	}
+
 	BuildObserver observer(this);
-	OcclusionMeshBuilder::build(track, reader, request.settings, &observer, outOutput.result);
+	OcclusionMeshBuilder::build(track, reader, request.settings, &observer, outOutput.result,
+								decoder.isOpen() ? &decoder : nullptr);
 }
 
 void AppStage_OcclusionMeshBuild::consumeBuildOutput()
@@ -459,8 +507,25 @@ bool AppStage_OcclusionMeshBuild::createStencilFromMesh()
 	std::filesystem::create_directories(modelsDirectory);
 	const std::filesystem::path meshPath= modelsDirectory / (std::string(stencilName) + ".glb");
 
-	if (!GlbMeshWriter::write(meshPath, stencilName, m_result.mesh.vertices, m_result.mesh.normals, {},
-							  m_result.mesh.indices))
+	// The atlas goes beside the model under the model's own stem, which is
+	// where the model's material and a client's placement texture both look.
+	// Written before the glb so the reference never dangles.
+	std::string textureFileName;
+	if (m_result.mesh.hasTexCoords() && !m_result.atlas.empty())
+	{
+		textureFileName= std::string(stencilName) + ".png";
+		const std::filesystem::path texturePath= modelsDirectory / textureFileName;
+		if (!cv::imwrite(texturePath.string(), m_result.atlas))
+		{
+			MIKAN_LOG_WARNING("AppStage_OcclusionMeshBuild")
+				<< "Failed to write the atlas " << texturePath.string() << ", the stencil will be untextured";
+			textureFileName.clear();
+		}
+	}
+
+	if (!GlbMeshWriter::write(meshPath, stencilName, m_result.mesh.vertices, m_result.mesh.normals,
+							  textureFileName.empty() ? std::vector<glm::vec2>() : m_result.mesh.texCoords,
+							  m_result.mesh.indices, textureFileName))
 	{
 		m_buildPanel->setFailureReason(locFormat("occlusionMeshBuild.meshWriteFailedFmt", meshPath.string().c_str()));
 		setMenuState(eOcclusionMeshBuildMenuState::failed);
@@ -522,11 +587,10 @@ bool AppStage_OcclusionMeshBuild::writeRefinedPoseTrack(std::string& outStoredPa
 	outReplacedSourceTrack= false;
 
 	FileVideoSourceDefinitionPtr definition= m_videoSource->getFileVideoSourceDefinition();
-	const std::filesystem::path mediaPath= PathUtils::resolveProjectResource(definition->getMediaPath());
-	if (mediaPath.empty())
+	if (m_capturePath.empty())
 		return false;
 
-	// Frames go out in file order so record i of the sidecars still
+	// Frames go out in file order so record i of the depth members still
 	// describes frame i of the refined track
 	std::vector<size_t> trackOrder(m_track.getFrameCount());
 	std::iota(trackOrder.begin(), trackOrder.end(), (size_t)0);
@@ -544,7 +608,7 @@ bool AppStage_OcclusionMeshBuild::writeRefinedPoseTrack(std::string& outStoredPa
 		writer.append(frame.timeUs, frame.captureTimestampUs, cameraToWorld, frame.fx, frame.fy, frame.cx, frame.cy);
 	}
 
-	const std::filesystem::path refinedPath= OcclusionMeshBuildStage::refinedTrackPathForMedia(mediaPath);
+	const std::filesystem::path refinedPath= OcclusionMeshBuildStage::refinedTrackPathForMedia(m_capturePath);
 	if (!writer.writeToFile(refinedPath))
 	{
 		m_buildPanel->setFailureReason(
@@ -646,8 +710,9 @@ bool AppStage_OcclusionMeshBuild::handleRemoteControlCommand(const std::string& 
 	{
 		if (parameters.size() != 2)
 		{
-			outResults.push_back(
-				"usage: set_option <voxel_preset|keyframe_stride|frame_to_model|replace_pose_track> <value>");
+			outResults.push_back("usage: set_option "
+								 "<voxel_preset|keyframe_stride|frame_to_model|replace_pose_track|path_radius|texture> "
+								 "<value>");
 			return false;
 		}
 		if (menuState != eOcclusionMeshBuildMenuState::verifyTake)
@@ -693,6 +758,23 @@ bool AppStage_OcclusionMeshBuild::handleRemoteControlCommand(const std::string& 
 			m_buildPanel->setReplacePoseTrack(bFlag);
 			return true;
 		}
+		else if (option == "path_radius")
+		{
+			char* end= nullptr;
+			const float radius= std::strtof(value.c_str(), &end);
+			if (end == value.c_str() || radius < 0.f)
+			{
+				outResults.push_back("path_radius must be metres, 0 or more");
+				return false;
+			}
+			m_buildPanel->setPathRadius(radius);
+			return true;
+		}
+		else if (option == "texture" && OcclusionMeshBuildStage::parseBool(value, bFlag))
+		{
+			m_buildPanel->setTexture(bFlag);
+			return true;
+		}
 
 		outResults.push_back("unknown option or value: " + option + " " + value);
 		return false;
@@ -735,6 +817,11 @@ bool AppStage_OcclusionMeshBuild::handleRemoteControlCommand(const std::string& 
 		outResults.push_back("registrations_rejected " + std::to_string(stats.registrationsRejected));
 		outResults.push_back("final_correction_mm " + std::to_string(stats.finalCorrectionMm));
 		outResults.push_back("final_correction_deg " + std::to_string(stats.finalCorrectionDeg));
+		outResults.push_back("voxels_clipped " + std::to_string(stats.voxelsClipped));
+		outResults.push_back("texture_views " + std::to_string(stats.textureViewsUsed) + " "
+							 + std::to_string(stats.textureViews));
+		outResults.push_back("triangles_untextured " + std::to_string(stats.trianglesUntextured));
+		outResults.push_back("atlas " + std::to_string(stats.atlasWidth) + " " + std::to_string(stats.atlasHeight));
 		outResults.push_back("seconds " + std::to_string(stats.totalSeconds));
 		return true;
 	}

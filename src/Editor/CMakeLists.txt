@@ -245,6 +245,18 @@ file(GLOB MIKAN_RECONSTRUCTION_TEST_SRC
 )
 source_group("Reconstruction\\Test" FILES ${MIKAN_RECONSTRUCTION_TEST_SRC})
 
+# Capture
+file(GLOB MIKAN_CAPTURE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Capture/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Capture/*.h"
+)
+source_group("Capture" FILES ${MIKAN_CAPTURE_SRC})
+file(GLOB MIKAN_CAPTURE_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Capture/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Capture/Test/*.h"
+)
+source_group("Capture\\Test" FILES ${MIKAN_CAPTURE_TEST_SRC})
+
 # Config
 file(GLOB MIKAN_CONFIG_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Config/*.cpp"
@@ -572,6 +584,8 @@ set(MIKAN_SRC
     ${MIKAN_ASSET_TEST_SRC}
     ${MIKAN_CALIBRATION_SRC}
     ${MIKAN_CALIBRATION_TEST_SRC}
+    ${MIKAN_CAPTURE_SRC}
+    ${MIKAN_CAPTURE_TEST_SRC}
     ${MIKAN_RECONSTRUCTION_SRC}
     ${MIKAN_RECONSTRUCTION_TEST_SRC}
     ${MIKAN_COMPONENTS_SRC}
@@ -607,6 +621,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Test
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Calibration/Test
+  ${CMAKE_CURRENT_LIST_DIR}/Capture
+  ${CMAKE_CURRENT_LIST_DIR}/Capture/Test
   ${CMAKE_CURRENT_LIST_DIR}/Reconstruction
   ${CMAKE_CURRENT_LIST_DIR}/Reconstruction/Test
   ${ROOT_DIR}/src/Programs/Tests/UnitTests
@@ -701,6 +717,7 @@ list(APPEND MIKAN_REQ_LIBS
   "$<$<CONFIG:Debug>:${CEF_LIB_DEBUG}>"
   "$<$<NOT:$<CONFIG:Debug>>:${CEF_LIB_RELEASE}>"
   crypt32
+  dnsapi
   wintrust
   shlwapi
   ${LIBHARU_LIBRARIES}
@@ -730,9 +747,11 @@ set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/ECS/Light/DMXSequenceConte
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Asset/GltfImplementation.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/AutomationSocket.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Server/Test/HttpServerTests.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/HttpInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SharedTextureReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SpoutLogRelay.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/ServiceAdvertiser.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
 # All editor code is compiled once into a shared OBJECT library that both the
 # GUI executable (Mikan) and the command-line tool (MikanCmd) link.

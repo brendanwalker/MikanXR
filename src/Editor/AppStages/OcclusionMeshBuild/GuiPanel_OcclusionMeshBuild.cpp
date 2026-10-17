@@ -39,12 +39,22 @@ void GuiPanel_OcclusionMeshBuild::onGui()
 			m_keyframeStride= std::max(m_keyframeStride, 1);
 		}
 
+		ImGui::SetNextItemWidth(180.f * MkGui::getUiScale());
+		if (ImGui::InputFloat(locLabel("occlusionMeshBuild.pathRadius"), &m_pathRadius, 0.5f, 1.f, "%.1f m"))
+		{
+			m_pathRadius= std::max(m_pathRadius, 0.f);
+		}
+		ImGui::TextWrapped("%s", locText("occlusionMeshBuild.pathRadiusHelp"));
+
 		ImGui::Checkbox(locLabel("occlusionMeshBuild.frameToModel"), &m_bFrameToModel);
 		ImGui::TextWrapped("%s", locText("occlusionMeshBuild.frameToModelHelp"));
 		ImGui::BeginDisabled(!m_bFrameToModel);
 		ImGui::Checkbox(locLabel("occlusionMeshBuild.replacePoseTrack"), &m_bReplacePoseTrack);
 		ImGui::EndDisabled();
 		ImGui::TextWrapped("%s", locText("occlusionMeshBuild.replacePoseTrackHelp"));
+
+		ImGui::Checkbox(locLabel("occlusionMeshBuild.texture"), &m_bTexture);
+		ImGui::TextWrapped("%s", locText("occlusionMeshBuild.textureHelp"));
 
 		ImGui::Spacing();
 		if (ImGui::Button(locLabel("occlusionMeshBuild.build")))
@@ -88,6 +98,10 @@ void GuiPanel_OcclusionMeshBuild::onGui()
 			break;
 		case eOcclusionMeshBuildPhase::cleaning:
 			phaseLabel= locText("occlusionMeshBuild.phaseCleaning");
+			fraction= 0.92f;
+			break;
+		case eOcclusionMeshBuildPhase::texturing:
+			phaseLabel= locFormat("occlusionMeshBuild.phaseTexturingFmt", m_framesDone, m_frameCount);
 			fraction= 0.95f;
 			break;
 		default:
@@ -155,6 +169,22 @@ void GuiPanel_OcclusionMeshBuild::onGui()
 		else
 		{
 			ImGui::TextWrapped("%s", locText("occlusionMeshBuild.registrationOff"));
+		}
+		if (m_stats.voxelsClipped > 0)
+		{
+			ImGui::TextWrapped(
+				"%s", locFormat("occlusionMeshBuild.trimSummaryFmt", (double)m_stats.voxelsClipped * 1e-6).c_str());
+		}
+		if (m_stats.textureViews > 0)
+		{
+			ImGui::TextWrapped("%s", locFormat("occlusionMeshBuild.textureSummaryFmt", m_stats.textureViewsUsed,
+											   m_stats.textureViews, m_stats.atlasWidth, m_stats.atlasHeight,
+											   m_stats.trianglesUntextured)
+										 .c_str());
+		}
+		else
+		{
+			ImGui::TextWrapped("%s", locText("occlusionMeshBuild.textureOff"));
 		}
 
 		ImGui::Spacing();

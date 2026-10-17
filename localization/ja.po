@@ -464,6 +464,11 @@ msgid "Bundled with the application. Copy it to the project to edit it."
 msgstr "アプリケーション付属のアセットです。編集するにはプロジェクトにコピーしてください。"
 
 #. Section: assets
+msgctxt "assets.captureFilterDescription"
+msgid "Capture Files (*.stillphoto;*.stillcamera;*.trackcamera)"
+msgstr ""
+
+#. Section: assets
 #, fuzzy
 msgctxt "assets.compositorGraphFilterDescription"
 msgid "Compositor Graph Files (*.compgraph)"
@@ -500,15 +505,15 @@ msgid "'%s' is still in use and cannot be deleted. Used by:"
 msgstr "'%s' は使用中のため削除できません。使用元:"
 
 #. Section: assets
-msgctxt "assets.depthTrackFilterDescription"
-msgid "Depth Track Files (*.depth.bin, *.conf.bin)"
-msgstr ""
-
-#. Section: assets
 #, fuzzy
 msgctxt "assets.empty"
 msgid "No assets in this folder"
 msgstr "このフォルダーにアセットはありません"
+
+#. Section: assets
+msgctxt "assets.folderCaptures"
+msgid "Captures"
+msgstr ""
 
 #. Section: assets
 #, fuzzy
@@ -606,6 +611,11 @@ msgid "'%s' is not a supported file type for this folder"
 msgstr "'%s' はこのフォルダーでサポートされていないファイル形式です"
 
 #. Section: assets
+msgctxt "assets.loadCaptureDialogTitle"
+msgid "Load Capture"
+msgstr ""
+
+#. Section: assets
 #, fuzzy
 msgctxt "assets.loadCompositorGraphDialogTitle"
 msgid "Load Compositor Graph"
@@ -616,11 +626,6 @@ msgstr "コンポジターグラフを読み込む"
 msgctxt "assets.loadCompositorMaterialDialogTitle"
 msgid "Load Compositor Material"
 msgstr "コンポジターマテリアルを読み込む"
-
-#. Section: assets
-msgctxt "assets.loadDepthTrackDialogTitle"
-msgid "Load Depth Track"
-msgstr ""
 
 #. Section: assets
 #, fuzzy
@@ -681,7 +686,7 @@ msgstr "マテリアルアセット"
 
 #. Section: assets
 msgctxt "assets.mediaFilterDescription"
-msgid "Movie or Image Files (*.mp4;*.mov;*.m4v;*.mkv;*.avi;*.jpg;*.jpeg;*.png;*.bmp;*.tga)"
+msgid "Capture, Movie, or Image Files (*.stillphoto;*.stillcamera;*.trackcamera;*.mp4;*.mov;*.m4v;*.mkv;*.avi;*.jpg;*.jpeg;*.png;*.bmp;*.tga)"
 msgstr ""
 
 #. Section: assets
@@ -3749,13 +3754,8 @@ msgid "Create Stencil"
 msgstr ""
 
 #. Section: occlusionMeshBuild
-msgctxt "occlusionMeshBuild.depthSidecarsMissing"
-msgid "The take's depth sidecars (.depth.bin and .conf.bin) are not beside the movie."
-msgstr ""
-
-#. Section: occlusionMeshBuild
-msgctxt "occlusionMeshBuild.depthSidecarsUnreadable"
-msgid "The depth sidecars do not match the pose track (see the log)."
+msgctxt "occlusionMeshBuild.depthTracksUnreadable"
+msgid "The capture's depth tracks do not match the pose track (see the log)."
 msgstr ""
 
 #. Section: occlusionMeshBuild
@@ -3809,7 +3809,7 @@ msgstr ""
 
 #. Section: occlusionMeshBuild
 msgctxt "occlusionMeshBuild.noDepthTrack"
-msgid "The take's pose track declares no depth sidecars. Record the take on a LiDAR phone."
+msgid "The capture has no depth track. Record the take on a LiDAR phone."
 msgstr ""
 
 #. Section: occlusionMeshBuild
@@ -3825,6 +3825,21 @@ msgstr ""
 #. Section: occlusionMeshBuild
 msgctxt "occlusionMeshBuild.notAligned"
 msgid "The take is not aligned to the stage. Run Align Camera with its marker reference first."
+msgstr ""
+
+#. Section: occlusionMeshBuild
+msgctxt "occlusionMeshBuild.notTrackCamera"
+msgid "The video source is not playing a Track Camera capture (.trackcamera)."
+msgstr ""
+
+#. Section: occlusionMeshBuild
+msgctxt "occlusionMeshBuild.pathRadius"
+msgid "Trim radius"
+msgstr ""
+
+#. Section: occlusionMeshBuild
+msgctxt "occlusionMeshBuild.pathRadiusHelp"
+msgid "Surfaces farther than this from every fused camera position are dropped, so a sweep of a corner does not drag in the rest of the room. 0 keeps everything."
 msgstr ""
 
 #. Section: occlusionMeshBuild
@@ -3850,12 +3865,18 @@ msgstr ""
 
 #. Section: occlusionMeshBuild
 msgctxt "occlusionMeshBuild.phaseLoadingTake"
-msgid "Opening the depth sidecars..."
+msgid "Opening the depth tracks..."
+msgstr ""
+
+#. Section: occlusionMeshBuild
+#, c-format
+msgctxt "occlusionMeshBuild.phaseTexturingFmt"
+msgid "Projecting video frame %d of %d"
 msgstr ""
 
 #. Section: occlusionMeshBuild
 msgctxt "occlusionMeshBuild.poseTrackMissing"
-msgid "The take has no pose track, or it could not be loaded."
+msgid "The capture's pose track override could not be loaded."
 msgstr ""
 
 #. Section: occlusionMeshBuild
@@ -3936,6 +3957,33 @@ msgstr ""
 #, c-format
 msgctxt "occlusionMeshBuild.takeSummaryFmt"
 msgid "Take: %d frames, depth %dx%d, %.1f s"
+msgstr ""
+
+#. Section: occlusionMeshBuild
+msgctxt "occlusionMeshBuild.texture"
+msgid "Project video onto the mesh"
+msgstr ""
+
+#. Section: occlusionMeshBuild
+msgctxt "occlusionMeshBuild.textureHelp"
+msgid "A handful of the take's frames are projected onto the mesh as a rough colour, written beside the model as a png."
+msgstr ""
+
+#. Section: occlusionMeshBuild
+msgctxt "occlusionMeshBuild.textureOff"
+msgid "The mesh is untextured."
+msgstr ""
+
+#. Section: occlusionMeshBuild
+#, c-format
+msgctxt "occlusionMeshBuild.textureSummaryFmt"
+msgid "Textured from %d of %d video frames into a %dx%d atlas, %d triangles unseen."
+msgstr ""
+
+#. Section: occlusionMeshBuild
+#, c-format
+msgctxt "occlusionMeshBuild.trimSummaryFmt"
+msgid "%.1f million voxels trimmed beyond the camera path."
 msgstr ""
 
 #. Section: occlusionMeshBuild
@@ -5267,16 +5315,6 @@ msgid "Lumens per Watt"
 msgstr ""
 
 #. Section: properties
-msgctxt "properties.marker_media_path"
-msgid "Marker Reference Media"
-msgstr ""
-
-#. Section: properties
-msgctxt "properties.marker_pose_track_path"
-msgid "Marker Reference Pose Track"
-msgstr ""
-
-#. Section: properties
 msgctxt "properties.max_wattage"
 msgid "Max Wattage (W)"
 msgstr ""
@@ -6257,13 +6295,33 @@ msgid "Camera %.1ffps"
 msgstr "カメラ %.1ffps"
 
 #. Section: videoSourceSettings
-msgctxt "videoSourceSettings.captureImage"
-msgid "Capture Image"
+msgctxt "videoSourceSettings.cancelCapture"
+msgid "Cancel"
 msgstr ""
 
 #. Section: videoSourceSettings
-msgctxt "videoSourceSettings.markerReference"
-msgid "Marker reference"
+msgctxt "videoSourceSettings.captureKind"
+msgid "Capture kind"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.kindStillCamera"
+msgid "Still Camera"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.kindStillPhoto"
+msgid "Still Photo"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.kindTrackCamera"
+msgid "Track Camera"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.packing"
+msgid "Packing the capture..."
 msgstr ""
 
 #. Section: videoSourceSettings
@@ -6289,6 +6347,11 @@ msgstr ""
 #. Section: videoSourceSettings
 msgctxt "videoSourceSettings.recordingNoProject"
 msgid "No project is loaded."
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.recordingPackFailed"
+msgid "Packing the capture failed. See the log."
 msgstr ""
 
 #. Section: videoSourceSettings
@@ -6335,8 +6398,43 @@ msgid "Return"
 msgstr "戻る"
 
 #. Section: videoSourceSettings
+msgctxt "videoSourceSettings.startCapture"
+msgid "Start Capture"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.stepMarkerImage"
+msgid "Place the origin marker in view, then take the marker image."
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.stepPlateImage"
+msgid "Remove the marker, then take the clean plate."
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.stepReadyToRecord"
+msgid "Record when ready."
+msgstr ""
+
+#. Section: videoSourceSettings
 msgctxt "videoSourceSettings.stop"
 msgid "Stop"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.takeMarkerImage"
+msgid "Take Marker Image"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.takePlateImage"
+msgid "Take Plate Image"
+msgstr ""
+
+#. Section: videoSourceSettings
+msgctxt "videoSourceSettings.trackCameraNeedsPose"
+msgid "Track Camera needs a camera on this source whose pose comes from a tracking mount or a frame-coupled source."
 msgstr ""
 
 #. Section: vrTrackingRecenter
