@@ -26,19 +26,19 @@ Rules that follow from this being the wire contract:
 
 ## Refureku annotations
 
-Both libraries (and `MikanSerialization`) are annotated for Refureku, a C++ static reflection generator that runs at build time. The pattern, from `Public/MikanStencilRequests.h`:
+Both libraries (and `MikanSerialization`) are annotated for Refureku, a C++ static reflection generator that runs at build time. The pattern, from `Public/MikanVideoSourceRequests.h`:
 
 ```cpp
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) GetModelStencilRenderGeometry
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) GetVideoSourceIntrinsics
     : public MikanRequest
 {
 public:
-    GetModelStencilRenderGeometry() { MIKAN_REQUEST_TYPE_INFO_INIT(GetModelStencilRenderGeometry) }
+    GetVideoSourceIntrinsics() { MIKAN_REQUEST_TYPE_INFO_INIT(GetVideoSourceIntrinsics) }
 
-    FIELD() MikanStencilID stencilId= INVALID_MIKAN_ID;
+    FIELD() MikanVideoSourceID video_source_id= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
-    GetModelStencilRenderGeometry_GENERATED
+    GetVideoSourceIntrinsics_GENERATED
 #endif
 };
 ```
@@ -95,9 +95,9 @@ The generated outputs are checked into git (`bindings/csharp/CMakeLists.txt` car
 
 - Requests are JSON text frames. `WebsocketInterprocessMessageServer::processRequests` SAX-scans the incoming string for `requestTypeName` and dispatches to the handler registered under that exact name; `requestId` is optional (fire-and-forget when absent). An unregistered type name gets a plain `MikanResponse` with `MikanAPIResult::UnknownFunction`.
 
-- Responses fill a `ClientResponse` with either `utf8String` (sent as a text frame) or `binaryData` (sent as a binary frame). Binary responses use the `BinarySerializer` path; JSON responses use `Serialization::serializeToJsonString`.
+- Responses fill a `ClientResponse` with `utf8String`, serialized with `Serialization::serializeToJsonString` and sent as a text frame. The websocket carries no binary frames. Bulk model geometry is served over HTTP instead (see "Model geometry over HTTP" below).
 
-- `processRequests` stops dequeuing once a tick's responses exceed a byte budget, leaving the rest for the next tick. Requests stay in arrival order per connection, and the starting connection rotates each tick. See [debugging.md](./debugging.md) for why.
+- `processRequests` drains every connection's queue each tick, in arrival order per connection, starting on a different connection each tick.
 
 - Events are server-to-client JSON pushes. `MikanServer::publishMikanJsonEvent` fans a serialized `MikanEvent` subclass out to every connection. Clients poll them off a queue via `IMikanAPI::fetchNextEvent` / `Mikan_FetchNextEvent`; there is no per-event acknowledgement.
 
@@ -105,7 +105,7 @@ The generated outputs are checked into git (`bindings/csharp/CMakeLists.txt` car
 
 ## Serialization layer and its traps
 
-`src/Libraries/MikanSerialization` walks reflected structs generically: `JsonSerializer`/`JsonDeserializer` (nlohmann-backed) for the websocket and config files, `BinarySerializer`/`BinaryDeserializer` for binary response payloads, with `SerializationVisitor` as the shared field-visiting core and `Serialization::List`/`Map`/`PolymorphicObjectPtr`/`String` as the reflected container types. `TypeRegistry::build` must run at startup before deserializing polymorphic objects by type name (both `MikanServer` clients and `CmdApp::exec` do this).
+`src/Libraries/MikanSerialization` walks reflected structs generically: `JsonSerializer`/`JsonDeserializer` (nlohmann-backed) for the websocket and config files, with `SerializationVisitor` as the shared field-visiting core and `Serialization::List`/`Map`/`PolymorphicObjectPtr`/`String` as the reflected container types. `TypeRegistry::build` must run at startup before deserializing polymorphic objects by type name (both `MikanServer` clients and `CmdApp::exec` do this).
 
 Refureku is MikanSerialization's implementation detail, not a vocabulary the rest of the tree shares. Code outside the library names two things instead:
 
@@ -114,26 +114,22 @@ Refureku is MikanSerialization's implementation detail, not a vocabulary the res
 
 `isType<T>()` stays compile-time checked without the public header including Refureku: a reflected struct carries a `staticGetArchetype()` whose address the accessor compares, and a fundamental resolves through the `Serialization::FundamentalType` enum. A visitor subclass outside the library (`EntityAccessorReadVisitor` in `src/Editor/Server/ServerEntitySerializer.cpp`, `PropertySchemaVisitor` in the schema test) is written entirely in that vocabulary. `rfk::` itself appears only in `MikanSerialization`, `ClientCodeGen.cpp`, and `MikanClientAPI/Private/MikanVariantTypes.cpp`, which reads its own enum's `ENUMVALUE_STRING`.
 
-A struct's binary encoding is the concatenation of its fields in memory offset order, parents first, with no framing between them. `Serialization::getStructFieldsInWireOrder` is the definition of that order for one struct: its own public, non-static fields sorted by memory offset. The serializer walks the parent chain around it, and the bindings generator emits the fields in the same order. Those two used to compute the order separately and disagreed on whether to skip non-public and static fields, which nothing would have caught until a reflected field was one of those.
+A struct's fields are serialized in memory offset order, parents first. `Serialization::getStructFieldsInWireOrder` is the definition of that order for one struct: its own public, non-static fields sorted by memory offset. The JSON serializer walks the parent chain around it, and the bindings generator emits the fields in the same order. Those two used to compute the order separately and disagreed on whether to skip non-public and static fields, which nothing would have caught until a reflected field was one of those.
 
 Each client runtime recovers that order from the generated type, and neither infers it from reflection order:
 
 - C#: every generated field carries `[MikanFieldOrder(n)]`, which `Utils.memoryOffsetSortStructFields` sorts on. `Type.GetFields()` is documented as returning fields in no particular order, so declaration order is not something the runtime may assume.
 - TypeScript: each generated class carries a `__serializationMetadata` array, and the runtime walks the prototype chain base-first to concatenate them.
 
-`src/Editor/Server/ServerModelGeometryPayload` leans on the same layout: model render geometry is serialized once, cached on the `MikanRenderModelResource` it came from, and each response is built by serializing only the `MikanResponse` header and appending those cached bytes, rather than walking every vertex through reflection again. `ModelGeometryPayloadTests` (in `MikanCmd.exe -runTests`) compares the spliced bytes against a whole serialization for both the stencil and shape responses, so a field added to `MikanResponse` or inserted ahead of `render_geometry` fails there.
+One trap, real and verified in code:
 
-Two traps, both real and both verified in code:
-
-**1. `Serialization::String` is `const char*`-only. Do not widen it.** `Public/SerializableString.h` exposes only `const char*` (`setUtf8Value`/`getUtf8Value`, `const char*` constructor and assignment) and hides `std::string` in a pimpl. The header comment states why: `std::string` memory layout differs between Debug and Release CRTs, so passing it across a DLL boundary built against a different CRT (the Unreal plugin uses the Release CRT) corrupts the data. Bytes are always UTF-8; convert at the ingestion boundary. Keep the interface `const char*` even though `std::string` would be more convenient.
-
-**2. The `const char*` to `bool` overload trap in `to_binary`.** `Public/BinaryUtility.h` declares `to_binary(BinaryWriter&, bool)` and `to_binary(BinaryWriter&, const Serialization::String&)` but no `const char*` overload. Passing a raw `const char*` therefore binds the `bool` overload: pointer-to-bool is a standard conversion, which beats the user-defined `const char*` to `Serialization::String` conversion in overload resolution. The string silently serializes as one byte of `true`. When writing `to_binary`/`from_binary` overloads for a new type, wrap C strings in `Serialization::String` (or `std::string`) explicitly before serializing.
+**`Serialization::String` is `const char*`-only. Do not widen it.** `Public/SerializableString.h` exposes only `const char*` (`setUtf8Value`/`getUtf8Value`, `const char*` constructor and assignment) and hides `std::string` in a pimpl. The header comment states why: `std::string` memory layout differs between Debug and Release CRTs, so passing it across a DLL boundary built against a different CRT (the Unreal plugin uses the Release CRT) corrupts the data. Bytes are always UTF-8; convert at the ingestion boundary. Keep the interface `const char*` even though `std::string` would be more convenient.
 
 ---
 
 ## Server side: MikanServer and request handlers
 
-`src/Editor/Server/MikanServer` owns the `WebsocketInterprocessMessageServer` (plus an `HttpInterprocessMessageServer` for HTTP triggers) and a fixed set of per-domain handlers constructed in its constructor: `CameraRequestHandler`, `FunctionRequestHandler`, `LightRequestHandler`, `PropertyRequestHandler`, `MarkerRequestHandler`, `ScriptRequestHandler`, `ShapeRequestHandler`, `StencilRequestHandler`, `TextureSourceRequestHandler`, `VideoSourceRequestHandler`, and the `RemoteControlManager`. `MikanServer` itself only handles connection lifecycle (`InitClientRequest`/`DisposeClientRequest`). `ScriptRequestHandler` also installs the project's HTTP trigger routes on the HTTP server from the script system's route table, and `InvokeScriptTrigger` addresses a script component by name or broadcasts (see [scripting.md](./scripting.md)).
+`src/Editor/Server/MikanServer` owns the `WebsocketInterprocessMessageServer` (plus an `HttpInterprocessMessageServer` for HTTP triggers) and a fixed set of per-domain handlers constructed in its constructor: `CameraRequestHandler`, `FunctionRequestHandler`, `LightRequestHandler`, `PropertyRequestHandler`, `MarkerRequestHandler`, `ModelGeometryRequestHandler`, `ScriptRequestHandler`, `TextureSourceRequestHandler`, `VideoSourceRequestHandler`, and the `RemoteControlManager`. `MikanServer` itself only handles connection lifecycle (`InitClientRequest`/`DisposeClientRequest`). `ScriptRequestHandler` also installs the project's HTTP trigger routes on the HTTP server from the script system's route table, and `InvokeScriptTrigger` addresses a script component by name or broadcasts (see [scripting.md](./scripting.md)).
 
 Each handler derives from `IServerRequestHandler` (`src/Editor/Server/IServerRequestHandler.h`) and, in its `startup`, registers each request type by reflected name:
 
@@ -228,6 +224,26 @@ A Vulkan client takes the same path with one more step, since a Spout sender is 
 
 ---
 
+## Model geometry over HTTP
+
+Model stencil and model shape geometry is served by `ModelGeometryRequestHandler` on the HTTP message server rather than over the websocket. A model runs to megabytes, and a websocket response that size stalls the connection it shares with every other request and event.
+
+- `MikanModelStencilComponentValues` and `MikanModelShapeComponentValues` carry a read-only `geometry_url`: the server-relative path `/geometry/stencil/<componentId>?v=<etag>` or `/geometry/shape/<componentId>?v=<etag>`, empty while the component has no loaded model.
+- `MikanConnectedEvent.httpPort` is the HTTP server's port. Each runtime joins it to the host it connected to as `IMikanAPI::getHttpBaseUrl()` (C++), `MikanAPI.HttpBaseUrl` (C#) and `MikanClient.httpBaseUrl` (TypeScript), and a client fetches `<base><geometry_url>` with its own HTTP stack. The SDK does no HTTP.
+- The etag is FNV-1a 64 over the model file and every diffuse texture file it references (path, size and last-write time), recorded when the model loads. The URL's `v` query and the `ETag` header both carry it, a matching `If-None-Match` answers 304, and the reply carries `Cache-Control: no-cache`.
+- A component notifies `geometry_url` after a `model_path` change has reloaded the model, so the `MikanPropertyUpdateEvent` a client refetches on already carries the new etag. Notifying it beside `model_path` would publish before the reload, because the property handler hears the definition before the component does.
+
+The reply is `model/gltf-binary`, written by `GlbMeshWriter::writeToBytes` from the resource's own triangulated meshes and built once per resource on the first request:
+
+- one mesh and one node per triangulated mesh under one scene
+- positions in the editor's world convention with no axis conversion, the same as the occlusion mesh GLB
+- texcoords stored V-down, as glTF requires
+- each mesh's diffuse texture embedded in the binary chunk as an image `bufferView`, with a material naming it as `baseColorTexture` under `KHR_materials_unlit`. PNG and JPEG files are embedded as they are, other formats are re-encoded as PNG, and a mesh with no texture file has no material.
+
+Every reply on the HTTP server carries `Access-Control-Allow-Origin: *`, and an `OPTIONS` preflight to a registered path answers 204, so browser clients (the CEF GUI, TypeScript clients) can fetch the geometry. The server binds loopback unless the user enables remote access.
+
+---
+
 ## Client side
 
 A C++ client calls `IMikanAPI::createMikanAPI()`, `init(...)`, then `connect()` (defaults) or `connect(host, port)`, and drives everything through `sendRequest(MikanRequest&)`, which returns a `MikanResponseFuture` keyed by `requestId`. Events arrive by polling `fetchNextEvent(MikanEventPtr&)` each frame. The C# (`bindings/csharp/MikanAPI.cs`, `MikanRequestManager.cs`, `MikanEventManager.cs`) and TypeScript (`bindings/typescript/MikanClient.ts`, `MikanRequestManager.ts`, `MikanEventManager.ts`) runtimes mirror this shape over the same JSON protocol, using the generated types in `Generated/` and `types/` respectively. Under the hood all three serialize the request struct to JSON (with `requestTypeName` and `requestId`), send it as a websocket text frame, and match responses back to futures by `requestId`.
@@ -241,8 +257,8 @@ A client that loads no Mikan DLL has two contracts to keep, both of which the na
 The transport contract, from `WebsocketInterprocessMessageClient.cpp` and `WebsocketInterprocessMessageServer.cpp`:
 
 - The URL is `ws://<host>:<port>`, `ws://127.0.0.1:8080` by default, with the sub-protocol `Mikan-<ClientAPIVersion>` (`Mikan-0`) on the handshake. The server connects without one and logs a warning.
-- Requests are text frames. The server accepts no binary frames.
-- A text frame carrying `eventTypeName` is an event, one carrying `responseTypeName` is a response, and a binary frame is always a response. Neither key is a field of any other wire type, so a substring test on the frame is the whole check.
+- Every frame in both directions is a text frame. A runtime logs and drops a binary frame.
+- A frame carrying `eventTypeName` is an event, one carrying `responseTypeName` is a response. Neither key is a field of any other wire type, so a substring test on the frame is the whole check.
 - A close is surfaced to the event parser as the string `disconnect:<code>:<reason>`, which `MikanEventManager` turns into `MikanDisconnectedEvent` in every runtime.
 - The editor sends `MikanConnectedEvent` once the connection is up, so connect returns at once and that event is the signal.
 
