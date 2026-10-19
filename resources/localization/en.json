@@ -2,9 +2,9 @@
 	"_meta": {
 		"code": "en",
 		"nativeName": "English",
-		"stringCount": 1136,
-		"translatedCount": 1136,
-		"reviewedCount": 1136
+		"stringCount": 1144,
+		"translatedCount": 1144,
+		"reviewedCount": 1144
 	},
 	"CEFTextureSourceComponent": {
 		"show_texture_source_settings": "Show Browser Window"
@@ -521,6 +521,7 @@
 		"categoryUtility": "Utility",
 		"categoryVector": "Vector",
 		"clientTextureHeader": "Client Texture Node",
+		"colorAlphaMode": "Color Alpha",
 		"colorConstantTitle": "Color Constant",
 		"colorParameterTitle": "Color Parameter",
 		"colorSigma": "Color Sigma",
@@ -544,6 +545,10 @@
 		"depthJump": "Depth Jump",
 		"depthMaskHeader": "Depth Mask Node",
 		"depthMaskTitle": "Depth Mask",
+		"depthOfFieldHeader": "Depth Of Field Node",
+		"depthOfFieldLensSummaryFmt": "Camera lens: focus %.3f m, aperture %.2f mm (0 is off)",
+		"depthOfFieldNoCamera": "No camera is bound to this compositor",
+		"depthOfFieldTitle": "Depth Of Field",
 		"depthPaletteBanded": "Banded",
 		"depthPaletteGrayscale": "Grayscale",
 		"depthPaletteGrayscaleInverted": "Grayscale Inverted",
@@ -611,6 +616,7 @@
 		"mathSqrtTitle": "Sqrt",
 		"mathStepTitle": "Step",
 		"mathSubtractTitle": "Subtract",
+		"maxBlurRadius": "Max Blur Radius (px)",
 		"mousePositionTitle": "MousePosition",
 		"name": "Name",
 		"nearPlaneTitle": "Near Plane",
@@ -913,6 +919,7 @@
 		"uiScaleTooltip": "Scales the editor UI on top of the scale the display already reports. Leave it at 100 to use the display scale as-is."
 	},
 	"properties": {
+		"aperture_diameter_mm": "Aperture Diameter (mm)",
 		"aruco_dictionary_type": "ArUco Dictionary Type",
 		"aruco_id": "ArUco ID",
 		"available_language_list": "Available Languages",
@@ -953,6 +960,7 @@
 		"dmx_universe": "DMX Universe",
 		"duration_seconds": "Duration (s)",
 		"exposure_scale": "Exposure Scale",
+		"focus_distance": "Focus Distance (m)",
 		"font_path": "Font",
 		"force_render": "Force Render",
 		"foreground_color": "Foreground Color",

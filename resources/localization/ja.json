@@ -2,7 +2,7 @@
 	"_meta": {
 		"code": "ja",
 		"nativeName": "日本語",
-		"stringCount": 1136,
+		"stringCount": 1144,
 		"translatedCount": 899,
 		"reviewedCount": 0
 	},
@@ -521,6 +521,7 @@
 		"categoryUtility": "ユーティリティ",
 		"categoryVector": "ベクトル",
 		"clientTextureHeader": "クライアントテクスチャノード",
+		"colorAlphaMode": "Color Alpha",
 		"colorConstantTitle": "カラー定数",
 		"colorParameterTitle": "カラーパラメータ",
 		"colorSigma": "Color Sigma",
@@ -544,6 +545,10 @@
 		"depthJump": "Depth Jump",
 		"depthMaskHeader": "デプスマスクノード",
 		"depthMaskTitle": "デプスマスク",
+		"depthOfFieldHeader": "Depth Of Field Node",
+		"depthOfFieldLensSummaryFmt": "Camera lens: focus %.3f m, aperture %.2f mm (0 is off)",
+		"depthOfFieldNoCamera": "No camera is bound to this compositor",
+		"depthOfFieldTitle": "Depth Of Field",
 		"depthPaletteBanded": "Banded",
 		"depthPaletteGrayscale": "Grayscale",
 		"depthPaletteGrayscaleInverted": "Grayscale Inverted",
@@ -611,6 +616,7 @@
 		"mathSqrtTitle": "平方根",
 		"mathStepTitle": "ステップ",
 		"mathSubtractTitle": "減算",
+		"maxBlurRadius": "Max Blur Radius (px)",
 		"mousePositionTitle": "マウス位置",
 		"name": "名前",
 		"nearPlaneTitle": "ニアプレーン",
@@ -913,6 +919,7 @@
 		"uiScaleTooltip": "Scales the editor UI on top of the scale the display already reports. Leave it at 100 to use the display scale as-is."
 	},
 	"properties": {
+		"aperture_diameter_mm": "Aperture Diameter (mm)",
 		"aruco_dictionary_type": "ArUco 辞書タイプ",
 		"aruco_id": "ArUco ID",
 		"available_language_list": "利用可能な言語",
@@ -953,6 +960,7 @@
 		"dmx_universe": "DMX ユニバース",
 		"duration_seconds": "長さ (秒)",
 		"exposure_scale": "露出スケール",
+		"focus_distance": "Focus Distance (m)",
 		"font_path": "フォント",
 		"force_render": "Force Render",
 		"foreground_color": "前景色",
