@@ -259,7 +259,7 @@ The reply is `model/gltf-binary`, written by `GlbMeshWriter::writeToBytes` from 
 - texcoords stored V-down, as glTF requires
 - each mesh's diffuse texture embedded in the binary chunk as an image `bufferView`, with a material naming it as `baseColorTexture` under `KHR_materials_unlit`. PNG and JPEG files are embedded as they are, other formats are re-encoded as PNG, and a mesh with no texture file has no material.
 
-Every reply on the HTTP server carries `Access-Control-Allow-Origin: *`, and an `OPTIONS` preflight to a registered path answers 204, so browser clients (the CEF GUI, TypeScript clients) can fetch the geometry. The server binds loopback unless the user enables remote access.
+Every reply on the HTTP server carries `Access-Control-Allow-Origin: *`, and an `OPTIONS` preflight to a registered path answers 204, so browser clients (TypeScript clients) can fetch the geometry. The server binds loopback unless the user enables remote access.
 
 ---
 
@@ -297,6 +297,7 @@ The transport contract, from `WebsocketInterprocessMessageClient.cpp` and `Webso
 - Every frame in both directions is a JSON-RPC 2.0 text frame. A runtime logs and drops a binary frame.
 - A frame with `id` and `result` or `error` is a response, a frame with `method` and no `id` is an event. A response whose id is not an integer is dropped by the C++ runtime with an error log.
 - A close is surfaced to the event parser as the string `disconnect:<code>:<reason>`, which `MikanEventManager` turns into `MikanDisconnectedEvent` in every runtime.
+- The server pings every connection every 5 seconds and closes one whose pong has not arrived by the next ping (code 1011, reason `Ping timeout`), so a client that leaves the network without a close frame is torn down, with any connection-scoped state such as alignment watches and return feeds, within about 10 seconds. A managed client answers pings; every websocket library does so by default except Network.framework, where `autoReplyPing` must be set.
 - The editor sends `MikanConnectedEvent` once the connection is up, so connect returns at once and that event is the signal.
 
 The shared texture contract, for a client that writes Spout senders itself instead of calling the core C API (`SharedTextureUtility.cpp`, `CameraRequestHandler.cpp`, `SpoutDXDepthTexturePacker.cpp`):
