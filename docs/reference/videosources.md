@@ -24,7 +24,7 @@ The first three talk to hardware through device interfaces defined in `src/Libra
 Video backends are separate DLLs under `src/Plugins`, loaded on demand by name. The contract lives in `MikanCoreApp`:
 
 - `IMikanModule` (`startup()`/`shutdown()`) plus two exported C functions per plugin, `AllocatePluginModule` and `FreePluginModule` (`IMikanModule.h`).
-- Per-domain module interfaces: `IUsbVideoDeviceModule::createUsbVideoDeviceManager()`, `INetworkVideoDeviceModule`, `IVRDeviceModule::createTrackingRuntime()`, and `IARKitVideoDeviceModule`.
+- Per-domain module interfaces: `IUsbVideoDeviceModule::createUsbVideoDeviceManager()`, `INetworkVideoDeviceModule::createNetworkVideoDeviceManager()` plus `createRtpVideoSender()` (an `IRtpVideoSender` that encodes editor RGBA frames to H.264 RTP over UDP, so the editor reaches GStreamer encoding without linking it), `IVRDeviceModule::createTrackingRuntime()`, and `IARKitVideoDeviceModule`.
 - `MikanModuleManager` (`MikanModuleManager.cpp`) caches loaded modules; `MikanModule::load()` uses `dylib` to open the DLL from the executable directory (`PathUtils::getModulePath()`) and resolve the two exports.
 
 A plugin's `startup()`/`shutdown()` may only manage state it exclusively owns. Process-global library state is shared with every other loaded plugin, so no plugin may tear it down. GStreamer is the live case: `MikanGStreamerVideo` and `MikanARKitVideo` both call `gst_init_check()`, whichever loads first does the real initialization, and the second gets a no-op success. Neither calls `gst_deinit()`, in `shutdown()` or on the init-failure path, because GStreamer aborts the process (`GStreamer should not be deinitialized a second time`) when the second plugin tears down. Its resources are reclaimed at process exit instead.
@@ -212,22 +212,33 @@ curl -X POST --data-binary @take.trackcamera "http://127.0.0.1:8090/assets/uploa
 
 ### Finding the editor from the phone
 
-The editor advertises itself on the LAN over DNS-SD so the phone needs no typed address. `ServiceAdvertiser` (`src/Editor/Interprocess/ServiceAdvertiser.h`) registers a `_mikanxr._tcp` service named `MikanXR (<computer name>)` on the HTTP server's port, through the DNS-SD API built into Windows (`windns.h`, Windows 10 1903 and later), so no Bonjour install is needed. The TXT record carries two keys:
+The editor advertises itself on the LAN over DNS-SD so the phone needs no typed address. `ServiceAdvertiser` (`src/Editor/Interprocess/ServiceAdvertiser.h`) registers a `_mikanxr._tcp` service named `MikanXR (<computer name>)` on the HTTP server's port, through the DNS-SD API built into Windows (`windns.h`, Windows 10 1903 and later), so no Bonjour install is needed. The TXT record carries three keys:
 
 - `txtvers`: the record's version, `1`
 - `arkit`: the `base_port` of every ARKit video source, sorted ascending and comma separated, empty when the project has none
+- `ws`: the client API websocket port, for a phone that connects as a client ([wire-protocol.md](./wire-protocol.md))
 
-The phone takes the first editor it finds and the lowest port in `arkit`, and fills its host, base port, and HTTP port settings from them. The service is advertised only while "Allow connections from other machines" is on, since a loopback-only server is unreachable from the phone. Once a second the advertiser rebuilds what it should advertise from the remote access setting, the HTTP port, and the project's ARKit sources, and registers again when that differs from what is registered. That one comparison follows port edits, source adds and removes, and project loads with no event subscriptions. A withdrawn registration sends the mDNS goodbye, so browsers drop it at once. The replacement is registered only after that withdrawal completes: two registrations of one name collide, Windows renames the second `MikanXR (<computer name>)(1)`, and a renamed registration the editor fails to withdraw stays advertised by the Windows DNS Client service after the editor exits. `MikanCmd` does not advertise. From a Mac, `dns-sd -B _mikanxr._tcp` lists the editor and `dns-sd -L "MikanXR (<computer name>)" _mikanxr._tcp` shows its port and TXT record.
+The phone takes the first editor it finds and the lowest port in `arkit`, and fills its host, base port, and HTTP port settings from them. The service is advertised only while "Allow connections from other machines" is on, since a loopback-only server is unreachable from the phone. That one setting opens both the HTTP server and the client API websocket to the LAN. Once a second the advertiser rebuilds what it should advertise from the remote access setting, the HTTP port, and the project's ARKit sources, and registers again when that differs from what is registered. That one comparison follows port edits, source adds and removes, and project loads with no event subscriptions. A withdrawn registration sends the mDNS goodbye, so browsers drop it at once. The replacement is registered only after that withdrawal completes: two registrations of one name collide, Windows renames the second `MikanXR (<computer name>)(1)`, and a renamed registration the editor fails to withdraw stays advertised by the Windows DNS Client service after the editor exits. `MikanCmd` does not advertise. From a Mac, `dns-sd -B _mikanxr._tcp` lists the editor and `dns-sd -L "MikanXR (<computer name>)" _mikanxr._tcp` shows its port and TXT record.
 
 ### Alignment status for the phone
 
-The phone's stream mode asks the editor whether its stream is aligned, so it can show "look at the origin marker" until it is. This is the one GET route the editor serves, a background route that checks the verb:
+The phone's stream mode asks the editor whether its stream is aligned, so it can show "look at the origin marker" until it is. This is a GET route served as a background route that checks the verb:
 
 ```
 GET /arkit/alignment?port=<base_port>
 ```
 
 `ARKitAlignmentRequestHandler` (`src/Editor/Server/ARKitAlignmentRequestHandler.h`) owns it. It hops to the main thread once, finds the `ARKitVideoSourceComponent` whose `base_port` matches, and replies `{"marker_visible": bool, "aligned": bool}`, or 404 when no ARKit source streams to that port, 405 for another verb, 400 for a missing or malformed port, and 504 when the editor did not answer. `aligned` is the source's `hasPoseOffset`, which the source drops itself when the phone restarts its ARKit session. A poll of an unaligned source starts, or keeps alive, the `ARKitMarkerAutoAligner` described under [ARKit world-to-stage offset](#arkit-world-to-stage-offset), and `marker_visible` is that aligner's last detection. The `arkit_alignment_route` test module drives the route through a stub editor and checks the shared averaging.
+
+### Session description for the compositor's RTP output
+
+A player receives the compositor's RTP output ([compositor.md](./compositor.md)) from a session description rather than a hand-written file, so the document follows the output's size and destination:
+
+```
+GET /compositor/stream.sdp?compositor=<id>
+```
+
+`CompositorStreamRequestHandler` (`src/Editor/Server/CompositorStreamRequestHandler.h`) owns it, a background route that hops to the main thread once. The id may be left off when the project has one compositor. The reply is `application/sdp` with the destination as its connection address, the port, `H264/90000` on payload 96 with `packetization-mode=1`, the picture size and the frame rate. It answers 405 for another verb, 400 for a malformed id or for no id when the project has several compositors, 404 when the compositor is missing or its RTP output is off, and 504 when the editor did not answer. Saving the body as a `.sdp` file and opening it in VLC or `ffplay` on the destination machine plays the stream. Another machine reaches the route only while "Allow connections from other machines" is on, like the phone's routes. The `compositor_stream_route` test module drives the route through a stub editor and checks the size math and the SDP text.
 
 ### Recording from the editor
 
@@ -309,4 +320,4 @@ Pixel data never travels over the websocket; only events and requests do (see [w
 
 - Client to editor: clients allocate a shared render target through `MikanClientCore` using `createSharedTextureWriteAccessor` (`src/Libraries/MikanSharedTexture/Public/SharedTextureWriter.h`; color, optional depth and shadow buffers per `SharedTextureDescriptor`, OpenGL, D3D11, D3D12, and Vulkan writers, D3D9 and Metal being enum values with no writer behind them). On a `PublishCameraRenderTargetTextures` request, `CameraRequestHandler::frameRenderedHandler` reads the textures through a per-client, per-camera `SharedTextureReadAccessor` (`src/Editor/Interprocess/SharedTextureReader.h`) and hands them to the compositor.
 
-- Composited output: `CompositorComponent` can publish the final composited frame as a named Spout sender (`k_spoutEnableOutputNamePropertyId` / spout output name on `CompositorDefinition`), using the same `ISharedTextureWriteAccessor` API. The `MikanSharedTexture` library is itself implemented on Spout (`Private/SpoutGL`, `Private/SpoutDX`), so both the client render-target path and the Spout output path are Spout shared textures underneath.
+- Composited output: `CompositorComponent` can publish the final composited frame as a named Spout sender (`k_spoutEnableOutputNamePropertyId` / spout output name on `CompositorDefinition`), using the same `ISharedTextureWriteAccessor` API. The `MikanSharedTexture` library is itself implemented on Spout (`Private/SpoutGL`, `Private/SpoutDX`), so both the client render-target path and the Spout output path are Spout shared textures underneath. The same frame can also leave the machine as H.264 RTP over UDP through the `MikanGStreamerVideo` plugin's `IRtpVideoSender` ([compositor.md](./compositor.md)), the path a phone or a player on another machine receives.

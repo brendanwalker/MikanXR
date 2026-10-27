@@ -39,15 +39,19 @@ public:
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
 	inline class HttpInterprocessMessageServer* getHttpMessageServer() { return m_httpMessageServer; }
 
-	// Stops and restarts the HTTP server on the port and bind scope the app settings hold.
-	// Previously registered routes are preserved (dispose() only stops the listener, it
-	// doesn't clear the route table).
-	void restartHttpMessageServer();
+	// Stops and restarts the HTTP server on the port and bind scope the app settings hold,
+	// and the websocket server when its bind scope changed. Registered routes and request
+	// handlers are preserved, since dispose() only stops the listeners.
+	void restartMessageServers();
 	inline class ARKitAlignmentRequestHandler* getARKitAlignmentRequestHandler() const
 	{
 		return m_arkitAlignmentRequestHandler;
 	}
 	inline class AssetUploadRequestHandler* getAssetUploadRequestHandler() const { return m_assetUploadRequestHandler; }
+	inline class CompositorStreamRequestHandler* getCompositorStreamRequestHandler() const
+	{
+		return m_compositorStreamRequestHandler;
+	}
 	inline class CameraRequestHandler* getCameraRequestHandler() const { return m_cameraRequestHandler; }
 	inline class FunctionRequestHandler* getFunctionRequestHandler() const { return m_functionRequestHandler; }
 	inline class LightRequestHandler* getLightRequestHandler() const { return m_lightRequestHandler; }
@@ -103,6 +107,7 @@ private:
 
 	class ARKitAlignmentRequestHandler* m_arkitAlignmentRequestHandler;
 	class AssetUploadRequestHandler* m_assetUploadRequestHandler;
+	class CompositorStreamRequestHandler* m_compositorStreamRequestHandler;
 	class CameraRequestHandler* m_cameraRequestHandler;
 	class FunctionRequestHandler* m_functionRequestHandler;
 	class LightRequestHandler* m_lightRequestHandler;
@@ -115,4 +120,7 @@ private:
 	class VideoSourceRequestHandler* m_videoSourceRequestHandler;
 
 	MikanClientConnectionStateMap m_clientConnections;
+
+	// The rpc.discover answer, built once every request handler is registered
+	nlohmann::json m_openRpcDocument;
 };
